@@ -34,7 +34,8 @@ const Result = (props) => {
 
     const atributosDiv = atributos.map((atributo) => <span style={styles.item}><strong>{atributo.name}</strong> {atributo.value} ({atributo.mod > 0 ? '+' : ''}{atributo.mod})</span>);
 
-    const periciasDiv = pericias.map((pericia) => <li>{pericia}</li>);
+    const periciasSorted = pericias.sort();
+    const periciasDiv = periciasSorted.map((pericia) => <li>{pericia}</li>);
     const habilidadesRacaDiv = raca.habilites.texts.map((hab) => <li>{hab}</li>);
     const habilidadesClasseDiv = classe.habilities.map((hab) => <li><strong>{hab.name}:</strong> {hab.text}</li>);
     const proeficienciasDiv = classe.proeficiencias.map((proe) => <li>{proe}</li>);
