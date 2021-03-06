@@ -13,6 +13,7 @@ const PERICIAS = {
     GUERRA: 'Guerra',
     INICIATIVA: 'Iniciativa',
     INTIMIDACAO: 'Intimidação',
+    INTUICAO: 'Intuição',
     INVESTIGACAO: 'Investigação',
     JOGATINA: 'Jogatina',
     LADINAGEM: 'Ladinagem',
