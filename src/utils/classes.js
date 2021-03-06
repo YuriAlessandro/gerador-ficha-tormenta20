@@ -7,6 +7,7 @@ import INVENTOR from './classesDetalhado/inventor';
 import LADINO from './classesDetalhado/ladino';
 import LUTADOR from './classesDetalhado/lutador';
 import NOBRE from './classesDetalhado/nobre';
+import PALADINO from './classesDetalhado/paladino';
 
 const CLASSES = [
     BARBARO,
@@ -18,6 +19,7 @@ const CLASSES = [
     LADINO,
     LUTADOR,
     NOBRE,
+    PALADINO,
 ]
 
 export default CLASSES;
