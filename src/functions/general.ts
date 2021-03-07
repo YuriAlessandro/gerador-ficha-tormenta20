@@ -296,8 +296,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 
 export function addEquipClass(classe: ClassDescription) {
   // 5.1 A depender da classe os itens podem variar
-  let equipamentosIniciais = [];
-  equipamentosIniciais = EQUIPAMENTOS.inicial;
+  const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
 
   const armaduras = EQUIPAMENTOS.armadurasLeves;
   const armas = EQUIPAMENTOS.armasSimples;
