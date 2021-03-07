@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
   button: {
     background: 'rgb(209, 50, 53);',
     color: '#FAFAFA',
+    marginBottom: '10px',
   },
   input: {
     color: 'rgb(209, 50, 53)',
@@ -38,6 +39,15 @@ const useStyles = makeStyles((theme) => ({
 
 const MainScreen = () => {
   const classes = useStyles();
+
+  const styles = {
+    select: {
+      marginRight: '10px',
+      minWidth: '150px',
+      minHeight: '36px',
+      marginBottom: '10px',
+    }
+  }
 
   const [randomSheet, setRandomSheet] = React.useState();
   const [sidebarVisibility, setSidebarVisibility] = React.useState();
@@ -73,7 +83,19 @@ const MainScreen = () => {
         </Toolbar>
       </AppBar>
 
-      <div style={{ margin: '20px', display: 'flex' }}>
+      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap'}}>
+        <select style={styles.select}>
+          <option>Todas as Raças</option>
+        </select>
+
+        <select style={styles.select}>
+          <option>Todas as Classes</option>
+        </select>
+
+        <select style={styles.select}>
+          <option>Nível 1</option>
+        </select>
+
         <Button
           variant='contained'
           onClick={onClickGenerate}
