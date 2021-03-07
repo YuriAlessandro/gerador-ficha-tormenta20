@@ -4,7 +4,7 @@ import {
   getClassDetailsModifiedByRace,
   modifyAttributesBasedOnRace,
   getModValues,
-} from '../general';
+} from '../general.ts';
 
 const originalAttrs = [
   { name: 'Força', value: 17, mod: 3 },

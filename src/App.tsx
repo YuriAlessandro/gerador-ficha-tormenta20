@@ -29,9 +29,10 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     margin: theme.spacing(1),
   },
+  menuButton: {},
 }));
 
-function App() {
+function App(): JSX.Element {
   const classes = useStyles();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);

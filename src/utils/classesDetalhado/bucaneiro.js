@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const BUCANEIRO = {
   name: 'Bucaneiro',
@@ -35,7 +36,11 @@ const BUCANEIRO = {
       PERICIAS.PONTARIA,
     ],
   },
-  proeficiencias: ['Armas marciais.'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Audácia',
