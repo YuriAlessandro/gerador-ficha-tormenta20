@@ -1,6 +1,6 @@
 import { GeneralPower, GeneralPowerType, RequirementType } from './types';
 
-const tormentaPowers: GeneralPower[] = [
+const magicPowers: GeneralPower[] = [
   {
     name: 'Celebrar Ritual',
     description:
@@ -28,4 +28,4 @@ const tormentaPowers: GeneralPower[] = [
   },
 ];
 
-export default tormentaPowers;
+export default magicPowers;
