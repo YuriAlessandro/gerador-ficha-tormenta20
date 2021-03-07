@@ -1,22 +1,25 @@
+interface Race {
+  name: string;
+  habilites: {
+    attrs: {
+      attr: string;
+      mod: number;
+    }[];
+    other: {
+      type: string;
+      allowed: string;
+    }[];
+    texts: string[];
+  };
+  oldRace?: Race
+}
+
 export default interface CharacterSheet {
   nome: string;
   sexo: string;
   nivel: number;
   atributos: Record<string, any>[];
-  raca: {
-    name: string;
-    habilites: {
-      attrs: {
-        attr: string;
-        mod: number;
-      }[];
-      other: {
-        type: string;
-        allowed: string;
-      }[];
-      texts: string[];
-    };
-  };
+  raca: Race;
   classe: {
     name: string;
     pv: number;
