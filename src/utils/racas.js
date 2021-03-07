@@ -9,6 +9,7 @@ import GOLEM from './racasDetalhado/golem';
 import HYNNE from './racasDetalhado/hynne';
 import HUMANO from './racasDetalhado/humano';
 import KLIREN from './racasDetalhado/kliren';
+import MEDUSA from './racasDetalhado/medusa';
 
 const RACAS = [
   // ANAO,
@@ -21,7 +22,8 @@ const RACAS = [
   // GOLEM,
   // HYNNE,
   // HUMANO,
-  KLIREN,
+  // KLIREN,
+  MEDUSA,
 ];
 
 export default RACAS;
