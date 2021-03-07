@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import CharacterSheet from '../interfaces/CharacterSheet';
 
 interface ResultProps {
@@ -20,10 +20,15 @@ const Result: React.FC<ResultProps> = (props) => {
     pm,
     defesa,
     equipamentos,
+    id,
   } = sheet;
 
+  function getKey(elementId: string) {
+    return `${id}-${elementId}`;
+  }
+
   const atributosDiv = atributos.map((atributo) => (
-    <span key={atributo.name} className='resultItem'>
+    <span key={getKey(atributo.name)} className='resultItem'>
       <strong>{atributo.name}</strong> {atributo.value} (
       {atributo.mod > 0 ? '+' : ''}
       {atributo.mod})
@@ -32,21 +37,21 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const periciasSorted = pericias.sort();
   const periciasDiv = periciasSorted.map((pericia) => (
-    <li key={pericia}>{pericia}</li>
+    <li key={getKey(pericia)}>{pericia}</li>
   ));
   const habilidadesRacaDiv = raca.habilites.texts.map((hab) => (
-    <li key={hab}>{hab}</li>
+    <li key={getKey(hab)}>{hab}</li>
   ));
   const habilidadesClasseDiv = classe.habilities.map((hab) => (
-    <li key={hab.name}>
+    <li key={getKey(hab.name)}>
       <strong>{hab.name}:</strong> {hab.text}
     </li>
   ));
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
-    <li key={proe}>{proe}</li>
+    <li key={getKey(proe)}>{proe}</li>
   ));
   const equipamentosDiv = equipamentos.map((equip) => (
-    <li key={equip.nome}>{equip.nome}</li>
+    <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
 
   return (
