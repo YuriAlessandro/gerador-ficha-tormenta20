@@ -264,8 +264,26 @@ const nomes: {
     Mulher: ['Noita'],
   },
   Sereia: {
-    Homem: ['Sereio'],
-    Mulher: ['Serena'],
+    Homem: [
+      'Alon',
+      'Dalax',
+      'Kairus',
+      'Malik',
+      'Nereus',
+      'Octopian',
+      'Orin',
+      'Tempestus',
+    ],
+    Mulher: [
+      'Alda',
+      'Darya',
+      'Layna',
+      'Meri',
+      'Murgen',
+      'Nerissa',
+      'Onna',
+      'Sedna',
+    ],
   },
   Sílfide: {
     Homem: ['Silfide'],
