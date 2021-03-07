@@ -22,7 +22,8 @@
   },
   "plugins": [
     "react",
-    "prettier"
+    "prettier",
+    "@typescript-eslint/eslint-plugin"
   ],
   "rules": {
     "import/extensions": [

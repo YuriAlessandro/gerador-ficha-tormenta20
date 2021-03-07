@@ -1,22 +1,34 @@
+export interface RaceHability {
+  attr: string;
+  mod: number;
+}
+
+export interface CharacterAttribute {
+  name: string;
+  value: number;
+  mod: number;
+}
+
+export interface Race {
+  name: string;
+  habilites: {
+    attrs: RaceHability[];
+    other: {
+      type: string;
+      allowed: string;
+      mod?: number;
+    }[];
+    texts: string[];
+  };
+  oldRace?: Race;
+}
+
 export default interface CharacterSheet {
   nome: string;
   sexo: string;
   nivel: number;
   atributos: Record<string, any>[];
-  raca: {
-    name: string;
-    habilites: {
-      attrs: {
-        attr: string;
-        mod: number;
-      }[];
-      other: {
-        type: string;
-        allowed: string;
-      }[];
-      texts: string[];
-    };
-  };
+  raca: Race;
   classe: {
     name: string;
     pv: number;

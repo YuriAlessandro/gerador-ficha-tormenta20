@@ -1,4 +1,6 @@
-const nomes = {
+const nomes: {
+  [key: string]: any;
+} = {
   Humano: {
     Homem: [
       'Aldor',
@@ -32,10 +34,6 @@ const nomes = {
     Homem: ['Darlan'],
     Mulher: ['Darlene'],
   },
-  Lefou: {
-    Homem: ['Lefex'],
-    Mulher: ['Lefoa'],
-  },
   Elfo: {
     Homem: ['Elfo'],
     Mulher: ['Elfa'],
@@ -44,9 +42,45 @@ const nomes = {
     Homem: ['Goblinaldo'],
     Mulher: ['Goblina'],
   },
-  Lefeu: {
-    Homem: ['Lefeuso'],
-    Mulher: ['Lefona'],
+  Lefou: {
+    primeiroNome: [
+      'Alma',
+      'Eco',
+      'Estrela',
+      'Fulgor',
+      'Furacão',
+      'Sol',
+      'Tempestade',
+      'Tremor',
+      'Uivo',
+      'Zênite',
+    ],
+    segundoNome: {
+      Homem: [
+        'Afiado',
+        'Cadavérico',
+        'da Perdição',
+        'do Ocaso',
+        'Eterno',
+        'Herege',
+        'Imortal',
+        'Maldito',
+        'Rubro',
+        'Serrilhado',
+      ],
+      Mulher: [
+        'Afiada',
+        'Cadavérica',
+        'da Perdição',
+        'do Ocaso',
+        'Eterna',
+        'Herege',
+        'Imortal',
+        'Maldita',
+        'Rubra',
+        'Serrilhada',
+      ],
+    },
   },
   Minotauro: {
     Homem: ['Minotouro'],

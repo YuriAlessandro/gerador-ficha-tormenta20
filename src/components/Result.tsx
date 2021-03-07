@@ -70,7 +70,8 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>Classe</strong> {classe.name}
         </span>
         <span style={styles.item}>
-          <strong>Raça</strong> {raca.name}
+          <strong>Raça</strong> {raca.name}{' '}
+          {raca.oldRace && `(${raca.oldRace.name})`}
         </span>
         <span style={styles.item}>
           <strong>Nível</strong> {nivel}

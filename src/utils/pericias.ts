@@ -1,4 +1,4 @@
-const PERICIAS = {
+const PERICIAS: any = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
   ATLETISMO: 'Atletismo',

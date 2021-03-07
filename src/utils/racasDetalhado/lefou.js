@@ -1,5 +1,5 @@
-const LEFEU = {
-  name: 'Lefeu',
+const LEFOU = {
+  name: 'Lefou',
   habilites: {
     attrs: [
       { attr: 'Carisma', mod: -2 },
@@ -15,4 +15,4 @@ const LEFEU = {
   },
 };
 
-export default LEFEU;
+export default LEFOU;
