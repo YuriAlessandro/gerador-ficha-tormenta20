@@ -11,7 +11,8 @@ const Result = (props) => {
         atributos,
         raca,
         classe,
-        pericias
+        pericias,
+        pv
     } = sheet;
 
     const styles = {
@@ -39,9 +40,6 @@ const Result = (props) => {
     const habilidadesRacaDiv = raca.habilites.texts.map((hab) => <li>{hab}</li>);
     const habilidadesClasseDiv = classe.habilities.map((hab) => <li><strong>{hab.name}:</strong> {hab.text}</li>);
     const proeficienciasDiv = classe.proeficiencias.map((proe) => <li>{proe}</li>);
-
-    const constAttr = atributos.find(attr => attr.name === 'Constituição');
-    const pv = classe.pv + constAttr.mod;
 
     const destAttr = atributos.find(attr => attr.name === 'Destreza');
     const defesa = 10 + destAttr.mod;

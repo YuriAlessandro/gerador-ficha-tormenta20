@@ -71,15 +71,13 @@ export function generateRandomSheet(){
                 selectedAttr = getRandomItemFromArray(ATRIBUTOS);
             }
         }else{
-            // TODO: Dar um find nesse atributo pelo nome
+            selectedAttr = item.attr;
         }
 
         modifiedAttrs.push(selectedAttr);
         
         // Dar um find no attr na lista de atributos
         const attrToChange = atributos.find((attr) => attr.name === selectedAttr);
-
-        console.log(attrToChange);
         
         // Aumentar esse atributo + modificador
         const actualValue = attrToChange.value;
@@ -89,6 +87,10 @@ export function generateRandomSheet(){
 
     // Passo 3: Definir a classe
     const classe = getRandomItemFromArray(CLASSES);
+
+    // Passo 3.1: Determinando o PV baseado na classe
+    const constAttr = atributos.find(attr => attr.name === 'Constituição');
+    let pv = classe.pv + constAttr.mod;
 
     // Passo 4: Marcar as perícias treinadas
     // 4.1: Primeiramente vamos treinar as pericias que vem da raça
@@ -104,6 +106,8 @@ export function generateRandomSheet(){
 
                 pericias.push(PERICIAS[actualPer]);
             }
+        }else if(item.type === 'pv'){
+            pv += item.mod;
         }
     })
 
@@ -136,5 +140,6 @@ export function generateRandomSheet(){
         raca,
         classe,
         pericias,
+        pv
     }
 }
