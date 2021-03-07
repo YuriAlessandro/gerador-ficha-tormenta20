@@ -3,7 +3,7 @@ import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 
-function getModValues(attr){
+function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
 }
 
