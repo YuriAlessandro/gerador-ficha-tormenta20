@@ -31,7 +31,6 @@ const LUTADOR = {
   },
   proeficiencias: [
     PROFICIENCIAS.LEVES,
-    PROFICIENCIAS.NENHUMA,
     PROFICIENCIAS.SIMPLES,
   ],
   habilities: [

@@ -38,7 +38,6 @@ const LADINO = {
   },
   proeficiencias: [
     PROFICIENCIAS.LEVES,
-    PROFICIENCIAS.NENHUMA,
     PROFICIENCIAS.SIMPLES,
   ],
   habilities: [

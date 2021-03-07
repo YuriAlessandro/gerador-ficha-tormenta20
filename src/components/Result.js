@@ -55,6 +55,9 @@ const Result = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={proe}>{proe}</li>
   ));
+  // const equipamentosDiv = equipamentos.map(() => (
+  //   <li key={}></li>
+  // ));
 
   return (
     <div style={styles.mainDiv}>

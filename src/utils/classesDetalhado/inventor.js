@@ -32,7 +32,6 @@ const INVENTOR = {
   },
   proeficiencias: [
     PROFICIENCIAS.LEVES,
-    PROFICIENCIAS.NENHUMA,
     PROFICIENCIAS.SIMPLES,
   ],
   habilities: [
