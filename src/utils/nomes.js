@@ -88,6 +88,10 @@ const nomes = {
     Homem: ['Trogo'],
     Mulher: ['Traga'],
   },
+  Suraggel: {
+    Homem: ['Aggelus'],
+    Mulher: ['Aggelas'],
+  },
 };
 
 export default nomes;

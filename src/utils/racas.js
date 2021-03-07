@@ -1,3 +1,4 @@
+import AGGELUS from './racasDetalhado/aggelus';
 import ANAO from './racasDetalhado/anao';
 import DAHLLAN from './racasDetalhado/dahllan';
 import ELFO from './racasDetalhado/elfo';
@@ -13,24 +14,27 @@ import MEDUSA from './racasDetalhado/medusa';
 import OSTEON from './racasDetalhado/osteon';
 import SEREIA from './racasDetalhado/sereia';
 import SILFIDE from './racasDetalhado/silfide';
+import SULFURE from './racasDetalhado/sulfure';
 import TROG from './racasDetalhado/trog';
 
 const RACAS = [
-  // ANAO,
-  // DAHLLAN,
-  // ELFO,
-  // GOBLIN,
-  // LEFEU,
-  // MINOTAURO,
-  // QAREEN,
-  // GOLEM,
-  // HYNNE,
-  // HUMANO,
-  // KLIREN,
-  // MEDUSA,
-  // OSTEON,
-  // SEREIA,
-  // SILFIDE,
+  AGGELUS,
+  ANAO,
+  DAHLLAN,
+  ELFO,
+  GOBLIN,
+  LEFEU,
+  MINOTAURO,
+  QAREEN,
+  GOLEM,
+  HYNNE,
+  HUMANO,
+  KLIREN,
+  MEDUSA,
+  OSTEON,
+  SEREIA,
+  SILFIDE,
+  SULFURE,
   TROG,
 ];
 
