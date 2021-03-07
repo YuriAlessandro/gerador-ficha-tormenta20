@@ -51,8 +51,9 @@ function modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos) {
 function generateRandomName(raca, sexo) {
   return getRandomItemFromArray(nomes[raca][sexo]);
 }
+
 export default function generateRandomSheet() {
-  const sexos = ['homem', 'mulher'];
+  const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
@@ -71,7 +72,7 @@ export default function generateRandomSheet() {
   // Passo 2.2: Definir sexo
   const sexo = getRandomItemFromArray(sexos);
   // Passo 2.3: Definir nome
-  const nome = generateRandomName(raca, sexo);
+  const nome = generateRandomName(raca.name, sexo);
   // Passo 3: Definir a classe
   const classe = getRandomItemFromArray(CLASSES);
 
@@ -122,6 +123,7 @@ export default function generateRandomSheet() {
 
   return {
     nome,
+    sexo,
     nivel,
     atributos,
     raca,

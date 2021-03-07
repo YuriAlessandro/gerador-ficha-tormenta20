@@ -1,6 +1,6 @@
 const nomes = {
-  humano: {
-    homem: [
+  Humano: {
+    Homem: [
       'Aldor',
       'Aran',
       'Beren',
@@ -12,7 +12,7 @@ const nomes = {
       'Ghart',
       'Gryffen',
     ],
-    mulher: [
+    Mulher: [
       'Alysia',
       'Avelin',
       'Catryn',
@@ -24,17 +24,17 @@ const nomes = {
       'Isolda',
     ],
   },
-  anao: {
-    homem: [],
-    mulher: [],
+  Anão: {
+    Homem: ['Anãozinho'],
+    Mulher: ['Ana'],
   },
-  goblin: {
-    homem: [],
-    mulher: [],
+  Dahllan: {
+    Homem: ['Darlan'],
+    Mulher: ['Darlene'],
   },
-  lefou: {
-    homem: [],
-    mulher: [],
+  Lefou: {
+    Homem: ['Lefex'],
+    Mulher: ['Lefoa'],
   },
 };
 
