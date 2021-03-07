@@ -21,23 +21,8 @@ const Result: React.FC<ResultProps> = (props) => {
     defesa,
   } = sheet;
 
-  const styles = {
-    mainDiv: {
-      width: '60vw',
-      padding: '5px 30px 30px 30px',
-    },
-    row: {
-      display: 'flex',
-      borderTop: '1px solid black',
-      padding: '5px 0',
-    },
-    item: {
-      marginRight: '10px',
-    },
-  };
-
   const atributosDiv = atributos.map((atributo) => (
-    <span key={atributo.name} style={styles.item}>
+    <span key={atributo.name} className='resultItem'>
       <strong>{atributo.name}</strong> {atributo.value} (
       {atributo.mod > 0 ? '+' : ''}
       {atributo.mod})
@@ -64,19 +49,19 @@ const Result: React.FC<ResultProps> = (props) => {
   // ));
 
   return (
-    <div style={styles.mainDiv}>
-      <div style={styles.row}>
-        <span style={styles.item}>
+    <div className='resultMainDiv'>
+      <div className='resultRow'>
+        <span className='resultItem'>
           <strong>Nome</strong> {nome}
         </span>
-        <span style={styles.item}>
+        <span className='resultItem'>
           <strong>Classe</strong> {classe.name}
         </span>
-        <span style={styles.item}>
+        <span className='resultItem'>
           <strong>Raça</strong> {raca.name}{' '}
           {raca.oldRace && `(${raca.oldRace.name})`}
         </span>
-        <span style={styles.item}>
+        <span className='resultItem'>
           <strong>Nível</strong> {nivel}
         </span>
         <span>
@@ -84,35 +69,35 @@ const Result: React.FC<ResultProps> = (props) => {
         </span>
       </div>
 
-      <div style={styles.row}>{atributosDiv}</div>
+      <div className='resultRow'>{atributosDiv}</div>
 
-      <div style={styles.row}>
-        <span style={styles.item}>
+      <div className='resultRow'>
+        <span className='resultItem'>
           <strong>PV</strong> {pv}
         </span>
-        <span style={styles.item}>
+        <span className='resultItem'>
           <strong>PM</strong> {pm}
         </span>
-        <span style={styles.item}>
+        <span className='resultItem'>
           <strong>Defesa</strong> {defesa}
         </span>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Perícias Treinadas:</strong>
           <ul>{periciasDiv}</ul>
         </div>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Proeficiências</strong>
           <ul>{proeficienciasDiv}</ul>
         </div>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Equipamento Inicial</strong>
           <ul>
@@ -121,21 +106,21 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Habilidades de Raça</strong>
           <ul>{habilidadesRacaDiv}</ul>
         </div>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Habilidades de Classe</strong>
           <ul>{habilidadesClasseDiv}</ul>
         </div>
       </div>
 
-      <div style={styles.row}>
+      <div className='resultRow'>
         <div>
           <strong>Magias</strong>
           {classe.magics.length === 0 && (
@@ -146,7 +131,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      <div style={styles.row} />
+      <div className='resultRow' />
     </div>
   );
 };

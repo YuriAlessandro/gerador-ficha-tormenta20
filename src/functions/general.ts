@@ -10,7 +10,7 @@ import {
   Race,
 } from '../interfaces/CharacterSheet';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
-import SelectedOptions from '../interfaces/SelectedOptions'
+import SelectedOptions from '../interfaces/SelectedOptions';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -146,7 +146,7 @@ function getNotRepeatedRandomPer(periciasUsadas: string[]) {
 
 interface ClassDetails {
   pv: number;
-  pm: number,
+  pm: number;
   defesa: number;
   pericias: any[];
 }
@@ -195,17 +195,26 @@ export function getClassDetailsModifiedByRace(
   );
 }
 
-function addBasicPer(classBasicPer: BasicExpertise[], racePers: string[]): any[] {
+function addBasicPer(
+  classBasicPer: BasicExpertise[],
+  racePers: string[]
+): any[] {
   return classBasicPer.reduce((pericias, item) => {
     if (item.type === 'or') {
-      const selectedPer =  getRandomItemFromArray(item.list) as string;
+      const selectedPer = getRandomItemFromArray(item.list) as string;
       const perWithPossiblyRepeated = [...pericias, selectedPer];
-      return perWithPossiblyRepeated.filter((item, index) => perWithPossiblyRepeated.indexOf(item) === index)
+      return perWithPossiblyRepeated.filter(
+        (currentItem, index) =>
+          perWithPossiblyRepeated.indexOf(currentItem) === index
+      );
     }
 
     if (item.type === 'and') {
       const perWithPossiblyRepeated = [...pericias, ...item.list];
-      return perWithPossiblyRepeated.filter((item, index) => perWithPossiblyRepeated.indexOf(item) === index)
+      return perWithPossiblyRepeated.filter(
+        (currentItem, index) =>
+          perWithPossiblyRepeated.indexOf(currentItem) === index
+      );
     }
 
     return pericias;
@@ -224,33 +233,41 @@ function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
     );
 }
 
-function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined){
-  if(constAttr){
-    return  pv + constAttr.mod;;
+function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
+  if (constAttr) {
+    return pv + constAttr.mod;
   }
- return pv; 
+  return pv;
 }
 
-function getInitialDef(destAttr: CharacterAttribute | undefined){
+function getInitialDef(destAttr: CharacterAttribute | undefined) {
   const baseDef = 10;
 
-  if(destAttr){
-    return baseDef + destAttr.mod
+  if (destAttr) {
+    return baseDef + destAttr.mod;
   }
 
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions){
+function selectRace(selectedOptions: SelectedOptions) {
   if (selectedOptions.raca) {
     return RACAS.find(
       (currentRaca) => currentRaca.name === selectedOptions.raca
     );
   }
- return getRandomItemFromArray(RACAS);
+  return getRandomItemFromArray(RACAS);
 }
 
+function getRace(selectedOptions: SelectedOptions) {
+  const race = selectRace(selectedOptions);
 
+  if (race.name === 'Osteon') {
+    race.oldRace = race.sortOldRace(RACAS);
+  }
+
+  return race;
+}
 
 export function addClassPer(classe: ClassDescription, racePers: any[]) {
   // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
@@ -266,6 +283,18 @@ export function addClassPer(classe: ClassDescription, racePers: any[]) {
   );
 }
 
+function selectClass(selectedOptions: SelectedOptions): ClassDescription {
+  if (selectedOptions.classe) {
+    const selectedClass = CLASSES.find(
+      (currentClasse) => currentClasse.name === selectedOptions.classe
+    );
+
+    return selectedClass || getRandomItemFromArray(CLASSES);
+  }
+
+  return getRandomItemFromArray(CLASSES);
+}
+
 export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
@@ -278,11 +307,7 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   });
 
   // Passo 2: Definir raça
-  const raca = selectRace(selectedOptions);
-
-  if (raca.name === 'Osteon') {
-    raca.oldRace = raca.sortOldRace(RACAS);
-  }
+  const raca = getRace(selectedOptions);
 
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
@@ -291,18 +316,11 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   // Passo 2.3: Definir nome
   const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
-  let classe;
-  if (selectedOptions.classe) {
-    classe = CLASSES.find(
-      (currentClasse) => currentClasse.name === selectedOptions.classe
-    );
-  } else {
-    classe = getRandomItemFromArray(CLASSES);
-  }
+  const classe = selectClass(selectedOptions);
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
-  const pvInicial = getInitialPV(classe.pv, constAttr)
+  const pvInicial = getInitialPV(classe.pv, constAttr);
 
   // Passo 3.2: Determinando o PM baseado na classe
   const { pm: pmInicial } = classe;
