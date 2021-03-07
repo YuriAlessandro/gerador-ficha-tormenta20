@@ -10,16 +10,16 @@ import NOBRE from './classesDetalhado/nobre';
 import PALADINO from './classesDetalhado/paladino';
 
 const CLASSES = [
-    BARBARO,
-    BUCANEIRO,
-    CACADOR,
-    CAVALEIRO,
-    GUERREIRO,
-    INVENTOR,
-    LADINO,
-    LUTADOR,
-    NOBRE,
-    PALADINO,
-]
+  BARBARO,
+  BUCANEIRO,
+  CACADOR,
+  CAVALEIRO,
+  GUERREIRO,
+  INVENTOR,
+  LADINO,
+  LUTADOR,
+  NOBRE,
+  PALADINO,
+];
 
 export default CLASSES;
