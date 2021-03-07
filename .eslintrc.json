@@ -26,6 +26,8 @@
     "@typescript-eslint/eslint-plugin"
   ],
   "rules": {
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": ["error"],
     "import/extensions": [
       "error",
       "ignorePackages",

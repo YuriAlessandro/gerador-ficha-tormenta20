@@ -1,9 +1,11 @@
+import { v4 as uuid } from 'uuid';
 import ATRIBUTOS from '../utils/atributos';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
+import EQUIPAMENTOS from '../utils/equipamentos';
 import nomes from '../utils/nomes';
-import {
+import CharacterSheet, {
   CharacterAttribute,
   RaceHability,
   Race,
@@ -153,7 +155,7 @@ interface ClassDetails {
 export function getClassDetailsModifiedByRace(
   { pv, pm, defesa, pericias }: ClassDetails,
   raca: Race
-) {
+): ClassDetails {
   return raca.habilites.other.reduce(
     (caracteristicas, item) => {
       if (item.type === 'pericias') {
@@ -268,7 +270,10 @@ function getRace(selectedOptions: SelectedOptions) {
   return race;
 }
 
-export function addClassPer(classe: ClassDescription, racePers: any[]) {
+export function addClassPer(
+  classe: ClassDescription,
+  racePers: any[]
+): string[] {
   // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
   const periciasDeClasseEBasicas = addBasicPer(
     classe.periciasbasicas,
@@ -290,11 +295,89 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 
     return selectedClass || getRandomItemFromArray(CLASSES);
   }
-
   return getRandomItemFromArray(CLASSES);
 }
 
-export default function generateRandomSheet(selectedOptions: SelectedOptions) {
+export function addEquipClass(classe: ClassDescription): { nome: string }[] {
+  // 6.1 A depender da classe os itens podem variar
+  const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
+
+  const armaduras = EQUIPAMENTOS.armadurasLeves;
+  const armas = EQUIPAMENTOS.armasSimples;
+  const escudo = EQUIPAMENTOS.escudos[0];
+
+  if (classe.proeficiencias.length === 5) {
+    // Paladino, Guerreiro, Cavaleiro e Nobre
+    Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
+    Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+    const armadura = getRandomItemFromArray(armaduras);
+    const arma = getRandomItemFromArray(armas);
+
+    equipamentosIniciais.push(armadura);
+    equipamentosIniciais.push(arma);
+    equipamentosIniciais.push(escudo);
+  } else if (classe.proeficiencias.length === 2) {
+    if (classe.name === 'Arcanista') {
+      // Arcanista
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(arma);
+    } else {
+      // Lutador, Ladino e Inventor
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+    }
+  } else if (classe.proeficiencias.length === 4) {
+    if (classe.name === 'Bardo' || classe.name === 'Bucaneiro') {
+      // Bardo e Bucaneiro
+      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+    } else {
+      // Bárbaro e Caçador
+      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+      equipamentosIniciais.push(escudo);
+    }
+  } else if (classe.name === 'Clérigo') {
+    // Clérigo
+    Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
+
+    const armadura = getRandomItemFromArray(armaduras);
+    const arma = getRandomItemFromArray(armas);
+
+    equipamentosIniciais.push(armadura);
+    equipamentosIniciais.push(arma);
+    equipamentosIniciais.push(escudo);
+  } else {
+    // Druída
+    const armadura = getRandomItemFromArray(armaduras);
+    const arma = getRandomItemFromArray(armas);
+
+    equipamentosIniciais.push(armadura);
+    equipamentosIniciais.push(arma);
+    equipamentosIniciais.push(escudo);
+  }
+
+  return equipamentosIniciais;
+}
+
+export default function generateRandomSheet(
+  selectedOptions: SelectedOptions
+): CharacterSheet {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
@@ -347,7 +430,11 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   // 4.1: Definir perícias da classe
   const pericias = addClassPer(classe, periciasDaRaca);
 
+  // Passe 6: Difinição de itens iniciais
+  const equipamentos = addEquipClass(classe);
+
   return {
+    id: uuid(),
     nome,
     sexo,
     nivel,
@@ -358,5 +445,6 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
     pv,
     pm,
     defesa,
+    equipamentos,
   };
 }

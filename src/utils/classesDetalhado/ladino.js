@@ -36,11 +36,7 @@ const LADINO = {
       PERICIAS.PILOTAGEM,
     ],
   },
-  proeficiencias: [
-    PROFICIENCIAS.LEVES,
-    PROFICIENCIAS.NENHUMA,
-    PROFICIENCIAS.SIMPLES,
-  ],
+  proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
   habilities: [
     {
       name: 'Ataque Furtivo',

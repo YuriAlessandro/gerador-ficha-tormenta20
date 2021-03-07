@@ -23,6 +23,7 @@ export interface ClassDescription {
   addpm: number;
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
+  proeficiencias: string[];
   habilities: ClassHability[];
   magics: any[];
 }
