@@ -3,34 +3,8 @@ import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 
-function getModValues(attr) {
-  if (attr === 1) {
-    return -5;
-  } if (attr >= 2 && attr <= 3) {
-    return -4;
-  } if (attr >= 4 && attr <= 5) {
-    return -3;
-  } if (attr >= 6 && attr <= 7) {
-    return -2;
-  } if (attr >= 8 && attr <= 9) {
-    return -1;
-  } if (attr >= 10 && attr <= 11) {
-    return 0;
-  } if (attr >= 12 && attr <= 13) {
-    return 1;
-  } if (attr >= 14 && attr <= 15) {
-    return 2;
-  } if (attr >= 16 && attr <= 17) {
-    return 3;
-  } if (attr >= 18 && attr <= 19) {
-    return 4;
-  } if (attr >= 20 && attr <= 21) {
-    return 5;
-  } if (attr >= 22 && attr <= 23) {
-    return 6;
-  } if (attr >= 24 && attr <= 25) {
-    return 7;
-  }
+function getModValues(attr){
+  return Math.floor(attr / 2) - 5;
 }
 
 function getRandomArbitrary(min, max) {
