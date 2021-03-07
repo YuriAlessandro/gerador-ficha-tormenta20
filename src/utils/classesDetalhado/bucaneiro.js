@@ -14,7 +14,8 @@ const BUCANEIRO = {
     {
       type: 'and',
       list: [PERICIAS.REFLEXOS],
-    }],
+    },
+  ],
   periciasrestantes: {
     qtd: 4,
     list: [
@@ -38,13 +39,15 @@ const BUCANEIRO = {
   habilities: [
     {
       name: 'Audácia',
-      text: 'Quando faz um teste de perícia, você pode gastar 2 PM para receber um bônus igual ao seu modificador de Carisma no teste. Você não pode usar esta habilidade em testes de ataque.',
+      text:
+        'Quando faz um teste de perícia, você pode gastar 2 PM para receber um bônus igual ao seu modificador de Carisma no teste. Você não pode usar esta habilidade em testes de ataque.',
       effect: null,
       nivel: 1,
     },
     {
       name: 'Insolência',
-      text: 'Você soma seu bônus de Carisma na Defesa, limitado pelo seu nível. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
+      text:
+        'Você soma seu bônus de Carisma na Defesa, limitado pelo seu nível. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       effect: null,
       nivel: 1,
     },

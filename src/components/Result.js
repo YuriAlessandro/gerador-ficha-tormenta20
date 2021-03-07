@@ -2,19 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const Result = (props) => {
-  const {
-    sheet,
-  } = props;
+  const { sheet } = props;
 
-  const {
-    name,
-    nivel,
-    atributos,
-    raca,
-    classe,
-    pericias,
-    pv,
-  } = sheet;
+  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv, pm } = sheet;
 
   const styles = {
     mainDiv: {
@@ -33,14 +23,9 @@ const Result = (props) => {
 
   const atributosDiv = atributos.map((atributo) => (
     <span style={styles.item}>
-      <strong>{atributo.name}</strong>
-      {' '}
-      {atributo.value}
-      {' '}
-      (
+      <strong>{atributo.name}</strong> {atributo.value} (
       {atributo.mod > 0 ? '+' : ''}
-      {atributo.mod}
-      )
+      {atributo.mod})
     </span>
   ));
 
@@ -49,15 +34,12 @@ const Result = (props) => {
   const habilidadesRacaDiv = raca.habilites.texts.map((hab) => <li>{hab}</li>);
   const habilidadesClasseDiv = classe.habilities.map((hab) => (
     <li>
-      <strong>
-        {hab.name}
-        :
-      </strong>
-      {' '}
-      {hab.text}
+      <strong>{hab.name}:</strong> {hab.text}
     </li>
   ));
-  const proeficienciasDiv = classe.proeficiencias.map((proe) => <li>{proe}</li>);
+  const proeficienciasDiv = classe.proeficiencias.map((proe) => (
+    <li>{proe}</li>
+  ));
 
   const destAttr = atributos.find((attr) => attr.name === 'Destreza');
   const defesa = 10 + destAttr.mod;
@@ -66,46 +48,33 @@ const Result = (props) => {
     <div style={styles.mainDiv}>
       <div style={styles.row}>
         <span style={styles.item}>
-          <strong>Nome</strong>
-          {' '}
-          {name}
+          <strong>Nome</strong> {nome}
         </span>
         <span style={styles.item}>
-          <strong>Classe</strong>
-          {' '}
-          {classe.name}
+          <strong>Classe</strong> {classe.name}
         </span>
         <span style={styles.item}>
-          <strong>Raça</strong>
-          {' '}
-          {raca.name}
+          <strong>Raça</strong> {raca.name}
         </span>
         <span style={styles.item}>
-          <strong>Nível</strong>
-          {' '}
-          {nivel}
+          <strong>Nível</strong> {nivel}
+        </span>
+        <span>
+          <strong>Sexo</strong> {sexo}
         </span>
       </div>
 
-      <div style={styles.row}>
-        {atributosDiv}
-      </div>
+      <div style={styles.row}>{atributosDiv}</div>
 
       <div style={styles.row}>
         <span style={styles.item}>
-          <strong>PV</strong>
-          {' '}
-          {pv}
+          <strong>PV</strong> {pv}
         </span>
         <span style={styles.item}>
-          <strong>PM</strong>
-          {' '}
-          {classe.pm}
+          <strong>PM</strong> {pm}
         </span>
         <span style={styles.item}>
-          <strong>Defesa</strong>
-          {' '}
-          {defesa}
+          <strong>Defesa</strong> {defesa}
         </span>
       </div>
 
@@ -158,7 +127,6 @@ const Result = (props) => {
       </div>
 
       <div style={styles.row} />
-
     </div>
   );
 };

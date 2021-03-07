@@ -2,6 +2,7 @@ import ATRIBUTOS from '../utils/atributos';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
+import nomes from '../utils/nomes';
 
 function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
@@ -20,22 +21,7 @@ function getRandomPer() {
   return getRandomItemFromArray(keys);
 }
 
-export default function generateRandomSheet() {
-  const name = 'NomeDoJogador'; // TODO: Gerar nomes aleatórios
-  const nivel = 1;
-
-  // Passo 1: Gerar os atributos base desse personagem
-  const atributos = ATRIBUTOS.map((atributo) => {
-    const randomAttr = getRandomArbitrary(8, 18);
-    const mod = getModValues(randomAttr);
-    return { name: atributo, value: randomAttr, mod };
-  });
-
-  // Passo 2: Definir raça
-  const raca = getRandomItemFromArray(RACAS);
-
-  const modifiedAttrs = [];
-  // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
+function modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos) {
   raca.habilites.attrs.forEach((item) => {
     // Definir o que que attr muda (se for any é um random)
     let selectedAttr;
@@ -59,12 +45,43 @@ export default function generateRandomSheet() {
     attrToChange.mod = getModValues(attrToChange.value);
   });
 
+  return modifiedAttrs;
+}
+
+function generateRandomName(raca, sexo) {
+  return getRandomItemFromArray(nomes[raca][sexo]);
+}
+
+export default function generateRandomSheet() {
+  const sexos = ['Homem', 'Mulher'];
+  const nivel = 1;
+
+  // Passo 1: Gerar os atributos base desse personagem
+  const atributos = ATRIBUTOS.map((atributo) => {
+    const randomAttr = getRandomArbitrary(8, 18);
+    const mod = getModValues(randomAttr);
+    return { name: atributo, value: randomAttr, mod };
+  });
+
+  // Passo 2: Definir raça
+  const raca = getRandomItemFromArray(RACAS);
+
+  // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
+  const modifiedAttrs = []; // Refactor to reduce
+  modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos);
+  // Passo 2.2: Definir sexo
+  const sexo = getRandomItemFromArray(sexos);
+  // Passo 2.3: Definir nome
+  const nome = generateRandomName(raca.name, sexo);
   // Passo 3: Definir a classe
   const classe = getRandomItemFromArray(CLASSES);
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
   let pv = classe.pv + constAttr.mod;
+
+  // Passo 3.2: Determinando o PM baseado na classe
+  let pm = classe.pm;
 
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Primeiramente vamos treinar as pericias que vem da raça
@@ -82,6 +99,8 @@ export default function generateRandomSheet() {
       }
     } else if (item.type === 'pv') {
       pv += item.mod;
+    } else if (item.type === 'pm') {
+      pm += item.mod;
     }
   });
 
@@ -108,12 +127,14 @@ export default function generateRandomSheet() {
   }
 
   return {
-    name,
+    nome,
+    sexo,
     nivel,
     atributos,
     raca,
     classe,
     pericias,
     pv,
+    pm,
   };
 }
