@@ -295,7 +295,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 }
 
 export function addEquipClass(classe: ClassDescription) {
-  // 5.1 A depender da classe os itens podem variar
+  // 6.1 A depender da classe os itens podem variar
   const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
 
   const armaduras = EQUIPAMENTOS.armadurasLeves;
@@ -424,7 +424,7 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   // 4.1: Definir perícias da classe
   const pericias = addClassPer(classe, periciasDaRaca);
 
-  // Passe 5: Difinição de itens iniciais
+  // Passe 6: Difinição de itens iniciais
   const equipamentos = addEquipClass(classe);
 
   return {
