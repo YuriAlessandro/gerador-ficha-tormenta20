@@ -88,9 +88,13 @@ const nomes = {
     Homem: ['Trogo'],
     Mulher: ['Traga'],
   },
-  Suraggel: {
+  'Suraggel (Aggelus)': {
     Homem: ['Aggelus'],
     Mulher: ['Aggelas'],
+  },
+  'Suraggel (Sulfure)': {
+    Homem: ['Sulfeto'],
+    Mulher: ['Sulfata'],
   },
 };
 

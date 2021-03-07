@@ -1,5 +1,5 @@
 const AGGELUS = {
-  name: 'Suraggel',
+  name: 'Suraggel (Aggelus)',
   habilites: {
     attrs: [
       { attr: 'Sabedoria', mod: 4 },

@@ -1,5 +1,5 @@
 const SULFURE = {
-  name: 'Suraggel',
+  name: 'Suraggel (Sulfure)',
   habilites: {
     attrs: [
       { attr: 'Sabedoria', mod: 4 },

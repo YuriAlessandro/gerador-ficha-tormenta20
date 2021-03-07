@@ -4,7 +4,7 @@ import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 import nomes from '../utils/nomes';
 
-function getModValues(attr) {
+export function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
 }
 
@@ -16,40 +16,180 @@ function getRandomItemFromArray(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function getRandomPer() {
-  const keys = Object.keys(PERICIAS);
-  return getRandomItemFromArray(keys);
+// function getRandomPer() {
+//   const keys = Object.keys(PERICIAS);
+//   return getRandomItemFromArray(keys);
+// }
+
+function getNotRepeatedAttribute(atributosModificados) {
+  const atributosPermitidos = ATRIBUTOS.filter(
+    (atributo) => !atributosModificados.includes(atributo)
+  );
+  return getRandomItemFromArray(atributosPermitidos);
 }
 
-function modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos) {
-  raca.habilites.attrs.forEach((item) => {
-    // Definir o que que attr muda (se for any é um random)
-    let selectedAttr;
-    if (item.attr === 'any') {
-      selectedAttr = getRandomItemFromArray(ATRIBUTOS);
-      while (modifiedAttrs.includes(selectedAttr)) {
-        selectedAttr = getRandomItemFromArray(ATRIBUTOS);
-      }
-    } else {
-      selectedAttr = item.attr;
+function selectAttributeToChange(atributosModificados, atributo) {
+  if (atributo.attr === 'any') {
+    return getNotRepeatedAttribute(atributosModificados);
+  }
+
+  return atributo.attr;
+}
+
+function getModifiedAttribute(
+  selectedAttrIndex,
+  atributosModificados,
+  attrDaRaca
+) {
+  const atributoParaAlterar = atributosModificados[selectedAttrIndex];
+  const newValue = atributoParaAlterar.value + attrDaRaca.mod;
+
+  return {
+    [selectedAttrIndex]: {
+      ...atributoParaAlterar,
+      value: newValue,
+      mod: getModValues(newValue),
+    },
+  };
+}
+
+export function modifyAttributesBasedOnRace(raca, atributos) {
+  const reducedAttrs = raca.habilites.attrs.reduce(
+    (
+      {
+        atributosModificados: atributosAcumulados,
+        nomesDosAtributosModificados,
+      },
+      attrDaRaca
+    ) => {
+      // Definir que atributo muda (se for any é um random)
+      const selectedAttrName = selectAttributeToChange(
+        nomesDosAtributosModificados,
+        attrDaRaca
+      );
+
+      const selectedAttrIndex = atributosAcumulados.findIndex(
+        (attr) => attr.name === selectedAttrName
+      );
+
+      return {
+        atributosModificados: Object.assign(
+          [],
+          atributosAcumulados,
+          getModifiedAttribute(
+            selectedAttrIndex,
+            atributosAcumulados,
+            attrDaRaca
+          )
+        ),
+        nomesDosAtributosModificados: [
+          ...nomesDosAtributosModificados,
+          selectedAttrName,
+        ],
+      };
+    },
+    {
+      atributosModificados: atributos,
+      nomesDosAtributosModificados: [],
     }
+  );
 
-    modifiedAttrs.push(selectedAttr);
-
-    // Dar um find no attr na lista de atributos
-    const attrToChange = atributos.find((attr) => attr.name === selectedAttr);
-
-    // Aumentar esse atributo + modificador
-    const actualValue = attrToChange.value;
-    attrToChange.value = item.mod + actualValue;
-    attrToChange.mod = getModValues(attrToChange.value);
-  });
-
-  return modifiedAttrs;
+  return reducedAttrs.atributosModificados;
 }
 
 function generateRandomName(raca, sexo) {
   return getRandomItemFromArray(nomes[raca][sexo]);
+}
+
+function getNotRepeatedRandomPer(periciasUsadas) {
+  const keys = Object.keys(PERICIAS);
+  const periciasPermitidas = keys.filter(
+    (pericia) => !periciasUsadas.includes(PERICIAS[pericia])
+  );
+  return getRandomItemFromArray(periciasPermitidas);
+}
+
+export function getClassDetailsModifiedByRace(
+  { pv, pm, defesa, pericias },
+  raca
+) {
+  return raca.habilites.other.reduce(
+    (caracteristicas, item) => {
+      if (item.type === 'pericias') {
+        if (item.allowed === 'any') {
+          return {
+            ...caracteristicas,
+            pericias: [
+              ...caracteristicas.pericias,
+              PERICIAS[getNotRepeatedRandomPer(pericias)],
+            ],
+          };
+        }
+      }
+
+      if (item.type === 'pv') {
+        return {
+          ...caracteristicas,
+          pv: pv + item.mod,
+        };
+      }
+
+      if (item.type === 'pm') {
+        return {
+          ...caracteristicas,
+          pm: pm + item.mod,
+        };
+      }
+      if (item.type === 'defesa') {
+        return {
+          ...caracteristicas,
+          defesa: defesa + item.mod,
+        };
+      }
+
+      return caracteristicas;
+    },
+    { pv, pm, defesa, pericias }
+  );
+}
+
+function addBasicPer(classBasicPer, racePers) {
+  return classBasicPer.reduce((pericias, item) => {
+    if (item.type === 'or') {
+      return [...new Set([...pericias, getRandomItemFromArray(item.list)])];
+    }
+    if (item.type === 'and') {
+      return [...new Set([...pericias, ...item.list])];
+    }
+
+    return pericias;
+  }, racePers);
+}
+
+function addRemainingPer(qtdPericiasRestantes, pericias) {
+  return Array(qtdPericiasRestantes)
+    .fill(0)
+    .reduce(
+      (periciasAtuais) => [
+        ...periciasAtuais,
+        PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
+      ],
+      pericias
+    );
+}
+
+export function addClassPer(classe, racePers) {
+  // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
+  const periciasDeClasseEBasicas = addBasicPer(
+    classe.periciasbasicas,
+    racePers
+  );
+
+  // 4.1.2: As perícias padrões que cada classe recebe
+  return addRemainingPer(
+    classe.periciasrestantes.qtd,
+    periciasDeClasseEBasicas
+  );
 }
 
 export default function generateRandomSheet() {
@@ -57,7 +197,7 @@ export default function generateRandomSheet() {
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributos = ATRIBUTOS.map((atributo) => {
+  const atributosRolados = ATRIBUTOS.map((atributo) => {
     const randomAttr = getRandomArbitrary(8, 18);
     const mod = getModValues(randomAttr);
     return { name: atributo, value: randomAttr, mod };
@@ -65,10 +205,8 @@ export default function generateRandomSheet() {
 
   // Passo 2: Definir raça
   const raca = getRandomItemFromArray(RACAS);
-
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
-  const modifiedAttrs = []; // Refactor to reduce
-  modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos);
+  const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
   const sexo = getRandomItemFromArray(sexos);
   // Passo 2.3: Definir nome
@@ -78,59 +216,33 @@ export default function generateRandomSheet() {
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
-  let pv = classe.pv + constAttr.mod;
+  const pvInicial = classe.pv + constAttr.mod;
 
   // Passo 3.2: Determinando o PM baseado na classe
-  let { pm } = classe;
+  const { pm: pmInicial } = classe;
 
   // Passo 3.3: Determinando a Defesa inicial
   const destAttr = atributos.find((attr) => attr.name === 'Destreza');
-  let defesa = 10 + destAttr.mod;
+  const defesaInicial = 10 + destAttr.mod;
+
+  // Passo 3.4: Alterar características da classe com base na raça
+  const caracteristicasDaClasse = {
+    pv: pvInicial,
+    pm: pmInicial,
+    defesa: defesaInicial,
+    pericias: [],
+  };
+
+  const {
+    pv,
+    pm,
+    defesa,
+    pericias: periciasDaRaca,
+  } = getClassDetailsModifiedByRace(caracteristicasDaClasse, raca);
 
   // Passo 4: Marcar as perícias treinadas
-  // 4.1: Primeiramente vamos treinar as pericias que vem da raça
-  const pericias = [];
-  raca.habilites.other.forEach((item) => {
-    if (item.type === 'pericias') {
-      // Se tiver que selecionar uma perícia qualquer
-      if (item.allowed === 'any') {
-        let actualPer = getRandomPer();
-        while (pericias.includes(actualPer)) {
-          actualPer = getRandomPer();
-        }
-
-        pericias.push(PERICIAS[actualPer]);
-      }
-    } else if (item.type === 'pv') {
-      pv += item.mod;
-    } else if (item.type === 'pm') {
-      pm += item.mod;
-    } else if (item.type === 'defesa') {
-      defesa += item.mod;
-    }
-  });
-
-  // 4.2: Definir perícias da classe
-  // 4.2.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
-  classe.periciasbasicas.forEach((item) => {
-    if (item.type === 'or') {
-      pericias.push(getRandomItemFromArray(item.list));
-    } else if (item.type === 'and') {
-      item.list.forEach((pericia) => {
-        pericias.push(pericia);
-      });
-    }
-  });
-
-  // 4.2.2: As perícias padrões que cada classe recebe
-  for (let index = 0; index < classe.periciasrestantes.qtd; index += 1) {
-    let newPer = getRandomItemFromArray(classe.periciasrestantes.list);
-    while (pericias.includes(newPer)) {
-      newPer = getRandomItemFromArray(classe.periciasrestantes.list);
-    }
-
-    pericias.push(newPer);
-  }
+  // 4.1: Definir perícias da classe
+  const pericias = addClassPer(classe, periciasDaRaca);
 
   return {
     nome,

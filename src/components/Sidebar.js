@@ -5,8 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
-import { withRouter } from 'react-router';
-
+import { withRouter, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(() => ({
@@ -15,7 +14,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Sidebar = ({ visible, onCloseSidebar, history }) => {
+const Sidebar = ({ visible, onCloseSidebar }) => {
   const styles = {
     sidebar: {
       position: 'absolute',
@@ -35,6 +34,8 @@ const Sidebar = ({ visible, onCloseSidebar, history }) => {
       paddingRight: '15px',
     },
   };
+
+  const history = useHistory();
 
   const classes = useStyles();
 
@@ -106,7 +107,6 @@ const Sidebar = ({ visible, onCloseSidebar, history }) => {
 Sidebar.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCloseSidebar: PropTypes.func.isRequired,
-  history: PropTypes.shape.isRequired,
 };
 
 export default withRouter(Sidebar);

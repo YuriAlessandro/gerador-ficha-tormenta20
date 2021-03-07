@@ -33,7 +33,7 @@ const Result = (props) => {
   };
 
   const atributosDiv = atributos.map((atributo) => (
-    <span style={styles.item}>
+    <span key={atributo.name} style={styles.item}>
       <strong>{atributo.name}</strong> {atributo.value} (
       {atributo.mod > 0 ? '+' : ''}
       {atributo.mod})
@@ -41,15 +41,19 @@ const Result = (props) => {
   ));
 
   const periciasSorted = pericias.sort();
-  const periciasDiv = periciasSorted.map((pericia) => <li>{pericia}</li>);
-  const habilidadesRacaDiv = raca.habilites.texts.map((hab) => <li>{hab}</li>);
+  const periciasDiv = periciasSorted.map((pericia) => (
+    <li key={pericia}>{pericia}</li>
+  ));
+  const habilidadesRacaDiv = raca.habilites.texts.map((hab) => (
+    <li key={hab}>{hab}</li>
+  ));
   const habilidadesClasseDiv = classe.habilities.map((hab) => (
-    <li>
+    <li key={hab.name}>
       <strong>{hab.name}:</strong> {hab.text}
     </li>
   ));
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
-    <li>{proe}</li>
+    <li key={proe}>{proe}</li>
   ));
 
   return (
@@ -140,7 +144,61 @@ const Result = (props) => {
 };
 
 Result.propTypes = {
-  sheet: PropTypes.shape.isRequired,
+  sheet: PropTypes.shape({
+    nome: PropTypes.string,
+    sexo: PropTypes.string,
+    nivel: PropTypes.number,
+    atributos: PropTypes.arrayOf(PropTypes.object),
+    raca: PropTypes.shape({
+      name: PropTypes.string,
+      habilites: PropTypes.shape({
+        attrs: PropTypes.arrayOf(
+          PropTypes.shape({
+            attr: PropTypes.string,
+            mod: PropTypes.number,
+          })
+        ),
+        other: PropTypes.arrayOf(
+          PropTypes.shape({
+            type: PropTypes.string,
+            allowed: PropTypes.string,
+          })
+        ),
+        texts: PropTypes.arrayOf(PropTypes.string),
+      }),
+    }),
+    classe: PropTypes.shape({
+      name: PropTypes.string,
+      pv: PropTypes.number,
+      addpv: PropTypes.number,
+      pm: PropTypes.number,
+      addpm: PropTypes.number,
+      periciasbasicas: PropTypes.arrayOf(
+        PropTypes.shape({
+          type: PropTypes.string,
+          list: PropTypes.arrayOf(PropTypes.string),
+        })
+      ),
+      periciasrestantes: PropTypes.shape({
+        qtd: PropTypes.number,
+        list: PropTypes.arrayOf(PropTypes.string),
+      }),
+      proeficiencias: PropTypes.arrayOf(PropTypes.string),
+      habilities: PropTypes.arrayOf(
+        PropTypes.shape({
+          name: PropTypes.string,
+          text: PropTypes.string,
+          effect: PropTypes.string,
+          nivel: PropTypes.number,
+        })
+      ),
+      magics: PropTypes.arrayOf(PropTypes.string),
+    }),
+    pericias: PropTypes.arrayOf(PropTypes.string),
+    pv: PropTypes.number,
+    pm: PropTypes.number,
+    defesa: PropTypes.number,
+  }).isRequired,
 };
 
 export default Result;

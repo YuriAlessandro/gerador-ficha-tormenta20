@@ -34,11 +34,7 @@ const useStyles = makeStyles((theme) => ({
 function App() {
   const classes = useStyles();
 
-  const [sidebarVisibility, setSidebarVisibility] = React.useState();
-
-  React.useEffect(() => {
-    setSidebarVisibility(false);
-  }, []);
+  const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
 
   const onClickMenu = () => {
     setSidebarVisibility(true);
