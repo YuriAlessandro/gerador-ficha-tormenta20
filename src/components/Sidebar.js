@@ -3,6 +3,15 @@ import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
+import Link from '@material-ui/core/Link';
+
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  link: {
+    color: '#FAFAFA'
+  },
+}));
 
 const Sidebar = ({visible, onCloseSidebar}) => {
   const styles = {
@@ -23,7 +32,10 @@ const Sidebar = ({visible, onCloseSidebar}) => {
       textAlign: 'right',
       paddingRight: '15px'
     },
-  }
+  };
+  
+  const classes = useStyles();
+
   return (
     <div style={styles.sidebar}>
       <div style={styles.closeIcon}>
@@ -31,10 +43,14 @@ const Sidebar = ({visible, onCloseSidebar}) => {
       </div>
       <MenuList>
         <MenuItem>
-          <Typography variant="inherit">Sugestões, Ideias e Feedbacks</Typography>
+          <Typography variant="inherit">
+            <Link className={classes.link} href="https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/new">Sugestões, Ideias e Feedbacks</Link>
+          </Typography>
         </MenuItem>
         <MenuItem>
-          <Typography variant="inherit">Contribua com o Projeto</Typography>
+          <Typography variant="inherit">
+            <Link className={classes.link} href="https://github.com/YuriAlessandro/gerador-ficha-tormenta20">Contribua com o Projeto</Link>
+          </Typography>
         </MenuItem>
       </MenuList>
     </div>
