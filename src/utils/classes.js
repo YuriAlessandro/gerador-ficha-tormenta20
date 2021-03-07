@@ -1,5 +1,6 @@
 import ARCANISTA from './classesDetalhado/arcanista';
 import BARBARO from './classesDetalhado/barbaro';
+import BARDO from './classesDetalhado/bardo';
 import BUCANEIRO from './classesDetalhado/bucaneiro';
 import CACADOR from './classesDetalhado/cacador';
 import CAVALEIRO from './classesDetalhado/cavaleiro';
@@ -13,6 +14,7 @@ import PALADINO from './classesDetalhado/paladino';
 const CLASSES = [
   ARCANISTA,
   BARBARO,
+  BARDO,
   BUCANEIRO,
   CACADOR,
   CAVALEIRO,
