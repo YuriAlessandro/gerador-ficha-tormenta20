@@ -13,6 +13,7 @@ import MEDUSA from './racasDetalhado/medusa';
 import OSTEON from './racasDetalhado/osteon';
 import SEREIA from './racasDetalhado/sereia';
 import SILFIDE from './racasDetalhado/silfide';
+import TROG from './racasDetalhado/trog';
 
 const RACAS = [
   // ANAO,
@@ -29,7 +30,8 @@ const RACAS = [
   // MEDUSA,
   // OSTEON,
   // SEREIA,
-  SILFIDE,
+  // SILFIDE,
+  TROG,
 ];
 
 export default RACAS;
