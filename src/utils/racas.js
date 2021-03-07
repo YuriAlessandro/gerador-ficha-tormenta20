@@ -4,6 +4,7 @@ import ELFO from './racasDetalhado/elfo';
 import GOBLIN from './racasDetalhado/goblin';
 import LEFEU from './racasDetalhado/lefeu';
 import MINOTAURO from './racasDetalhado/minotauro';
+import QAREEN from './racasDetalhado/qareen';
 import HUMANO from './racasDetalhado/humano';
 
 const RACAS = [
@@ -13,6 +14,7 @@ const RACAS = [
   GOBLIN,
   LEFEU,
   MINOTAURO,
+  QAREEN,
   HUMANO,
 ];
 
