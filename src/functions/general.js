@@ -97,8 +97,19 @@ export function modifyAttributesBasedOnRace(raca, atributos) {
   return reducedAttrs.atributosModificados;
 }
 
-function generateRandomName(raca, sexo) {
-  return getRandomItemFromArray(nomes[raca][sexo]);
+export function generateRandomName(raca, sexo) {
+  if (raca.name === 'Osteon') {
+    return getRandomItemFromArray(nomes[raca.oldRace.name][sexo]);
+  }
+
+  if (raca.name === 'Lefou') {
+    const firstName = getRandomItemFromArray(nomes[raca.name].primeiroNome);
+    const lastName = getRandomItemFromArray(nomes[raca.name].segundoNome[sexo]);
+
+    return `${firstName} ${lastName}`;
+  }
+
+  return getRandomItemFromArray(nomes[raca.name][sexo]);
 }
 
 function getNotRepeatedRandomPer(periciasUsadas) {
@@ -205,12 +216,16 @@ export default function generateRandomSheet() {
 
   // Passo 2: Definir raça
   const raca = getRandomItemFromArray(RACAS);
+
+  if (raca.name === 'Osteon') {
+    raca.oldRace = raca.sortOldRace(RACAS);
+  }
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
   const sexo = getRandomItemFromArray(sexos);
   // Passo 2.3: Definir nome
-  const nome = generateRandomName(raca.name, sexo);
+  const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
   const classe = getRandomItemFromArray(CLASSES);
 

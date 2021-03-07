@@ -66,7 +66,8 @@ const Result = (props) => {
           <strong>Classe</strong> {classe.name}
         </span>
         <span style={styles.item}>
-          <strong>Raça</strong> {raca.name}
+          <strong>Raça</strong> {raca.name}{' '}
+          {raca.oldRace && `(${raca.oldRace.name})`}
         </span>
         <span style={styles.item}>
           <strong>Nível</strong> {nivel}
@@ -150,6 +151,24 @@ Result.propTypes = {
     nivel: PropTypes.number,
     atributos: PropTypes.arrayOf(PropTypes.object),
     raca: PropTypes.shape({
+      oldRace: PropTypes.shape({
+        name: PropTypes.string,
+        habilites: PropTypes.shape({
+          attrs: PropTypes.arrayOf(
+            PropTypes.shape({
+              attr: PropTypes.string,
+              mod: PropTypes.number,
+            })
+          ),
+          other: PropTypes.arrayOf(
+            PropTypes.shape({
+              type: PropTypes.string,
+              allowed: PropTypes.string,
+            })
+          ),
+          texts: PropTypes.arrayOf(PropTypes.string),
+        }),
+      }),
       name: PropTypes.string,
       habilites: PropTypes.shape({
         attrs: PropTypes.arrayOf(
