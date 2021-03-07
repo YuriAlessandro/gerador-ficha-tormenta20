@@ -249,13 +249,23 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions) {
+function selectRace(selectedOptions: SelectedOptions){
   if (selectedOptions.raca) {
     return RACAS.find(
       (currentRaca) => currentRaca.name === selectedOptions.raca
     );
   }
   return getRandomItemFromArray(RACAS);
+}
+
+function getRace(selectedOptions: SelectedOptions) {
+  const race = selectRace(selectedOptions);
+  
+  if (race.name === 'Osteon') {
+    race.oldRace = race.sortOldRace(RACAS);
+  }
+
+  return race;
 }
 
 export function addClassPer(classe: ClassDescription, racePers: any[]) {
@@ -272,6 +282,18 @@ export function addClassPer(classe: ClassDescription, racePers: any[]) {
   );
 }
 
+function selectClass(selectedOptions: SelectedOptions): ClassDescription {
+  if (selectedOptions.classe) {
+    const selectedClass = CLASSES.find(
+      (currentClasse) => currentClasse.name === selectedOptions.classe
+    );
+    
+    return selectedClass || getRandomItemFromArray(CLASSES);
+  } else {
+    return getRandomItemFromArray(CLASSES);
+  }
+}
+
 export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
@@ -284,11 +306,7 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   });
 
   // Passo 2: Definir raça
-  const raca = selectRace(selectedOptions);
-
-  if (raca.name === 'Osteon') {
-    raca.oldRace = raca.sortOldRace(RACAS);
-  }
+  const raca = getRace(selectedOptions);
 
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
@@ -297,14 +315,8 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   // Passo 2.3: Definir nome
   const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
-  let classe;
-  if (selectedOptions.classe) {
-    classe = CLASSES.find(
-      (currentClasse) => currentClasse.name === selectedOptions.classe
-    );
-  } else {
-    classe = getRandomItemFromArray(CLASSES);
-  }
+  const classe = selectClass(selectedOptions);
+  
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
