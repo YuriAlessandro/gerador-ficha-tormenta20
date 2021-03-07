@@ -5,6 +5,7 @@ import BUCANEIRO from './classesDetalhado/bucaneiro';
 import CACADOR from './classesDetalhado/cacador';
 import CAVALEIRO from './classesDetalhado/cavaleiro';
 import CLERIGO from './classesDetalhado/clerigo';
+import DRUIDA from './classesDetalhado/druida';
 import GUERREIRO from './classesDetalhado/guerreiro';
 import INVENTOR from './classesDetalhado/inventor';
 import LADINO from './classesDetalhado/ladino';
@@ -20,6 +21,7 @@ const CLASSES = [
   CACADOR,
   CAVALEIRO,
   CLERIGO,
+  DRUIDA,
   GUERREIRO,
   INVENTOR,
   LADINO,
