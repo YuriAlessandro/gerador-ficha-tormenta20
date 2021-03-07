@@ -294,19 +294,25 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: { name: string; }) {
+export function addEquipClass(classe: { name: string }) {
   // 5.1 A depender da classe os itens podem variar
   let equipamentosIniciais = [];
   equipamentosIniciais = EQUIPAMENTOS.inicial;
 
-  let armaduras = EQUIPAMENTOS.armadurasLeves;
-  let armas = EQUIPAMENTOS.armasSimples;
+  const armaduras = EQUIPAMENTOS.armadurasLeves;
+  const armas = EQUIPAMENTOS.armasSimples;
   const escudo = EQUIPAMENTOS.escudos[0];
 
-
-  if (classe.name == 'Paladino' || classe.name == 'Guerreiro' || classe.name == 'Cavaleiro' || classe.name == 'Nobre') {
+  if (
+    classe.name === 'Paladino' ||
+    classe.name === 'Guerreiro' ||
+    classe.name === 'Cavaleiro' ||
+    classe.name === 'Nobre'
+  ) {
     Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
     Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+    // armaduras = [...armaduras, ...EQUIPAMENTOS.armaduraPesada];
 
     const armadura = getRandomItemFromArray(armaduras);
     const arma = getRandomItemFromArray(armas);
@@ -314,7 +320,7 @@ export function addEquipClass(classe: { name: string; }) {
     equipamentosIniciais.push(armadura);
     equipamentosIniciais.push(arma);
     equipamentosIniciais.push(escudo);
-  };
+  }
 
   return equipamentosIniciais;
 }
