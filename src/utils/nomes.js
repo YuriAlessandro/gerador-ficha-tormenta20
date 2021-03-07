@@ -52,6 +52,46 @@ const nomes = {
     Homem: ['Minotouro'],
     Mulher: ['Minotaura'],
   },
+  Qareen: {
+    Homem: ['Eliezer'],
+    Mulher: ['Eliana'],
+  },
+  Golem: {
+    Homem: ['Golenzin'],
+    Mulher: ['Gola'],
+  },
+  Hynne: {
+    Homem: ['Frodo'],
+    Mulher: ['Hynne'],
+  },
+  Kliren: {
+    Homem: ['Kliren'],
+    Mulher: ['Klirena'],
+  },
+  Medusa: {
+    Homem: ['Meduso'],
+    Mulher: ['Medusa'],
+  },
+  Osteon: {
+    Homem: ['Evass'],
+    Mulher: ['Noita'],
+  },
+  Sereia: {
+    Homem: ['Sereio'],
+    Mulher: ['Serena'],
+  },
+  Sílfide: {
+    Homem: ['Silfide'],
+    Mulher: ['Silfida'],
+  },
+  Trog: {
+    Homem: ['Trogo'],
+    Mulher: ['Traga'],
+  },
+  Suraggel: {
+    Homem: ['Aggelus'],
+    Mulher: ['Aggelas'],
+  },
 };
 
 export default nomes;
