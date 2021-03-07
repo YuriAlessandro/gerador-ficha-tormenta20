@@ -294,7 +294,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: { name: string }) {
+export function addEquipClass(classe: ClassDescription) {
   // 5.1 A depender da classe os itens podem variar
   let equipamentosIniciais = [];
   equipamentosIniciais = EQUIPAMENTOS.inicial;
@@ -303,17 +303,64 @@ export function addEquipClass(classe: { name: string }) {
   const armas = EQUIPAMENTOS.armasSimples;
   const escudo = EQUIPAMENTOS.escudos[0];
 
-  if (
-    classe.name === 'Paladino' ||
-    classe.name === 'Guerreiro' ||
-    classe.name === 'Cavaleiro' ||
-    classe.name === 'Nobre'
-  ) {
+  if (classe.proeficiencias.length === 5) {
+    // Paladino, Guerreiro, Cavaleiro e Nobre
     Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
     Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
 
-    // armaduras = [...armaduras, ...EQUIPAMENTOS.armaduraPesada];
+    const armadura = getRandomItemFromArray(armaduras);
+    const arma = getRandomItemFromArray(armas);
 
+    equipamentosIniciais.push(armadura);
+    equipamentosIniciais.push(arma);
+    equipamentosIniciais.push(escudo);
+  } else if (classe.proeficiencias.length === 2) {
+    if (classe.name === 'Arcanista') {
+      // Arcanista
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(arma);
+    } else {
+      // Lutador, Ladino e Inventor
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+    }
+  } else if (classe.proeficiencias.length === 4) {
+    if (classe.name === 'Bardo' || classe.name === 'Bucaneiro') {
+      // Bardo e Bucaneiro
+      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+    } else {
+      // Bárbaro e Caçador
+      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+
+      const armadura = getRandomItemFromArray(armaduras);
+      const arma = getRandomItemFromArray(armas);
+
+      equipamentosIniciais.push(armadura);
+      equipamentosIniciais.push(arma);
+      equipamentosIniciais.push(escudo);
+    }
+  } else if (classe.name === 'Clérigo') {
+    // Clérigo
+    Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
+
+    const armadura = getRandomItemFromArray(armaduras);
+    const arma = getRandomItemFromArray(armas);
+
+    equipamentosIniciais.push(armadura);
+    equipamentosIniciais.push(arma);
+    equipamentosIniciais.push(escudo);
+  } else {
+    // Druída
     const armadura = getRandomItemFromArray(armaduras);
     const arma = getRandomItemFromArray(armas);
 
