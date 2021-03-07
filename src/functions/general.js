@@ -109,7 +109,7 @@ function getNotRepeatedRandomPer(periciasUsadas) {
   return getRandomItemFromArray(periciasPermitidas);
 }
 
-export function getClassDetaildModifiedByRace(
+export function getClassDetailsModifiedByRace(
   { pv, pm, defesa, pericias },
   raca
 ) {
@@ -150,6 +150,45 @@ export function getClassDetaildModifiedByRace(
       return caracteristicas;
     },
     { pv, pm, defesa, pericias }
+  );
+}
+
+function addBasicPer(classBasicPer, racePers) {
+  return classBasicPer.reduce((pericias, item) => {
+    if (item.type === 'or') {
+      return [...new Set([...pericias, getRandomItemFromArray(item.list)])];
+    }
+    if (item.type === 'and') {
+      return [...new Set([...pericias, ...item.list])];
+    }
+
+    return pericias;
+  }, racePers);
+}
+
+function addRemainingPer(qtdPericiasRestantes, pericias) {
+  return Array(qtdPericiasRestantes)
+    .fill(0)
+    .reduce(
+      (periciasAtuais) => [
+        ...periciasAtuais,
+        PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
+      ],
+      pericias
+    );
+}
+
+export function addClassPer(classe, racePers) {
+  // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
+  const periciasDeClasseEBasicas = addBasicPer(
+    classe.periciasbasicas,
+    racePers
+  );
+
+  // 4.1.2: As perícias padrões que cada classe recebe
+  return addRemainingPer(
+    classe.periciasrestantes.qtd,
+    periciasDeClasseEBasicas
   );
 }
 
@@ -199,35 +238,11 @@ export default function generateRandomSheet() {
     pm,
     defesa,
     pericias: periciasDaRaca,
-  } = getClassDetaildModifiedByRace(caracteristicasDaClasse, raca);
+  } = getClassDetailsModifiedByRace(caracteristicasDaClasse, raca);
 
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Definir perícias da classe
-  // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
-  const periciasDeClasseEBasicas = classe.periciasbasicas.reduce(
-    (pericias, item) => {
-      if (item.type === 'or') {
-        return [...new Set([...pericias, getRandomItemFromArray(item.list)])];
-      }
-      if (item.type === 'and') {
-        return [...new Set([...pericias, ...item.list])];
-      }
-
-      return pericias;
-    },
-    periciasDaRaca
-  );
-
-  // 4.1.2: As perícias padrões que cada classe recebe
-  const qtdPericiasRestantes = Array(classe.periciasrestantes.qtd).fill(0);
-
-  const pericias = qtdPericiasRestantes.reduce(
-    (periciasAtuais) => [
-      ...periciasAtuais,
-      PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
-    ],
-    periciasDeClasseEBasicas
-  );
+  const pericias = addClassPer(classe, periciasDaRaca);
 
   return {
     nome,

@@ -1,7 +1,7 @@
 import AGGELUS from '../../utils/racasDetalhado/aggelus';
 import HUMANO from '../../utils/racasDetalhado/humano';
 import {
-  getClassDetaildModifiedByRace,
+  getClassDetailsModifiedByRace,
   modifyAttributesBasedOnRace,
   getModValues,
 } from '../general';
@@ -19,7 +19,7 @@ const classDetails = { pv: 26, pm: 3, defesa: 12, pericias: [] };
 
 describe('Testa modificações da raça Aggelus', () => {
   test('Se o Aggelus não modifica detalhes da classe ', () => {
-    const received = getClassDetaildModifiedByRace(classDetails, AGGELUS);
+    const received = getClassDetailsModifiedByRace(classDetails, AGGELUS);
     expect(received).toEqual(classDetails);
   });
 
@@ -51,7 +51,7 @@ function countAttrWithPlusTwo(attributes) {
 
 describe('Testa modificações da raça Humano', () => {
   test('Se o Humano tem recebe duas perícias diferentes', () => {
-    const received = getClassDetaildModifiedByRace(classDetails, HUMANO);
+    const received = getClassDetailsModifiedByRace(classDetails, HUMANO);
 
     const {
       pericias: [periciaA, periciaB],
