@@ -79,7 +79,11 @@ const nomes = {
   Sereia: {
     Homem: ['Sereio'],
     Mulher: ['Serena'],
-  }
+  },
+  Sílfide: {
+    Homem: ['Silfide'],
+    Mulher: ['Silfida'],
+  },
 };
 
 export default nomes;

@@ -12,6 +12,7 @@ import KLIREN from './racasDetalhado/kliren';
 import MEDUSA from './racasDetalhado/medusa';
 import OSTEON from './racasDetalhado/osteon';
 import SEREIA from './racasDetalhado/sereia';
+import SILFIDE from './racasDetalhado/silfide';
 
 const RACAS = [
   // ANAO,
@@ -27,7 +28,8 @@ const RACAS = [
   // KLIREN,
   // MEDUSA,
   // OSTEON,
-  SEREIA,
+  // SEREIA,
+  SILFIDE,
 ];
 
 export default RACAS;
