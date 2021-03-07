@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -20,7 +19,9 @@ const useStyles = makeStyles((theme) => ({
     background: 'rgb(209, 50, 53);',
   },
   title: {
-    flexGrow: 1,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   input: {
     color: 'rgb(209, 50, 53)',
