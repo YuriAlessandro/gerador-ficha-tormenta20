@@ -1,6 +1,6 @@
 # Gerador de Fichas de Tormenta 20
 
-[![CircleCI](https://circleci.com/gh/YuriAlessandro/gerador-ficha-tormenta20.svg?style=svg)](https://yurialessandro.github.io/gerador-ficha-tormenta20/)
+[![CircleCI](https://circleci.com/gh/YuriAlessandro/gerador-ficha-tormenta20/tree/main.svg?style=svg)](https://yurialessandro.github.io/gerador-ficha-tormenta20/)
 
 Um gerador de fichas para o sistema de RPG Tormenta 20.
 Você pode gerar raças e classes aleatórias ou selecionar específicas.
