@@ -46,8 +46,8 @@ const MainScreen = () => {
       minWidth: '150px',
       minHeight: '36px',
       marginBottom: '10px',
-    }
-  }
+    },
+  };
 
   const [randomSheet, setRandomSheet] = React.useState();
   const [sidebarVisibility, setSidebarVisibility] = React.useState();
@@ -67,14 +67,20 @@ const MainScreen = () => {
 
   const onCloseSidebar = () => {
     setSidebarVisibility(false);
-  }
+  };
 
   return (
     <div>
       <Sidebar visible={sidebarVisibility} onCloseSidebar={onCloseSidebar} />
       <AppBar position='static' className={classes.appbar}>
         <Toolbar>
-          <IconButton onClick={onClickMenu} edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+          <IconButton
+            onClick={onClickMenu}
+            edge='start'
+            className={classes.menuButton}
+            color='inherit'
+            aria-label='menu'
+          >
             <MenuIcon />
           </IconButton>
           <Typography variant='h6' className={classes.title}>
@@ -83,7 +89,7 @@ const MainScreen = () => {
         </Toolbar>
       </AppBar>
 
-      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap'}}>
+      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap' }}>
         <select style={styles.select}>
           <option>Todas as Raças</option>
         </select>

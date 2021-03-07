@@ -4,7 +4,18 @@ import PropTypes from 'prop-types';
 const Result = (props) => {
   const { sheet } = props;
 
-  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv, pm, defesa } = sheet;
+  const {
+    nome,
+    sexo,
+    nivel,
+    atributos,
+    raca,
+    classe,
+    pericias,
+    pv,
+    pm,
+    defesa,
+  } = sheet;
 
   const styles = {
     mainDiv: {

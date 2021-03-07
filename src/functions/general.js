@@ -81,7 +81,7 @@ export default function generateRandomSheet() {
   let pv = classe.pv + constAttr.mod;
 
   // Passo 3.2: Determinando o PM baseado na classe
-  let pm = classe.pm;
+  let { pm } = classe;
 
   // Passo 3.3: Determinando a Defesa inicial
   const destAttr = atributos.find((attr) => attr.name === 'Destreza');
