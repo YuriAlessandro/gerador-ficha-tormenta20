@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const NOBRE = {
   name: 'Nobre',
@@ -39,7 +40,13 @@ const NOBRE = {
       PERICIAS.PONTARIA,
     ],
   },
-  proeficiencias: ['Armas marciais e escudos', 'Armaduras pesadas e escudos'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+    PROFICIENCIAS.PESADAS,
+    PROFICIENCIAS.ESCUDOS,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Autoconfiança',

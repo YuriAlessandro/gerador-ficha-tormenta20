@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const INVENTOR = {
   name: 'Inventor',
@@ -29,7 +30,11 @@ const INVENTOR = {
       PERICIAS.PERCEPCAO,
     ],
   },
-  proeficiencias: ['Nenhuma,'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.NENHUMA,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Engenhosidade',

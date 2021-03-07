@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const GUERREIRO = {
   name: 'Guerreiro',
@@ -32,7 +33,13 @@ const GUERREIRO = {
       PERICIAS.REFLEXOS,
     ],
   },
-  proeficiencias: ['Armas Marciais', 'Armaduras pesadas e Escudos'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+    PROFICIENCIAS.PESADAS,
+    PROFICIENCIAS.ESCUDOS,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Ataque Especial',

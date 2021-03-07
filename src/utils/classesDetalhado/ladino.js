@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const LADINO = {
   name: 'Ladino',
@@ -35,7 +36,11 @@ const LADINO = {
       PERICIAS.PILOTAGEM,
     ],
   },
-  proeficiencias: ['Nenhuma.'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.NENHUMA,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Ataque Furtivo',
