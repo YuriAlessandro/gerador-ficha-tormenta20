@@ -18,23 +18,26 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+type SelectOptions = { nivel: number; raca: string; classe: string };
+
 const MainScreen = () => {
   const classes = useStyles();
 
-  const styles = {
-    select: {
-      marginRight: '10px',
-      minHeight: '36px',
-      marginBottom: '10px',
-    },
-  };
-
   // TODO: Create typing for chara sheet
   const [randomSheet, setRandomSheet] = React.useState<any>();
+  const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>();
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet();
     setRandomSheet(anotherRandomSheet);
+  };
+
+  const onSelectRaca = (raca: any) => {
+    setSelectedOptions({ raca: raca.value } as any);
+  };
+
+  const onSelectClasse = (classe: any) => {
+    setSelectedOptions({ classe: classe.value } as any);
   };
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
@@ -46,21 +49,23 @@ const MainScreen = () => {
 
   return (
     <div>
-      <div>
+      <div className='filterArea'>
         <Select
-          style={styles.select}
+          className='filterSelect'
           options={[{ value: null, label: 'Todas as raças' }, ...racas]}
           placeholder='Selecione uma raça...'
+          onChange={onSelectRaca}
         />
 
         <Select
-          style={styles.select}
+          className='filterSelect'
           options={[{ value: null, label: 'Todas as classes' }, ...classesopt]}
           placeholder='Selecione uma classe...'
+          onChange={onSelectClasse}
         />
 
         <Select
-          style={styles.select}
+          className='filterSelect'
           options={niveis}
           isSearchable={false}
           value={niveis.filter((option) => option.value === 1)}
