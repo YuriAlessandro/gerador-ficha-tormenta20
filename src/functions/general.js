@@ -101,10 +101,10 @@ function generateRandomName(raca, sexo) {
   return getRandomItemFromArray(nomes[raca][sexo]);
 }
 
-function getRandomNotRepeatedPer(pericias) {
+function getNotRepeatedRandomPer(periciasUsadas) {
   const keys = Object.keys(PERICIAS);
   const periciasPermitidas = keys.filter(
-    (pericia) => !pericias.includes(pericia)
+    (pericia) => !periciasUsadas.includes(PERICIAS[pericia])
   );
   return getRandomItemFromArray(periciasPermitidas);
 }
@@ -121,7 +121,7 @@ export function getClassDetaildModifiedByRace(
             ...caracteristicas,
             pericias: [
               ...caracteristicas.pericias,
-              PERICIAS[getRandomNotRepeatedPer(pericias)],
+              PERICIAS[getNotRepeatedRandomPer(pericias)],
             ],
           };
         }
@@ -194,8 +194,6 @@ export default function generateRandomSheet() {
     pericias: [],
   };
 
-  console.log(caracteristicasDaClasse, raca);
-
   const {
     pv,
     pm,
@@ -226,7 +224,7 @@ export default function generateRandomSheet() {
   const pericias = qtdPericiasRestantes.reduce(
     (periciasAtuais) => [
       ...periciasAtuais,
-      PERICIAS[getRandomNotRepeatedPer(periciasAtuais)],
+      PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
     ],
     periciasDeClasseEBasicas
   );
