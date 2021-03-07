@@ -30,10 +30,7 @@ const INVENTOR = {
       PERICIAS.PERCEPCAO,
     ],
   },
-  proeficiencias: [
-    PROFICIENCIAS.LEVES,
-    PROFICIENCIAS.SIMPLES,
-  ],
+  proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
   habilities: [
     {
       name: 'Engenhosidade',
