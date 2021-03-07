@@ -164,7 +164,6 @@ export default function generateRandomSheet() {
 
   // Passo 2: Definir raça
   const raca = getRandomItemFromArray(RACAS);
-  console.log(raca.habilites.other);
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
@@ -193,32 +192,40 @@ export default function generateRandomSheet() {
     pericias: [],
   };
 
-  const { pv, pm, defesa, pericias } = getClassDetaildModifiedByRace(
-    caracteristicas,
-    raca
-  );
+  const {
+    pv,
+    pm,
+    defesa,
+    pericias: periciasDaRaca,
+  } = getClassDetaildModifiedByRace(caracteristicas, raca);
+
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Definir perícias da classe
   // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
-  classe.periciasbasicas.forEach((item) => {
-    if (item.type === 'or') {
-      pericias.push(getRandomItemFromArray(item.list));
-    } else if (item.type === 'and') {
-      item.list.forEach((pericia) => {
-        pericias.push(pericia);
-      });
-    }
-  });
+  const periciasDeClasseEBasicas = classe.periciasbasicas.reduce(
+    (pericias, item) => {
+      if (item.type === 'or') {
+        return [...new Set([...pericias, getRandomItemFromArray(item.list)])];
+      }
+      if (item.type === 'and') {
+        return [...new Set([...pericias, ...item.list])];
+      }
+
+      return pericias;
+    },
+    periciasDaRaca
+  );
 
   // 4.1.2: As perícias padrões que cada classe recebe
-  for (let index = 0; index < classe.periciasrestantes.qtd; index += 1) {
-    let newPer = getRandomItemFromArray(classe.periciasrestantes.list);
-    while (pericias.includes(newPer)) {
-      newPer = getRandomItemFromArray(classe.periciasrestantes.list);
-    }
+  const qtdPericiasRestantes = Array(classe.periciasrestantes.qtd).fill(0);
 
-    pericias.push(newPer);
-  }
+  const pericias = qtdPericiasRestantes.reduce(
+    (periciasAtuais) => [
+      ...periciasAtuais,
+      PERICIAS[getNotRepeatedPer(periciasAtuais)],
+    ],
+    periciasDeClasseEBasicas
+  );
 
   return {
     nome,
