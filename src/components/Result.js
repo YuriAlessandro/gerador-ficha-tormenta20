@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const Result = (props) => {
   const {
@@ -22,7 +23,6 @@ const Result = (props) => {
     },
     row: {
       display: 'flex',
-      // justifyContent: 'center',
       borderTop: '1px solid black',
       padding: '5px 0',
     },
@@ -30,8 +30,6 @@ const Result = (props) => {
       marginRight: '10px',
     },
   };
-
-  console.log();
 
   const atributosDiv = atributos.map((atributo) => (
     <span style={styles.item}>
@@ -163,6 +161,10 @@ const Result = (props) => {
 
     </div>
   );
+};
+
+Result.propTypes = {
+  sheet: PropTypes.shape.isRequired,
 };
 
 export default Result;
