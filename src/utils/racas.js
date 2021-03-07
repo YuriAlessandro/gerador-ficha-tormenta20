@@ -8,18 +8,20 @@ import QAREEN from './racasDetalhado/qareen';
 import GOLEM from './racasDetalhado/golem';
 import HYNNE from './racasDetalhado/hynne';
 import HUMANO from './racasDetalhado/humano';
+import KLIREN from './racasDetalhado/kliren';
 
 const RACAS = [
-  ANAO,
-  DAHLLAN,
-  ELFO,
-  GOBLIN,
-  LEFEU,
-  MINOTAURO,
-  QAREEN,
-  GOLEM,
-  HYNNE,
-  HUMANO,
+  // ANAO,
+  // DAHLLAN,
+  // ELFO,
+  // GOBLIN,
+  // LEFEU,
+  // MINOTAURO,
+  // QAREEN,
+  // GOLEM,
+  // HYNNE,
+  // HUMANO,
+  KLIREN,
 ];
 
 export default RACAS;
