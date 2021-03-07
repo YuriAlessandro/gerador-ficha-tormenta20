@@ -1,4 +1,6 @@
-const nomes = {
+const nomes: {
+  [key: string]: any;
+} = {
   Humano: {
     Homem: [
       'Aldor',

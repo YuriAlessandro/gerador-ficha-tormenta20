@@ -1,17 +1,26 @@
-interface Race {
+export interface RaceHability {
+  attr: string;
+  mod: number;
+}
+
+export interface CharacterAttribute {
+  name: string;
+  value: number;
+  mod: number;
+}
+
+export interface Race {
   name: string;
   habilites: {
-    attrs: {
-      attr: string;
-      mod: number;
-    }[];
+    attrs: RaceHability[];
     other: {
       type: string;
       allowed: string;
+      mod?: number;
     }[];
     texts: string[];
   };
-  oldRace?: Race
+  oldRace?: Race;
 }
 
 export default interface CharacterSheet {
