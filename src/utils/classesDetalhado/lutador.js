@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const LUTADOR = {
   name: 'Lutador',
@@ -28,7 +29,11 @@ const LUTADOR = {
       PERICIAS.REFLEXOS,
     ],
   },
-  proeficiencias: ['Nenhuma.'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.NENHUMA,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Briga',
