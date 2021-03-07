@@ -5,7 +5,7 @@
   "extends": [
     "plugin:react/recommended",
     "airbnb",
-    "prettier"
+    "prettier/prettier"
   ],
   "parser": "babel-eslint",
   "parserOptions": {
@@ -16,7 +16,8 @@
     "sourceType": "module"
   },
   "plugins": [
-    "react"
+    "react",
+    "prettier"
   ],
   "rules": {
     "react/jsx-filename-extension": "off",
