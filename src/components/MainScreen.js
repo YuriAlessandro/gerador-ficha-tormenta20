@@ -45,23 +45,25 @@ const MainScreen = () => {
 
   return (
     <div>
-      <AppBar position="static" className={classes.appbar}>
+      <AppBar position='static' className={classes.appbar}>
         <Toolbar>
-          <Typography variant="h6" className={classes.title}>
+          <Typography variant='h6' className={classes.title}>
             Gerador de Ficha - Tormenta 20
           </Typography>
         </Toolbar>
       </AppBar>
 
       <div style={{ margin: '20px', display: 'flex' }}>
-        <Button variant="contained" onClick={onClickGenerate} className={classes.button}>
+        <Button
+          variant='contained'
+          onClick={onClickGenerate}
+          className={classes.button}
+        >
           Gerar Ficha
         </Button>
       </div>
 
-      {randomSheet && (
-        <Result sheet={randomSheet} />
-      )}
+      {randomSheet && <Result sheet={randomSheet} />}
     </div>
   );
 };
