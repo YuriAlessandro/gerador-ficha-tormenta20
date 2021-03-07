@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const Result = (props) => {
   const { sheet } = props;
 
-  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv, pm } = sheet;
+  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv, pm, defesa } = sheet;
 
   const styles = {
     mainDiv: {
@@ -40,9 +40,6 @@ const Result = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li>{proe}</li>
   ));
-
-  const destAttr = atributos.find((attr) => attr.name === 'Destreza');
-  const defesa = 10 + destAttr.mod;
 
   return (
     <div style={styles.mainDiv}>

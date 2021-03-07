@@ -83,6 +83,10 @@ export default function generateRandomSheet() {
   // Passo 3.2: Determinando o PM baseado na classe
   let pm = classe.pm;
 
+  // Passo 3.3: Determinando a Defesa inicial
+  const destAttr = atributos.find((attr) => attr.name === 'Destreza');
+  let defesa = 10 + destAttr.mod;
+
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Primeiramente vamos treinar as pericias que vem da raça
   const pericias = [];
@@ -101,6 +105,8 @@ export default function generateRandomSheet() {
       pv += item.mod;
     } else if (item.type === 'pm') {
       pm += item.mod;
+    } else if (item.type === 'defesa') {
+      defesa += item.mod;
     }
   });
 
@@ -136,5 +142,6 @@ export default function generateRandomSheet() {
     pericias,
     pv,
     pm,
+    defesa,
   };
 }
