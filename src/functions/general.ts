@@ -9,6 +9,7 @@ import {
   Race,
 } from '../interfaces/CharacterSheet';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
+import SelectedOptions from '../interfaces/SelectedOptions'
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -239,6 +240,15 @@ function getInitialDef(destAttr: CharacterAttribute | undefined){
   return baseDef;
 }
 
+function selectRace(selectedOptions: SelectedOptions){
+  if (selectedOptions.raca) {
+    return RACAS.find(
+      (currentRaca) => currentRaca.name === selectedOptions.raca
+    );
+  }
+ return getRandomItemFromArray(RACAS);
+}
+
 
 
 export function addClassPer(classe: ClassDescription, racePers: any[]) {
@@ -255,7 +265,7 @@ export function addClassPer(classe: ClassDescription, racePers: any[]) {
   );
 }
 
-export default function generateRandomSheet() {
+export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
@@ -267,11 +277,12 @@ export default function generateRandomSheet() {
   });
 
   // Passo 2: Definir raça
-  const raca = getRandomItemFromArray(RACAS);
+  const raca = selectRace(selectedOptions);
 
   if (raca.name === 'Osteon') {
     raca.oldRace = raca.sortOldRace(RACAS);
   }
+
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
@@ -279,7 +290,14 @@ export default function generateRandomSheet() {
   // Passo 2.3: Definir nome
   const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
-  const classe = getRandomItemFromArray(CLASSES);
+  let classe;
+  if (selectedOptions.classe) {
+    classe = CLASSES.find(
+      (currentClasse) => currentClasse.name === selectedOptions.classe
+    );
+  } else {
+    classe = getRandomItemFromArray(CLASSES);
+  }
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
