@@ -60,6 +60,10 @@ const nomes = {
     Homem: ['Golenzin'],
     Mulher: ['Gola'],
   },
+  Hynne: {
+    Homem: ['Frodo'],
+    Mulher: ['Hynne'],
+  },
 };
 
 export default nomes;
