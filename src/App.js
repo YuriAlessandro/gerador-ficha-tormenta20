@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
@@ -51,7 +51,7 @@ function App() {
   return (
     <div className='App'>
       <header className='App-header'>
-        <Router>
+        <HashRouter basename='/gerador-ficha-tormenta20/'>
           <Sidebar
             visible={sidebarVisibility}
             onCloseSidebar={onCloseSidebar}
@@ -81,7 +81,7 @@ function App() {
               <MainScreen />
             </Route>
           </Switch>
-        </Router>
+        </HashRouter>
       </header>
     </div>
   );
