@@ -5,6 +5,7 @@ import Button from '@material-ui/core/Button';
 import Select from 'react-select';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
+import SelectOptions from '../interfaces/SelectedOptions';
 
 import Result from './Result';
 
@@ -18,26 +19,28 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type SelectOptions = { nivel: number; raca: string; classe: string };
-
-const MainScreen = () => {
+const MainScreen: React.FC = () => {
   const classes = useStyles();
 
   // TODO: Create typing for chara sheet
   const [randomSheet, setRandomSheet] = React.useState<any>();
-  const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>();
+  const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
+    nivel: 1,
+    classe: '',
+    raca: '',
+  });
 
   const onClickGenerate = () => {
-    const anotherRandomSheet = generateRandomSheet();
+    const anotherRandomSheet = generateRandomSheet(selectedOptions);
     setRandomSheet(anotherRandomSheet);
   };
 
   const onSelectRaca = (raca: any) => {
-    setSelectedOptions({ raca: raca.value } as any);
+    setSelectedOptions({ ...selectedOptions, raca: raca.value } as any);
   };
 
   const onSelectClasse = (classe: any) => {
-    setSelectedOptions({ classe: classe.value } as any);
+    setSelectedOptions({ ...selectedOptions, classe: classe.value } as any);
   };
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
@@ -52,14 +55,14 @@ const MainScreen = () => {
       <div className='filterArea'>
         <Select
           className='filterSelect'
-          options={[{ value: null, label: 'Todas as raças' }, ...racas]}
+          options={[{ value: '', label: 'Todas as raças' }, ...racas]}
           placeholder='Selecione uma raça...'
           onChange={onSelectRaca}
         />
 
         <Select
           className='filterSelect'
-          options={[{ value: null, label: 'Todas as classes' }, ...classesopt]}
+          options={[{ value: '', label: 'Todas as classes' }, ...classesopt]}
           placeholder='Selecione uma classe...'
           onChange={onSelectClasse}
         />
