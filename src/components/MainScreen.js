@@ -2,6 +2,9 @@ import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import Select from 'react-select';
+import RACAS from '../utils/racas';
+import CLASSES from '../utils/classes';
 
 import Result from './Result';
 
@@ -21,7 +24,6 @@ const MainScreen = () => {
   const styles = {
     select: {
       marginRight: '10px',
-      minWidth: '150px',
       minHeight: '36px',
       marginBottom: '10px',
     },
@@ -34,20 +36,40 @@ const MainScreen = () => {
     setRandomSheet(anotherRandomSheet);
   };
 
+  const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
+  const classesopt = CLASSES.map((classe) => ({
+    value: classe.name,
+    label: classe.name,
+  }));
+  const niveis = [{ value: 1, label: 'Nível 1' }];
+
   return (
     <div>
-      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap' }}>
-        <select style={styles.select}>
+      <div>
+        <Select
+          style={styles.select}
+          options={[{ value: null, label: 'Todas as raças' }, ...racas]}
+          placeholder='Selecione uma raça...'
+        >
           <option>Todas as Raças</option>
-        </select>
+        </Select>
 
-        <select style={styles.select}>
+        <Select
+          style={styles.select}
+          options={[{ value: null, label: 'Todas as classes' }, ...classesopt]}
+          placeholder='Selecione uma classe...'
+        >
           <option>Todas as Classes</option>
-        </select>
+        </Select>
 
-        <select style={styles.select}>
+        <Select
+          style={styles.select}
+          options={niveis}
+          isSearchable={false}
+          value={niveis.filter((option) => option.value === 1)}
+        >
           <option>Nível 1</option>
-        </select>
+        </Select>
 
         <Button
           variant='contained'
