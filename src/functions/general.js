@@ -4,7 +4,7 @@ import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 import nomes from '../utils/nomes';
 
-function getModValues(attr) {
+export function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
 }
 
@@ -25,11 +25,7 @@ function getNotRepeatedAttribute(atributosModificados) {
   const atributosPermitidos = ATRIBUTOS.filter(
     (atributo) => !atributosModificados.includes(atributo)
   );
-  const atributo = getRandomItemFromArray(atributosPermitidos);
-
-  return atributosModificados.includes(atributo)
-    ? getNotRepeatedAttribute(ATRIBUTOS)
-    : atributo;
+  return getRandomItemFromArray(atributosPermitidos);
 }
 
 function selectAttributeToChange(atributosModificados, atributo) {
@@ -57,7 +53,7 @@ function getModifiedAttribute(
   };
 }
 
-function modifyAttributesBasedOnRace(raca, atributos) {
+export function modifyAttributesBasedOnRace(raca, atributos) {
   const reducedAttrs = raca.habilites.attrs.reduce(
     (
       {
@@ -105,7 +101,7 @@ function generateRandomName(raca, sexo) {
   return getRandomItemFromArray(nomes[raca][sexo]);
 }
 
-function getNotRepeatedPer(pericias) {
+function getRandomNotRepeatedPer(pericias) {
   const keys = Object.keys(PERICIAS);
   const periciasPermitidas = keys.filter(
     (pericia) => !pericias.includes(pericia)
@@ -123,7 +119,10 @@ export function getClassDetaildModifiedByRace(
         if (item.allowed === 'any') {
           return {
             ...caracteristicas,
-            pericias: [...pericias, PERICIAS[getNotRepeatedPer(pericias)]],
+            pericias: [
+              ...caracteristicas.pericias,
+              PERICIAS[getRandomNotRepeatedPer(pericias)],
+            ],
           };
         }
       }
@@ -188,19 +187,21 @@ export default function generateRandomSheet() {
   const defesaInicial = 10 + destAttr.mod;
 
   // Passo 3.4: Alterar características da classe com base na raça
-  const caracteristicas = {
+  const caracteristicasDaClasse = {
     pv: pvInicial,
     pm: pmInicial,
     defesa: defesaInicial,
     pericias: [],
   };
 
+  console.log(caracteristicasDaClasse, raca);
+
   const {
     pv,
     pm,
     defesa,
     pericias: periciasDaRaca,
-  } = getClassDetaildModifiedByRace(caracteristicas, raca);
+  } = getClassDetaildModifiedByRace(caracteristicasDaClasse, raca);
 
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Definir perícias da classe
@@ -225,7 +226,7 @@ export default function generateRandomSheet() {
   const pericias = qtdPericiasRestantes.reduce(
     (periciasAtuais) => [
       ...periciasAtuais,
-      PERICIAS[getNotRepeatedPer(periciasAtuais)],
+      PERICIAS[getRandomNotRepeatedPer(periciasAtuais)],
     ],
     periciasDeClasseEBasicas
   );

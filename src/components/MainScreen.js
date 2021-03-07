@@ -50,7 +50,7 @@ const MainScreen = () => {
   };
 
   const [randomSheet, setRandomSheet] = React.useState();
-  const [sidebarVisibility, setSidebarVisibility] = React.useState();
+  const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
 
   React.useEffect(() => {
     setSidebarVisibility(false);
