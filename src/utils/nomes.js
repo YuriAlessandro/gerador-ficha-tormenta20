@@ -36,6 +36,22 @@ const nomes = {
     Homem: ['Lefex'],
     Mulher: ['Lefoa'],
   },
+  Elfo: {
+    Homem: ['Elfo'],
+    Mulher: ['Elfa'],
+  },
+  Goblin: {
+    Homem: ['Goblinaldo'],
+    Mulher: ['Goblina'],
+  },
+  Lefeu: {
+    Homem: ['Lefeuso'],
+    Mulher: ['Lefona'],
+  },
+  Minotauro: {
+    Homem: ['Minotouro'],
+    Mulher: ['Minotaura'],
+  },
 };
 
 export default nomes;
