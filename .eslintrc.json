@@ -5,8 +5,7 @@
   "extends": [
     "plugin:react/recommended",
     "airbnb",
-    "prettier",
-    "prettier/react"
+    "prettier"
   ],
   "parser": "babel-eslint",
   "parserOptions": {
@@ -16,11 +15,16 @@
     "ecmaVersion": 12,
     "sourceType": "module"
   },
-  "plugins": ["react"],
+  "plugins": [
+    "react"
+  ],
   "rules": {
     "react/jsx-filename-extension": "off",
     "prettier/prettier": "error",
     "import/prefer-default-export": "off",
-    "jsx-quotes": ["error", "prefer-single"]
+    "jsx-quotes": [
+      "error",
+      "prefer-single"
+    ]
   }
 }
