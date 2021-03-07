@@ -15,3 +15,13 @@ code {
 .specialMenu:hover{
   text-decoration: underline;
 }
+
+.filterArea{
+  display: flex;
+  margin: 30px 30px 30px 25px;
+}
+
+.filterSelect{
+  width: 300px;
+  margin-right: 10px;
+}

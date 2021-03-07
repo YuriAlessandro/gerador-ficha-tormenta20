@@ -1,7 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import CharacterSheet from '../interfaces/CharacterSheet';
 
-const Result = (props) => {
+interface ResultProps {
+  sheet: CharacterSheet;
+}
+
+const Result: React.FC<ResultProps> = (props) => {
   const { sheet } = props;
 
   const {
@@ -69,7 +73,8 @@ const Result = (props) => {
           <strong>Classe</strong> {classe.name}
         </span>
         <span style={styles.item}>
-          <strong>Raça</strong> {raca.name}
+          <strong>Raça</strong> {raca.name}{' '}
+          {raca.oldRace && `(${raca.oldRace.name})`}
         </span>
         <span style={styles.item}>
           <strong>Nível</strong> {nivel}
@@ -144,64 +149,6 @@ const Result = (props) => {
       <div style={styles.row} />
     </div>
   );
-};
-
-Result.propTypes = {
-  sheet: PropTypes.shape({
-    nome: PropTypes.string,
-    sexo: PropTypes.string,
-    nivel: PropTypes.number,
-    atributos: PropTypes.arrayOf(PropTypes.object),
-    raca: PropTypes.shape({
-      name: PropTypes.string,
-      habilites: PropTypes.shape({
-        attrs: PropTypes.arrayOf(
-          PropTypes.shape({
-            attr: PropTypes.string,
-            mod: PropTypes.number,
-          })
-        ),
-        other: PropTypes.arrayOf(
-          PropTypes.shape({
-            type: PropTypes.string,
-            allowed: PropTypes.string,
-          })
-        ),
-        texts: PropTypes.arrayOf(PropTypes.string),
-      }),
-    }),
-    classe: PropTypes.shape({
-      name: PropTypes.string,
-      pv: PropTypes.number,
-      addpv: PropTypes.number,
-      pm: PropTypes.number,
-      addpm: PropTypes.number,
-      periciasbasicas: PropTypes.arrayOf(
-        PropTypes.shape({
-          type: PropTypes.string,
-          list: PropTypes.arrayOf(PropTypes.string),
-        })
-      ),
-      periciasrestantes: PropTypes.shape({
-        qtd: PropTypes.number,
-        list: PropTypes.arrayOf(PropTypes.string),
-      }),
-      proeficiencias: PropTypes.arrayOf(PropTypes.string),
-      habilities: PropTypes.arrayOf(
-        PropTypes.shape({
-          name: PropTypes.string,
-          text: PropTypes.string,
-          effect: PropTypes.string,
-          nivel: PropTypes.number,
-        })
-      ),
-      magics: PropTypes.arrayOf(PropTypes.string),
-    }),
-    pericias: PropTypes.arrayOf(PropTypes.string),
-    pv: PropTypes.number,
-    pm: PropTypes.number,
-    defesa: PropTypes.number,
-  }).isRequired,
 };
 
 export default Result;
