@@ -1,10 +1,11 @@
+import { v4 as uuid } from 'uuid';
 import ATRIBUTOS from '../utils/atributos';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 import EQUIPAMENTOS from '../utils/equipamentos';
 import nomes from '../utils/nomes';
-import {
+import CharacterSheet, {
   CharacterAttribute,
   RaceHability,
   Race,
@@ -154,7 +155,7 @@ interface ClassDetails {
 export function getClassDetailsModifiedByRace(
   { pv, pm, defesa, pericias }: ClassDetails,
   raca: Race
-) {
+): ClassDetails {
   return raca.habilites.other.reduce(
     (caracteristicas, item) => {
       if (item.type === 'pericias') {
@@ -269,7 +270,10 @@ function getRace(selectedOptions: SelectedOptions) {
   return race;
 }
 
-export function addClassPer(classe: ClassDescription, racePers: any[]) {
+export function addClassPer(
+  classe: ClassDescription,
+  racePers: any[]
+): string[] {
   // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
   const periciasDeClasseEBasicas = addBasicPer(
     classe.periciasbasicas,
@@ -294,7 +298,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: ClassDescription) {
+export function addEquipClass(classe: ClassDescription): { nome: string }[] {
   // 6.1 A depender da classe os itens podem variar
   const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
 
@@ -371,7 +375,9 @@ export function addEquipClass(classe: ClassDescription) {
   return equipamentosIniciais;
 }
 
-export default function generateRandomSheet(selectedOptions: SelectedOptions) {
+export default function generateRandomSheet(
+  selectedOptions: SelectedOptions
+): CharacterSheet {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
@@ -428,6 +434,7 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   const equipamentos = addEquipClass(classe);
 
   return {
+    id: uuid(),
     nome,
     sexo,
     nivel,

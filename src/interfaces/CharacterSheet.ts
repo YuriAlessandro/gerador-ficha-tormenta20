@@ -1,3 +1,5 @@
+import { ClassDescription } from './Class';
+
 export interface RaceHability {
   attr: string;
   mod: number;
@@ -24,34 +26,13 @@ export interface Race {
 }
 
 export default interface CharacterSheet {
+  id: string;
   nome: string;
   sexo: string;
   nivel: number;
   atributos: Record<string, any>[];
   raca: Race;
-  classe: {
-    name: string;
-    pv: number;
-    addpv: number;
-    pm: number;
-    addpm: number;
-    periciasbasicas: {
-      type: string;
-      list: string[];
-    }[];
-    periciasrestantes: {
-      qtd: number;
-      list: string[];
-    };
-    proeficiencias: string[];
-    habilities: {
-      name: string;
-      text: string;
-      effect: string;
-      nivel: number;
-    }[];
-    magics: string[];
-  };
+  classe: ClassDescription;
   pericias: string[];
   pv: number;
   pm: number;
