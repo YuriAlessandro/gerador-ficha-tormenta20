@@ -52,6 +52,7 @@ const CAVALEIRO = {
     },
   ],
   magics: [],
+  probDevoto: 0.6,
 };
 
 export default CAVALEIRO;

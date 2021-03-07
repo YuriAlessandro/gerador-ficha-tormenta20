@@ -52,6 +52,7 @@ const INVENTOR = {
     },
   ],
   magics: [],
+  probDevoto: 0.3,
 };
 
 export default INVENTOR;

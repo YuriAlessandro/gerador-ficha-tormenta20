@@ -44,6 +44,7 @@ const BARBARO = {
     },
   ],
   magics: [],
+  probDevoto: 0.5,
 };
 
 export default BARBARO;

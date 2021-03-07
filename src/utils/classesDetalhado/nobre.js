@@ -70,6 +70,7 @@ const NOBRE = {
     },
   ],
   magics: [],
+  probDevoto: 0.3,
 };
 
 export default NOBRE;

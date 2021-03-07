@@ -58,6 +58,7 @@ const BARDO = {
     },
   ],
   magics: [],
+  probDevoto: 0.5,
 };
 
 export default BARDO;

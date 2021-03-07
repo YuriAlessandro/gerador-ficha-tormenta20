@@ -56,6 +56,7 @@ const DRUIDA = {
     },
   ],
   magics: [],
+  probDevoto: 1,
 };
 
 export default DRUIDA;

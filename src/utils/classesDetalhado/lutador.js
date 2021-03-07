@@ -51,6 +51,7 @@ const LUTADOR = {
     },
   ],
   magics: [],
+  probDevoto: 0.4,
 };
 
 export default LUTADOR;
