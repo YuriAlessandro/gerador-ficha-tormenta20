@@ -2,6 +2,7 @@ import ATRIBUTOS from '../utils/atributos';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
+import nomes from '../utils/nomes';
 
 function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
@@ -20,22 +21,7 @@ function getRandomPer() {
   return getRandomItemFromArray(keys);
 }
 
-export default function generateRandomSheet() {
-  const name = 'NomeDoJogador'; // TODO: Gerar nomes aleatórios
-  const nivel = 1;
-
-  // Passo 1: Gerar os atributos base desse personagem
-  const atributos = ATRIBUTOS.map((atributo) => {
-    const randomAttr = getRandomArbitrary(8, 18);
-    const mod = getModValues(randomAttr);
-    return { name: atributo, value: randomAttr, mod };
-  });
-
-  // Passo 2: Definir raça
-  const raca = getRandomItemFromArray(RACAS);
-
-  const modifiedAttrs = [];
-  // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
+function modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos) {
   raca.habilites.attrs.forEach((item) => {
     // Definir o que que attr muda (se for any é um random)
     let selectedAttr;
@@ -59,6 +45,34 @@ export default function generateRandomSheet() {
     attrToChange.mod = getModValues(attrToChange.value);
   });
 
+  return modifiedAttrs;
+}
+
+function generateRandomName(raca, sexo) {
+  return getRandomItemFromArray(nomes[raca][sexo]);
+}
+
+export default function generateRandomSheet() {
+  const sexos = ['Homem', 'Mulher'];
+  const nivel = 1;
+
+  // Passo 1: Gerar os atributos base desse personagem
+  const atributos = ATRIBUTOS.map((atributo) => {
+    const randomAttr = getRandomArbitrary(8, 18);
+    const mod = getModValues(randomAttr);
+    return { name: atributo, value: randomAttr, mod };
+  });
+
+  // Passo 2: Definir raça
+  const raca = getRandomItemFromArray(RACAS);
+
+  // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
+  const modifiedAttrs = []; // Refactor to reduce
+  modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos);
+  // Passo 2.2: Definir sexo
+  const sexo = getRandomItemFromArray(sexos);
+  // Passo 2.3: Definir nome
+  const nome = generateRandomName(raca.name, sexo);
   // Passo 3: Definir a classe
   const classe = getRandomItemFromArray(CLASSES);
 
@@ -108,7 +122,8 @@ export default function generateRandomSheet() {
   }
 
   return {
-    name,
+    nome,
+    sexo,
     nivel,
     atributos,
     raca,

@@ -14,7 +14,8 @@ const NOBRE = {
     {
       type: 'and',
       list: [PERICIAS.VONTADE],
-    }],
+    },
+  ],
   periciasrestantes: {
     qtd: 4,
     list: [
@@ -42,7 +43,8 @@ const NOBRE = {
   habilities: [
     {
       name: 'Autoconfiança',
-      text: 'Você pode somar seu bônus de Carisma em vez de Destreza na Defesa (mas continua não podendo somar um bônus de atributo na Defesa quando usa armadura pesada).',
+      text:
+        'Você pode somar seu bônus de Carisma em vez de Destreza na Defesa (mas continua não podendo somar um bônus de atributo na Defesa quando usa armadura pesada).',
       effect: null,
       nivel: 1,
     },
@@ -54,7 +56,8 @@ const NOBRE = {
     },
     {
       name: 'Orgulho',
-      text: 'Quando faz um teste de perícia, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu modificador de Carisma). Para cada PM que gastar, recebe +2 no teste.',
+      text:
+        'Quando faz um teste de perícia, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu modificador de Carisma). Para cada PM que gastar, recebe +2 no teste.',
       effect: null,
       nivel: 1,
     },
