@@ -50,26 +50,20 @@ const MainScreen = () => {
           style={styles.select}
           options={[{ value: null, label: 'Todas as raças' }, ...racas]}
           placeholder='Selecione uma raça...'
-        >
-          <option>Todas as Raças</option>
-        </Select>
+        />
 
         <Select
           style={styles.select}
           options={[{ value: null, label: 'Todas as classes' }, ...classesopt]}
           placeholder='Selecione uma classe...'
-        >
-          <option>Todas as Classes</option>
-        </Select>
+        />
 
         <Select
           style={styles.select}
           options={niveis}
           isSearchable={false}
           value={niveis.filter((option) => option.value === 1)}
-        >
-          <option>Nível 1</option>
-        </Select>
+        />
 
         <Button
           variant='contained'
