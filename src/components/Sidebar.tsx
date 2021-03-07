@@ -8,6 +8,8 @@ import { withRouter, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { RouteComponentProps } from 'react-router';
 
+import logo from '../assets/images/tormenta-logo-eye.png';
+
 const useStyles = makeStyles(() => ({
   link: {
     color: '#FAFAFA',
@@ -36,33 +38,32 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
 
   return (
     <div
+      className='sidebar'
       style={{
-        position: 'absolute',
-        background: 'rgba(0,0,0,0.95)',
-        top: '0',
-        width: '300px',
-        height: '97.9vh',
-        zIndex: 1,
-        boxShadow: '5px 0px 5px 0px rgba(0,0,0,0.75)',
-        color: '#FAFAFA',
         display: visible ? 'block' : 'none',
-        paddingTop: '20px',
-        transition: 'width 20s',
       }}
     >
-      <div
-        style={{
-          textAlign: 'right',
-          paddingRight: '15px',
-        }}
-      >
-        <Typography
-          style={{ cursor: 'pointer' }}
-          onClick={onCloseSidebar}
-          variant='inherit'
+      <div className='sidebarHeader'>
+        <Link
+          href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
+          target='blank'
         >
-          X
-        </Typography>
+          <img src={String(logo)} alt='Logo' className='logo' />
+        </Link>
+        <div
+          style={{
+            textAlign: 'right',
+            paddingRight: '15px',
+          }}
+        >
+          <Typography
+            style={{ cursor: 'pointer' }}
+            onClick={onCloseSidebar}
+            variant='inherit'
+          >
+            X
+          </Typography>
+        </div>
       </div>
       <MenuList>
         <MenuItem>
@@ -79,6 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
             <Link
               className={classes.link}
               href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/new'
+              target='blank'
             >
               Sugestões, Ideias e Feedbacks
             </Link>
@@ -89,6 +91,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
             <Link
               className={classes.link}
               href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20'
+              target='blank'
             >
               Contribua com o Projeto
             </Link>
