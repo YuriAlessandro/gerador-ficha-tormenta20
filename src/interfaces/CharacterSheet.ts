@@ -56,4 +56,5 @@ export default interface CharacterSheet {
   pv: number;
   pm: number;
   defesa: number;
+  equipamentos: any[];
 }

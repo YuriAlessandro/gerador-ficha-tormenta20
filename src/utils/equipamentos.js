@@ -17,6 +17,7 @@ const EQUIPAMENTOS = {
       critico: '19',
       peso: 0.5,
       tipo: 'Perf.',
+      equip: 'Arma',
     },
     {
       nome: 'Espada Curta',
@@ -24,6 +25,7 @@ const EQUIPAMENTOS = {
       critico: '19',
       peso: 1,
       tipo: 'Perf.',
+      equip: 'Arma',
     },
   ],
   armasMarciais: [
@@ -33,6 +35,7 @@ const EQUIPAMENTOS = {
       critico: '3x',
       peso: 2,
       tipo: 'Corte',
+      equip: 'Arma',
     },
     {
       nome: 'Cimitarra',
@@ -40,6 +43,7 @@ const EQUIPAMENTOS = {
       critico: '18',
       peso: 2,
       tipo: 'Corte',
+      equip: 'Arma',
     },
   ],
   armadurasLeves: [
@@ -48,6 +52,7 @@ const EQUIPAMENTOS = {
       bonus: 2,
       penalidade: 0,
       peso: 7,
+      equip: 'Armadura',
     },
     {
       nome: 'Couro batido',
@@ -60,6 +65,7 @@ const EQUIPAMENTOS = {
       bonus: 4,
       penalidade: 3,
       peso: 12,
+      equip: 'Armadura',
     },
   ],
   armaduraPesada: [
@@ -68,6 +74,7 @@ const EQUIPAMENTOS = {
       bonus: 5,
       penalidade: 2,
       peso: 15,
+      equip: 'Armadura',
     },
   ],
   escudos: [
@@ -79,28 +86,5 @@ const EQUIPAMENTOS = {
     },
   ],
 };
-
-// // calc DINHEIRO
-
-// // (RECEBE A CLASSE) E RETORNA UM ARRAY COM OS ITENS e MONEY
-// export function addEquipClass(classe) {
-//   // 5.1 A depender da classe os itens podem variar
-//   let equipamentosIniciais = EQUIPAMENTOS.inicial;
-//   let armas = EQUIPAMENTOS.armasSimples;
-//   let armaduras = EQUIPAMENTOS.armadurasLeves;
-//   let escudos = EQUIPAMENTOS.escudos;
-
-//   if (classe.name == 'Paladino' || classe.name == 'Guerreiro' || classe.name == 'Cavaleiro' || classe.name == 'Nobre') {
-
-//     equipamentosIniciais +=
-//   }
-
-//   return
-// }
-
-//   // Passo 5: Selecionar equipamentos com base na classe
-//   const equipamentos = addEquipClass(classe);
-
-// 	equipamentos,
 
 export default EQUIPAMENTOS;

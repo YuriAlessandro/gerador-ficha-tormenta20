@@ -19,6 +19,7 @@ const Result: React.FC<ResultProps> = (props) => {
     pv,
     pm,
     defesa,
+    equipamentos,
   } = sheet;
 
   const atributosDiv = atributos.map((atributo) => (
@@ -44,9 +45,9 @@ const Result: React.FC<ResultProps> = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={proe}>{proe}</li>
   ));
-  // const equipamentosDiv = equipamentos.map(() => (
-  //   <li key={}></li>
-  // ));
+  const equipamentosDiv = equipamentos.map((equip) => (
+    <li key={equip.nome}>{equip.nome}</li>
+  ));
 
   return (
     <div className='resultMainDiv'>
@@ -100,9 +101,7 @@ const Result: React.FC<ResultProps> = (props) => {
       <div className='resultRow'>
         <div>
           <strong>Equipamento Inicial</strong>
-          <ul>
-            <li>A FAZER</li>
-          </ul>
+          <ul>{equipamentosDiv}</ul>
         </div>
       </div>
 
