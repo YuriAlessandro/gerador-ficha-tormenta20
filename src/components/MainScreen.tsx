@@ -56,14 +56,14 @@ const MainScreen: React.FC = () => {
         <Select
           className='filterSelect'
           options={[{ value: '', label: 'Todas as raças' }, ...racas]}
-          placeholder='Selecione uma raça...'
+          placeholder='Todas as raças'
           onChange={onSelectRaca}
         />
 
         <Select
           className='filterSelect'
           options={[{ value: '', label: 'Todas as classes' }, ...classesopt]}
-          placeholder='Selecione uma classe...'
+          placeholder='Todas as classes'
           onChange={onSelectClasse}
         />
 
