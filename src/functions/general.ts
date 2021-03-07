@@ -249,7 +249,7 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions){
+function selectRace(selectedOptions: SelectedOptions) {
   if (selectedOptions.raca) {
     return RACAS.find(
       (currentRaca) => currentRaca.name === selectedOptions.raca
@@ -260,7 +260,7 @@ function selectRace(selectedOptions: SelectedOptions){
 
 function getRace(selectedOptions: SelectedOptions) {
   const race = selectRace(selectedOptions);
-  
+
   if (race.name === 'Osteon') {
     race.oldRace = race.sortOldRace(RACAS);
   }
@@ -287,11 +287,11 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
     const selectedClass = CLASSES.find(
       (currentClasse) => currentClasse.name === selectedOptions.classe
     );
-    
+
     return selectedClass || getRandomItemFromArray(CLASSES);
-  } else {
-    return getRandomItemFromArray(CLASSES);
   }
+
+  return getRandomItemFromArray(CLASSES);
 }
 
 export default function generateRandomSheet(selectedOptions: SelectedOptions) {
@@ -316,7 +316,6 @@ export default function generateRandomSheet(selectedOptions: SelectedOptions) {
   const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
-  
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
