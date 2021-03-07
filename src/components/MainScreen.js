@@ -5,7 +5,11 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+
 import Result from './Result';
+import Sidebar from './Sidebar';
 
 import generateRandomSheet from '../functions/general';
 
@@ -35,18 +39,34 @@ const useStyles = makeStyles((theme) => ({
 const MainScreen = () => {
   const classes = useStyles();
 
-  // const randomSheet = generateRandomSheet();
   const [randomSheet, setRandomSheet] = React.useState();
+  const [sidebarVisibility, setSidebarVisibility] = React.useState();
+
+  React.useEffect(() => {
+    setSidebarVisibility(false);
+  }, []);
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet();
     setRandomSheet(anotherRandomSheet);
   };
 
+  const onClickMenu = () => {
+    setSidebarVisibility(true);
+  };
+
+  const onCloseSidebar = () => {
+    setSidebarVisibility(false);
+  }
+
   return (
     <div>
+      <Sidebar visible={sidebarVisibility} onCloseSidebar={onCloseSidebar} />
       <AppBar position='static' className={classes.appbar}>
         <Toolbar>
+          <IconButton onClick={onClickMenu} edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <MenuIcon />
+          </IconButton>
           <Typography variant='h6' className={classes.title}>
             Gerador de Ficha - Tormenta 20
           </Typography>
