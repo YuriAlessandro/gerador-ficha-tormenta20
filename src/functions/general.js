@@ -21,31 +21,82 @@ function getRandomPer() {
   return getRandomItemFromArray(keys);
 }
 
-function modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos) {
-  raca.habilites.attrs.forEach((item) => {
-    // Definir o que que attr muda (se for any é um random)
-    let selectedAttr;
-    if (item.attr === 'any') {
-      selectedAttr = getRandomItemFromArray(ATRIBUTOS);
-      while (modifiedAttrs.includes(selectedAttr)) {
-        selectedAttr = getRandomItemFromArray(ATRIBUTOS);
-      }
-    } else {
-      selectedAttr = item.attr;
+function getNotRepeatedAttribute(atributosModificados) {
+  const atributo = getRandomItemFromArray(ATRIBUTOS);
+
+  return atributosModificados.includes(atributo)
+    ? getRandomItemFromArray(ATRIBUTOS)
+    : atributo;
+}
+
+function selectAttributeToChange(atributosModificados, atributo) {
+  if (atributo.attr === 'any') {
+    return getNotRepeatedAttribute(atributosModificados);
+  }
+
+  return atributo.attr;
+}
+
+function getModifiedAttribute(
+  selectedAttrIndex,
+  atributosModificados,
+  attrDaRaca
+) {
+  const atributoParaAlterar = atributosModificados[selectedAttrIndex];
+  const newValue = atributoParaAlterar.value + attrDaRaca.mod;
+
+  return {
+    [selectedAttrIndex]: {
+      ...atributoParaAlterar,
+      value: newValue,
+      mod: getModValues(newValue),
+    },
+  };
+}
+
+function modifyAttributesBasedOnRace(raca, atributos) {
+  const reducedAttrs = raca.habilites.attrs.reduce(
+    (
+      {
+        atributosModificados: atributosAcumulados,
+        nomesDosAtributosModificados,
+      },
+      attrDaRaca
+    ) => {
+      // Definir o que que attr muda (se for any é um random)
+      const selectedAttrName = selectAttributeToChange(
+        nomesDosAtributosModificados,
+        attrDaRaca
+      );
+
+      // Index do atributo selecionado
+      const selectedAttrIndex = atributosAcumulados.findIndex(
+        (attr) => attr.name === selectedAttrName
+      );
+
+      return {
+        atributosModificados: Object.assign(
+          [],
+          atributosAcumulados,
+          getModifiedAttribute(
+            selectedAttrIndex,
+            atributosAcumulados,
+            attrDaRaca
+          )
+        ),
+        nomesDosAtributosModificados: [
+          ...nomesDosAtributosModificados,
+          selectedAttrName,
+        ],
+      };
+    },
+    {
+      atributosModificados: atributos,
+      nomesDosAtributosModificados: [],
     }
+  );
 
-    modifiedAttrs.push(selectedAttr);
-
-    // Dar um find no attr na lista de atributos
-    const attrToChange = atributos.find((attr) => attr.name === selectedAttr);
-
-    // Aumentar esse atributo + modificador
-    const actualValue = attrToChange.value;
-    attrToChange.value = item.mod + actualValue;
-    attrToChange.mod = getModValues(attrToChange.value);
-  });
-
-  return modifiedAttrs;
+  return reducedAttrs.atributosModificados;
 }
 
 function generateRandomName(raca, sexo) {
@@ -57,7 +108,7 @@ export default function generateRandomSheet() {
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributos = ATRIBUTOS.map((atributo) => {
+  const atributosRolados = ATRIBUTOS.map((atributo) => {
     const randomAttr = getRandomArbitrary(8, 18);
     const mod = getModValues(randomAttr);
     return { name: atributo, value: randomAttr, mod };
@@ -67,8 +118,7 @@ export default function generateRandomSheet() {
   const raca = getRandomItemFromArray(RACAS);
 
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
-  const modifiedAttrs = []; // Refactor to reduce
-  modifyAttributesBasedOnRace(raca, modifiedAttrs, atributos);
+  const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
   const sexo = getRandomItemFromArray(sexos);
   // Passo 2.3: Definir nome
