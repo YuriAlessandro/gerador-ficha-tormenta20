@@ -4,7 +4,7 @@ import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 
 function getModValues(attr){
-    return Math.floor(attr / 2) - 5
+  return Math.floor(attr / 2) - 5;
 }
 
 function getRandomArbitrary(min, max) {
@@ -20,7 +20,7 @@ function getRandomPer() {
   return getRandomItemFromArray(keys);
 }
 
-export function generateRandomSheet() {
+export default function generateRandomSheet() {
   const name = 'NomeDoJogador'; // TODO: Gerar nomes aleatórios
   const nivel = 1;
 
@@ -98,7 +98,7 @@ export function generateRandomSheet() {
   });
 
   // 4.2.2: As perícias padrões que cada classe recebe
-  for (let index = 0; index < classe.periciasrestantes.qtd; index++) {
+  for (let index = 0; index < classe.periciasrestantes.qtd; index += 1) {
     let newPer = getRandomItemFromArray(classe.periciasrestantes.list);
     while (pericias.includes(newPer)) {
       newPer = getRandomItemFromArray(classe.periciasrestantes.list);

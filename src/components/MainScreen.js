@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Result from './Result';
 
-import { generateRandomSheet } from '../functions/general';
+import generateRandomSheet from '../functions/general';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,8 +39,8 @@ const MainScreen = () => {
   const [randomSheet, setRandomSheet] = React.useState();
 
   const onClickGenerate = () => {
-    const randomSheet = generateRandomSheet();
-    setRandomSheet(randomSheet);
+    const anotherRandomSheet = generateRandomSheet();
+    setRandomSheet(anotherRandomSheet);
   };
 
   return (
