@@ -3,6 +3,7 @@ import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 import nomes from '../utils/nomes';
+// import SelectOptions from '../interfaces/SelectedOptions';
 
 export function getModValues(attr) {
   return Math.floor(attr / 2) - 5;
@@ -192,7 +193,7 @@ export function addClassPer(classe, racePers) {
   );
 }
 
-export default function generateRandomSheet() {
+export default function generateRandomSheet(selectedOptions) {
   const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
@@ -204,15 +205,32 @@ export default function generateRandomSheet() {
   });
 
   // Passo 2: Definir raça
-  const raca = getRandomItemFromArray(RACAS);
+  let raca;
+  if (selectedOptions.raca) {
+    raca = RACAS.find(
+      (currentRaca) => currentRaca.name === selectedOptions.raca
+    );
+  } else {
+    raca = getRandomItemFromArray(RACAS);
+  }
+
   // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
   // Passo 2.2: Definir sexo
   const sexo = getRandomItemFromArray(sexos);
   // Passo 2.3: Definir nome
   const nome = generateRandomName(raca.name, sexo);
+
   // Passo 3: Definir a classe
-  const classe = getRandomItemFromArray(CLASSES);
+  let classe;
+  if (selectedOptions.classe) {
+    console.log(selectedOptions.classe);
+    classe = CLASSES.find(
+      (currentClasse) => currentClasse.name === selectedOptions.classe
+    );
+  } else {
+    classe = getRandomItemFromArray(CLASSES);
+  }
 
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');

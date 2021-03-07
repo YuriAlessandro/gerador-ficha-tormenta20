@@ -2,6 +2,10 @@ import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import Select from 'react-select';
+import RACAS from '../utils/racas';
+import CLASSES from '../utils/classes';
+import SelectOptions from '../interfaces/SelectedOptions';
 
 import Result from './Result';
 
@@ -15,40 +19,60 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const MainScreen = () => {
+const MainScreen: React.FC = () => {
   const classes = useStyles();
-
-  const styles = {
-    select: {
-      marginRight: '10px',
-      minWidth: '150px',
-      minHeight: '36px',
-      marginBottom: '10px',
-    },
-  };
 
   // TODO: Create typing for chara sheet
   const [randomSheet, setRandomSheet] = React.useState<any>();
+  const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
+    nivel: 1,
+    classe: '',
+    raca: '',
+  });
 
   const onClickGenerate = () => {
-    const anotherRandomSheet = generateRandomSheet();
+    const anotherRandomSheet = generateRandomSheet(selectedOptions);
     setRandomSheet(anotherRandomSheet);
   };
 
+  const onSelectRaca = (raca: any) => {
+    setSelectedOptions({ ...selectedOptions, raca: raca.value } as any);
+  };
+
+  const onSelectClasse = (classe: any) => {
+    setSelectedOptions({ ...selectedOptions, classe: classe.value } as any);
+  };
+
+  const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
+  const classesopt = CLASSES.map((classe) => ({
+    value: classe.name,
+    label: classe.name,
+  }));
+  const niveis = [{ value: 1, label: 'Nível 1' }];
+
   return (
     <div>
-      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap' }}>
-        <select style={styles.select}>
-          <option>Todas as Raças</option>
-        </select>
+      <div className='filterArea'>
+        <Select
+          className='filterSelect'
+          options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+          placeholder='Selecione uma raça...'
+          onChange={onSelectRaca}
+        />
 
-        <select style={styles.select}>
-          <option>Todas as Classes</option>
-        </select>
+        <Select
+          className='filterSelect'
+          options={[{ value: '', label: 'Todas as classes' }, ...classesopt]}
+          placeholder='Selecione uma classe...'
+          onChange={onSelectClasse}
+        />
 
-        <select style={styles.select}>
-          <option>Nível 1</option>
-        </select>
+        <Select
+          className='filterSelect'
+          options={niveis}
+          isSearchable={false}
+          value={niveis.filter((option) => option.value === 1)}
+        />
 
         <Button
           variant='contained'
