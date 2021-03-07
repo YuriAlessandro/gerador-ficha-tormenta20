@@ -80,6 +80,9 @@ export default function generateRandomSheet() {
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
   let pv = classe.pv + constAttr.mod;
 
+  // Passo 3.2: Determinando o PM baseado na classe
+  let pm = classe.pm;
+
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Primeiramente vamos treinar as pericias que vem da raça
   const pericias = [];
@@ -96,6 +99,8 @@ export default function generateRandomSheet() {
       }
     } else if (item.type === 'pv') {
       pv += item.mod;
+    } else if (item.type === 'pm') {
+      pm += item.mod;
     }
   });
 
@@ -130,5 +135,6 @@ export default function generateRandomSheet() {
     classe,
     pericias,
     pv,
+    pm,
   };
 }

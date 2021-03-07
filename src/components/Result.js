@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const Result = (props) => {
   const { sheet } = props;
 
-  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv } = sheet;
+  const { nome, sexo, nivel, atributos, raca, classe, pericias, pv, pm } = sheet;
 
   const styles = {
     mainDiv: {
@@ -71,7 +71,7 @@ const Result = (props) => {
           <strong>PV</strong> {pv}
         </span>
         <span style={styles.item}>
-          <strong>PM</strong> {classe.pm}
+          <strong>PM</strong> {pm}
         </span>
         <span style={styles.item}>
           <strong>Defesa</strong> {defesa}
