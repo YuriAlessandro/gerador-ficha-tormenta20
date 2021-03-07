@@ -1,3 +1,5 @@
+import { Race } from '../../interfaces/CharacterSheet';
+
 const OSTEON = {
   name: 'Osteon',
   habilites: {
@@ -14,8 +16,10 @@ const OSTEON = {
       'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
     ],
   },
-  sortOldRace(allRaces) {
-    const races = allRaces.filter((raca) => raca.name !== 'Osteon');
+  sortOldRace(allRaces: Race[]): Race {
+    const races = allRaces.filter(
+      (raca) => raca.name !== 'Osteon' && raca.name !== 'Golem'
+    );
 
     return races[Math.floor(Math.random() * races.length)];
   },
