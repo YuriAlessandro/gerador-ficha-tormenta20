@@ -11,6 +11,7 @@ import HUMANO from './racasDetalhado/humano';
 import KLIREN from './racasDetalhado/kliren';
 import MEDUSA from './racasDetalhado/medusa';
 import OSTEON from './racasDetalhado/osteon';
+import SEREIA from './racasDetalhado/sereia';
 
 const RACAS = [
   // ANAO,
@@ -25,7 +26,8 @@ const RACAS = [
   // HUMANO,
   // KLIREN,
   // MEDUSA,
-  OSTEON,
+  // OSTEON,
+  SEREIA,
 ];
 
 export default RACAS;
