@@ -72,6 +72,10 @@ const nomes = {
     Homem: ['Meduso'],
     Mulher: ['Medusa'],
   },
+  Osteon: {
+    Homem: ['Evass'],
+    Mulher: ['Noita'],
+  },
 };
 
 export default nomes;
