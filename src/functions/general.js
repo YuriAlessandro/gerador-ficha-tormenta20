@@ -113,7 +113,10 @@ function getNotRepeatedPer(pericias) {
   return getRandomItemFromArray(periciasPermitidas);
 }
 
-function getClassDetaildModifiedByRace({ pv, pm, defesa, pericias }, raca) {
+export function getClassDetaildModifiedByRace(
+  { pv, pm, defesa, pericias },
+  raca
+) {
   return raca.habilites.other.reduce(
     (caracteristicas, item) => {
       if (item.type === 'pericias') {
