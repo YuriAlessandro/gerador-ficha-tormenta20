@@ -5,7 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
-
+import { withRouter, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(() => ({
@@ -35,7 +35,19 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
     },
   };
 
+  const history = useHistory();
+
   const classes = useStyles();
+
+  const onClickHome = () => {
+    history.push('/');
+    onCloseSidebar();
+  };
+
+  const onClickChangelog = () => {
+    history.push('/changelog');
+    onCloseSidebar();
+  };
 
   return (
     <div style={styles.sidebar}>
@@ -49,6 +61,15 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
         </Typography>
       </div>
       <MenuList>
+        <MenuItem>
+          <Typography
+            variant='inherit'
+            onClick={onClickHome}
+            className='specialMenu'
+          >
+            Inicio
+          </Typography>
+        </MenuItem>
         <MenuItem>
           <Typography variant='inherit'>
             <Link
@@ -69,6 +90,15 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
             </Link>
           </Typography>
         </MenuItem>
+        <MenuItem>
+          <Typography
+            variant='inherit'
+            onClick={onClickChangelog}
+            className='specialMenu'
+          >
+            Changelog
+          </Typography>
+        </MenuItem>
       </MenuList>
     </div>
   );
@@ -79,4 +109,4 @@ Sidebar.propTypes = {
   onCloseSidebar: PropTypes.func.isRequired,
 };
 
-export default Sidebar;
+export default withRouter(Sidebar);
