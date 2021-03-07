@@ -1,12 +1,12 @@
 import React from 'react';
 
-import PropTypes from 'prop-types';
 import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
 import { withRouter, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
+import { RouteComponentProps } from 'react-router';
 
 const useStyles = makeStyles(() => ({
   link: {
@@ -14,27 +14,12 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Sidebar = ({ visible, onCloseSidebar }) => {
-  const styles = {
-    sidebar: {
-      position: 'absolute',
-      background: 'rgba(0,0,0,0.95)',
-      top: '0',
-      width: '300px',
-      height: '97.9vh',
-      zIndex: '1',
-      boxShadow: '5px 0px 5px 0px rgba(0,0,0,0.75)',
-      color: '#FAFAFA',
-      display: visible ? 'block' : 'none',
-      paddingTop: '20px',
-      transition: 'width 20s',
-    },
-    closeIcon: {
-      textAlign: 'right',
-      paddingRight: '15px',
-    },
-  };
+type SidebarProps = RouteComponentProps & {
+  visible: boolean;
+  onCloseSidebar: () => void;
+};
 
+const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
   const history = useHistory();
 
   const classes = useStyles();
@@ -50,8 +35,27 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
   };
 
   return (
-    <div style={styles.sidebar}>
-      <div style={styles.closeIcon}>
+    <div
+      style={{
+        position: 'absolute',
+        background: 'rgba(0,0,0,0.95)',
+        top: '0',
+        width: '300px',
+        height: '97.9vh',
+        zIndex: 1,
+        boxShadow: '5px 0px 5px 0px rgba(0,0,0,0.75)',
+        color: '#FAFAFA',
+        display: visible ? 'block' : 'none',
+        paddingTop: '20px',
+        transition: 'width 20s',
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'right',
+          paddingRight: '15px',
+        }}
+      >
         <Typography
           style={{ cursor: 'pointer' }}
           onClick={onCloseSidebar}
@@ -102,11 +106,6 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
       </MenuList>
     </div>
   );
-};
-
-Sidebar.propTypes = {
-  visible: PropTypes.bool.isRequired,
-  onCloseSidebar: PropTypes.func.isRequired,
 };
 
 export default withRouter(Sidebar);
