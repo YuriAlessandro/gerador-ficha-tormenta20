@@ -1,41 +1,32 @@
 import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
+
 import Result from './Result';
 
 import generateRandomSheet from '../functions/general';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    padding: '0 30px',
-  },
-  appbar: {
-    background: 'rgb(209, 50, 53);',
-  },
-  title: {
-    flexGrow: 1,
-  },
+const useStyles = makeStyles(() => ({
   button: {
     background: 'rgb(209, 50, 53);',
     color: '#FAFAFA',
-  },
-  input: {
-    color: 'rgb(209, 50, 53)',
-  },
-  formControl: {
-    display: 'flex',
-    margin: theme.spacing(1),
+    marginBottom: '10px',
   },
 }));
 
 const MainScreen = () => {
   const classes = useStyles();
 
-  // const randomSheet = generateRandomSheet();
+  const styles = {
+    select: {
+      marginRight: '10px',
+      minWidth: '150px',
+      minHeight: '36px',
+      marginBottom: '10px',
+    },
+  };
+
   const [randomSheet, setRandomSheet] = React.useState();
 
   const onClickGenerate = () => {
@@ -45,15 +36,19 @@ const MainScreen = () => {
 
   return (
     <div>
-      <AppBar position='static' className={classes.appbar}>
-        <Toolbar>
-          <Typography variant='h6' className={classes.title}>
-            Gerador de Ficha - Tormenta 20
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <div style={{ margin: '20px', display: 'flex', flexWrap: 'wrap' }}>
+        <select style={styles.select}>
+          <option>Todas as Raças</option>
+        </select>
 
-      <div style={{ margin: '20px', display: 'flex' }}>
+        <select style={styles.select}>
+          <option>Todas as Classes</option>
+        </select>
+
+        <select style={styles.select}>
+          <option>Nível 1</option>
+        </select>
+
         <Button
           variant='contained'
           onClick={onClickGenerate}
