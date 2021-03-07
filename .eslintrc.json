@@ -7,14 +7,17 @@
   "extends": [
     "plugin:react/recommended",
     "airbnb",
-    "prettier"
+    "prettier",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript"
   ],
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 12,
+    "project": "./tsconfig.json",
+    "ecmaVersion": 2018,
     "sourceType": "module"
   },
   "plugins": [
@@ -22,6 +25,17 @@
     "prettier"
   ],
   "rules": {
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+   ],
+    "react/prop-types": "off",
     "react/jsx-filename-extension": "off",
     "prettier/prettier": [
       "error"

@@ -1,4 +1,5 @@
 import PERICIAS from '../pericias';
+import PROFICIENCIAS from '../proficiencias';
 
 const CACADOR = {
   name: 'Caçador',
@@ -34,7 +35,12 @@ const CACADOR = {
       PERICIAS.REFLEXOS,
     ],
   },
-  proeficiencias: ['Armas marciais e escudos.'],
+  proeficiencias: [
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.MARCIAIS,
+    PROFICIENCIAS.ESCUDOS,
+    PROFICIENCIAS.SIMPLES,
+  ],
   habilities: [
     {
       name: 'Marca da Presa',

@@ -29,7 +29,8 @@ const MainScreen = () => {
     },
   };
 
-  const [randomSheet, setRandomSheet] = React.useState();
+  // TODO: Create typing for chara sheet
+  const [randomSheet, setRandomSheet] = React.useState<any>();
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet();
