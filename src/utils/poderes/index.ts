@@ -1,14 +1,15 @@
 import combatPowers from './combate';
 import grantedPowers from './concedidos';
 import destinyPowers from './destino';
-import tormentaPowers from './magia';
+import magicPowers from './magia';
+import tormentaPowers from './tormenta';
 import { GeneralPowers } from './types';
 
 const generalPowers: GeneralPowers = {
   COMBATE: combatPowers,
   CONCEDIDOS: grantedPowers,
   DESTINO: destinyPowers,
-  MAGIA: tormentaPowers,
+  MAGIA: magicPowers,
   TORMENTA: tormentaPowers,
 };
 
