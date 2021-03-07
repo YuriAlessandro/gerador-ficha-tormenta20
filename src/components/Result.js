@@ -9,7 +9,7 @@ const Result = (props) => {
   const styles = {
     mainDiv: {
       width: '60vw',
-      padding: '30px',
+      padding: '5px 30px 30px 30px',
     },
     row: {
       display: 'flex',
