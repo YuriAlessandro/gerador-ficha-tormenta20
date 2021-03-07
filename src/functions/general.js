@@ -4,33 +4,7 @@ import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 
 function getModValues(attr){
-    if(attr === 1){
-        return -5;
-    }else if(attr >= 2 && attr <= 3){
-        return -4;
-    }else if(attr >= 4 && attr <= 5){
-        return -3;
-    }else if(attr >= 6 && attr <= 7){
-        return -2
-    }else if(attr >= 8 && attr <= 9){
-        return -1
-    }else if(attr >= 10 && attr <= 11){
-        return 0
-    }else if(attr >= 12 && attr <= 13){
-        return 1
-    }else if(attr >= 14 && attr <= 15){
-        return 2
-    }else if(attr >= 16 && attr <= 17){
-        return 3
-    }else if(attr >= 18 && attr <= 19){
-        return 4
-    }else if(attr >= 20 && attr <= 21){
-        return 5
-    }else if(attr >= 22 && attr <= 23){
-        return 6
-    }else if(attr >= 24 && attr <= 25){
-        return 7
-    }
+    return Math.floor(attr / 2) - 5
 }
 
 function getRandomArbitrary(min, max) {
