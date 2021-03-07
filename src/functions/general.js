@@ -2,7 +2,7 @@ import ATRIBUTOS from '../utils/atributos';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
-import EQUIPAMENTOS from '../utils/equipamentos';
+// import EQUIPAMENTOS from '../utils/equipamentos';
 import nomes from '../utils/nomes';
 
 export function getModValues(attr) {
