@@ -5,6 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
 import Link from '@material-ui/core/Link';
+import { withRouter } from 'react-router';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -14,7 +15,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const Sidebar = ({ visible, onCloseSidebar }) => {
+const Sidebar = ({ visible, onCloseSidebar, history }) => {
   const styles = {
     sidebar: {
       position: 'absolute',
@@ -37,6 +38,16 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
 
   const classes = useStyles();
 
+  const onClickHome = () => {
+    history.push('/');
+    onCloseSidebar();
+  };
+
+  const onClickChangelog = () => {
+    history.push('/changelog');
+    onCloseSidebar();
+  };
+
   return (
     <div style={styles.sidebar}>
       <div style={styles.closeIcon}>
@@ -49,6 +60,15 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
         </Typography>
       </div>
       <MenuList>
+        <MenuItem>
+          <Typography
+            variant='inherit'
+            onClick={onClickHome}
+            className='specialMenu'
+          >
+            Inicio
+          </Typography>
+        </MenuItem>
         <MenuItem>
           <Typography variant='inherit'>
             <Link
@@ -69,6 +89,15 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
             </Link>
           </Typography>
         </MenuItem>
+        <MenuItem>
+          <Typography
+            variant='inherit'
+            onClick={onClickChangelog}
+            className='specialMenu'
+          >
+            Changelog
+          </Typography>
+        </MenuItem>
       </MenuList>
     </div>
   );
@@ -77,6 +106,7 @@ const Sidebar = ({ visible, onCloseSidebar }) => {
 Sidebar.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCloseSidebar: PropTypes.func.isRequired,
+  history: PropTypes.shape.isRequired,
 };
 
-export default Sidebar;
+export default withRouter(Sidebar);
