@@ -1,4 +1,6 @@
-const AGGELUS = {
+import Race from '../../interfaces/Race';
+
+const AGGELUS: Race = {
   name: 'Suraggel (Aggelus)',
   habilites: {
     attrs: [

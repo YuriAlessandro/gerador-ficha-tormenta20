@@ -1,4 +1,6 @@
-const HUMANO = {
+import Race from '../../interfaces/Race';
+
+const HUMANO: Race = {
   name: 'Humano',
   habilites: {
     attrs: [

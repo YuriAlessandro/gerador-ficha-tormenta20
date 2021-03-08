@@ -1,4 +1,6 @@
-const KLIREN = {
+import Race from '../../interfaces/Race';
+
+const KLIREN: Race = {
   name: 'Kliren',
   habilites: {
     attrs: [

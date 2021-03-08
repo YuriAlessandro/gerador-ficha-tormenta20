@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Changelog = () => (
+const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>

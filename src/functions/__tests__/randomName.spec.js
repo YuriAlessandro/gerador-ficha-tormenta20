@@ -1,4 +1,4 @@
-import nomes from '../../utils/nomes';
+import nomes from '../../data/nomes';
 import { generateRandomName } from '../general';
 
 function getSplittedName(name) {

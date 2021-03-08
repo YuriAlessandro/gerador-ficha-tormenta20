@@ -1,4 +1,4 @@
-const PERICIAS: any = {
+const PERICIAS: Record<string, string> = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
   ATLETISMO: 'Atletismo',
