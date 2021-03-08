@@ -1,6 +1,11 @@
 import nomes from '../../utils/nomes';
 import { generateRandomName } from '../general';
 
+function getSplittedName(name) {
+  const [firstName, ...rest] = name.split(' ');
+
+  return [firstName, rest.join(' ')];
+}
 describe('Testa se é gerado nomes corretamente', () => {
   test('Se Osteon gera com base na raça antiga', () => {
     const race = {
@@ -25,9 +30,10 @@ describe('Testa se é gerado nomes corretamente', () => {
 
     const sex = 'Mulher';
 
-    const [receivedFirst, receivedSecond] = generateRandomName(race, sex).split(
-      ' '
-    );
+    const name = generateRandomName(race, sex);
+
+    const [receivedFirst, receivedSecond] = getSplittedName(name);
+
     const firstNameArray = nomes[race.name].primeiroNome;
     const secondNameArray = nomes[race.name].segundoNome[sex];
 
