@@ -38,3 +38,8 @@ export interface GrantedPower extends GeneralPower {
 export type GeneralPowers = {
   [key in GeneralPowerType]: GeneralPower[];
 };
+
+export interface OriginPower {
+  name: string;
+  description: string;
+}

@@ -55,35 +55,39 @@ function App(): JSX.Element {
     <div className='App'>
       <header className='App-header'>
         <HashRouter basename='/gerador-ficha-tormenta20'>
-          <Sidebar
-            visible={sidebarVisibility}
-            onCloseSidebar={onCloseSidebar}
-          />
-          <AppBar position='static' className={classes.appbar}>
-            <Toolbar>
-              <IconButton
-                onClick={onClickMenu}
-                edge='start'
-                className={classes.menuButton}
-                color='inherit'
-                aria-label='menu'
-              >
-                <MenuIcon />
-              </IconButton>
-              <Typography variant='h6' className={classes.title}>
-                Gerador de Ficha - Tormenta 20
-              </Typography>
-            </Toolbar>
-          </AppBar>
+          <div className='mainApp'>
+            <Sidebar
+              visible={sidebarVisibility}
+              onCloseSidebar={onCloseSidebar}
+            />
+            <div className='mainArea'>
+              <AppBar position='static' className={classes.appbar}>
+                <Toolbar>
+                  <IconButton
+                    onClick={onClickMenu}
+                    edge='start'
+                    className={classes.menuButton}
+                    color='inherit'
+                    aria-label='menu'
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography variant='h6' className={classes.title}>
+                    Gerador de Ficha - Tormenta 20
+                  </Typography>
+                </Toolbar>
+              </AppBar>
 
-          <Switch>
-            <Route path='/changelog'>
-              <Changelog />
-            </Route>
-            <Route path='/'>
-              <MainScreen />
-            </Route>
-          </Switch>
+              <Switch>
+                <Route path='/changelog'>
+                  <Changelog />
+                </Route>
+                <Route path='/'>
+                  <MainScreen />
+                </Route>
+              </Switch>
+            </div>
+          </div>
         </HashRouter>
       </header>
     </div>

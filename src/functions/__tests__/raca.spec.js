@@ -1,5 +1,5 @@
-import AGGELUS from '../../data/racasDetalhado/aggelus';
-import HUMANO from '../../data/racasDetalhado/humano';
+import AGGELUS from '../../data/races/aggelus';
+import HUMANO from '../../data/races/humano';
 import {
   getClassDetailsModifiedByRace,
   modifyAttributesBasedOnRace,
