@@ -7,9 +7,14 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
 import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
+import ReactGA from 'react-ga';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
+
+const TRACKING_ID = 'UA-12341234-1';
+ReactGA.initialize(TRACKING_ID);
+ReactGA.pageview(window.location.pathname + window.location.search);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,7 +54,7 @@ function App(): JSX.Element {
   return (
     <div className='App'>
       <header className='App-header'>
-        <HashRouter basename='/gerador-ficha-tormenta20/'>
+        <HashRouter basename='/gerador-ficha-tormenta20'>
           <Sidebar
             visible={sidebarVisibility}
             onCloseSidebar={onCloseSidebar}
