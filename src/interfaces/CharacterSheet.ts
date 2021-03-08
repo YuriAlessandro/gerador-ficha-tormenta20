@@ -1,14 +1,20 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GrantedPower } from '../data/poderes/types';
+import { GrantedPower } from './Poderes';
 import Race from './Race';
 import Equipment from './Equipment';
+
+export interface RaceHability {
+  attr: string;
+  mod: number;
+}
 
 export interface CharacterAttribute {
   name: string;
   value: number;
   mod: number;
 }
+
 export default interface CharacterSheet {
   id: string;
   nome: string;

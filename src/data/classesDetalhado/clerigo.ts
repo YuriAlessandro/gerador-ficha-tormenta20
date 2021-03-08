@@ -1,7 +1,8 @@
+import { ClassDescription } from '../../interfaces/Class';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
-const CLERIGO = {
+const CLERIGO: ClassDescription = {
   name: 'Clérigo',
   pv: 16,
   addpv: 4,

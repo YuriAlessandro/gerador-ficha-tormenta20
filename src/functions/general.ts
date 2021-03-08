@@ -5,17 +5,16 @@ import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS from '../data/equipamentos';
 import DIVINDADES from '../data/divindades';
-import { nameGenerators } from '../data/nomes';
+import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
   CharacterAttribute,
 } from '../interfaces/CharacterSheet';
 import Race, { RaceHability } from '../interfaces/Race';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
-import Divindade from '../interfaces/Divindade';
-import grantedPowers from '../data/poderes/concedidos';
 import { getRandomItemFromArray } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
+import grantedPowers from '../data/poderes/concedidos';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -24,7 +23,6 @@ export function getModValues(attr: number): number {
 function getRandomArbitrary(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min) + min);
 }
-
 // function getRandomPer() {
 //   const keys = Object.keys(PERICIAS);
 //   return getRandomItemFromArray(keys);
@@ -34,7 +32,7 @@ function getNotRepeatedAttribute(atributosModificados: string[]) {
   const atributosPermitidos = ATRIBUTOS.filter(
     (atributo) => !atributosModificados.includes(atributo)
   );
-  return getRandomItemFromArray(atributosPermitidos);
+  return getRandomItemFromArray<string>(atributosPermitidos);
 }
 
 function selectAttributeToChange(
@@ -117,17 +115,6 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributosModificados;
 }
 
-export function generateRandomName(
-  raca: Race,
-  sexo: 'Homem' | 'Mulher'
-): string {
-  if (nameGenerators[raca.name]) {
-    return nameGenerators[raca.name](raca.name, sexo);
-  }
-
-  return nameGenerators.default(raca.name, sexo);
-}
-
 function getNotRepeatedRandomPer(periciasUsadas: string[]) {
   const keys = Object.keys(PERICIAS);
   const periciasPermitidas = keys.filter((pericia) => {
@@ -194,7 +181,7 @@ function addBasicPer(
 ): string[] {
   return classBasicPer.reduce((pericias, item) => {
     if (item.type === 'or') {
-      const selectedPer = getRandomItemFromArray(item.list) as string;
+      const selectedPer = getRandomItemFromArray(item.list);
       const perWithPossiblyRepeated = [...pericias, selectedPer];
       return perWithPossiblyRepeated.filter(
         (currentItem, index) =>
@@ -245,11 +232,43 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
 
 function selectRace(selectedOptions: SelectedOptions) {
   if (selectedOptions.raca) {
-    return RACAS.find(
+    const selectedRace = RACAS.find(
       (currentRaca) => currentRaca.name === selectedOptions.raca
     );
+
+    if (selectedRace) {
+      return selectedRace as Race;
+    }
+
+    return RACAS[0] as Race;
   }
   return getRandomItemFromArray(RACAS);
+}
+
+function getAndSetupRace(selectedOptions: SelectedOptions) {
+  const race = selectRace(selectedOptions);
+
+  if (race.setup) {
+    const races = (RACAS as unknown) as Race[];
+    race.setup(races);
+  }
+
+  return race;
+}
+
+function getRaceAndRaceStats(
+  selectedOptions: SelectedOptions,
+  atributosRolados: CharacterAttribute[],
+  sex: 'Homem' | 'Mulher'
+) {
+  // Passo 2.2: Escolher raça
+  const race = getAndSetupRace(selectedOptions);
+  // Passo 2.2: Cada raça pode modificar atributos, isso será feito aqui
+  const atributos = modifyAttributesBasedOnRace(race, atributosRolados);
+  // Passo 2.3: Definir nome
+  const nome = generateRandomName(race, sex);
+
+  return { atributos, nome, race };
 }
 
 export function addClassPer(
@@ -337,7 +356,7 @@ function getPoderesConcedidos(poderes: string[], todosPoderes: boolean) {
 // Retorna se é devoto e qual a divindade
 function getReligiosidade(classe: ClassDescription) {
   const isDevoto = getRandomArbitrary(1, 100) <= classe.probDevoto * 100;
-  const divindade: Divindade = getRandomItemFromArray(DIVINDADES);
+  const divindade = getRandomItemFromArray(DIVINDADES);
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
   const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
@@ -348,7 +367,6 @@ function getReligiosidade(classe: ClassDescription) {
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  const sexos = ['Homem', 'Mulher'];
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
@@ -357,19 +375,19 @@ export default function generateRandomSheet(
     const mod = getModValues(randomAttr);
     return { name: atributo, value: randomAttr, mod };
   });
+  // Passo 1.1: Definir sexo
+  const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
+  const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
   // Passo 2: Definir raça
-  const raca = selectRace(selectedOptions);
+  const { race, atributos, nome } = getRaceAndRaceStats(
+    selectedOptions,
+    atributosRolados,
+    sexo
+  );
 
-  // Passo 2.1: Cada raça pode modificar atributos, isso será feito aqui
-  const atributos = modifyAttributesBasedOnRace(raca, atributosRolados);
-  // Passo 2.2: Definir sexo
-  const sexo = getRandomItemFromArray(sexos);
-  // Passo 2.3: Definir nome
-  const nome = generateRandomName(raca, sexo);
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
-
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.find((attr) => attr.name === 'Constituição');
   const pvInicial = getInitialPV(classe.pv, constAttr);
@@ -394,7 +412,7 @@ export default function generateRandomSheet(
     pm,
     defesa,
     pericias: periciasDaRaca,
-  } = getClassDetailsModifiedByRace(caracteristicasDaClasse, raca);
+  } = getClassDetailsModifiedByRace(caracteristicasDaClasse, race);
 
   // Passo 4: Marcar as perícias treinadas
   // 4.1: Definir perícias da classe
@@ -415,7 +433,7 @@ export default function generateRandomSheet(
     sexo,
     nivel,
     atributos,
-    raca,
+    raca: race,
     classe,
     pericias,
     pv,

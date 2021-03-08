@@ -1,3 +1,4 @@
+import { ClassDescription } from '../interfaces/Class';
 import ARCANISTA from './classesDetalhado/arcanista';
 import BARBARO from './classesDetalhado/barbaro';
 import BARDO from './classesDetalhado/bardo';
