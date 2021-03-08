@@ -2,9 +2,7 @@ import nomes from '../../utils/nomes';
 import { generateRandomName } from '../general';
 
 function getSplittedName(name) {
-  const split = name.split(' ');
-
-  const [firstName, ...rest] = split;
+  const [firstName, ...rest] = name.split(' ');
 
   return [firstName, rest.join(' ')];
 }
