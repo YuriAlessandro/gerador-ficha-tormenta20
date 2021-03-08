@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import ATRIBUTOS from '../data/atributos';
-import RACAS from '../data/racas';
+import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS from '../data/equipamentos';
@@ -143,7 +143,7 @@ export function getClassDetailsModifiedByRace(
             ...caracteristicas,
             pericias: [
               ...caracteristicas.pericias,
-              PERICIAS[getNotRepeatedRandomPer(pericias)],
+              PERICIAS[getNotRepeatedRandomPer(caracteristicas.pericias)],
             ],
           };
         }
@@ -236,11 +236,9 @@ function selectRace(selectedOptions: SelectedOptions) {
       (currentRaca) => currentRaca.name === selectedOptions.raca
     );
 
-    if (selectedRace) {
-      return selectedRace as Race;
-    }
+    const raceName = selectedRace?.name || '';
 
-    return RACAS[0] as Race;
+    return getRaceByName(raceName);
   }
   return getRandomItemFromArray(RACAS);
 }

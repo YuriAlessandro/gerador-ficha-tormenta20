@@ -4,7 +4,7 @@ import {
   getClassDetailsModifiedByRace,
   modifyAttributesBasedOnRace,
   getModValues,
-} from '../general.ts';
+} from '../general';
 
 const originalAttrs = [
   { name: 'Força', value: 17, mod: 3 },
@@ -50,26 +50,30 @@ function countAttrWithPlusTwo(attributes) {
 }
 
 describe('Testa modificações da raça Humano', () => {
-  test('Se o Humano tem recebe duas perícias diferentes', () => {
-    const received = getClassDetailsModifiedByRace(classDetails, HUMANO);
+  Array(10)
+    .fill(0)
+    .forEach(() => {
+      test('Se o Humano tem recebe duas perícias diferentes', () => {
+        const received = getClassDetailsModifiedByRace(classDetails, HUMANO);
 
-    const {
-      pericias: [periciaA, periciaB],
-    } = received;
+        const {
+          pericias: [periciaA, periciaB],
+        } = received;
 
-    expect(received.pericias).toHaveLength(2);
-    expect(periciaA).not.toBe(periciaB);
-  });
+        expect(received.pericias).toHaveLength(2);
+        expect(periciaA).not.toBe(periciaB);
+      });
 
-  test('Se o Humano recebe +2 em 3 atributos diferentes', () => {
-    const received = modifyAttributesBasedOnRace(HUMANO, originalAttrs);
-    const qtdOfAttrWithPlusTwo = countAttrWithPlusTwo(received);
+      test('Se o Humano recebe +2 em 3 atributos diferentes', () => {
+        const received = modifyAttributesBasedOnRace(HUMANO, originalAttrs);
+        const qtdOfAttrWithPlusTwo = countAttrWithPlusTwo(received);
 
-    expect(qtdOfAttrWithPlusTwo).toBe(3);
+        expect(qtdOfAttrWithPlusTwo).toBe(3);
 
-    received.forEach((attribute) => {
-      const expected = getModValues(attribute.value);
-      expect(attribute.mod).toBe(expected);
+        received.forEach((attribute) => {
+          const expected = getModValues(attribute.value);
+          expect(attribute.mod).toBe(expected);
+        });
+      });
     });
-  });
 });

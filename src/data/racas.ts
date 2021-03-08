@@ -16,6 +16,8 @@ import SEREIA from './racasDetalhado/sereia';
 import SILFIDE from './racasDetalhado/silfide';
 import SULFURE from './racasDetalhado/sulfure';
 import TROG from './racasDetalhado/trog';
+import Race from '../interfaces/Race';
+import { getRandomItemFromArray } from '../functions/randomUtils';
 
 const RACAS = [
   AGGELUS,
@@ -39,3 +41,39 @@ const RACAS = [
 ];
 
 export default RACAS;
+
+const raceSetups: Record<string, (race: Race) => Race> = {
+  default(race) {
+    return race;
+  },
+
+  Osteon(race) {
+    const validRaces = RACAS.filter(
+      (element) => element.name !== 'Golem' && element.name !== 'Osteon'
+    );
+
+    return {
+      ...race,
+      oldRace: getRandomItemFromArray(validRaces),
+    };
+  },
+};
+
+export function setupRace(race: Race): Race {
+  if (raceSetups[race.name]) {
+    return raceSetups[race.name](race);
+  }
+
+  return raceSetups.default(race);
+}
+
+export function getRaceByName(name: string): Race {
+  const race = RACAS.find((element) => element.name === name);
+  if (race) {
+    return setupRace(race);
+  }
+
+  const [defaultRace] = RACAS;
+
+  return setupRace(defaultRace);
+}
