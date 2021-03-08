@@ -146,6 +146,15 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
+      {origin.powers.length > 0 && (
+        <div className='resultRow'>
+          <div>
+            <strong>Poderes da Origem</strong>
+            <ul>{originPowers}</ul>
+          </div>
+        </div>
+      )}
+
       <div className='resultRow'>
         <div>
           <strong>Magias</strong>
@@ -162,15 +171,6 @@ const Result: React.FC<ResultProps> = (props) => {
           <div>
             <strong>Poderes Concedidos</strong>
             <ul>{poderesConcedidos}</ul>
-          </div>
-        </div>
-      )}
-
-      {origin.powers.length > 0 && (
-        <div className='resultRow'>
-          <div>
-            <strong>Poderes da Origem</strong>
-            <ul>{originPowers}</ul>
           </div>
         </div>
       )}
