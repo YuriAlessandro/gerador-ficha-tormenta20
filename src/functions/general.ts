@@ -143,7 +143,7 @@ export function getClassDetailsModifiedByRace(
             ...caracteristicas,
             pericias: [
               ...caracteristicas.pericias,
-              PERICIAS[getNotRepeatedRandomPer(pericias)],
+              PERICIAS[getNotRepeatedRandomPer(caracteristicas.pericias)],
             ],
           };
         }
