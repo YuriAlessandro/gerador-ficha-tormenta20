@@ -1,4 +1,3 @@
-import { getRandomItemFromArray } from '../../functions/randomUtils';
 import Race from '../../interfaces/Race';
 
 const OSTEON: Race = {

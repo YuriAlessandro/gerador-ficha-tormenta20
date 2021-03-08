@@ -13,24 +13,16 @@ code {
     monospace;
 }
 
+.mainApp {
+  display: flex;
+}
+
+.mainArea {
+  width: 100vw;
+}
+
 /* Sidebar */
-.sidebar {
-  position: fixed;
-  background: rgba(0,0,0,0.95);
-  top: 0;
-  width: 300px;
-  height: 97.9vh;
-  z-index: 1;
-  box-shadow: 5px 0px 5px 0px rgba(0,0,0,0.75);
-  color: #FAFAFA;
-  padding-top: 20px;
-}
-
-.specialMenu:hover {
-  text-decoration: underline;
-}
-
-.sidebarHeader{
+.sidebarHeader {
   display: flex;
   justify-content: space-between;
   padding: 0 15px;
