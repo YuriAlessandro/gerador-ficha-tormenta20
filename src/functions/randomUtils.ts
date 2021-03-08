@@ -45,3 +45,21 @@ export function pickFromProbabilityArray(array: number[]): number {
 
   return probabilitySumArray.length - 1;
 }
+
+// Returns an array with N selected item from array
+export function pickFromArray<ElementType>(
+  array: ElementType[],
+  qtd: number
+): ElementType[] {
+  const picked: ElementType[] = [];
+  for (let index = 0; index < qtd; index += 1) {
+    const filtered = array.filter((element) => !picked.includes(element));
+    picked.push(getRandomItemFromArray(filtered));
+  }
+
+  return picked;
+}
+
+export function removeDup<ElementType>(array: ElementType[]): ElementType[] {
+  return array.filter((element, idx) => array.indexOf(element) === idx);
+}

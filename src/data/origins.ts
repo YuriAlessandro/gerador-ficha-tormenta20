@@ -1,61 +1,57 @@
-import { getRandomItemFromArray } from '../functions/randomUtils';
 import Origin from '../interfaces/Origin';
 import PERICIAS from './pericias';
-import originPowers from './poderes/origem';
-import { DestinyPowers } from './poderes/destino';
-import { GeneralPower, OriginPower } from '../interfaces/Poderes';
+import originPowers from './powers/originPowers';
+import { DestinyPowers } from './powers/destinyPowers';
 
 const origins: Origin[] = [
+  // TODO: Adicionar Medicina, Vontade de Ferro
   {
     name: 'Acólito',
     itens: [],
-    pericias: [PERICIAS.CURA],
-    poderes: [originPowers.MEMBRODAIGREJA],
+    pericias: [PERICIAS.CURA, PERICIAS.RELIGIAO, PERICIAS.VONTADE],
+    poderes: [originPowers.MEMBRO_DA_IGREJA],
   },
   {
     name: 'Amigo dos Animais',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVAKGAR],
-    poderes: [originPowers.AMIGOESPECIAL],
+    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVALGAR],
+    poderes: [originPowers.AMIGO_ESPECIAL],
   },
   {
     name: 'Amnésico',
     itens: [],
-    pericias: [getRandomItemFromArray(Object.values(PERICIAS))],
-    poderes: [
-      originPowers.LEMBRANCASGRADUAIS,
-      getRandomItemFromArray(Object.values(originPowers)),
-    ],
+    pericias: [],
+    poderes: [originPowers.LEMBRANCAS_GRADUAIS],
   },
   {
     name: 'Aristocrata',
     itens: [],
     pericias: [PERICIAS.DIPLOMACIA, PERICIAS.ENGANACAO, PERICIAS.NOBREZA],
-    poderes: [originPowers.SANGUEAZUL],
+    poderes: [originPowers.SANGUE_AZUL],
   },
   {
     name: 'Artesão',
     itens: [],
     pericias: [PERICIAS.OFICIO, PERICIAS.VONTADE],
-    poderes: [originPowers.FRUTOSDETRABALHO],
+    poderes: [originPowers.FRUDOS_DO_TRABALHO],
   },
   {
     name: 'Artista',
     itens: [],
     pericias: [PERICIAS.ATUACAO, PERICIAS.ENGANACAO],
-    poderes: [originPowers.DOMARTISTICO],
+    poderes: [originPowers.DOM_ARTISTICO],
   },
   {
     name: 'Assistente de Laboratório',
     itens: [],
     pericias: [PERICIAS.OFICIO],
-    poderes: [originPowers.ESSECHEIRO],
+    poderes: [originPowers.ESSE_CHEIRO],
   },
   {
     name: 'Batedor',
     itens: [],
     pericias: [PERICIAS.PERCEPCAO, PERICIAS.SOBREVIVENCIA],
-    poderes: [originPowers.PROVADETUDO],
+    poderes: [originPowers.PROVA_DE_TUDO],
   },
   {
     name: 'Capanga',
@@ -68,127 +64,125 @@ const origins: Origin[] = [
     itens: [],
     pericias: [PERICIAS.ENGANACAO, PERICIAS.JOGATINA],
     poderes: [
-      getRandomItemFromArray<OriginPower | GeneralPower>([
-        originPowers.PODER,
-        DestinyPowers.APARENCIAINOFENSIVA,
-        DestinyPowers.SORTUDO,
-      ]),
+      originPowers.ALPINISTA_SOCIAL,
+      DestinyPowers.APARENCIAINOFENSIVA,
+      DestinyPowers.SORTUDO,
     ],
   },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
-  {
-    name: '',
-    itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
-  },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
+  // {
+  //   name: '',
+  //   itens: [],
+  //   pericias: [],
+  //   poderes: [originPowers.PODER],
+  // },
 ];
 
 export default origins;
