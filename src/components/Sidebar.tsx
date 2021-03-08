@@ -7,14 +7,18 @@ import Link from '@material-ui/core/Link';
 import { withRouter, useHistory } from 'react-router-dom';
 import { makeStyles } from '@material-ui/core/styles';
 import { RouteComponentProps } from 'react-router';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Paper from '@material-ui/core/Paper';
+
+import HomeIcon from '@material-ui/icons/Home';
+import ForumIcon from '@material-ui/icons/Forum';
+import CloseIcon from '@material-ui/icons/Close';
+import CodeIcon from '@material-ui/icons/Code';
+import NotesIcon from '@material-ui/icons/Notes';
+
+import Slide from '@material-ui/core/Slide';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
-
-const useStyles = makeStyles(() => ({
-  link: {
-    color: '#FAFAFA',
-  },
-}));
 
 type SidebarProps = RouteComponentProps & {
   visible: boolean;
@@ -22,6 +26,22 @@ type SidebarProps = RouteComponentProps & {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
+  const useStyles = makeStyles(() => ({
+    link: {
+      cursor: 'pointer',
+    },
+    paper: {
+      position: 'fixed',
+      zIndex: 1,
+      height: '97.9vh',
+      paddingTop: '20px',
+      transition: 'visibility 0s, opacity 0.5s linear',
+    },
+    menuItem: {
+      marginBottom: '10px',
+    },
+  }));
+
   const history = useHistory();
 
   const classes = useStyles();
@@ -36,78 +56,83 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
     onCloseSidebar();
   };
 
+  const onClickLinks = (url: string) => {
+    window.open(url, '_blank');
+  };
+
+  const handleEscKeyPress = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      onCloseSidebar();
+    }
+  };
+
+  document.addEventListener('keydown', handleEscKeyPress, false);
+
   return (
-    <div
-      className='sidebar'
-      style={{
-        display: visible ? 'block' : 'none',
-      }}
-    >
-      <div className='sidebarHeader'>
-        <Link
-          href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
-          target='blank'
-        >
-          <img src={String(logo)} alt='Logo' className='logo' />
-        </Link>
-        <div
-          style={{
-            textAlign: 'right',
-            paddingRight: '15px',
-          }}
-        >
-          <Typography
-            style={{ cursor: 'pointer' }}
-            onClick={onCloseSidebar}
-            variant='inherit'
+    <Slide direction='right' in={visible}>
+      <Paper className={classes.paper}>
+        <div className='sidebarHeader'>
+          <Link
+            href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
+            target='blank'
           >
-            X
-          </Typography>
+            <img src={String(logo)} alt='Logo' className='logo' />
+          </Link>
+          <div
+            style={{
+              textAlign: 'right',
+              paddingRight: '15px',
+            }}
+          >
+            <CloseIcon className={classes.link} onClick={onCloseSidebar} />
+          </div>
         </div>
-      </div>
-      <MenuList>
-        <MenuItem>
-          <Typography
-            variant='inherit'
-            onClick={onClickHome}
-            className='specialMenu'
+        <MenuList>
+          <MenuItem onClick={onClickHome} className={classes.menuItem}>
+            <ListItemIcon>
+              <HomeIcon className={classes.link} />
+            </ListItemIcon>
+            <Typography variant='inherit'>Inicio</Typography>
+          </MenuItem>
+          <MenuItem
+            className={classes.menuItem}
+            onClick={() =>
+              onClickLinks(
+                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/new'
+              )
+            }
           >
-            Inicio
-          </Typography>
-        </MenuItem>
-        <MenuItem>
-          <Typography variant='inherit'>
-            <Link
-              className={classes.link}
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/new'
-              target='blank'
-            >
+            <ListItemIcon>
+              <ForumIcon className={classes.link} />
+            </ListItemIcon>
+            <Typography variant='inherit'>
               Sugestões, Ideias e Feedbacks
-            </Link>
-          </Typography>
-        </MenuItem>
-        <MenuItem>
-          <Typography variant='inherit'>
-            <Link
-              className={classes.link}
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20'
-              target='blank'
-            >
-              Contribua com o Projeto
-            </Link>
-          </Typography>
-        </MenuItem>
-        <MenuItem>
-          <Typography
-            variant='inherit'
-            onClick={onClickChangelog}
-            className='specialMenu'
+            </Typography>
+          </MenuItem>
+          <MenuItem
+            className={classes.menuItem}
+            onClick={() => {
+              onClickLinks(
+                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20#gerador-de-fichas-de-tormenta-20'
+              );
+            }}
           >
-            Changelog
-          </Typography>
-        </MenuItem>
-      </MenuList>
-    </div>
+            <ListItemIcon>
+              <CodeIcon className={classes.link} />
+            </ListItemIcon>
+            <Typography variant='inherit'>Contribua com o Projeto</Typography>
+          </MenuItem>
+          <MenuItem className={classes.menuItem} onClick={onClickChangelog}>
+            <ListItemIcon>
+              <NotesIcon className={classes.link} />
+            </ListItemIcon>
+            <Typography variant='inherit' className='specialMenu'>
+              Changelog
+            </Typography>
+          </MenuItem>
+        </MenuList>
+      </Paper>
+    </Slide>
   );
 };
 
