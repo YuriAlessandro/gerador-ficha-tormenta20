@@ -3,11 +3,18 @@ import { Race } from '../../interfaces/CharacterSheet';
 
 export interface Osteon extends Race {
   oldRace?: Race;
-  sortOldRace: (allRaces: Race[]) => Race;
+  sortOldRace: (oldRaceName?: string | undefined) => Race;
+  setup: (allRaces: Race[], oldRaceName?: string) => void;
+  allowedOldRaces: Race[];
+}
+
+function getRandomOldRace(allowedOldRaces: Race[]) {
+  return allowedOldRaces[Math.floor(Math.random() * allowedOldRaces.length)];
 }
 
 const OSTEON: Osteon = {
   name: 'Osteon',
+  allowedOldRaces: [],
   habilites: {
     attrs: [
       { attr: 'Constituição', mod: -2 },
@@ -22,24 +29,32 @@ const OSTEON: Osteon = {
       'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
     ],
   },
-  sortOldRace(allRaces) {
-    const races = allRaces.filter(
+  sortOldRace(oldRaceName) {
+    if (oldRaceName) {
+      const foundRace = this.allowedOldRaces.find(
+        (race) => race.name === oldRaceName
+      );
+
+      return foundRace || getRandomOldRace(this.allowedOldRaces);
+    }
+
+    return getRandomOldRace(this.allowedOldRaces);
+  },
+  getName(sex) {
+    if (this.oldRace) {
+      return generateRandomName(this.oldRace, sex, this.allowedOldRaces);
+    }
+
+    this.oldRace = this.sortOldRace();
+
+    return generateRandomName(this.oldRace, sex, this.allowedOldRaces);
+  },
+  setup(allRaces: Race[], oldRaceName) {
+    this.allowedOldRaces = allRaces.filter(
       (raca) => raca.name !== 'Osteon' && raca.name !== 'Golem'
     );
 
-    return races[Math.floor(Math.random() * races.length)];
-  },
-  getName(sex, allRaces) {
-    if (this.oldRace) {
-      return generateRandomName(this.oldRace, sex, allRaces);
-    }
-
-    this.oldRace = this.sortOldRace(allRaces);
-
-    return generateRandomName(this.oldRace, sex, allRaces);
-  },
-  setup(allRaces: Race[]) {
-    this.oldRace = this.sortOldRace(allRaces);
+    this.oldRace = this.sortOldRace(oldRaceName);
   },
 };
 export default OSTEON;
