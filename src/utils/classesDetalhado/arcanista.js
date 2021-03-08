@@ -32,6 +32,7 @@ const ARCANISTA = {
     },
   ],
   magics: [],
+  probDevoto: 0.4,
 };
 
 export default ARCANISTA;

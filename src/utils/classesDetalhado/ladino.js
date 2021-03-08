@@ -54,6 +54,7 @@ const LADINO = {
     },
   ],
   magics: [],
+  probDevoto: 0.5,
 };
 
 export default LADINO;

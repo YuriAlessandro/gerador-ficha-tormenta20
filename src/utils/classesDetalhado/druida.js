@@ -56,6 +56,8 @@ const DRUIDA = {
     },
   ],
   magics: [],
+  probDevoto: 1,
+  qtdPoderesConcedidos: 'all',
 };
 
 export default DRUIDA;

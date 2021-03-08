@@ -47,6 +47,8 @@ const CLERIGO = {
     },
   ],
   magics: [],
+  probDevoto: 0.8,
+  qtdPoderesConcedidos: 'all',
 };
 
 export default CLERIGO;
