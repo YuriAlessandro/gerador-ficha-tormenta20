@@ -6,6 +6,30 @@ const Changelog: React.FC = () => (
     <p>
       Segue a lista de mudanças no projeto. Última atualização em 07/03/2021.
     </p>
+    <h2>Versão 0.2</h2>
+    <ul>
+      <li>
+        Estamos gerando aleatoriamente se um personagem é devoto ou não. Caso
+        ele seja, é escolhido aleatoriamente o Deus e o poder concedidos (ainda
+        faltam aplicar regras mais concretas, como por exemplo o druida que só
+        pode ser devoto de três deuses específicos).
+      </li>
+      <li>
+        Filtros de geração permitem que você escolha qual raça/classe deseja
+        gerar (por enquanto ainda só funcionando para nível 1).
+      </li>
+      <li>
+        Os nomes dos personagens são gerados aleatoriamente com base na raça (os
+        nomes usados foram os do escudo do mestre). Nome de Osteon é baseado em
+        uma raça &quot;anterior&quot;, ou seja, a raça do personagem antes dele
+        morrer.
+      </li>
+      <li>
+        Adicionamos um gerador aleatório de itens iniciais com base nas
+        proficiências (mas ainda não estão todos os itens cadastrados).
+      </li>
+      <li>Suporte as seguintes classes: Arcanista, Bardo, Druida e Clérigo.</li>
+    </ul>
     <h2>Versão 0.1</h2>
     <ul>
       <li>
