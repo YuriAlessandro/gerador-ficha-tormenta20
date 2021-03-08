@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import CharacterSheet from '../interfaces/CharacterSheet';
-import { DivindadeEnum } from '../utils/divindades';
 
 interface ResultProps {
   sheet: CharacterSheet;

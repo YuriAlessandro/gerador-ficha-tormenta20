@@ -1,4 +1,6 @@
-const ANAO = {
+import Race from '../../interfaces/Race';
+
+const ANAO: Race = {
   name: 'Anão',
   habilites: {
     attrs: [

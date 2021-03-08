@@ -1,4 +1,6 @@
-const HYNNE = {
+import Race from '../../interfaces/Race';
+
+const HYNNE: Race = {
   name: 'Hynne',
   habilites: {
     attrs: [

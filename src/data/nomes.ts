@@ -1,5 +1,7 @@
-const nomes: {
-  [key: string]: any;
+import { getRandomItemFromArray } from '../functions/randomUtils';
+
+export const nomes: {
+  [key: string]: Record<'Homem' | 'Mulher', string[]>;
 } = {
   Humano: {
     Homem: [
@@ -13,6 +15,7 @@ const nomes: {
       'Eldred',
       'Ghart',
       'Gryffen',
+      'Evass',
     ],
     Mulher: [
       'Alysia',
@@ -24,6 +27,7 @@ const nomes: {
       'Glenda',
       'Gylda',
       'Isolda',
+      'Noita',
     ],
   },
   Anão: {
@@ -130,46 +134,6 @@ const nomes: {
       'Vruga',
     ],
   },
-  Lefou: {
-    primeiroNome: [
-      'Alma',
-      'Eco',
-      'Estrela',
-      'Fulgor',
-      'Furacão',
-      'Sol',
-      'Tempestade',
-      'Tremor',
-      'Uivo',
-      'Zênite',
-    ],
-    segundoNome: {
-      Homem: [
-        'Afiado',
-        'Cadavérico',
-        'da Perdição',
-        'do Ocaso',
-        'Eterno',
-        'Herege',
-        'Imortal',
-        'Maldito',
-        'Rubro',
-        'Serrilhado',
-      ],
-      Mulher: [
-        'Afiada',
-        'Cadavérica',
-        'da Perdição',
-        'do Ocaso',
-        'Eterna',
-        'Herege',
-        'Imortal',
-        'Maldita',
-        'Rubra',
-        'Serrilhada',
-      ],
-    },
-  },
   Minotauro: {
     Homem: [
       'Moufen',
@@ -259,10 +223,6 @@ const nomes: {
     Homem: ['Meduso'],
     Mulher: ['Medusa'],
   },
-  Osteon: {
-    Homem: ['Evass'],
-    Mulher: ['Noita'],
-  },
   Sereia: {
     Homem: [
       'Alon',
@@ -339,4 +299,66 @@ const nomes: {
   },
 };
 
-export default nomes;
+const lefouNames: string[] = [
+  'Alma',
+  'Eco',
+  'Estrela',
+  'Fulgor',
+  'Furacão',
+  'Sol',
+  'Tempestade',
+  'Tremor',
+  'Uivo',
+  'Zênite',
+];
+
+const lefouSurnames: Record<'Homem' | 'Mulher', string[]> = {
+  Homem: [
+    'Afiado',
+    'Cadavérico',
+    'da Perdição',
+    'do Ocaso',
+    'Eterno',
+    'Herege',
+    'Imortal',
+    'Maldito',
+    'Rubro',
+    'Serrilhado',
+  ],
+  Mulher: [
+    'Afiada',
+    'Cadavérica',
+    'da Perdição',
+    'do Ocaso',
+    'Eterna',
+    'Herege',
+    'Imortal',
+    'Maldita',
+    'Rubra',
+    'Serrilhada',
+  ],
+};
+
+export const nameGenerators: Record<
+  string,
+  (raceName: string, sex: 'Homem' | 'Mulher') => string
+> = {
+  Osteon: (raceName, sex) => {
+    const allRaces = [...Object.keys(nomes), 'Lefou'];
+    const validRaces = allRaces.filter((race) => race !== 'Golem');
+    const randomRace = getRandomItemFromArray(validRaces);
+
+    if (nameGenerators[randomRace]) {
+      return nameGenerators[randomRace](randomRace, sex);
+    }
+
+    return nameGenerators.default(randomRace, sex);
+  },
+  Lefou: (raceName, sex) => {
+    const firstName = getRandomItemFromArray(lefouNames);
+    const lastName = getRandomItemFromArray(lefouSurnames[sex]);
+
+    return `${firstName} ${lastName}`;
+  },
+  default: (raceName, sex) => getRandomItemFromArray(nomes[raceName][sex]),
+};

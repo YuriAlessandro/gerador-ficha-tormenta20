@@ -1,4 +1,6 @@
-const GOLEM = {
+import Race from '../../interfaces/Race';
+
+const GOLEM: Race = {
   name: 'Golem',
   habilites: {
     attrs: [

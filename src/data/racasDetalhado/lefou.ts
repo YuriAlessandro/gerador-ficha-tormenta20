@@ -1,4 +1,6 @@
-const LEFOU = {
+import Race from '../../interfaces/Race';
+
+const LEFOU: Race = {
   name: 'Lefou',
   habilites: {
     attrs: [

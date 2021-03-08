@@ -1,4 +1,6 @@
-const MEDUSA = {
+import Race from '../../interfaces/Race';
+
+const MEDUSA: Race = {
   name: 'Medusa',
   habilites: {
     attrs: [
