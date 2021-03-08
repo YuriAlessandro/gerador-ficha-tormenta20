@@ -1,6 +1,6 @@
-const nomes: {
-  [key: string]: any;
-} = {
+type CustomObject<T> = { [key: string]: T };
+
+const nomes: CustomObject<CustomObject<string[] | CustomObject<string[]>>> = {
   Humano: {
     Homem: [
       'Aldor',

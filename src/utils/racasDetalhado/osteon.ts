@@ -1,6 +1,12 @@
+import { generateRandomName } from '../../functions/utils';
 import { Race } from '../../interfaces/CharacterSheet';
 
-const OSTEON = {
+export interface Osteon extends Race {
+  oldRace?: Race;
+  sortOldRace: (allRaces: Race[]) => Race;
+}
+
+const OSTEON: Osteon = {
   name: 'Osteon',
   habilites: {
     attrs: [
@@ -16,13 +22,24 @@ const OSTEON = {
       'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
     ],
   },
-  sortOldRace(allRaces: Race[]): Race {
+  sortOldRace(allRaces) {
     const races = allRaces.filter(
       (raca) => raca.name !== 'Osteon' && raca.name !== 'Golem'
     );
 
     return races[Math.floor(Math.random() * races.length)];
   },
-};
+  getName(sex, allRaces) {
+    if (this.oldRace) {
+      return generateRandomName(this.oldRace, sex, allRaces);
+    }
 
+    this.oldRace = this.sortOldRace(allRaces);
+
+    return generateRandomName(this.oldRace, sex, allRaces);
+  },
+  setup(allRaces: Race[]) {
+    this.oldRace = this.sortOldRace(allRaces);
+  },
+};
 export default OSTEON;

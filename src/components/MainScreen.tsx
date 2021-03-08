@@ -2,7 +2,7 @@ import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import Select from 'react-select';
+import Select, { ValueType } from 'react-select';
 import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -38,12 +38,23 @@ const MainScreen: React.FC = () => {
     setRandomSheet(anotherRandomSheet);
   };
 
-  const onSelectRaca = (raca: any) => {
-    setSelectedOptions({ ...selectedOptions, raca: raca.value } as any);
+  const onSelectRaca = (
+    raca: ValueType<{ value: string; label: string }, false>
+  ) => {
+    if (raca) {
+      setSelectedOptions({
+        ...selectedOptions,
+        raca: raca.value,
+      });
+    }
   };
 
-  const onSelectClasse = (classe: any) => {
-    setSelectedOptions({ ...selectedOptions, classe: classe.value } as any);
+  const onSelectClasse = (
+    classe: ValueType<{ value: string; label: string }, false>
+  ) => {
+    if (classe) {
+      setSelectedOptions({ ...selectedOptions, classe: classe.value });
+    }
   };
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));

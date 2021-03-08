@@ -27,5 +27,5 @@ export interface ClassDescription {
   habilities: ClassHability[];
   magics: any[];
   probDevoto: number;
-  qtdPoderesConcedidos: string | undefined;
+  qtdPoderesConcedidos?: string;
 }

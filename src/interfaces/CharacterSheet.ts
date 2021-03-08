@@ -24,6 +24,8 @@ export interface Race {
     }[];
     texts: string[];
   };
+  getName?: (sex: string, allRaces: Race[]) => string;
+  setup?: (allRaces: Race[]) => void;
   oldRace?: Race;
 }
 

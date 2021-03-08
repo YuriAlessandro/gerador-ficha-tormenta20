@@ -1,4 +1,4 @@
-const PERICIAS: any = {
+const PERICIAS: { [key: string]: string } = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
   ATLETISMO: 'Atletismo',
