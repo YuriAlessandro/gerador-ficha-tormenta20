@@ -20,7 +20,7 @@ describe('Testa se é gerado nomes corretamente', () => {
     const oldRace = race.oldRace as Race;
     const sex = 'Homem';
 
-    const received = generateRandomName(race, sex, races);
+    const received = generateRandomName(race, sex);
     const namesArray = nomes[oldRace.name][sex];
 
     expect(namesArray).toContain(received);
@@ -31,7 +31,7 @@ describe('Testa se é gerado nomes corretamente', () => {
 
     const sex = 'Mulher';
 
-    const name = generateRandomName(race, sex, races);
+    const name = generateRandomName(race, sex);
 
     const [receivedFirst, receivedSecond] = getSplittedName(name);
 

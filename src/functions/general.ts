@@ -266,8 +266,7 @@ function getRaceAndRaceStats(
   // Passo 2.2: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(race, atributosRolados);
   // Passo 2.3: Definir nome
-  const races = RACAS as Race[];
-  const nome = generateRandomName(race, sex, races);
+  const nome = generateRandomName(race, sex);
 
   return { atributos, nome, race };
 }

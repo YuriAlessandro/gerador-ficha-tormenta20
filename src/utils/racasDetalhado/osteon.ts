@@ -42,12 +42,12 @@ const OSTEON: Osteon = {
   },
   getName(sex) {
     if (this.oldRace) {
-      return generateRandomName(this.oldRace, sex, this.allowedOldRaces);
+      return generateRandomName(this.oldRace, sex);
     }
 
     this.oldRace = this.sortOldRace();
 
-    return generateRandomName(this.oldRace, sex, this.allowedOldRaces);
+    return generateRandomName(this.oldRace, sex);
   },
   setup(allRaces: Race[], oldRaceName) {
     this.allowedOldRaces = allRaces.filter(

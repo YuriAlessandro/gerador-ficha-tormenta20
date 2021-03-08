@@ -6,13 +6,9 @@ export function getRandomItemFromArray<ElementType>(
 ): ElementType {
   return array[Math.floor(Math.random() * array.length)];
 }
-export function generateRandomName(
-  raca: Race,
-  sexo: string,
-  allRaces: Race[]
-): string {
+export function generateRandomName(raca: Race, sexo: string): string {
   if (raca.getName) {
-    return raca.getName(sexo, allRaces);
+    return raca.getName(sexo);
   }
 
   const possibleNames = nomes[raca.name][sexo] as string[];
