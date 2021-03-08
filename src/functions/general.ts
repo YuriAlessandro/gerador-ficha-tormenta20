@@ -14,7 +14,7 @@ import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import { getRandomItemFromArray } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import grantedPowers from '../data/poderes/concedidos';
+import grantedPowers from '../data/powers/grantedPowers';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
