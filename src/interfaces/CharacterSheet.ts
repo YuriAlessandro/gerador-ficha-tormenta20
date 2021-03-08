@@ -1,4 +1,6 @@
 import { ClassDescription } from './Class';
+import Divindade from './Divindade';
+import { GrantedPower } from '../utils/poderes/types';
 
 export interface RaceHability {
   attr: string;
@@ -38,4 +40,9 @@ export default interface CharacterSheet {
   pm: number;
   defesa: number;
   equipamentos: any[];
+  devoto: {
+    isDevoto: boolean;
+    divindade: Divindade;
+    poderes: (GrantedPower | undefined)[];
+  };
 }

@@ -1,5 +1,5 @@
 import { Atributo } from '../atributos';
-import { DivindadeEnum } from '../divindades/Divindade';
+import Divindade from '../../interfaces/Divindade';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -32,7 +32,7 @@ export interface GeneralPower {
 }
 
 export interface GrantedPower extends GeneralPower {
-  god: DivindadeEnum[];
+  god: Divindade[];
 }
 
 export type GeneralPowers = {

@@ -26,4 +26,6 @@ export interface ClassDescription {
   proeficiencias: string[];
   habilities: ClassHability[];
   magics: any[];
+  probDevoto: number;
+  qtdPoderesConcedidos: string | undefined;
 }

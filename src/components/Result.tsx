@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import CharacterSheet from '../interfaces/CharacterSheet';
+import { DivindadeEnum } from '../utils/divindades';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -21,6 +22,7 @@ const Result: React.FC<ResultProps> = (props) => {
     defesa,
     equipamentos,
     id,
+    devoto,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -53,6 +55,11 @@ const Result: React.FC<ResultProps> = (props) => {
   const equipamentosDiv = equipamentos.map((equip) => (
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
+  const poderesConcedidos = devoto.poderes.map((poder) => (
+    <li key={poder?.name}>
+      <strong>{poder?.name}: </strong> {poder?.description}
+    </li>
+  ));
 
   return (
     <div className='resultMainDiv'>
@@ -70,9 +77,14 @@ const Result: React.FC<ResultProps> = (props) => {
         <span className='resultItem'>
           <strong>Nível</strong> {nivel}
         </span>
-        <span>
+        <span className='resultItem'>
           <strong>Sexo</strong> {sexo}
         </span>
+        {devoto.isDevoto && (
+          <span className='resultItem'>
+            <strong>Divindade</strong> {devoto.divindade.name}
+          </span>
+        )}
       </div>
 
       <div className='resultRow'>{atributosDiv}</div>
@@ -134,6 +146,15 @@ const Result: React.FC<ResultProps> = (props) => {
           )}
         </div>
       </div>
+
+      {devoto.isDevoto && (
+        <div className='resultRow'>
+          <div>
+            <strong>Poderes Concedidos</strong>
+            <ul>{poderesConcedidos}</ul>
+          </div>
+        </div>
+      )}
 
       <div className='resultRow' />
     </div>

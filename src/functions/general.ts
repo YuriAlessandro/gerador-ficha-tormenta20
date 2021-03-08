@@ -4,6 +4,7 @@ import RACAS from '../utils/racas';
 import CLASSES from '../utils/classes';
 import PERICIAS from '../utils/pericias';
 import EQUIPAMENTOS from '../utils/equipamentos';
+import DIVINDADES from '../utils/divindades';
 import nomes from '../utils/nomes';
 import CharacterSheet, {
   CharacterAttribute,
@@ -12,6 +13,8 @@ import CharacterSheet, {
 } from '../interfaces/CharacterSheet';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
+import Divindade from '../interfaces/Divindade';
+import grantedPowers from '../utils/poderes/concedidos';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -375,6 +378,36 @@ export function addEquipClass(classe: ClassDescription): { nome: string }[] {
   return equipamentosIniciais;
 }
 
+// Retorna os detalhes (nome, descrição, etc) dos poderes concedidos
+function getPoderesConcedidosDetalhes(poderes: string[]) {
+  return poderes
+    .map((poder) =>
+      grantedPowers.find((outroPoder) => outroPoder.name === poder)
+    )
+    .filter((item) => item);
+}
+
+// Retorna a lista de poderes concedidos de uma divindade
+function getPoderesConcedidos(poderes: string[], todosPoderes: boolean) {
+  if (todosPoderes) {
+    return getPoderesConcedidosDetalhes([...poderes]);
+  }
+
+  const poderesConcedidos = [getRandomItemFromArray(poderes)];
+  return getPoderesConcedidosDetalhes(poderesConcedidos);
+}
+
+// Retorna se é devoto e qual a divindade
+function getReligiosidade(classe: ClassDescription) {
+  const isDevoto = getRandomArbitrary(1, 100) <= classe.probDevoto * 100;
+  const divindade: Divindade = getRandomItemFromArray(DIVINDADES);
+
+  const todosPoderes = classe.qtdPoderesConcedidos === 'all';
+  const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
+
+  return { isDevoto, divindade, poderes };
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -430,8 +463,14 @@ export default function generateRandomSheet(
   // 4.1: Definir perícias da classe
   const pericias = addClassPer(classe, periciasDaRaca);
 
-  // Passe 6: Difinição de itens iniciais
+  // Passo 5: Definição de origem
+  // TODO
+
+  // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
+
+  // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma dinvindade
+  const devoto = getReligiosidade(classe);
 
   return {
     id: uuid(),
@@ -446,5 +485,6 @@ export default function generateRandomSheet(
     pm,
     defesa,
     equipamentos,
+    devoto,
   };
 }

@@ -1,4 +1,4 @@
-import Divindade from './Divindade';
+import Divindade from '../../interfaces/Divindade';
 
 const TANNATOH: Divindade = {
   name: 'Tanna-Toh',

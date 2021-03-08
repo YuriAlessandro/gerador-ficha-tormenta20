@@ -62,6 +62,7 @@ const PALADINO = {
   ],
   magics: [],
   probDevoto: 0.8,
+  qtdPoderesConcedidos: 'all',
 };
 
 export default PALADINO;

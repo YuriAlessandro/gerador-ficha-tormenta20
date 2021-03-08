@@ -1,4 +1,4 @@
-import { DivindadeEnum } from '../divindades/Divindade';
+import { DivindadeEnum } from '../divindades';
 import { GeneralPowerType, GrantedPower } from './types';
 
 const grantedPowers: GrantedPower[] = [
