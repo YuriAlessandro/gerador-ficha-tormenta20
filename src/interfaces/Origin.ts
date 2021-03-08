@@ -1,11 +1,11 @@
 import Equipment from './Equipment';
-import { OriginPower } from './Poderes';
+import { OriginPower, GeneralPower } from './Poderes';
 
 interface Origin {
   name: string;
   itens: Equipment[];
   pericias: string[];
-  poder: OriginPower;
+  poderes: (OriginPower | GeneralPower)[];
 }
 
 export default Origin;
