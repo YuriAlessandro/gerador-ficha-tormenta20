@@ -1,4 +1,6 @@
-const MINOTAURO = {
+import Race from '../../interfaces/Race';
+
+const MINOTAURO: Race = {
   name: 'Minotauro',
   habilites: {
     attrs: [

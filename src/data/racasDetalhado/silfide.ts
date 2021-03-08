@@ -1,4 +1,6 @@
-const SILFIDE = {
+import Race from '../../interfaces/Race';
+
+const SILFIDE: Race = {
   name: 'Sílfide',
   habilites: {
     attrs: [

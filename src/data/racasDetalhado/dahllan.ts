@@ -1,4 +1,6 @@
-const DAHLLAN = {
+import Race from '../../interfaces/Race';
+
+const DAHLLAN: Race = {
   name: 'Dahllan',
   habilites: {
     attrs: [

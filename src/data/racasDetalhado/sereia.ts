@@ -1,4 +1,6 @@
-const SEREIA = {
+import Race from '../../interfaces/Race';
+
+const SEREIA: Race = {
   name: 'Sereia',
   habilites: {
     attrs: [

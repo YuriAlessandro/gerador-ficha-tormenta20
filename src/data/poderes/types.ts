@@ -1,4 +1,4 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../utils/atributos';
 import Divindade from './Divindade';
 
 export enum GeneralPowerType {

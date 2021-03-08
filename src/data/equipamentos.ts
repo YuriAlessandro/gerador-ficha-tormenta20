@@ -1,4 +1,6 @@
-const EQUIPAMENTOS = {
+import Equipment from '../interfaces/Equipment';
+
+const EQUIPAMENTOS: Record<string, Equipment[]> = {
   inicial: [
     {
       nome: 'Mochila',

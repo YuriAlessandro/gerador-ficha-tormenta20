@@ -1,6 +1,8 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GrantedPower } from './Poderes';
+import { GrantedPower } from '../data/poderes/types';
+import Race from './Race';
+import Equipment from './Equipment';
 
 export interface RaceHability {
   attr: string;
@@ -11,22 +13,6 @@ export interface CharacterAttribute {
   name: string;
   value: number;
   mod: number;
-}
-
-export interface Race {
-  name: string;
-  habilites: {
-    attrs: RaceHability[];
-    other: {
-      type: string;
-      allowed: string;
-      mod?: number;
-    }[];
-    texts: string[];
-  };
-  getName?: (sex: string) => string;
-  setup?: (allRaces: Race[]) => void;
-  oldRace?: Race;
 }
 
 export default interface CharacterSheet {
@@ -41,7 +27,7 @@ export default interface CharacterSheet {
   pv: number;
   pm: number;
   defesa: number;
-  equipamentos: any[];
+  equipamentos: Equipment[];
   devoto: {
     isDevoto: boolean;
     divindade: Divindade;

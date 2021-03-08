@@ -2,9 +2,9 @@ import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import Select, { ValueType } from 'react-select';
-import RACAS from '../utils/racas';
-import CLASSES from '../utils/classes';
+import Select from 'react-select';
+import RACAS from '../data/racas';
+import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
 
 import Result from './Result';
@@ -20,13 +20,13 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+type SelectedOption = { value: string; label: string };
+
 const MainScreen: React.FC = () => {
   const classes = useStyles();
 
   // TODO: Create typing for chara sheet
-  const [randomSheet, setRandomSheet] = React.useState<
-    CharacterSheet | undefined
-  >();
+  const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -38,23 +38,12 @@ const MainScreen: React.FC = () => {
     setRandomSheet(anotherRandomSheet);
   };
 
-  const onSelectRaca = (
-    raca: ValueType<{ value: string; label: string }, false>
-  ) => {
-    if (raca) {
-      setSelectedOptions({
-        ...selectedOptions,
-        raca: raca.value,
-      });
-    }
+  const onSelectRaca = (raca: SelectedOption | null) => {
+    setSelectedOptions({ ...selectedOptions, raca: raca?.value ?? '' });
   };
 
-  const onSelectClasse = (
-    classe: ValueType<{ value: string; label: string }, false>
-  ) => {
-    if (classe) {
-      setSelectedOptions({ ...selectedOptions, classe: classe.value });
-    }
+  const onSelectClasse = (classe: SelectedOption | null) => {
+    setSelectedOptions({ ...selectedOptions, classe: classe?.value ?? '' });
   };
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));

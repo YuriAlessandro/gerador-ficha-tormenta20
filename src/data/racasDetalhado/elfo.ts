@@ -1,4 +1,6 @@
-const ELFO = {
+import Race from '../../interfaces/Race';
+
+const ELFO: Race = {
   name: 'Elfo',
   habilites: {
     attrs: [
@@ -6,7 +8,7 @@ const ELFO = {
       { attr: 'Destreza', mod: 2 },
       { attr: 'Constituição', mod: -2 },
     ],
-    other: [{ type: 'pm', mod: 1, pernivel: true }],
+    other: [{ type: 'pm', mod: 1 }], // Update per level
     texts: [
       'Seu deslocamento é 12m (em vez de 9m).',
       'Você recebe +1 ponto de mana por nível (JÁ INCLUSO).',

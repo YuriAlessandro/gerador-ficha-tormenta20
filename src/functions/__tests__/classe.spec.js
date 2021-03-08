@@ -1,4 +1,4 @@
-import GUERREIRO from '../../utils/classesDetalhado/guerreiro';
+import GUERREIRO from '../../data/classesDetalhado/guerreiro';
 import { addClassPer } from '../general.ts';
 
 function countPers(basicPers, received) {

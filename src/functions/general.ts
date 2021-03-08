@@ -1,20 +1,20 @@
 import { v4 as uuid } from 'uuid';
-import ATRIBUTOS from '../utils/atributos';
-import RACAS from '../utils/racas';
-import CLASSES from '../utils/classes';
-import PERICIAS from '../utils/pericias';
-import EQUIPAMENTOS from '../utils/equipamentos';
-import DIVINDADES from '../utils/divindades';
+import ATRIBUTOS from '../data/atributos';
+import RACAS from '../data/racas';
+import CLASSES from '../data/classes';
+import PERICIAS from '../data/pericias';
+import EQUIPAMENTOS from '../data/equipamentos';
+import DIVINDADES from '../data/divindades';
+import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
   CharacterAttribute,
-  RaceHability,
-  Race,
 } from '../interfaces/CharacterSheet';
+import Race, { RaceHability } from '../interfaces/Race';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
-import Divindade from '../interfaces/Divindade';
-import grantedPowers from '../utils/poderes/concedidos';
-import { generateRandomName, getRandomItemFromArray } from './utils';
+import { getRandomItemFromArray } from './randomUtils';
+import todasProficiencias from '../data/proficiencias';
+import grantedPowers from '../data/poderes/concedidos';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -121,7 +121,7 @@ function getNotRepeatedRandomPer(periciasUsadas: string[]) {
     const stringPericia = PERICIAS[pericia] as string;
     return !periciasUsadas.includes(stringPericia);
   });
-  return getRandomItemFromArray<string>(periciasPermitidas);
+  return getRandomItemFromArray(periciasPermitidas);
 }
 
 interface ClassDetails {
@@ -181,7 +181,7 @@ function addBasicPer(
 ): string[] {
   return classBasicPer.reduce((pericias, item) => {
     if (item.type === 'or') {
-      const selectedPer = getRandomItemFromArray(item.list) as string;
+      const selectedPer = getRandomItemFromArray(item.list);
       const perWithPossiblyRepeated = [...pericias, selectedPer];
       return perWithPossiblyRepeated.filter(
         (currentItem, index) =>
@@ -215,7 +215,7 @@ function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
 
 function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
   if (constAttr) {
-    return pv + constAttr.mod;
+    return pv + constAttr?.mod ?? 0;
   }
   return pv;
 }
@@ -224,7 +224,7 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   const baseDef = 10;
 
   if (destAttr) {
-    return baseDef + destAttr.mod;
+    return baseDef + destAttr?.mod ?? 0;
   }
 
   return baseDef;
@@ -242,7 +242,7 @@ function selectRace(selectedOptions: SelectedOptions) {
 
     return RACAS[0] as Race;
   }
-  return getRandomItemFromArray(RACAS) as Race;
+  return getRandomItemFromArray(RACAS);
 }
 
 function getRace(selectedOptions: SelectedOptions) {
@@ -259,7 +259,7 @@ function getRace(selectedOptions: SelectedOptions) {
 function getRaceAndRaceStats(
   selectedOptions: SelectedOptions,
   atributosRolados: CharacterAttribute[],
-  sex: string
+  sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
   const race = getRace(selectedOptions);
@@ -296,82 +296,40 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 
     return selectedClass || getRandomItemFromArray<ClassDescription>(CLASSES);
   }
-  return getRandomItemFromArray(CLASSES);
+  return getRandomItemFromArray<ClassDescription>(CLASSES);
 }
 
 export function addEquipClass(classe: ClassDescription): { nome: string }[] {
   // 6.1 A depender da classe os itens podem variar
   const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
 
-  const armaduras = EQUIPAMENTOS.armadurasLeves;
-  const armas = EQUIPAMENTOS.armasSimples;
-  const escudo = EQUIPAMENTOS.escudos[0];
+  // Arma leve
+  equipamentosIniciais.push(getRandomItemFromArray(EQUIPAMENTOS.armasSimples));
 
-  if (classe.proeficiencias.length === 5) {
-    // Paladino, Guerreiro, Cavaleiro e Nobre
-    Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
-    Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
+  // Arma marcial
+  if (classe.proeficiencias.includes(todasProficiencias.MARCIAIS)) {
+    equipamentosIniciais.push(
+      getRandomItemFromArray(EQUIPAMENTOS.armasMarciais)
+    );
+  }
 
-    const armadura = getRandomItemFromArray(armaduras);
-    const arma = getRandomItemFromArray(armas);
-
-    equipamentosIniciais.push(armadura);
-    equipamentosIniciais.push(arma);
-    equipamentosIniciais.push(escudo);
-  } else if (classe.proeficiencias.length === 2) {
-    if (classe.name === 'Arcanista') {
-      // Arcanista
-      const arma = getRandomItemFromArray(armas);
-
-      equipamentosIniciais.push(arma);
-    } else {
-      // Lutador, Ladino e Inventor
-      const armadura = getRandomItemFromArray(armaduras);
-      const arma = getRandomItemFromArray(armas);
-
-      equipamentosIniciais.push(armadura);
-      equipamentosIniciais.push(arma);
-    }
-  } else if (classe.proeficiencias.length === 4) {
-    if (classe.name === 'Bardo' || classe.name === 'Bucaneiro') {
-      // Bardo e Bucaneiro
-      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
-
-      const armadura = getRandomItemFromArray(armaduras);
-      const arma = getRandomItemFromArray(armas);
-
-      equipamentosIniciais.push(armadura);
-      equipamentosIniciais.push(arma);
-    } else {
-      // Bárbaro e Caçador
-      Array.prototype.push.apply(armas, EQUIPAMENTOS.armasMarciais);
-
-      const armadura = getRandomItemFromArray(armaduras);
-      const arma = getRandomItemFromArray(armas);
-
-      equipamentosIniciais.push(armadura);
-      equipamentosIniciais.push(arma);
-      equipamentosIniciais.push(escudo);
-    }
-  } else if (classe.name === 'Clérigo') {
-    // Clérigo
-    Array.prototype.push.apply(armaduras, EQUIPAMENTOS.armaduraPesada);
-
-    const armadura = getRandomItemFromArray(armaduras);
-    const arma = getRandomItemFromArray(armas);
-
-    equipamentosIniciais.push(armadura);
-    equipamentosIniciais.push(arma);
-    equipamentosIniciais.push(escudo);
-  } else {
-    // Druída
-    const armadura = getRandomItemFromArray(armaduras);
-    const arma = getRandomItemFromArray(armas);
-
-    equipamentosIniciais.push(armadura);
-    equipamentosIniciais.push(arma);
+  // Escudo
+  if (classe.proeficiencias.includes(todasProficiencias.ESCUDOS)) {
+    const escudo = EQUIPAMENTOS.escudos[0];
     equipamentosIniciais.push(escudo);
   }
+
+  // Armadura
+  if (classe.proeficiencias.includes(todasProficiencias.PESADAS)) {
+    const brunea = EQUIPAMENTOS.armaduraPesada[0];
+    equipamentosIniciais.push(brunea);
+  } else if (classe.name !== 'Arcanista') {
+    equipamentosIniciais.push(
+      getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves)
+    );
+  }
+
+  // TODO: Initial cash
 
   return equipamentosIniciais;
 }
@@ -398,7 +356,7 @@ function getPoderesConcedidos(poderes: string[], todosPoderes: boolean) {
 // Retorna se é devoto e qual a divindade
 function getReligiosidade(classe: ClassDescription) {
   const isDevoto = getRandomArbitrary(1, 100) <= classe.probDevoto * 100;
-  const divindade: Divindade = getRandomItemFromArray(DIVINDADES);
+  const divindade = getRandomItemFromArray(DIVINDADES);
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
   const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
@@ -412,14 +370,14 @@ export default function generateRandomSheet(
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributosRolados = ATRIBUTOS.map((atributo) => {
+  const atributosRolados: CharacterAttribute[] = ATRIBUTOS.map((atributo) => {
     const randomAttr = getRandomArbitrary(8, 18);
     const mod = getModValues(randomAttr);
     return { name: atributo, value: randomAttr, mod };
   });
   // Passo 1.1: Definir sexo
-  const sexos = ['Homem', 'Mulher'];
-  const sexo = getRandomItemFromArray(sexos);
+  const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
+  const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
   // Passo 2: Definir raça
   const { race, atributos, nome } = getRaceAndRaceStats(
@@ -466,7 +424,7 @@ export default function generateRandomSheet(
   // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
 
-  // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma dinvindade
+  // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devoto = getReligiosidade(classe);
 
   return {

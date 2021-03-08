@@ -1,4 +1,6 @@
-const TROG = {
+import Race from '../../interfaces/Race';
+
+const TROG: Race = {
   name: 'Trog',
   habilites: {
     attrs: [

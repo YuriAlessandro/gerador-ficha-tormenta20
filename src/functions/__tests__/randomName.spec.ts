@@ -1,7 +1,6 @@
-import nomes from '../../utils/nomes';
-import RACAS from '../../utils/racas';
-import { generateRandomName } from '../utils';
-import { Race } from '../../interfaces/CharacterSheet';
+import RACAS from '../../data/racas';
+import { nomes, generateRandomName, lefou } from '../../data/nomes';
+import Race from '../../interfaces/Race';
 
 function getSplittedName(name: string) {
   const [firstName, ...rest] = name.split(' ');
@@ -35,11 +34,8 @@ describe('Testa se é gerado nomes corretamente', () => {
 
     const [receivedFirst, receivedSecond] = getSplittedName(name);
 
-    const firstNameArray = nomes[race.name].primeiroNome;
-    const secondNameOptions = nomes[race.name].segundoNome as {
-      [key: string]: string[];
-    };
-    const secondNameArray = secondNameOptions[sex];
+    const firstNameArray = lefou.names;
+    const secondNameArray = lefou.surnames[sex];
 
     expect(firstNameArray).toContain(receivedFirst);
     expect(secondNameArray).toContain(receivedSecond);

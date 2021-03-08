@@ -1,11 +1,11 @@
 export interface BasicExpertise {
   type: string;
-  list: any[];
+  list: string[];
 }
 
 export interface RemainingExpertise {
   qtd: number;
-  list: any[];
+  list: string[];
 }
 
 export interface ClassHability {
@@ -25,7 +25,7 @@ export interface ClassDescription {
   periciasrestantes: RemainingExpertise;
   proeficiencias: string[];
   habilities: ClassHability[];
-  magics: any[];
+  magics: string[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
 }

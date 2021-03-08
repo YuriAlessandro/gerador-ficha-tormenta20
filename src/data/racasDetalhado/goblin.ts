@@ -1,4 +1,6 @@
-const GOBLIN = {
+import Race from '../../interfaces/Race';
+
+const GOBLIN: Race = {
   name: 'Goblin',
   habilites: {
     attrs: [

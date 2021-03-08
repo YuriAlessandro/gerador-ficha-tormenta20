@@ -1,4 +1,6 @@
-const SULFURE = {
+import Race from '../../interfaces/Race';
+
+const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
   habilites: {
     attrs: [

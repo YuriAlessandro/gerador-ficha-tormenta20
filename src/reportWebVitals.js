@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable */ 
+
 const reportWebVitals = (onPerfEntry) => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
