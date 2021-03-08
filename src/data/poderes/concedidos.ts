@@ -1,5 +1,5 @@
 import { DivindadeEnum } from '../divindades';
-import { GeneralPowerType, GrantedPower } from './types';
+import { GeneralPowerType, GrantedPower } from '../../interfaces/Poderes';
 
 const grantedPowers: GrantedPower[] = [
   {

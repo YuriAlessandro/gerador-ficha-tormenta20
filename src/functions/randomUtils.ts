@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-export function getRandomItemFromArray(array: any[]) {
+export function getRandomItemFromArray<ElementType>(array: ElementType[]): ElementType {
   return array[Math.floor(Math.random() * array.length)];
 }
 

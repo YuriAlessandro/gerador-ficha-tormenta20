@@ -15,5 +15,5 @@ export default interface Race {
     texts: string[];
   };
   oldRace?: Race;
-  generateName?: (sex: string) => string;
+  setup?: (races: Race[]) => void;
 }

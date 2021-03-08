@@ -3,7 +3,7 @@ import grantedPowers from './concedidos';
 import destinyPowers from './destino';
 import magicPowers from './magia';
 import tormentaPowers from './tormenta';
-import { GeneralPowers } from './types';
+import { GeneralPowers } from '../../interfaces/Poderes';
 
 const generalPowers: GeneralPowers = {
   COMBATE: combatPowers,
