@@ -290,13 +290,13 @@ export function addClassPer(
 
 function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   if (selectedOptions.classe) {
-    const selectedClass = (CLASSES.find(
+    const selectedClass = CLASSES.find(
       (currentClasse) => currentClasse.name === selectedOptions.classe
-    ) as unknown) as ClassDescription;
+    );
 
-    return selectedClass || getRandomItemFromArray<ClassDescription>(CLASSES);
+    return selectedClass || getRandomItemFromArray(CLASSES);
   }
-  return getRandomItemFromArray<ClassDescription>(CLASSES);
+  return getRandomItemFromArray(CLASSES);
 }
 
 export function addEquipClass(classe: ClassDescription): { nome: string }[] {

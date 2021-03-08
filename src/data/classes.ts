@@ -1,3 +1,4 @@
+import { ClassDescription } from '../interfaces/Class';
 import ARCANISTA from './classesDetalhado/arcanista';
 import BARBARO from './classesDetalhado/barbaro';
 import BARDO from './classesDetalhado/bardo';
@@ -13,7 +14,7 @@ import LUTADOR from './classesDetalhado/lutador';
 import NOBRE from './classesDetalhado/nobre';
 import PALADINO from './classesDetalhado/paladino';
 
-const CLASSES = [
+const CLASSES: ClassDescription[] = [
   ARCANISTA,
   BARBARO,
   BARDO,
