@@ -1,5 +1,6 @@
 import { getRandomItemFromArray } from '../functions/randomUtils';
 import Race from '../interfaces/Race';
+import RACAS from './racas';
 
 export const nomes: {
   [key: string]: Record<'Homem' | 'Mulher', string[]>;
@@ -347,35 +348,46 @@ export const lefou = {
 
 export const nameGenerators: Record<
   string,
-  (raceName: string, sex: 'Homem' | 'Mulher') => string
+  (race: Race, sex: 'Homem' | 'Mulher') => string
 > = {
-  Osteon: (raceName, sex) => {
-    const allRaces = [...Object.keys(nomes), 'Lefou'];
-    const validRaces = allRaces.filter((race) => race !== 'Golem');
-    const randomRace = getRandomItemFromArray(validRaces);
+  Osteon: (race, sex) => {
+    if (race.oldRace) {
+      if (nameGenerators[race.oldRace.name]) {
+        return nameGenerators[race.oldRace.name](race.oldRace, sex);
+      }
 
-    if (nameGenerators[randomRace]) {
-      return nameGenerators[randomRace](randomRace, sex);
+      return nameGenerators.default(race.oldRace, sex);
+    }
+
+    const allRaces = [...Object.keys(nomes), 'Lefou'];
+    const validRaces = allRaces.filter((element) => element !== 'Golem');
+    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRace = RACAS.find(
+      (element) => element.name === randomRaceName
+    ) as Race;
+
+    if (nameGenerators[randomRaceName]) {
+      return nameGenerators[randomRaceName](randomRace, sex);
     }
 
     return nameGenerators.default(randomRace, sex);
   },
-  Lefou: (raceName, sex) => {
+  Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
     const firstName = getRandomItemFromArray(lefouNames);
     const lastName = getRandomItemFromArray(lefouSurnames[sex]);
 
     return `${firstName} ${lastName}`;
   },
-  default: (raceName, sex) => getRandomItemFromArray(nomes[raceName][sex]),
+  default: (race: Race, sex) => getRandomItemFromArray(nomes[race.name][sex]),
 };
 
 export function generateRandomName(
-  raca: Race,
+  race: Race,
   sexo: 'Homem' | 'Mulher'
 ): string {
-  if (nameGenerators[raca.name]) {
-    return nameGenerators[raca.name](raca.name, sexo);
+  if (nameGenerators[race.name]) {
+    return nameGenerators[race.name](race, sexo);
   }
 
-  return nameGenerators.default(raca.name, sexo);
+  return nameGenerators.default(race, sexo);
 }

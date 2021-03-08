@@ -1,6 +1,6 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GrantedPower } from '../data/poderes/types';
+import { GrantedPower } from './Poderes';
 import Race from './Race';
 import Equipment from './Equipment';
 

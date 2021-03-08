@@ -245,7 +245,7 @@ function selectRace(selectedOptions: SelectedOptions) {
   return getRandomItemFromArray(RACAS);
 }
 
-function getRace(selectedOptions: SelectedOptions) {
+function getAndSetupRace(selectedOptions: SelectedOptions) {
   const race = selectRace(selectedOptions);
 
   if (race.setup) {
@@ -262,7 +262,7 @@ function getRaceAndRaceStats(
   sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
-  const race = getRace(selectedOptions);
+  const race = getAndSetupRace(selectedOptions);
   // Passo 2.2: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(race, atributosRolados);
   // Passo 2.3: Definir nome
