@@ -42,11 +42,7 @@ const RACAS = [
 
 export default RACAS;
 
-type RaceGenerator = {
-  (race: Race): Race;
-};
-
-const raceSetups: Record<string, RaceGenerator> = {
+const raceSetups: Record<string, (race: Race) => Race> = {
   default(race) {
     return race;
   },
