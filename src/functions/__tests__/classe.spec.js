@@ -1,5 +1,5 @@
 import GUERREIRO from '../../data/classesDetalhado/guerreiro';
-import { addClassPer } from '../general.ts';
+import { addClassPer } from '../general';
 
 function countPers(basicPers, received) {
   return basicPers.map((group) => ({
