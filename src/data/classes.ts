@@ -14,7 +14,7 @@ import LUTADOR from './classesDetalhado/lutador';
 import NOBRE from './classesDetalhado/nobre';
 import PALADINO from './classesDetalhado/paladino';
 
-const CLASSES: ClassDescription[] = [
+const CLASSES = [
   ARCANISTA,
   BARBARO,
   BARDO,
