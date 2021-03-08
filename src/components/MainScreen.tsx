@@ -10,6 +10,7 @@ import SelectOptions from '../interfaces/SelectedOptions';
 import Result from './Result';
 
 import generateRandomSheet from '../functions/general';
+import CharacterSheet from '../interfaces/CharacterSheet';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -23,7 +24,9 @@ const MainScreen: React.FC = () => {
   const classes = useStyles();
 
   // TODO: Create typing for chara sheet
-  const [randomSheet, setRandomSheet] = React.useState<any>();
+  const [randomSheet, setRandomSheet] = React.useState<
+    CharacterSheet | undefined
+  >();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',

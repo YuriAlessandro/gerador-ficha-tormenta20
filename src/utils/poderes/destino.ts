@@ -1,4 +1,8 @@
-import { GeneralPower, GeneralPowerType, RequirementType } from './types';
+import {
+  GeneralPower,
+  GeneralPowerType,
+  RequirementType,
+} from '../../interfaces/Poderes';
 
 const destinyPowers: GeneralPower[] = [
   {

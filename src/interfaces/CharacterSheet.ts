@@ -1,6 +1,6 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GrantedPower } from '../utils/poderes/types';
+import { GrantedPower } from './Poderes';
 
 export interface RaceHability {
   attr: string;
@@ -32,7 +32,7 @@ export default interface CharacterSheet {
   nome: string;
   sexo: string;
   nivel: number;
-  atributos: Record<string, any>[];
+  atributos: CharacterAttribute[];
   raca: Race;
   classe: ClassDescription;
   pericias: string[];

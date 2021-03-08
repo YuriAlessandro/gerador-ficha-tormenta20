@@ -1,5 +1,5 @@
-import { Atributo } from '../atributos';
-import Divindade from '../../interfaces/Divindade';
+import { Atributo } from '../utils/atributos';
+import Divindade from './Divindade';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
