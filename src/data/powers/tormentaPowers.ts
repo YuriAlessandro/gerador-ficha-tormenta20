@@ -4,22 +4,22 @@ import {
   RequirementType,
 } from '../../interfaces/Poderes';
 
-const tormentaPowers: GeneralPower[] = [
-  {
+const tormentaPowers: Record<string, GeneralPower> = {
+  ANATOMIA_INSANA: {
     name: 'Anatomia Insana',
     description:
       'Você tem 25% de chance (resultado “1” em 1d4) de ignorar o dano adicional de um acerto crítico ou ataque furtivo. A chance aumenta em +25% para cada dois outros poderes da Tormenta que você possui',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
   },
-  {
+  ANTENAS: {
     name: 'Antenas',
     description:
       'Você recebe +1 em Iniciativa, Percepção e Vontade. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
   },
-  {
+  ARMAMENTO_ABERRANTE: {
     name: 'Armamento Aberrante',
     description:
       'Você pode gastar uma ação de movimento e 1 PM para produzir uma arma orgânica macabra — ela brota do seu braço, ombro ou costas como uma planta grotesca e então se desprende. Você pode produzir qualquer arma corpo a corpo ou de arremesso com a qual seja proficiente. O dano da arma aumenta em um passo para cada dois outros poderes da Tormenta que você possui. A arma dura pela cena, então se desfaz numa poça de gosma. Pré-requisito: outro poder da Tormenta.',
@@ -31,6 +31,6 @@ const tormentaPowers: GeneralPower[] = [
       },
     ],
   },
-];
+};
 
 export default tormentaPowers;
