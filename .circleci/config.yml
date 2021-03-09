@@ -20,10 +20,9 @@ jobs:
           command: npm test
 workflows:
   version: 2
-  build_and_test:
+  build:
     jobs:
-      - build_branches
-        filters:
+      - build:
           branches:
             ignore:
               - gh-pages
