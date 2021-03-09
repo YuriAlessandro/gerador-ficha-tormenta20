@@ -1,4 +1,4 @@
-import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
+import Equipment, { Bag, DefenseEquipment } from '../interfaces/Equipment';
 
 export const Armas: Record<string, Equipment> = {
   ADAGA: {
@@ -186,8 +186,8 @@ export const Escudos: Record<string, DefenseEquipment> = {
   },
 };
 
-const EQUIPAMENTOS: Record<string, Equipment[]> = {
-  inicial: [
+export const bagInicial: Bag = {
+  'Item Geral': [
     {
       nome: 'Mochila',
       group: 'Item Geral',
@@ -201,6 +201,19 @@ const EQUIPAMENTOS: Record<string, Equipment[]> = {
       group: 'Item Geral',
     },
   ],
+  Alimentação: [],
+  Alquimía: [],
+  Animal: [],
+  Arma: [],
+  Armadura: [],
+  Escudo: [],
+  Hospedagem: [],
+  Serviço: [],
+  Vestuário: [],
+  Veículo: [],
+};
+
+const EQUIPAMENTOS: Record<string, Equipment[]> = {
   armasSimples: [
     Armas.ADAGA,
     Armas.ARCOCURTO,
@@ -237,19 +250,21 @@ function isDefenseEquip(
 
 export function applyEquipsModifiers(
   defense: number,
-  equips: Equipment[]
+  equips: Bag
 ): { defense: number; armorPenalty: number } {
-  return equips.reduce(
-    (acc, equip) => {
-      if (isDefenseEquip(equip)) {
-        return {
-          defense: equip.defenseBonus + acc.defense,
-          armorPenalty: equip.armorPenalty + acc.armorPenalty,
-        };
-      }
+  return Object.values(equips)
+    .flat()
+    .reduce(
+      (acc, equip) => {
+        if (isDefenseEquip(equip)) {
+          return {
+            defense: equip.defenseBonus + acc.defense,
+            armorPenalty: equip.armorPenalty + acc.armorPenalty,
+          };
+        }
 
-      return acc;
-    },
-    { defense, armorPenalty: 0 }
-  );
+        return acc;
+      },
+      { defense, armorPenalty: 0 }
+    );
 }

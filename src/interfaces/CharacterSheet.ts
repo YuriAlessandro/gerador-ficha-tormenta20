@@ -2,7 +2,7 @@ import { ClassDescription } from './Class';
 import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race from './Race';
-import Equipment from './Equipment';
+import Equipment, { Bag } from './Equipment';
 
 export interface RaceHability {
   attr: string;
@@ -32,7 +32,7 @@ export default interface CharacterSheet {
   pv: number;
   pm: number;
   defesa: number;
-  equipamentos: Equipment[];
+  equipamentos: Bag;
   devoto?: CharacterReligion;
   origin: {
     name: string;

@@ -3,6 +3,8 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 
 import '../assets/css/result.css';
+import { equipGroup } from '../interfaces/Equipment';
+import { bagInicial } from '../data/equipamentos';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -57,9 +59,20 @@ const Result: React.FC<ResultProps> = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
-  const equipamentosDiv = equipamentos.map((equip) => (
+  const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
+    ([key]) => key !== 'Arma'
+  );
+
+  const equipamentosDiv = equipsEntriesNoWeapons
+    .map(([_, equips]) =>
+      equips.map((equip) => <li key={getKey(equip.nome)}>{equip.nome}</li>)
+    )
+    .flat();
+
+  const armasDiv = equipamentos.Arma.map((equip) => (
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
+  console.log(equipamentosDiv, armasDiv);
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
@@ -134,8 +147,14 @@ const Result: React.FC<ResultProps> = (props) => {
 
         <div className='resultRow bordered'>
           <div>
-            <strong>Equipamento Inicial</strong>
+            <strong>Equipamento</strong>
             <ul>{equipamentosDiv}</ul>
+          </div>
+        </div>
+        <div className='resultRow bordered'>
+          <div>
+            <strong>Armas</strong>
+            <ul>{armasDiv}</ul>
           </div>
         </div>
       </div>

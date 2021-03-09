@@ -3,7 +3,10 @@ import ATRIBUTOS from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
-import EQUIPAMENTOS, { applyEquipsModifiers } from '../data/equipamentos';
+import EQUIPAMENTOS, {
+  applyEquipsModifiers,
+  bagInicial,
+} from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
@@ -24,7 +27,7 @@ import todasProficiencias from '../data/proficiencias';
 import origins from '../data/origins';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
-import Equipment from '../interfaces/Equipment';
+import Equipment, { Bag } from '../interfaces/Equipment';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -307,16 +310,20 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: ClassDescription): Equipment[] {
+export function addEquipClass(classe: ClassDescription): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
+  const equipamentosIniciais: Bag = {
+    ...bagInicial,
+  };
 
   // Arma leve
-  equipamentosIniciais.push(getRandomItemFromArray(EQUIPAMENTOS.armasSimples));
+  equipamentosIniciais.Arma.push(
+    getRandomItemFromArray(EQUIPAMENTOS.armasSimples)
+  );
 
   // Arma marcial
   if (classe.proeficiencias.includes(todasProficiencias.MARCIAIS)) {
-    equipamentosIniciais.push(
+    equipamentosIniciais.Arma.push(
       getRandomItemFromArray(EQUIPAMENTOS.armasMarciais)
     );
   }
@@ -324,15 +331,15 @@ export function addEquipClass(classe: ClassDescription): Equipment[] {
   // Escudo
   if (classe.proeficiencias.includes(todasProficiencias.ESCUDOS)) {
     const escudo = EQUIPAMENTOS.escudos[0];
-    equipamentosIniciais.push(escudo);
+    equipamentosIniciais.Escudo.push(escudo);
   }
 
   // Armadura
   if (classe.proeficiencias.includes(todasProficiencias.PESADAS)) {
     const brunea = EQUIPAMENTOS.armaduraPesada[0];
-    equipamentosIniciais.push(brunea);
+    equipamentosIniciais.Armadura.push(brunea);
   } else if (classe.name !== 'Arcanista') {
-    equipamentosIniciais.push(
+    equipamentosIniciais.Armadura.push(
       getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves)
     );
   }
