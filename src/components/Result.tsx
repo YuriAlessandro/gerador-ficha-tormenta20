@@ -111,24 +111,26 @@ const Result: React.FC<ResultProps> = (props) => {
         </span>
       </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Perícias Treinadas:</strong>
-          <ul>{periciasDiv}</ul>
+      <div className='condense'>
+        <div className='resultRow'>
+          <div>
+            <strong>Perícias Treinadas:</strong>
+            <ul>{periciasDiv}</ul>
+          </div>
         </div>
-      </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Proeficiências</strong>
-          <ul>{proeficienciasDiv}</ul>
+        <div className='resultRow'>
+          <div>
+            <strong>Proficiências</strong>
+            <ul>{proeficienciasDiv}</ul>
+          </div>
         </div>
-      </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Equipamento Inicial</strong>
-          <ul>{equipamentosDiv}</ul>
+        <div className='resultRow'>
+          <div>
+            <strong>Equipamento Inicial</strong>
+            <ul>{equipamentosDiv}</ul>
+          </div>
         </div>
       </div>
 
