@@ -65,7 +65,7 @@ const origins: Origin[] = [
     pericias: [PERICIAS.ENGANACAO, PERICIAS.JOGATINA],
     poderes: [
       originPowers.ALPINISTA_SOCIAL,
-      DestinyPowers.APARENCIAINOFENSIVA,
+      DestinyPowers.APARENCIA_INOFENSIVA,
       DestinyPowers.SORTUDO,
     ],
   },

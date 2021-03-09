@@ -18,9 +18,8 @@ import {
   removeDup,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import grantedPowers from '../data/powers/grantedPowers';
 import origins from '../data/origins';
-import { GeneralPower, GrantedPower, OriginPower } from '../interfaces/Poderes';
+import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
 
 export function getModValues(attr: number): number {
@@ -339,23 +338,13 @@ export function addEquipClass(classe: ClassDescription): { nome: string }[] {
   return equipamentosIniciais;
 }
 
-// Retorna os detalhes (nome, descrição, etc) dos poderes concedidos
-function getPoderesConcedidosDetalhes(poderes: string[]) {
-  return poderes
-    .map((poder) =>
-      grantedPowers.find((outroPoder) => outroPoder.name === poder)
-    )
-    .filter((item) => item) as GrantedPower[];
-}
-
 // Retorna a lista de poderes concedidos de uma divindade
-function getPoderesConcedidos(poderes: string[], todosPoderes: boolean) {
+function getPoderesConcedidos(poderes: GeneralPower[], todosPoderes: boolean) {
   if (todosPoderes) {
-    return getPoderesConcedidosDetalhes([...poderes]);
+    return [...poderes];
   }
 
-  const poderesConcedidos = [getRandomItemFromArray(poderes)];
-  return getPoderesConcedidosDetalhes(poderesConcedidos);
+  return [getRandomItemFromArray(poderes)];
 }
 
 // Retorna se é devoto e qual a divindade

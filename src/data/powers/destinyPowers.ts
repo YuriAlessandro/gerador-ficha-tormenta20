@@ -4,7 +4,14 @@ import {
   RequirementType,
 } from '../../interfaces/Poderes';
 
-export const DestinyPowers: Record<string, GeneralPower> = {
+type destinyPowersKeys =
+  | 'APARENCIA_INOFENSIVA'
+  | 'SORTUDO'
+  | 'ACROBATICO'
+  | 'FOCO_EM_PERICIA'
+  | 'INVESTIGADOR';
+
+export const DestinyPowers: Record<destinyPowersKeys, GeneralPower> = {
   APARENCIA_INOFENSIVA: {
     name: 'Aparência Inofensiva',
     description:
@@ -50,7 +57,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
 };
 
 const destinyPowers: GeneralPower[] = [
-  DestinyPowers.APARENCIAINOFENSIVA,
+  DestinyPowers.APARENCIA_INOFENSIVA,
   DestinyPowers.SORTUDO,
   DestinyPowers.ACROBATICO,
   DestinyPowers.FOCO_EM_PERICIA,

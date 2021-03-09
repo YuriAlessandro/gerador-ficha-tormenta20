@@ -1,6 +1,6 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GeneralPower, GrantedPower, OriginPower } from './Poderes';
+import { GeneralPower, OriginPower } from './Poderes';
 import Race from './Race';
 import Equipment from './Equipment';
 
@@ -31,7 +31,7 @@ export default interface CharacterSheet {
   devoto: {
     isDevoto: boolean;
     divindade: Divindade;
-    poderes: GrantedPower[];
+    poderes: GeneralPower[];
   };
   origin: {
     name: string;

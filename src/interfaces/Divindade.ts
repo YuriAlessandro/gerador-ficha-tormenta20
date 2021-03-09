@@ -1,4 +1,6 @@
+import { GeneralPower } from './Poderes';
+
 export default interface Divindade {
   name: string;
-  poderes: string[];
+  poderes: GeneralPower[];
 }

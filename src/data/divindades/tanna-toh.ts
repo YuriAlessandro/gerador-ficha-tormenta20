@@ -1,11 +1,12 @@
 import Divindade from '../../interfaces/Divindade';
+import GRANTED_POWERS from '../powers/grantedPowers';
 
 const TANNATOH: Divindade = {
   name: 'Tanna-Toh',
   poderes: [
-    'Conhecimento Enciclopédico',
-    'Mente Analítica',
-    'Voz da Civilização',
+    GRANTED_POWERS.CONHECIMENTO_ENCICLOPEDICO,
+    GRANTED_POWERS.MENTE_ANALITICA,
+    GRANTED_POWERS.VOZ_DA_CIVILIZACAO,
   ],
 };
 
