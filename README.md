@@ -16,6 +16,24 @@ Se você tem alguma sugestão ou ideia, crie um tópico [aqui](https://github.co
 
 Sinta-se a vontade para contribuir com este código tal como dar feedback e sugestões. Você pode fazer isso utilizando o sistema de Discussões do GitHub ou enviando um email para yuri.alessandro@hotmail.com.
 
+#### Contribuições no código
+
+Crie um fork do projeto e o clone para sua máquina.
+
+Na pasta do projeto: 
+
+```bash
+npm install
+npm start
+```
+
+*É preciso ter o [node](https://nodejs.org/en/) instalado.
+
+
+
+
+
+
 ## Contribuidores
 
 - [Yuri Alessandro Martins](https://github.com/YuriAlessandro)
