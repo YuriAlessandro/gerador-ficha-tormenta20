@@ -3,7 +3,7 @@ import ATRIBUTOS from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
-import EQUIPAMENTOS from '../data/equipamentos';
+import EQUIPAMENTOS, { applyEquipsModifiers } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
@@ -24,6 +24,7 @@ import todasProficiencias from '../data/proficiencias';
 import origins from '../data/origins';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
+import Equipment from '../interfaces/Equipment';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -306,7 +307,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: ClassDescription): { nome: string }[] {
+export function addEquipClass(classe: ClassDescription): Equipment[] {
   // 6.1 A depender da classe os itens podem variar
   const equipamentosIniciais = [...EQUIPAMENTOS.inicial];
 
@@ -450,26 +451,27 @@ export default function generateRandomSheet(
 
   // Passo 3.3: Determinando a Defesa inicial
   const destAttr = atributos.find((attr) => attr.name === 'Destreza');
-  const defesaInicial = getInitialDef(destAttr);
+  const initialDefense = getInitialDef(destAttr);
 
   // Passo 3.4: Alterar características da classe com base na raça
-  const caracteristicasDaClasse = {
+  const classDetails = {
     pv: pvInicial,
     pm: pmInicial,
-    defesa: defesaInicial,
+    defesa: initialDefense,
     pericias: [],
   };
 
-  const {
-    pv,
-    pm,
-    defesa,
-    pericias: periciasDaRaca,
-  } = getClassDetailsModifiedByRace(caracteristicasDaClasse, race);
+  const classDetailsModifiedByRace = getClassDetailsModifiedByRace(
+    classDetails,
+    race
+  );
 
   // Passo 4: Definição de origem
   const origin = getOrigin();
-  const skillsRaceAndOrigin = removeDup([...periciasDaRaca, ...origin.skills]);
+  const skillsRaceAndOrigin = removeDup([
+    ...classDetailsModifiedByRace.pericias,
+    ...origin.skills,
+  ]);
 
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe
@@ -477,6 +479,11 @@ export default function generateRandomSheet(
 
   // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
+  // 6.1: Incrementar defesa com base nos Equipamentos
+  const { armorPenalty, defense } = applyEquipsModifiers(
+    classDetails.defesa,
+    equipamentos
+  );
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devoto = getReligiosidade(classe, race);
@@ -490,11 +497,12 @@ export default function generateRandomSheet(
     raca: race,
     classe,
     pericias,
-    pv,
-    pm,
-    defesa,
+    pv: classDetailsModifiedByRace.pv,
+    pm: classDetailsModifiedByRace.pm,
+    defesa: defense,
     equipamentos,
     devoto,
     origin,
+    armorPenalty,
   };
 }
