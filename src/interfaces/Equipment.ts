@@ -36,3 +36,5 @@ interface Modification {
 export interface SuperiorEquipment extends Equipment {
   modifications: Modification[];
 }
+
+export type Bag = Record<equipGroup, Equipment[]>;

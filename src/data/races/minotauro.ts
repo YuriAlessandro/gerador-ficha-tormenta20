@@ -15,6 +15,13 @@ const MINOTAURO: Race = {
       'Você tem olfato apurado. Você não fica desprevenido e sofre apenas camuflagem (em vez de camuflagem total) contra inimigos em alcance curto que não possa ver.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    ARSENAL: 1,
+    MEGALOKK: 1,
+    OCEANO: 1,
+    THWOR: 1,
+  },
 };
 
 export default MINOTAURO;

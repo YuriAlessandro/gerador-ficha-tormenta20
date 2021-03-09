@@ -42,6 +42,7 @@ const Result: React.FC<ResultProps> = (props) => {
       mod={atributo.mod}
       id={id}
       value={atributo.value}
+      key={getKey(atributo.name)}
     />
   ));
 
@@ -60,6 +61,20 @@ const Result: React.FC<ResultProps> = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
+  const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
+    ([key]) => key !== 'Arma'
+  );
+
+  const equipamentosDiv = equipsEntriesNoWeapons
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(([_, equips]) =>
+      equips.map((equip) => <li key={getKey(equip.nome)}>{equip.nome}</li>)
+    )
+    .flat();
+
+  const armasDiv = equipamentos.Arma.map((equip) => (
+    <Weapon equipment={equip} />
+  ));
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
@@ -73,11 +88,11 @@ const Result: React.FC<ResultProps> = (props) => {
       ))
     : '';
 
-  const weapons = equipamentos.filter(
-    (equipament) => equipament.group === 'Arma'
-  );
+  // const weapons = equipamentos.filter(
+  //   (equipament) => equipament.group === 'Arma'
+  // );
 
-  const equipamentosDiv = weapons.map((equip) => <Weapon equipment={equip} />);
+  // const equipamentosDiv = weapons.map((equip) => <Weapon equipment={equip} />);
 
   return (
     <div className='resultMainDiv'>
@@ -146,6 +161,7 @@ const Result: React.FC<ResultProps> = (props) => {
       </div>
 
       <div className='equipaments'>
+        <div>{armasDiv}</div>
         <div>{equipamentosDiv}</div>
         <span className='resultItem'>
           <strong>Penalidade de Armadura</strong> {armorPenalty * -1}

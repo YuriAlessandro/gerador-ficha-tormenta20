@@ -16,5 +16,10 @@ const OSTEON: Race = {
       'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    TENEBRA: 1,
+    THWOR: 1,
+  },
 };
 export default OSTEON;

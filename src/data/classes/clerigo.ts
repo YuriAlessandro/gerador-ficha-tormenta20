@@ -1,4 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
+import { standardFaithProbability } from '../divindades';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
@@ -50,6 +51,7 @@ const CLERIGO: ClassDescription = {
   magics: [],
   probDevoto: 0.95,
   qtdPoderesConcedidos: 'all',
+  faithProbability: standardFaithProbability,
 };
 
 export default CLERIGO;

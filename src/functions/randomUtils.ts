@@ -29,20 +29,19 @@ export function mergeFaithProbabilities(
   arr1: FaithProbability,
   arr2: FaithProbability
 ): FaithProbability {
-  const arr1Normalized = normalizeFaithProbabability(arr1);
-  const arr2Normalized = normalizeFaithProbabability(arr2);
-
-  const multipliedFaithProbability: FaithProbability = {};
+  const summedFaithProbability: FaithProbability = {};
   allDivindadeNames.forEach((key) => {
-    const val1: number =
-      arr1Normalized[key] !== undefined ? (arr1Normalized[key] as number) : 0.5;
-    const val2: number =
-      arr2Normalized[key] !== undefined ? (arr2Normalized[key] as number) : 0.5;
+    const val1 = arr1[key] as number;
+    const val2 = arr2[key] as number;
 
-    multipliedFaithProbability[key] = val1 * val2;
+    if (val1 === 0 || val2 === 0) {
+      summedFaithProbability[key] = 0;
+    } else {
+      summedFaithProbability[key] = (val1 || 0) + (val2 || 0);
+    }
   });
 
-  return normalizeFaithProbabability(multipliedFaithProbability);
+  return normalizeFaithProbabability(summedFaithProbability);
 }
 
 export function pickFaith(faithP: FaithProbability): DivindadeNames {

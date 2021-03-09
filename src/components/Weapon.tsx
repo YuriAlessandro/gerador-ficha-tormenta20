@@ -9,7 +9,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const { equipment } = props;
   const { nome, dano, critico, tipo, alcance } = equipment;
 
-  return <div>{`${nome} (${dano}, ${critico}) - ${tipo} - ${alcance}`}</div>;
+  return (
+    <div>{`${nome} (${dano}, ${critico}) - ${tipo} - ${alcance || ''}`}</div>
+  );
 };
 
 export default Weapon;

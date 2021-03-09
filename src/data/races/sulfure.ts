@@ -14,6 +14,11 @@ const SULFURE: Race = {
       'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributochave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    KALLYADRANOCH: 1,
+    TENEBRA: 1,
+  },
 };
 
 export default SULFURE;
