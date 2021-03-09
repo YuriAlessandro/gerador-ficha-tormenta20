@@ -59,6 +59,28 @@ const DRUIDA: ClassDescription = {
   magics: [],
   probDevoto: 1,
   qtdPoderesConcedidos: 'all',
+  faithProbability: {
+    AHARADAK: 1,
+    OCEANO: 1,
+    TENEBRA: 0,
+    VALKARIA: 0,
+    WYNNA: 0,
+    LENA: 0,
+    SSZZAAS: 0,
+    THYATIS: 0,
+    ARSENAL: 0,
+    TANNATOH: 0,
+    ALLIHANNA: 1,
+    MARAH: 0,
+    KALLYADRANOCH: 0,
+    KHALMYR: 0,
+    THWOR: 0,
+    HYNINN: 0,
+    AZGHER: 0,
+    LINWU: 0,
+    MEGALOKK: 0,
+    NIMB: 0,
+  },
 };
 
 export default DRUIDA;

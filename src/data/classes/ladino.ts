@@ -55,7 +55,7 @@ const LADINO: ClassDescription = {
     },
   ],
   magics: [],
-  probDevoto: 0.5,
+  probDevoto: 0.3,
 };
 
 export default LADINO;

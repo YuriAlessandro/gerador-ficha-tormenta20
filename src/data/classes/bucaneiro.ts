@@ -59,7 +59,7 @@ const BUCANEIRO: ClassDescription = {
     },
   ],
   magics: [],
-  probDevoto: 0.4,
+  probDevoto: 0.3,
 };
 
 export default BUCANEIRO;

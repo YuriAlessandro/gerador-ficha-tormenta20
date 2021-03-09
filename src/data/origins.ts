@@ -1,8 +1,8 @@
 import { getRandomItemFromArray } from '../functions/randomUtils';
 import Origin from '../interfaces/Origin';
 import PERICIAS from './pericias';
-import originPowers from './poderes/origem';
-import { DestinyPowers } from './poderes/destino';
+import originPowers from './powers/originPowers';
+import { DestinyPowers } from './powers/destinyPowers';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 
 const origins: Origin[] = [

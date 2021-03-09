@@ -1,3 +1,4 @@
+import { FaithProbability } from '../interfaces/Divindade';
 import AHARADAK from './divindades/aharadak';
 import ALLIHANNA from './divindades/allihanna';
 import ARSENAL from './divindades/arsenal';
@@ -64,5 +65,28 @@ const DIVINDADES = [
   MEGALOKK,
   NIMB,
 ];
+
+export const standardFaithProbability: FaithProbability = {
+  AHARADAK: 1,
+  OCEANO: 1,
+  TENEBRA: 1,
+  VALKARIA: 1,
+  WYNNA: 1,
+  LENA: 1,
+  SSZZAAS: 1,
+  THYATIS: 1,
+  ARSENAL: 1,
+  TANNATOH: 1,
+  ALLIHANNA: 1,
+  MARAH: 1,
+  KALLYADRANOCH: 1,
+  KHALMYR: 1,
+  THWOR: 1,
+  HYNINN: 1,
+  AZGHER: 1,
+  LINWU: 1,
+  MEGALOKK: 1,
+  NIMB: 1,
+};
 
 export default DIVINDADES;

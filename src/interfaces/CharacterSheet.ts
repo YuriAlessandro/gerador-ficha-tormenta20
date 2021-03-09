@@ -15,6 +15,11 @@ export interface CharacterAttribute {
   mod: number;
 }
 
+export interface CharacterReligion {
+  divindade: Divindade;
+  poderes: (GrantedPower | undefined)[];
+}
+
 export default interface CharacterSheet {
   id: string;
   nome: string;
@@ -28,9 +33,5 @@ export default interface CharacterSheet {
   pm: number;
   defesa: number;
   equipamentos: Equipment[];
-  devoto: {
-    isDevoto: boolean;
-    divindade: Divindade;
-    poderes: (GrantedPower | undefined)[];
-  };
+  devoto?: CharacterReligion;
 }
