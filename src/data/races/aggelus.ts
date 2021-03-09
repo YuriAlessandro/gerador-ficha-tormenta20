@@ -14,6 +14,13 @@ const AGGELUS: Race = {
       'Você recebe +2 em Diplomacia e Intuição. Além disso, pode lançar Luz (como uma magia divina; atributo-chave Carisma). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    AZGHER: 1,
+    KHALMYR: 1,
+    MARAH: 1,
+    THYATIS: 1,
+  },
 };
 
 export default AGGELUS;

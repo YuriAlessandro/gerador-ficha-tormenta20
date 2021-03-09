@@ -60,6 +60,13 @@ const BUCANEIRO: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    HYNINN: 1,
+    NIMB: 1,
+    OCEANO: 1,
+    SSZZAAS: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default BUCANEIRO;

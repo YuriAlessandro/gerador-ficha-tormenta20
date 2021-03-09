@@ -50,6 +50,14 @@ const INVENTOR: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    HYNINN: 1,
+    NIMB: 1,
+    SSZZAAS: 1,
+    TANNATOH: 1,
+    THYATIS: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default INVENTOR;

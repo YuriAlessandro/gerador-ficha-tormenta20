@@ -16,6 +16,13 @@ const GOBLIN: Race = {
       'Você recebe +2 em Fortitude e sua recuperação de PV e PM nunca é inferior ao seu nível.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    HYNINN: 1,
+    MEGALOKK: 1,
+    NIMB: 1,
+    THWOR: 2,
+  },
 };
 
 export default GOBLIN;

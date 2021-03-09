@@ -64,6 +64,16 @@ const PALADINO: ClassDescription = {
   magics: [],
   probDevoto: 0.8,
   qtdPoderesConcedidos: 'all',
+  faithProbability: {
+    AZGHER: 1,
+    KHALMYR: 1,
+    LENA: 1,
+    LINWU: 1,
+    MARAH: 1,
+    TANNATOH: 1,
+    THYATIS: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default PALADINO;

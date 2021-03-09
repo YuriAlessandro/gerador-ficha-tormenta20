@@ -53,7 +53,16 @@ const CAVALEIRO: ClassDescription = {
     },
   ],
   magics: [],
-  probDevoto: 0.6,
+  probDevoto: 0.5,
+  faithProbability: {
+    ARSENAL: 1,
+    AZGHER: 1,
+    KALLYADRANOCH: 1,
+    KHALMYR: 1,
+    LINWU: 1,
+    THYATIS: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default CAVALEIRO;
