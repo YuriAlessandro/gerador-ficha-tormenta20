@@ -16,6 +16,14 @@ const ANAO: Race = {
       'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    ARSENAL: 1,
+    KHALMYR: 1,
+    LINWU: 1,
+    THWOR: 1,
+    TENEBRA: 1,
+  },
 };
 
 export default ANAO;

@@ -15,6 +15,14 @@ const ELFO: Race = {
       'Você recebe visão na penumbra e +2 em Misticismo e Percepção.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    ALLIHANNA: 1,
+    THWOR: 1,
+    KALLYADRANOCH: 1,
+    MARAH: 1,
+    WYNNA: 1,
+  },
 };
 
 export default ELFO;

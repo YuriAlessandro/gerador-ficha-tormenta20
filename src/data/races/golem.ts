@@ -17,6 +17,11 @@ const GOLEM: Race = {
       'Como uma criatura artificial, você já foi construído “pronto”. Não teve uma infância — portanto, não tem direito a escolher uma origem e receber benefícios por ela.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    TANNATOH: 1,
+    WYNNA: 1,
+  },
 };
 
 export default GOLEM;

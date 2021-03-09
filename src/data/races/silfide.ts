@@ -15,6 +15,13 @@ const SILFIDE: Race = {
       'Você pode lançar duas das magias a seguir (todas atributo- chave Carisma): Criar Ilusão, Enfeitiçar, Luz (como uma magia arcana) e Sono. Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    ALLIHANNA: 1,
+    HYNINN: 1,
+    NIMB: 1,
+    WYNNA: 1,
+  },
 };
 
 export default SILFIDE;

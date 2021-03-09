@@ -15,6 +15,13 @@ const DAHLLAN: Race = {
       'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 117). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    ALLIHANNA: 1,
+    LENA: 1,
+    OCEANO: 1,
+    THWOR: 1,
+  },
 };
 
 export default DAHLLAN;

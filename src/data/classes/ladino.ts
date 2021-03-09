@@ -56,6 +56,13 @@ const LADINO: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    HYNINN: 1,
+    NIMB: 1,
+    SSZZAAS: 1,
+    TENEBRA: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default LADINO;

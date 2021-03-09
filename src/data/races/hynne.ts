@@ -15,6 +15,13 @@ const HYNNE: Race = {
       'Quando faz um teste de resistência, você pode gastar 1 PM para rolar este teste novamente.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    HYNINN: 1,
+    MARAH: 1,
+    OCEANO: 1,
+    THWOR: 1,
+  },
 };
 
 export default HYNNE;

@@ -34,6 +34,16 @@ const ARCANISTA: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    AZGHER: 1,
+    KALLYADRANOCH: 1,
+    NIMB: 1,
+    SSZZAAS: 1,
+    TANNATOH: 1,
+    TENEBRA: 1,
+    VALKARIA: 1,
+    WYNNA: 1,
+  },
 };
 
 export default ARCANISTA;

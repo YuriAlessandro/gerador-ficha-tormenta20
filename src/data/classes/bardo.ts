@@ -60,6 +60,16 @@ const BARDO: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    HYNINN: 1,
+    MARAH: 1,
+    NIMB: 1,
+    SSZZAAS: 1,
+    TANNATOH: 1,
+    TENEBRA: 1,
+    VALKARIA: 1,
+    WYNNA: 1,
+  },
 };
 
 export default BARDO;

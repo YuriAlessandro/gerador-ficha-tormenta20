@@ -72,6 +72,18 @@ const NOBRE: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    AZGHER: 1,
+    HYNINN: 1,
+    KALLYADRANOCH: 1,
+    KHALMYR: 1,
+    LENA: 1,
+    LINWU: 1,
+    MARAH: 1,
+    SSZZAAS: 1,
+    TANNATOH: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default NOBRE;

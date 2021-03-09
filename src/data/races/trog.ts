@@ -16,6 +16,12 @@ const TROG: Race = {
       'Você sofre 1 ponto de dano adicional por dado de dano de frio.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    MEGALOKK: 1,
+    TENEBRA: 1,
+    THWOR: 1,
+  },
 };
 
 export default TROG;

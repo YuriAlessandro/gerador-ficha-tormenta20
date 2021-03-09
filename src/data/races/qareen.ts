@@ -15,6 +15,16 @@ const QAREEN: Race = {
       'Você pode lançar uma magia de 1º círculo a sua escolha (atributo- chave Carisma). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    AZGHER: 1,
+    LENA: 1,
+    MARAH: 1,
+    NIMB: 1,
+    TENEBRA: 1,
+    THWOR: 1,
+    WYNNA: 1,
+  },
 };
 
 export default QAREEN;

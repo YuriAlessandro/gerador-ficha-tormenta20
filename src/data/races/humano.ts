@@ -17,6 +17,11 @@ const HUMANO: Race = {
       'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha (JÁ INCLUSO).',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    VALKARIA: 1,
+    THWOR: 1,
+  },
 };
 
 export default HUMANO;

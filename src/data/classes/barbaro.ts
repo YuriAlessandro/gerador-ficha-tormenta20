@@ -46,6 +46,15 @@ const BARBARO: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    ALLIHANNA: 1,
+    ARSENAL: 1,
+    AZGHER: 1,
+    MEGALOKK: 1,
+    NIMB: 1,
+    OCEANO: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default BARBARO;

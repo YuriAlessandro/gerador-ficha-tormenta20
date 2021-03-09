@@ -16,6 +16,11 @@ const KLIREN: Race = {
       'Você recebe proficiência em armas de fogo e +2 em testes de Ofício (um qualquer, a sua escolha).',
     ],
   },
+  faithProbability: {
+    AHARADAK: 1,
+    TANNATOH: 1,
+    THWOR: 1,
+  },
 };
 
 export default KLIREN;

@@ -49,6 +49,13 @@ const LUTADOR: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    ARSENAL: 1,
+    KALLYADRANOCH: 1,
+    MEGALOKK: 1,
+    THYATIS: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default LUTADOR;

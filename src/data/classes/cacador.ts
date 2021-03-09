@@ -60,6 +60,13 @@ const CACADOR: ClassDescription = {
   ],
   magics: [],
   probDevoto: 0.3,
+  faithProbability: {
+    ALLIHANNA: 1,
+    AZGHER: 1,
+    MEGALOKK: 1,
+    OCEANO: 1,
+    VALKARIA: 1,
+  },
 };
 
 export default CACADOR;
