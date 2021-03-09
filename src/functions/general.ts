@@ -28,6 +28,8 @@ import origins from '../data/origins';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
 import { Bag } from '../interfaces/Equipment';
+import Divindade from '../interfaces/Divindade';
+import GRANTED_POWERS from '../data/powers/grantedPowers';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -347,13 +349,32 @@ function addEquipClass(classe: ClassDescription): Bag {
   return equipamentosIniciais;
 }
 
+function getThyatisPowers() {
+  const unrestrictedPowers = DivindadeEnum.THYATIS.poderes.filter(
+    (poder) =>
+      poder.name !== GRANTED_POWERS.DOM_DA_IMORTALIDADE.name &&
+      poder.name !== GRANTED_POWERS.DOM_DA_RESSUREICAO.name
+  );
+
+  const randomRestricted = getRandomItemFromArray([
+    GRANTED_POWERS.DOM_DA_IMORTALIDADE,
+    GRANTED_POWERS.DOM_DA_RESSUREICAO,
+  ]);
+
+  return [...unrestrictedPowers, randomRestricted];
+}
+
 // Retorna a lista de poderes concedidos de uma divindade
-function getPoderesConcedidos(poderes: GeneralPower[], todosPoderes: boolean) {
+function getPoderesConcedidos(divindade: Divindade, todosPoderes: boolean) {
   if (todosPoderes) {
-    return [...poderes];
+    if (divindade.name === DivindadeEnum.THYATIS.name) {
+      return getThyatisPowers();
+    }
+
+    return [...divindade.poderes];
   }
 
-  return [getRandomItemFromArray(poderes)];
+  return [getRandomItemFromArray(divindade.poderes)];
 }
 
 // Retorna se é devoto e qual a divindade
@@ -380,7 +401,7 @@ function getReligiosidade(
   const divindade = DivindadeEnum[divindadeName];
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
-  const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
+  const poderes = getPoderesConcedidos(divindade, todosPoderes);
 
   return { divindade, poderes };
 }
