@@ -1,6 +1,6 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
-import { GrantedPower } from './Poderes';
+import { GeneralPower, OriginPower } from './Poderes';
 import Race from './Race';
 import Equipment from './Equipment';
 
@@ -17,7 +17,7 @@ export interface CharacterAttribute {
 
 export interface CharacterReligion {
   divindade: Divindade;
-  poderes: (GrantedPower | undefined)[];
+  poderes: GeneralPower[];
 }
 
 export default interface CharacterSheet {
@@ -34,4 +34,9 @@ export default interface CharacterSheet {
   defesa: number;
   equipamentos: Equipment[];
   devoto?: CharacterReligion;
+  origin: {
+    name: string;
+    skills: string[];
+    powers: (OriginPower | GeneralPower)[];
+  };
 }

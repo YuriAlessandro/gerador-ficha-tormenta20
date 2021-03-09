@@ -22,6 +22,7 @@ const Result: React.FC<ResultProps> = (props) => {
     equipamentos,
     id,
     devoto,
+    origin,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -55,10 +56,17 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
   const poderesConcedidos = devoto?.poderes.map((poder) => (
-    <li key={poder?.name}>
+    <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
     </li>
   ));
+  const originPowers = origin.powers
+    ? origin.powers.map((power) => (
+        <li key={getKey(power.name)}>
+          <strong>{power.name}:</strong> {power.description}
+        </li>
+      ))
+    : '';
 
   return (
     <div className='resultMainDiv'>
@@ -84,6 +92,9 @@ const Result: React.FC<ResultProps> = (props) => {
             <strong>Divindade</strong> {devoto.divindade.name}
           </span>
         )}
+        <span className='resultItem'>
+          <strong>Origem</strong> {origin.name}
+        </span>
       </div>
 
       <div className='resultRow'>{atributosDiv}</div>
@@ -100,24 +111,26 @@ const Result: React.FC<ResultProps> = (props) => {
         </span>
       </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Perícias Treinadas:</strong>
-          <ul>{periciasDiv}</ul>
+      <div className='condense'>
+        <div className='resultRow'>
+          <div>
+            <strong>Perícias Treinadas:</strong>
+            <ul>{periciasDiv}</ul>
+          </div>
         </div>
-      </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Proeficiências</strong>
-          <ul>{proeficienciasDiv}</ul>
+        <div className='resultRow'>
+          <div>
+            <strong>Proficiências</strong>
+            <ul>{proeficienciasDiv}</ul>
+          </div>
         </div>
-      </div>
 
-      <div className='resultRow'>
-        <div>
-          <strong>Equipamento Inicial</strong>
-          <ul>{equipamentosDiv}</ul>
+        <div className='resultRow'>
+          <div>
+            <strong>Equipamento Inicial</strong>
+            <ul>{equipamentosDiv}</ul>
+          </div>
         </div>
       </div>
 
@@ -134,6 +147,15 @@ const Result: React.FC<ResultProps> = (props) => {
           <ul>{habilidadesClasseDiv}</ul>
         </div>
       </div>
+
+      {origin.powers.length > 0 && (
+        <div className='resultRow'>
+          <div>
+            <strong>Poderes da Origem</strong>
+            <ul>{originPowers}</ul>
+          </div>
+        </div>
+      )}
 
       <div className='resultRow'>
         <div>

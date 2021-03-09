@@ -17,9 +17,13 @@ import {
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
+  pickFromArray,
+  removeDup,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import grantedPowers from '../data/powers/grantedPowers';
+import origins from '../data/origins';
+import { GeneralPower, OriginPower } from '../interfaces/Poderes';
+import originPowers from '../data/powers/originPowers';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -278,13 +282,13 @@ export function addClassPer(
   classe: ClassDescription,
   racePers: string[]
 ): string[] {
-  // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
+  // 5.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
   const periciasDeClasseEBasicas = addBasicPer(
     classe.periciasbasicas,
     racePers
   );
 
-  // 4.1.2: As perícias padrões que cada classe recebe
+  // 5.1.2: As perícias padrões que cada classe recebe
   return addRemainingPer(
     classe.periciasrestantes.qtd,
     periciasDeClasseEBasicas
@@ -337,23 +341,13 @@ export function addEquipClass(classe: ClassDescription): { nome: string }[] {
   return equipamentosIniciais;
 }
 
-// Retorna os detalhes (nome, descrição, etc) dos poderes concedidos
-function getPoderesConcedidosDetalhes(poderes: string[]) {
-  return poderes
-    .map((poder) =>
-      grantedPowers.find((outroPoder) => outroPoder.name === poder)
-    )
-    .filter((item) => item);
-}
-
 // Retorna a lista de poderes concedidos de uma divindade
-function getPoderesConcedidos(poderes: string[], todosPoderes: boolean) {
+function getPoderesConcedidos(poderes: GeneralPower[], todosPoderes: boolean) {
   if (todosPoderes) {
-    return getPoderesConcedidosDetalhes([...poderes]);
+    return [...poderes];
   }
 
-  const poderesConcedidos = [getRandomItemFromArray(poderes)];
-  return getPoderesConcedidosDetalhes(poderesConcedidos);
+  return [getRandomItemFromArray(poderes)];
 }
 
 // Retorna se é devoto e qual a divindade
@@ -383,6 +377,44 @@ function getReligiosidade(
   const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
 
   return { divindade, poderes };
+}
+
+// Retorna a origem e as perícias selecionadas
+function getOrigin() {
+  const selectedOrigin = getRandomItemFromArray(origins);
+  const skills: string[] = [];
+  const powers: (OriginPower | GeneralPower)[] = [];
+
+  if (selectedOrigin.name === 'Amnésico') {
+    skills.push(getRandomItemFromArray(Object.values(PERICIAS)));
+    // TODO: Jogar mais um poder aleatório
+    powers.push(originPowers.LEMBRANCAS_GRADUAIS);
+
+    return {
+      name: selectedOrigin.name,
+      skills,
+      powers,
+    };
+  }
+
+  const benefits = pickFromArray(
+    [...selectedOrigin.pericias, ...selectedOrigin.poderes],
+    2
+  );
+
+  benefits.forEach((benefit) => {
+    if (typeof benefit === 'string') {
+      skills.push(benefit);
+    } else {
+      powers.push(benefit as OriginPower);
+    }
+  });
+
+  return {
+    name: selectedOrigin.name,
+    skills,
+    powers,
+  };
 }
 
 export default function generateRandomSheet(
@@ -435,12 +467,13 @@ export default function generateRandomSheet(
     pericias: periciasDaRaca,
   } = getClassDetailsModifiedByRace(caracteristicasDaClasse, race);
 
-  // Passo 4: Marcar as perícias treinadas
-  // 4.1: Definir perícias da classe
-  const pericias = addClassPer(classe, periciasDaRaca);
+  // Passo 4: Definição de origem
+  const origin = getOrigin();
+  const skillsRaceAndOrigin = removeDup([...periciasDaRaca, ...origin.skills]);
 
-  // Passo 5: Definição de origem
-  // TODO
+  // Passo 5: Marcar as perícias treinadas
+  // 5.1: Definir perícias da classe
+  const pericias = addClassPer(classe, skillsRaceAndOrigin);
 
   // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
@@ -462,5 +495,6 @@ export default function generateRandomSheet(
     defesa,
     equipamentos,
     devoto,
+    origin,
   };
 }

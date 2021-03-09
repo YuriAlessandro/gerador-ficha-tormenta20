@@ -1,3 +1,5 @@
+import { GeneralPower } from './Poderes';
+
 export type DivindadeNames =
   | 'AHARADAK'
   | 'OCEANO'
@@ -42,10 +44,9 @@ export const allDivindadeNames: DivindadeNames[] = [
   'MEGALOKK',
   'NIMB',
 ];
-
 export default interface Divindade {
   name: string;
-  poderes: string[];
+  poderes: GeneralPower[];
 }
 
 export type FaithProbability = {

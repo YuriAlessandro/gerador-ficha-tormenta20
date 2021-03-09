@@ -1,61 +1,56 @@
-import { getRandomItemFromArray } from '../functions/randomUtils';
 import Origin from '../interfaces/Origin';
 import PERICIAS from './pericias';
 import originPowers from './powers/originPowers';
 import { DestinyPowers } from './powers/destinyPowers';
-import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 
 const origins: Origin[] = [
   {
     name: 'Acólito',
     itens: [],
-    pericias: [PERICIAS.CURA],
-    poderes: [originPowers.MEMBRODAIGREJA],
+    pericias: [PERICIAS.CURA, PERICIAS.RELIGIAO, PERICIAS.VONTADE],
+    poderes: [originPowers.MEMBRO_DA_IGREJA], // TODO: Adicionar Medicina, Vontade de Ferro
   },
   {
     name: 'Amigo dos Animais',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVAKGAR],
-    poderes: [originPowers.AMIGOESPECIAL],
+    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVALGAR],
+    poderes: [originPowers.AMIGO_ESPECIAL],
   },
   {
     name: 'Amnésico',
     itens: [],
-    pericias: [getRandomItemFromArray(Object.values(PERICIAS))],
-    poderes: [
-      originPowers.LEMBRANCASGRADUAIS,
-      getRandomItemFromArray(Object.values(originPowers)),
-    ],
+    pericias: [],
+    poderes: [originPowers.LEMBRANCAS_GRADUAIS],
   },
   {
     name: 'Aristocrata',
     itens: [],
     pericias: [PERICIAS.DIPLOMACIA, PERICIAS.ENGANACAO, PERICIAS.NOBREZA],
-    poderes: [originPowers.SANGUEAZUL],
+    poderes: [originPowers.SANGUE_AZUL],
   },
   {
     name: 'Artesão',
     itens: [],
     pericias: [PERICIAS.OFICIO, PERICIAS.VONTADE],
-    poderes: [originPowers.FRUTOSDETRABALHO],
+    poderes: [originPowers.FRUDOS_DO_TRABALHO],
   },
   {
     name: 'Artista',
     itens: [],
     pericias: [PERICIAS.ATUACAO, PERICIAS.ENGANACAO],
-    poderes: [originPowers.DOMARTISTICO],
+    poderes: [originPowers.DOM_ARTISTICO],
   },
   {
     name: 'Assistente de Laboratório',
     itens: [],
     pericias: [PERICIAS.OFICIO],
-    poderes: [originPowers.ESSECHEIRO],
+    poderes: [originPowers.ESSE_CHEIRO],
   },
   {
     name: 'Batedor',
     itens: [],
     pericias: [PERICIAS.PERCEPCAO, PERICIAS.SOBREVIVENCIA],
-    poderes: [originPowers.PROVADETUDO],
+    poderes: [originPowers.PROVA_DE_TUDO],
   },
   {
     name: 'Capanga',
@@ -68,126 +63,177 @@ const origins: Origin[] = [
     itens: [],
     pericias: [PERICIAS.ENGANACAO, PERICIAS.JOGATINA],
     poderes: [
-      getRandomItemFromArray<OriginPower | GeneralPower>([
-        originPowers.PODER,
-        DestinyPowers.APARENCIAINOFENSIVA,
-        DestinyPowers.SORTUDO,
-      ]),
+      originPowers.ALPINISTA_SOCIAL,
+      DestinyPowers.APARENCIA_INOFENSIVA,
+      DestinyPowers.SORTUDO,
     ],
   },
   {
-    name: '',
+    name: 'Circense',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ACROBACIA, PERICIAS.ATUACAO, PERICIAS.REFLEXOS],
+    poderes: [originPowers.TRUQUE_DE_MAGICA],
   },
   {
-    name: '',
+    name: 'Criminoso',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ENGANACAO, PERICIAS.FURTIVIDADE, PERICIAS.LADINAGEM],
+    poderes: [originPowers.PUNGUISTA], // TODO: Adicionar Venefício
   },
   {
-    name: '',
+    name: 'Curandeiro',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.CURA, PERICIAS.VONTADE],
+    poderes: [originPowers.MEDICO_DE_CAMPO], // TODO: Adicionar Medicina e Venfício
   },
   {
-    name: '',
+    name: 'Eremita',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.MISTICISMO, PERICIAS.RELIGIAO, PERICIAS.SOBREVIVENCIA],
+    poderes: [originPowers.BUSCA_INTERIOR], // TODO: Adicionar Lobo Solitário
   },
   {
-    name: '',
+    name: 'Escravo',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE, PERICIAS.FURTIVIDADE],
+    poderes: [originPowers.DESEJO_DE_LIBERDADE], // TODO: Adicionar Vitalidade
   },
   {
-    name: '',
+    name: 'Estudioso',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.CONHECIMENTO, PERICIAS.GUERRA, PERICIAS.MISTICISMO],
+    poderes: [
+      originPowers.PALPITE_FUNDAMENTADO,
+      DestinyPowers.APARENCIA_INOFENSIVA,
+    ],
   },
   {
-    name: '',
+    name: 'Fazendeiro',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVALGAR, PERICIAS.OFICIO],
+    poderes: [originPowers.AGUA_NO_FEIJAO],
   },
   {
-    name: '',
+    name: 'Forasteiro',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.CAVALGAR, PERICIAS.PILOTAGEM, PERICIAS.SOBREVIVENCIA],
+    poderes: [originPowers.CULTURA_EXOTICA], // TODO: Adicionar Lobo Solitário
   },
   {
-    name: '',
+    name: 'Gladiador',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ATUACAO, PERICIAS.LUTA],
+    poderes: [originPowers.PAO_E_CIRCO], // TODO: Adicionar Atraente, Torcida e um poder de combate Random
   },
   {
-    name: '',
+    name: 'Guarda',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.INVESTIGACAO, PERICIAS.LUTA, PERICIAS.PERCEPCAO],
+    poderes: [originPowers.DETETIVE], // TODO: Adicionar Investigador e um poder de combate random
   },
   {
-    name: '',
+    name: 'Herdeiro',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.MISTICISMO, PERICIAS.NOBREZA, PERICIAS.OFICIO],
+    poderes: [originPowers.HERANCA, originPowers.HERANCA], // TODO: Adicionar Comandar
   },
   {
-    name: '',
+    name: 'Herói Camponês',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.OFICIO],
+    poderes: [originPowers.AMIGO_DOS_PLEBEUS], // TODO: Adicionar Sortudo, Surto Heróico, Torcida
   },
   {
-    name: '',
+    name: 'Marujo',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ATLETISMO, PERICIAS.JOGATINA, PERICIAS.PILOTAGEM],
+    poderes: [originPowers.PASSAGEM_DE_NAVIO], // TODO: Adicionar Acróbatico
   },
   {
-    name: '',
+    name: 'Mateiro',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [
+      PERICIAS.ATLETISMO,
+      PERICIAS.FURTIVIDADE,
+      PERICIAS.SOBREVIVENCIA,
+    ],
+    poderes: [originPowers.VENDEDOR_DE_CARCACAS], // TODO: Adicionar Lobo Solitário, Sentidos Aguçados
   },
   {
-    name: '',
+    name: 'Membro de Guilda',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [
+      PERICIAS.DIPLOMACIA,
+      PERICIAS.ENGANACAO,
+      PERICIAS.MISTICISMO,
+      PERICIAS.OFICIO,
+    ],
+    poderes: [originPowers.REDE_DE_CONTATOS], // TODO: Adicionar Foco em Perícia
   },
   {
-    name: '',
+    name: 'Mercador',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.DIPLOMACIA, PERICIAS.INTUICAO, PERICIAS.OFICIO],
+    poderes: [originPowers.NEGOCIACAO], // TODO: PROFICIENCIA, SORTUDO
   },
   {
-    name: '',
+    name: 'Minerador',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE, PERICIAS.OFICIO],
+    poderes: [originPowers.ESCAVADOR], // TODO: Ataque Poderoso, Sentidos Aguçados
   },
   {
-    name: '',
+    name: 'Nômade',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.CAVALGAR, PERICIAS.PILOTAGEM, PERICIAS.SOBREVIVENCIA],
+    poderes: [originPowers.MOCHILEIRO], // Todo: Sentidos Aguçados
   },
   {
-    name: '',
+    name: 'Pivete',
     itens: [],
-    pericias: [],
-    poderes: [originPowers.PODER],
+    pericias: [PERICIAS.FURTIVIDADE, PERICIAS.INICIATIVA, PERICIAS.LADINAGEM],
+    poderes: [originPowers.QUEBRA_GALHO, DestinyPowers.APARENCIA_INOFENSIVA], // TODO: Adicionar Acrobático
+  },
+  {
+    name: 'Refugiado',
+    itens: [],
+    pericias: [PERICIAS.FORTITUDE, PERICIAS.REFLEXOS, PERICIAS.VONTADE],
+    poderes: [originPowers.ESTOICO], // TODO: Vontade de Ferro
+  },
+  {
+    name: 'Seguidor',
+    itens: [],
+    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.OFICIO],
+    poderes: [originPowers.ANTIGO_MESTRE], // TODO: Proficiencia, Surto Heróico
+  },
+  {
+    name: 'Selvagem',
+    itens: [],
+    pericias: [PERICIAS.PERCEPCAO, PERICIAS.REFLEXOS, PERICIAS.SOBREVIVENCIA],
+    poderes: [originPowers.VIDA_RUSTICA], // TODO: Lobo solitário, Vitalidade
+  },
+  {
+    name: 'Soldado',
+    itens: [],
+    pericias: [
+      PERICIAS.FORTITUDE,
+      PERICIAS.GUERRA,
+      PERICIAS.LUTA,
+      PERICIAS.PONTARIA,
+    ],
+    poderes: [originPowers.INFLUENCIA_MILITAR], // TODO: Um poder de combate random
+  },
+  {
+    name: 'Taverneiro',
+    itens: [],
+    pericias: [PERICIAS.DIPLOMACIA, PERICIAS.JOGATINA, PERICIAS.OFICIO],
+    poderes: [originPowers.GOROROBA], // TODO: Proficiência, Vitalidade
+  },
+  {
+    name: 'Trabalhador',
+    itens: [],
+    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE],
+    poderes: [originPowers.ESFORCADO], // TODO: Atlético
   },
 ];
 

@@ -72,6 +72,16 @@ code {
   margin-right: 10px;
 }
 
+.condense {
+  display: flex;
+  border-top: 1px solid black;
+}
+
+.condense .resultRow{
+  margin-right: 30px;
+  border: none
+}
+
 @media (max-width: 720px) {
   .resultMainDiv {
     width: calc(85vw);

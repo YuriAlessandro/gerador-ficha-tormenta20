@@ -1,8 +1,13 @@
 import Divindade from '../../interfaces/Divindade';
+import GRANTED_POWERS from '../powers/grantedPowers';
 
 const TENEBRA: Divindade = {
   name: 'Tenebra',
-  poderes: ['Carícia Sombria', 'Manto da Penumbra', 'Visão nas Trevas'],
+  poderes: [
+    GRANTED_POWERS.CARICIA_SOMBRIA,
+    GRANTED_POWERS.MANTO_DA_PENUMBRA,
+    GRANTED_POWERS.VISAO_NAS_TREVAS,
+  ],
 };
 
 export default TENEBRA;
