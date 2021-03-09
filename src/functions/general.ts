@@ -3,7 +3,7 @@ import ATRIBUTOS from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
-import EQUIPAMENTOS, { addEquipsDefenseBonuses } from '../data/equipamentos';
+import EQUIPAMENTOS, { applyEquipsModifiers } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
@@ -480,7 +480,10 @@ export default function generateRandomSheet(
   // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
   // 6.1: Incrementar defesa com base nos Equipamentos
-  const defesa = addEquipsDefenseBonuses(classDetails.defesa, equipamentos);
+  const { armorPenalty, defense } = applyEquipsModifiers(
+    classDetails.defesa,
+    equipamentos
+  );
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devoto = getReligiosidade(classe, race);
@@ -496,9 +499,10 @@ export default function generateRandomSheet(
     pericias,
     pv: classDetailsModifiedByRace.pv,
     pm: classDetailsModifiedByRace.pm,
-    defesa,
+    defesa: defense,
     equipamentos,
     devoto,
     origin,
+    armorPenalty,
   };
 }

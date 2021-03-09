@@ -235,15 +235,21 @@ function isDefenseEquip(
   return (equip as DefenseEquipment).defenseBonus !== undefined;
 }
 
-export function addEquipsDefenseBonuses(
+export function applyEquipsModifiers(
   defense: number,
   equips: Equipment[]
-): number {
-  return equips.reduce((acc, equip) => {
-    if (isDefenseEquip(equip)) {
-      return equip.defenseBonus + acc;
-    }
+): { defense: number; armorPenalty: number } {
+  return equips.reduce(
+    (acc, equip) => {
+      if (isDefenseEquip(equip)) {
+        return {
+          defense: equip.defenseBonus + acc.defense,
+          armorPenalty: equip.armorPenalty + acc.armorPenalty,
+        };
+      }
 
-    return defense;
-  }, defense);
+      return acc;
+    },
+    { defense, armorPenalty: 0 }
+  );
 }

@@ -39,4 +39,5 @@ export default interface CharacterSheet {
     skills: string[];
     powers: (OriginPower | GeneralPower)[];
   };
+  armorPenalty: number;
 }

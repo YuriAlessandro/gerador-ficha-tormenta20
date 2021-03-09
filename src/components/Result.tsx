@@ -23,6 +23,7 @@ const Result: React.FC<ResultProps> = (props) => {
     id,
     devoto,
     origin,
+    armorPenalty,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -108,6 +109,9 @@ const Result: React.FC<ResultProps> = (props) => {
         </span>
         <span className='resultItem'>
           <strong>Defesa</strong> {defesa}
+        </span>
+        <span className='resultItem'>
+          <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
         </span>
       </div>
 
