@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -11,10 +11,9 @@ import ReactGA from 'react-ga';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
+import Keys from './.config/keys';
 
-const TRACKING_ID = 'UA-12341234-1';
-ReactGA.initialize(TRACKING_ID);
-ReactGA.pageview(window.location.pathname + window.location.search);
+ReactGA.initialize(Keys.TRACKING_ID);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -50,6 +49,11 @@ function App(): JSX.Element {
   const onCloseSidebar = () => {
     setSidebarVisibility(false);
   };
+
+  // Should trigger Google Analytics on page change
+  useEffect(() => {
+    ReactGA.pageview(window.location.pathname + window.location.search);
+  });
 
   return (
     <div className='App'>
