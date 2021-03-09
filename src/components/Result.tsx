@@ -39,6 +39,7 @@ const Result: React.FC<ResultProps> = (props) => {
       mod={atributo.mod}
       id={id}
       value={atributo.value}
+      key={getKey(atributo.name)}
     />
   ));
 
@@ -57,7 +58,18 @@ const Result: React.FC<ResultProps> = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
-  const equipamentosDiv = equipamentos.map((equip) => (
+  const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
+    ([key]) => key !== 'Arma'
+  );
+
+  const equipamentosDiv = equipsEntriesNoWeapons
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(([_, equips]) =>
+      equips.map((equip) => <li key={getKey(equip.nome)}>{equip.nome}</li>)
+    )
+    .flat();
+
+  const armasDiv = equipamentos.Arma.map((equip) => (
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
   const poderesConcedidos = devoto?.poderes.map((poder) => (
@@ -134,8 +146,14 @@ const Result: React.FC<ResultProps> = (props) => {
 
         <div className='resultRow bordered'>
           <div>
-            <strong>Equipamento Inicial</strong>
+            <strong>Equipamento</strong>
             <ul>{equipamentosDiv}</ul>
+          </div>
+        </div>
+        <div className='resultRow bordered'>
+          <div>
+            <strong>Armas</strong>
+            <ul>{armasDiv}</ul>
           </div>
         </div>
       </div>
