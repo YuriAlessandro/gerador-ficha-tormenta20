@@ -1,0 +1,11 @@
+/* Sidebar */
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 15px;
+}
+
+.logo {
+  width: 30px;
+  margin-right: 10px;
+}

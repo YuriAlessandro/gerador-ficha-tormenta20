@@ -12,6 +12,8 @@ import Result from './Result';
 import generateRandomSheet from '../functions/general';
 import CharacterSheet from '../interfaces/CharacterSheet';
 
+import '../assets/css/mainScreen.css';
+
 const useStyles = makeStyles(() => ({
   button: {
     background: 'rgb(209, 50, 53);',
