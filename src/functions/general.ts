@@ -12,9 +12,16 @@ import CharacterSheet, {
 import Race, { RaceHability } from '../interfaces/Race';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
-import { getRandomItemFromArray } from './randomUtils';
+import {
+  getRandomItemFromArray,
+  pickFromArray,
+  removeDup,
+} from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
 import grantedPowers from '../data/powers/grantedPowers';
+import origins from '../data/origins';
+import { GeneralPower, GrantedPower, OriginPower } from '../interfaces/Poderes';
+import originPowers from '../data/powers/originPowers';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -273,13 +280,13 @@ export function addClassPer(
   classe: ClassDescription,
   racePers: string[]
 ): string[] {
-  // 4.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
+  // 5.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
   const periciasDeClasseEBasicas = addBasicPer(
     classe.periciasbasicas,
     racePers
   );
 
-  // 4.1.2: As perícias padrões que cada classe recebe
+  // 5.1.2: As perícias padrões que cada classe recebe
   return addRemainingPer(
     classe.periciasrestantes.qtd,
     periciasDeClasseEBasicas
@@ -338,7 +345,7 @@ function getPoderesConcedidosDetalhes(poderes: string[]) {
     .map((poder) =>
       grantedPowers.find((outroPoder) => outroPoder.name === poder)
     )
-    .filter((item) => item);
+    .filter((item) => item) as GrantedPower[];
 }
 
 // Retorna a lista de poderes concedidos de uma divindade
@@ -360,6 +367,44 @@ function getReligiosidade(classe: ClassDescription) {
   const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
 
   return { isDevoto, divindade, poderes };
+}
+
+// Retorna a origem e as perícias selecionadas
+function getOrigin() {
+  const selectedOrigin = getRandomItemFromArray(origins);
+  const skills: string[] = [];
+  const powers: (OriginPower | GeneralPower)[] = [];
+
+  if (selectedOrigin.name === 'Amnésico') {
+    skills.push(getRandomItemFromArray(Object.values(PERICIAS)));
+    // TODO: Jogar mais um poder aleatório
+    powers.push(originPowers.LEMBRANCAS_GRADUAIS);
+
+    return {
+      name: selectedOrigin.name,
+      skills,
+      powers,
+    };
+  }
+
+  const benefits = pickFromArray(
+    [...selectedOrigin.pericias, ...selectedOrigin.poderes],
+    2
+  );
+
+  benefits.forEach((benefit) => {
+    if (typeof benefit === 'string') {
+      skills.push(benefit);
+    } else {
+      powers.push(benefit as OriginPower);
+    }
+  });
+
+  return {
+    name: selectedOrigin.name,
+    skills,
+    powers,
+  };
 }
 
 export default function generateRandomSheet(
@@ -412,12 +457,13 @@ export default function generateRandomSheet(
     pericias: periciasDaRaca,
   } = getClassDetailsModifiedByRace(caracteristicasDaClasse, race);
 
-  // Passo 4: Marcar as perícias treinadas
-  // 4.1: Definir perícias da classe
-  const pericias = addClassPer(classe, periciasDaRaca);
+  // Passo 4: Definição de origem
+  const origin = getOrigin();
+  const skillsRaceAndOrigin = removeDup([...periciasDaRaca, ...origin.skills]);
 
-  // Passo 5: Definição de origem
-  // TODO
+  // Passo 5: Marcar as perícias treinadas
+  // 5.1: Definir perícias da classe
+  const pericias = addClassPer(classe, skillsRaceAndOrigin);
 
   // Passo 6: Definição de itens iniciais
   const equipamentos = addEquipClass(classe);
@@ -439,5 +485,6 @@ export default function generateRandomSheet(
     defesa,
     equipamentos,
     devoto,
+    origin,
   };
 }
