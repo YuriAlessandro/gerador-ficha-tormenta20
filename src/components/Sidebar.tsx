@@ -19,6 +19,7 @@ import NotesIcon from '@material-ui/icons/Notes';
 import Slide from '@material-ui/core/Slide';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
+import '../assets/css/sidebar.css';
 
 type SidebarProps = RouteComponentProps & {
   visible: boolean;

@@ -1,0 +1,23 @@
+/* MainScreen */
+.filterArea {
+  display: flex;
+  margin: 30px 30px 30px 25px;
+}
+
+.filterSelect {
+  width: 300px;
+  margin-right: 10px;
+}
+
+@media (max-width: 720px) {
+  .filterArea {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+  }
+
+  .filterSelect {
+    margin-bottom: 10px;
+  }
+}
