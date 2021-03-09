@@ -1,6 +1,9 @@
 import React from 'react';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
+import CharacterStat from './CharacterStat';
+import Divider from './SheetDivider';
+import Weapon from './Weapon';
 
 import '../assets/css/result.css';
 
@@ -57,9 +60,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
-  const equipamentosDiv = equipamentos.map((equip) => (
-    <li key={getKey(equip.nome)}>{equip.nome}</li>
-  ));
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
@@ -73,108 +73,130 @@ const Result: React.FC<ResultProps> = (props) => {
       ))
     : '';
 
+  const weapons = equipamentos.filter(
+    (equipament) => equipament.group === 'Arma'
+  );
+
+  const equipamentosDiv = weapons.map((equip) => <Weapon equipment={equip} />);
+
   return (
     <div className='resultMainDiv'>
-      <div className='resultRow nameArea'>
-        <span className='resultItem name'>
-          <strong>{nome}</strong>
-        </span>
-        <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+      <div className='characterInfos'>
+        <div>
+          <div className='resultRow nameArea'>
+            <span className='resultItem name'>
+              <strong>{nome}</strong>
+            </span>
+            <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+          </div>
+          <div className='resultRow'>
+            <span className='resultItem raceName'>
+              <strong>
+                {raca.name} {raca.oldRace && `(${raca.oldRace.name})`}
+              </strong>
+              -
+            </span>
+            <span className='resultItem className'>{` ${classe.name}`}</span>
+            <span className='resultItem'>nível {nivel}</span>
+          </div>
+          <div className='resultRow'>
+            <span className='resultItem originName'>{origin.name}</span>
+            {devoto && (
+              <span className='resultItem'>
+                {`devoto de ${devoto.divindade.name}`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className='resultRow'>
+          <CharacterStat name='Defesa' value={defesa} isMovement={false} />
+          <CharacterStat name='PV' value={pv} isMovement={false} />
+          <CharacterStat name='PM' value={pm} isMovement={false} />
+          <CharacterStat name='Deslocamento' value={9} isMovement />
+        </div>
       </div>
-      <div className='resultRow'>
-        <span className='resultItem raceName'>
-          <strong>
-            {raca.name} {raca.oldRace && `(${raca.oldRace.name})`}
-          </strong>
-          -
-        </span>
-        <span className='resultItem className'>{` ${classe.name}`}</span>
-        <span className='resultItem'>nível {nivel}</span>
-      </div>
-      <div className='resultRow'>
-        <span className='resultItem originName'>{origin.name}</span>
-        {devoto && (
-          <span className='resultItem'>
-            {`devoto de ${devoto.divindade.name}`}
-          </span>
-        )}
-      </div>
+
+      <Divider />
 
       <div className='attributesRow'>{atributosDiv}</div>
 
-      <div className='resultRow bordered'>
-        <span className='resultItem'>
-          <strong>PV</strong> {pv}
-        </span>
-        <span className='resultItem'>
-          <strong>PM</strong> {pm}
-        </span>
-        <span className='resultItem'>
-          <strong>Defesa</strong> {defesa}
-        </span>
+      <Divider />
+
+      <div className='condense'>
+        <div className='resultRow'>
+          <div>
+            <strong>Proficiências</strong>
+            <div>{proeficienciasDiv}</div>
+          </div>
+        </div>
+
+        <div className='resdivtRow'>
+          <div>
+            <strong>Perícias Treinadas:</strong>
+            <div>{periciasDiv}</div>
+          </div>
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className='sectionTitle'>
+        <span>Equipamentos</span>
+      </div>
+
+      <div className='equipaments'>
+        <div>{equipamentosDiv}</div>
         <span className='resultItem'>
           <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
         </span>
       </div>
 
-      <div className='condense'>
-        <div className='resultRow bordered'>
-          <div>
-            <strong>Perícias Treinadas:</strong>
-            <ul>{periciasDiv}</ul>
-          </div>
-        </div>
+      <Divider />
 
-        <div className='resultRow bordered'>
-          <div>
-            <strong>Proficiências</strong>
-            <ul>{proeficienciasDiv}</ul>
-          </div>
-        </div>
-
-        <div className='resultRow bordered'>
-          <div>
-            <strong>Equipamento Inicial</strong>
-            <ul>{equipamentosDiv}</ul>
-          </div>
-        </div>
+      <div className='sectionTitle'>
+        <span>Habilidades e Poderes</span>
       </div>
 
-      <div className='resultRow bordered'>
+      <div className='resultRow'>
         <div>
-          <strong>Habilidades de Raça</strong>
+          <strong>Habilidades de {raca.name}</strong>
           <ul>{habilidadesRacaDiv}</ul>
         </div>
       </div>
 
-      <div className='resultRow bordered'>
+      <div className='resultRow'>
         <div>
-          <strong>Habilidades de Classe</strong>
+          <strong>Habilidades de {classe.name}</strong>
           <ul>{habilidadesClasseDiv}</ul>
         </div>
       </div>
 
       {origin.powers.length > 0 && (
-        <div className='resultRow bordered'>
+        <div className='resultRow'>
           <div>
-            <strong>Poderes da Origem</strong>
+            <strong>Poderes de {origin.name}</strong>
             <ul>{originPowers}</ul>
           </div>
         </div>
       )}
 
       {devoto && (
-        <div className='resultRow bordered'>
+        <div className='resultRow'>
           <div>
-            <strong>Poderes Concedidos</strong>
+            <strong>Poderes de {devoto.divindade.name}</strong>
             <ul>{poderesConcedidos}</ul>
           </div>
         </div>
       )}
 
-      <div className='resultRow bordered'>
+      <Divider />
+      <div className='sectionTitle'>
+        <span>Magias</span>
+      </div>
+
+      <div className='resultRow'>
         <div>
-          <strong>Magias</strong>
           {classe.magics.length === 0 && (
             <ul>
               <li>Não possui.</li>
@@ -183,7 +205,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      <div className='resultRow bordered' />
+      <div className='resultRow' />
     </div>
   );
 };
