@@ -4,22 +4,27 @@ import Weapon from './Weapon';
 
 interface WeaponsProps {
   weapons: Equipment[];
+  getKey: (eId: string) => string;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
-  const { weapons } = props;
-  const weaponsDiv = weapons.map((equip) => <Weapon equipment={equip} />);
+  const { weapons, getKey } = props;
+  const weaponsDiv = weapons.map((equip) => (
+    <Weapon key={getKey(equip.nome)} equipment={equip} />
+  ));
 
   return (
     <table>
-      <tr>
-        <th>Ataques</th>
-        <th>Dano</th>
-        <th>Crítico</th>
-        <th>Tipo</th>
-        <th>Alcance</th>
-        <th>Peso</th>
-      </tr>
+      <thead>
+        <tr>
+          <th>Ataques</th>
+          <th>Dano</th>
+          <th>Crítico</th>
+          <th>Tipo</th>
+          <th>Alcance</th>
+          <th>Peso</th>
+        </tr>
+      </thead>
       <tbody>{weaponsDiv}</tbody>
     </table>
   );

@@ -78,10 +78,11 @@ const Result: React.FC<ResultProps> = (props) => {
     )
     .flat();
 
-  const weaponsDiv = <Weapons weapons={equipamentos.Arma} />;
+  const weaponsDiv = <Weapons getKey={getKey} weapons={equipamentos.Arma} />;
   const defenseEquipments = [...equipamentos.Armadura, ...equipamentos.Escudo];
   const defenseDiv = (
     <DefenseEquipments
+      getKey={getKey}
       defenseEquipments={defenseEquipments as DefenseEquipment[]}
     />
   );
@@ -131,7 +132,7 @@ const Result: React.FC<ResultProps> = (props) => {
           </div>
         </div>
 
-        <div className='resultRow'>
+        <div className='stats'>
           <CharacterStat name='PV' value={pv} isMovement={false} />
           <CharacterStat name='PM' value={pm} isMovement={false} />
           <CharacterStat name='Defesa' value={defesa} isMovement={false} />

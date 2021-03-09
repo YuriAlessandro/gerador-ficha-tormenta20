@@ -52,6 +52,11 @@
   display: flex;
 }
 
+.stats {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .attributesRow {
   display: flex;
   justify-content: space-between;
@@ -165,14 +170,14 @@ table {
   text-align: right;
 }
 
-@media (max-width: 720px) {
+@media screen and (max-width: 720px) {
   .resultMainDiv {
-    width: calc(85vw);
+    width: inherit;
+    padding: 5px 20px 20px 20px;
   }
 
   .resultRow {
     flex-wrap: wrap;
-    justify-content: flex-end;
   }
 
   .attributesRow {
@@ -187,5 +192,43 @@ table {
 
   .condense {
     flex-wrap: wrap;
+  }
+
+  .tableWrap {
+    font-size: 10px;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+  }
+
+  .characterStat {
+    width: 70px;
+    height: 70px;
+  }
+
+  .characterStat .name{
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  
+  .characterStat .name.movement{
+    font-size: 8px;
+    margin-top: 5px
+  }
+  
+  .characterStat .value {
+    margin-top: 10px;
+    font-size: 20px;
+  }
+  
+  .characterStat .value.movement {
+    margin-top: 10px;
+  }
+}
+
+@media only screen and (min-device-width: 720px) and (max-device-width: 1024px){
+  .resultMainDiv {
+    width: 90vw;
   }
 }
