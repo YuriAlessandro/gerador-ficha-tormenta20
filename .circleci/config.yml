@@ -20,7 +20,7 @@ jobs:
           command: npm test
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
       - build:
           branches:
