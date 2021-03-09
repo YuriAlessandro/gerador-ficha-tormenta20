@@ -9,6 +9,11 @@ const Changelog: React.FC = () => (
     <h2>Versão 0.2</h2>
     <ul>
       <li>
+        Gerando origem aleatória. Os poderes de origem são escolhidos
+        aleatoriamente junto com as perícias, seguindos as regras determinadas
+        pelo sistema.
+      </li>
+      <li>
         Estamos gerando aleatoriamente se um personagem é devoto ou não. Caso
         ele seja, é escolhido aleatoriamente o Deus e o poder concedidos (ainda
         faltam aplicar regras mais concretas, como por exemplo o druida que só
