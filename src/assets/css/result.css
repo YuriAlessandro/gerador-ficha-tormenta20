@@ -34,6 +34,10 @@
   transform: rotate(45deg);
 }
 
+.div-arrow-up:after {
+  transform: rotate(225deg);
+}
+
 .resultMainDiv {
   width: 60vw;
   padding: 5px 30px 30px 30px;
@@ -143,6 +147,22 @@
   font-weight: bold;
   font-size: 25px;
   margin: 20px 0;
+}
+
+table {
+  width: 100%;
+  text-align: left;
+}
+
+.tableWrap {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.textToRight {
+  text-align: right;
 }
 
 @media (max-width: 720px) {

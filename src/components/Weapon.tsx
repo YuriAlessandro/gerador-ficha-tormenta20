@@ -7,10 +7,17 @@ interface WeaponProps {
 
 const Weapon: React.FC<WeaponProps> = (props) => {
   const { equipment } = props;
-  const { nome, dano, critico, tipo, alcance } = equipment;
+  const { nome, dano, critico, tipo, alcance, peso } = equipment;
 
   return (
-    <div>{`${nome} (${dano}, ${critico}) - ${tipo} - ${alcance || ''}`}</div>
+    <tr>
+      <td>{nome}</td>
+      <td>{dano}</td>
+      <td>{critico}</td>
+      <td>{tipo}</td>
+      <td>{alcance || '-'}</td>
+      <td>{peso}</td>
+    </tr>
   );
 };
 

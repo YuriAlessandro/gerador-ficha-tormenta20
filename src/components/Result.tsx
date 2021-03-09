@@ -3,7 +3,9 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 import CharacterStat from './CharacterStat';
 import Divider from './SheetDivider';
-import Weapon from './Weapon';
+import Weapons from './Weapons';
+import DefenseEquipments from './DefenseEquipments';
+import { DefenseEquipment } from '../interfaces/Equipment';
 
 import '../assets/css/result.css';
 
@@ -47,22 +49,26 @@ const Result: React.FC<ResultProps> = (props) => {
   ));
 
   const periciasSorted = pericias.sort();
+
   const periciasDiv = periciasSorted.map((pericia) => (
     <li key={getKey(pericia)}>{pericia}</li>
   ));
   const habilidadesRacaDiv = raca.habilites.texts.map((hab) => (
     <li key={getKey(hab)}>{hab}</li>
   ));
+
   const habilidadesClasseDiv = classe.habilities.map((hab) => (
     <li key={getKey(hab.name)}>
       <strong>{hab.name}:</strong> {hab.text}
     </li>
   ));
+
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
+
   const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
-    ([key]) => key !== 'Arma'
+    ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
   );
 
   const equipamentosDiv = equipsEntriesNoWeapons
@@ -72,14 +78,20 @@ const Result: React.FC<ResultProps> = (props) => {
     )
     .flat();
 
-  const armasDiv = equipamentos.Arma.map((equip) => (
-    <Weapon equipment={equip} />
-  ));
+  const weaponsDiv = <Weapons weapons={equipamentos.Arma} />;
+  const defenseEquipments = [...equipamentos.Armadura, ...equipamentos.Escudo];
+  const defenseDiv = (
+    <DefenseEquipments
+      defenseEquipments={defenseEquipments as DefenseEquipment[]}
+    />
+  );
+
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
     </li>
   ));
+
   const originPowers = origin.powers
     ? origin.powers.map((power) => (
         <li key={getKey(power.name)}>
@@ -88,14 +100,9 @@ const Result: React.FC<ResultProps> = (props) => {
       ))
     : '';
 
-  // const weapons = equipamentos.filter(
-  //   (equipament) => equipament.group === 'Arma'
-  // );
-
-  // const equipamentosDiv = weapons.map((equip) => <Weapon equipment={equip} />);
-
   return (
     <div className='resultMainDiv'>
+      <Divider direction='up' />
       <div className='characterInfos'>
         <div>
           <div className='resultRow nameArea'>
@@ -125,18 +132,18 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
 
         <div className='resultRow'>
-          <CharacterStat name='Defesa' value={defesa} isMovement={false} />
           <CharacterStat name='PV' value={pv} isMovement={false} />
           <CharacterStat name='PM' value={pm} isMovement={false} />
+          <CharacterStat name='Defesa' value={defesa} isMovement={false} />
           <CharacterStat name='Deslocamento' value={9} isMovement />
         </div>
       </div>
 
-      <Divider />
+      <Divider direction='down' />
 
       <div className='attributesRow'>{atributosDiv}</div>
 
-      <Divider />
+      <Divider direction='down' />
 
       <div className='condense'>
         <div className='resultRow'>
@@ -154,21 +161,23 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      <Divider />
+      <Divider direction='down' />
 
       <div className='sectionTitle'>
         <span>Equipamentos</span>
       </div>
 
       <div className='equipaments'>
-        <div>{armasDiv}</div>
-        <div>{equipamentosDiv}</div>
-        <span className='resultItem'>
+        <div className='tableWrap'>{weaponsDiv}</div>
+        <div className='tableWrap'>{defenseDiv}</div>
+        <div className='textToRight'>
           <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
-        </span>
+        </div>
+        <div className='tableWrap'>{equipamentosDiv}</div>
+        <span className='resultItem' />
       </div>
 
-      <Divider />
+      <Divider direction='down' />
 
       <div className='sectionTitle'>
         <span>Habilidades e Poderes</span>
@@ -206,7 +215,8 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       )}
 
-      <Divider />
+      <Divider direction='down' />
+
       <div className='sectionTitle'>
         <span>Magias</span>
       </div>
@@ -221,7 +231,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      <div className='resultRow' />
+      <Divider direction='up' />
     </div>
   );
 };
