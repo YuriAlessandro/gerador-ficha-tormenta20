@@ -1,6 +1,6 @@
-import Equipment from '../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 
-export const Armas = {
+export const Armas: Record<string, Equipment> = {
   ADAGA: {
     nome: 'Adaga',
     dano: '1d4',
@@ -8,7 +8,7 @@ export const Armas = {
     peso: 0.5,
     tipo: 'Perf.',
     alcance: 'Curto',
-    equip: 'Arma',
+    group: 'Arma',
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
@@ -17,7 +17,7 @@ export const Armas = {
     peso: 1,
     tipo: 'Perf.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   FOICE: {
     nome: 'Foice',
@@ -26,7 +26,7 @@ export const Armas = {
     peso: 1,
     tipo: 'Corte',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   MANOPLA: {
     nome: 'Manopla',
@@ -35,7 +35,7 @@ export const Armas = {
     peso: 1,
     tipo: 'Impac.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   CLAVA: {
     nome: 'Clava',
@@ -44,7 +44,7 @@ export const Armas = {
     peso: 1.5,
     tipo: 'Impac.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   LANCA: {
     nome: 'Lança',
@@ -53,7 +53,7 @@ export const Armas = {
     peso: 1.5,
     tipo: 'Perf.',
     alcance: 'Curto',
-    equip: 'Arma',
+    group: 'Arma',
   },
   MACA: {
     nome: 'Maça',
@@ -62,7 +62,7 @@ export const Armas = {
     peso: 6,
     tipo: 'Impac.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   BORDAO: {
     nome: 'Bordão',
@@ -71,7 +71,7 @@ export const Armas = {
     peso: 2,
     tipo: 'Impac.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   PIQUE: {
     nome: 'Pique',
@@ -80,7 +80,7 @@ export const Armas = {
     peso: 5,
     tipo: 'Perf.',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   TACAPE: {
     nome: 'Tacape',
@@ -89,7 +89,7 @@ export const Armas = {
     peso: 4,
     tipo: 'Impacto',
     alcance: '-',
-    equip: 'Arma',
+    group: 'Arma',
   },
   ARCOCURTO: {
     nome: 'Arco Curto',
@@ -98,7 +98,7 @@ export const Armas = {
     peso: 1,
     tipo: 'Perf.',
     alcance: 'Médio',
-    equip: 'Arma',
+    group: 'Arma',
   },
   BESTALEVE: {
     nome: 'Besta Leve',
@@ -107,7 +107,7 @@ export const Armas = {
     peso: 3,
     tipo: 'Perf.',
     alcance: 'Médio',
-    equip: 'Arma',
+    group: 'Arma',
   },
   AZAGAIA: {
     nome: 'Azagaia',
@@ -116,7 +116,7 @@ export const Armas = {
     peso: 1,
     tipo: 'Perf.',
     alcance: 'Médio',
-    equip: 'Arma',
+    group: 'Arma',
   },
   FUNDA: {
     nome: 'Funda',
@@ -125,7 +125,7 @@ export const Armas = {
     peso: 0.25,
     tipo: 'Impac.',
     alcance: 'Médio',
-    equip: 'Arma',
+    group: 'Arma',
   },
   MACHADINHA: {
     nome: 'Machadinha',
@@ -133,7 +133,7 @@ export const Armas = {
     critico: '3x',
     peso: 2,
     tipo: 'Corte',
-    equip: 'Arma',
+    group: 'Arma',
   },
   CIMITARRA: {
     nome: 'Cimitarra',
@@ -141,46 +141,48 @@ export const Armas = {
     critico: '18',
     peso: 2,
     tipo: 'Corte',
-    equip: 'Arma',
+    group: 'Arma',
   },
 };
 
-export const Armaduras = {
+export const Armaduras: Record<string, DefenseEquipment> = {
   ARMADURADECOURO: {
     nome: 'Armadura de couro',
-    bonus: 2,
-    penalidade: 0,
+    defenseBonus: 2,
+    armorPenalty: 0,
     peso: 7,
-    equip: 'Armadura',
+    group: 'Armadura',
   },
   COUROBATIDO: {
     nome: 'Couro batido',
-    bonus: 3,
-    penalidade: 1,
+    defenseBonus: 3,
+    armorPenalty: 1,
     peso: 10,
+    group: 'Armadura',
   },
   GIBAODEPELES: {
     nome: 'Gibão de peles',
-    bonus: 4,
-    penalidade: 3,
+    defenseBonus: 4,
+    armorPenalty: 3,
     peso: 12,
-    equip: 'Armadura',
+    group: 'Armadura',
   },
   BRUNEA: {
     nome: 'Brunea',
-    bonus: 5,
-    penalidade: 2,
+    defenseBonus: 5,
+    armorPenalty: 2,
     peso: 15,
-    equip: 'Armadura',
+    group: 'Armadura',
   },
 };
 
-export const Escudos = {
+export const Escudos: Record<string, DefenseEquipment> = {
   ESCUDOLEVE: {
     nome: 'Escudo leve',
-    bonus: 1,
-    penalidade: 1,
+    defenseBonus: 1,
+    armorPenalty: 1,
     peso: 3,
+    group: 'Escudo',
   },
 };
 
@@ -188,12 +190,15 @@ const EQUIPAMENTOS: Record<string, Equipment[]> = {
   inicial: [
     {
       nome: 'Mochila',
+      group: 'Item Geral',
     },
     {
       nome: 'Saco de dormir',
+      group: 'Item Geral',
     },
     {
       nome: 'Traje de viajante',
+      group: 'Item Geral',
     },
   ],
   armasSimples: [
@@ -223,3 +228,22 @@ const EQUIPAMENTOS: Record<string, Equipment[]> = {
 };
 
 export default EQUIPAMENTOS;
+
+function isDefenseEquip(
+  equip: Equipment | DefenseEquipment
+): equip is DefenseEquipment {
+  return (equip as DefenseEquipment).defenseBonus !== undefined;
+}
+
+export function addEquipsDefenseBonuses(
+  defense: number,
+  equips: Equipment[]
+): number {
+  return equips.reduce((acc, equip) => {
+    if (isDefenseEquip(equip)) {
+      return equip.defenseBonus + acc;
+    }
+
+    return defense;
+  }, defense);
+}
