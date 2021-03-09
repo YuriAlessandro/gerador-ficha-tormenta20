@@ -186,33 +186,34 @@ export const Escudos: Record<string, DefenseEquipment> = {
   },
 };
 
-export const bagInicial: Bag = {
-  'Item Geral': [
-    {
-      nome: 'Mochila',
-      group: 'Item Geral',
-    },
-    {
-      nome: 'Saco de dormir',
-      group: 'Item Geral',
-    },
-    {
-      nome: 'Traje de viajante',
-      group: 'Item Geral',
-    },
-  ],
-  Alimentação: [],
-  Alquimía: [],
-  Animal: [],
-  Arma: [],
-  Armadura: [],
-  Escudo: [],
-  Hospedagem: [],
-  Serviço: [],
-  Vestuário: [],
-  Veículo: [],
-};
-
+export function getBagDefault(): Bag {
+  return {
+    'Item Geral': [
+      {
+        nome: 'Mochila',
+        group: 'Item Geral',
+      },
+      {
+        nome: 'Saco de dormir',
+        group: 'Item Geral',
+      },
+      {
+        nome: 'Traje de viajante',
+        group: 'Item Geral',
+      },
+    ],
+    Alimentação: [],
+    Alquimía: [],
+    Animal: [],
+    Arma: [],
+    Armadura: [],
+    Escudo: [],
+    Hospedagem: [],
+    Serviço: [],
+    Vestuário: [],
+    Veículo: [],
+  };
+}
 const EQUIPAMENTOS: Record<string, Equipment[]> = {
   armasSimples: [
     Armas.ADAGA,

@@ -2,7 +2,7 @@ import { ClassDescription } from './Class';
 import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race from './Race';
-import Equipment, { Bag } from './Equipment';
+import { Bag } from './Equipment';
 
 export interface RaceHability {
   attr: string;

@@ -5,7 +5,7 @@ import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS, {
   applyEquipsModifiers,
-  bagInicial,
+  getBagDefault,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -27,7 +27,7 @@ import todasProficiencias from '../data/proficiencias';
 import origins from '../data/origins';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
-import Equipment, { Bag } from '../interfaces/Equipment';
+import { Bag } from '../interfaces/Equipment';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -310,11 +310,9 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return getRandomItemFromArray(CLASSES);
 }
 
-export function addEquipClass(classe: ClassDescription): Bag {
+function addEquipClass(classe: ClassDescription): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const equipamentosIniciais: Bag = {
-    ...bagInicial,
-  };
+  const equipamentosIniciais: Bag = { ...getBagDefault() };
 
   // Arma leve
   equipamentosIniciais.Arma.push(

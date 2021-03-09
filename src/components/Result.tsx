@@ -3,8 +3,6 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 
 import '../assets/css/result.css';
-import { equipGroup } from '../interfaces/Equipment';
-import { bagInicial } from '../data/equipamentos';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -41,6 +39,7 @@ const Result: React.FC<ResultProps> = (props) => {
       mod={atributo.mod}
       id={id}
       value={atributo.value}
+      key={getKey(atributo.name)}
     />
   ));
 
@@ -64,6 +63,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const equipamentosDiv = equipsEntriesNoWeapons
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .map(([_, equips]) =>
       equips.map((equip) => <li key={getKey(equip.nome)}>{equip.nome}</li>)
     )
@@ -72,7 +72,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const armasDiv = equipamentos.Arma.map((equip) => (
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
-  console.log(equipamentosDiv, armasDiv);
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
