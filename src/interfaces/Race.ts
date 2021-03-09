@@ -1,3 +1,5 @@
+import { FaithProbability } from './Divindade';
+
 export interface RaceHability {
   attr: string;
   mod: number;
@@ -16,4 +18,5 @@ export default interface Race {
   };
   oldRace?: Race;
   setup?: (races: Race[]) => void;
+  faithProbability?: FaithProbability;
 }

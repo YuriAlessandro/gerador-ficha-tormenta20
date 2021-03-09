@@ -48,7 +48,7 @@ const CLERIGO: ClassDescription = {
     },
   ],
   magics: [],
-  probDevoto: 0.8,
+  probDevoto: 0.95,
   qtdPoderesConcedidos: 'all',
 };
 

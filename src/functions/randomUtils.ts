@@ -1,49 +1,72 @@
-// eslint-disable-next-line
-export function getRandomItemFromArray<ElementType>(array: ElementType[]): ElementType {
+import {
+  allDivindadeNames,
+  DivindadeNames,
+  FaithProbability,
+} from '../interfaces/Divindade';
+
+export function getRandomItemFromArray<ElementType>(
+  array: ElementType[]
+): ElementType {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-export function normalizeProbababilityArray(array: number[]): number[] {
-  const sum = array.reduce((acc, curr) => acc + curr);
-  return array.map((curr) => curr / sum);
+export function normalizeFaithProbabability(
+  faithP: FaithProbability
+): FaithProbability {
+  const sum = (Object.values(faithP) as number[]).reduce(
+    (acc, curr) => acc + curr
+  );
+
+  const newFaithP: FaithProbability = {};
+  Object.keys(faithP).forEach((key) => {
+    const typedKeys = key as DivindadeNames;
+    newFaithP[typedKeys] = (faithP[typedKeys] as number) / sum;
+  });
+  return newFaithP;
 }
 
-// TODO: Remove examples
-// Examples
-// if you have something like [1/4, 1/4, 1/2] and [0, 1/2, 1/2] use below to turn those in a single probability array
-export function mergeProbabilityArrays(
-  arr1: number[],
-  arr2: number[]
-): number[] {
-  if (arr1.length !== arr2.length) return [];
+export function mergeFaithProbabilities(
+  arr1: FaithProbability,
+  arr2: FaithProbability
+): FaithProbability {
+  const arr1Normalized = normalizeFaithProbabability(arr1);
+  const arr2Normalized = normalizeFaithProbabability(arr2);
 
-  const multipliedArray: number[] = [];
-  for (let i = 0; i < arr1.length; i += 1) {
-    multipliedArray.push(arr1[i] * arr2[i]);
-  }
+  const multipliedFaithProbability: FaithProbability = {};
+  allDivindadeNames.forEach((key) => {
+    const val1: number =
+      arr1Normalized[key] !== undefined ? (arr1Normalized[key] as number) : 0.5;
+    const val2: number =
+      arr2Normalized[key] !== undefined ? (arr2Normalized[key] as number) : 0.5;
 
-  return normalizeProbababilityArray(multipliedArray);
+    multipliedFaithProbability[key] = val1 * val2;
+  });
+
+  return normalizeFaithProbabability(multipliedFaithProbability);
 }
 
-// TODO: Remove examples
-// Examples
-// if you have something like [1/4, 1/4, 1/2] use below to get the index based on the probability
-export function pickFromProbabilityArray(array: number[]): number {
-  const normalized = normalizeProbababilityArray(array);
-  const probabilitySumArray: number[] = [];
-  for (let i = 0; i < normalized.length; i += 1) {
-    probabilitySumArray.push((probabilitySumArray[i - 1] || 0) + normalized[i]);
-  }
+export function pickFaith(faithP: FaithProbability): DivindadeNames {
+  const normalized = normalizeFaithProbabability(faithP);
+  const probabilitySumArray: { divindade: DivindadeNames; sum: number }[] = [];
+
+  Object.entries(normalized).forEach(([key, value]) => {
+    const { length } = probabilitySumArray;
+
+    probabilitySumArray.push({
+      divindade: key as DivindadeNames,
+      sum: (probabilitySumArray[length - 1]?.sum || 0) + (value as number),
+    });
+  });
 
   const randomNumber = Math.random();
 
   for (let i = 0; i < probabilitySumArray.length; i += 1) {
-    if (randomNumber < probabilitySumArray[i]) {
-      return i;
+    if (randomNumber < probabilitySumArray[i].sum) {
+      return probabilitySumArray[i].divindade;
     }
   }
 
-  return probabilitySumArray.length - 1;
+  return probabilitySumArray[probabilitySumArray.length - 1].divindade;
 }
 
 // Returns an array with N selected item from array

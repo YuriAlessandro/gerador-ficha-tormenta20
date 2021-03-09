@@ -55,7 +55,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const equipamentosDiv = equipamentos.map((equip) => (
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
-  const poderesConcedidos = devoto.poderes.map((poder) => (
+  const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
     </li>
@@ -87,7 +87,7 @@ const Result: React.FC<ResultProps> = (props) => {
         <span className='resultItem'>
           <strong>Sexo</strong> {sexo}
         </span>
-        {devoto.isDevoto && (
+        {devoto && (
           <span className='resultItem'>
             <strong>Divindade</strong> {devoto.divindade.name}
           </span>
@@ -168,7 +168,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
 
-      {devoto.isDevoto && (
+      {devoto && (
         <div className='resultRow'>
           <div>
             <strong>Poderes Concedidos</strong>

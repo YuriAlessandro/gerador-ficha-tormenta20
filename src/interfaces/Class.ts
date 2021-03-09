@@ -1,3 +1,5 @@
+import { FaithProbability } from './Divindade';
+
 export interface BasicExpertise {
   type: string;
   list: string[];
@@ -28,4 +30,5 @@ export interface ClassDescription {
   magics: string[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
+  faithProbability?: FaithProbability;
 }

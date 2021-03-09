@@ -4,16 +4,19 @@ import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS from '../data/equipamentos';
-import DIVINDADES from '../data/divindades';
+import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
   CharacterAttribute,
+  CharacterReligion,
 } from '../interfaces/CharacterSheet';
 import Race, { RaceHability } from '../interfaces/Race';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   getRandomItemFromArray,
+  mergeFaithProbabilities,
+  pickFaith,
   pickFromArray,
   removeDup,
 } from './randomUtils';
@@ -348,14 +351,32 @@ function getPoderesConcedidos(poderes: GeneralPower[], todosPoderes: boolean) {
 }
 
 // Retorna se é devoto e qual a divindade
-function getReligiosidade(classe: ClassDescription) {
-  const isDevoto = getRandomArbitrary(1, 100) <= classe.probDevoto * 100;
-  const divindade = getRandomItemFromArray(DIVINDADES);
+function getReligiosidade(
+  classe: ClassDescription,
+  race: Race
+): CharacterReligion | undefined {
+  const isDevoto = Math.random() <= classe.probDevoto;
+  if (!isDevoto) {
+    return undefined;
+  }
+
+  const classFaithProbability =
+    classe.faithProbability || standardFaithProbability;
+  const raceFaithProbability =
+    race.faithProbability || standardFaithProbability;
+
+  const faithProbability = mergeFaithProbabilities(
+    classFaithProbability,
+    raceFaithProbability
+  );
+
+  const divindadeName = pickFaith(faithProbability);
+  const divindade = DivindadeEnum[divindadeName];
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
   const poderes = getPoderesConcedidos(divindade.poderes, todosPoderes);
 
-  return { isDevoto, divindade, poderes };
+  return { divindade, poderes };
 }
 
 // Retorna a origem e as perícias selecionadas
@@ -458,7 +479,7 @@ export default function generateRandomSheet(
   const equipamentos = addEquipClass(classe);
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
-  const devoto = getReligiosidade(classe);
+  const devoto = getReligiosidade(classe, race);
 
   return {
     id: uuid(),
