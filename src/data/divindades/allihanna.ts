@@ -1,8 +1,13 @@
 import Divindade from '../../interfaces/Divindade';
+import GRANTED_POWERS from '../powers/grantedPowers';
 
 const ALLIHANNA: Divindade = {
   name: 'Allihanna',
-  poderes: ['Dedo Verde', 'Descanso Natural', 'Voz da Natureza'],
+  poderes: [
+    GRANTED_POWERS.DEDO_VERDE,
+    GRANTED_POWERS.DESCANSO_NATURAL,
+    GRANTED_POWERS.VOZ_DA_NATUREZA,
+  ],
 };
 
 export default ALLIHANNA;
