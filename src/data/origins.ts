@@ -104,7 +104,7 @@ const origins: Origin[] = [
     pericias: [PERICIAS.CONHECIMENTO, PERICIAS.GUERRA, PERICIAS.MISTICISMO],
     poderes: [
       originPowers.PALPITE_FUNDAMENTADO,
-      DestinyPowers.APARENCIAINOFENSIVA,
+      DestinyPowers.APARENCIA_INOFENSIVA,
     ],
   },
   {
@@ -192,7 +192,7 @@ const origins: Origin[] = [
     name: 'Pivete',
     itens: [],
     pericias: [PERICIAS.FURTIVIDADE, PERICIAS.INICIATIVA, PERICIAS.LADINAGEM],
-    poderes: [originPowers.QUEBRA_GALHO, DestinyPowers.APARENCIAINOFENSIVA], // TODO: Adicionar Acrobático
+    poderes: [originPowers.QUEBRA_GALHO, DestinyPowers.APARENCIA_INOFENSIVA], // TODO: Adicionar Acrobático
   },
   {
     name: 'Refugiado',
