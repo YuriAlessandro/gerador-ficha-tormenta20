@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { createRef } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Select from 'react-select';
+import { useReactToPrint } from 'react-to-print';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
-
 import Result from './Result';
 
 import generateRandomSheet from '../functions/general';
@@ -55,6 +55,12 @@ const MainScreen: React.FC = () => {
   }));
   const niveis = [{ value: 1, label: 'Nível 1' }];
 
+  const sheetRef = React.createRef<HTMLDivElement>();
+
+  const handlePrint = useReactToPrint({
+    content: () => sheetRef.current,
+  });
+
   return (
     <div>
       <div className='filterArea'>
@@ -88,7 +94,11 @@ const MainScreen: React.FC = () => {
         </Button>
       </div>
 
-      {randomSheet && <Result sheet={randomSheet} />}
+      <button type='button' onClick={handlePrint}>
+        Print this out!
+      </button>
+
+      {randomSheet && <Result ref={sheetRef} sheet={randomSheet} />}
     </div>
   );
 };
