@@ -29,11 +29,6 @@ npm start
 
 *É preciso ter o [node](https://nodejs.org/en/) instalado.
 
-
-
-
-
-
 ## Contribuidores
 
 - [Yuri Alessandro Martins](https://github.com/YuriAlessandro)
