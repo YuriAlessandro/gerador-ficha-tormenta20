@@ -16,7 +16,7 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
       ))
     ) : (
       <tr>
-        <td className='textToCenter noDefensiveItem' colSpan={4}>
+        <td className='textToCenter noDefensiveItem'>
           Nenhum equipamento defensivo
         </td>
       </tr>

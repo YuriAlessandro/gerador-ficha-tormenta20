@@ -1,3 +1,4 @@
+import { Atributo } from '../data/atributos';
 import { FaithProbability } from './Divindade';
 import { SpellSchool } from './Spells';
 
@@ -24,6 +25,7 @@ export interface SpellPath {
   schools?: SpellSchool[];
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
+  keyAttribute: Atributo;
 }
 
 export interface ClassDescription {

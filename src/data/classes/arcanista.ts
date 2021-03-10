@@ -1,5 +1,6 @@
 import { getRandomItemFromArray } from '../../functions/randomUtils';
 import { ClassDescription, SpellPath } from '../../interfaces/Class';
+import { Atributo } from '../atributos';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
@@ -22,6 +23,7 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
       if (level < 17) return 4;
       return 5;
     },
+    keyAttribute: Atributo.INTELIGENCIA,
   },
   Mago: {
     initialSpells: 4,
@@ -34,6 +36,7 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
       if (level < 17) return 4;
       return 5;
     },
+    keyAttribute: Atributo.INTELIGENCIA,
   },
   Feiticeiro: {
     initialSpells: 3,
@@ -46,6 +49,7 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
       if (level < 17) return 4;
       return 5;
     },
+    keyAttribute: Atributo.CARISMA,
   },
 };
 

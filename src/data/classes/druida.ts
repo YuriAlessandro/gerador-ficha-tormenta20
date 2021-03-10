@@ -1,6 +1,7 @@
 import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
 import { allSpellSchools } from '../../interfaces/Spells';
+import { Atributo } from '../atributos';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
@@ -95,6 +96,7 @@ const DRUIDA: ClassDescription = {
         if (level < 14) return 3;
         return 4;
       },
+      keyAttribute: Atributo.SABEDORIA,
     };
 
     return modifiedClasse;
