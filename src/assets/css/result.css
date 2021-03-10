@@ -38,11 +38,17 @@
 }
 
 .resultContainer {
-  width: 60vw;
+  width: 70vw;
 }
 
 .resultMainDiv {
-  padding: 5px 30px 30px 30px;
+  padding: 30px 30px 30px 30px;
+  background-color: #FFF;
+  border-radius: 2px;
+  margin: 20px 30px;
+  -webkit-box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
+  -moz-box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
+  box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
 }
 
 .characterInfos {
