@@ -1,7 +1,7 @@
 import { ClassDescription } from './Class';
 import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
-import Race from './Race';
+import Race, { RaceSize } from './Race';
 import { Bag } from './Equipment';
 import { Spell } from './Spells';
 
@@ -42,4 +42,6 @@ export default interface CharacterSheet {
   };
   armorPenalty: number;
   spells: Spell[];
+  displacement: number;
+  size: RaceSize;
 }
