@@ -172,9 +172,13 @@ const Result: React.FC<ResultProps> = (props) => {
       <div className='equipaments'>
         <div className='tableWrap'>{weaponsDiv}</div>
         <div className='tableWrap'>{defenseDiv}</div>
-        <div className='textToRight'>
-          <strong>Penalidade de Armadura</strong> {bag.armorPenalty * -1}
-          <strong>Peso</strong> {bag.weight}kg
+        <div className='textToRight equipmentsValues'>
+          <span>
+            <strong>Penalidade de Armadura</strong> {bag.armorPenalty * -1}
+          </span>
+          <span>
+            <strong>Peso</strong> {bag.weight}kg
+          </span>
         </div>
         <div className='tableWrap'>{equipamentosDiv}</div>
         <span className='resultItem' />
