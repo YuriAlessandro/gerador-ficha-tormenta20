@@ -11,11 +11,10 @@ import '../assets/css/result.css';
 
 interface ResultProps {
   sheet: CharacterSheet;
-  ref: any;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, ref } = props;
+  const { sheet } = props;
 
   const {
     nome,
@@ -103,7 +102,7 @@ const Result: React.FC<ResultProps> = (props) => {
     : '';
 
   return (
-    <div className='resultMainDiv' ref={ref}>
+    <div className='resultMainDiv'>
       <Divider direction='up' />
       <div className='characterInfos'>
         <div>

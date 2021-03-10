@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { useEffect } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -27,13 +27,15 @@ type SelectedOption = { value: string; label: string };
 const MainScreen: React.FC = () => {
   const classes = useStyles();
 
-  // TODO: Create typing for chara sheet
-  const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
     raca: '',
   });
+
+  // TODO: Create typing for chara sheet
+  const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
+  const [showExportButton, setExportButton] = React.useState<boolean>();
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
@@ -55,10 +57,15 @@ const MainScreen: React.FC = () => {
   }));
   const niveis = [{ value: 1, label: 'Nível 1' }];
 
-  const sheetRef = React.createRef<HTMLDivElement>();
+  const resultRef = React.createRef<HTMLDivElement>();
+  useEffect(() => {
+    if (resultRef.current) {
+      setExportButton(true);
+    }
+  }, [resultRef]);
 
   const handlePrint = useReactToPrint({
-    content: () => sheetRef.current,
+    content: () => resultRef.current,
   });
 
   return (
@@ -94,11 +101,24 @@ const MainScreen: React.FC = () => {
         </Button>
       </div>
 
-      <button type='button' onClick={handlePrint}>
-        Print this out!
-      </button>
+      {randomSheet && (
+        <div style={{ width: '60vw' }}>
+          <div
+            style={{
+              display: showExportButton ? 'flex' : 'none',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <button className='exportBtn' type='button' onClick={handlePrint}>
+              Exportar ou imprimir essa ficha
+            </button>
+          </div>
 
-      {randomSheet && <Result ref={sheetRef} sheet={randomSheet} />}
+          <div ref={resultRef}>
+            <Result sheet={randomSheet} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
