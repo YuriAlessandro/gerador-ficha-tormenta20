@@ -140,6 +140,10 @@ const Result: React.FC<ResultProps> = (props) => {
     return resultRef.current;
   };
 
+  const keyAttr = classe.spellPath
+    ? atributos[classe.spellPath.keyAttribute]
+    : null;
+
   return (
     <div className='resultContainer'>
       <div
@@ -155,7 +159,6 @@ const Result: React.FC<ResultProps> = (props) => {
             </button>
           )}
           content={handleExport}
-          bodyClass='test'
           documentTitle={`${nome} - ${classe.name} ${raca.name}`}
         />
       </div>
@@ -352,7 +355,12 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
 
         <div className='tableWrap'>
-          <Spells spells={spells} spellPath={classe.spellPath} />
+          <Spells
+            spells={spells}
+            spellPath={classe.spellPath}
+            keyAttr={keyAttr}
+            nivel={nivel}
+          />
         </div>
         <Divider direction='up' />
       </div>

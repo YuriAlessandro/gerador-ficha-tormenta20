@@ -220,10 +220,6 @@ table {
   margin-bottom: 20px;
 }
 
-.test {
-  padding: 50px 10px;
-}
-
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
