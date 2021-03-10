@@ -2,6 +2,7 @@ import Equipment, {
   Bag,
   DefenseEquipment,
   CombatItems,
+  BagEquipments,
 } from '../interfaces/Equipment';
 
 export const Armas: Record<string, Equipment> = {
@@ -190,34 +191,75 @@ export const Escudos: Record<string, DefenseEquipment> = {
   },
 };
 
-export function getBagDefault(): Bag {
-  return {
-    'Item Geral': [
-      {
-        nome: 'Mochila',
-        group: 'Item Geral',
-      },
-      {
-        nome: 'Saco de dormir',
-        group: 'Item Geral',
-      },
-      {
-        nome: 'Traje de viajante',
-        group: 'Item Geral',
-      },
-    ],
-    Alimentação: [],
-    Alquimía: [],
-    Animal: [],
-    Arma: [],
-    Armadura: [],
-    Escudo: [],
-    Hospedagem: [],
-    Serviço: [],
-    Vestuário: [],
-    Veículo: [],
-  };
+export function calcArmorPenalty(equipments: BagEquipments): number {
+  const armorPenalty = equipments.Armadura.reduce(
+    (acc, armor) => acc + armor.armorPenalty,
+    0
+  );
+
+  const shieldPenalty = equipments.Escudo.reduce(
+    (acc, armor) => acc + armor.armorPenalty,
+    0
+  );
+
+  return armorPenalty + shieldPenalty;
 }
+
+export function calcBagWeight(equipments: BagEquipments): number {
+  const equipmentGroups = Object.values(equipments) as Equipment[][];
+  let weight = 0;
+
+  equipmentGroups.forEach((group) => {
+    group.forEach((equipment) => {
+      const equipmentWeight = equipment.peso || 0;
+      weight += equipmentWeight;
+    });
+  });
+
+  return weight;
+}
+
+const defaultEquipments: BagEquipments = {
+  'Item Geral': [
+    {
+      nome: 'Mochila',
+      group: 'Item Geral',
+    },
+    {
+      nome: 'Saco de dormir',
+      group: 'Item Geral',
+    },
+    {
+      nome: 'Traje de viajante',
+      group: 'Item Geral',
+    },
+  ],
+  Alimentação: [],
+  Alquimía: [],
+  Animal: [],
+  Arma: [],
+  Armadura: [],
+  Escudo: [],
+  Hospedagem: [],
+  Serviço: [],
+  Vestuário: [],
+  Veículo: [],
+};
+
+function updateEquipments(bag: Bag, updatedBagEquipments: BagEquipments): void {
+  const bagUpdated = bag;
+
+  bagUpdated.equipments = updatedBagEquipments;
+  bagUpdated.weight = calcBagWeight(bag.equipments);
+  bagUpdated.armorPenalty = calcArmorPenalty(bag.equipments);
+}
+
+export const DEFAULT_BAG: Bag = {
+  equipments: defaultEquipments,
+  weight: calcBagWeight(defaultEquipments),
+  armorPenalty: calcArmorPenalty(defaultEquipments),
+  updateEquipments,
+};
 
 const EQUIPAMENTOS: CombatItems = {
   armasSimples: [
@@ -254,23 +296,14 @@ function isDefenseEquip(
   return (equip as DefenseEquipment).defenseBonus !== undefined;
 }
 
-export function applyEquipsModifiers(
-  defense: number,
-  equips: Bag
-): { defense: number; armorPenalty: number } {
-  return Object.values(equips)
+export function calcDefense(defense: number, equips: Bag): number {
+  return Object.values(equips.equipments)
     .flat()
-    .reduce(
-      (acc, equip) => {
-        if (isDefenseEquip(equip)) {
-          return {
-            defense: equip.defenseBonus + acc.defense,
-            armorPenalty: equip.armorPenalty + acc.armorPenalty,
-          };
-        }
+    .reduce((acc, equip) => {
+      if (isDefenseEquip(equip)) {
+        return acc + equip.defenseBonus;
+      }
 
-        return acc;
-      },
-      { defense, armorPenalty: 0 }
-    );
+      return acc;
+    }, defense);
 }

@@ -33,14 +33,13 @@ export default interface CharacterSheet {
   pv: number;
   pm: number;
   defesa: number;
-  equipamentos: Bag;
+  bag: Bag;
   devoto?: CharacterReligion;
   origin: {
     name: string;
     skills: string[];
     powers: (OriginPower | GeneralPower)[];
   };
-  armorPenalty: number;
   spells: Spell[];
   displacement: number;
   size: RaceSize;

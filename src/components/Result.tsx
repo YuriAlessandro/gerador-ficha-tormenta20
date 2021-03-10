@@ -27,11 +27,10 @@ const Result: React.FC<ResultProps> = (props) => {
     pv,
     pm,
     defesa,
-    equipamentos,
+    bag,
     id,
     devoto,
     origin,
-    armorPenalty,
     spells,
     displacement,
   } = sheet;
@@ -72,7 +71,7 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(proe)}>{proe}</li>
   ));
 
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(equipamentos)
+  const equipsEntriesNoWeapons: Equipment[] = Object.entries(bag.equipments)
     .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
     .flatMap((value) => value[1]);
 
@@ -80,8 +79,11 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(equip.nome)}>{equip.nome}</li>
   ));
 
-  const weaponsDiv = <Weapons getKey={getKey} weapons={equipamentos.Arma} />;
-  const defenseEquipments = [...equipamentos.Armadura, ...equipamentos.Escudo];
+  const weaponsDiv = <Weapons getKey={getKey} weapons={bag.equipments.Arma} />;
+  const defenseEquipments = [
+    ...bag.equipments.Armadura,
+    ...bag.equipments.Escudo,
+  ];
   const defenseDiv = (
     <DefenseEquipments getKey={getKey} defenseEquipments={defenseEquipments} />
   );
@@ -171,7 +173,8 @@ const Result: React.FC<ResultProps> = (props) => {
         <div className='tableWrap'>{weaponsDiv}</div>
         <div className='tableWrap'>{defenseDiv}</div>
         <div className='textToRight'>
-          <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
+          <strong>Penalidade de Armadura</strong> {bag.armorPenalty * -1}
+          <strong>Peso</strong> {bag.weight}kg
         </div>
         <div className='tableWrap'>{equipamentosDiv}</div>
         <span className='resultItem' />

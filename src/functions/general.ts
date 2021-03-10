@@ -4,8 +4,8 @@ import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS, {
-  applyEquipsModifiers,
-  getBagDefault,
+  calcDefense,
+  DEFAULT_BAG,
   Armaduras,
   Escudos,
 } from '../data/equipamentos';
@@ -29,7 +29,7 @@ import todasProficiencias from '../data/proficiencias';
 import origins from '../data/origins';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import originPowers from '../data/powers/originPowers';
-import { Bag } from '../interfaces/Equipment';
+import { Bag, BagEquipments } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
@@ -265,7 +265,7 @@ function selectRace(selectedOptions: SelectedOptions): Race {
     return getRaceByName(selectedOptions.raca);
   }
 
-  return getRandomItemFromArray(RACAS);
+  return getRaceByName(getRandomItemFromArray(RACAS).name);
 }
 
 function getRaceAndRaceStats(
@@ -313,39 +313,66 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
-function addEquipClass(classe: ClassDescription): Bag {
-  // 6.1 A depender da classe os itens podem variar
-  const equipamentosIniciais: Bag = { ...getBagDefault() };
+function getWeapons(classe: ClassDescription) {
+  const weapons = [];
 
-  // Arma leve
-  equipamentosIniciais.Arma.push(
-    getRandomItemFromArray(EQUIPAMENTOS.armasSimples)
-  );
+  weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasSimples));
 
-  // Arma marcial
   if (classe.proeficiencias.includes(todasProficiencias.MARCIAIS)) {
-    equipamentosIniciais.Arma.push(
-      getRandomItemFromArray(EQUIPAMENTOS.armasMarciais)
-    );
+    weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasMarciais));
   }
 
-  // Escudo
+  return weapons;
+}
+
+function getShields(classe: ClassDescription) {
+  const shields = [];
   if (classe.proeficiencias.includes(todasProficiencias.ESCUDOS)) {
-    equipamentosIniciais.Escudo.push(Escudos.ESCUDOLEVE);
+    shields.push(Escudos.ESCUDOLEVE);
   }
 
-  // Armadura
+  return shields;
+}
+
+function getArmors(classe: ClassDescription) {
+  const armors = [];
   if (classe.proeficiencias.includes(todasProficiencias.PESADAS)) {
-    equipamentosIniciais.Armadura.push(Armaduras.BRUNEA);
+    armors.push(Armaduras.BRUNEA);
   } else if (classe.name !== 'Arcanista') {
-    equipamentosIniciais.Armadura.push(
-      getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves)
-    );
+    armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));
   }
+
+  return armors;
+}
+
+function getInitialEquipments(
+  bagEquipments: BagEquipments,
+  classe: ClassDescription
+): BagEquipments {
+  const newBagEquipments: BagEquipments = { ...bagEquipments };
+
+  const weapons = getWeapons(classe);
+  const shields = getShields(classe);
+  const armors = getArmors(classe);
+
+  return {
+    ...newBagEquipments,
+    Arma: weapons,
+    Escudo: shields,
+    Armadura: armors,
+  };
+}
+
+function getInitialBag(classe: ClassDescription): Bag {
+  // 6.1 A depender da classe os itens podem variar
+  const bag: Bag = DEFAULT_BAG;
 
   // TODO: Initial cash
 
-  return equipamentosIniciais;
+  const bagEquipments = getInitialEquipments(bag.equipments, classe);
+  bag.updateEquipments(bag, bagEquipments);
+
+  return bag;
 }
 
 function getThyatisPowers() {
@@ -463,6 +490,12 @@ function getSpells(classe: ClassDescription): Spell[] {
   return pickFromArray(spellList, initialSpells);
 }
 
+function calcDisplacement(bag: Bag, race: Race): number {
+  const displacement = getRaceDisplacement(race);
+
+  return displacement;
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -523,12 +556,9 @@ export default function generateRandomSheet(
   const pericias = addClassPer(classe, skillsRaceAndOrigin);
 
   // Passo 6: Definição de itens iniciais
-  const equipamentos = addEquipClass(classe);
+  const bag = getInitialBag(classe);
   // 6.1: Incrementar defesa com base nos Equipamentos
-  const { armorPenalty, defense } = applyEquipsModifiers(
-    classDetails.defesa,
-    equipamentos
-  );
+  const defense = calcDefense(classDetails.defesa, bag);
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devoto = getReligiosidade(classe, race);
@@ -537,7 +567,7 @@ export default function generateRandomSheet(
   const spells = getSpells(classe);
 
   // Passo 9: Recuperar deslocamento e tamanho
-  const displacement = getRaceDisplacement(race);
+  const displacement = calcDisplacement(bag, race);
   const size = getRaceSize(race);
 
   return {
@@ -552,10 +582,9 @@ export default function generateRandomSheet(
     pv: classDetailsModifiedByRace.pv,
     pm: classDetailsModifiedByRace.pm,
     defesa: defense,
-    equipamentos,
+    bag,
     devoto,
     origin,
-    armorPenalty,
     spells,
     displacement,
     size,
