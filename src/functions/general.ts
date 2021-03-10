@@ -41,6 +41,10 @@ import {
   divineSpellsCircle1,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
+import {
+  getRaceDisplacement,
+  getRaceSize,
+} from '../data/races/functions/functions';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -532,6 +536,10 @@ export default function generateRandomSheet(
   // Passo 8: Gerar magias se possível
   const spells = getSpells(classe);
 
+  // Passo 9: Recuperar deslocamento e tamanho
+  const displacement = getRaceDisplacement(race);
+  const size = getRaceSize(race);
+
   return {
     id: uuid(),
     nome,
@@ -549,5 +557,7 @@ export default function generateRandomSheet(
     origin,
     armorPenalty,
     spells,
+    displacement,
+    size,
   };
 }

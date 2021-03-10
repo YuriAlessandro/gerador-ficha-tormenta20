@@ -33,6 +33,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     armorPenalty,
     spells,
+    displacement,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -134,7 +135,7 @@ const Result: React.FC<ResultProps> = (props) => {
           <CharacterStat name='PV' value={pv} />
           <CharacterStat name='PM' value={pm} />
           <CharacterStat name='Defesa' value={defesa} />
-          <CharacterStat name='Deslocamento' value={9} isMovement />
+          <CharacterStat name='Deslocamento' value={displacement} isMovement />
         </div>
       </div>
 
