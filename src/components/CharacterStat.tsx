@@ -4,7 +4,7 @@ import '../assets/css/result.css';
 interface CharacterStatsProps {
   name: string;
   value: number;
-  isMovement: boolean;
+  isMovement?: boolean;
 }
 
 const CharacterStats: React.FC<CharacterStatsProps> = (props) => {

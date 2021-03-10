@@ -1,4 +1,5 @@
 import Race from '../../interfaces/Race';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const HYNNE: Race = {
   name: 'Hynne',
@@ -22,6 +23,8 @@ const HYNNE: Race = {
     OCEANO: 1,
     THWOR: 1,
   },
+  size: RACE_SIZES.PEQUENO,
+  displacement: 6,
 };
 
 export default HYNNE;

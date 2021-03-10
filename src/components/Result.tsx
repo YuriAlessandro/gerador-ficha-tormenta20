@@ -131,9 +131,9 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
 
         <div className='stats'>
-          <CharacterStat name='PV' value={pv} isMovement={false} />
-          <CharacterStat name='PM' value={pm} isMovement={false} />
-          <CharacterStat name='Defesa' value={defesa} isMovement={false} />
+          <CharacterStat name='PV' value={pv} />
+          <CharacterStat name='PM' value={pm} />
+          <CharacterStat name='Defesa' value={defesa} />
           <CharacterStat name='Deslocamento' value={9} isMovement />
         </div>
       </div>

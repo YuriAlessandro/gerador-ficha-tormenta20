@@ -1,5 +1,6 @@
 import Race from '../../interfaces/Race';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
+import { getRaceDisplacement, getRaceSize } from './functions/functions';
 
 const OSTEON: Race = {
   name: 'Osteon',
@@ -31,6 +32,20 @@ const OSTEON: Race = {
       ...race,
       oldRace: getRandomItemFromArray(validRaces),
     };
+  },
+  getDisplacement(race) {
+    if (race.oldRace) {
+      return getRaceDisplacement(race.oldRace);
+    }
+
+    return getRaceDisplacement(race);
+  },
+  getSize(race) {
+    if (race.oldRace) {
+      return getRaceSize(race.oldRace);
+    }
+
+    return getRaceSize(race);
   },
 };
 export default OSTEON;

@@ -1,4 +1,5 @@
 import Race from '../../interfaces/Race';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const GOBLIN: Race = {
   name: 'Goblin',
@@ -23,6 +24,7 @@ const GOBLIN: Race = {
     NIMB: 1,
     THWOR: 2,
   },
+  size: RACE_SIZES.PEQUENO,
 };
 
 export default GOBLIN;
