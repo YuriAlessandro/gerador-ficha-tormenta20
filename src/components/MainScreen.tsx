@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Select from 'react-select';
+import { useReactToPrint } from 'react-to-print';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
-
 import Result from './Result';
 
 import generateRandomSheet from '../functions/general';
@@ -27,13 +27,15 @@ type SelectedOption = { value: string; label: string };
 const MainScreen: React.FC = () => {
   const classes = useStyles();
 
-  // TODO: Create typing for chara sheet
-  const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
     raca: '',
   });
+
+  // TODO: Create typing for chara sheet
+  const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
+  const [showExportButton, setExportButton] = React.useState<boolean>();
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
@@ -54,6 +56,17 @@ const MainScreen: React.FC = () => {
     label: classe.name,
   }));
   const niveis = [{ value: 1, label: 'Nível 1' }];
+
+  const resultRef = React.createRef<HTMLDivElement>();
+  useEffect(() => {
+    if (resultRef.current) {
+      setExportButton(true);
+    }
+  }, [resultRef]);
+
+  const handlePrint = useReactToPrint({
+    content: () => resultRef.current,
+  });
 
   return (
     <div>
@@ -88,7 +101,24 @@ const MainScreen: React.FC = () => {
         </Button>
       </div>
 
-      {randomSheet && <Result sheet={randomSheet} />}
+      {randomSheet && (
+        <div style={{ width: '60vw' }}>
+          <div
+            style={{
+              display: showExportButton ? 'flex' : 'none',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <button className='exportBtn' type='button' onClick={handlePrint}>
+              Exportar ou imprimir essa ficha
+            </button>
+          </div>
+
+          <div ref={resultRef}>
+            <Result sheet={randomSheet} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
