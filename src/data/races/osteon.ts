@@ -1,4 +1,5 @@
 import Race from '../../interfaces/Race';
+import { getRandomItemFromArray } from '../../functions/randomUtils';
 
 const OSTEON: Race = {
   name: 'Osteon',
@@ -20,6 +21,16 @@ const OSTEON: Race = {
     AHARADAK: 1,
     TENEBRA: 1,
     THWOR: 1,
+  },
+  setup: (race, allRaces) => {
+    const validRaces = allRaces.filter(
+      (element) => element.name !== 'Golem' && element.name !== 'Osteon'
+    );
+
+    return {
+      ...race,
+      oldRace: getRandomItemFromArray(validRaces),
+    };
   },
 };
 export default OSTEON;

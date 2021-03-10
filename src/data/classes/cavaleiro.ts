@@ -52,7 +52,6 @@ const CAVALEIRO: ClassDescription = {
       nivel: 1,
     },
   ],
-  magics: [],
   probDevoto: 0.5,
   faithProbability: {
     ARSENAL: 1,

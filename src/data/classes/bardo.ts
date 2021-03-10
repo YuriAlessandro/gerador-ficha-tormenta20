@@ -1,4 +1,6 @@
+import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
+import { allSpellSchools } from '../../interfaces/Spells';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
@@ -58,7 +60,6 @@ const BARDO: ClassDescription = {
       nivel: 1,
     },
   ],
-  magics: [],
   probDevoto: 0.3,
   faithProbability: {
     HYNINN: 1,
@@ -69,6 +70,23 @@ const BARDO: ClassDescription = {
     TENEBRA: 1,
     VALKARIA: 1,
     WYNNA: 1,
+  },
+  setup: (classe) => {
+    const modifiedClasse = { ...classe };
+    modifiedClasse.spellPath = {
+      initialSpells: 2,
+      spellType: 'Arcane',
+      qtySpellsLearnAtLevel: (level) => (level % 2 === 0 ? 1 : 0),
+      schools: pickFromArray(allSpellSchools, 3),
+      spellCircleAvailableAtLevel: (level) => {
+        if (level < 6) return 1;
+        if (level < 10) return 2;
+        if (level < 14) return 3;
+        return 4;
+      },
+    };
+
+    return modifiedClasse;
   },
 };
 

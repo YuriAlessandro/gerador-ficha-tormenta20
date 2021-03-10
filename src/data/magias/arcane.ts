@@ -1,4 +1,4 @@
-import { spellsCircle1 as c1 } from './geral';
+import { spellsCircle1 as c1 } from './generalSpells';
 import { SpellCircle, Spell } from '../../interfaces/Spells';
 
 export const arcaneSpellsCircle1: SpellCircle = {

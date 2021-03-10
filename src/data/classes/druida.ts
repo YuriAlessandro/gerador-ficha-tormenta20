@@ -1,4 +1,6 @@
+import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
+import { allSpellSchools } from '../../interfaces/Spells';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
@@ -56,7 +58,6 @@ const DRUIDA: ClassDescription = {
       nivel: 1,
     },
   ],
-  magics: [],
   probDevoto: 1,
   qtdPoderesConcedidos: 'all',
   faithProbability: {
@@ -80,6 +81,23 @@ const DRUIDA: ClassDescription = {
     LINWU: 0,
     MEGALOKK: 0,
     NIMB: 0,
+  },
+  setup: (classe) => {
+    const modifiedClasse = { ...classe };
+    modifiedClasse.spellPath = {
+      initialSpells: 2,
+      spellType: 'Divine',
+      qtySpellsLearnAtLevel: (level) => (level % 2 === 0 ? 1 : 0),
+      schools: pickFromArray(allSpellSchools, 3),
+      spellCircleAvailableAtLevel: (level) => {
+        if (level < 6) return 1;
+        if (level < 10) return 2;
+        if (level < 14) return 3;
+        return 4;
+      },
+    };
+
+    return modifiedClasse;
   },
 };
 

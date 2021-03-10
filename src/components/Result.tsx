@@ -27,6 +27,7 @@ const Result: React.FC<ResultProps> = (props) => {
     devoto,
     origin,
     armorPenalty,
+    spells,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -42,6 +43,9 @@ const Result: React.FC<ResultProps> = (props) => {
       key={getKey(atributo.name)}
     />
   ));
+
+  let className = `${classe.name}`;
+  if (classe.subname) className = `${className} (${classe.subname})`;
 
   const periciasSorted = pericias.sort();
   const periciasDiv = periciasSorted.map((pericia) => (
@@ -100,7 +104,7 @@ const Result: React.FC<ResultProps> = (props) => {
           </strong>
           -
         </span>
-        <span className='resultItem className'>{` ${classe.name}`}</span>
+        <span className='resultItem className'>{`${className}`}</span>
         <span className='resultItem'>nível {nivel}</span>
       </div>
       <div className='resultRow'>
@@ -193,15 +197,29 @@ const Result: React.FC<ResultProps> = (props) => {
       <div className='resultRow bordered'>
         <div>
           <strong>Magias</strong>
-          {classe.magics.length === 0 && (
-            <ul>
+          <ul>
+            {classe.spellPath?.schools && (
+              <li>
+                Escolas:{' '}
+                {classe.spellPath?.schools?.map((school) => (
+                  <span key={school}>{school}, </span>
+                ))}
+              </li>
+            )}
+            {spells.length === 0 ? (
               <li>Não possui.</li>
-            </ul>
-          )}
+            ) : (
+              spells.map((spell) => (
+                <li key={spell.nome}>
+                  <strong>{spell.nome}</strong>
+                </li>
+              ))
+            )}
+          </ul>
         </div>
-      </div>
 
-      <div className='resultRow bordered' />
+        <div className='resultRow bordered' />
+      </div>
     </div>
   );
 };

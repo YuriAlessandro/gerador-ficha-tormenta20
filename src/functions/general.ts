@@ -6,6 +6,8 @@ import PERICIAS from '../data/pericias';
 import EQUIPAMENTOS, {
   applyEquipsModifiers,
   getBagDefault,
+  Armaduras,
+  Escudos,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -30,6 +32,15 @@ import originPowers from '../data/powers/originPowers';
 import { Bag } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
+import {
+  allArcaneSpellsCircle1,
+  arcaneSpellsCircle1,
+} from '../data/magias/arcane';
+import {
+  allDivineSpellsCircle1,
+  divineSpellsCircle1,
+} from '../data/magias/divine';
+import { Spell } from '../interfaces/Spells';
 
 export function getModValues(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -245,28 +256,12 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions) {
+function selectRace(selectedOptions: SelectedOptions): Race {
   if (selectedOptions.raca) {
-    const selectedRace = RACAS.find(
-      (currentRaca) => currentRaca.name === selectedOptions.raca
-    );
-
-    const raceName = selectedRace?.name || '';
-
-    return getRaceByName(raceName);
+    return getRaceByName(selectedOptions.raca);
   }
+
   return getRandomItemFromArray(RACAS);
-}
-
-function getAndSetupRace(selectedOptions: SelectedOptions) {
-  const race = selectRace(selectedOptions);
-
-  if (race.setup) {
-    const races = (RACAS as unknown) as Race[];
-    race.setup(races);
-  }
-
-  return race;
 }
 
 function getRaceAndRaceStats(
@@ -275,7 +270,7 @@ function getRaceAndRaceStats(
   sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
-  const race = getAndSetupRace(selectedOptions);
+  const race = selectRace(selectedOptions);
   // Passo 2.2: Cada raça pode modificar atributos, isso será feito aqui
   const atributos = modifyAttributesBasedOnRace(race, atributosRolados);
   // Passo 2.3: Definir nome
@@ -302,14 +297,16 @@ export function addClassPer(
 }
 
 function selectClass(selectedOptions: SelectedOptions): ClassDescription {
+  let selectedClass;
   if (selectedOptions.classe) {
-    const selectedClass = CLASSES.find(
+    selectedClass = CLASSES.find(
       (currentClasse) => currentClasse.name === selectedOptions.classe
     );
-
-    return selectedClass || getRandomItemFromArray(CLASSES);
   }
-  return getRandomItemFromArray(CLASSES);
+
+  if (!selectedClass) selectedClass = getRandomItemFromArray(CLASSES);
+  if (selectedClass.setup) return selectedClass.setup(selectedClass);
+  return selectedClass;
 }
 
 function addEquipClass(classe: ClassDescription): Bag {
@@ -330,14 +327,12 @@ function addEquipClass(classe: ClassDescription): Bag {
 
   // Escudo
   if (classe.proeficiencias.includes(todasProficiencias.ESCUDOS)) {
-    const escudo = EQUIPAMENTOS.escudos[0];
-    equipamentosIniciais.Escudo.push(escudo);
+    equipamentosIniciais.Escudo.push(Escudos.ESCUDOLEVE);
   }
 
   // Armadura
   if (classe.proeficiencias.includes(todasProficiencias.PESADAS)) {
-    const brunea = EQUIPAMENTOS.armaduraPesada[0];
-    equipamentosIniciais.Armadura.push(brunea);
+    equipamentosIniciais.Armadura.push(Armaduras.BRUNEA);
   } else if (classe.name !== 'Arcanista') {
     equipamentosIniciais.Armadura.push(
       getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves)
@@ -444,6 +439,26 @@ function getOrigin() {
   };
 }
 
+function getSpells(classe: ClassDescription): Spell[] {
+  const { spellPath } = classe;
+  if (!spellPath) return [];
+
+  // TODO: enable picking spells from other circles besides c1 for higher levels
+  const { initialSpells, schools, spellType } = spellPath;
+  let spellList =
+    spellType === 'Arcane' ? allArcaneSpellsCircle1 : allDivineSpellsCircle1;
+
+  if (schools) {
+    if (spellType === 'Arcane') {
+      spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
+    } else {
+      spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
+    }
+  }
+
+  return pickFromArray(spellList, initialSpells);
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -514,6 +529,9 @@ export default function generateRandomSheet(
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devoto = getReligiosidade(classe, race);
 
+  // Passo 8: Gerar magias se possível
+  const spells = getSpells(classe);
+
   return {
     id: uuid(),
     nome,
@@ -530,5 +548,6 @@ export default function generateRandomSheet(
     devoto,
     origin,
     armorPenalty,
+    spells,
   };
 }

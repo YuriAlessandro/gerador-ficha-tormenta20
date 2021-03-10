@@ -1,7 +1,7 @@
-import { spellsCircle1 as c1 } from './geral';
+import { spellsCircle1 as c1 } from './generalSpells';
 import { SpellCircle, Spell } from '../../interfaces/Spells';
 
-export const arcaneSpellsCircle1: SpellCircle = {
+export const divineSpellsCircle1: SpellCircle = {
   Abjur: [
     c1.escudoDaFe,
     c1.protecaoDivina,
@@ -29,6 +29,6 @@ export const arcaneSpellsCircle1: SpellCircle = {
   ],
 };
 
-export const allArcaneSpellsCircle1: Spell[] = Object.values(
-  arcaneSpellsCircle1
+export const allDivineSpellsCircle1: Spell[] = Object.values(
+  divineSpellsCircle1
 ).reduce((acc, current) => [...acc, ...current]);
