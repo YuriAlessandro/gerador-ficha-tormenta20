@@ -1,27 +1,66 @@
 /* Results */
+.divider {
+	position: relative;
+	margin: 30px 0 20px 0;
+	height: 1px;
+}
+
+.div-transparent:before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 5%;
+	right: 5%;
+	width: 100%;
+	height: 1px;
+	background-image: linear-gradient(to right, transparent, rgb(48,49,51), transparent);
+}
+
+.div-arrow-down:after,
+.div-arrow-up:after {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	top: -7px;
+	left: calc(50% - 7px);
+	width: 14px;
+	height: 14px;
+	background-color: white;
+	border-bottom: 1px solid rgb(48,49,51);
+	border-right: 1px solid rgb(48,49,51);
+}
+
+.div-arrow-down:after {
+  transform: rotate(45deg);
+}
+
+.div-arrow-up:after {
+  transform: rotate(225deg);
+}
+
 .resultMainDiv {
   width: 60vw;
   padding: 5px 30px 30px 30px;
 }
 
+.characterInfos {
+  display: flex;
+  justify-content: space-between;
+}
+
 .resultRow {
   display: flex;
-  /* padding: 5px 0; */
 }
 
-.resultRow.bordered {
-  padding: 10px 0;
-}
-
-.resultRow.bordered,
-.attributesRow{
-  border-top: 1px solid black;
+.stats {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .attributesRow {
   display: flex;
   justify-content: space-between;
-  padding: 30px;
+  padding: 15px 0;
 }
 
 .attributeItem {
@@ -70,17 +109,71 @@
 
 .condense {
   display: flex;
-  border-top: 1px solid black;
 }
 
 .condense .resultRow{
-  margin-right: 30px;
-  border: none
+  margin-right: 50px;
 }
 
-@media (max-width: 720px) {
+.characterStat {
+  border: 1px solid black;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  flex-direction: column;
+  border-radius: 5px;
+  margin: 5px;
+  text-align: center;
+}
+
+.characterStat .name {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.characterStat .name.movement{
+  font-size: 8px;
+  margin-top: 10px
+}
+
+.characterStat .value {
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.characterStat .value.movement {
+  margin-top: 15px;
+}
+
+.sectionTitle{
+  text-align: center;
+  font-weight: bold;
+  font-size: 25px;
+  margin: 20px 0;
+}
+
+table {
+  width: 100%;
+  text-align: left;
+}
+
+.tableWrap {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.textToRight {
+  text-align: right;
+}
+
+@media screen and (max-width: 720px) {
   .resultMainDiv {
-    width: calc(85vw);
+    width: inherit;
+    padding: 5px 20px 20px 20px;
   }
 
   .resultRow {
@@ -99,5 +192,43 @@
 
   .condense {
     flex-wrap: wrap;
+  }
+
+  .tableWrap {
+    font-size: 10px;
+  }
+
+  .stats {
+    flex-wrap: wrap;
+  }
+
+  .characterStat {
+    width: 70px;
+    height: 70px;
+  }
+
+  .characterStat .name{
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  
+  .characterStat .name.movement{
+    font-size: 8px;
+    margin-top: 5px
+  }
+  
+  .characterStat .value {
+    margin-top: 10px;
+    font-size: 20px;
+  }
+  
+  .characterStat .value.movement {
+    margin-top: 10px;
+  }
+}
+
+@media only screen and (min-device-width: 720px) and (max-device-width: 1024px){
+  .resultMainDiv {
+    width: 90vw;
   }
 }
