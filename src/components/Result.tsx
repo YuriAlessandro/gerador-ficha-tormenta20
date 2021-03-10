@@ -95,7 +95,9 @@ const Result: React.FC<ResultProps> = (props) => {
     .flatMap((value) => value[1]);
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
-    <li key={getKey(equip.nome)}>{equip.nome}</li>
+    <li key={getKey(equip.nome)}>
+      {equip.nome} {equip.peso && `- ${equip.peso}kg`}
+    </li>
   ));
 
   const weaponsDiv = <Weapons getKey={getKey} weapons={bag.equipments.Arma} />;
