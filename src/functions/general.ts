@@ -566,9 +566,12 @@ export default function generateRandomSheet(
   // Passo 8: Gerar magias se possível
   const spells = getSpells(classe);
 
-  // Passo 9: Recuperar deslocamento e tamanho
+  // Passo 9: Recuperar deslocamento e tamanho com base na Raça, Atributos e Equipamentos
   const displacement = calcDisplacement(bag, race, atributos);
   const size = getRaceSize(race);
+
+  // Passo 10: Calcular o peso máximo com base na força
+  const maxWeight = atributos.Força.value * 3;
 
   return {
     id: uuid(),
@@ -576,6 +579,7 @@ export default function generateRandomSheet(
     sexo,
     nivel,
     atributos,
+    maxWeight,
     raca: race,
     classe,
     pericias,

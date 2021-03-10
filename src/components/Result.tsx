@@ -35,6 +35,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     spells,
     displacement,
+    maxWeight,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -198,7 +199,7 @@ const Result: React.FC<ResultProps> = (props) => {
             <strong>Penalidade de Armadura</strong> {bag.armorPenalty * -1}
           </span>
           <span>
-            <strong>Peso</strong> {bag.weight}kg
+            <strong>Peso (atual/máximo)</strong> {bag.weight}kg/{maxWeight}kg
           </span>
         </div>
         <div className='tableWrap'>{equipamentosDiv}</div>
