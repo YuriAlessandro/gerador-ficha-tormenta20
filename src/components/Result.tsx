@@ -1,4 +1,6 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 import CharacterStat from './CharacterStat';
@@ -38,6 +40,23 @@ const Result: React.FC<ResultProps> = (props) => {
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
   }
+
+  const [isRacePowersVisible, setisRacePowersVisible] = React.useState<boolean>(
+    false
+  );
+
+  const [isClassPowersVisible, setClassPowersVisible] = React.useState<boolean>(
+    false
+  );
+
+  const [
+    isOriginPowersVisible,
+    setOriginPowersVisible,
+  ] = React.useState<boolean>(false);
+
+  const [isGodPowersVisible, setGodPowersVisible] = React.useState<boolean>(
+    false
+  );
 
   const atributosDiv = atributos.map((atributo) => (
     <Attribute
@@ -190,33 +209,67 @@ const Result: React.FC<ResultProps> = (props) => {
         <span>Habilidades e Poderes</span>
       </div>
 
-      <div className='resultRow'>
-        <div>
+      <div className='resultRow powers'>
+        <div
+          className='powersNameRow'
+          onClick={() => setisRacePowersVisible(!isRacePowersVisible)}
+          role='button'
+          tabIndex={0}
+        >
+          <ChevronRightIcon />
           <strong>Habilidades de {raca.name}</strong>
+        </div>
+        <div style={{ display: `${isRacePowersVisible ? 'block' : 'none'}` }}>
           <ul>{habilidadesRacaDiv}</ul>
         </div>
       </div>
 
-      <div className='resultRow'>
-        <div>
+      <div className='resultRow powers'>
+        <div
+          className='powersNameRow'
+          onClick={() => setClassPowersVisible(!isClassPowersVisible)}
+          role='button'
+          tabIndex={0}
+        >
+          <ChevronRightIcon />
           <strong>Habilidades de {classe.name}</strong>
+        </div>
+        <div style={{ display: `${isClassPowersVisible ? 'block' : 'none'}` }}>
           <ul>{habilidadesClasseDiv}</ul>
         </div>
       </div>
 
       {origin.powers.length > 0 && (
-        <div className='resultRow'>
-          <div>
-            <strong>Poderes de {origin.name}</strong>
+        <div className='resultRow powers'>
+          <div
+            className='powersNameRow'
+            onClick={() => setOriginPowersVisible(!isOriginPowersVisible)}
+            role='button'
+            tabIndex={0}
+          >
+            <ChevronRightIcon />
+            <strong>Habilidades de {origin.name}</strong>
+          </div>
+          <div
+            style={{ display: `${isOriginPowersVisible ? 'block' : 'none'}` }}
+          >
             <ul>{originPowers}</ul>
           </div>
         </div>
       )}
 
       {devoto && (
-        <div className='resultRow'>
-          <div>
-            <strong>Poderes de {devoto.divindade.name}</strong>
+        <div className='resultRow powers'>
+          <div
+            className='powersNameRow'
+            onClick={() => setGodPowersVisible(!isGodPowersVisible)}
+            role='button'
+            tabIndex={0}
+          >
+            <ChevronRightIcon />
+            <strong>Habilidades de {devoto.divindade.name}</strong>
+          </div>
+          <div style={{ display: `${isGodPowersVisible ? 'block' : 'none'}` }}>
             <ul>{poderesConcedidos}</ul>
           </div>
         </div>

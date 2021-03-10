@@ -20,7 +20,6 @@
 .div-arrow-up:after {
 	content: "";
 	position: absolute;
-	z-index: 1;
 	top: -7px;
 	left: calc(50% - 7px);
 	width: 14px;
@@ -50,6 +49,11 @@
 
 .resultRow {
   display: flex;
+}
+
+.resultRow.powers {
+  flex-direction: column;
+  margin: 10px 0;
 }
 
 .stats {
@@ -182,6 +186,13 @@ table {
   padding: 0 15px;
 }
 
+.powersNameRow {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+}
+
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
@@ -191,6 +202,7 @@ table {
   .resultRow {
     flex-wrap: wrap;
   }
+
 
   .attributesRow {
     flex-wrap: wrap;

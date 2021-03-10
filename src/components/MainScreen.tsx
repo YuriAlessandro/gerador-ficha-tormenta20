@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Select from 'react-select';
-import { useReactToPrint } from 'react-to-print';
+import ReactToPrint from 'react-to-print';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -64,9 +64,9 @@ const MainScreen: React.FC = () => {
     }
   }, [resultRef]);
 
-  const handlePrint = useReactToPrint({
-    content: () => resultRef.current,
-  });
+  // const handlePrint = useReactToPrint({
+  //   content: () => resultRef.current,
+  // });
 
   return (
     <div>
@@ -109,9 +109,19 @@ const MainScreen: React.FC = () => {
               justifyContent: 'flex-end',
             }}
           >
-            <button className='exportBtn' type='button' onClick={handlePrint}>
+            {/* <button className='exportBtn' type='button' onClick={handlePrint}>
               Exportar ou imprimir essa ficha
-            </button>
+            </button> */}
+
+            <ReactToPrint
+              trigger={() => (
+                <button className='exportBtn' type='button'>
+                  Exportar ou imprimir essa ficha
+                </button>
+              )}
+              content={() => resultRef.current}
+              documentTitle={`${randomSheet.nome} - ${randomSheet.classe.name} ${randomSheet.raca.name}`}
+            />
           </div>
 
           <div ref={resultRef}>
