@@ -1,4 +1,5 @@
 import { FaithProbability } from './Divindade';
+import { SpellSchool } from './Spells';
 
 export interface BasicExpertise {
   type: string;
@@ -17,8 +18,17 @@ export interface ClassHability {
   nivel: number;
 }
 
+export interface SpellPath {
+  initialSpells: number;
+  spellType: 'Arcane' | 'Divine';
+  schools?: SpellSchool[];
+  qtySpellsLearnAtLevel: (level: number) => number;
+  spellCircleAvailableAtLevel: (level: number) => number;
+}
+
 export interface ClassDescription {
   name: string;
+  subname?: string;
   pv: number;
   addpv: number;
   pm: number;
@@ -27,8 +37,9 @@ export interface ClassDescription {
   periciasrestantes: RemainingExpertise;
   proeficiencias: string[];
   habilities: ClassHability[];
-  magics: string[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;
+  spellPath?: SpellPath;
+  setup?: (classe: ClassDescription) => ClassDescription;
 }

@@ -19,6 +19,17 @@ export type SpellSchool =
   | 'Necro'
   | 'Trans';
 
+export const allSpellSchools: SpellSchool[] = [
+  'Abjur',
+  'Adiv',
+  'Conv',
+  'Encan',
+  'Evoc',
+  'Ilusão',
+  'Necro',
+  'Trans',
+];
+
 export type SpellCircle = {
   [key in SpellSchool]: Spell[];
 };

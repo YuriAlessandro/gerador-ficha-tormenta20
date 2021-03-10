@@ -3,6 +3,7 @@ import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race from './Race';
 import { Bag } from './Equipment';
+import { Spell } from './Spells';
 
 export interface RaceHability {
   attr: string;
@@ -40,4 +41,5 @@ export default interface CharacterSheet {
     powers: (OriginPower | GeneralPower)[];
   };
   armorPenalty: number;
+  spells: Spell[];
 }

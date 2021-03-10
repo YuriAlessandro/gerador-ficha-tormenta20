@@ -44,7 +44,6 @@ const BARBARO: ClassDescription = {
       nivel: 1,
     },
   ],
-  magics: [],
   probDevoto: 0.3,
   faithProbability: {
     ALLIHANNA: 1,

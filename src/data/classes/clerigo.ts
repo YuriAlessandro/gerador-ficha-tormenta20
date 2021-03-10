@@ -48,10 +48,26 @@ const CLERIGO: ClassDescription = {
       nivel: 1,
     },
   ],
-  magics: [],
   probDevoto: 0.95,
   qtdPoderesConcedidos: 'all',
   faithProbability: standardFaithProbability,
+  setup: (classe) => {
+    const modifiedClasse = { ...classe };
+    modifiedClasse.spellPath = {
+      initialSpells: 3,
+      spellType: 'Divine',
+      qtySpellsLearnAtLevel: () => 1,
+      spellCircleAvailableAtLevel: (level) => {
+        if (level < 5) return 1;
+        if (level < 9) return 2;
+        if (level < 13) return 3;
+        if (level < 17) return 4;
+        return 5;
+      },
+    };
+
+    return modifiedClasse;
+  },
 };
 
 export default CLERIGO;

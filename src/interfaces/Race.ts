@@ -17,6 +17,6 @@ export default interface Race {
     texts: string[];
   };
   oldRace?: Race;
-  setup?: (races: Race[]) => void;
+  setup?: (race: Race, allRaces: Race[]) => Race;
   faithProbability?: FaithProbability;
 }
