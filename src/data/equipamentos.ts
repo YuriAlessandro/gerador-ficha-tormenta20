@@ -1,4 +1,8 @@
-import Equipment, { Bag, DefenseEquipment } from '../interfaces/Equipment';
+import Equipment, {
+  Bag,
+  DefenseEquipment,
+  CombatItems,
+} from '../interfaces/Equipment';
 
 export const Armas: Record<string, Equipment> = {
   ADAGA: {
@@ -214,7 +218,8 @@ export function getBagDefault(): Bag {
     Veículo: [],
   };
 }
-const EQUIPAMENTOS: Record<string, Equipment[]> = {
+
+const EQUIPAMENTOS: CombatItems = {
   armasSimples: [
     Armas.ADAGA,
     Armas.ARCOCURTO,
