@@ -224,14 +224,17 @@ const defaultEquipments: BagEquipments = {
     {
       nome: 'Mochila',
       group: 'Item Geral',
+      peso: 1,
     },
     {
       nome: 'Saco de dormir',
       group: 'Item Geral',
+      peso: 2.5,
     },
     {
       nome: 'Traje de viajante',
       group: 'Item Geral',
+      peso: 2,
     },
   ],
   Alimentação: [],

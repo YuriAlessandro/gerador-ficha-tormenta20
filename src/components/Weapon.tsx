@@ -16,7 +16,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       <td>{critico}</td>
       <td>{tipo}</td>
       <td>{alcance || '-'}</td>
-      <td>{peso}</td>
+      <td>{peso}kg</td>
     </tr>
   );
 };
