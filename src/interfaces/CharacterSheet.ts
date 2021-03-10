@@ -47,4 +47,5 @@ export default interface CharacterSheet {
   spells: Spell[];
   displacement: number;
   size: RaceSize;
+  maxWeight: number;
 }
