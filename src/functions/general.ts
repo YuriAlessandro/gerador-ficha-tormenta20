@@ -63,6 +63,7 @@ function getNotRepeatedAttribute(atributosModificados: string[]) {
   const atributosPermitidos = Object.values(Atributo).filter(
     (atributo) => !atributosModificados.includes(atributo)
   );
+
   return getRandomItemFromArray<Atributo>(atributosPermitidos);
 }
 
@@ -81,8 +82,9 @@ function getModifiedAttribute(
   selectedAttrName: Atributo,
   atributosModificados: CharacterAttributes,
   attrDaRaca: RaceAttributeHability
-) {
-  const newValue = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
+): CharacterAttribute {
+  const newValue =
+    atributosModificados[selectedAttrName].value + attrDaRaca.mod;
 
   return {
     ...atributosModificados[selectedAttrName],
@@ -92,31 +94,32 @@ function getModifiedAttribute(
 }
 
 interface ReduceAttributesParams {
-  atributosModificados: CharacterAttributes;
+  atributos: CharacterAttributes;
   nomesDosAtributosModificados: string[];
 }
 
 export function modifyAttributesBasedOnRace(
   raca: Race,
-  atributos: CharacterAttributes
+  atributosRolados: CharacterAttributes
 ): CharacterAttributes {
   const reducedAttrs = raca.habilites.attrs.reduce<ReduceAttributesParams>(
-    ({ atributosModificados, nomesDosAtributosModificados }, attrDaRaca) => {
+    ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
       const selectedAttrName = selectAttributeToChange(
         nomesDosAtributosModificados,
         attrDaRaca
       );
 
-      const atributoModificado = atributosModificados[selectedAttrName];
+      const atributoModificado = getModifiedAttribute(
+        selectedAttrName,
+        atributos,
+        attrDaRaca
+      );
+
       return {
-        atributosModificados: {
-          ...atributosModificados,
-          [atributoModificado.name]: getModifiedAttribute(
-            selectedAttrName,
-            atributosModificados,
-            attrDaRaca
-          ),
+        atributos: {
+          ...atributos,
+          [selectedAttrName]: atributoModificado,
         },
         nomesDosAtributosModificados: [
           ...nomesDosAtributosModificados,
@@ -125,12 +128,12 @@ export function modifyAttributesBasedOnRace(
       };
     },
     {
-      atributosModificados: atributos,
+      atributos: atributosRolados,
       nomesDosAtributosModificados: [],
     }
   );
 
-  return reducedAttrs.atributosModificados;
+  return reducedAttrs.atributos;
 }
 
 function getNotRepeatedRandomPer(periciasUsadas: string[]) {
