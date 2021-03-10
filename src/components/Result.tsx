@@ -5,7 +5,7 @@ import CharacterStat from './CharacterStat';
 import Divider from './SheetDivider';
 import Weapons from './Weapons';
 import DefenseEquipments from './DefenseEquipments';
-import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
+import Equipment from '../interfaces/Equipment';
 
 import '../assets/css/result.css';
 
@@ -71,19 +71,13 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(proe)}>{proe}</li>
   ));
 
-  const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
-    ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
-  );
+  const equipsEntriesNoWeapons: Equipment[] = Object.entries(equipamentos)
+    .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
+    .flatMap((value) => value[1]);
 
-  const equipamentosDiv = equipsEntriesNoWeapons
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(([_, equips]) => {
-      const equipments = equips as (Equipment | DefenseEquipment)[];
-      return equipments.map((equip) => (
-        <li key={getKey(equip.nome)}>{equip.nome}</li>
-      ));
-    })
-    .flat();
+  const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
+    <li key={getKey(equip.nome)}>{equip.nome}</li>
+  ));
 
   const weaponsDiv = <Weapons getKey={getKey} weapons={equipamentos.Arma} />;
   const defenseEquipments = [...equipamentos.Armadura, ...equipamentos.Escudo];
