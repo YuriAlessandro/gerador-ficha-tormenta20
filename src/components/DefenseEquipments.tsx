@@ -9,9 +9,18 @@ interface DefenseEquipmentsProps {
 
 const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
   const { defenseEquipments, getKey } = props;
-  const DefenseEquipmentsDiv = defenseEquipments.map((equip) => (
-    <DefenseItem key={getKey(equip.nome)} equipment={equip} />
-  ));
+  const DefenseEquipmentsDiv =
+    defenseEquipments.length > 0 ? (
+      defenseEquipments.map((equip) => (
+        <DefenseItem key={getKey(equip.nome)} equipment={equip} />
+      ))
+    ) : (
+      <tr>
+        <td className='textToCenter noDefensiveItem' colSpan={4}>
+          Nenhum equipamento defensivo
+        </td>
+      </tr>
+    );
 
   return (
     <table>

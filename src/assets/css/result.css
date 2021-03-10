@@ -163,11 +163,23 @@ table {
   border: 1px solid black;
   border-radius: 5px;
   padding: 15px;
-  margin-top: 10px;
+  margin: 10px 0px;
 }
 
 .textToRight {
   text-align: right;
+}
+
+.textToCenter {
+  text-align: center;
+}
+
+.noDefensiveItem {
+  padding: 15px;
+}
+
+.equipmentsValues span {
+  padding: 0 15px;
 }
 
 @media screen and (max-width: 720px) {
