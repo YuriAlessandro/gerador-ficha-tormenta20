@@ -1,23 +1,23 @@
 {
   "files": {
-    "main.css": "/gerador-ficha-tormenta20/static/css/main.a3343c7e.chunk.css",
-    "main.js": "/gerador-ficha-tormenta20/static/js/main.944b8edb.chunk.js",
-    "main.js.map": "/gerador-ficha-tormenta20/static/js/main.944b8edb.chunk.js.map",
-    "runtime-main.js": "/gerador-ficha-tormenta20/static/js/runtime-main.4e0d503e.js",
-    "runtime-main.js.map": "/gerador-ficha-tormenta20/static/js/runtime-main.4e0d503e.js.map",
-    "static/js/2.0da09dd1.chunk.js": "/gerador-ficha-tormenta20/static/js/2.0da09dd1.chunk.js",
-    "static/js/2.0da09dd1.chunk.js.map": "/gerador-ficha-tormenta20/static/js/2.0da09dd1.chunk.js.map",
-    "static/js/3.6b28cab2.chunk.js": "/gerador-ficha-tormenta20/static/js/3.6b28cab2.chunk.js",
-    "static/js/3.6b28cab2.chunk.js.map": "/gerador-ficha-tormenta20/static/js/3.6b28cab2.chunk.js.map",
+    "main.css": "/gerador-ficha-tormenta20/static/css/main.183f1e8d.chunk.css",
+    "main.js": "/gerador-ficha-tormenta20/static/js/main.24071621.chunk.js",
+    "main.js.map": "/gerador-ficha-tormenta20/static/js/main.24071621.chunk.js.map",
+    "runtime-main.js": "/gerador-ficha-tormenta20/static/js/runtime-main.ea96994e.js",
+    "runtime-main.js.map": "/gerador-ficha-tormenta20/static/js/runtime-main.ea96994e.js.map",
+    "static/js/2.72e41a08.chunk.js": "/gerador-ficha-tormenta20/static/js/2.72e41a08.chunk.js",
+    "static/js/2.72e41a08.chunk.js.map": "/gerador-ficha-tormenta20/static/js/2.72e41a08.chunk.js.map",
+    "static/js/3.d04a7b7f.chunk.js": "/gerador-ficha-tormenta20/static/js/3.d04a7b7f.chunk.js",
+    "static/js/3.d04a7b7f.chunk.js.map": "/gerador-ficha-tormenta20/static/js/3.d04a7b7f.chunk.js.map",
     "index.html": "/gerador-ficha-tormenta20/index.html",
-    "static/css/main.a3343c7e.chunk.css.map": "/gerador-ficha-tormenta20/static/css/main.a3343c7e.chunk.css.map",
-    "static/js/2.0da09dd1.chunk.js.LICENSE.txt": "/gerador-ficha-tormenta20/static/js/2.0da09dd1.chunk.js.LICENSE.txt",
+    "static/css/main.183f1e8d.chunk.css.map": "/gerador-ficha-tormenta20/static/css/main.183f1e8d.chunk.css.map",
+    "static/js/2.72e41a08.chunk.js.LICENSE.txt": "/gerador-ficha-tormenta20/static/js/2.72e41a08.chunk.js.LICENSE.txt",
     "static/media/tormenta-logo-eye.41c710b0.png": "/gerador-ficha-tormenta20/static/media/tormenta-logo-eye.41c710b0.png"
   },
   "entrypoints": [
-    "static/js/runtime-main.4e0d503e.js",
-    "static/js/2.0da09dd1.chunk.js",
-    "static/css/main.a3343c7e.chunk.css",
-    "static/js/main.944b8edb.chunk.js"
+    "static/js/runtime-main.ea96994e.js",
+    "static/js/2.72e41a08.chunk.js",
+    "static/css/main.183f1e8d.chunk.css",
+    "static/js/main.24071621.chunk.js"
   ]
 }
