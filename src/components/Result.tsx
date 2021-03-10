@@ -1,6 +1,11 @@
 import React from 'react';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
+import CharacterStat from './CharacterStat';
+import Divider from './SheetDivider';
+import Weapons from './Weapons';
+import DefenseEquipments from './DefenseEquipments';
+import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 
 import '../assets/css/result.css';
 
@@ -48,39 +53,50 @@ const Result: React.FC<ResultProps> = (props) => {
   if (classe.subname) className = `${className} (${classe.subname})`;
 
   const periciasSorted = pericias.sort();
+
   const periciasDiv = periciasSorted.map((pericia) => (
     <li key={getKey(pericia)}>{pericia}</li>
   ));
   const habilidadesRacaDiv = raca.habilites.texts.map((hab) => (
     <li key={getKey(hab)}>{hab}</li>
   ));
+
   const habilidadesClasseDiv = classe.habilities.map((hab) => (
     <li key={getKey(hab.name)}>
       <strong>{hab.name}:</strong> {hab.text}
     </li>
   ));
+
   const proeficienciasDiv = classe.proeficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
+
   const equipsEntriesNoWeapons = Object.entries(equipamentos).filter(
-    ([key]) => key !== 'Arma'
+    ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
   );
 
   const equipamentosDiv = equipsEntriesNoWeapons
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(([_, equips]) =>
-      equips.map((equip) => <li key={getKey(equip.nome)}>{equip.nome}</li>)
-    )
+    .map(([_, equips]) => {
+      const equipments = equips as (Equipment | DefenseEquipment)[];
+      return equipments.map((equip) => (
+        <li key={getKey(equip.nome)}>{equip.nome}</li>
+      ));
+    })
     .flat();
 
-  const armasDiv = equipamentos.Arma.map((equip) => (
-    <li key={getKey(equip.nome)}>{equip.nome}</li>
-  ));
+  const weaponsDiv = <Weapons getKey={getKey} weapons={equipamentos.Arma} />;
+  const defenseEquipments = [...equipamentos.Armadura, ...equipamentos.Escudo];
+  const defenseDiv = (
+    <DefenseEquipments getKey={getKey} defenseEquipments={defenseEquipments} />
+  );
+
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
       <strong>{poder?.name}: </strong> {poder?.description}
     </li>
   ));
+
   const originPowers = origin.powers
     ? origin.powers.map((power) => (
         <li key={getKey(power.name)}>
@@ -91,112 +107,127 @@ const Result: React.FC<ResultProps> = (props) => {
 
   return (
     <div className='resultMainDiv'>
-      <div className='resultRow nameArea'>
-        <span className='resultItem name'>
-          <strong>{nome}</strong>
-        </span>
-        <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+      <Divider direction='up' />
+      <div className='characterInfos'>
+        <div>
+          <div className='resultRow nameArea'>
+            <span className='resultItem name'>
+              <strong>{nome}</strong>
+            </span>
+            <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+          </div>
+          <div className='resultRow'>
+            <span className='resultItem raceName'>
+              <strong>
+                {raca.name} {raca.oldRace && `(${raca.oldRace.name})`}
+              </strong>
+              -
+            </span>
+            <span className='resultItem className'>{`${className}`}</span>
+            <span className='resultItem'>nível {nivel}</span>
+          </div>
+          <div className='resultRow'>
+            <span className='resultItem originName'>{origin.name}</span>
+            {devoto && (
+              <span className='resultItem'>
+                {`devoto de ${devoto.divindade.name}`}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className='stats'>
+          <CharacterStat name='PV' value={pv} isMovement={false} />
+          <CharacterStat name='PM' value={pm} isMovement={false} />
+          <CharacterStat name='Defesa' value={defesa} isMovement={false} />
+          <CharacterStat name='Deslocamento' value={9} isMovement />
+        </div>
       </div>
-      <div className='resultRow'>
-        <span className='resultItem raceName'>
-          <strong>
-            {raca.name} {raca.oldRace && `(${raca.oldRace.name})`}
-          </strong>
-          -
-        </span>
-        <span className='resultItem className'>{`${className}`}</span>
-        <span className='resultItem'>nível {nivel}</span>
-      </div>
-      <div className='resultRow'>
-        <span className='resultItem originName'>{origin.name}</span>
-        {devoto && (
-          <span className='resultItem'>
-            {`devoto de ${devoto.divindade.name}`}
-          </span>
-        )}
-      </div>
+
+      <Divider direction='down' />
 
       <div className='attributesRow'>{atributosDiv}</div>
 
-      <div className='resultRow bordered'>
-        <span className='resultItem'>
-          <strong>PV</strong> {pv}
-        </span>
-        <span className='resultItem'>
-          <strong>PM</strong> {pm}
-        </span>
-        <span className='resultItem'>
-          <strong>Defesa</strong> {defesa}
-        </span>
-        <span className='resultItem'>
-          <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
-        </span>
-      </div>
+      <Divider direction='down' />
 
       <div className='condense'>
-        <div className='resultRow bordered'>
-          <div>
-            <strong>Perícias Treinadas:</strong>
-            <ul>{periciasDiv}</ul>
-          </div>
-        </div>
-
-        <div className='resultRow bordered'>
+        <div className='resultRow'>
           <div>
             <strong>Proficiências</strong>
-            <ul>{proeficienciasDiv}</ul>
+            <div>{proeficienciasDiv}</div>
           </div>
         </div>
 
-        <div className='resultRow bordered'>
+        <div className='resdivtRow'>
           <div>
-            <strong>Equipamento</strong>
-            <ul>{equipamentosDiv}</ul>
-          </div>
-        </div>
-        <div className='resultRow bordered'>
-          <div>
-            <strong>Armas</strong>
-            <ul>{armasDiv}</ul>
+            <strong>Perícias Treinadas:</strong>
+            <div>{periciasDiv}</div>
           </div>
         </div>
       </div>
 
-      <div className='resultRow bordered'>
+      <Divider direction='down' />
+
+      <div className='sectionTitle'>
+        <span>Equipamentos</span>
+      </div>
+
+      <div className='equipaments'>
+        <div className='tableWrap'>{weaponsDiv}</div>
+        <div className='tableWrap'>{defenseDiv}</div>
+        <div className='textToRight'>
+          <strong>Penalidade de Armadura</strong> {armorPenalty * -1}
+        </div>
+        <div className='tableWrap'>{equipamentosDiv}</div>
+        <span className='resultItem' />
+      </div>
+
+      <Divider direction='down' />
+
+      <div className='sectionTitle'>
+        <span>Habilidades e Poderes</span>
+      </div>
+
+      <div className='resultRow'>
         <div>
-          <strong>Habilidades de Raça</strong>
+          <strong>Habilidades de {raca.name}</strong>
           <ul>{habilidadesRacaDiv}</ul>
         </div>
       </div>
 
-      <div className='resultRow bordered'>
+      <div className='resultRow'>
         <div>
-          <strong>Habilidades de Classe</strong>
+          <strong>Habilidades de {classe.name}</strong>
           <ul>{habilidadesClasseDiv}</ul>
         </div>
       </div>
 
       {origin.powers.length > 0 && (
-        <div className='resultRow bordered'>
+        <div className='resultRow'>
           <div>
-            <strong>Poderes da Origem</strong>
+            <strong>Poderes de {origin.name}</strong>
             <ul>{originPowers}</ul>
           </div>
         </div>
       )}
 
       {devoto && (
-        <div className='resultRow bordered'>
+        <div className='resultRow'>
           <div>
-            <strong>Poderes Concedidos</strong>
+            <strong>Poderes de {devoto.divindade.name}</strong>
             <ul>{poderesConcedidos}</ul>
           </div>
         </div>
       )}
 
-      <div className='resultRow bordered'>
+      <Divider direction='down' />
+
+      <div className='sectionTitle'>
+        <span>Magias</span>
+      </div>
+
+      <div className='resultRow'>
         <div>
-          <strong>Magias</strong>
           <ul>
             {classe.spellPath?.schools && (
               <li>
@@ -217,9 +248,8 @@ const Result: React.FC<ResultProps> = (props) => {
             )}
           </ul>
         </div>
-
-        <div className='resultRow bordered' />
       </div>
+      <Divider direction='up' />
     </div>
   );
 };
