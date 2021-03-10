@@ -6,14 +6,3 @@ export enum Atributo {
   SABEDORIA = 'Sabedoria',
   CARISMA = 'Carisma',
 }
-
-const ATRIBUTOS = [
-  'Força',
-  'Destreza',
-  'Constituição',
-  'Inteligência',
-  'Sabedoria',
-  'Carisma',
-];
-
-export default ATRIBUTOS;

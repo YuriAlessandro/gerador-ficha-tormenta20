@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const DAHLLAN: Race = {
   name: 'Dahllan',
   habilites: {
     attrs: [
-      { attr: 'Sabedoria', mod: 4 },
-      { attr: 'Destreza', mod: 2 },
-      { attr: 'Inteligência', mod: -2 },
+      { attr: Atributo.SABEDORIA, mod: 4 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.INTELIGENCIA, mod: -2 },
     ],
     other: [],
     texts: [

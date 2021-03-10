@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const ANAO: Race = {
   name: 'Anão',
   habilites: {
     attrs: [
-      { attr: 'Constituição', mod: 4 },
-      { attr: 'Sabedoria', mod: 2 },
-      { attr: 'Destreza', mod: -2 },
+      { attr: 'any', mod: 4 },
+      { attr: Atributo.SABEDORIA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: -2 },
     ],
     other: [{ type: 'pv', mod: 3 }],
     texts: [
@@ -24,7 +25,7 @@ const ANAO: Race = {
     THWOR: 1,
     TENEBRA: 1,
   },
-  displacement: 6,
+  getDisplacement: () => 6,
 };
 
 export default ANAO;

@@ -58,7 +58,7 @@ const Result: React.FC<ResultProps> = (props) => {
     false
   );
 
-  const atributosDiv = atributos.map((atributo) => (
+  const atributosDiv = Object.values(atributos).map((atributo) => (
     <Attribute
       name={atributo.name}
       mod={atributo.mod}

@@ -12,8 +12,8 @@ function getDefaultSize(race: Race) {
 const DEFAULT_RACE_DISPLACEMENT = 9;
 
 function getDefaultDisplacement(race: Race) {
-  if (race.displacement) {
-    return race.displacement;
+  if (race.getDisplacement) {
+    return race.getDisplacement(race);
   }
 
   return DEFAULT_RACE_DISPLACEMENT;

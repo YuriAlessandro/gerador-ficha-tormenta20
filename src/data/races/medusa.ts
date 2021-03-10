@@ -1,11 +1,12 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const MEDUSA: Race = {
   name: 'Medusa',
   habilites: {
     attrs: [
-      { attr: 'Destreza', mod: 4 },
-      { attr: 'Carisma', mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 4 },
+      { attr: Atributo.CARISMA, mod: 2 },
     ],
     other: [{ type: 'pericias', allowed: 'any' }],
     texts: [

@@ -1,10 +1,11 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const LEFOU: Race = {
   name: 'Lefou',
   habilites: {
     attrs: [
-      { attr: 'Carisma', mod: -2 },
+      { attr: Atributo.CARISMA, mod: -2 },
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },

@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
   habilites: {
     attrs: [
-      { attr: 'Sabedoria', mod: 4 },
-      { attr: 'Inteligência', mod: 2 },
-      { attr: 'Destreza', mod: 4 },
+      { attr: Atributo.SABEDORIA, mod: 4 },
+      { attr: Atributo.INTELIGENCIA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 4 },
     ],
     other: [],
     texts: [

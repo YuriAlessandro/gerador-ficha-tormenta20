@@ -1,13 +1,14 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const HYNNE: Race = {
   name: 'Hynne',
   habilites: {
     attrs: [
-      { attr: 'Destreza', mod: 4 },
-      { attr: 'Carisma', mod: 2 },
-      { attr: 'Força', mod: -2 },
+      { attr: Atributo.DESTREZA, mod: 4 },
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.FORCA, mod: -2 },
     ],
     other: [],
     texts: [
@@ -24,7 +25,7 @@ const HYNNE: Race = {
     THWOR: 1,
   },
   size: RACE_SIZES.PEQUENO,
-  displacement: 6,
+  getDisplacement: () => 6,
 };
 
 export default HYNNE;

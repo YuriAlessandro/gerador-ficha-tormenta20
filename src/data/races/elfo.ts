@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const ELFO: Race = {
   name: 'Elfo',
   habilites: {
     attrs: [
-      { attr: 'Inteligência', mod: 4 },
-      { attr: 'Destreza', mod: 2 },
-      { attr: 'Constituição', mod: -2 },
+      { attr: Atributo.INTELIGENCIA, mod: 4 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.CONSTITUICAO, mod: -2 },
     ],
     other: [{ type: 'pm', mod: 1 }], // Update per level
     texts: [
@@ -23,7 +24,7 @@ const ELFO: Race = {
     MARAH: 1,
     WYNNA: 1,
   },
-  displacement: 12,
+  getDisplacement: () => 12,
 };
 
 export default ELFO;

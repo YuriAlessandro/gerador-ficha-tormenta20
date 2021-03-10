@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
 import { getRaceDisplacement, getRaceSize } from './functions/functions';
+import { Atributo } from '../atributos';
 
 const OSTEON: Race = {
   name: 'Osteon',
   habilites: {
     attrs: [
-      { attr: 'Constituição', mod: -2 },
+      { attr: Atributo.CONSTITUICAO, mod: -2 },
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },

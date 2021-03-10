@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const SILFIDE: Race = {
   name: 'Sílfide',
   habilites: {
     attrs: [
-      { attr: 'Carisma', mod: 4 },
-      { attr: 'Destreza', mod: 2 },
-      { attr: 'Força', mod: -4 },
+      { attr: Atributo.CARISMA, mod: 4 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.FORCA, mod: -4 },
     ],
     other: [],
     texts: [
