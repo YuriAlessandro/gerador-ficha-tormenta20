@@ -44,7 +44,8 @@ export interface CombatItems {
   armaduraPesada: DefenseEquipment[];
   escudos: DefenseEquipment[];
 }
-export interface Bag {
+
+export interface BagEquipments {
   Arma: Equipment[];
   Armadura: DefenseEquipment[];
   Escudo: DefenseEquipment[];
@@ -56,4 +57,11 @@ export interface Bag {
   Animal: Equipment[];
   Veículo: Equipment[];
   Serviço: Equipment[];
+}
+
+export interface Bag {
+  equipments: BagEquipments;
+  weight: number;
+  armorPenalty: number;
+  updateEquipments: (bag: Bag, updatedBagEquipments: BagEquipments) => void;
 }
