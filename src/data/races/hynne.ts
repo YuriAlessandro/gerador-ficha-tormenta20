@@ -25,7 +25,7 @@ const HYNNE: Race = {
     THWOR: 1,
   },
   size: RACE_SIZES.PEQUENO,
-  displacement: 6,
+  getDisplacement: () => 6,
 };
 
 export default HYNNE;

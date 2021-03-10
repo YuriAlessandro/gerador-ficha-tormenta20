@@ -24,7 +24,7 @@ const ELFO: Race = {
     MARAH: 1,
     WYNNA: 1,
   },
-  displacement: 12,
+  getDisplacement: () => 12,
 };
 
 export default ELFO;

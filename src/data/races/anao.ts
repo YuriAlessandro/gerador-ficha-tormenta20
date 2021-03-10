@@ -25,7 +25,7 @@ const ANAO: Race = {
     THWOR: 1,
     TENEBRA: 1,
   },
-  displacement: 6,
+  getDisplacement: () => 6,
 };
 
 export default ANAO;

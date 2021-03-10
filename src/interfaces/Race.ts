@@ -39,6 +39,5 @@ export default interface Race {
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;
   faithProbability?: FaithProbability;
-  displacement?: number;
   size?: RaceSize;
 }
