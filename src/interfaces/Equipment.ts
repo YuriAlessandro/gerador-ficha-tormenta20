@@ -37,4 +37,23 @@ export interface SuperiorEquipment extends Equipment {
   modifications: Modification[];
 }
 
-export type Bag = Record<equipGroup, Equipment[]>;
+export interface CombatItems {
+  armasSimples: Equipment[];
+  armasMarciais: Equipment[];
+  armadurasLeves: DefenseEquipment[];
+  armaduraPesada: DefenseEquipment[];
+  escudos: DefenseEquipment[];
+}
+export interface Bag {
+  Arma: Equipment[];
+  Armadura: DefenseEquipment[];
+  Escudo: DefenseEquipment[];
+  'Item Geral': Equipment[];
+  Alquimía: Equipment[];
+  Vestuário: Equipment[];
+  Hospedagem: Equipment[];
+  Alimentação: Equipment[];
+  Animal: Equipment[];
+  Veículo: Equipment[];
+  Serviço: Equipment[];
+}
