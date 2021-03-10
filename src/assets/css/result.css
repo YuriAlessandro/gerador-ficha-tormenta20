@@ -37,8 +37,11 @@
   transform: rotate(225deg);
 }
 
+.resultContainer {
+  width: 60vw;
+}
+
 .resultMainDiv {
-  /* width: 60vw; */
   padding: 5px 30px 30px 30px;
 }
 
@@ -193,10 +196,27 @@ table {
   width: 100%;
 }
 
+:focus {
+  /* outline: grey auto 0.5px; */
+  outline: none;
+}
+
+.powerIcon {
+  transition: all 0.2s ease !important;
+}
+
+.powerIcon.down {
+  transform: rotateZ(90deg);
+}
+
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
     padding: 5px 20px 20px 20px;
+  }
+
+  .resultContainer {
+    width: 90vw;
   }
 
   .resultRow {
@@ -252,7 +272,7 @@ table {
 }
 
 @media only screen and (min-device-width: 720px) and (max-device-width: 1024px){
-  .resultMainDiv {
+  .resultContainer {
     width: 90vw;
   }
 }

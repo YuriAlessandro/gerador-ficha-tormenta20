@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Select from 'react-select';
-import ReactToPrint from 'react-to-print';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -33,9 +32,7 @@ const MainScreen: React.FC = () => {
     raca: '',
   });
 
-  // TODO: Create typing for chara sheet
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
-  const [showExportButton, setExportButton] = React.useState<boolean>();
 
   const onClickGenerate = () => {
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
@@ -56,17 +53,6 @@ const MainScreen: React.FC = () => {
     label: classe.name,
   }));
   const niveis = [{ value: 1, label: 'Nível 1' }];
-
-  const resultRef = React.createRef<HTMLDivElement>();
-  useEffect(() => {
-    if (resultRef.current) {
-      setExportButton(true);
-    }
-  }, [resultRef]);
-
-  // const handlePrint = useReactToPrint({
-  //   content: () => resultRef.current,
-  // });
 
   return (
     <div>
@@ -101,34 +87,7 @@ const MainScreen: React.FC = () => {
         </Button>
       </div>
 
-      {randomSheet && (
-        <div style={{ width: '60vw' }}>
-          <div
-            style={{
-              display: showExportButton ? 'flex' : 'none',
-              justifyContent: 'flex-end',
-            }}
-          >
-            {/* <button className='exportBtn' type='button' onClick={handlePrint}>
-              Exportar ou imprimir essa ficha
-            </button> */}
-
-            <ReactToPrint
-              trigger={() => (
-                <button className='exportBtn' type='button'>
-                  Exportar ou imprimir essa ficha
-                </button>
-              )}
-              content={() => resultRef.current}
-              documentTitle={`${randomSheet.nome} - ${randomSheet.classe.name} ${randomSheet.raca.name}`}
-            />
-          </div>
-
-          <div ref={resultRef}>
-            <Result sheet={randomSheet} />
-          </div>
-        </div>
-      )}
+      {randomSheet && <Result sheet={randomSheet} />}
     </div>
   );
 };
