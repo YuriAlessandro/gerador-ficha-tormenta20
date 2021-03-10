@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const KLIREN: Race = {
   name: 'Kliren',
   habilites: {
     attrs: [
-      { attr: 'Inteligência', mod: 4 },
-      { attr: 'Carisma', mod: 2 },
-      { attr: 'Força', mod: -2 },
+      { attr: Atributo.INTELIGENCIA, mod: 4 },
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.FORCA, mod: -2 },
     ],
     other: [{ type: 'pericias', allowed: 'any' }],
     texts: [

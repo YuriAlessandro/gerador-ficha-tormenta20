@@ -10,7 +10,6 @@ interface AttributeProps {
 
 const Attribute: React.FC<AttributeProps> = (props) => {
   const { value, mod, name, id } = props;
-
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
   }

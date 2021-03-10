@@ -3,7 +3,7 @@ import HUMANO from '../../data/races/humano';
 import {
   getClassDetailsModifiedByRace,
   modifyAttributesBasedOnRace,
-  getModValues,
+  getModValue,
 } from '../general';
 
 const originalAttrs = [
@@ -71,7 +71,7 @@ describe('Testa modificações da raça Humano', () => {
         expect(qtdOfAttrWithPlusTwo).toBe(3);
 
         received.forEach((attribute) => {
-          const expected = getModValues(attribute.value);
+          const expected = getModValue(attribute.value);
           expect(attribute.mod).toBe(expected);
         });
       });

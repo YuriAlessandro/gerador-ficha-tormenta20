@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const QAREEN: Race = {
   name: 'Qareen',
   habilites: {
     attrs: [
-      { attr: 'Carisma', mod: 4 },
-      { attr: 'Inteligência', mod: 2 },
-      { attr: 'Sabedoria', mod: -2 },
+      { attr: Atributo.CARISMA, mod: 4 },
+      { attr: Atributo.INTELIGENCIA, mod: 2 },
+      { attr: Atributo.SABEDORIA, mod: -2 },
     ],
     other: [],
     texts: [

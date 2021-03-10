@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const TROG: Race = {
   name: 'Trog',
   habilites: {
     attrs: [
-      { attr: 'Constituição', mod: 4 },
-      { attr: 'Força', mod: 2 },
-      { attr: 'Inteligência', mod: -2 },
+      { attr: Atributo.CONSTITUICAO, mod: 4 },
+      { attr: Atributo.FORCA, mod: 2 },
+      { attr: Atributo.INTELIGENCIA, mod: -2 },
     ],
     other: [{ type: 'defesa', mod: 1 }],
     texts: [

@@ -39,7 +39,7 @@ const Result: React.FC<ResultProps> = (props) => {
     return `${id}-${elementId}`;
   }
 
-  const atributosDiv = atributos.map((atributo) => (
+  const atributosDiv = Object.values(atributos).map((atributo) => (
     <Attribute
       name={atributo.name}
       mod={atributo.mod}

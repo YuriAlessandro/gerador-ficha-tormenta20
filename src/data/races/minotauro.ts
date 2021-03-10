@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const MINOTAURO: Race = {
   name: 'Minotauro',
   habilites: {
     attrs: [
-      { attr: 'Força', mod: 4 },
-      { attr: 'Constituição', mod: 2 },
-      { attr: 'Sabedoria', mod: -2 },
+      { attr: Atributo.FORCA, mod: 4 },
+      { attr: Atributo.CONSTITUICAO, mod: 2 },
+      { attr: Atributo.SABEDORIA, mod: -2 },
     ],
     other: [{ type: 'defesa', mod: 1 }],
     texts: [

@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import ATRIBUTOS from '../data/atributos';
+import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import PERICIAS from '../data/pericias';
@@ -13,9 +13,10 @@ import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import CharacterSheet, {
   CharacterAttribute,
+  CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/CharacterSheet';
-import Race, { RaceHability } from '../interfaces/Race';
+import Race, { RaceAttributeHability } from '../interfaces/Race';
 import { BasicExpertise, ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -46,7 +47,7 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 
-export function getModValues(attr: number): number {
+export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
 
@@ -59,15 +60,15 @@ function getRandomArbitrary(min: number, max: number): number {
 // }
 
 function getNotRepeatedAttribute(atributosModificados: string[]) {
-  const atributosPermitidos = ATRIBUTOS.filter(
+  const atributosPermitidos = Object.values(Atributo).filter(
     (atributo) => !atributosModificados.includes(atributo)
   );
-  return getRandomItemFromArray<string>(atributosPermitidos);
+  return getRandomItemFromArray<Atributo>(atributosPermitidos);
 }
 
 function selectAttributeToChange(
   atributosModificados: string[],
-  atributo: RaceHability
+  atributo: RaceAttributeHability
 ) {
   if (atributo.attr === 'any') {
     return getNotRepeatedAttribute(atributosModificados);
@@ -77,59 +78,46 @@ function selectAttributeToChange(
 }
 
 function getModifiedAttribute(
-  selectedAttrIndex: number,
-  atributosModificados: CharacterAttribute[],
-  attrDaRaca: RaceHability
+  selectedAttrName: Atributo,
+  atributosModificados: CharacterAttributes,
+  attrDaRaca: RaceAttributeHability
 ) {
-  const atributoParaAlterar = atributosModificados[selectedAttrIndex];
-  const newValue = atributoParaAlterar.value + attrDaRaca.mod;
+  const newValue = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
 
   return {
-    [selectedAttrIndex]: {
-      ...atributoParaAlterar,
-      value: newValue,
-      mod: getModValues(newValue),
-    },
+    ...atributosModificados[selectedAttrName],
+    value: newValue,
+    mod: getModValue(newValue),
   };
 }
 
 interface ReduceAttributesParams {
-  atributosModificados: CharacterAttribute[];
+  atributosModificados: CharacterAttributes;
   nomesDosAtributosModificados: string[];
 }
 
 export function modifyAttributesBasedOnRace(
   raca: Race,
-  atributos: CharacterAttribute[]
-): CharacterAttribute[] {
+  atributos: CharacterAttributes
+): CharacterAttributes {
   const reducedAttrs = raca.habilites.attrs.reduce<ReduceAttributesParams>(
-    (
-      {
-        atributosModificados: atributosAcumulados,
-        nomesDosAtributosModificados,
-      },
-      attrDaRaca
-    ) => {
+    ({ atributosModificados, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
       const selectedAttrName = selectAttributeToChange(
         nomesDosAtributosModificados,
         attrDaRaca
       );
 
-      const selectedAttrIndex = atributosAcumulados.findIndex(
-        (attr) => attr.name === selectedAttrName
-      );
-
+      const atributoModificado = atributosModificados[selectedAttrName];
       return {
-        atributosModificados: Object.assign(
-          [],
-          atributosAcumulados,
-          getModifiedAttribute(
-            selectedAttrIndex,
-            atributosAcumulados,
+        atributosModificados: {
+          ...atributosModificados,
+          [atributoModificado.name]: getModifiedAttribute(
+            selectedAttrName,
+            atributosModificados,
             attrDaRaca
-          )
-        ),
+          ),
+        },
         nomesDosAtributosModificados: [
           ...nomesDosAtributosModificados,
           selectedAttrName,
@@ -270,7 +258,7 @@ function selectRace(selectedOptions: SelectedOptions): Race {
 
 function getRaceAndRaceStats(
   selectedOptions: SelectedOptions,
-  atributosRolados: CharacterAttribute[],
+  atributosRolados: CharacterAttributes,
   sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
@@ -490,10 +478,19 @@ function getSpells(classe: ClassDescription): Spell[] {
   return pickFromArray(spellList, initialSpells);
 }
 
-function calcDisplacement(bag: Bag, race: Race): number {
-  const displacement = getRaceDisplacement(race);
+function calcDisplacement(
+  bag: Bag,
+  race: Race,
+  atributos: CharacterAttributes
+): number {
+  const raceDisplacement = getRaceDisplacement(race);
+  const maxWeight = atributos.Força.value * 3;
 
-  return displacement;
+  if (bag.weight > maxWeight) {
+    return raceDisplacement - 3;
+  }
+
+  return raceDisplacement;
 }
 
 export default function generateRandomSheet(
@@ -502,11 +499,11 @@ export default function generateRandomSheet(
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributosRolados: CharacterAttribute[] = ATRIBUTOS.map((atributo) => {
+  const atributosRolados = Object.values(Atributo).reduce((acc, atributo) => {
     const randomAttr = getRandomArbitrary(8, 18);
-    const mod = getModValues(randomAttr);
-    return { name: atributo, value: randomAttr, mod };
-  });
+    const mod = getModValue(randomAttr);
+    return { ...acc, [atributo]: { name: atributo, value: randomAttr, mod } };
+  }, {});
   // Passo 1.1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
@@ -514,21 +511,21 @@ export default function generateRandomSheet(
   // Passo 2: Definir raça
   const { race, atributos, nome } = getRaceAndRaceStats(
     selectedOptions,
-    atributosRolados,
+    atributosRolados as CharacterAttributes,
     sexo
   );
 
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
   // Passo 3.1: Determinando o PV baseado na classe
-  const constAttr = atributos.find((attr) => attr.name === 'Constituição');
+  const constAttr = atributos.Constituição;
   const pvInicial = getInitialPV(classe.pv, constAttr);
 
   // Passo 3.2: Determinando o PM baseado na classe
   const { pm: pmInicial } = classe;
 
   // Passo 3.3: Determinando a Defesa inicial
-  const destAttr = atributos.find((attr) => attr.name === 'Destreza');
+  const destAttr = atributos.Destreza;
   const initialDefense = getInitialDef(destAttr);
 
   // Passo 3.4: Alterar características da classe com base na raça
@@ -567,7 +564,7 @@ export default function generateRandomSheet(
   const spells = getSpells(classe);
 
   // Passo 9: Recuperar deslocamento e tamanho
-  const displacement = calcDisplacement(bag, race);
+  const displacement = calcDisplacement(bag, race, atributos);
   const size = getRaceSize(race);
 
   return {

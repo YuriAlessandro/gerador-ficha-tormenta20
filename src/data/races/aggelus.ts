@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const AGGELUS: Race = {
   name: 'Suraggel (Aggelus)',
   habilites: {
     attrs: [
-      { attr: 'Sabedoria', mod: 4 },
-      { attr: 'Carisma', mod: 2 },
-      { attr: 'Destreza', mod: 4 },
+      { attr: Atributo.SABEDORIA, mod: 4 },
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 4 },
     ],
     other: [],
     texts: [

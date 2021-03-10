@@ -1,7 +1,8 @@
+import { Atributo } from '../data/atributos';
 import { FaithProbability } from './Divindade';
 
-export interface RaceHability {
-  attr: string;
+export interface RaceAttributeHability {
+  attr: Atributo | 'any';
   mod: number;
 }
 
@@ -25,7 +26,7 @@ export interface RaceSize {
 export default interface Race {
   name: string;
   habilites: {
-    attrs: RaceHability[];
+    attrs: RaceAttributeHability[];
     other: {
       type: string;
       allowed?: string;

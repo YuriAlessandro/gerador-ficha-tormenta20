@@ -1,12 +1,13 @@
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
 
 const GOLEM: Race = {
   name: 'Golem',
   habilites: {
     attrs: [
-      { attr: 'Força', mod: 4 },
-      { attr: 'Constituição', mod: 2 },
-      { attr: 'Carisma', mod: -2 },
+      { attr: Atributo.FORCA, mod: 4 },
+      { attr: Atributo.CONSTITUICAO, mod: 2 },
+      { attr: Atributo.CARISMA, mod: -2 },
     ],
     other: [{ type: 'defesa', mod: 2 }],
     texts: [
