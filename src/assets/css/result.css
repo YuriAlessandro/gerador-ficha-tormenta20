@@ -209,6 +209,21 @@ table {
   transform: rotateZ(90deg);
 }
 
+.spellCalc {
+  font-size: 12px;
+}
+
+.speelsInfos {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 25px;
+  margin-bottom: 20px;
+}
+
+.test {
+  padding: 50px 10px;
+}
+
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
