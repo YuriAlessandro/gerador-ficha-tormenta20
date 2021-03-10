@@ -37,8 +37,11 @@
   transform: rotate(225deg);
 }
 
+.resultContainer {
+  width: 60vw;
+}
+
 .resultMainDiv {
-  /* width: 60vw; */
   padding: 5px 30px 30px 30px;
 }
 
@@ -191,6 +194,14 @@ table {
   align-items: center;
   cursor: pointer;
   width: 100%;
+}
+
+.powerIcon {
+  transition: all 0.2s ease !important;
+}
+
+.powerIcon.down {
+  transform: rotateZ(90deg);
 }
 
 @media screen and (max-width: 720px) {
