@@ -15,9 +15,7 @@ const Changelog: React.FC = () => (
       </li>
       <li>
         Estamos gerando aleatoriamente se um personagem é devoto ou não. Caso
-        ele seja, é escolhido aleatoriamente o Deus e o poder concedidos (ainda
-        faltam aplicar regras mais concretas, como por exemplo o druida que só
-        pode ser devoto de três deuses específicos).
+        ele seja, é escolhido aleatoriamente o Deus e os poderes concedidos.
       </li>
       <li>
         Filtros de geração permitem que você escolha qual raça/classe deseja
@@ -33,7 +31,10 @@ const Changelog: React.FC = () => (
         Adicionamos um gerador aleatório de itens iniciais com base nas
         proficiências (mas ainda não estão todos os itens cadastrados).
       </li>
-      <li>Suporte as seguintes classes: Arcanista, Bardo, Druida e Clérigo.</li>
+      <li>
+        Suporte as seguintes classes: Arcanista, Bardo, Druida e Clérigo.
+        Incluindo geração de magias iniciais.
+      </li>
     </ul>
     <h2>Versão 0.1</h2>
     <ul>
