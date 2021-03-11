@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { ClassDescription } from '../../interfaces/Class';
+import { Atributo } from '../atributos';
 import { standardFaithProbability } from '../divindades';
 import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
@@ -65,6 +66,7 @@ const CLERIGO: ClassDescription = {
         if (level < 17) return 4;
         return 5;
       },
+      keyAttribute: Atributo.SABEDORIA,
     };
 
     return modifiedClasse;

@@ -10,6 +10,7 @@ import DefenseEquipments from './DefenseEquipments';
 import Equipment from '../interfaces/Equipment';
 
 import '../assets/css/result.css';
+import Spells from './Spells';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -108,9 +109,6 @@ const Result: React.FC<ResultProps> = (props) => {
     ...bag.equipments.Armadura,
     ...bag.equipments.Escudo,
   ];
-  const defenseDiv = (
-    <DefenseEquipments getKey={getKey} defenseEquipments={defenseEquipments} />
-  );
 
   const poderesConcedidos = devoto?.poderes.map((poder) => (
     <li key={getKey(poder?.name)}>
@@ -141,6 +139,10 @@ const Result: React.FC<ResultProps> = (props) => {
 
     return resultRef.current;
   };
+
+  const keyAttr = classe.spellPath
+    ? atributos[classe.spellPath.keyAttribute]
+    : null;
 
   return (
     <div className='resultContainer'>
@@ -233,17 +235,23 @@ const Result: React.FC<ResultProps> = (props) => {
 
         <div className='equipaments'>
           <div className='tableWrap'>{weaponsDiv}</div>
-          <div className='tableWrap'>{defenseDiv}</div>
+          <div className='tableWrap'>
+            <DefenseEquipments
+              getKey={getKey}
+              defenseEquipments={defenseEquipments}
+            />
+          </div>
           <div className='textToRight equipmentsValues'>
             <span>
-              <strong>Penalidade de Armadura</strong> {bag.armorPenalty * -1}
-            </span>
-            <span>
-              <strong>Peso (atual/máximo)</strong> {bag.weight}kg/{maxWeight}kg
+              <strong>Penalidade de Armadura:</strong> {bag.armorPenalty * -1}
             </span>
           </div>
           <div className='tableWrap'>{equipamentosDiv}</div>
-          <span className='resultItem' />
+          <div className='textToRight equipmentsValues'>
+            <span>
+              <strong>Peso (atual/máximo):</strong> {bag.weight}/{maxWeight}kg
+            </span>
+          </div>
         </div>
 
         <Divider direction='down' />
@@ -346,28 +354,13 @@ const Result: React.FC<ResultProps> = (props) => {
           <span>Magias</span>
         </div>
 
-        <div className='resultRow'>
-          <div>
-            <ul>
-              {classe.spellPath?.schools && (
-                <li>
-                  Escolas:{' '}
-                  {classe.spellPath?.schools?.map((school) => (
-                    <span key={school}>{school}, </span>
-                  ))}
-                </li>
-              )}
-              {spells.length === 0 ? (
-                <li>Não possui.</li>
-              ) : (
-                spells.map((spell) => (
-                  <li key={spell.nome}>
-                    <strong>{spell.nome}</strong>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
+        <div className='tableWrap'>
+          <Spells
+            spells={spells}
+            spellPath={classe.spellPath}
+            keyAttr={keyAttr}
+            nivel={nivel}
+          />
         </div>
         <Divider direction='up' />
       </div>
