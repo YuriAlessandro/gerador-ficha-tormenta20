@@ -77,7 +77,7 @@ function App(): JSX.Element {
                     <MenuIcon />
                   </IconButton>
                   <Typography variant='h6' className={classes.title}>
-                    Gerador de Ficha - Tormenta 20
+                    Fichas de Nimb
                   </Typography>
                 </Toolbar>
               </AppBar>

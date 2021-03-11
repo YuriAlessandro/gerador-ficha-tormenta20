@@ -149,7 +149,7 @@ const Result: React.FC<ResultProps> = (props) => {
       <div
         style={{
           display: showExportButton ? 'flex' : 'none',
-          justifyContent: 'flex-end',
+          marginLeft: '30px',
         }}
       >
         <ReactToPrint
@@ -164,7 +164,6 @@ const Result: React.FC<ResultProps> = (props) => {
       </div>
 
       <div className='resultMainDiv' ref={resultRef}>
-        <Divider direction='up' />
         <div className='characterInfos'>
           <div>
             <div className='resultRow nameArea'>
@@ -362,7 +361,6 @@ const Result: React.FC<ResultProps> = (props) => {
             nivel={nivel}
           />
         </div>
-        <Divider direction='up' />
       </div>
     </div>
   );
