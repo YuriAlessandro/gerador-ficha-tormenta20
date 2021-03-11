@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { ClassDescription } from '../../interfaces/Class';
 import { standardFaithProbability } from '../divindades';
 import PERICIAS from '../pericias';
@@ -52,7 +53,7 @@ const CLERIGO: ClassDescription = {
   qtdPoderesConcedidos: 'all',
   faithProbability: standardFaithProbability,
   setup: (classe) => {
-    const modifiedClasse = { ...classe };
+    const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {
       initialSpells: 3,
       spellType: 'Divine',

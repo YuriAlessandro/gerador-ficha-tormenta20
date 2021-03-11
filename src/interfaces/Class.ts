@@ -14,7 +14,7 @@ export interface RemainingExpertise {
 export interface ClassHability {
   name: string;
   text: string;
-  effect: string | null;
+  effect?: string | null;
   nivel: number;
 }
 
@@ -25,7 +25,6 @@ export interface SpellPath {
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
 }
-
 export interface ClassDescription {
   name: string;
   subname?: string;
