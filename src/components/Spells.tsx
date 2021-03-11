@@ -47,10 +47,9 @@ const Spells: React.FC<SpellsProp> = (props) => {
                 <th>Escola</th>
                 <th>Execução</th>
                 <th>Alcance</th>
-                <th>Área</th>
+                <th>Alvo/Área</th>
                 <th>Duração</th>
                 <th>Resistência</th>
-                <th>Efeito</th>
               </tr>
             </thead>
             <tbody>
@@ -60,10 +59,9 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   <td>-</td>
                   <td>{spell.execucao}</td>
                   <td>{spell.alcance}</td>
-                  <td>{spell.area || '-'}</td>
+                  <td>{spell.alvo || spell.area || '-'}</td>
                   <td>{spell.duracao}</td>
                   <td>{spell.resistencia || '-'}</td>
-                  <td>{spell.efeito || '-'}</td>
                 </tr>
               ))}
             </tbody>

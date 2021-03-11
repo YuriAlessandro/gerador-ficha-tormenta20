@@ -6,7 +6,6 @@ export type Spell = {
   area?: string;
   duracao: 'Instantânea' | 'Cena' | string;
   resistencia?: string;
-  efeito?: string;
 };
 
 export type SpellSchool =

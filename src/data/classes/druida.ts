@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
 import { allSpellSchools } from '../../interfaces/Spells';
@@ -84,7 +85,7 @@ const DRUIDA: ClassDescription = {
     NIMB: 0,
   },
   setup: (classe) => {
-    const modifiedClasse = { ...classe };
+    const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {
       initialSpells: 2,
       spellType: 'Divine',
