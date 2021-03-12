@@ -22,6 +22,7 @@ const DAHLLAN: Race = {
     OCEANO: 1,
     THWOR: 1,
   },
+  abilities: [],
 };
 
 export default DAHLLAN;

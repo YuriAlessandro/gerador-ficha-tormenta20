@@ -20,7 +20,7 @@ describe('Testa habilidades da raça Humanos', () => {
 
         expect(received.skills.length).toBeGreaterThan(1);
         expect(received.skills.length).toBeLessThan(4);
-        expect(received.skills[0]).not.toBe(received.skills[1]);
+        expect(received.skills).toBeDistinct();
 
         if (received.skills.length > 2) {
           expect(received.skills[1]).not.toBe(received.skills[2]);

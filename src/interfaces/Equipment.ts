@@ -63,5 +63,4 @@ export interface Bag {
   equipments: BagEquipments;
   weight: number;
   armorPenalty: number;
-  updateEquipments: (bag: Bag, updatedBagEquipments: BagEquipments) => void;
 }
