@@ -1,4 +1,7 @@
-import { getRandomItemFromArray } from '../functions/randomUtils';
+import {
+  getRandomItemFromArray,
+  pickFromArray,
+} from '../functions/randomUtils';
 import { ClassDescription } from '../interfaces/Class';
 
 const PERICIAS: Record<string, string> = {
@@ -40,17 +43,31 @@ const PERICIAS: Record<string, string> = {
 
 export default PERICIAS;
 
+export function getNotUsedSkillsFromAllowed(
+  usedSkills: string[],
+  allowedSkills?: string[]
+): string[] {
+  const usedAndAllowed = [
+    ...(allowedSkills || Object.values(PERICIAS)),
+    ...usedSkills,
+  ];
+  return usedAndAllowed.filter(
+    (skill, index) => usedAndAllowed.indexOf(skill) === index
+  );
+}
+
 export function getNotRepeatedRandomSkill(
-  periciasUsadas: string[],
+  usedSkills: string[],
   allowedSkills?: string[]
 ): string {
-  const notRepeatedSkills = (allowedSkills || Object.values(PERICIAS)).filter(
-    (pericia) => !periciasUsadas.includes(PERICIAS[pericia])
-  );
+  const notRepeatedSkills = allowedSkills
+    ? getNotUsedSkillsFromAllowed(usedSkills)
+    : getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
+
   return getRandomItemFromArray(notRepeatedSkills);
 }
 
-const getBaseSkill: Record<
+const baseSkillsStrategies: Record<
   string,
   (baseSkills: string[], skills: string[]) => string[]
 > = {
@@ -65,7 +82,20 @@ const getBaseSkill: Record<
 
 export function getClassBaseSkills(classe: ClassDescription): string[] {
   return classe.periciasbasicas.reduce<string[]>(
-    (skills, baseSkill) => getBaseSkill[baseSkill.type](baseSkill.list, skills),
+    (skills, baseSkill) =>
+      baseSkillsStrategies[baseSkill.type](baseSkill.list, skills),
     []
   );
+}
+
+export function getRemainingSkills(
+  usedSkills: string[],
+  classe: ClassDescription
+): string[] {
+  const allowedSkills = getNotUsedSkillsFromAllowed(
+    usedSkills,
+    classe.periciasrestantes.list
+  );
+
+  return pickFromArray(allowedSkills, classe.periciasrestantes.qtd);
 }

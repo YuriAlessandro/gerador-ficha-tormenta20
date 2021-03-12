@@ -5,6 +5,7 @@ import CLASSES from '../data/classes';
 import PERICIAS, {
   getClassBaseSkills,
   getNotRepeatedRandomSkill,
+  getRemainingSkills,
 } from '../data/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
@@ -20,19 +21,16 @@ import CharacterSheet, {
   CharacterReligion,
 } from '../interfaces/CharacterSheet';
 import Race, { RaceAttributeHability } from '../interfaces/Race';
-import { BasicExpertise, ClassDescription } from '../interfaces/Class';
+import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
   pickFromArray,
-  removeDup,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import origins from '../data/origins';
-import { GeneralPower, OriginPower } from '../interfaces/Poderes';
-import originPowers from '../data/powers/originPowers';
+import { getOriginBenefits, ORIGINS } from '../data/origins';
 import { Bag, BagEquipments } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
@@ -50,6 +48,7 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
+import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -172,18 +171,6 @@ export function getClassDetailsModifiedByRace(
   );
 }
 
-function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
-  return Array(qtdPericiasRestantes)
-    .fill(0)
-    .reduce(
-      (periciasAtuais) => [
-        ...periciasAtuais,
-        PERICIAS[getNotRepeatedRandomSkill(periciasAtuais)],
-      ],
-      pericias
-    );
-}
-
 function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
   if (constAttr) {
     return pv + constAttr?.mod ?? 0;
@@ -237,17 +224,31 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
-function getSkills(
+function getSkillsAndPowers(
   classe: ClassDescription,
   origin: Origin,
   race: Race,
   atributos: CharacterAttributes
-): string[] {
-  let skills = [];
+): { skills: string[]; powers: { origin: (GeneralPower | OriginPower)[] } } {
+  const skills: string[] = [];
 
-  skills = getClassBaseSkills(classe);
+  skills.push(...getClassBaseSkills(classe));
 
-  return skills;
+  const { skills: originSkills, powers: originPowers } = getOriginBenefits(
+    origin,
+    skills
+  );
+
+  skills.push(...originSkills);
+
+  skills.push(...getRemainingSkills(skills, classe));
+
+  return {
+    skills,
+    powers: {
+      origin: originPowers,
+    },
+  };
 }
 function getWeapons(classe: ClassDescription) {
   const weapons = [];
@@ -368,39 +369,6 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getOriginSkillsAndPowers(
-  origin: Origin
-): { skills: string[]; powers: (OriginPower | GeneralPower)[] } {
-  const skills: string[] = [];
-  const powers: (OriginPower | GeneralPower)[] = [];
-
-  if (origin.name === 'Amnésico') {
-    skills.push(getRandomItemFromArray(Object.values(PERICIAS)));
-    // TODO: Jogar mais um poder aleatório
-    powers.push(originPowers.LEMBRANCAS_GRADUAIS);
-
-    return {
-      skills,
-      powers,
-    };
-  }
-
-  const benefits = pickFromArray([...origin.pericias, ...origin.poderes], 2);
-
-  benefits.forEach((benefit) => {
-    if (typeof benefit === 'string') {
-      skills.push(benefit);
-    } else {
-      powers.push(benefit as OriginPower);
-    }
-  });
-
-  return {
-    skills,
-    powers,
-  };
-}
-
 function getSpells(classe: ClassDescription): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
@@ -485,11 +453,14 @@ export default function generateRandomSheet(
   );
 
   // Passo 4: Definição de origem
-  const origin = getRandomItemFromArray(Object.values(origins));
+  const origin = getRandomItemFromArray(Object.values(ORIGINS));
 
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe
-  const pericias = getSkills(classe, origin, race, atributos);
+  const {
+    powers: { origin: originPowers },
+    skills,
+  } = getSkillsAndPowers(classe, origin, race, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
@@ -518,13 +489,16 @@ export default function generateRandomSheet(
     maxWeight,
     raca: race,
     classe,
-    pericias,
+    pericias: skills,
     pv: classDetailsModifiedByRace.pv,
     pm: classDetailsModifiedByRace.pm,
     defesa: defense,
     bag,
     devoto,
-    origin,
+    origin: {
+      name: origin.name,
+      powers: originPowers,
+    },
     spells,
     displacement,
     size,
