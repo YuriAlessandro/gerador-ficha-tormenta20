@@ -3,7 +3,6 @@ import '../assets/css/result.css';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
-import SpellRow from './SpellRow';
 
 interface SpellsProp {
   spells: Spell[];
