@@ -11,6 +11,7 @@ import Equipment from '../interfaces/Equipment';
 
 import '../assets/css/result.css';
 import Spells from './Spells';
+import SpellsMobile from './SpellsMobile';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -355,6 +356,15 @@ const Result: React.FC<ResultProps> = (props) => {
 
         <div className='tableWrap tableDesk'>
           <Spells
+            spells={spells}
+            spellPath={classe.spellPath}
+            keyAttr={keyAttr}
+            nivel={nivel}
+          />
+        </div>
+
+        <div className='tableMobile'>
+          <SpellsMobile
             spells={spells}
             spellPath={classe.spellPath}
             keyAttr={keyAttr}
