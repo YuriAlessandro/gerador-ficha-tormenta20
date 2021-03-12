@@ -41,7 +41,6 @@ export default interface CharacterSheet {
   devoto?: CharacterReligion;
   origin: {
     name: string;
-    skills: string[];
     powers: (OriginPower | GeneralPower)[];
   };
   spells: Spell[];
