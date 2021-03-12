@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
-import PERICIAS, {
+import {
   getClassBaseSkills,
   getNotRepeatedRandomSkill,
   getNotRepeatedSkillsByQtd,
@@ -16,12 +16,12 @@ import EQUIPAMENTOS, {
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
-import CharacterSheet, {
+import {
   CharacterAttribute,
   CharacterAttributes,
   CharacterReligion,
-} from '../interfaces/CharacterSheet';
-import Race, { RaceAttributeHability } from '../interfaces/Race';
+} from '../interfaces/Character';
+import Race, { RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -51,6 +51,7 @@ import {
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
+import CharacterSheet from '../interfaces/CharacterSheet';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -93,7 +94,7 @@ function getNotRepeatedAttribute(atributosModificados: string[]) {
 
 function selectAttributeToChange(
   atributosModificados: string[],
-  atributo: RaceAttributeHability
+  atributo: RaceAttributeAbility
 ) {
   if (atributo.attr === 'any') {
     return getNotRepeatedAttribute(atributosModificados);
@@ -105,7 +106,7 @@ function selectAttributeToChange(
 function getModifiedAttribute(
   selectedAttrName: Atributo,
   atributosModificados: CharacterAttributes,
-  attrDaRaca: RaceAttributeHability
+  attrDaRaca: RaceAttributeAbility
 ): CharacterAttribute {
   const newValue =
     atributosModificados[selectedAttrName].value + attrDaRaca.mod;
@@ -249,8 +250,8 @@ function getRaceSkills(usedSkills: string[], race: Race): string[] {
   const skillHabilities = race.habilites.other.filter(
     (skill) => skill.type === 'pericias'
   );
-  return skillHabilities.reduce<string[]>((skills, hability) => {
-    if (hability.allowed === 'any') {
+  return skillHabilities.reduce<string[]>((skills, ability) => {
+    if (ability.allowed === 'any') {
       return [...skills, getNotRepeatedRandomSkill(usedSkills)];
     }
 

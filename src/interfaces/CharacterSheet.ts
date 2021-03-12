@@ -1,30 +1,10 @@
 import { ClassDescription } from './Class';
-import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
 import { Bag } from './Equipment';
 import { Spell } from './Spells';
-import { Atributo } from '../data/atributos';
+import { CharacterAttributes, CharacterReligion } from './Character';
 
-export interface RaceHability {
-  attr: string;
-  mod: number;
-}
-
-export interface CharacterAttribute {
-  name: Atributo;
-  value: number;
-  mod: number;
-}
-
-export type CharacterAttributes = {
-  [key in Atributo]: CharacterAttribute;
-};
-
-export interface CharacterReligion {
-  divindade: Divindade;
-  poderes: GeneralPower[];
-}
 export default interface CharacterSheet {
   id: string;
   nome: string;

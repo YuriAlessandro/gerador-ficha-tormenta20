@@ -12,7 +12,7 @@ export interface RemainingExpertise {
   list: string[];
 }
 
-export interface ClassHability {
+export interface ClassAbility {
   name: string;
   text: string;
   effect?: string | null;
@@ -37,7 +37,7 @@ export interface ClassDescription {
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
   proeficiencias: string[];
-  habilities: ClassHability[];
+  habilities: ClassAbility[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;

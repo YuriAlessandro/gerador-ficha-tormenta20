@@ -2,7 +2,7 @@ import _ from 'lodash';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
 import {
   ClassDescription,
-  ClassHability,
+  ClassAbility,
   SpellPath,
 } from '../../interfaces/Class';
 import { Atributo } from '../atributos';
@@ -58,7 +58,7 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   },
 };
 
-const classHabilities: Record<ArcanistaSubtypes, ClassHability> = {
+const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
   Bruxo: {
     name: 'Caminho do Arcanista',
     text:
@@ -79,7 +79,7 @@ const classHabilities: Record<ArcanistaSubtypes, ClassHability> = {
   },
 };
 
-const feiticeiroPaths: ClassHability[] = [
+const feiticeiroPaths: ClassAbility[] = [
   {
     name: 'Linhagem Dracônica',
     text:
@@ -122,7 +122,7 @@ const ARCANISTA: ClassDescription = {
     ],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
-  habilities: [],
+  abilities: [],
   probDevoto: 0.3,
   faithProbability: {
     AZGHER: 1,
@@ -139,9 +139,9 @@ const ARCANISTA: ClassDescription = {
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
     modifiedClasse.spellPath = spellPaths[subtype];
-    modifiedClasse.habilities.push(classHabilities[subtype]);
+    modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
-      modifiedClasse.habilities.push(getRandomItemFromArray(feiticeiroPaths));
+      modifiedClasse.abilities.push(getRandomItemFromArray(feiticeiroPaths));
     }
 
     return modifiedClasse;
