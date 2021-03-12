@@ -5,24 +5,28 @@ import HUMANO from '../humano';
 
 describe('Testa raça Humano', () => {
   test('se habilidade soma uma pericia e um poder geral, ou duas perícias', () => {
-    const stats: CharacterStats = ({
-      skills: [Skill.ACROBACIA],
-      powers: {
-        general: [],
-        origin: [],
-      },
-    } as unknown) as CharacterStats;
+    Array(20)
+      .fill(0)
+      .forEach(() => {
+        const stats: CharacterStats = ({
+          skills: [Skill.ACROBACIA],
+          powers: {
+            general: [],
+            origin: [],
+          },
+        } as unknown) as CharacterStats;
 
-    const received = applyRaceHabilities(HUMANO, stats);
+        const received = applyRaceHabilities(HUMANO, stats);
 
-    expect(received.skills.length).toBeGreaterThan(1);
-    expect(received.skills.length).toBeLessThan(4);
-    expect(received.skills[0]).not.toBe(received.skills[1]);
+        expect(received.skills.length).toBeGreaterThan(1);
+        expect(received.skills.length).toBeLessThan(4);
+        expect(received.skills[0]).not.toBe(received.skills[1]);
 
-    if (received.skills.length > 2) {
-      expect(received.skills[1]).not.toBe(received.skills[2]);
-    } else {
-      expect(received.powers.general).toHaveLength(1);
-    }
+        if (received.skills.length > 2) {
+          expect(received.skills[1]).not.toBe(received.skills[2]);
+        } else {
+          expect(received.powers.general).toHaveLength(1);
+        }
+      });
   });
 });
