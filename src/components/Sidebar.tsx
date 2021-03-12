@@ -99,7 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
             className={classes.menuItem}
             onClick={() =>
               onClickLinks(
-                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/new'
+                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
               )
             }
           >
