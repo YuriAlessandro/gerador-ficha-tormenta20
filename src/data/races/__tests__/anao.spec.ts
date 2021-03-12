@@ -2,9 +2,9 @@ import _ from 'lodash';
 import { applyRaceHabilities } from '../../../functions/general';
 import { CharacterStats } from '../../../interfaces/Race';
 import ANAO from '../anao';
-import { inventor } from '../__mocks__/CharacterStats';
+import { inventor } from '../__mocks__/inventor';
 
-describe('Testa habilidades da raça Anões', () => {
+describe('Testa habilidades da raça Anão', () => {
   const stats: CharacterStats = _.cloneDeep(inventor);
   const received = applyRaceHabilities(ANAO, stats);
 
