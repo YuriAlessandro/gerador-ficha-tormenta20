@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const NOBRE: ClassDescription = {
@@ -11,34 +11,34 @@ const NOBRE: ClassDescription = {
   periciasbasicas: [
     {
       type: 'or',
-      list: [PERICIAS.DIPLOMACIA, PERICIAS.INTIMIDACAO],
+      list: [Skill.DIPLOMACIA, Skill.INTIMIDACAO],
     },
     {
       type: 'and',
-      list: [PERICIAS.VONTADE],
+      list: [Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATUACAO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.ENGANACAO,
-      PERICIAS.FORTITUDE,
-      PERICIAS.GUERRA,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.INTUICAO,
-      PERICIAS.INVESTIGACAO,
-      PERICIAS.JOGATINA,
-      PERICIAS.LUTA,
-      PERICIAS.NOBREZA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
+      Skill.ADESTRAMENTO,
+      Skill.ATUACAO,
+      Skill.CAVALGAR,
+      Skill.CONHECIMENTO,
+      Skill.DIPLOMACIA,
+      Skill.ENGANACAO,
+      Skill.FORTITUDE,
+      Skill.GUERRA,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.INTUICAO,
+      Skill.INVESTIGACAO,
+      Skill.JOGATINA,
+      Skill.LUTA,
+      Skill.NOBREZA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
     ],
   },
   proeficiencias: [
@@ -48,7 +48,7 @@ const NOBRE: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Autoconfiança',
       text:

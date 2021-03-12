@@ -1,18 +1,19 @@
 import { Atributo } from '../data/atributos';
 import { FaithProbability } from './Divindade';
+import Skill from './Skills';
 import { SpellSchool } from './Spells';
 
 export interface BasicExpertise {
   type: string;
-  list: string[];
+  list: Skill[];
 }
 
 export interface RemainingExpertise {
   qtd: number;
-  list: string[];
+  list: Skill[];
 }
 
-export interface ClassHability {
+export interface ClassAbility {
   name: string;
   text: string;
   effect?: string | null;
@@ -37,7 +38,7 @@ export interface ClassDescription {
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
   proeficiencias: string[];
-  habilities: ClassHability[];
+  abilities: ClassAbility[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;

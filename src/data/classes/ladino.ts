@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const LADINO: ClassDescription = {
@@ -11,34 +11,34 @@ const LADINO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.LADINAGEM, PERICIAS.REFLEXOS],
+      list: [Skill.LADINAGEM, Skill.REFLEXOS],
     },
   ],
   periciasrestantes: {
     qtd: 8,
     list: [
-      PERICIAS.ACROBACIA,
-      PERICIAS.ATLETISMO,
-      PERICIAS.ATUACAO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.ENGANACAO,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.INTUICAO,
-      PERICIAS.INVESTIGACAO,
-      PERICIAS.JOGATINA,
-      PERICIAS.LUTA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.PILOTAGEM,
+      Skill.ACROBACIA,
+      Skill.ATLETISMO,
+      Skill.ATUACAO,
+      Skill.CAVALGAR,
+      Skill.CONHECIMENTO,
+      Skill.DIPLOMACIA,
+      Skill.ENGANACAO,
+      Skill.FURTIVIDADE,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.INTUICAO,
+      Skill.INVESTIGACAO,
+      Skill.JOGATINA,
+      Skill.LUTA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.PILOTAGEM,
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
-  habilities: [
+  abilities: [
     {
       name: 'Ataque Furtivo',
       text:

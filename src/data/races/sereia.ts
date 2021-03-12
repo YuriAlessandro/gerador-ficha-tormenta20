@@ -2,7 +2,7 @@ import Race from '../../interfaces/Race';
 
 const SEREIA: Race = {
   name: 'Sereia',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },

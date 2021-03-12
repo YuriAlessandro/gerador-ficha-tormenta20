@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const GUERREIRO: ClassDescription = {
@@ -11,27 +11,27 @@ const GUERREIRO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'or',
-      list: [PERICIAS.LUTA, PERICIAS.PONTARIA],
+      list: [Skill.LUTA, Skill.PONTARIA],
     },
     {
       type: 'and',
-      list: [PERICIAS.FORTITUDE],
+      list: [Skill.FORTITUDE],
     },
   ],
   periciasrestantes: {
     qtd: 2,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.GUERRA,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.LUTA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.REFLEXOS,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.CAVALGAR,
+      Skill.GUERRA,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.LUTA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.REFLEXOS,
     ],
   },
   proeficiencias: [
@@ -41,7 +41,7 @@ const GUERREIRO: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Ataque Especial',
       text:

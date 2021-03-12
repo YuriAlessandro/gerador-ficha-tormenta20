@@ -1,9 +1,10 @@
-import Origin from '../interfaces/Origin';
-import PERICIAS, {
+import _ from 'lodash';
+import Origin, { OriginBenefits } from '../interfaces/Origin';
+import {
   getNotRepeatedRandomSkill,
   getNotUsedSkillsFromAllowed,
 } from './pericias';
-import originPowers from './powers/originPowers';
+import originPowers, { ORIGIN_POWER_TYPE } from './powers/originPowers';
 import { DestinyPowers } from './powers/destinyPowers';
 import {
   getRandomItemFromArray,
@@ -11,6 +12,7 @@ import {
 } from '../functions/randomUtils';
 import { OriginPower, GeneralPower } from '../interfaces/Poderes';
 import generalPowers from './poderes';
+import Skill from '../interfaces/Skills';
 
 export type origins =
   | 'Acólito'
@@ -53,13 +55,13 @@ export const ORIGINS: Record<origins, Origin> = {
   Acólito: {
     name: 'Acólito',
     itens: [],
-    pericias: [PERICIAS.CURA, PERICIAS.RELIGIAO, PERICIAS.VONTADE],
+    pericias: [Skill.CURA, Skill.RELIGIAO, Skill.VONTADE],
     poderes: [originPowers.MEMBRO_DA_IGREJA], // TODO: Adicionar Medicina, Vontade de Ferro
   },
   'Amigo dos Animais': {
     name: 'Amigo dos Animais',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVALGAR],
+    pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR],
     poderes: [originPowers.AMIGO_ESPECIAL],
   },
   Amnésico: {
@@ -71,43 +73,43 @@ export const ORIGINS: Record<origins, Origin> = {
   Aristocrata: {
     name: 'Aristocrata',
     itens: [],
-    pericias: [PERICIAS.DIPLOMACIA, PERICIAS.ENGANACAO, PERICIAS.NOBREZA],
+    pericias: [Skill.DIPLOMACIA, Skill.ENGANACAO, Skill.NOBREZA],
     poderes: [originPowers.SANGUE_AZUL],
   },
   Artesão: {
     name: 'Artesão',
     itens: [],
-    pericias: [PERICIAS.OFICIO, PERICIAS.VONTADE],
+    pericias: [Skill.OFICIO, Skill.VONTADE],
     poderes: [originPowers.FRUDOS_DO_TRABALHO],
   },
   Artista: {
     name: 'Artista',
     itens: [],
-    pericias: [PERICIAS.ATUACAO, PERICIAS.ENGANACAO],
+    pericias: [Skill.ATUACAO, Skill.ENGANACAO],
     poderes: [originPowers.DOM_ARTISTICO],
   },
   'Assistente de Laboratório': {
     name: 'Assistente de Laboratório',
     itens: [],
-    pericias: [PERICIAS.OFICIO],
+    pericias: [Skill.OFICIO],
     poderes: [originPowers.ESSE_CHEIRO],
   },
   Batedor: {
     name: 'Batedor',
     itens: [],
-    pericias: [PERICIAS.PERCEPCAO, PERICIAS.SOBREVIVENCIA],
+    pericias: [Skill.PERCEPCAO, Skill.SOBREVIVENCIA],
     poderes: [originPowers.PROVA_DE_TUDO],
   },
   Capanga: {
     name: 'Capanga',
     itens: [],
-    pericias: [PERICIAS.LUTA, PERICIAS.INTIMIDACAO],
+    pericias: [Skill.LUTA, Skill.INTIMIDACAO],
     poderes: [originPowers.CONFISSAO],
   },
   Charlatão: {
     name: 'Charlatão',
     itens: [],
-    pericias: [PERICIAS.ENGANACAO, PERICIAS.JOGATINA],
+    pericias: [Skill.ENGANACAO, Skill.JOGATINA],
     poderes: [
       originPowers.ALPINISTA_SOCIAL,
       DestinyPowers.APARENCIA_INOFENSIVA,
@@ -117,37 +119,37 @@ export const ORIGINS: Record<origins, Origin> = {
   Circense: {
     name: 'Circense',
     itens: [],
-    pericias: [PERICIAS.ACROBACIA, PERICIAS.ATUACAO, PERICIAS.REFLEXOS],
+    pericias: [Skill.ACROBACIA, Skill.ATUACAO, Skill.REFLEXOS],
     poderes: [originPowers.TRUQUE_DE_MAGICA],
   },
   Criminoso: {
     name: 'Criminoso',
     itens: [],
-    pericias: [PERICIAS.ENGANACAO, PERICIAS.FURTIVIDADE, PERICIAS.LADINAGEM],
+    pericias: [Skill.ENGANACAO, Skill.FURTIVIDADE, Skill.LADINAGEM],
     poderes: [originPowers.PUNGUISTA], // TODO: Adicionar Venefício
   },
   Curandeiro: {
     name: 'Curandeiro',
     itens: [],
-    pericias: [PERICIAS.CURA, PERICIAS.VONTADE],
+    pericias: [Skill.CURA, Skill.VONTADE],
     poderes: [originPowers.MEDICO_DE_CAMPO], // TODO: Adicionar Medicina e Venfício
   },
   Eremita: {
     name: 'Eremita',
     itens: [],
-    pericias: [PERICIAS.MISTICISMO, PERICIAS.RELIGIAO, PERICIAS.SOBREVIVENCIA],
+    pericias: [Skill.MISTICISMO, Skill.RELIGIAO, Skill.SOBREVIVENCIA],
     poderes: [originPowers.BUSCA_INTERIOR], // TODO: Adicionar Lobo Solitário
   },
   Escravo: {
     name: 'Escravo',
     itens: [],
-    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE, PERICIAS.FURTIVIDADE],
+    pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.FURTIVIDADE],
     poderes: [originPowers.DESEJO_DE_LIBERDADE], // TODO: Adicionar Vitalidade
   },
   Estudioso: {
     name: 'Estudioso',
     itens: [],
-    pericias: [PERICIAS.CONHECIMENTO, PERICIAS.GUERRA, PERICIAS.MISTICISMO],
+    pericias: [Skill.CONHECIMENTO, Skill.GUERRA, Skill.MISTICISMO],
     poderes: [
       originPowers.PALPITE_FUNDAMENTADO,
       DestinyPowers.APARENCIA_INOFENSIVA,
@@ -156,162 +158,187 @@ export const ORIGINS: Record<origins, Origin> = {
   Fazendeiro: {
     name: 'Fazendeiro',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.CAVALGAR, PERICIAS.OFICIO],
+    pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR, Skill.OFICIO],
     poderes: [originPowers.AGUA_NO_FEIJAO],
   },
   Forasteiro: {
     name: 'Forasteiro',
     itens: [],
-    pericias: [PERICIAS.CAVALGAR, PERICIAS.PILOTAGEM, PERICIAS.SOBREVIVENCIA],
+    pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
     poderes: [originPowers.CULTURA_EXOTICA], // TODO: Adicionar Lobo Solitário
   },
   Gladiador: {
     name: 'Gladiador',
     itens: [],
-    pericias: [PERICIAS.ATUACAO, PERICIAS.LUTA],
+    pericias: [Skill.ATUACAO, Skill.LUTA],
     poderes: [originPowers.PAO_E_CIRCO], // TODO: Adicionar Atraente, Torcida e um poder de combate Random
   },
   Guarda: {
     name: 'Guarda',
     itens: [],
-    pericias: [PERICIAS.INVESTIGACAO, PERICIAS.LUTA, PERICIAS.PERCEPCAO],
+    pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
     poderes: [originPowers.DETETIVE], // TODO: Adicionar Investigador e um poder de combate random
   },
   Herdeiro: {
     name: 'Herdeiro',
     itens: [],
-    pericias: [PERICIAS.MISTICISMO, PERICIAS.NOBREZA, PERICIAS.OFICIO],
+    pericias: [Skill.MISTICISMO, Skill.NOBREZA, Skill.OFICIO],
     poderes: [originPowers.HERANCA, originPowers.HERANCA], // TODO: Adicionar Comandar
   },
   'Herói Camponês': {
     name: 'Herói Camponês',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.OFICIO],
+    pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
     poderes: [originPowers.AMIGO_DOS_PLEBEUS], // TODO: Adicionar Sortudo, Surto Heróico, Torcida
   },
   Marujo: {
     name: 'Marujo',
     itens: [],
-    pericias: [PERICIAS.ATLETISMO, PERICIAS.JOGATINA, PERICIAS.PILOTAGEM],
+    pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
     poderes: [originPowers.PASSAGEM_DE_NAVIO], // TODO: Adicionar Acróbatico
   },
   Mateiro: {
     name: 'Mateiro',
     itens: [],
-    pericias: [
-      PERICIAS.ATLETISMO,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.SOBREVIVENCIA,
-    ],
+    pericias: [Skill.ATLETISMO, Skill.FURTIVIDADE, Skill.SOBREVIVENCIA],
     poderes: [originPowers.VENDEDOR_DE_CARCACAS], // TODO: Adicionar Lobo Solitário, Sentidos Aguçados
   },
   'Membro de Guilda': {
     name: 'Membro de Guilda',
     itens: [],
     pericias: [
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.ENGANACAO,
-      PERICIAS.MISTICISMO,
-      PERICIAS.OFICIO,
+      Skill.DIPLOMACIA,
+      Skill.ENGANACAO,
+      Skill.MISTICISMO,
+      Skill.OFICIO,
     ],
     poderes: [originPowers.REDE_DE_CONTATOS], // TODO: Adicionar Foco em Perícia
   },
   Mercador: {
     name: 'Mercador',
     itens: [],
-    pericias: [PERICIAS.DIPLOMACIA, PERICIAS.INTUICAO, PERICIAS.OFICIO],
+    pericias: [Skill.DIPLOMACIA, Skill.INTUICAO, Skill.OFICIO],
     poderes: [originPowers.NEGOCIACAO], // TODO: PROFICIENCIA, SORTUDO
   },
   Minerador: {
     name: 'Minerador',
     itens: [],
-    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE, PERICIAS.OFICIO],
+    pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO],
     poderes: [originPowers.ESCAVADOR], // TODO: Ataque Poderoso, Sentidos Aguçados
   },
   Nômade: {
     name: 'Nômade',
     itens: [],
-    pericias: [PERICIAS.CAVALGAR, PERICIAS.PILOTAGEM, PERICIAS.SOBREVIVENCIA],
+    pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
     poderes: [originPowers.MOCHILEIRO], // Todo: Sentidos Aguçados
   },
   Pivete: {
     name: 'Pivete',
     itens: [],
-    pericias: [PERICIAS.FURTIVIDADE, PERICIAS.INICIATIVA, PERICIAS.LADINAGEM],
+    pericias: [Skill.FURTIVIDADE, Skill.INICIATIVA, Skill.LADINAGEM],
     poderes: [originPowers.QUEBRA_GALHO, DestinyPowers.APARENCIA_INOFENSIVA], // TODO: Adicionar Acrobático
   },
   Refugiado: {
     name: 'Refugiado',
     itens: [],
-    pericias: [PERICIAS.FORTITUDE, PERICIAS.REFLEXOS, PERICIAS.VONTADE],
+    pericias: [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE],
     poderes: [originPowers.ESTOICO], // TODO: Vontade de Ferro
   },
   Seguidor: {
     name: 'Seguidor',
     itens: [],
-    pericias: [PERICIAS.ADESTRAMENTO, PERICIAS.OFICIO],
+    pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
     poderes: [originPowers.ANTIGO_MESTRE], // TODO: Proficiencia, Surto Heróico
   },
   Selvagem: {
     name: 'Selvagem',
     itens: [],
-    pericias: [PERICIAS.PERCEPCAO, PERICIAS.REFLEXOS, PERICIAS.SOBREVIVENCIA],
+    pericias: [Skill.PERCEPCAO, Skill.REFLEXOS, Skill.SOBREVIVENCIA],
     poderes: [originPowers.VIDA_RUSTICA], // TODO: Lobo solitário, Vitalidade
   },
   Soldado: {
     name: 'Soldado',
     itens: [],
-    pericias: [
-      PERICIAS.FORTITUDE,
-      PERICIAS.GUERRA,
-      PERICIAS.LUTA,
-      PERICIAS.PONTARIA,
-    ],
+    pericias: [Skill.FORTITUDE, Skill.GUERRA, Skill.LUTA, Skill.PONTARIA],
     poderes: [originPowers.INFLUENCIA_MILITAR], // TODO: Um poder de combate random
   },
   Taverneiro: {
     name: 'Taverneiro',
     itens: [],
-    pericias: [PERICIAS.DIPLOMACIA, PERICIAS.JOGATINA, PERICIAS.OFICIO],
+    pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO],
     poderes: [originPowers.GOROROBA], // TODO: Proficiência, Vitalidade
   },
   Trabalhador: {
     name: 'Trabalhador',
     itens: [],
-    pericias: [PERICIAS.ATLETISMO, PERICIAS.FORTITUDE],
+    pericias: [Skill.ATLETISMO, Skill.FORTITUDE],
     poderes: [originPowers.ESFORCADO], // TODO: Atlético
   },
 };
 
-function sortOriginBenefits(origin: Origin, usedSkills: string[]) {
+const benefitsStrategies = {
+  string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
+    _.merge({
+      skills: [...benefits.skills, benefit],
+    }),
+  OriginPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        origin: [...benefits.powers.origin, benefit],
+      },
+    }),
+  GeneralPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        origin: [...benefits.powers.origin, benefit],
+      },
+    }),
+};
+
+function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
+  return benefits.reduce<OriginBenefits>(
+    (acc, benefit) => {
+      if (typeof benefit === 'string') {
+        return benefitsStrategies.string(benefit, acc);
+      }
+
+      if (benefit.type === ORIGIN_POWER_TYPE) {
+        return benefitsStrategies.OriginPower(benefit, acc);
+      }
+
+      return benefitsStrategies.GeneralPower(benefit, acc);
+    },
+    {
+      skills: [],
+      powers: {
+        origin: [],
+        general: [],
+      },
+    }
+  );
+}
+
+function sortOriginBenefits(origin: Origin, usedSkills: Skill[]) {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     usedSkills,
     origin.pericias
   );
 
-  const benefitsToSort = pickFromArray(
+  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
     [...notRepeatedSkills, ...origin.poderes],
     2
   );
 
-  const skills: string[] = [];
-  const powers: (OriginPower | GeneralPower)[] = [];
-
-  benefitsToSort.forEach((benefit) => {
-    if (typeof benefit === 'string') {
-      skills.push(benefit);
-    } else {
-      powers.push(benefit as OriginPower);
-    }
-  });
-
-  return {
-    skills,
-    powers,
-  };
+  return getBenefits(sortedBenefits);
 }
 
-function sortAmnesicBenefits(skills: string[]) {
+function sortAmnesicBenefits(skills: Skill[]): OriginBenefits {
   const powers: (OriginPower | GeneralPower)[] = [];
 
   const newSkill = getNotRepeatedRandomSkill(skills);
@@ -319,18 +346,18 @@ function sortAmnesicBenefits(skills: string[]) {
 
   return {
     skills: [newSkill],
-    powers: [
-      originPowers.LEMBRANCAS_GRADUAIS,
-      getRandomItemFromArray(Object.values(generalPowers).flat()),
-    ],
+    powers: {
+      general: [getRandomItemFromArray(Object.values(generalPowers).flat())],
+      origin: [originPowers.LEMBRANCAS_GRADUAIS],
+    },
   };
 }
 
 // TODO: EVITAR PODER REPETIDO
 export function getOriginBenefits(
   origin: Origin,
-  skills: string[]
-): { skills: string[]; powers: (OriginPower | GeneralPower)[] } {
+  skills: Skill[]
+): OriginBenefits {
   if (origin.name === ORIGINS.Amnésico.name) {
     return sortAmnesicBenefits(skills);
   }

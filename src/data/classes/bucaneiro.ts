@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const BUCANEIRO: ClassDescription = {
@@ -11,30 +11,30 @@ const BUCANEIRO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'or',
-      list: [PERICIAS.LUTA, PERICIAS.PONTARIA],
+      list: [Skill.LUTA, Skill.PONTARIA],
     },
     {
       type: 'and',
-      list: [PERICIAS.REFLEXOS],
+      list: [Skill.REFLEXOS],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.ACROBACIA,
-      PERICIAS.ATLETISMO,
-      PERICIAS.ATUACAO,
-      PERICIAS.ENGANACAO,
-      PERICIAS.FORTITUDE,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.JOGATINA,
-      PERICIAS.LUTA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PILOTAGEM,
-      PERICIAS.PONTARIA,
+      Skill.ACROBACIA,
+      Skill.ATLETISMO,
+      Skill.ATUACAO,
+      Skill.ENGANACAO,
+      Skill.FORTITUDE,
+      Skill.FURTIVIDADE,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.JOGATINA,
+      Skill.LUTA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PILOTAGEM,
+      Skill.PONTARIA,
     ],
   },
   proeficiencias: [
@@ -42,7 +42,7 @@ const BUCANEIRO: ClassDescription = {
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Audácia',
       text:

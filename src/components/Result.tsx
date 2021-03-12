@@ -84,7 +84,7 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(hab)}>{hab}</li>
   ));
 
-  const habilidadesClasseDiv = classe.habilities.map((hab) => (
+  const habilidadesClasseDiv = classe.abilities.map((hab) => (
     <li key={getKey(hab.name)}>
       <strong>{hab.name}:</strong> {hab.text}
     </li>

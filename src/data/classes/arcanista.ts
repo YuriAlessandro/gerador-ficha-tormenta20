@@ -2,11 +2,11 @@ import _ from 'lodash';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
 import {
   ClassDescription,
-  ClassHability,
+  ClassAbility,
   SpellPath,
 } from '../../interfaces/Class';
+import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
-import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
 type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
@@ -58,7 +58,7 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   },
 };
 
-const classHabilities: Record<ArcanistaSubtypes, ClassHability> = {
+const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
   Bruxo: {
     name: 'Caminho do Arcanista',
     text:
@@ -79,7 +79,7 @@ const classHabilities: Record<ArcanistaSubtypes, ClassHability> = {
   },
 };
 
-const feiticeiroPaths: ClassHability[] = [
+const feiticeiroPaths: ClassAbility[] = [
   {
     name: 'Linhagem Dracônica',
     text:
@@ -109,20 +109,15 @@ const ARCANISTA: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.MISTICISMO, PERICIAS.VONTADE],
+      list: [Skill.MISTICISMO, Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 1,
-    list: [
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.INICIATIVA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-    ],
+    list: [Skill.CONHECIMENTO, Skill.INICIATIVA, Skill.OFICIO, Skill.PERCEPCAO],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
-  habilities: [],
+  abilities: [],
   probDevoto: 0.3,
   faithProbability: {
     AZGHER: 1,
@@ -139,9 +134,9 @@ const ARCANISTA: ClassDescription = {
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
     modifiedClasse.spellPath = spellPaths[subtype];
-    modifiedClasse.habilities.push(classHabilities[subtype]);
+    modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
-      modifiedClasse.habilities.push(getRandomItemFromArray(feiticeiroPaths));
+      modifiedClasse.abilities.push(getRandomItemFromArray(feiticeiroPaths));
     }
 
     return modifiedClasse;

@@ -37,6 +37,7 @@ export type GeneralPowers = {
 export interface OriginPower {
   name: string;
   description: string;
+  type: string;
 }
 
 export type grantedPowers =

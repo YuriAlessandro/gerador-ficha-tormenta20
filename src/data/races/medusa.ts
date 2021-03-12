@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const MEDUSA: Race = {
   name: 'Medusa',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },

@@ -1,30 +1,11 @@
 import { ClassDescription } from './Class';
-import Divindade from './Divindade';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
 import { Bag } from './Equipment';
 import { Spell } from './Spells';
-import { Atributo } from '../data/atributos';
+import { CharacterAttributes, CharacterReligion } from './Character';
+import Skill from './Skills';
 
-export interface RaceHability {
-  attr: string;
-  mod: number;
-}
-
-export interface CharacterAttribute {
-  name: Atributo;
-  value: number;
-  mod: number;
-}
-
-export type CharacterAttributes = {
-  [key in Atributo]: CharacterAttribute;
-};
-
-export interface CharacterReligion {
-  divindade: Divindade;
-  poderes: GeneralPower[];
-}
 export default interface CharacterSheet {
   id: string;
   nome: string;
@@ -33,7 +14,7 @@ export default interface CharacterSheet {
   atributos: CharacterAttributes;
   raca: Race;
   classe: ClassDescription;
-  pericias: string[];
+  pericias: Skill[];
   pv: number;
   pm: number;
   defesa: number;
@@ -41,10 +22,11 @@ export default interface CharacterSheet {
   devoto?: CharacterReligion;
   origin: {
     name: string;
-    powers: (OriginPower | GeneralPower)[];
+    powers: OriginPower[];
   };
   spells: Spell[];
   displacement: number;
   size: RaceSize;
   maxWeight: number;
+  generalPowers: GeneralPower[];
 }

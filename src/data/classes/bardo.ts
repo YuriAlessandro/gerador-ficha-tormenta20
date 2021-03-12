@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
+import Skill from '../../interfaces/Skills';
 import { allSpellSchools } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
-import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
 const BARDO: ClassDescription = {
@@ -15,30 +15,30 @@ const BARDO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.ATUACAO, PERICIAS.REFLEXOS],
+      list: [Skill.ATUACAO, Skill.REFLEXOS],
     },
   ],
   periciasrestantes: {
     qtd: 6,
     list: [
-      PERICIAS.ACROBACIA,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.ENGANACAO,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTUICAO,
-      PERICIAS.INVESTIGACAO,
-      PERICIAS.JOGATINA,
-      PERICIAS.LADINAGEM,
-      PERICIAS.LUTA,
-      PERICIAS.MISTICISMO,
-      PERICIAS.NOBREZA,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.RELIGIAO,
-      PERICIAS.VONTADE,
+      Skill.ACROBACIA,
+      Skill.CAVALGAR,
+      Skill.CONHECIMENTO,
+      Skill.DIPLOMACIA,
+      Skill.ENGANACAO,
+      Skill.FURTIVIDADE,
+      Skill.INICIATIVA,
+      Skill.INTUICAO,
+      Skill.INVESTIGACAO,
+      Skill.JOGATINA,
+      Skill.LADINAGEM,
+      Skill.LUTA,
+      Skill.MISTICISMO,
+      Skill.NOBREZA,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.RELIGIAO,
+      Skill.VONTADE,
     ],
   },
   proeficiencias: [
@@ -46,7 +46,7 @@ const BARDO: ClassDescription = {
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Inspiração',
       text:

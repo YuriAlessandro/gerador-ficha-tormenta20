@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
 import { ClassDescription } from '../../interfaces/Class';
+import Skills from '../../interfaces/Skills';
 import { allSpellSchools } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
-import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
 const DRUIDA: ClassDescription = {
@@ -15,29 +15,29 @@ const DRUIDA: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.SOBREVIVENCIA, PERICIAS.VONTADE],
+      list: [Skills.SOBREVIVENCIA, Skills.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.CURA,
-      PERICIAS.FORTITUDE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTUICAO,
-      PERICIAS.LUTA,
-      PERICIAS.MISTICISMO,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.RELIGIAO,
+      Skills.ADESTRAMENTO,
+      Skills.ATLETISMO,
+      Skills.CAVALGAR,
+      Skills.CONHECIMENTO,
+      Skills.CURA,
+      Skills.FORTITUDE,
+      Skills.INICIATIVA,
+      Skills.INTUICAO,
+      Skills.LUTA,
+      Skills.MISTICISMO,
+      Skills.OFICIO,
+      Skills.PERCEPCAO,
+      Skills.RELIGIAO,
     ],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
-  habilities: [
+  abilities: [
     {
       name: 'Devoto',
       text:

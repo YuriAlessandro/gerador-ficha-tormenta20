@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const AGGELUS: Race = {
   name: 'Suraggel (Aggelus)',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.SABEDORIA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },

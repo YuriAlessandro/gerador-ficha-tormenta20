@@ -1,15 +1,15 @@
 import Race from '../../interfaces/Race';
+import { Ability } from '../abilities';
 import { Atributo } from '../atributos';
 
 const ANAO: Race = {
   name: 'Anão',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: 'any', mod: 4 },
       { attr: Atributo.SABEDORIA, mod: 2 },
       { attr: Atributo.DESTREZA, mod: -2 },
     ],
-    other: [{ type: 'pv', mod: 3 }],
     texts: [
       'Você recebe visão no escuro e +2 em testes de Percepção e Sobrevivência realizados no subterrâneo.',
       'Seu deslocamento é 6m (em vez de 9m). Porém, seu deslocamento não é reduzido por uso de armadura ou excesso de carga.',
@@ -26,6 +26,23 @@ const ANAO: Race = {
     TENEBRA: 1,
   },
   getDisplacement: () => 6,
+  abilities: {
+    [Ability.CONHECIMENTO_DAS_ROCHAS]: {
+      name: 'Conhecimento das Rochas',
+      description:
+        'Você recebe visão no escuro e +2 em testes de Precepção e Sobrevivência realizados no subterrâneo.',
+    },
+    [Ability.DEVAGAR_E_SEMPRE]: {
+      name: 'Devagar e Sempre',
+      description:
+        'Seu deslocamento é 6m (em vez de 9m). Porém, seu deslocamento não é reduzido por uso de armadura ou excesso de carga.',
+    },
+    [Ability.TRADICAO_DE_HEREDRIMM]: {
+      name: 'Tradição de Heredrimm',
+      description:
+        'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usálas como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas.',
+    },
+  },
 };
 
 export default ANAO;

@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.SABEDORIA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },
