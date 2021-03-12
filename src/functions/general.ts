@@ -1,4 +1,5 @@
 import { v4 as uuid } from 'uuid';
+import _ from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -12,6 +13,7 @@ import EQUIPAMENTOS, {
   DEFAULT_BAG,
   Armaduras,
   Escudos,
+  updateEquipments,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -305,9 +307,9 @@ function getInitialBag(classe: ClassDescription): Bag {
   // TODO: Initial cash
 
   const bagEquipments = getInitialEquipments(bag.equipments, classe);
-  bag.updateEquipments(bag, bagEquipments);
+  const updatedBag = updateEquipments(bag, bagEquipments);
 
-  return bag;
+  return updatedBag;
 }
 
 function getThyatisPowers() {
@@ -405,9 +407,11 @@ export function applyRaceHabilities(
   race: Race,
   stats: CharacterStats
 ): CharacterStats {
+  const statsClone = _.cloneDeep(stats);
+
   return Object.values(race.abilities || {}).reduce(
     (acc, ability) => (ability.action ? ability.action(acc) : acc),
-    stats
+    statsClone
   );
 }
 

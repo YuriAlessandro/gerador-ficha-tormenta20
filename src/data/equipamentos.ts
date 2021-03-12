@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import Equipment, {
   Bag,
   DefenseEquipment,
@@ -249,19 +250,22 @@ const defaultEquipments: BagEquipments = {
   Veículo: [],
 };
 
-function updateEquipments(bag: Bag, updatedBagEquipments: BagEquipments): void {
-  const bagUpdated = bag;
+export function updateEquipments(
+  bag: Bag,
+  updatedBagEquipments: BagEquipments
+): Bag {
+  const bagClone = _.cloneDeep(bag);
 
-  bagUpdated.equipments = updatedBagEquipments;
-  bagUpdated.weight = calcBagWeight(bag.equipments);
-  bagUpdated.armorPenalty = calcArmorPenalty(bag.equipments);
+  bagClone.equipments = updatedBagEquipments;
+  bagClone.weight = calcBagWeight(bag.equipments);
+  bagClone.armorPenalty = calcArmorPenalty(bag.equipments);
+  return bagClone;
 }
 
 export const DEFAULT_BAG: Bag = {
   equipments: defaultEquipments,
   weight: calcBagWeight(defaultEquipments),
   armorPenalty: calcArmorPenalty(defaultEquipments),
-  updateEquipments,
 };
 
 const EQUIPAMENTOS: CombatItems = {
