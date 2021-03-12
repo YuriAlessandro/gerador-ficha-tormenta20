@@ -67,7 +67,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.CURA, Skill.RELIGIAO, Skill.VONTADE],
     poderes: [
       originPowers.MEMBRO_DA_IGREJA,
-      combatPowers.MEDICINA,
+      DestinyPowers.MEDICINA,
       DestinyPowers.VONTADE_DE_FERRO,
     ],
   },
@@ -220,7 +220,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.CURA, Skill.VONTADE],
     poderes: [
       originPowers.MEDICO_DE_CAMPO,
-      combatPowers.MEDICINA,
+      DestinyPowers.MEDICINA,
       DestinyPowers.VENEFICIO,
     ],
   },
@@ -617,8 +617,6 @@ function sortOriginBenefits(origin: Origin, usedSkills: Skill[]) {
     [...notRepeatedSkills, ...origin.poderes],
     2
   );
-
-  // console.log(sortedBenefits);
 
   return getBenefits(sortedBenefits);
 }
