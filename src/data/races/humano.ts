@@ -1,4 +1,5 @@
-import Race from '../../interfaces/Race';
+import Race, { CharacterStats } from '../../interfaces/Race';
+import { getNotRepeatedRandomSkill } from '../pericias';
 
 const HUMANO: Race = {
   name: 'Humano',
@@ -7,10 +8,6 @@ const HUMANO: Race = {
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
-    ],
-    other: [
-      { type: 'pericias', allowed: 'any' },
-      { type: 'pericias', allowed: 'any' },
     ],
     texts: [
       'Filhos de Valkaria, Deusa da Ambição, humanos podem se destacar em qualquer caminho que escolherem.',
@@ -21,6 +18,20 @@ const HUMANO: Race = {
     AHARADAK: 1,
     VALKARIA: 1,
     THWOR: 1,
+  },
+  abilities: {
+    Versátil: {
+      name: 'Versátil',
+      description:
+        'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha.',
+      action(stats: CharacterStats): CharacterStats {
+        const skills = [];
+
+        skills.push(getNotRepeatedRandomSkill(stats));
+
+        return stats;
+      },
+    },
   },
 };
 

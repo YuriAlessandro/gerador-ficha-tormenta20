@@ -21,7 +21,7 @@ import {
   CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/Character';
-import Race, { RaceAttributeAbility } from '../interfaces/Race';
+import Race, { CharacterStats, RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -127,7 +127,7 @@ export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes
 ): CharacterAttributes {
-  const reducedAttrs = raca.habilites.attrs.reduce<ReduceAttributesParams>(
+  const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
       const selectedAttrName = selectAttributeToChange(
@@ -159,38 +159,6 @@ export function modifyAttributesBasedOnRace(
   );
 
   return reducedAttrs.atributos;
-}
-
-export function getClassDetailsModifiedByRace(
-  { pv, pm, defesa }: { pv: number; pm: number; defesa: number },
-  raca: Race
-): { pv: number; pm: number; defesa: number } {
-  return raca.habilites.other.reduce(
-    (caracteristicas, item) => {
-      if (item.type === 'pv' && item.mod) {
-        return {
-          ...caracteristicas,
-          pv: pv + item.mod,
-        };
-      }
-
-      if (item.type === 'pm' && item.mod) {
-        return {
-          ...caracteristicas,
-          pm: pm + item.mod,
-        };
-      }
-      if (item.type === 'defesa' && item.mod) {
-        return {
-          ...caracteristicas,
-          defesa: defesa + item.mod,
-        };
-      }
-
-      return caracteristicas;
-    },
-    { pv, pm, defesa }
-  );
 }
 
 function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
@@ -246,19 +214,6 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
-function getRaceSkills(usedSkills: string[], race: Race): string[] {
-  const skillAbilities = race.habilites.other.filter(
-    (skill) => skill.type === 'pericias'
-  );
-  return skillAbilities.reduce<string[]>((skills, ability) => {
-    if (ability.allowed === 'any') {
-      return [...skills, getNotRepeatedRandomSkill(usedSkills)];
-    }
-
-    return skills;
-  }, []);
-}
-
 function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: string[]
@@ -273,28 +228,24 @@ function getAttributesSkills(
 function getSkillsAndPowers(
   classe: ClassDescription,
   origin: Origin,
-  race: Race,
   attributes: CharacterAttributes
-): { skills: string[]; powers: { origin: (GeneralPower | OriginPower)[] } } {
+): {
+  skills: string[];
+  powers: { origin: OriginPower[]; general: GeneralPower[] };
+} {
   const skills: string[] = [];
 
   skills.push(...getClassBaseSkills(classe));
 
-  const { skills: originSkills, powers: originPowers } = getOriginBenefits(
-    origin,
-    skills
-  );
+  const { skills: originSkills, powers } = getOriginBenefits(origin, skills);
 
   skills.push(...originSkills);
   skills.push(...getRemainingSkills(skills, classe));
-  skills.push(...getRaceSkills(skills, race));
   skills.push(...getAttributesSkills(attributes, skills));
 
   return {
     skills,
-    powers: {
-      origin: originPowers,
-    },
+    powers,
   };
 }
 function getWeapons(classe: ClassDescription) {
@@ -438,10 +389,9 @@ function getSpells(classe: ClassDescription): Spell[] {
 
 function calcDisplacement(
   bag: Bag,
-  race: Race,
+  raceDisplacement: number,
   atributos: CharacterAttributes
 ): number {
-  const raceDisplacement = getRaceDisplacement(race);
   const maxWeight = atributos.Força.value * 3;
 
   if (bag.weight > maxWeight) {
@@ -449,6 +399,10 @@ function calcDisplacement(
   }
 
   return raceDisplacement;
+}
+
+function applyRaceHabilities(stats: CharacterStats): CharacterStats {
+  return stats;
 }
 
 export default function generateRandomSheet(
@@ -488,13 +442,7 @@ export default function generateRandomSheet(
     pv: pvInicial,
     pm: pmInicial,
     defesa: initialDefense,
-    pericias: [],
   };
-
-  const classDetailsModifiedByRace = getClassDetailsModifiedByRace(
-    classDetails,
-    race
-  );
 
   // Passo 4: Definição de origem
   const origin = getRandomItemFromArray(Object.values(ORIGINS));
@@ -502,9 +450,9 @@ export default function generateRandomSheet(
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe
   const {
-    powers: { origin: originPowers },
+    powers: { origin: originPowers, general: originGeneralPowers },
     skills,
-  } = getSkillsAndPowers(classe, origin, race, atributos);
+  } = getSkillsAndPowers(classe, origin, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
@@ -518,8 +466,28 @@ export default function generateRandomSheet(
   const spells = getSpells(classe);
 
   // Passo 9: Recuperar deslocamento e tamanho com base na Raça, Atributos e Equipamentos
-  const displacement = calcDisplacement(bag, race, atributos);
   const size = getRaceSize(race);
+
+  const stats = applyRaceHabilities({
+    atributos,
+    bag,
+    classe,
+    defense: initialDefense,
+    displacement: getRaceDisplacement(race),
+    nivel,
+    size,
+    origin,
+    skills,
+    spells,
+    devoto,
+    powers: {
+      general: originGeneralPowers,
+      origin: originPowers,
+    },
+    ...classDetails,
+  });
+
+  const displacement = calcDisplacement(bag, race, atributos);
 
   // Passo 10: Calcular o peso máximo com base na força
   const maxWeight = atributos.Força.value * 3;
@@ -534,8 +502,8 @@ export default function generateRandomSheet(
     raca: race,
     classe,
     pericias: skills,
-    pv: classDetailsModifiedByRace.pv,
-    pm: classDetailsModifiedByRace.pm,
+    pv: pvInicial,
+    pm: pmInicial,
     defesa: defense,
     bag,
     devoto,
@@ -546,5 +514,6 @@ export default function generateRandomSheet(
     spells,
     displacement,
     size,
+    generalPowers: [...originGeneralPowers],
   };
 }

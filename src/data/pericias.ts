@@ -3,44 +3,9 @@ import {
   pickFromArray,
 } from '../functions/randomUtils';
 import { ClassDescription } from '../interfaces/Class';
+import { skill } from '../interfaces/Skills';
 
-type pericia =
-  | 'ACROBACIA'
-  | 'ADESTRAMENTO'
-  | 'ATLETISMO'
-  | 'ATUACAO'
-  | 'CAVALGAR'
-  | 'CONHECIMENTO'
-  | 'CURA'
-  | 'DIPLOMACIA'
-  | 'ENGANACAO'
-  | 'FORTITUDE'
-  | 'FURTIVIDADE'
-  | 'GUERRA'
-  | 'INICIATIVA'
-  | 'INTIMIDACAO'
-  | 'INTUICAO'
-  | 'INVESTIGACAO'
-  | 'JOGATINA'
-  | 'LADINAGEM'
-  | 'LUTA'
-  | 'MISTICISMO'
-  | 'NOBREZA'
-  | 'OFICIO'
-  | 'OFICIO_ALQUIMIA'
-  | 'OFICIO_ARMEIRO'
-  | 'OFICIO_ARTESANATO'
-  | 'OFICIO_ALFAIATE'
-  | 'OFICIO_CULINARIA'
-  | 'PERCEPCAO'
-  | 'PILOTAGEM'
-  | 'PONTARIA'
-  | 'REFLEXOS'
-  | 'RELIGIAO'
-  | 'SOBREVIVENCIA'
-  | 'VONTADE';
-
-const PERICIAS: Record<pericia, string> = {
+const PERICIAS: Record<skill, string> = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
   ATLETISMO: 'Atletismo',
@@ -84,7 +49,7 @@ export function getNotUsedSkillsFromAllowed(
   allowedSkills?: string[]
 ): string[] {
   return (allowedSkills || Object.values(PERICIAS)).filter(
-    (skill) => usedSkills.indexOf(skill) < 0
+    (element) => usedSkills.indexOf(element) < 0
   );
 }
 
@@ -105,7 +70,6 @@ export function getNotRepeatedSkillsByQtd(
   allowedSkills?: string[]
 ): string[] {
   const notUsed = getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
-  console.log(notUsed, usedSkills, allowedSkills);
   return pickFromArray(notUsed, qtd);
 }
 

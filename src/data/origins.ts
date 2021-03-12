@@ -1,9 +1,10 @@
-import Origin from '../interfaces/Origin';
+import _ from 'lodash';
+import Origin, { OriginBenefits } from '../interfaces/Origin';
 import PERICIAS, {
   getNotRepeatedRandomSkill,
   getNotUsedSkillsFromAllowed,
 } from './pericias';
-import originPowers from './powers/originPowers';
+import originPowers, { ORIGIN_POWER_TYPE } from './powers/originPowers';
 import { DestinyPowers } from './powers/destinyPowers';
 import {
   getRandomItemFromArray,
@@ -283,35 +284,69 @@ export const ORIGINS: Record<origins, Origin> = {
   },
 };
 
+const benefitsStrategies = {
+  string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
+    _.merge({
+      skills: [...benefits.skills, benefit],
+    }),
+  OriginPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        origin: [...benefits.powers.origin, benefit],
+      },
+    }),
+  GeneralPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        origin: [...benefits.powers.origin, benefit],
+      },
+    }),
+};
+
+function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
+  return benefits.reduce<OriginBenefits>(
+    (acc, benefit) => {
+      if (typeof benefit === 'string') {
+        return benefitsStrategies.string(benefit, acc);
+      }
+
+      if (benefit.type === ORIGIN_POWER_TYPE) {
+        return benefitsStrategies.OriginPower(benefit, acc);
+      }
+
+      return benefitsStrategies.GeneralPower(benefit, acc);
+    },
+    {
+      skills: [],
+      powers: {
+        origin: [],
+        general: [],
+      },
+    }
+  );
+}
+
 function sortOriginBenefits(origin: Origin, usedSkills: string[]) {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     usedSkills,
     origin.pericias
   );
 
-  const benefitsToSort = pickFromArray(
+  const sortedBenefits = pickFromArray<string | OriginPower | GeneralPower>(
     [...notRepeatedSkills, ...origin.poderes],
     2
   );
 
-  const skills: string[] = [];
-  const powers: (OriginPower | GeneralPower)[] = [];
-
-  benefitsToSort.forEach((benefit) => {
-    if (typeof benefit === 'string') {
-      skills.push(benefit);
-    } else {
-      powers.push(benefit as OriginPower);
-    }
-  });
-
-  return {
-    skills,
-    powers,
-  };
+  return getBenefits(sortedBenefits);
 }
 
-function sortAmnesicBenefits(skills: string[]) {
+function sortAmnesicBenefits(skills: string[]): OriginBenefits {
   const powers: (OriginPower | GeneralPower)[] = [];
 
   const newSkill = getNotRepeatedRandomSkill(skills);
@@ -319,10 +354,10 @@ function sortAmnesicBenefits(skills: string[]) {
 
   return {
     skills: [newSkill],
-    powers: [
-      originPowers.LEMBRANCAS_GRADUAIS,
-      getRandomItemFromArray(Object.values(generalPowers).flat()),
-    ],
+    powers: {
+      general: [getRandomItemFromArray(Object.values(generalPowers).flat())],
+      origin: [originPowers.LEMBRANCAS_GRADUAIS],
+    },
   };
 }
 
@@ -330,7 +365,7 @@ function sortAmnesicBenefits(skills: string[]) {
 export function getOriginBenefits(
   origin: Origin,
   skills: string[]
-): { skills: string[]; powers: (OriginPower | GeneralPower)[] } {
+): OriginBenefits {
   if (origin.name === ORIGINS.Amnésico.name) {
     return sortAmnesicBenefits(skills);
   }

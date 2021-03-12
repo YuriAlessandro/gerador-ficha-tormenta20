@@ -3,7 +3,9 @@ import { CharacterAttributes, CharacterReligion } from './Character';
 import { ClassDescription } from './Class';
 import { FaithProbability } from './Divindade';
 import { Bag } from './Equipment';
+import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
+import { skill } from './Skills';
 import { Spell } from './Spells';
 
 export interface RaceAttributeAbility {
@@ -30,49 +32,43 @@ export interface RaceSize {
 }
 
 export interface CharacterStats {
-  nivel: number;
-  atributos: CharacterAttributes;
-  classe: ClassDescription;
-  pericias: string[];
+  level: number;
+  attributes: CharacterAttributes;
+  classDescription: ClassDescription;
   pv: number;
   pm: number;
-  defesa: number;
+  defense: number;
   bag: Bag;
-  devoto?: CharacterReligion;
-  origin: {
-    name: string;
-    powers: (OriginPower | GeneralPower)[];
-  };
+  devote?: CharacterReligion;
+  origin: Origin;
   spells: Spell[];
   displacement: number;
   size: RaceSize;
   maxWeight: number;
+  skills: skill[];
+  powers: {
+    general: GeneralPower[];
+    origin: OriginPower[];
+  };
 }
 
 export interface RaceAbility {
   name: string;
   description: string;
+  action: (stats: CharacterStats) => CharacterStats;
 }
 
 export default interface Race {
   name: string;
-  habilites: {
+  attributes: {
     attrs: RaceAttributeAbility[];
-    other: {
-      type: string;
-      allowed?: string;
-      mod?: number;
-    }[];
     texts: string[];
   };
+  abilities: Record<string, RaceAbility>;
   oldRace?: Race;
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;
-  getAbilities: (
-    race: Race,
-    sheet: CharacterStats
-  ) => { stats: CharacterStats; abilities: RaceAbility };
   faithProbability?: FaithProbability;
   size?: RaceSize;
 }

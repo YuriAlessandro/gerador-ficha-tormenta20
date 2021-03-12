@@ -21,10 +21,11 @@ export default interface CharacterSheet {
   devoto?: CharacterReligion;
   origin: {
     name: string;
-    powers: (OriginPower | GeneralPower)[];
+    powers: OriginPower[];
   };
   spells: Spell[];
   displacement: number;
   size: RaceSize;
   maxWeight: number;
+  generalPowers: GeneralPower[];
 }
