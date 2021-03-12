@@ -1,3 +1,5 @@
+import { Atributo } from '../data/atributos';
+
 export enum spellsCircles {
   c1 = '1º Circulo',
   c2 = '2º Circulo',
@@ -16,6 +18,8 @@ export type Spell = {
   resistencia?: string;
   spellCircle: spellsCircles;
   manaExpense?: number;
+  manaReduction?: number;
+  customKeyAttr?: Atributo;
 };
 
 export type SpellSchool =

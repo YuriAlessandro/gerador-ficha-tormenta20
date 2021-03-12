@@ -19,7 +19,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
 
   return (
     <div>
-      {spells.length > 0 && (
+      {spells.length > 0 && spellPath && (
         <div className='speelsInfos'>
           <span>
             <strong>Atributo-Chave:</strong> {keyAttr?.name}
@@ -44,26 +44,33 @@ const Spells: React.FC<SpellsProp> = (props) => {
             <thead>
               <tr>
                 <th>Magia</th>
-                <th>PM</th>
                 <th>Escola</th>
                 <th>Execução</th>
                 <th>Alcance</th>
                 <th>Alvo/Área</th>
                 <th>Duração</th>
                 <th>Resistência</th>
+                <th>Custo PM</th>
+                <th>Redução do custo</th>
               </tr>
             </thead>
             <tbody>
               {spells.map((spell) => (
                 <tr key={spell.nome}>
-                  <td>{spell.nome}</td>
-                  <td>{spell.manaExpense || 1}</td>
+                  <td>
+                    {spell.nome}{' '}
+                    {spell.customKeyAttr && `(${spell.customKeyAttr})`}{' '}
+                  </td>
                   <td>-</td>
                   <td>{spell.execucao}</td>
                   <td>{spell.alcance}</td>
                   <td>{spell.alvo || spell.area || '-'}</td>
                   <td>{spell.duracao}</td>
                   <td>{spell.resistencia || '-'}</td>
+                  <td>{spell.manaExpense || 1}</td>
+                  <td>
+                    {spell.manaReduction ? `- ${spell.manaReduction}` : '-'}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -4,13 +4,15 @@ import { Spell } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
 
+const PLANTS_FRIEND_MANA_REDUCTION = 1;
 function cheapenControlPlants(spells: Spell[], index: number) {
-  let { manaExpense = 1 } = spells[index];
-  if (manaExpense > 1) manaExpense -= 1;
+  let { manaReduction = 0 } = spells[index];
+  if (manaReduction < PLANTS_FRIEND_MANA_REDUCTION)
+    manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
   return spells.map((spell) => {
     if (spellsCircle1.controlarPlantas.nome === spell.nome) {
       return merge<Spell, Partial<Spell>>(spell, {
-        manaExpense,
+        manaReduction,
       });
     }
 
@@ -26,7 +28,10 @@ function addOrCheapenControlPlants(
   );
 
   if (index < 0) {
-    return [...spells, spellsCircle1.controlarPlantas];
+    return [
+      ...spells,
+      { ...spellsCircle1.controlarPlantas, customKeyAttr: Atributo.SABEDORIA },
+    ];
   }
 
   return cheapenControlPlants(spells, index);
