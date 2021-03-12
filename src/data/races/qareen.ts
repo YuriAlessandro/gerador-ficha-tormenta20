@@ -9,7 +9,6 @@ const QAREEN: Race = {
       { attr: Atributo.INTELIGENCIA, mod: 2 },
       { attr: Atributo.SABEDORIA, mod: -2 },
     ],
-    other: [],
     texts: [
       'Se lançar uma magia que alguém tenha pedido desde seu último turno, o custo da magia diminui em –1 PM. Fazer um desejo ao qareen é uma ação livre.',
       'Conforme sua ascendência, você recebe resistência 10 a um tipo de dano. Escolha uma: frio (qareen da água), eletricidade (do ar), fogo (do fogo), ácido (da terra), luz (da luz) ou trevas (qareen das trevas).',

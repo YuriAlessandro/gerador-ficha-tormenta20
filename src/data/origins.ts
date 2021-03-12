@@ -278,7 +278,7 @@ export const ORIGINS: Record<origins, Origin> = {
 
 const benefitsStrategies = {
   string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
-    _.merge({
+    _.merge(benefits, {
       skills: [...benefits.skills, benefit],
     }),
   OriginPower: (

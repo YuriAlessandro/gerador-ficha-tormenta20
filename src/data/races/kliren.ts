@@ -9,7 +9,6 @@ const KLIREN: Race = {
       { attr: Atributo.CARISMA, mod: 2 },
       { attr: Atributo.FORCA, mod: -2 },
     ],
-    other: [{ type: 'pericias', allowed: 'any' }],
     texts: [
       'Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe, JÁ INCLUSO).',
       'Quando faz um teste de atributo ou perícia, você pode gastar 2 PM para substituir o modificador de atributo utilizado por Inteligência. Por exemplo, ao fazer um teste de Atletismo você pode gastar 2 PM para usar seu modificador de Inteligência em vez do modificador de Força.',

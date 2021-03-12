@@ -12,7 +12,6 @@ const OSTEON: Race = {
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
     ],
-    other: [],
     texts: [
       'Você recebe resistência a corte, frio e perfuração 5.',
       'Você se torna treinado em uma perícia (não precisa ser da sua classe) ou recebe um poder geral a sua escolha. Como alternativa, você pode ser um osteon de outra raça humanoide que não humano. Neste caso, você ganha uma habilidade dessa raça a sua escolha. Se a raça era de tamanho diferente de Médio, você também possui sua categoria de tamanho (NÃO INCLUSO, ESCOLHA O DESEJADO E ADICIONE MANUALMENTE NA SUA FICHA).',

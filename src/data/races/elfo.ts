@@ -9,7 +9,6 @@ const ELFO: Race = {
       { attr: Atributo.DESTREZA, mod: 2 },
       { attr: Atributo.CONSTITUICAO, mod: -2 },
     ],
-    other: [{ type: 'pm', mod: 1 }], // Update per level
     texts: [
       'Seu deslocamento é 12m (em vez de 9m).',
       'Você recebe +1 ponto de mana por nível (JÁ INCLUSO).',

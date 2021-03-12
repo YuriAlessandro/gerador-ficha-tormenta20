@@ -8,7 +8,6 @@ const SEREIA: Race = {
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
     ],
-    other: [],
     texts: [
       'Você pode lançar duas das magias a seguir: Amedrontar, Comando, Despedaçar, Enfeitiçar, Hipnotismo ou Sono (atributo-chave Carisma). Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
       'Para você, o tridente é uma arma simples. Além disso, você recebe +2 em rolagens de dano com azagaias, lanças e tridentes',
