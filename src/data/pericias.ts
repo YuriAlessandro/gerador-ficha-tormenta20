@@ -1,3 +1,6 @@
+import { getRandomItemFromArray } from '../functions/randomUtils';
+import { ClassDescription } from '../interfaces/Class';
+
 const PERICIAS: Record<string, string> = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
@@ -36,3 +39,33 @@ const PERICIAS: Record<string, string> = {
 };
 
 export default PERICIAS;
+
+export function getNotRepeatedRandomSkill(
+  periciasUsadas: string[],
+  allowedSkills?: string[]
+): string {
+  const notRepeatedSkills = (allowedSkills || Object.values(PERICIAS)).filter(
+    (pericia) => !periciasUsadas.includes(PERICIAS[pericia])
+  );
+  return getRandomItemFromArray(notRepeatedSkills);
+}
+
+const getBaseSkill: Record<
+  string,
+  (baseSkills: string[], skills: string[]) => string[]
+> = {
+  and(baseSkills, skills) {
+    return [...skills, ...baseSkills];
+  },
+  or(baseSkills, skills) {
+    const newSkill = getNotRepeatedRandomSkill(skills, baseSkills);
+    return [...skills, newSkill];
+  },
+};
+
+export function getClassBaseSkills(classe: ClassDescription): string[] {
+  return classe.periciasbasicas.reduce<string[]>(
+    (skills, baseSkill) => getBaseSkill[baseSkill.type](baseSkill.list, skills),
+    []
+  );
+}
