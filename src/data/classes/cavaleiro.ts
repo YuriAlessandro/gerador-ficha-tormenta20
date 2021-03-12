@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const CAVALEIRO: ClassDescription = {
@@ -11,22 +11,22 @@ const CAVALEIRO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.LUTA, PERICIAS.FORTITUDE],
+      list: [Skill.LUTA, Skill.FORTITUDE],
     },
   ],
   periciasrestantes: {
     qtd: 2,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.GUERRA,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.NOBREZA,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.VONTADE,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.CAVALGAR,
+      Skill.DIPLOMACIA,
+      Skill.GUERRA,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.NOBREZA,
+      Skill.PERCEPCAO,
+      Skill.VONTADE,
     ],
   },
   proeficiencias: [

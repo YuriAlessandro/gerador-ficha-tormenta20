@@ -1,8 +1,8 @@
 import _ from 'lodash';
 import { ClassDescription } from '../../interfaces/Class';
+import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import { standardFaithProbability } from '../divindades';
-import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
 const CLERIGO: ClassDescription = {
@@ -14,23 +14,23 @@ const CLERIGO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.RELIGIAO, PERICIAS.VONTADE],
+      list: [Skill.RELIGIAO, Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 2,
     list: [
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.CURA,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.FORTITUDE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTUICAO,
-      PERICIAS.LUTA,
-      PERICIAS.MISTICISMO,
-      PERICIAS.NOBREZA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
+      Skill.CONHECIMENTO,
+      Skill.CURA,
+      Skill.DIPLOMACIA,
+      Skill.FORTITUDE,
+      Skill.INICIATIVA,
+      Skill.INTUICAO,
+      Skill.LUTA,
+      Skill.MISTICISMO,
+      Skill.NOBREZA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
     ],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],

@@ -4,6 +4,7 @@ import Race, { RaceSize } from './Race';
 import { Bag } from './Equipment';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
+import Skill from './Skills';
 
 export default interface CharacterSheet {
   id: string;
@@ -13,7 +14,7 @@ export default interface CharacterSheet {
   atributos: CharacterAttributes;
   raca: Race;
   classe: ClassDescription;
-  pericias: string[];
+  pericias: Skill[];
   pv: number;
   pm: number;
   defesa: number;

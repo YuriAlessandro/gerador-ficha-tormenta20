@@ -5,7 +5,7 @@ import { FaithProbability } from './Divindade';
 import { Bag } from './Equipment';
 import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
-import { skill } from './Skills';
+import Skill from './Skills';
 import { Spell } from './Spells';
 
 export interface RaceAttributeAbility {
@@ -44,8 +44,7 @@ export interface CharacterStats {
   spells: Spell[];
   displacement: number;
   size: RaceSize;
-  maxWeight: number;
-  skills: skill[];
+  skills: Skill[];
   powers: {
     general: GeneralPower[];
     origin: OriginPower[];

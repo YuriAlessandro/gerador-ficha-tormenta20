@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const INVENTOR: ClassDescription = {
@@ -11,24 +11,24 @@ const INVENTOR: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.OFICIO, PERICIAS.VONTADE],
+      list: [Skill.OFICIO, Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.CURA,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.FORTITUDE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INVESTIGACAO,
-      PERICIAS.LUTA,
-      PERICIAS.MISTICISMO,
-      PERICIAS.OFICIO,
-      PERICIAS.PILOTAGEM,
-      PERICIAS.PONTARIA,
-      PERICIAS.PERCEPCAO,
+      Skill.CONHECIMENTO,
+      Skill.CURA,
+      Skill.DIPLOMACIA,
+      Skill.FORTITUDE,
+      Skill.INICIATIVA,
+      Skill.INVESTIGACAO,
+      Skill.LUTA,
+      Skill.MISTICISMO,
+      Skill.OFICIO,
+      Skill.PILOTAGEM,
+      Skill.PONTARIA,
+      Skill.PERCEPCAO,
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],

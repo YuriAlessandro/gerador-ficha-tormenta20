@@ -1,15 +1,16 @@
 import { Atributo } from '../data/atributos';
 import { FaithProbability } from './Divindade';
+import Skill from './Skills';
 import { SpellSchool } from './Spells';
 
 export interface BasicExpertise {
   type: string;
-  list: string[];
+  list: Skill[];
 }
 
 export interface RemainingExpertise {
   qtd: number;
-  list: string[];
+  list: Skill[];
 }
 
 export interface ClassAbility {

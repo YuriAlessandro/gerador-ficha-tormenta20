@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const BARBARO: ClassDescription = {
@@ -11,22 +11,22 @@ const BARBARO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.LUTA, PERICIAS.FORTITUDE],
+      list: [Skill.LUTA, Skill.FORTITUDE],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.SOBREVIVENCIA,
-      PERICIAS.VONTADE,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.CAVALGAR,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.SOBREVIVENCIA,
+      Skill.VONTADE,
     ],
   },
   proeficiencias: [

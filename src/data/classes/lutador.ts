@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const LUTADOR: ClassDescription = {
@@ -11,23 +11,23 @@ const LUTADOR: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.LUTA, PERICIAS.FORTITUDE],
+      list: [Skill.LUTA, Skill.FORTITUDE],
     },
   ],
   periciasrestantes: {
     qtd: 4,
     list: [
-      PERICIAS.ACROBACIA,
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.ENGANACAO,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTIMIDACAO,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.REFLEXOS,
+      Skill.ACROBACIA,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.ENGANACAO,
+      Skill.FURTIVIDADE,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.REFLEXOS,
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],

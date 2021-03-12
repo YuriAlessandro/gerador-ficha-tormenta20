@@ -3,60 +3,21 @@ import {
   pickFromArray,
 } from '../functions/randomUtils';
 import { ClassDescription } from '../interfaces/Class';
-import { skill } from '../interfaces/Skills';
-
-const PERICIAS: Record<skill, string> = {
-  ACROBACIA: 'Acrobacia',
-  ADESTRAMENTO: 'Adestramento',
-  ATLETISMO: 'Atletismo',
-  ATUACAO: 'Atuação',
-  CAVALGAR: 'Cavalgar',
-  CONHECIMENTO: 'Conhecimento',
-  CURA: 'Cura',
-  DIPLOMACIA: 'Diplomacia',
-  ENGANACAO: 'Enganação',
-  FORTITUDE: 'Fortitude',
-  FURTIVIDADE: 'Furtividade',
-  GUERRA: 'Guerra',
-  INICIATIVA: 'Iniciativa',
-  INTIMIDACAO: 'Intimidação',
-  INTUICAO: 'Intuição',
-  INVESTIGACAO: 'Investigação',
-  JOGATINA: 'Jogatina',
-  LADINAGEM: 'Ladinagem',
-  LUTA: 'Luta',
-  MISTICISMO: 'Misticismo',
-  NOBREZA: 'Nobreza',
-  OFICIO: 'Ofício',
-  OFICIO_ALQUIMIA: 'Ofício (Alquímia)',
-  OFICIO_ARMEIRO: 'Ofício (Armeiro)',
-  OFICIO_ARTESANATO: 'Ofício (Artesanato)',
-  OFICIO_ALFAIATE: 'Ofício (Alfaiate)',
-  OFICIO_CULINARIA: 'Ofício (Culinária)',
-  PERCEPCAO: 'Percepção',
-  PILOTAGEM: 'Pilotagem',
-  PONTARIA: 'Pontaria',
-  REFLEXOS: 'Reflexos',
-  RELIGIAO: 'Religião',
-  SOBREVIVENCIA: 'Sobrevivência',
-  VONTADE: 'Vontade',
-};
-
-export default PERICIAS;
+import Skill from '../interfaces/Skills';
 
 export function getNotUsedSkillsFromAllowed(
-  usedSkills: string[],
-  allowedSkills?: string[]
-): string[] {
-  return (allowedSkills || Object.values(PERICIAS)).filter(
+  usedSkills: Skill[],
+  allowedSkills?: Skill[]
+): Skill[] {
+  return (allowedSkills || Object.values(Skill)).filter(
     (element) => usedSkills.indexOf(element) < 0
   );
 }
 
 export function getNotRepeatedRandomSkill(
-  usedSkills: string[],
-  allowedSkills?: string[]
-): string {
+  usedSkills: Skill[],
+  allowedSkills?: Skill[]
+): Skill {
   const notRepeatedSkills = allowedSkills
     ? getNotUsedSkillsFromAllowed(usedSkills)
     : getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
@@ -65,29 +26,29 @@ export function getNotRepeatedRandomSkill(
 }
 
 export function getNotRepeatedSkillsByQtd(
-  usedSkills: string[],
+  usedSkills: Skill[],
   qtd: number,
-  allowedSkills?: string[]
-): string[] {
+  allowedSkills?: Skill[]
+): Skill[] {
   const notUsed = getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
   return pickFromArray(notUsed, qtd);
 }
 
 const baseSkillsStrategies: Record<
   string,
-  (baseSkills: string[], skills: string[]) => string[]
+  (baseSkills: Skill[], skills: Skill[]) => Skill[]
 > = {
-  and(baseSkills, skills) {
+  and(baseSkills: Skill[], skills: Skill[]) {
     return [...skills, ...baseSkills];
   },
-  or(baseSkills, skills) {
+  or(baseSkills: Skill[], skills: Skill[]) {
     const newSkill = getNotRepeatedRandomSkill(skills, baseSkills);
     return [...skills, newSkill];
   },
 };
 
-export function getClassBaseSkills(classe: ClassDescription): string[] {
-  return classe.periciasbasicas.reduce<string[]>(
+export function getClassBaseSkills(classe: ClassDescription): Skill[] {
+  return classe.periciasbasicas.reduce<Skill[]>(
     (skills, baseSkill) =>
       baseSkillsStrategies[baseSkill.type](baseSkill.list, skills),
     []
@@ -95,9 +56,9 @@ export function getClassBaseSkills(classe: ClassDescription): string[] {
 }
 
 export function getRemainingSkills(
-  usedSkills: string[],
+  usedSkills: Skill[],
   classe: ClassDescription
-): string[] {
+): Skill[] {
   return getNotRepeatedSkillsByQtd(
     usedSkills,
     classe.periciasrestantes.qtd,

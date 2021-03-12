@@ -5,8 +5,8 @@ import {
   ClassAbility,
   SpellPath,
 } from '../../interfaces/Class';
+import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
-import PERICIAS from '../pericias';
 import PROFICIENCIAS from '../proficiencias';
 
 type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
@@ -109,17 +109,12 @@ const ARCANISTA: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.MISTICISMO, PERICIAS.VONTADE],
+      list: [Skill.MISTICISMO, Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 1,
-    list: [
-      PERICIAS.CONHECIMENTO,
-      PERICIAS.INICIATIVA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-    ],
+    list: [Skill.CONHECIMENTO, Skill.INICIATIVA, Skill.OFICIO, Skill.PERCEPCAO],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [],

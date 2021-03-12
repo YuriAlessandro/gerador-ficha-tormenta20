@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const CACADOR: ClassDescription = {
@@ -11,29 +11,29 @@ const CACADOR: ClassDescription = {
   periciasbasicas: [
     {
       type: 'or',
-      list: [PERICIAS.LUTA, PERICIAS.PONTARIA],
+      list: [Skill.LUTA, Skill.PONTARIA],
     },
     {
       type: 'and',
-      list: [PERICIAS.SOBREVIVENCIA],
+      list: [Skill.SOBREVIVENCIA],
     },
   ],
   periciasrestantes: {
     qtd: 6,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CURA,
-      PERICIAS.FORTITUDE,
-      PERICIAS.FURTIVIDADE,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INVESTIGACAO,
-      PERICIAS.LUTA,
-      PERICIAS.OFICIO,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.PONTARIA,
-      PERICIAS.REFLEXOS,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.CAVALGAR,
+      Skill.CURA,
+      Skill.FORTITUDE,
+      Skill.FURTIVIDADE,
+      Skill.INICIATIVA,
+      Skill.INVESTIGACAO,
+      Skill.LUTA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+      Skill.PONTARIA,
+      Skill.REFLEXOS,
     ],
   },
   proeficiencias: [

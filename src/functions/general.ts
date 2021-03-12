@@ -4,7 +4,6 @@ import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import {
   getClassBaseSkills,
-  getNotRepeatedRandomSkill,
   getNotRepeatedSkillsByQtd,
   getRemainingSkills,
 } from '../data/pericias';
@@ -52,6 +51,7 @@ import {
 import Origin from '../interfaces/Origin';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import CharacterSheet from '../interfaces/CharacterSheet';
+import Skill from '../interfaces/Skills';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -216,7 +216,7 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 
 function getAttributesSkills(
   attributes: CharacterAttributes,
-  usedSkills: string[]
+  usedSkills: Skill[]
 ) {
   if (attributes.Inteligência.mod > 0) {
     return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
@@ -230,10 +230,10 @@ function getSkillsAndPowers(
   origin: Origin,
   attributes: CharacterAttributes
 ): {
-  skills: string[];
+  skills: Skill[];
   powers: { origin: OriginPower[]; general: GeneralPower[] };
 } {
-  const skills: string[] = [];
+  const skills: Skill[] = [];
 
   skills.push(...getClassBaseSkills(classe));
 
@@ -408,7 +408,7 @@ function applyRaceHabilities(stats: CharacterStats): CharacterStats {
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  const nivel = 1;
+  const level = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
   const atributosRolados = rollAttributeValues();
@@ -460,7 +460,7 @@ export default function generateRandomSheet(
   const defense = calcDefense(classDetails.defesa, bag);
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
-  const devoto = getReligiosidade(classe, race);
+  const devote = getReligiosidade(classe, race);
 
   // Passo 8: Gerar magias se possível
   const spells = getSpells(classe);
@@ -469,17 +469,17 @@ export default function generateRandomSheet(
   const size = getRaceSize(race);
 
   const stats = applyRaceHabilities({
-    atributos,
+    attributes: atributos,
     bag,
-    classe,
+    classDescription: classe,
     defense: initialDefense,
     displacement: getRaceDisplacement(race),
-    nivel,
+    level,
     size,
     origin,
     skills,
     spells,
-    devoto,
+    devote,
     powers: {
       general: originGeneralPowers,
       origin: originPowers,
@@ -487,7 +487,7 @@ export default function generateRandomSheet(
     ...classDetails,
   });
 
-  const displacement = calcDisplacement(bag, race, atributos);
+  const displacement = calcDisplacement(bag, stats.displacement, atributos);
 
   // Passo 10: Calcular o peso máximo com base na força
   const maxWeight = atributos.Força.value * 3;
@@ -496,7 +496,7 @@ export default function generateRandomSheet(
     id: uuid(),
     nome,
     sexo,
-    nivel,
+    nivel: level,
     atributos,
     maxWeight,
     raca: race,
@@ -506,7 +506,7 @@ export default function generateRandomSheet(
     pm: pmInicial,
     defesa: defense,
     bag,
-    devoto,
+    devoto: devote,
     origin: {
       name: origin.name,
       powers: originPowers,

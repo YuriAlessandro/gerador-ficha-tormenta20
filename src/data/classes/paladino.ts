@@ -1,5 +1,5 @@
 import { ClassDescription } from '../../interfaces/Class';
-import PERICIAS from '../pericias';
+import Skill from '../../interfaces/Skills';
 import PROFICIENCIAS from '../proficiencias';
 
 const PALADINO: ClassDescription = {
@@ -11,24 +11,24 @@ const PALADINO: ClassDescription = {
   periciasbasicas: [
     {
       type: 'and',
-      list: [PERICIAS.LUTA, PERICIAS.VONTADE],
+      list: [Skill.LUTA, Skill.VONTADE],
     },
   ],
   periciasrestantes: {
     qtd: 2,
     list: [
-      PERICIAS.ADESTRAMENTO,
-      PERICIAS.ATLETISMO,
-      PERICIAS.CAVALGAR,
-      PERICIAS.CURA,
-      PERICIAS.DIPLOMACIA,
-      PERICIAS.FORTITUDE,
-      PERICIAS.GUERRA,
-      PERICIAS.INICIATIVA,
-      PERICIAS.INTUICAO,
-      PERICIAS.NOBREZA,
-      PERICIAS.PERCEPCAO,
-      PERICIAS.RELIGIAO,
+      Skill.ADESTRAMENTO,
+      Skill.ATLETISMO,
+      Skill.CAVALGAR,
+      Skill.CURA,
+      Skill.DIPLOMACIA,
+      Skill.FORTITUDE,
+      Skill.GUERRA,
+      Skill.INICIATIVA,
+      Skill.INTUICAO,
+      Skill.NOBREZA,
+      Skill.PERCEPCAO,
+      Skill.RELIGIAO,
     ],
   },
   proeficiencias: [
