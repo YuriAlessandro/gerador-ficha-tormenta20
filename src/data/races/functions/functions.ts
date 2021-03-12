@@ -1,15 +1,16 @@
 import Race, { RaceSize } from '../../../interfaces/Race';
 import { RACE_SIZES } from '../raceSizes/raceSizes';
 
+export const DEFAULT_RACE_SIZE = RACE_SIZES.MEDIO;
+export const DEFAULT_RACE_DISPLACEMENT = 9;
+
 function getDefaultSize(race: Race) {
   if (race.size) {
     return race.size;
   }
 
-  return RACE_SIZES.MEDIO;
+  return DEFAULT_RACE_SIZE;
 }
-
-const DEFAULT_RACE_DISPLACEMENT = 9;
 
 function getDefaultDisplacement(race: Race) {
   if (race.getDisplacement) {
