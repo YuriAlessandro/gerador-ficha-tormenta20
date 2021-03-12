@@ -2,7 +2,12 @@ import { v4 as uuid } from 'uuid';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
-import PERICIAS from '../data/pericias';
+import PERICIAS, {
+  getClassBaseSkills,
+  getNotRepeatedRandomSkill,
+  getNotRepeatedSkillsByQtd,
+  getRemainingSkills,
+} from '../data/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
   DEFAULT_BAG,
@@ -17,20 +22,17 @@ import CharacterSheet, {
   CharacterReligion,
 } from '../interfaces/CharacterSheet';
 import Race, { RaceAttributeHability } from '../interfaces/Race';
-import { BasicExpertise, ClassDescription } from '../interfaces/Class';
+import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
   pickFromArray,
-  removeDup,
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import origins from '../data/origins';
-import { GeneralPower, OriginPower } from '../interfaces/Poderes';
-import originPowers from '../data/powers/originPowers';
+import { getOriginBenefits, ORIGINS } from '../data/origins';
 import { Bag, BagEquipments } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
@@ -47,6 +49,8 @@ import {
   getRaceDisplacement,
   getRaceSize,
 } from '../data/races/functions/functions';
+import Origin from '../interfaces/Origin';
+import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -156,40 +160,12 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributos;
 }
 
-function getNotRepeatedRandomPer(periciasUsadas: string[]) {
-  const keys = Object.keys(PERICIAS);
-  const periciasPermitidas = keys.filter((pericia) => {
-    const stringPericia = PERICIAS[pericia] as string;
-    return !periciasUsadas.includes(stringPericia);
-  });
-  return getRandomItemFromArray(periciasPermitidas);
-}
-
-interface ClassDetails {
-  pv: number;
-  pm: number;
-  defesa: number;
-  pericias: string[];
-}
-
 export function getClassDetailsModifiedByRace(
-  { pv, pm, defesa, pericias }: ClassDetails,
+  { pv, pm, defesa }: { pv: number; pm: number; defesa: number },
   raca: Race
-): ClassDetails {
+): { pv: number; pm: number; defesa: number } {
   return raca.habilites.other.reduce(
     (caracteristicas, item) => {
-      if (item.type === 'pericias') {
-        if (item.allowed === 'any') {
-          return {
-            ...caracteristicas,
-            pericias: [
-              ...caracteristicas.pericias,
-              PERICIAS[getNotRepeatedRandomPer(caracteristicas.pericias)],
-            ],
-          };
-        }
-      }
-
       if (item.type === 'pv' && item.mod) {
         return {
           ...caracteristicas,
@@ -212,46 +188,8 @@ export function getClassDetailsModifiedByRace(
 
       return caracteristicas;
     },
-    { pv, pm, defesa, pericias }
+    { pv, pm, defesa }
   );
-}
-
-function addBasicPer(
-  classBasicPer: BasicExpertise[],
-  racePers: string[]
-): string[] {
-  return classBasicPer.reduce((pericias, item) => {
-    if (item.type === 'or') {
-      const selectedPer = getRandomItemFromArray(item.list);
-      const perWithPossiblyRepeated = [...pericias, selectedPer];
-      return perWithPossiblyRepeated.filter(
-        (currentItem, index) =>
-          perWithPossiblyRepeated.indexOf(currentItem) === index
-      );
-    }
-
-    if (item.type === 'and') {
-      const perWithPossiblyRepeated = [...pericias, ...item.list];
-      return perWithPossiblyRepeated.filter(
-        (currentItem, index) =>
-          perWithPossiblyRepeated.indexOf(currentItem) === index
-      );
-    }
-
-    return pericias;
-  }, racePers);
-}
-
-function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
-  return Array(qtdPericiasRestantes)
-    .fill(0)
-    .reduce(
-      (periciasAtuais) => [
-        ...periciasAtuais,
-        PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
-      ],
-      pericias
-    );
 }
 
 function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
@@ -294,23 +232,6 @@ function getRaceAndRaceStats(
   return { atributos, nome, race };
 }
 
-export function addClassPer(
-  classe: ClassDescription,
-  racePers: string[]
-): string[] {
-  // 5.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
-  const periciasDeClasseEBasicas = addBasicPer(
-    classe.periciasbasicas,
-    racePers
-  );
-
-  // 5.1.2: As perícias padrões que cada classe recebe
-  return addRemainingPer(
-    classe.periciasrestantes.qtd,
-    periciasDeClasseEBasicas
-  );
-}
-
 function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   let selectedClass;
   if (selectedOptions.classe) {
@@ -324,6 +245,57 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
+function getRaceSkills(usedSkills: string[], race: Race): string[] {
+  const skillHabilities = race.habilites.other.filter(
+    (skill) => skill.type === 'pericias'
+  );
+  return skillHabilities.reduce<string[]>((skills, hability) => {
+    if (hability.allowed === 'any') {
+      return [...skills, getNotRepeatedRandomSkill(usedSkills)];
+    }
+
+    return skills;
+  }, []);
+}
+
+function getAttributesSkills(
+  attributes: CharacterAttributes,
+  usedSkills: string[]
+) {
+  if (attributes.Inteligência.mod > 0) {
+    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+  }
+
+  return [];
+}
+
+function getSkillsAndPowers(
+  classe: ClassDescription,
+  origin: Origin,
+  race: Race,
+  attributes: CharacterAttributes
+): { skills: string[]; powers: { origin: (GeneralPower | OriginPower)[] } } {
+  const skills: string[] = [];
+
+  skills.push(...getClassBaseSkills(classe));
+
+  const { skills: originSkills, powers: originPowers } = getOriginBenefits(
+    origin,
+    skills
+  );
+
+  skills.push(...originSkills);
+  skills.push(...getRemainingSkills(skills, classe));
+  skills.push(...getRaceSkills(skills, race));
+  skills.push(...getAttributesSkills(attributes, skills));
+
+  return {
+    skills,
+    powers: {
+      origin: originPowers,
+    },
+  };
+}
 function getWeapons(classe: ClassDescription) {
   const weapons = [];
 
@@ -443,44 +415,6 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-// Retorna a origem e as perícias selecionadas
-function getOrigin() {
-  const selectedOrigin = getRandomItemFromArray(origins);
-  const skills: string[] = [];
-  const powers: (OriginPower | GeneralPower)[] = [];
-
-  if (selectedOrigin.name === 'Amnésico') {
-    skills.push(getRandomItemFromArray(Object.values(PERICIAS)));
-    // TODO: Jogar mais um poder aleatório
-    powers.push(originPowers.LEMBRANCAS_GRADUAIS);
-
-    return {
-      name: selectedOrigin.name,
-      skills,
-      powers,
-    };
-  }
-
-  const benefits = pickFromArray(
-    [...selectedOrigin.pericias, ...selectedOrigin.poderes],
-    2
-  );
-
-  benefits.forEach((benefit) => {
-    if (typeof benefit === 'string') {
-      skills.push(benefit);
-    } else {
-      powers.push(benefit as OriginPower);
-    }
-  });
-
-  return {
-    name: selectedOrigin.name,
-    skills,
-    powers,
-  };
-}
-
 function getSpells(classe: ClassDescription): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
@@ -562,15 +496,14 @@ export default function generateRandomSheet(
   );
 
   // Passo 4: Definição de origem
-  const origin = getOrigin();
-  const skillsRaceAndOrigin = removeDup([
-    ...classDetailsModifiedByRace.pericias,
-    ...origin.skills,
-  ]);
+  const origin = getRandomItemFromArray(Object.values(ORIGINS));
 
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe
-  const pericias = addClassPer(classe, skillsRaceAndOrigin);
+  const {
+    powers: { origin: originPowers },
+    skills,
+  } = getSkillsAndPowers(classe, origin, race, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
@@ -599,13 +532,16 @@ export default function generateRandomSheet(
     maxWeight,
     raca: race,
     classe,
-    pericias,
+    pericias: skills,
     pv: classDetailsModifiedByRace.pv,
     pm: classDetailsModifiedByRace.pm,
     defesa: defense,
     bag,
     devoto,
-    origin,
+    origin: {
+      name: origin.name,
+      powers: originPowers,
+    },
     spells,
     displacement,
     size,
