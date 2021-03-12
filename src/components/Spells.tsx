@@ -44,6 +44,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
             <thead>
               <tr>
                 <th>Magia</th>
+                <th>PM</th>
                 <th>Escola</th>
                 <th>Execução</th>
                 <th>Alcance</th>
@@ -56,6 +57,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
               {spells.map((spell) => (
                 <tr key={spell.nome}>
                   <td>{spell.nome}</td>
+                  <td>{spell.manaExpense || 1}</td>
                   <td>-</td>
                   <td>{spell.execucao}</td>
                   <td>{spell.alcance}</td>

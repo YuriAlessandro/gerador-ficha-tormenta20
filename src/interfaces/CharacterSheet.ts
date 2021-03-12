@@ -14,7 +14,7 @@ export default interface CharacterSheet {
   atributos: CharacterAttributes;
   raca: Race;
   classe: ClassDescription;
-  pericias: Skill[];
+  skills: Skill[];
   pv: number;
   pm: number;
   defesa: number;

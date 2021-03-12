@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _ from 'lodash';
+import _, { merge } from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -54,6 +54,7 @@ import Origin from '../interfaces/Origin';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
+import { setupSpell } from '../data/magias/generalSpells';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -386,7 +387,9 @@ function getSpells(classe: ClassDescription): Spell[] {
     }
   }
 
-  return pickFromArray(spellList, initialSpells);
+  const selectedSpells = pickFromArray(spellList, initialSpells);
+
+  return selectedSpells.map((spell) => setupSpell(spell));
 }
 
 function calcDisplacement(
@@ -502,28 +505,29 @@ export default function generateRandomSheet(
   // Passo 10: Calcular o peso máximo com base na força
   const maxWeight = atributos.Força.value * 3;
 
-  return {
-    id: uuid(),
-    nome,
-    sexo,
-    nivel: level,
-    atributos,
-    maxWeight,
-    raca: race,
-    classe,
-    pericias: skills,
-    pv: pvInicial,
-    pm: pmInicial,
-    defesa: defense,
-    bag,
-    devoto: devote,
-    origin: {
-      name: origin.name,
-      powers: originPowers,
+  return merge(
+    {
+      id: uuid(),
+      nome,
+      sexo,
+      nivel: level,
+      atributos,
+      maxWeight,
+      raca: race,
+      classe,
+      pv: pvInicial,
+      pm: pmInicial,
+      defesa: defense,
+      bag,
+      devoto: devote,
+      origin: {
+        name: origin.name,
+        powers: originPowers,
+      },
+      displacement,
+      size,
+      generalPowers: [...originGeneralPowers],
     },
-    spells,
-    displacement,
-    size,
-    generalPowers: [...originGeneralPowers],
-  };
+    stats
+  );
 }
