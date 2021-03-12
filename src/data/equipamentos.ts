@@ -149,6 +149,54 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Corte',
     group: 'Arma',
   },
+  FLORETE: {
+    nome: 'Florete',
+    dano: '1d6',
+    critico: '18',
+    peso: 1,
+    tipo: 'Perfuração',
+    group: 'Arma',
+  },
+  MACHADO_DE_BATALHA: {
+    nome: 'Machado de Batalha',
+    dano: '1d8',
+    critico: 'x3',
+    peso: 3,
+    tipo: 'Corte',
+    group: 'Arma',
+  },
+  MANGUAL: {
+    nome: 'Mangual',
+    dano: '1d8',
+    critico: 'x2',
+    peso: 2.5,
+    tipo: 'Impacto',
+    group: 'Arma',
+  },
+  MARTELO_DE_GUERRA: {
+    nome: 'Martelo de Guerra',
+    dano: '1d8',
+    critico: 'x3',
+    peso: 2.5,
+    tipo: 'Impacto',
+    group: 'Arma',
+  },
+  PICARETA: {
+    nome: 'Picareta',
+    dano: '1d6',
+    critico: 'x4',
+    peso: 3,
+    tipo: 'Perfuração',
+    group: 'Arma',
+  },
+  TRIDENTE: {
+    nome: 'Tridente',
+    dano: '1d8',
+    critico: 'x2',
+    peso: 2,
+    tipo: 'Perfuração',
+    group: 'Arma',
+  },
 };
 
 export const Armaduras: Record<string, DefenseEquipment> = {
@@ -180,14 +228,49 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     peso: 15,
     group: 'Armadura',
   },
+  COTA_DE_MALHA: {
+    nome: 'Cota de Malha',
+    defenseBonus: 6,
+    armorPenalty: 2,
+    peso: 20,
+    group: 'Armadura',
+  },
+  LORIGA_SEGMENTADA: {
+    nome: 'Loriga Segmentada',
+    defenseBonus: 7,
+    armorPenalty: 3,
+    peso: 17,
+    group: 'Armadura',
+  },
+  MEIA_ARMADURA: {
+    nome: 'Meia Armadura',
+    defenseBonus: 8,
+    armorPenalty: 4,
+    peso: 22,
+    group: 'Armadura',
+  },
+  ARMADURA_COMPLETA: {
+    nome: 'Armadura Completa',
+    defenseBonus: 10,
+    armorPenalty: 5,
+    peso: 25,
+    group: 'Armadura',
+  },
 };
 
 export const Escudos: Record<string, DefenseEquipment> = {
   ESCUDOLEVE: {
-    nome: 'Escudo leve',
+    nome: 'Escudo Leve',
     defenseBonus: 1,
     armorPenalty: 1,
     peso: 3,
+    group: 'Escudo',
+  },
+  ESCUDO_PESADO: {
+    nome: 'Escudo Pesado',
+    defenseBonus: 2,
+    armorPenalty: 2,
+    peso: 7,
     group: 'Escudo',
   },
 };
@@ -285,14 +368,29 @@ const EQUIPAMENTOS: CombatItems = {
     Armas.PIQUE,
     Armas.TACAPE,
   ],
-  armasMarciais: [Armas.MACHADINHA, Armas.CIMITARRA],
+  armasMarciais: [
+    Armas.MACHADINHA,
+    Armas.CIMITARRA,
+    Armas.FLORETE,
+    Armas.MACHADO_DE_BATALHA,
+    Armas.MANGUAL,
+    Armas.MARTELO_DE_GUERRA,
+    Armas.PICARETA,
+    Armas.TRIDENTE,
+  ],
   armadurasLeves: [
     Armaduras.ARMADURADECOURO,
     Armaduras.COUROBATIDO,
     Armaduras.GIBAODEPELES,
   ],
-  armaduraPesada: [Armaduras.BRUNEA],
-  escudos: [Escudos.ESCUDOLEVE],
+  armaduraPesada: [
+    Armaduras.BRUNEA,
+    Armaduras.COTA_DE_MALHA,
+    Armaduras.LORIGA_SEGMENTADA,
+    Armaduras.MEIA_ARMADURA,
+    Armaduras.ARMADURA_COMPLETA,
+  ],
+  escudos: [Escudos.ESCUDOLEVE, Escudos.ESCUDO_PESADO],
 };
 
 export default EQUIPAMENTOS;
