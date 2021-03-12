@@ -14,6 +14,7 @@ import { OriginPower, GeneralPower } from '../interfaces/Poderes';
 import generalPowers from './poderes';
 import Skill from '../interfaces/Skills';
 import { Armas } from './equipamentos';
+import combatPowers from './powers/combatPowers';
 
 export type origins =
   | 'Acólito'
@@ -66,7 +67,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.CURA, Skill.RELIGIAO, Skill.VONTADE],
     poderes: [
       originPowers.MEMBRO_DA_IGREJA,
-      DestinyPowers.MEDICINA,
+      combatPowers.MEDICINA,
       DestinyPowers.VONTADE_DE_FERRO,
     ],
   },
@@ -114,8 +115,8 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Um item que você possa fabricar de até T$ 50',
       },
     ],
-    pericias: [Skill.OFICIO, Skill.VONTADE],
-    poderes: [originPowers.FRUDOS_DO_TRABALHO],
+    pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
+    poderes: [originPowers.FRUTOS_DO_TRABALHO],
   },
   Artista: {
     name: 'Artista',
@@ -219,7 +220,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.CURA, Skill.VONTADE],
     poderes: [
       originPowers.MEDICO_DE_CAMPO,
-      DestinyPowers.MEDICINA,
+      combatPowers.MEDICINA,
       DestinyPowers.VENEFICIO,
     ],
   },
@@ -247,7 +248,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.FURTIVIDADE],
-    poderes: [originPowers.DESEJO_DE_LIBERDADE, DestinyPowers.VITALIDADE],
+    poderes: [originPowers.DESEJO_DE_LIBERDADE, combatPowers.VITALIDADE],
   },
   Estudioso: {
     name: 'Estudioso',
@@ -372,14 +373,14 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Barraca',
       },
       {
-        equipment: Armas.ARCO_CURTO,
+        equipment: Armas.ARCOCURTO,
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.FURTIVIDADE, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.VENDEDOR_DE_CARCACAS,
       DestinyPowers.LOBO_SOLITARIO,
-      DestinyPowers.SENTIDOS_AGUÇADOS,
+      DestinyPowers.SENTIDOS_AGUCADOS,
     ],
   },
   'Membro de Guilda': {
@@ -413,7 +414,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.DIPLOMACIA, Skill.INTUICAO, Skill.OFICIO],
     poderes: [
       originPowers.NEGOCIACAO,
-      DestinyPowers.PROFICIENCIA,
+      combatPowers.PROFICIENCIA,
       DestinyPowers.SORTUDO,
     ],
   },
@@ -430,8 +431,8 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO],
     poderes: [
       originPowers.ESCAVADOR,
-      DestinyPowers.ATAQUE_PODEROSO,
-      DestinyPowers.SENTIDOS_AGUÇADOS,
+      combatPowers.ATAQUE_PODEROSO,
+      DestinyPowers.SENTIDOS_AGUCADOS,
     ],
   },
   Nômade: {
@@ -445,7 +446,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.MOCHILEIRO, DestinyPowers.SENTIDOS_AGUÇADOS],
+    poderes: [originPowers.MOCHILEIRO, DestinyPowers.SENTIDOS_AGUCADOS],
   },
   Pivete: {
     name: 'Pivete',
@@ -487,7 +488,7 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
     poderes: [
       originPowers.ANTIGO_MESTRE,
-      DestinyPowers.PROFICIENCIA,
+      combatPowers.PROFICIENCIA,
       DestinyPowers.SURTO_HEROICO,
     ],
   },
@@ -502,7 +503,7 @@ export const ORIGINS: Record<origins, Origin> = {
     poderes: [
       originPowers.VIDA_RUSTICA,
       DestinyPowers.LOBO_SOLITARIO,
-      DestinyPowers.VITALIDADE,
+      combatPowers.VITALIDADE,
     ],
   },
   Soldado: {
@@ -541,8 +542,8 @@ export const ORIGINS: Record<origins, Origin> = {
     pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO],
     poderes: [
       originPowers.GOROROBA,
-      DestinyPowers.PROFICIENCIA,
-      DestinyPowers.VITALIDADE,
+      combatPowers.PROFICIENCIA,
+      combatPowers.VITALIDADE,
     ],
   },
   Trabalhador: {
@@ -616,6 +617,8 @@ function sortOriginBenefits(origin: Origin, usedSkills: Skill[]) {
     [...notRepeatedSkills, ...origin.poderes],
     2
   );
+
+  // console.log(sortedBenefits);
 
   return getBenefits(sortedBenefits);
 }

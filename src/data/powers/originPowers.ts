@@ -27,7 +27,7 @@ const originPowers: Record<string, OriginPower> = {
       'Você tem alguma influência política, suficiente para ser tratado com mais leniência pela guarda, conseguir uma audiência com o nobre local etc.',
     type: ORIGIN_POWER_TYPE,
   },
-  FRUDOS_DO_TRABALHO: {
+  FRUTOS_DO_TRABALHO: {
     name: 'Frutos do Trabalho',
     description:
       'Quando passa em um teste de Ofício para sustento, você recebe o dobro do dinheiro.',

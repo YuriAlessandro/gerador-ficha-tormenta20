@@ -108,7 +108,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       },
     ],
   },
-  SENTIDOS_AGUÇADOS: {
+  SENTIDOS_AGUCADOS: {
     name: 'Sentidos Aguçados',
     description:
       'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha.',
@@ -173,17 +173,12 @@ const destinyPowers: GeneralPower[] = [
   DestinyPowers.ACROBATICO,
   DestinyPowers.AO_SABOR_DO_DESTINO,
   DestinyPowers.APARENCIA_INOFENSIVA,
-  DestinyPowers.ATLETICO,
-  DestinyPowers.ATRAENTE,
-  DestinyPowers.COMANDAR,
   DestinyPowers.FOCO_EM_PERICIA,
   DestinyPowers.INVESTIGADOR,
   DestinyPowers.LOBO_SOLITARIO,
   DestinyPowers.MEDICINA,
   DestinyPowers.PARCEIRO,
-  DestinyPowers.SENTIDOS_AGUÇADOS,
-  DestinyPowers.SORTUDO,
-  DestinyPowers.SURTO_HEROICO,
+  DestinyPowers.SENTIDOS_AGUCADOS,
   DestinyPowers.TORCIDA,
   DestinyPowers.TREINAMENTO_EM_PERICIA,
   DestinyPowers.VENEFICIO,
