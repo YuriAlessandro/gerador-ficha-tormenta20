@@ -56,7 +56,11 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Acólito',
     itens: [],
     pericias: [Skill.CURA, Skill.RELIGIAO, Skill.VONTADE],
-    poderes: [originPowers.MEMBRO_DA_IGREJA], // TODO: Adicionar Medicina, Vontade de Ferro
+    poderes: [
+      originPowers.MEMBRO_DA_IGREJA,
+      DestinyPowers.MEDICINA,
+      DestinyPowers.VONTADE_DE_FERRO,
+    ],
   },
   'Amigo dos Animais': {
     name: 'Amigo dos Animais',
@@ -126,25 +130,29 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Criminoso',
     itens: [],
     pericias: [Skill.ENGANACAO, Skill.FURTIVIDADE, Skill.LADINAGEM],
-    poderes: [originPowers.PUNGUISTA], // TODO: Adicionar Venefício
+    poderes: [originPowers.PUNGUISTA, DestinyPowers.VENEFICIO],
   },
   Curandeiro: {
     name: 'Curandeiro',
     itens: [],
     pericias: [Skill.CURA, Skill.VONTADE],
-    poderes: [originPowers.MEDICO_DE_CAMPO], // TODO: Adicionar Medicina e Venfício
+    poderes: [
+      originPowers.MEDICO_DE_CAMPO,
+      DestinyPowers.MEDICINA,
+      DestinyPowers.VENEFICIO,
+    ],
   },
   Eremita: {
     name: 'Eremita',
     itens: [],
     pericias: [Skill.MISTICISMO, Skill.RELIGIAO, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.BUSCA_INTERIOR], // TODO: Adicionar Lobo Solitário
+    poderes: [originPowers.BUSCA_INTERIOR, DestinyPowers.LOBO_SOLITARIO],
   },
   Escravo: {
     name: 'Escravo',
     itens: [],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.FURTIVIDADE],
-    poderes: [originPowers.DESEJO_DE_LIBERDADE], // TODO: Adicionar Vitalidade
+    poderes: [originPowers.DESEJO_DE_LIBERDADE, DestinyPowers.VITALIDADE],
   },
   Estudioso: {
     name: 'Estudioso',
@@ -165,43 +173,60 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Forasteiro',
     itens: [],
     pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.CULTURA_EXOTICA], // TODO: Adicionar Lobo Solitário
+    poderes: [originPowers.CULTURA_EXOTICA, DestinyPowers.LOBO_SOLITARIO],
   },
   Gladiador: {
     name: 'Gladiador',
     itens: [],
     pericias: [Skill.ATUACAO, Skill.LUTA],
-    poderes: [originPowers.PAO_E_CIRCO], // TODO: Adicionar Atraente, Torcida e um poder de combate Random
+    poderes: [
+      originPowers.PAO_E_CIRCO,
+      DestinyPowers.ATRAENTE,
+      DestinyPowers.TORCIDA,
+    ], // TODO: um poder de combate Random
   },
   Guarda: {
     name: 'Guarda',
     itens: [],
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
-    poderes: [originPowers.DETETIVE], // TODO: Adicionar Investigador e um poder de combate random
+    poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR], // TODO: um poder de combate random
   },
   Herdeiro: {
     name: 'Herdeiro',
     itens: [],
     pericias: [Skill.MISTICISMO, Skill.NOBREZA, Skill.OFICIO],
-    poderes: [originPowers.HERANCA, originPowers.HERANCA], // TODO: Adicionar Comandar
+    poderes: [
+      originPowers.HERANCA,
+      originPowers.HERANCA,
+      DestinyPowers.COMANDAR,
+    ],
   },
   'Herói Camponês': {
     name: 'Herói Camponês',
     itens: [],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
-    poderes: [originPowers.AMIGO_DOS_PLEBEUS], // TODO: Adicionar Sortudo, Surto Heróico, Torcida
+    poderes: [
+      originPowers.AMIGO_DOS_PLEBEUS,
+      DestinyPowers.SORTUDO,
+      DestinyPowers.SURTO_HEROICO,
+      DestinyPowers.TORCIDA,
+    ],
   },
   Marujo: {
     name: 'Marujo',
     itens: [],
     pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
-    poderes: [originPowers.PASSAGEM_DE_NAVIO], // TODO: Adicionar Acróbatico
+    poderes: [originPowers.PASSAGEM_DE_NAVIO, DestinyPowers.ACROBATICO],
   },
   Mateiro: {
     name: 'Mateiro',
     itens: [],
     pericias: [Skill.ATLETISMO, Skill.FURTIVIDADE, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.VENDEDOR_DE_CARCACAS], // TODO: Adicionar Lobo Solitário, Sentidos Aguçados
+    poderes: [
+      originPowers.VENDEDOR_DE_CARCACAS,
+      DestinyPowers.LOBO_SOLITARIO,
+      DestinyPowers.SENTIDOS_AGUÇADOS,
+    ],
   },
   'Membro de Guilda': {
     name: 'Membro de Guilda',
@@ -212,49 +237,69 @@ export const ORIGINS: Record<origins, Origin> = {
       Skill.MISTICISMO,
       Skill.OFICIO,
     ],
-    poderes: [originPowers.REDE_DE_CONTATOS], // TODO: Adicionar Foco em Perícia
+    poderes: [originPowers.REDE_DE_CONTATOS, DestinyPowers.FOCO_EM_PERICIA],
   },
   Mercador: {
     name: 'Mercador',
     itens: [],
     pericias: [Skill.DIPLOMACIA, Skill.INTUICAO, Skill.OFICIO],
-    poderes: [originPowers.NEGOCIACAO], // TODO: PROFICIENCIA, SORTUDO
+    poderes: [
+      originPowers.NEGOCIACAO,
+      DestinyPowers.PROFICIENCIA,
+      DestinyPowers.SORTUDO,
+    ],
   },
   Minerador: {
     name: 'Minerador',
     itens: [],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO],
-    poderes: [originPowers.ESCAVADOR], // TODO: Ataque Poderoso, Sentidos Aguçados
+    poderes: [
+      originPowers.ESCAVADOR,
+      DestinyPowers.ATAQUE_PODEROSO,
+      DestinyPowers.SENTIDOS_AGUÇADOS,
+    ],
   },
   Nômade: {
     name: 'Nômade',
     itens: [],
     pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.MOCHILEIRO], // Todo: Sentidos Aguçados
+    poderes: [originPowers.MOCHILEIRO, DestinyPowers.SENTIDOS_AGUÇADOS],
   },
   Pivete: {
     name: 'Pivete',
     itens: [],
     pericias: [Skill.FURTIVIDADE, Skill.INICIATIVA, Skill.LADINAGEM],
-    poderes: [originPowers.QUEBRA_GALHO, DestinyPowers.APARENCIA_INOFENSIVA], // TODO: Adicionar Acrobático
+    poderes: [
+      originPowers.QUEBRA_GALHO,
+      DestinyPowers.APARENCIA_INOFENSIVA,
+      DestinyPowers.ACROBATICO,
+    ],
   },
   Refugiado: {
     name: 'Refugiado',
     itens: [],
     pericias: [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE],
-    poderes: [originPowers.ESTOICO], // TODO: Vontade de Ferro
+    poderes: [originPowers.ESTOICO, DestinyPowers.VONTADE_DE_FERRO],
   },
   Seguidor: {
     name: 'Seguidor',
     itens: [],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
-    poderes: [originPowers.ANTIGO_MESTRE], // TODO: Proficiencia, Surto Heróico
+    poderes: [
+      originPowers.ANTIGO_MESTRE,
+      DestinyPowers.PROFICIENCIA,
+      DestinyPowers.SURTO_HEROICO,
+    ],
   },
   Selvagem: {
     name: 'Selvagem',
     itens: [],
     pericias: [Skill.PERCEPCAO, Skill.REFLEXOS, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.VIDA_RUSTICA], // TODO: Lobo solitário, Vitalidade
+    poderes: [
+      originPowers.VIDA_RUSTICA,
+      DestinyPowers.LOBO_SOLITARIO,
+      DestinyPowers.VITALIDADE,
+    ],
   },
   Soldado: {
     name: 'Soldado',
@@ -266,13 +311,17 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Taverneiro',
     itens: [],
     pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO],
-    poderes: [originPowers.GOROROBA], // TODO: Proficiência, Vitalidade
+    poderes: [
+      originPowers.GOROROBA,
+      DestinyPowers.PROFICIENCIA,
+      DestinyPowers.VITALIDADE,
+    ],
   },
   Trabalhador: {
     name: 'Trabalhador',
     itens: [],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE],
-    poderes: [originPowers.ESFORCADO], // TODO: Atlético
+    poderes: [originPowers.ESFORCADO, DestinyPowers.ATLETICO],
   },
 };
 
