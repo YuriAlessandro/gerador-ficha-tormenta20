@@ -1,14 +1,10 @@
 import AGGELUS from '../../data/races/aggelus';
 import HUMANO from '../../data/races/humano';
-import {
-  getClassDetailsModifiedByRace,
-  modifyAttributesBasedOnRace,
-  getModValue,
-} from '../general';
+import { modifyAttributesBasedOnRace, getModValue } from '../general';
 import {
   CharacterAttribute,
   CharacterAttributes,
-} from '../../interfaces/CharacterSheet';
+} from '../../interfaces/Character';
 import { Atributo } from '../../data/atributos';
 
 const originalAttrs: CharacterAttributes = {
@@ -20,14 +16,7 @@ const originalAttrs: CharacterAttributes = {
   Sabedoria: { name: Atributo.SABEDORIA, value: 13, mod: 1 },
 };
 
-const classDetails = { pv: 26, pm: 3, defesa: 12 };
-
 describe('Testa modificações da raça Aggelus', () => {
-  test('Se o Aggelus não modifica detalhes da classe ', () => {
-    const received = getClassDetailsModifiedByRace(classDetails, AGGELUS);
-    expect(received).toEqual(classDetails);
-  });
-
   test('Se o Aggelus altera corretamente os atributos', () => {
     const attrNotChanged = {
       Força: { name: Atributo.FORCA, value: 17, mod: 3 },

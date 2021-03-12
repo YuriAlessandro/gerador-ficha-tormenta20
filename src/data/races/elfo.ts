@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const ELFO: Race = {
   name: 'Elfo',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.INTELIGENCIA, mod: 4 },
       { attr: Atributo.DESTREZA, mod: 2 },

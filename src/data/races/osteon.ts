@@ -5,7 +5,7 @@ import { Atributo } from '../atributos';
 
 const OSTEON: Race = {
   name: 'Osteon',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: -2 },
       { attr: 'any', mod: 2 },

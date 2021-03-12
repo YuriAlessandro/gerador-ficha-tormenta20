@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const ANAO: Race = {
   name: 'Anão',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: 'any', mod: 4 },
       { attr: Atributo.SABEDORIA, mod: 2 },

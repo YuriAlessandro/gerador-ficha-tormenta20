@@ -1,9 +1,12 @@
+import { getNotRepeatedRandom } from '../../functions/randomUtils';
+import { GeneralPower } from '../../interfaces/Poderes';
 import Race, { CharacterStats } from '../../interfaces/Race';
+import Skill from '../../interfaces/Skills';
 import { getNotRepeatedRandomSkill } from '../pericias';
 
 const HUMANO: Race = {
   name: 'Humano',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
@@ -25,9 +28,20 @@ const HUMANO: Race = {
       description:
         'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha.',
       action(stats: CharacterStats): CharacterStats {
-        const skills = [];
+        const skills: Skill[] = [];
+        const generalPowers: GeneralPower[] = [];
 
-        skills.push(getNotRepeatedRandomSkill(stats));
+        skills.push(getNotRepeatedRandomSkill(stats.skills));
+
+        if (Math.random() > 0.5) {
+          skills.push(getNotRepeatedRandomSkill([...skills, ...stats.skills]));
+        } else {
+          const power = getNotRepeatedRandom(
+            stats.powers.general,
+            'power'
+          ) as GeneralPower;
+          generalPowers.push(power);
+        }
 
         return stats;
       },

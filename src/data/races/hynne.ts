@@ -4,7 +4,7 @@ import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const HYNNE: Race = {
   name: 'Hynne',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },

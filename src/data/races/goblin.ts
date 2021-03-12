@@ -4,7 +4,7 @@ import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const GOBLIN: Race = {
   name: 'Goblin',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },

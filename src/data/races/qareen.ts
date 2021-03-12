@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const QAREEN: Race = {
   name: 'Qareen',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.CARISMA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },

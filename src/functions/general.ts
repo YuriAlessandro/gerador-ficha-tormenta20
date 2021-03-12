@@ -401,8 +401,14 @@ function calcDisplacement(
   return raceDisplacement;
 }
 
-function applyRaceHabilities(stats: CharacterStats): CharacterStats {
-  return stats;
+export function applyRaceHabilities(
+  race: Race,
+  stats: CharacterStats
+): CharacterStats {
+  return Object.values(race.abilities).reduce(
+    (acc, ability) => ability.action(acc),
+    stats
+  );
 }
 
 export default function generateRandomSheet(
@@ -468,7 +474,7 @@ export default function generateRandomSheet(
   // Passo 9: Recuperar deslocamento e tamanho com base na Raça, Atributos e Equipamentos
   const size = getRaceSize(race);
 
-  const stats = applyRaceHabilities({
+  const stats = applyRaceHabilities(race, {
     attributes: atributos,
     bag,
     classDescription: classe,

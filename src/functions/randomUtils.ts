@@ -1,8 +1,11 @@
+import generalPowers from '../data/poderes';
 import {
   allDivindadeNames,
   DivindadeNames,
   FaithProbability,
 } from '../interfaces/Divindade';
+import { GeneralPower } from '../interfaces/Poderes';
+import Skill from '../interfaces/Skills';
 
 export function getRandomItemFromArray<ElementType>(
   array: ElementType[]
@@ -107,4 +110,35 @@ export function rollDice(
   }
 
   return sum;
+}
+
+type notRepeatedDefaultsTypes = 'power' | 'skill';
+
+const NOT_REPEATED_DEFAULTS: Record<
+  notRepeatedDefaultsTypes,
+  (GeneralPower | Skill)[]
+> = {
+  power: Object.values(generalPowers).flat(),
+  skill: Object.values(Skill),
+};
+
+export function getNotUsedFromAllowed(
+  used: (GeneralPower | Skill)[],
+  type: notRepeatedDefaultsTypes,
+  allowed?: (GeneralPower | Skill)[]
+): (GeneralPower | Skill)[] {
+  return (allowed || NOT_REPEATED_DEFAULTS[type]).filter(
+    (element) => used.indexOf(element) < 0
+  );
+}
+export function getNotRepeatedRandom(
+  used: (GeneralPower | Skill)[],
+  type: notRepeatedDefaultsTypes,
+  allowed?: (GeneralPower | Skill)[]
+): GeneralPower | Skill {
+  const notRepeatedSkills = allowed
+    ? getNotUsedFromAllowed(used, type)
+    : getNotUsedFromAllowed(used, type, allowed);
+
+  return getRandomItemFromArray(notRepeatedSkills);
 }

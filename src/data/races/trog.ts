@@ -3,7 +3,7 @@ import { Atributo } from '../atributos';
 
 const TROG: Race = {
   name: 'Trog',
-  habilites: {
+  attributes: {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: 4 },
       { attr: Atributo.FORCA, mod: 2 },
