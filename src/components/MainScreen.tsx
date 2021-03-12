@@ -55,7 +55,7 @@ const MainScreen: React.FC = () => {
   const niveis = [{ value: 1, label: 'Nível 1' }];
 
   return (
-    <div>
+    <div id='main-screen'>
       <div className='filterArea'>
         <Select
           className='filterSelect'

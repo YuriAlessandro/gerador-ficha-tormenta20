@@ -11,9 +11,6 @@ import ReactGA from 'react-ga';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
-import Keys from './.config/keys';
-
-ReactGA.initialize(Keys.TRACKING_ID);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -56,7 +53,7 @@ function App(): JSX.Element {
   });
 
   return (
-    <div className='App'>
+    <div className='App' data-testid='app-component'>
       <header className='App-header'>
         <HashRouter basename='/gerador-ficha-tormenta20'>
           <div className='mainApp'>

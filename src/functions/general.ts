@@ -409,7 +409,7 @@ export function applyRaceHabilities(
 ): CharacterStats {
   const statsClone = _.cloneDeep(stats);
 
-  return Object.values(race.abilities || {}).reduce(
+  return (race.abilities || []).reduce(
     (acc, ability) => (ability.action ? ability.action(acc) : acc),
     statsClone
   );

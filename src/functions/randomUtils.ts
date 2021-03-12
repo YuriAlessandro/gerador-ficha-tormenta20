@@ -144,5 +144,3 @@ export function getNotRepeatedRandom(
 
   return getRandomItemFromArray(notRepeated);
 }
-
-export type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = U[keyof U];
