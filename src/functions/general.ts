@@ -2,7 +2,10 @@ import { v4 as uuid } from 'uuid';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
-import PERICIAS from '../data/pericias';
+import PERICIAS, {
+  getClassBaseSkills,
+  getNotRepeatedRandomSkill,
+} from '../data/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
   DEFAULT_BAG,
@@ -46,6 +49,7 @@ import {
   getRaceDisplacement,
   getRaceSize,
 } from '../data/races/functions/functions';
+import Origin from '../interfaces/Origin';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -136,40 +140,12 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributos;
 }
 
-function getNotRepeatedRandomPer(periciasUsadas: string[]) {
-  const keys = Object.keys(PERICIAS);
-  const periciasPermitidas = keys.filter((pericia) => {
-    const stringPericia = PERICIAS[pericia] as string;
-    return !periciasUsadas.includes(stringPericia);
-  });
-  return getRandomItemFromArray(periciasPermitidas);
-}
-
-interface ClassDetails {
-  pv: number;
-  pm: number;
-  defesa: number;
-  pericias: string[];
-}
-
 export function getClassDetailsModifiedByRace(
-  { pv, pm, defesa, pericias }: ClassDetails,
+  { pv, pm, defesa }: { pv: number; pm: number; defesa: number },
   raca: Race
-): ClassDetails {
+): { pv: number; pm: number; defesa: number } {
   return raca.habilites.other.reduce(
     (caracteristicas, item) => {
-      if (item.type === 'pericias') {
-        if (item.allowed === 'any') {
-          return {
-            ...caracteristicas,
-            pericias: [
-              ...caracteristicas.pericias,
-              PERICIAS[getNotRepeatedRandomPer(caracteristicas.pericias)],
-            ],
-          };
-        }
-      }
-
       if (item.type === 'pv' && item.mod) {
         return {
           ...caracteristicas,
@@ -192,34 +168,8 @@ export function getClassDetailsModifiedByRace(
 
       return caracteristicas;
     },
-    { pv, pm, defesa, pericias }
+    { pv, pm, defesa }
   );
-}
-
-function addBasicPer(
-  classBasicPer: BasicExpertise[],
-  racePers: string[]
-): string[] {
-  return classBasicPer.reduce((pericias, item) => {
-    if (item.type === 'or') {
-      const selectedPer = getRandomItemFromArray(item.list);
-      const perWithPossiblyRepeated = [...pericias, selectedPer];
-      return perWithPossiblyRepeated.filter(
-        (currentItem, index) =>
-          perWithPossiblyRepeated.indexOf(currentItem) === index
-      );
-    }
-
-    if (item.type === 'and') {
-      const perWithPossiblyRepeated = [...pericias, ...item.list];
-      return perWithPossiblyRepeated.filter(
-        (currentItem, index) =>
-          perWithPossiblyRepeated.indexOf(currentItem) === index
-      );
-    }
-
-    return pericias;
-  }, racePers);
 }
 
 function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
@@ -228,7 +178,7 @@ function addRemainingPer(qtdPericiasRestantes: number, pericias: string[]) {
     .reduce(
       (periciasAtuais) => [
         ...periciasAtuais,
-        PERICIAS[getNotRepeatedRandomPer(periciasAtuais)],
+        PERICIAS[getNotRepeatedRandomSkill(periciasAtuais)],
       ],
       pericias
     );
@@ -274,23 +224,6 @@ function getRaceAndRaceStats(
   return { atributos, nome, race };
 }
 
-export function addClassPer(
-  classe: ClassDescription,
-  racePers: string[]
-): string[] {
-  // 5.1.1: Cada classe tem algumas perícias básicas (que devem ser escolhidas entre uma ou outra)
-  const periciasDeClasseEBasicas = addBasicPer(
-    classe.periciasbasicas,
-    racePers
-  );
-
-  // 5.1.2: As perícias padrões que cada classe recebe
-  return addRemainingPer(
-    classe.periciasrestantes.qtd,
-    periciasDeClasseEBasicas
-  );
-}
-
 function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   let selectedClass;
   if (selectedOptions.classe) {
@@ -304,6 +237,18 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
+function getSkills(
+  classe: ClassDescription,
+  origin: Origin,
+  race: Race,
+  atributos: CharacterAttributes
+): string[] {
+  let skills = [];
+
+  skills = getClassBaseSkills(classe);
+
+  return skills;
+}
 function getWeapons(classe: ClassDescription) {
   const weapons = [];
 
@@ -423,28 +368,24 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-// Retorna a origem e as perícias selecionadas
-function getOrigin() {
-  const selectedOrigin = getRandomItemFromArray(origins);
+function getOriginSkillsAndPowers(
+  origin: Origin
+): { skills: string[]; powers: (OriginPower | GeneralPower)[] } {
   const skills: string[] = [];
   const powers: (OriginPower | GeneralPower)[] = [];
 
-  if (selectedOrigin.name === 'Amnésico') {
+  if (origin.name === 'Amnésico') {
     skills.push(getRandomItemFromArray(Object.values(PERICIAS)));
     // TODO: Jogar mais um poder aleatório
     powers.push(originPowers.LEMBRANCAS_GRADUAIS);
 
     return {
-      name: selectedOrigin.name,
       skills,
       powers,
     };
   }
 
-  const benefits = pickFromArray(
-    [...selectedOrigin.pericias, ...selectedOrigin.poderes],
-    2
-  );
+  const benefits = pickFromArray([...origin.pericias, ...origin.poderes], 2);
 
   benefits.forEach((benefit) => {
     if (typeof benefit === 'string') {
@@ -455,7 +396,6 @@ function getOrigin() {
   });
 
   return {
-    name: selectedOrigin.name,
     skills,
     powers,
   };
@@ -545,15 +485,11 @@ export default function generateRandomSheet(
   );
 
   // Passo 4: Definição de origem
-  const origin = getOrigin();
-  const skillsRaceAndOrigin = removeDup([
-    ...classDetailsModifiedByRace.pericias,
-    ...origin.skills,
-  ]);
+  const origin = getRandomItemFromArray(Object.values(origins));
 
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe
-  const pericias = addClassPer(classe, skillsRaceAndOrigin);
+  const pericias = getSkills(classe, origin, race, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
