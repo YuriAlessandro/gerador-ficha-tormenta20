@@ -226,6 +226,22 @@ table {
   margin-bottom: 20px;
 }
 
+.tableMobile {
+  display: none;
+}
+
+.spellMobile {
+  margin-bottom: 10px;
+  border: 1px solid black;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+.spellMobile .spellName{
+  font-size: 22px;
+  margin-bottom: 5px;
+}
+
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
@@ -291,10 +307,27 @@ table {
   .tableDesk {
     display: none;
   }
+
+  .tableMobile {
+    display: block;
+  }
+
+  .speelsInfos {
+    flex-direction: column;
+    padding: 0;
+  }
 }
 
 @media only screen and (min-device-width: 720px) and (max-device-width: 1024px){
   .resultContainer {
     width: 90vw;
+  }
+
+  .tableDesk {
+    display: none;
+  }
+
+  .tableMobile {
+    display: block;
   }
 }
