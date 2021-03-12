@@ -85,3 +85,26 @@ export function pickFromArray<ElementType>(
 export function removeDup<ElementType>(array: ElementType[]): ElementType[] {
   return array.filter((element, idx) => array.indexOf(element) === idx);
 }
+
+export function getRandomArbitrary(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+export function rollDice(
+  qty: number,
+  dice: number,
+  discardLowestDiceQty = 0
+): number {
+  const results: number[] = [];
+  for (let i = 0; i < qty; i += 1) {
+    results.push(getRandomArbitrary(1, dice));
+  }
+
+  results.sort((a, b) => a - b);
+  let sum = 0;
+  for (let i = discardLowestDiceQty; i < qty; i += 1) {
+    sum += results[i];
+  }
+
+  return sum;
+}
