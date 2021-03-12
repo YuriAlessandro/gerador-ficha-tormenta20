@@ -10,7 +10,6 @@ const GOBLIN: Race = {
       { attr: Atributo.INTELIGENCIA, mod: 2 },
       { attr: Atributo.CARISMA, mod: -2 },
     ],
-    other: [],
     texts: [
       'Você não sofre penalidades em testes de perícia por não usar kits. Se usar o kit, recebe +2 no teste de perícia.',
       'Você recebe visão no escuro e deslocamento de escalada igual ao seu deslocamento terrestre.',

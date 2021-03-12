@@ -8,7 +8,6 @@ const MEDUSA: Race = {
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },
     ],
-    other: [{ type: 'pericias', allowed: 'any' }],
     texts: [
       'Você é uma criatura do tipo monstro e recebe visão no escuro.',
       'Você recebe resistência a veneno 5 e pode gastar uma ação de movimento e 1 PM para envenenar uma arma que esteja empunhando. A arma causa +1d12 pontos de dano de veneno. O veneno dura até você acertar um ataque ou até o fim da cena (o que acontecer primeiro).',

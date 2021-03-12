@@ -3,7 +3,7 @@ import { CharacterStats } from '../../../interfaces/Race';
 import Skill from '../../../interfaces/Skills';
 import HUMANO from '../humano';
 
-describe('Testa raça Humano', () => {
+describe('Testa habilidades da raça Humanos', () => {
   test('se habilidade soma uma pericia e um poder geral, ou duas perícias', () => {
     Array(20)
       .fill(0)

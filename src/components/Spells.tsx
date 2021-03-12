@@ -1,6 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
-import { CharacterAttribute } from '../interfaces/CharacterSheet';
+import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
 

@@ -1,6 +1,6 @@
 import Equipment from './Equipment';
 import { OriginPower, GeneralPower } from './Poderes';
-import Skill, { skill } from './Skills';
+import Skill from './Skills';
 
 export interface OriginBenefits {
   powers: {

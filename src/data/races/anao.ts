@@ -1,4 +1,5 @@
-import Race from '../../interfaces/Race';
+import _ from 'lodash';
+import Race, { CharacterStats } from '../../interfaces/Race';
 import { Ability } from '../abilities';
 import { Atributo } from '../atributos';
 
@@ -41,6 +42,19 @@ const ANAO: Race = {
       name: 'Tradição de Heredrimm',
       description:
         'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usálas como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas.',
+    },
+    [Ability.DURO_COMO_PEDRA]: {
+      name: 'Duro com Pedra',
+      description:
+        'Você recebe +3 pontos de vida no 1o nível e +1 por nível seguinte.',
+      action(stats: CharacterStats): CharacterStats {
+        return _.merge(stats, {
+          pv: stats.pv + 3,
+          classDescription: {
+            addpv: stats.classDescription.addpv + 1,
+          },
+        });
+      },
     },
   },
 };

@@ -20,11 +20,7 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
-  "plugins": [
-    "react",
-    "prettier",
-    "@typescript-eslint/eslint-plugin"
-  ],
+  "plugins": ["react", "prettier", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": ["error"],
@@ -37,16 +33,13 @@
         "ts": "never",
         "tsx": "never"
       }
-   ],
+    ],
     "react/prop-types": "off",
     "react/jsx-filename-extension": "off",
-    "prettier/prettier": [
-      "error"
-    ],
+    "prettier/prettier": ["error"],
     "import/prefer-default-export": "off",
-    "jsx-quotes": [
-      "error",
-      "prefer-single"
-    ]
+    "jsx-quotes": ["error", "prefer-single"],
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["error"]
   }
 }

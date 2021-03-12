@@ -9,7 +9,6 @@ const TROG: Race = {
       { attr: Atributo.FORCA, mod: 2 },
       { attr: Atributo.INTELIGENCIA, mod: -2 },
     ],
-    other: [{ type: 'defesa', mod: 1 }],
     texts: [
       'Você pode gastar uma ação padrão e 2 PM para expelir um gás fétido. Todas as criaturas (exceto trogs) em alcance curto devem passar em um teste de Fortitude contra veneno (CD Con) ou ficarão enjoadas durante 1d6 rodadas. Uma criatura que passe no teste de resistência fica imune a esta habilidade por um dia.',
       'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',

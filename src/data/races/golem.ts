@@ -9,7 +9,6 @@ const GOLEM: Race = {
       { attr: Atributo.CONSTITUICAO, mod: 2 },
       { attr: Atributo.CARISMA, mod: -2 },
     ],
-    other: [{ type: 'defesa', mod: 2 }],
     texts: [
       'Como uma ação completa, você pode gastar pontos de mana para recuperar pontos de vida, à taxa de 5 PV por PM.',
       'Seu corpo artificial é resistente, mas rígido. Você recebe +2 na Defesa (JÁ INCLUSO), mas possui penalidade de armadura –2 e seu deslocamento é 6m. Você leva um dia para vestir ou remover uma armadura (pois precisa acoplar as peças dela a seu chassi).',
