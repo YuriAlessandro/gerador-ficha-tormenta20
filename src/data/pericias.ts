@@ -4,7 +4,43 @@ import {
 } from '../functions/randomUtils';
 import { ClassDescription } from '../interfaces/Class';
 
-const PERICIAS: Record<string, string> = {
+type pericia =
+  | 'ACROBACIA'
+  | 'ADESTRAMENTO'
+  | 'ATLETISMO'
+  | 'ATUACAO'
+  | 'CAVALGAR'
+  | 'CONHECIMENTO'
+  | 'CURA'
+  | 'DIPLOMACIA'
+  | 'ENGANACAO'
+  | 'FORTITUDE'
+  | 'FURTIVIDADE'
+  | 'GUERRA'
+  | 'INICIATIVA'
+  | 'INTIMIDACAO'
+  | 'INTUICAO'
+  | 'INVESTIGACAO'
+  | 'JOGATINA'
+  | 'LADINAGEM'
+  | 'LUTA'
+  | 'MISTICISMO'
+  | 'NOBREZA'
+  | 'OFICIO'
+  | 'OFICIO_ALQUIMIA'
+  | 'OFICIO_ARMEIRO'
+  | 'OFICIO_ARTESANATO'
+  | 'OFICIO_ALFAIATE'
+  | 'OFICIO_CULINARIA'
+  | 'PERCEPCAO'
+  | 'PILOTAGEM'
+  | 'PONTARIA'
+  | 'REFLEXOS'
+  | 'RELIGIAO'
+  | 'SOBREVIVENCIA'
+  | 'VONTADE';
+
+const PERICIAS: Record<pericia, string> = {
   ACROBACIA: 'Acrobacia',
   ADESTRAMENTO: 'Adestramento',
   ATLETISMO: 'Atletismo',
@@ -69,7 +105,7 @@ export function getNotRepeatedSkillsByQtd(
   allowedSkills?: string[]
 ): string[] {
   const notUsed = getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
-
+  console.log(notUsed, usedSkills, allowedSkills);
   return pickFromArray(notUsed, qtd);
 }
 
