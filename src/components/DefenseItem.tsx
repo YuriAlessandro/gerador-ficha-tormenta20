@@ -13,7 +13,7 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
     <tr>
       <td>{nome}</td>
       <td>{defenseBonus}</td>
-      <td>-{armorPenalty}</td>
+      <td>{armorPenalty > 0 ? `-${armorPenalty}` : '-'}</td>
       <td>{peso}kg</td>
     </tr>
   );
