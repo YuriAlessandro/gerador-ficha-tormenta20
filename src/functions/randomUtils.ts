@@ -114,11 +114,13 @@ export function rollDice(
 
 type notRepeatedDefaultsTypes = 'power' | 'skill';
 
+const generalPowersEmpty: GeneralPower[] = [];
+
 const NOT_REPEATED_DEFAULTS: Record<
   notRepeatedDefaultsTypes,
   (GeneralPower | Skill)[]
 > = {
-  power: Object.values(generalPowers).flat(),
+  power: generalPowersEmpty.concat(...Object.values(generalPowers)),
   skill: Object.values(Skill),
 };
 
@@ -136,11 +138,11 @@ export function getNotRepeatedRandom(
   type: notRepeatedDefaultsTypes,
   allowed?: (GeneralPower | Skill)[]
 ): GeneralPower | Skill {
-  const notRepeatedSkills = allowed
+  const notRepeated = allowed
     ? getNotUsedFromAllowed(used, type)
     : getNotUsedFromAllowed(used, type, allowed);
 
-  return getRandomItemFromArray(notRepeatedSkills);
+  return getRandomItemFromArray(notRepeated);
 }
 
 export type AtLeastOne<T, U = { [K in keyof T]: Pick<T, K> }> = U[keyof U];
