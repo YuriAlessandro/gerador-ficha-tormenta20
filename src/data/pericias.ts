@@ -67,6 +67,16 @@ export function getNotRepeatedRandomSkill(
   return getRandomItemFromArray(notRepeatedSkills);
 }
 
+export function getNotRepeatedSkillsByQtd(
+  usedSkills: string[],
+  qtd: number,
+  allowedSkills?: string[]
+): string[] {
+  const notUsed = getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
+
+  return pickFromArray(notUsed, qtd);
+}
+
 const baseSkillsStrategies: Record<
   string,
   (baseSkills: string[], skills: string[]) => string[]
@@ -92,10 +102,9 @@ export function getRemainingSkills(
   usedSkills: string[],
   classe: ClassDescription
 ): string[] {
-  const allowedSkills = getNotUsedSkillsFromAllowed(
+  return getNotRepeatedSkillsByQtd(
     usedSkills,
+    classe.periciasrestantes.qtd,
     classe.periciasrestantes.list
   );
-
-  return pickFromArray(allowedSkills, classe.periciasrestantes.qtd);
 }

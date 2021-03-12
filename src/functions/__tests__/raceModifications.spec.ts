@@ -20,7 +20,7 @@ const originalAttrs: CharacterAttributes = {
   Sabedoria: { name: Atributo.SABEDORIA, value: 13, mod: 1 },
 };
 
-const classDetails = { pv: 26, pm: 3, defesa: 12, pericias: [] };
+const classDetails = { pv: 26, pm: 3, defesa: 12 };
 
 describe('Testa modificações da raça Aggelus', () => {
   test('Se o Aggelus não modifica detalhes da classe ', () => {
@@ -59,17 +59,6 @@ describe('Testa modificações da raça Humano', () => {
   Array(1)
     .fill(0)
     .forEach(() => {
-      test('Se o Humano tem recebe duas perícias diferentes', () => {
-        const received = getClassDetailsModifiedByRace(classDetails, HUMANO);
-
-        const {
-          pericias: [periciaA, periciaB],
-        } = received;
-
-        expect(received.pericias).toHaveLength(2);
-        expect(periciaA).not.toBe(periciaB);
-      });
-
       test('Se o Humano recebe +2 em 3 atributos diferentes', () => {
         const received = modifyAttributesBasedOnRace(HUMANO, originalAttrs);
         const qtdOfAttrWithPlusTwo = countAttrWithPlusTwo(

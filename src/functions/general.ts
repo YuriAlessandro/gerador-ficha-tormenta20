@@ -5,6 +5,7 @@ import CLASSES from '../data/classes';
 import PERICIAS, {
   getClassBaseSkills,
   getNotRepeatedRandomSkill,
+  getNotRepeatedSkillsByQtd,
   getRemainingSkills,
 } from '../data/pericias';
 import EQUIPAMENTOS, {
@@ -224,11 +225,31 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
+function getRaceSkills(usedSkills: string[], race: Race): string[] {
+  const skillHabilities = race.habilites.other.filter(
+    (skill) => skill.type === 'pericias'
+  );
+  return skillHabilities.reduce<string[]>((skills, hability) => {
+    if (hability.allowed === 'any') {
+      return [...skills, getNotRepeatedRandomSkill(usedSkills)];
+    }
+
+    return skills;
+  }, []);
+}
+
+function getAttributesSkills(
+  attributes: CharacterAttributes,
+  usedSkills: string[]
+) {
+  return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+}
+
 function getSkillsAndPowers(
   classe: ClassDescription,
   origin: Origin,
   race: Race,
-  atributos: CharacterAttributes
+  attributes: CharacterAttributes
 ): { skills: string[]; powers: { origin: (GeneralPower | OriginPower)[] } } {
   const skills: string[] = [];
 
@@ -240,8 +261,9 @@ function getSkillsAndPowers(
   );
 
   skills.push(...originSkills);
-
   skills.push(...getRemainingSkills(skills, classe));
+  skills.push(...getRaceSkills(skills, race));
+  skills.push(...getAttributesSkills(attributes, skills));
 
   return {
     skills,
