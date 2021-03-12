@@ -29,6 +29,7 @@ import {
   mergeFaithProbabilities,
   pickFaith,
   pickFromArray,
+  rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
 import { getOriginBenefits, ORIGINS } from '../data/origins';
@@ -55,13 +56,32 @@ export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
 
-function getRandomArbitrary(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min) + min);
-}
 // function getRandomPer() {
 //   const keys = Object.keys(PERICIAS);
 //   return getRandomItemFromArray(keys);
 // }
+
+function rollAttributeValues(): CharacterAttributes {
+  const rolledValues = Object.values(Atributo).map(() => rollDice(4, 6, 1));
+
+  // eslint-disable-next-line
+  while (true) {
+    const modifiers = rolledValues.map((value) => getModValue(value));
+    const modSum = modifiers.reduce((acc, curr) => acc + curr);
+    if (modSum >= 6) break;
+    rolledValues.sort((a, b) => a - b);
+    rolledValues.shift();
+    rolledValues.push(rollDice(4, 6, 1));
+  }
+
+  return Object.values(Atributo).reduce((acc, attr, index) => {
+    const mod = getModValue(rolledValues[index]);
+    return {
+      ...acc,
+      [attr]: { name: attr, value: rolledValues[index], mod },
+    };
+  }, {}) as CharacterAttributes;
+}
 
 function getNotRepeatedAttribute(atributosModificados: string[]) {
   const atributosPermitidos = Object.values(Atributo).filter(
@@ -436,11 +456,8 @@ export default function generateRandomSheet(
   const nivel = 1;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributosRolados = Object.values(Atributo).reduce((acc, atributo) => {
-    const randomAttr = getRandomArbitrary(8, 18);
-    const mod = getModValue(randomAttr);
-    return { ...acc, [atributo]: { name: atributo, value: randomAttr, mod } };
-  }, {});
+  const atributosRolados = rollAttributeValues();
+
   // Passo 1.1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
