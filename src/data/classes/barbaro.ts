@@ -35,7 +35,7 @@ const BARBARO: ClassDescription = {
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Furia',
       text:

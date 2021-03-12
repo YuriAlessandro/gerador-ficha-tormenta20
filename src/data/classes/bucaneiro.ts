@@ -42,7 +42,7 @@ const BUCANEIRO: ClassDescription = {
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Audácia',
       text:

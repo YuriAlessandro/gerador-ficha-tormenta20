@@ -247,10 +247,10 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
 }
 
 function getRaceSkills(usedSkills: string[], race: Race): string[] {
-  const skillHabilities = race.habilites.other.filter(
+  const skillAbilities = race.habilites.other.filter(
     (skill) => skill.type === 'pericias'
   );
-  return skillHabilities.reduce<string[]>((skills, ability) => {
+  return skillAbilities.reduce<string[]>((skills, ability) => {
     if (ability.allowed === 'any') {
       return [...skills, getNotRepeatedRandomSkill(usedSkills)];
     }

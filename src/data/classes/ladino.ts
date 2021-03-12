@@ -38,7 +38,7 @@ const LADINO: ClassDescription = {
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
-  habilities: [
+  abilities: [
     {
       name: 'Ataque Furtivo',
       text:

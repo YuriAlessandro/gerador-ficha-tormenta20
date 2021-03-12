@@ -48,7 +48,7 @@ const NOBRE: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Autoconfiança',
       text:

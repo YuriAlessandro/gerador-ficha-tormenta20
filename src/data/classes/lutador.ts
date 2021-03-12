@@ -31,7 +31,7 @@ const LUTADOR: ClassDescription = {
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
-  habilities: [
+  abilities: [
     {
       name: 'Briga',
       text:

@@ -32,7 +32,7 @@ const INVENTOR: ClassDescription = {
     ],
   },
   proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
-  habilities: [
+  abilities: [
     {
       name: 'Engenhosidade',
       text:

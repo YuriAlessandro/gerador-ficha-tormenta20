@@ -41,7 +41,7 @@ const GUERREIRO: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Ataque Especial',
       text:

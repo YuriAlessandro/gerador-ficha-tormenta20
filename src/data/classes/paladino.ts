@@ -38,7 +38,7 @@ const PALADINO: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Abençoado',
       text:

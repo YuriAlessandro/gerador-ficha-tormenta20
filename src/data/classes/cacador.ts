@@ -42,7 +42,7 @@ const CACADOR: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Marca da Presa',
       text:

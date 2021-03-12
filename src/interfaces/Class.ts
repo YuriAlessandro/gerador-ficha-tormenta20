@@ -37,7 +37,7 @@ export interface ClassDescription {
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
   proeficiencias: string[];
-  habilities: ClassAbility[];
+  abilities: ClassAbility[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;

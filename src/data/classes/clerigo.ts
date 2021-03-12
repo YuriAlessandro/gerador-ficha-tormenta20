@@ -34,7 +34,7 @@ const CLERIGO: ClassDescription = {
     ],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
-  habilities: [
+  abilities: [
     {
       name: 'Devoto',
       text:

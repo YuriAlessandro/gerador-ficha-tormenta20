@@ -49,7 +49,10 @@ export interface CharacterStats {
   maxWeight: number;
 }
 
-export interface RaceAbility {}
+export interface RaceAbility {
+  name: string;
+  description: string;
+}
 
 export default interface Race {
   name: string;
@@ -66,10 +69,10 @@ export default interface Race {
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;
-  getHabilities: (
+  getAbilities: (
     race: Race,
     sheet: CharacterStats
-  ) => { stats: CharacterStats; habilities: RaceAbility };
+  ) => { stats: CharacterStats; abilities: RaceAbility };
   faithProbability?: FaithProbability;
   size?: RaceSize;
 }

@@ -36,7 +36,7 @@ const CAVALEIRO: ClassDescription = {
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.SIMPLES,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Código de Honra',
       text:

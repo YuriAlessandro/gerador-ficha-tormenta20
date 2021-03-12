@@ -46,7 +46,7 @@ const BARDO: ClassDescription = {
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
   ],
-  habilities: [
+  abilities: [
     {
       name: 'Inspiração',
       text:
