@@ -171,7 +171,9 @@ const Result: React.FC<ResultProps> = (props) => {
               <span className='resultItem name'>
                 <strong>{nome}</strong>
               </span>
-              <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+              {raca.name !== 'Golem' && (
+                <span>({sexo === 'Mulher' ? 'F' : 'M'})</span>
+              )}
             </div>
             <div className='resultRow'>
               <span className='resultItem raceName'>
