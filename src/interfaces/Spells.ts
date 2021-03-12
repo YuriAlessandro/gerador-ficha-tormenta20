@@ -1,3 +1,13 @@
+import { Atributo } from '../data/atributos';
+
+export enum spellsCircles {
+  c1 = '1º Circulo',
+  c2 = '2º Circulo',
+  c3 = '3º Circulo',
+  c4 = '4º Circulo',
+  c5 = '5º Circulo',
+}
+
 export type Spell = {
   nome: string;
   execucao: 'Padrão' | 'Movimento' | 'Completa' | 'Reação' | string;
@@ -6,6 +16,10 @@ export type Spell = {
   area?: string;
   duracao: 'Instantânea' | 'Cena' | string;
   resistencia?: string;
+  spellCircle: spellsCircles;
+  manaExpense?: number;
+  manaReduction?: number;
+  customKeyAttr?: Atributo;
 };
 
 export type SpellSchool =

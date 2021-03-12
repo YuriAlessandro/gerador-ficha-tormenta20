@@ -26,7 +26,7 @@ const Result: React.FC<ResultProps> = (props) => {
     atributos,
     raca,
     classe,
-    pericias,
+    skills,
     pv,
     pm,
     defesa,
@@ -75,7 +75,7 @@ const Result: React.FC<ResultProps> = (props) => {
   let className = `${classe.name}`;
   if (classe.subname) className = `${className} (${classe.subname})`;
 
-  const periciasSorted = pericias.sort();
+  const periciasSorted = skills.sort();
 
   const periciasDiv = periciasSorted.map((pericia) => (
     <li key={getKey(pericia)}>{pericia}</li>
