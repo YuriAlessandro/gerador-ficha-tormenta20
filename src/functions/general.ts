@@ -242,7 +242,11 @@ function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: string[]
 ) {
-  return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+  if (attributes.Inteligência.mod > 0) {
+    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+  }
+
+  return [];
 }
 
 function getSkillsAndPowers(

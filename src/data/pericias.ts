@@ -47,12 +47,8 @@ export function getNotUsedSkillsFromAllowed(
   usedSkills: string[],
   allowedSkills?: string[]
 ): string[] {
-  const usedAndAllowed = [
-    ...(allowedSkills || Object.values(PERICIAS)),
-    ...usedSkills,
-  ];
-  return usedAndAllowed.filter(
-    (skill, index) => usedAndAllowed.indexOf(skill) === index
+  return (allowedSkills || Object.values(PERICIAS)).filter(
+    (skill) => usedSkills.indexOf(skill) < 0
   );
 }
 

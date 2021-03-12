@@ -318,7 +318,7 @@ function sortAmnesicBenefits(skills: string[]) {
   powers.push(originPowers.LEMBRANCAS_GRADUAIS);
 
   return {
-    skills: [...skills, newSkill],
+    skills: [newSkill],
     powers: [
       originPowers.LEMBRANCAS_GRADUAIS,
       getRandomItemFromArray(Object.values(generalPowers).flat()),
