@@ -233,8 +233,8 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
 
         <div className='equipaments'>
-          <div className='tableWrap'>{weaponsDiv}</div>
-          <div className='tableWrap'>
+          <div className='tableWrap tableDesk'>{weaponsDiv}</div>
+          <div className='tableWrap tableDesk'>
             <DefenseEquipments
               getKey={getKey}
               defenseEquipments={defenseEquipments}
@@ -245,7 +245,7 @@ const Result: React.FC<ResultProps> = (props) => {
               <strong>Penalidade de Armadura:</strong> {bag.armorPenalty * -1}
             </span>
           </div>
-          <div className='tableWrap'>{equipamentosDiv}</div>
+          <div className='tableWrap tableDesk'>{equipamentosDiv}</div>
           <div className='textToRight equipmentsValues'>
             <span>
               <strong>Peso (atual/máximo):</strong> {bag.weight}/{maxWeight}kg
@@ -353,7 +353,7 @@ const Result: React.FC<ResultProps> = (props) => {
           <span>Magias</span>
         </div>
 
-        <div className='tableWrap'>
+        <div className='tableWrap tableDesk'>
           <Spells
             spells={spells}
             spellPath={classe.spellPath}
