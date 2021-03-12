@@ -7,6 +7,8 @@ import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
 import Skill from './Skills';
 import { Spell } from './Spells';
+import { Ability } from '../data/abilities';
+import { AtLeastOne } from '../functions/randomUtils';
 
 export interface RaceAttributeAbility {
   attr: Atributo | 'any';
@@ -54,7 +56,7 @@ export interface CharacterStats {
 export interface RaceAbility {
   name: string;
   description: string;
-  action: (stats: CharacterStats) => CharacterStats;
+  action?: (stats: CharacterStats) => CharacterStats;
 }
 
 export default interface Race {
@@ -63,7 +65,7 @@ export default interface Race {
     attrs: RaceAttributeAbility[];
     texts: string[];
   };
-  abilities: Record<string, RaceAbility>;
+  abilities?: AtLeastOne<Record<Ability, RaceAbility>>;
   oldRace?: Race;
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;

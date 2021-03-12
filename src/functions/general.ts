@@ -405,8 +405,8 @@ export function applyRaceHabilities(
   race: Race,
   stats: CharacterStats
 ): CharacterStats {
-  return Object.values(race.abilities).reduce(
-    (acc, ability) => ability.action(acc),
+  return Object.values(race.abilities || {}).reduce(
+    (acc, ability) => (ability.action ? ability.action(acc) : acc),
     stats
   );
 }
