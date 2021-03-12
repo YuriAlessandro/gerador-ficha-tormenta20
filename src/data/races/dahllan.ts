@@ -4,7 +4,7 @@ import { Spell } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
 
-const PLANTS_FRIEND_MANA_REDUCTION = 1;
+export const PLANTS_FRIEND_MANA_REDUCTION = 1;
 function cheapenControlPlants(spells: Spell[], index: number) {
   let { manaReduction = 0 } = spells[index];
   if (manaReduction < PLANTS_FRIEND_MANA_REDUCTION)
