@@ -13,6 +13,8 @@ import {
 import { OriginPower, GeneralPower } from '../interfaces/Poderes';
 import generalPowers from './poderes';
 import Skill from '../interfaces/Skills';
+import { Armas } from './equipamentos';
+import combatPowers from './powers/combatPowers';
 
 export type origins =
   | 'Acólito'
@@ -54,7 +56,14 @@ export type origins =
 export const ORIGINS: Record<origins, Origin> = {
   Acólito: {
     name: 'Acólito',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Símbolo sagrado,',
+      },
+      {
+        equipment: 'Traje de Sacerdote',
+      },
+    ],
     pericias: [Skill.CURA, Skill.RELIGIAO, Skill.VONTADE],
     poderes: [
       originPowers.MEMBRO_DA_IGREJA,
@@ -64,55 +73,103 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   'Amigo dos Animais': {
     name: 'Amigo dos Animais',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Cão de guarda, cavalo, pônei ou trobo (escolha um).',
+      },
+    ],
     pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR],
     poderes: [originPowers.AMIGO_ESPECIAL],
   },
   Amnésico: {
     name: 'Amnésico',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Um ou mais itens (somando até T$ 100), que podem ser uma pista misteriosa da sua vida antiga.',
+      },
+    ],
     pericias: [],
     poderes: [originPowers.LEMBRANCAS_GRADUAIS],
   },
   Aristocrata: {
     name: 'Aristocrata',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Joia de família no valor de T$ 100',
+      },
+      {
+        equipment: 'Traje da Corte',
+      },
+    ],
     pericias: [Skill.DIPLOMACIA, Skill.ENGANACAO, Skill.NOBREZA],
     poderes: [originPowers.SANGUE_AZUL],
   },
   Artesão: {
     name: 'Artesão',
-    itens: [],
-    pericias: [Skill.OFICIO, Skill.VONTADE],
-    poderes: [originPowers.FRUDOS_DO_TRABALHO],
+    itens: [
+      {
+        equipment: 'Kit de Ofício (qualquer)',
+      },
+      {
+        equipment: 'Um item que você possa fabricar de até T$ 50',
+      },
+    ],
+    pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
+    poderes: [originPowers.FRUTOS_DO_TRABALHO],
   },
   Artista: {
     name: 'Artista',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de disfarces ou instrumento musical.',
+      },
+    ],
     pericias: [Skill.ATUACAO, Skill.ENGANACAO],
     poderes: [originPowers.DOM_ARTISTICO],
   },
   'Assistente de Laboratório': {
     name: 'Assistente de Laboratório',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de Ofício (alquimia)',
+      },
+    ],
     pericias: [Skill.OFICIO],
     poderes: [originPowers.ESSE_CHEIRO],
   },
   Batedor: {
     name: 'Batedor',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Barraca',
+      }, // TODO: uma arma simples ou marcial de ataque à distância.
+    ],
     pericias: [Skill.PERCEPCAO, Skill.SOBREVIVENCIA],
     poderes: [originPowers.PROVA_DE_TUDO],
   },
   Capanga: {
     name: 'Capanga',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Tatuagem ou outro adereço de sua gangue aprimorado (+2 em Intimidação),',
+      },
+    ], // TODO: uma arma simples corpo a corpo.
     pericias: [Skill.LUTA, Skill.INTIMIDACAO],
     poderes: [originPowers.CONFISSAO],
   },
   Charlatão: {
     name: 'Charlatão',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Joia Falsificada (valor aparente de T$ 100, sem valor real),',
+      },
+      {
+        equipment: 'Kit de Disfarces',
+      },
+    ],
     pericias: [Skill.ENGANACAO, Skill.JOGATINA],
     poderes: [
       originPowers.ALPINISTA_SOCIAL,
@@ -122,19 +179,44 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Circense: {
     name: 'Circense',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Traje de Artista',
+      },
+      {
+        equipment: 'Bola Colorida',
+        qtd: 3,
+      },
+      {
+        equipment: 'Baralho',
+      },
+    ],
     pericias: [Skill.ACROBACIA, Skill.ATUACAO, Skill.REFLEXOS],
     poderes: [originPowers.TRUQUE_DE_MAGICA],
   },
   Criminoso: {
     name: 'Criminoso',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de Ladrão',
+      },
+      {
+        equipment: 'Kit de Disfarces',
+      },
+    ],
     pericias: [Skill.ENGANACAO, Skill.FURTIVIDADE, Skill.LADINAGEM],
     poderes: [originPowers.PUNGUISTA, DestinyPowers.VENEFICIO],
   },
   Curandeiro: {
     name: 'Curandeiro',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Bálsamo restaurador',
+      },
+      {
+        equipment: 'Kit de Medicamentos',
+      },
+    ],
     pericias: [Skill.CURA, Skill.VONTADE],
     poderes: [
       originPowers.MEDICO_DE_CAMPO,
@@ -144,19 +226,42 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Eremita: {
     name: 'Eremita',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Barraca',
+      },
+      {
+        equipment: 'Kit de Medicamentos',
+      },
+    ],
     pericias: [Skill.MISTICISMO, Skill.RELIGIAO, Skill.SOBREVIVENCIA],
     poderes: [originPowers.BUSCA_INTERIOR, DestinyPowers.LOBO_SOLITARIO],
   },
   Escravo: {
     name: 'Escravo',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Algemas',
+      },
+      {
+        equipment: 'Ferramenta Pesada (mesma estatística que maça)',
+      },
+    ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.FURTIVIDADE],
-    poderes: [originPowers.DESEJO_DE_LIBERDADE, DestinyPowers.VITALIDADE],
+    poderes: [originPowers.DESEJO_DE_LIBERDADE, combatPowers.VITALIDADE],
   },
   Estudioso: {
     name: 'Estudioso',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Livro aprimorado (+2 em Conhecimento, Guerra ou Misticismo)',
+      },
+      {
+        equipment: 'Livro Comum',
+        qtd: 3,
+      },
+    ],
     pericias: [Skill.CONHECIMENTO, Skill.GUERRA, Skill.MISTICISMO],
     poderes: [
       originPowers.PALPITE_FUNDAMENTADO,
@@ -165,7 +270,18 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Fazendeiro: {
     name: 'Fazendeiro',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Ferramenta agrícola (mesmas estatísticas de uma lança)',
+      },
+      {
+        equipment: 'Ração de Viagem',
+        qtd: 10,
+      },
+      {
+        equipment: 'Animal não combativo (como uma galinha, porco ou ovelha)',
+      },
+    ],
     pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR, Skill.OFICIO],
     poderes: [originPowers.AGUA_NO_FEIJAO],
   },
@@ -177,7 +293,17 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Gladiador: {
     name: 'Gladiador',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Diário de Viagens',
+      },
+      {
+        equipment: 'Traje de Viagem Estrangeiro',
+      },
+      {
+        equipment: 'Instrumento Musical Exótico',
+      },
+    ],
     pericias: [Skill.ATUACAO, Skill.LUTA],
     poderes: [
       originPowers.PAO_E_CIRCO,
@@ -187,13 +313,24 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Guarda: {
     name: 'Guarda',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Apito',
+      },
+      {
+        equipment: 'Insígnia da Milícia',
+      },
+    ], // TODO: Uma arma marcial
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
     poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR], // TODO: um poder de combate random
   },
   Herdeiro: {
     name: 'Herdeiro',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Símbolo de Herança',
+      },
+    ],
     pericias: [Skill.MISTICISMO, Skill.NOBREZA, Skill.OFICIO],
     poderes: [
       originPowers.HERANCA,
@@ -203,7 +340,14 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   'Herói Camponês': {
     name: 'Herói Camponês',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de Ofício',
+      },
+      {
+        equipment: 'Traje de Plebeu',
+      },
+    ],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
     poderes: [
       originPowers.AMIGO_DOS_PLEBEUS,
@@ -214,23 +358,38 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Marujo: {
     name: 'Marujo',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Corda',
+      },
+    ],
     pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
     poderes: [originPowers.PASSAGEM_DE_NAVIO, DestinyPowers.ACROBATICO],
   },
   Mateiro: {
     name: 'Mateiro',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Barraca',
+      },
+      {
+        equipment: Armas.ARCOCURTO,
+      },
+    ],
     pericias: [Skill.ATLETISMO, Skill.FURTIVIDADE, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.VENDEDOR_DE_CARCACAS,
       DestinyPowers.LOBO_SOLITARIO,
-      DestinyPowers.SENTIDOS_AGUÇADOS,
+      DestinyPowers.SENTIDOS_AGUCADOS,
     ],
   },
   'Membro de Guilda': {
     name: 'Membro de Guilda',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de Ladrão',
+      },
+    ], // TODO: Kit de ladrão ou kit de ofício.
     pericias: [
       Skill.DIPLOMACIA,
       Skill.ENGANACAO,
@@ -241,33 +400,67 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Mercador: {
     name: 'Mercador',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Carroça',
+      },
+      {
+        equipment: 'Trobo',
+      },
+      {
+        equipment: 'Mercadoria no valor de T$ 100',
+      },
+    ],
     pericias: [Skill.DIPLOMACIA, Skill.INTUICAO, Skill.OFICIO],
     poderes: [
       originPowers.NEGOCIACAO,
-      DestinyPowers.PROFICIENCIA,
+      combatPowers.PROFICIENCIA,
       DestinyPowers.SORTUDO,
     ],
   },
   Minerador: {
     name: 'Minerador',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Gemas preciosas no valor de T$ 100',
+      },
+      {
+        equipment: Armas.PICARETA,
+      },
+    ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO],
     poderes: [
       originPowers.ESCAVADOR,
-      DestinyPowers.ATAQUE_PODEROSO,
-      DestinyPowers.SENTIDOS_AGUÇADOS,
+      combatPowers.ATAQUE_PODEROSO,
+      DestinyPowers.SENTIDOS_AGUCADOS,
     ],
   },
   Nômade: {
     name: 'Nômade',
-    itens: [],
+    itens: [
+      {
+        equipment: Armas.BORDAO,
+      },
+      {
+        equipment: 'Bussola',
+      },
+    ],
     pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.MOCHILEIRO, DestinyPowers.SENTIDOS_AGUÇADOS],
+    poderes: [originPowers.MOCHILEIRO, DestinyPowers.SENTIDOS_AGUCADOS],
   },
   Pivete: {
     name: 'Pivete',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Kit de Ladrão',
+      },
+      {
+        equipment: 'Traje de Plebeu',
+      },
+      {
+        equipment: 'Animal urbano (como um cão, gato, rato ou pombo)',
+      },
+    ],
     pericias: [Skill.FURTIVIDADE, Skill.INICIATIVA, Skill.LADINAGEM],
     poderes: [
       originPowers.QUEBRA_GALHO,
@@ -277,49 +470,90 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Refugiado: {
     name: 'Refugiado',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Um item estrangeiro de até T$ 100.',
+      },
+    ],
     pericias: [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE],
     poderes: [originPowers.ESTOICO, DestinyPowers.VONTADE_DE_FERRO],
   },
   Seguidor: {
     name: 'Seguidor',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Um item recebido de seu mestre de até T$ 100.',
+      },
+    ],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],
     poderes: [
       originPowers.ANTIGO_MESTRE,
-      DestinyPowers.PROFICIENCIA,
+      combatPowers.PROFICIENCIA,
       DestinyPowers.SURTO_HEROICO,
     ],
   },
   Selvagem: {
     name: 'Selvagem',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Pequeno animal de estimação como um pássaro ou esquilo',
+      }, // TODO: Uma arma simples
+    ],
     pericias: [Skill.PERCEPCAO, Skill.REFLEXOS, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.VIDA_RUSTICA,
       DestinyPowers.LOBO_SOLITARIO,
-      DestinyPowers.VITALIDADE,
+      combatPowers.VITALIDADE,
     ],
   },
   Soldado: {
     name: 'Soldado',
-    itens: [],
+    itens: [
+      {
+        equipment: 'Uniforme Militar',
+      },
+      {
+        equipment: 'Insígnia de seu exército',
+      },
+    ],
     pericias: [Skill.FORTITUDE, Skill.GUERRA, Skill.LUTA, Skill.PONTARIA],
     poderes: [originPowers.INFLUENCIA_MILITAR], // TODO: Um poder de combate random
   },
   Taverneiro: {
     name: 'Taverneiro',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Rolo de macarrão ou martelo de carne (mesmas estatísticas de uma clava)',
+      },
+      {
+        equipment: 'Panela',
+      },
+      {
+        equipment: 'Avental',
+      },
+      {
+        equipment: 'Caneca',
+      },
+      {
+        equipment: 'Pano Sujo',
+      },
+    ],
     pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO],
     poderes: [
       originPowers.GOROROBA,
-      DestinyPowers.PROFICIENCIA,
-      DestinyPowers.VITALIDADE,
+      combatPowers.PROFICIENCIA,
+      combatPowers.VITALIDADE,
     ],
   },
   Trabalhador: {
     name: 'Trabalhador',
-    itens: [],
+    itens: [
+      {
+        equipment:
+          'Uma ferramenta pesada (mesmas estatísticas de uma maça ou lança, a sua escolha).',
+      },
+    ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE],
     poderes: [originPowers.ESFORCADO, DestinyPowers.ATLETICO],
   },

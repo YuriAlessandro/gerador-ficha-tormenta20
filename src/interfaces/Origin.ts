@@ -10,9 +10,14 @@ export interface OriginBenefits {
   skills: Skill[];
 }
 
+interface Items {
+  equipment: Equipment | string;
+  qtd?: number;
+}
+
 interface Origin {
   name: string;
-  itens: Equipment[];
+  itens: Items[];
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
 }

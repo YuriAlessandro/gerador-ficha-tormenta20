@@ -34,7 +34,7 @@ import {
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
 import { getOriginBenefits, ORIGINS } from '../data/origins';
-import { Bag, BagEquipments } from '../interfaces/Equipment';
+import Equipment, { Bag, BagEquipments } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
@@ -303,7 +303,7 @@ function getInitialEquipments(
 
 function getInitialBag(classe: ClassDescription): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const bag: Bag = DEFAULT_BAG;
+  const bag: Bag = _.cloneDeep(DEFAULT_BAG);
 
   // TODO: Initial cash
 
@@ -471,6 +471,20 @@ export default function generateRandomSheet(
   const bag = getInitialBag(classe);
   // 6.1: Incrementar defesa com base nos Equipamentos
   const defense = calcDefense(classDetails.defesa, bag);
+
+  // 6.2: Adicionar itens de origem
+  origin.itens.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      const newEquip: Equipment = {
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      };
+      bag.equipments['Item Geral'].push(newEquip);
+    } else {
+      // É uma arma
+      bag.equipments.Arma.push(equip.equipment);
+    }
+  });
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devote = getReligiosidade(classe, race);
