@@ -29,4 +29,11 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxWeight: number;
   generalPowers: GeneralPower[];
+  steps: Step[];
+}
+
+export interface Step {
+  label: string;
+  type?: string;
+  value: { nome?: string; valor: number | string }[];
 }

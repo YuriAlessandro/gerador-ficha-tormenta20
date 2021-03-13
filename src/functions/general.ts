@@ -52,9 +52,103 @@ import {
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
 import { GeneralPower, OriginPower } from '../interfaces/Poderes';
-import CharacterSheet from '../interfaces/CharacterSheet';
+import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
+
+const STEPS: Step[] = [
+  {
+    label: 'Atributos Iniciais',
+    type: 'Atributos',
+    value: [
+      { nome: 'Força', valor: 17 },
+      { nome: 'Destreza', valor: 17 },
+      { nome: 'Constituição', valor: 17 },
+      { nome: 'Inteligência', valor: 17 },
+      { nome: 'Sabedoria', valor: 17 },
+      { nome: 'Carisma', valor: 17 },
+    ],
+  },
+  {
+    label: 'Gênero',
+    value: [{ valor: 'Mulher' }],
+  },
+  {
+    label: 'Raça',
+    value: [{ valor: 'Elfo' }],
+  },
+  {
+    label: 'Nome',
+    value: [{ valor: 'Rapunzel' }],
+  },
+  {
+    label: 'Classe',
+    value: [{ valor: 'Ladino' }],
+  },
+  {
+    label: 'Origem',
+    value: [{ valor: 'Mercador' }],
+  },
+  {
+    label: 'PV Inicial',
+    value: [{ valor: 10 }],
+  },
+  {
+    label: 'PM Inicial',
+    value: [{ valor: 10 }],
+  },
+  {
+    label: 'Atributos modificados',
+    type: 'Atributos',
+    value: [
+      { nome: 'Força', valor: '+2' },
+      { nome: 'Constituição', valor: '+2' },
+      { nome: 'Sabedoria', valor: '+2' },
+    ],
+  },
+  {
+    label: 'Defesa Inicial',
+    value: [{ valor: 10 }],
+  },
+  {
+    label: 'Perícias Treinadas',
+    value: [{ valor: 'Igual a da ficha' }],
+  },
+  {
+    type: 'Equipamentos',
+    label: 'Equipamentos iniciais',
+    value: [{ nome: 'Armadura', valor: '+2 Defesa' }],
+  },
+  {
+    label: 'Poderes de Raça',
+    type: 'Poderes',
+    value: [
+      { nome: 'Poder de Elfo', valor: '+2 em carisma' },
+      { nome: 'Poder de Elfo', valor: '' },
+      { nome: 'Poder de Elfo', valor: '' },
+    ],
+  },
+  {
+    label: 'Poderes de Classe',
+    type: 'Poderes',
+    value: [
+      { nome: 'Poder de Ladino', valor: '' },
+      { nome: 'Poder de Ladino', valor: '+2 em Ladinagem' },
+    ],
+  },
+  {
+    label: 'Poderes de Origem',
+    type: 'Poderes',
+    value: [
+      { nome: 'Poder de Mercador', valor: '' },
+      { nome: 'Poder de Mercador', valor: '' },
+    ],
+  },
+  {
+    label: 'Magias Iniciais',
+    value: [],
+  },
+];
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -427,6 +521,9 @@ export default function generateRandomSheet(
 ): CharacterSheet {
   const level = 1;
 
+  // Lista do passo-a-passo que deve ser populada
+  const steps = STEPS;
+
   // Passo 1: Gerar os atributos base desse personagem
   const atributosRolados = rollAttributeValues();
 
@@ -545,6 +642,7 @@ export default function generateRandomSheet(
       displacement,
       size,
       generalPowers: [...originGeneralPowers],
+      steps,
     },
     stats
   );
