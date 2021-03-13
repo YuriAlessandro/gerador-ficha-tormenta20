@@ -15,7 +15,7 @@ const Changelog: React.FC = () => {
       </p>
 
       <h3>Versão 1.0</h3>
-      <li>
+      <ul>
         <li>Suporte a todas as raças.</li>
         <li>Suporte a todas as classes.</li>
         <li>
@@ -52,7 +52,7 @@ const Changelog: React.FC = () => {
           inicial, e as armas aleatórias com base nas proficiências do
           personagem gerado.
         </li>
-      </li>
+      </ul>
     </div>
   );
 };
