@@ -224,7 +224,7 @@ const Result: React.FC<ResultProps> = (props) => {
           <div className='resdivtRow'>
             <div>
               <strong>Perícias Treinadas:</strong>
-              <div>{periciasDiv}</div>
+              <ul className='periciasDiv'>{periciasDiv}</ul>
             </div>
           </div>
         </div>
