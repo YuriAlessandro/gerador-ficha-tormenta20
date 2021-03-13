@@ -305,7 +305,11 @@ function getInitialBag(classe: ClassDescription): Bag {
   // 6.1 A depender da classe os itens podem variar
   const bag: Bag = _.cloneDeep(DEFAULT_BAG);
 
-  // TODO: Initial cash
+  const initialMoney = rollDice(4, 6, 0);
+  bag.equipments['Item Geral'].push({
+    nome: `T$ ${initialMoney}`,
+    group: 'Item Geral',
+  });
 
   const bagEquipments = getInitialEquipments(bag.equipments, classe);
   const updatedBag = updateEquipments(bag, bagEquipments);

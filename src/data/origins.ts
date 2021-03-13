@@ -283,7 +283,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Animal não combativo (como uma galinha, porco ou ovelha)',
       },
     ],
-    pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR, Skill.OFICIO],
+    pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR, Skill.OFICIO_FAZENDEIRO],
     poderes: [originPowers.AGUA_NO_FEIJAO],
   },
   Forasteiro: {
@@ -429,7 +429,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: Armas.PICARETA,
       },
     ],
-    pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO],
+    pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO_MINERADOR],
     poderes: [
       originPowers.ESCAVADOR,
       combatPowers.ATAQUE_PODEROSO,
@@ -540,7 +540,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Pano Sujo',
       },
     ],
-    pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO],
+    pericias: [Skill.DIPLOMACIA, Skill.JOGATINA, Skill.OFICIO_CULINARIA],
     poderes: [
       originPowers.GOROROBA,
       combatPowers.PROFICIENCIA,
