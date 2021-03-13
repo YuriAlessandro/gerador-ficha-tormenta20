@@ -15,6 +15,7 @@ import generalPowers from './poderes';
 import Skill from '../interfaces/Skills';
 import { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
+import tormentaPowers from './powers/tormentaPowers';
 
 export type origins =
   | 'Acólito'
@@ -136,7 +137,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ALQUIMIA],
-    poderes: [originPowers.ESSE_CHEIRO],
+    poderes: [originPowers.ESSE_CHEIRO, ...Object.values(tormentaPowers)],
   },
   Batedor: {
     name: 'Batedor',
