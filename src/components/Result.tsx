@@ -82,8 +82,9 @@ const STEPS: Steps[] = [
     value: [{ valor: 'Igual a da ficha' }],
   },
   {
+    type: 'Equipamentos',
     label: 'Equipamentos iniciais',
-    value: [],
+    value: [{ nome: 'Armadura', valor: '+2 Defesa' }],
   },
   {
     label: 'Poderes de Raça',
@@ -245,7 +246,11 @@ const Result: React.FC<ResultProps> = (props) => {
     : null;
 
   const changesDiv = STEPS.map((step) => {
-    if (step.type === 'Atributos' || step.type === 'Poderes') {
+    if (
+      step.type === 'Atributos' ||
+      step.type === 'Poderes' ||
+      step.type === 'Equipamentos'
+    ) {
       return (
         <li>
           <strong>{step.label}:</strong>
@@ -502,7 +507,7 @@ const Result: React.FC<ResultProps> = (props) => {
           </div>
         </div>
       </div>
-      <div className='resultRigh'>
+      <div className='resultRight'>
         <h1>O que foi alterado?</h1>
         <ol>{changesDiv}</ol>
       </div>

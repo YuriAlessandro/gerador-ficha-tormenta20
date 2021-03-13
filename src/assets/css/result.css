@@ -46,7 +46,7 @@
   width: 67vw;
 }
 
-.resultRigh {
+.resultRight {
   margin-left: 30px;
   width: 30vw;
 }
@@ -282,12 +282,21 @@ table {
 
   .resultContainer {
     width: 90vw;
+    justify-content: center;
+  }
+
+  .resultLeft {
+    width: 80vw;
+  }
+
+  .resultRight {
+    width: 100vw;
+    margin-left: 10px;
   }
 
   .resultRow {
     flex-wrap: wrap;
   }
-
 
   .attributesRow {
     flex-wrap: wrap;
@@ -347,11 +356,19 @@ table {
     flex-direction: column;
     padding: 0;
   }
+  .periciasDiv {
+    -moz-column-count: 2;
+    -moz-column-gap: 50px;
+    -webkit-column-count: 2;
+    -webkit-column-gap: 50px;
+    column-count: 2;
+    column-gap: 50px;
+    }
 }
 
 @media only screen and (min-device-width: 720px) and (max-device-width: 1024px){
   .resultContainer {
-    width: 90vw;
+    width: 100vw;
   }
 
   .tableDesk {
@@ -360,5 +377,13 @@ table {
 
   .tableMobile {
     display: block;
+  }
+
+  .resultLeft {
+    width: 100vw;
+  }
+
+  .resultRight {
+    width: 100vw;
   }
 }
