@@ -35,6 +35,10 @@ const MainScreen: React.FC = () => {
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
 
   const onClickGenerate = () => {
+    const footer = document.getElementById('bottom');
+    if (footer) {
+      footer.style.position = 'relative';
+    }
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
     setRandomSheet(anotherRandomSheet);
   };
