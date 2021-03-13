@@ -242,6 +242,18 @@ table {
   margin-bottom: 5px;
 }
 
+.periciasDiv {
+  -moz-column-count: 3;
+  -moz-column-gap: 50px;
+  -webkit-column-count: 3;
+  -webkit-column-gap: 50px;
+  column-count: 3;
+  column-gap: 50px;
+  padding: 0;
+  padding-left: 20px;
+  margin: 0;
+}
+
 @media screen and (max-width: 720px) {
   .resultMainDiv {
     width: inherit;
