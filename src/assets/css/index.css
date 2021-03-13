@@ -19,9 +19,9 @@ code {
   flex-direction: column;
 }
 
-.mainArea {
+/* .mainArea {
   width: 95vw;
-}
+} */
 
 #bottom {
   background: rgb(209, 50, 53);

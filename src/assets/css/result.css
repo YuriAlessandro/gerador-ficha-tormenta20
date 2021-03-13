@@ -38,7 +38,17 @@
 }
 
 .resultContainer {
-  width: 70vw;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.resultLeft {
+  width: 67vw;
+}
+
+.resultRigh {
+  margin-left: 30px;
+  width: 30vw;
 }
 
 .resultMainDiv {
@@ -252,6 +262,15 @@ table {
   padding: 0;
   padding-left: 20px;
   margin: 0;
+}
+
+.stepAttrList {
+  -moz-column-count: 2;
+  -moz-column-gap: 40px;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 40px;
+  column-count: 2;
+  column-gap: 40px;
 }
 
 @media screen and (max-width: 720px) {
