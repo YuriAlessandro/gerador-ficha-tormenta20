@@ -17,106 +17,6 @@ interface ResultProps {
   sheet: CharacterSheet;
 }
 
-interface Steps {
-  label: string;
-  type?: string;
-  value: { nome?: string; valor: number | string }[];
-}
-
-const STEPS: Steps[] = [
-  {
-    label: 'Atributos Iniciais',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: 17 },
-      { nome: 'Destreza', valor: 17 },
-      { nome: 'Constituição', valor: 17 },
-      { nome: 'Inteligência', valor: 17 },
-      { nome: 'Sabedoria', valor: 17 },
-      { nome: 'Carisma', valor: 17 },
-    ],
-  },
-  {
-    label: 'Gênero',
-    value: [{ valor: 'Mulher' }],
-  },
-  {
-    label: 'Raça',
-    value: [{ valor: 'Elfo' }],
-  },
-  {
-    label: 'Nome',
-    value: [{ valor: 'Rapunzel' }],
-  },
-  {
-    label: 'Classe',
-    value: [{ valor: 'Ladino' }],
-  },
-  {
-    label: 'Origem',
-    value: [{ valor: 'Mercador' }],
-  },
-  {
-    label: 'PV Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'PM Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Atributos modificados',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: '+2' },
-      { nome: 'Constituição', valor: '+2' },
-      { nome: 'Sabedoria', valor: '+2' },
-    ],
-  },
-  {
-    label: 'Defesa Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Perícias Treinadas',
-    value: [{ valor: 'Igual a da ficha' }],
-  },
-  {
-    type: 'Equipamentos',
-    label: 'Equipamentos iniciais',
-    value: [{ nome: 'Armadura', valor: '+2 Defesa' }],
-  },
-  {
-    label: 'Poderes de Raça',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Elfo', valor: '+2 em carisma' },
-      { nome: 'Poder de Elfo', valor: '' },
-      { nome: 'Poder de Elfo', valor: '' },
-    ],
-  },
-  {
-    label: 'Poderes de Classe',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Ladino', valor: '' },
-      { nome: 'Poder de Ladino', valor: '+2 em Ladinagem' },
-    ],
-  },
-  {
-    label: 'Poderes de Origem',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Mercador', valor: '' },
-      { nome: 'Poder de Mercador', valor: '' },
-    ],
-  },
-  {
-    label: 'Magias Iniciais',
-    value: [],
-  },
-];
-
 const Result: React.FC<ResultProps> = (props) => {
   const { sheet } = props;
 
@@ -138,6 +38,7 @@ const Result: React.FC<ResultProps> = (props) => {
     spells,
     displacement,
     maxWeight,
+    steps,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -245,7 +146,7 @@ const Result: React.FC<ResultProps> = (props) => {
     ? atributos[classe.spellPath.keyAttribute]
     : null;
 
-  const changesDiv = STEPS.map((step) => {
+  const changesDiv = steps.map((step) => {
     if (
       step.type === 'Atributos' ||
       step.type === 'Poderes' ||
