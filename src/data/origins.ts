@@ -135,7 +135,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Kit de Ofício (alquimia)',
       },
     ],
-    pericias: [Skill.OFICIO],
+    pericias: [Skill.OFICIO_ALQUIMIA],
     poderes: [originPowers.ESSE_CHEIRO],
   },
   Batedor: {
