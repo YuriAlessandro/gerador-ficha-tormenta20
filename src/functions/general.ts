@@ -175,20 +175,23 @@ function rollAttributeValues(): number[] {
   return rolledValues;
 }
 
-function getNotRepeatedAttribute(atributosModificados: string[]) {
-  const atributosPermitidos = Object.values(Atributo).filter(
-    (atributo) => !atributosModificados.includes(atributo)
-  );
-
-  return getRandomItemFromArray<Atributo>(atributosPermitidos);
-}
-
 function selectAttributeToChange(
   atributosModificados: string[],
-  atributo: RaceAttributeAbility
+  atributo: RaceAttributeAbility,
+  priorityAttrs: Atributo[]
 ) {
   if (atributo.attr === 'any') {
-    return getNotRepeatedAttribute(atributosModificados);
+    const atributosPermitidos = Object.values(Atributo).filter(
+      (attr) => !atributosModificados.includes(attr)
+    );
+
+    const atributosPreferidos = priorityAttrs.filter((attr) =>
+      atributosPermitidos.includes(attr)
+    );
+
+    return getRandomItemFromArray<Atributo>(
+      atributosPreferidos.length > 0 ? atributosPreferidos : atributosPermitidos
+    );
   }
 
   return atributo.attr;
@@ -216,14 +219,16 @@ interface ReduceAttributesParams {
 
 export function modifyAttributesBasedOnRace(
   raca: Race,
-  atributosRolados: CharacterAttributes
+  atributosRolados: CharacterAttributes,
+  priorityAttrs: Atributo[]
 ): CharacterAttributes {
   const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
       const selectedAttrName = selectAttributeToChange(
         nomesDosAtributosModificados,
-        attrDaRaca
+        attrDaRaca,
+        priorityAttrs
       );
 
       const atributoModificado = getModifiedAttribute(
@@ -280,7 +285,11 @@ function generateFinalAttributes(classe: ClassDescription, race: Race) {
     };
   }, priorityGeneratedAttrs) as CharacterAttributes;
 
-  const finalAttrs = modifyAttributesBasedOnRace(race, charAttributes);
+  const finalAttrs = modifyAttributesBasedOnRace(
+    race,
+    charAttributes,
+    classe.attrPriority
+  );
 
   // sort and return
   return Object.values(Atributo).reduce(
