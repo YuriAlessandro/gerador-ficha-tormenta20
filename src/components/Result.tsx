@@ -118,8 +118,8 @@ const Result: React.FC<ResultProps> = (props) => {
     </li>
   ));
 
-  const originPowers = origin.powers
-    ? origin.powers.map((power) => (
+  const originPowers = origin?.powers
+    ? origin?.powers.map((power) => (
         <li key={getKey(power.name)}>
           <strong>{power.name}:</strong> {power.description}
         </li>
@@ -213,7 +213,9 @@ const Result: React.FC<ResultProps> = (props) => {
                 <span className='resultItem'>nível {nivel}</span>
               </div>
               <div className='resultRow'>
-                <span className='resultItem originName'>{origin.name}</span>
+                {origin && (
+                  <span className='resultItem originName'>{origin.name}</span>
+                )}
                 {devoto && (
                   <span className='resultItem'>
                     {`devoto de ${devoto.divindade.name}`}
@@ -333,7 +335,7 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
           </div>
 
-          {origin.powers.length > 0 && (
+          {origin && origin.powers.length > 0 && (
             <div className='resultRow powers'>
               <div
                 className='powersNameRow'
@@ -347,7 +349,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     isOriginPowersVisible ? 'down' : 'normal'
                   }`}
                 />
-                <strong>Habilidades de {origin.name}</strong>
+                <strong>Habilidades de {origin?.name}</strong>
               </div>
               <div
                 style={{

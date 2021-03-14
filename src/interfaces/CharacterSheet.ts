@@ -20,10 +20,12 @@ export default interface CharacterSheet {
   defesa: number;
   bag: Bag;
   devoto?: CharacterReligion;
-  origin: {
-    name: string;
-    powers: OriginPower[];
-  };
+  origin:
+    | {
+        name: string;
+        powers: OriginPower[];
+      }
+    | undefined;
   spells: Spell[];
   displacement: number;
   size: RaceSize;

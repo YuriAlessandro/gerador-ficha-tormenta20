@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment, {
   Bag,
   DefenseEquipment,
@@ -401,14 +402,28 @@ function isDefenseEquip(
   return (equip as DefenseEquipment).defenseBonus !== undefined;
 }
 
-export function calcDefense(defense: number, equips: Bag): number {
-  return Object.values(equips.equipments)
+export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
+  // TODO: Use CHA instead of DES to Nobre
+  const equipped: Equipment[] = [];
+
+  let updatedDefense = Object.values(charSheet.bag.equipments)
     .flat()
     .reduce((acc, equip) => {
       if (isDefenseEquip(equip)) {
+        equipped.push(equip);
         return acc + equip.defenseBonus;
       }
 
       return acc;
-    }, defense);
+    }, charSheet.defesa);
+
+  const heavyArmor = equipped.some((equip) =>
+    EQUIPAMENTOS.armaduraPesada.find((armadura) => armadura.nome === equip.nome)
+  );
+
+  if (!heavyArmor) {
+    updatedDefense += charSheet.atributos.Destreza.mod;
+  }
+
+  return { ...charSheet, defesa: updatedDefense };
 }
