@@ -137,7 +137,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ALQUIMIA],
-    poderes: [originPowers.ESSE_CHEIRO, ...Object.values(tormentaPowers)],
+    poderes: [originPowers.ESSE_CHEIRO],
   },
   Batedor: {
     name: 'Batedor',

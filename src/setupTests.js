@@ -4,21 +4,21 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-function toBeDistinct(expected) {
+function toHaveUniqueElements(expected) {
   const pass =
     Array.isArray(expected) && new Set(expected).size === expected.length;
   if (pass) {
     return {
-      message: () => `expected [${expected}] array is unique`,
+      message: () => `expected [${expected}] elements are unique`,
       pass: true,
     };
   }
   return {
-    message: () => `expected [${expected}] array is not to unique`,
+    message: () => `expected [${expected}] array elements are not to unique`,
     pass: false,
   };
 }
 
 expect.extend({
-  toBeDistinct,
+  toHaveUniqueElements,
 });

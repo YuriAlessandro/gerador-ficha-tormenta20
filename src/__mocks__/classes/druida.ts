@@ -1,9 +1,9 @@
-import { GeneralPowerType } from '../../../interfaces/Poderes';
-import { CharacterStats } from '../../../interfaces/Race';
-import Skill from '../../../interfaces/Skills';
-import { spellsCircles } from '../../../interfaces/Spells';
-import { Atributo } from '../../atributos';
-import { spellsCircle1 } from '../../magias/generalSpells';
+import { GeneralPowerType } from '../../interfaces/Poderes';
+import { CharacterStats } from '../../interfaces/Race';
+import Skill from '../../interfaces/Skills';
+import { spellsCircles } from '../../interfaces/Spells';
+import { Atributo } from '../../data/atributos';
+import { spellsCircle1 } from '../../data/magias/generalSpells';
 
 export const druida: CharacterStats = {
   attributes: {

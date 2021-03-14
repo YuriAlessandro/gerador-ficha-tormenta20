@@ -1,6 +1,6 @@
-import { CharacterStats } from '../../../interfaces/Race';
-import Skill from '../../../interfaces/Skills';
-import { Atributo } from '../../atributos';
+import { CharacterStats } from '../../interfaces/Race';
+import Skill from '../../interfaces/Skills';
+import { Atributo } from '../../data/atributos';
 
 export const inventor: CharacterStats = {
   attributes: {

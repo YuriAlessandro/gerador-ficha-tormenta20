@@ -4,8 +4,8 @@ import { CharacterStats } from '../../../interfaces/Race';
 import { Spell } from '../../../interfaces/Spells';
 import { spellsCircle1, spellsCircle1Names } from '../../magias/generalSpells';
 import DAHLLAN, { PLANTS_FRIEND_MANA_REDUCTION } from '../dahllan';
-import { druida } from '../__mocks__/druida';
-import { inventor } from '../__mocks__/inventor';
+import { druida } from '../../../__mocks__/classes/druida';
+import { inventor } from '../../../__mocks__/classes/inventor';
 
 function getManaReduction({ manaReduction = 0 }: Spell) {
   return manaReduction;

@@ -298,7 +298,9 @@ function getRaceAndRaceStats(
   return { atributos, nome, race };
 }
 
-function selectClass(selectedOptions: SelectedOptions): ClassDescription {
+export function selectClass(
+  selectedOptions: SelectedOptions
+): ClassDescription {
   let selectedClass;
   if (selectedOptions.classe) {
     selectedClass = CLASSES.find(
@@ -322,7 +324,7 @@ function getAttributesSkills(
   return [];
 }
 
-function getSkillsAndPowers(
+export function getSkillsAndPowers(
   classe: ClassDescription,
   origin: Origin,
   attributes: CharacterAttributes
