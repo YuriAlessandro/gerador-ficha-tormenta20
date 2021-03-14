@@ -35,4 +35,5 @@ npm start
 - [Yuri Alessandro Martins](https://github.com/YuriAlessandro)
 - [Isaac Batista](https://github.com/isaacbatst)
 - [Gustavo Caravalho](https://github.com/GustavoAC)
+- [Ramon Alves](https://github.com/alvesramonz)
 - [Mateus Medeiros](https://github.com/mateusmcordeiro)
