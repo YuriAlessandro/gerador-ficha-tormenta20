@@ -409,7 +409,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </div>
       </div>
       <div className='resultRight'>
-        <h1>O que foi alterado?</h1>
+        <h1>Passo-a-Passo:</h1>
         <ol>{changesDiv}</ol>
       </div>
     </div>
