@@ -322,8 +322,9 @@ export function getSkillsAndPowersByClassAndOrigin(
   }
 
   const remainingSkills = getRemainingSkills(usedSkills, classe);
-  const classSkills = [...classBaseSkills, ...remainingSkills];
+  usedSkills.push(...remainingSkills);
 
+  const classSkills = [...classBaseSkills, ...remainingSkills];
   steps.push({
     label: 'Perícias da classe',
     type: 'Perícias',
@@ -340,7 +341,6 @@ export function getSkillsAndPowersByClassAndOrigin(
     });
   }
 
-  usedSkills.push(...remainingSkills);
   usedSkills.push(...attributesSkills);
 
   return {

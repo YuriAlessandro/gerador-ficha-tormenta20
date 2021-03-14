@@ -12,8 +12,6 @@ import Skill from '../../interfaces/Skills';
 import { getRemainingSkills } from '../../data/pericias';
 import { OriginPower } from '../../interfaces/Poderes';
 
-const steps = [];
-
 describe('Teste geração de perícias e poderes para Goblin Inventor Assistente de Laboratório', () => {
   const classe = selectClass({
     classe: INVENTOR.name,
@@ -30,12 +28,7 @@ describe('Teste geração de perícias e poderes para Goblin Inventor Assistente
         const {
           powers: { origin: originPowers, general: originGeneralPowers },
           skills,
-        } = getSkillsAndPowersByClassAndOrigin(
-          classe,
-          origin,
-          attributes,
-          steps
-        );
+        } = getSkillsAndPowersByClassAndOrigin(classe, origin, attributes, []);
         expect(skills).toHaveUniqueElements();
         expect(originPowers).toHaveUniqueElements();
         expect(originGeneralPowers).toHaveUniqueElements();
@@ -85,7 +78,7 @@ describe('Teste geração de perícias e poderes para personagem aleatório', ()
       const {
         powers: { origin: originPowers, general: originGeneralPowers },
         skills,
-      } = getSkillsAndPowersByClassAndOrigin(classe, origin, attributes, steps);
+      } = getSkillsAndPowersByClassAndOrigin(classe, origin, attributes, []);
 
       test('Função deve retornar perícias não repitidas', () => {
         expect(skills).toHaveUniqueElements();
