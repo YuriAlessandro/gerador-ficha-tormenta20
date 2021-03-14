@@ -1,11 +1,9 @@
-import _ from 'lodash';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { GeneralPower } from '../../interfaces/Poderes';
 import Race from '../../interfaces/Race';
 import Skill from '../../interfaces/Skills';
 import { getNotRepeatedRandomSkill } from '../pericias';
-import generalPowers from '../poderes';
 
 const HUMANO: Race = {
   name: 'Humano',

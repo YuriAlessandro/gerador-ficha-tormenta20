@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const CACADOR: ClassDescription = {
@@ -64,6 +65,7 @@ const CACADOR: ClassDescription = {
     OCEANO: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.DESTREZA, Atributo.SABEDORIA],
 };
 
 export default CACADOR;

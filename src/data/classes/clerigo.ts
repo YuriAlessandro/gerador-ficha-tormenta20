@@ -51,6 +51,7 @@ const CLERIGO: ClassDescription = {
   probDevoto: 0.95,
   qtdPoderesConcedidos: 'all',
   faithProbability: standardFaithProbability,
+  attrPriority: [Atributo.SABEDORIA],
   setup: (classe) => {
     const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {

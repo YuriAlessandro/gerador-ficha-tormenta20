@@ -43,6 +43,7 @@ export interface ClassDescription {
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;
+  attrPriority: Atributo[];
   spellPath?: SpellPath;
   setup?: (classe: ClassDescription) => ClassDescription;
 }

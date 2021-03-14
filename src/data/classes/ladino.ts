@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const LADINO: ClassDescription = {
@@ -60,6 +61,7 @@ const LADINO: ClassDescription = {
     TENEBRA: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.DESTREZA],
 };
 
 export default LADINO;

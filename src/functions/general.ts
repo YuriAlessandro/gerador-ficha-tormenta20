@@ -252,22 +252,44 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributos;
 }
 
-function generateFinalAttributes(
-  atributosNumericos: number[],
-  classe: ClassDescription,
-  race: Race
-) {
-  // TODO: Invés de mapear cada valor para cada atributo na ordem, utilizar ordem de preferência da classe
+function generateFinalAttributes(classe: ClassDescription, race: Race) {
+  const atributosNumericos = rollAttributeValues();
+  let freeAttrs = Object.values(Atributo);
 
-  const charAttributes = Object.values(Atributo).reduce((acc, attr, index) => {
+  const priorityAttrs = _.shuffle(classe.attrPriority);
+  const priorityGeneratedAttrs = {} as CharacterAttributes;
+
+  priorityAttrs.forEach((attr) => {
+    const maxAttr = Math.max(...atributosNumericos);
+    priorityGeneratedAttrs[attr] = {
+      name: attr,
+      value: maxAttr,
+      mod: getModValue(maxAttr),
+    };
+
+    atributosNumericos.splice(atributosNumericos.indexOf(maxAttr), 1);
+
+    freeAttrs = freeAttrs.filter((freeAttr) => freeAttr !== attr);
+  });
+
+  const charAttributes = freeAttrs.reduce((acc, attr, index) => {
     const mod = getModValue(atributosNumericos[index]);
     return {
       ...acc,
       [attr]: { name: attr, value: atributosNumericos[index], mod },
     };
-  }, {}) as CharacterAttributes;
+  }, priorityGeneratedAttrs) as CharacterAttributes;
 
-  return modifyAttributesBasedOnRace(race, charAttributes);
+  const finalAttrs = modifyAttributesBasedOnRace(race, charAttributes);
+
+  // sort and return
+  return Object.values(Atributo).reduce(
+    (acc, attr) => ({
+      ...acc,
+      [attr]: finalAttrs[attr],
+    }),
+    {} as CharacterAttributes
+  );
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
@@ -582,9 +604,6 @@ export default function generateRandomSheet(
   // Lista do passo-a-passo que deve ser populada
   const steps = STEPS;
 
-  // Passo 1: Gerar os atributos base desse personagem
-  const atributosNumericos = rollAttributeValues();
-
   // Passo 1.1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
@@ -609,7 +628,7 @@ export default function generateRandomSheet(
   const initialDefense = 10;
 
   // Passo 6: Gerar atributos finais
-  const atributos = generateFinalAttributes(atributosNumericos, classe, race);
+  const atributos = generateFinalAttributes(classe, race);
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxWeight = atributos.Força.value * 3;

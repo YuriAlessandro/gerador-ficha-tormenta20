@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const BUCANEIRO: ClassDescription = {
@@ -64,6 +65,7 @@ const BUCANEIRO: ClassDescription = {
     SSZZAAS: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.FORCA, Atributo.DESTREZA, Atributo.INTELIGENCIA],
 };
 
 export default BUCANEIRO;

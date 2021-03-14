@@ -71,6 +71,7 @@ const BARDO: ClassDescription = {
     VALKARIA: 1,
     WYNNA: 1,
   },
+  attrPriority: [Atributo.CARISMA],
   setup: (classe) => {
     const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {

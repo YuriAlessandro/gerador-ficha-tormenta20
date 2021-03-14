@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const CAVALEIRO: ClassDescription = {
@@ -60,6 +61,7 @@ const CAVALEIRO: ClassDescription = {
     THYATIS: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.FORCA, Atributo.CONSTITUICAO],
 };
 
 export default CAVALEIRO;

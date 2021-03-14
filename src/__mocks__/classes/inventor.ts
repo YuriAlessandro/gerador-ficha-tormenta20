@@ -58,6 +58,7 @@ export const inventor: CharacterSheet = {
     armorPenalty: 1,
   },
   classe: {
+    attrPriority: [Atributo.INTELIGENCIA],
     name: 'Inventor',
     pv: 12,
     addpv: 3,

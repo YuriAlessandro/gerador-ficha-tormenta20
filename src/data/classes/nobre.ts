@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const NOBRE: ClassDescription = {
@@ -80,6 +81,7 @@ const NOBRE: ClassDescription = {
     TANNATOH: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.CARISMA],
 };
 
 export default NOBRE;

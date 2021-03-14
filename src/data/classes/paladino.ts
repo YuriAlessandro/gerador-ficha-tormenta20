@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const PALADINO: ClassDescription = {
@@ -70,6 +71,7 @@ const PALADINO: ClassDescription = {
     THYATIS: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.FORCA, Atributo.CONSTITUICAO, Atributo.CARISMA],
 };
 
 export default PALADINO;

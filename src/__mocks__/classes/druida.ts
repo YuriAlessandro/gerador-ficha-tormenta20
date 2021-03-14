@@ -69,6 +69,7 @@ export const druida: CharacterSheet = {
     periciasbasicas: [
       { type: 'and', list: [Skill.SOBREVIVENCIA, Skill.VONTADE] },
     ],
+    attrPriority: [Atributo.SABEDORIA],
     periciasrestantes: {
       qtd: 4,
       list: [

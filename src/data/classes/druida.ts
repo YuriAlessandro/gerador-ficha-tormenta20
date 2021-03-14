@@ -85,6 +85,7 @@ const DRUIDA: ClassDescription = {
     MEGALOKK: 0,
     NIMB: 0,
   },
+  attrPriority: [Atributo.SABEDORIA],
   setup: (classe) => {
     const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {
