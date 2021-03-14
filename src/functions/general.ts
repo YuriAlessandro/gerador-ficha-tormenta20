@@ -275,7 +275,7 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions): Race {
+export function selectRace(selectedOptions: SelectedOptions): Race {
   if (selectedOptions.raca) {
     return getRaceByName(selectedOptions.raca);
   }
@@ -518,6 +518,21 @@ export function applyRaceHabilities(
   );
 }
 
+function getOriginItems(origin: Origin, bag: Bag) {
+  origin.itens.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      const newEquip: Equipment = {
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      };
+      bag.equipments['Item Geral'].push(newEquip);
+    } else {
+      // É uma arma
+      bag.equipments.Arma.push(equip.equipment);
+    }
+  });
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -540,6 +555,7 @@ export default function generateRandomSheet(
     sexo
   );
 
+  console.log(selectedOptions);
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
   // Passo 3.1: Determinando o PV baseado na classe
@@ -576,18 +592,7 @@ export default function generateRandomSheet(
   const defense = calcDefense(classDetails.defesa, bag);
 
   // 6.2: Adicionar itens de origem
-  origin.itens.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      const newEquip: Equipment = {
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      };
-      bag.equipments['Item Geral'].push(newEquip);
-    } else {
-      // É uma arma
-      bag.equipments.Arma.push(equip.equipment);
-    }
-  });
+  getOriginItems(origin, bag);
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devote = getReligiosidade(classe, race);
