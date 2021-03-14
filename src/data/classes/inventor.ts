@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const INVENTOR: ClassDescription = {
@@ -37,14 +38,12 @@ const INVENTOR: ClassDescription = {
       name: 'Engenhosidade',
       text:
         'Quando faz um teste de perícia, você pode gastar 2 PM para receber um bônus igual ao seu modificador de Inteligência no teste. Você não pode usar esta habilidade em testes de ataque.',
-      effect: null,
       nivel: 1,
     },
     {
       name: 'Protótipo',
       text:
         'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
-      effect: null,
       nivel: 1,
     },
   ],
@@ -57,6 +56,7 @@ const INVENTOR: ClassDescription = {
     THYATIS: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.INTELIGENCIA],
 };
 
 export default INVENTOR;

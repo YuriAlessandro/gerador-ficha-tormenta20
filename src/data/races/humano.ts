@@ -1,7 +1,7 @@
-import _ from 'lodash';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import { GeneralPower } from '../../interfaces/Poderes';
-import Race, { CharacterStats } from '../../interfaces/Race';
+import Race from '../../interfaces/Race';
 import Skill from '../../interfaces/Skills';
 import { getNotRepeatedRandomSkill } from '../pericias';
 
@@ -28,30 +28,29 @@ const HUMANO: Race = {
       name: 'Versátil',
       description:
         'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha.',
-      action(stats: CharacterStats): CharacterStats {
+      action(sheet: CharacterSheet): CharacterSheet {
         const newSkills: Skill[] = [];
-        const generalPowers: GeneralPower[] = [];
+        const newGeneralPowers: GeneralPower[] = [];
 
-        newSkills.push(getNotRepeatedRandomSkill(stats.skills));
+        newSkills.push(getNotRepeatedRandomSkill(sheet.skills));
 
         if (Math.random() > 0.5) {
           newSkills.push(
-            getNotRepeatedRandomSkill([...newSkills, ...stats.skills])
+            getNotRepeatedRandomSkill([...newSkills, ...sheet.skills])
           );
         } else {
           const power = getNotRepeatedRandom(
-            stats.powers.general,
+            sheet.generalPowers,
             'power'
           ) as GeneralPower;
-          generalPowers.push(power);
+          newGeneralPowers.push(power);
         }
 
-        return _.merge(stats, {
-          skills: [...stats.skills, ...newSkills],
-          powers: {
-            general: generalPowers,
-          },
-        });
+        return {
+          ...sheet,
+          skills: [...sheet.skills, ...newSkills],
+          generalPowers: [...sheet.generalPowers, ...newGeneralPowers],
+        };
       },
     },
   ],

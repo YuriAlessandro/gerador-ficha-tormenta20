@@ -1,5 +1,6 @@
 import { cloneDeep, merge } from 'lodash';
-import Race, { CharacterStats } from '../../interfaces/Race';
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import Race from '../../interfaces/Race';
 import { Spell } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
@@ -20,10 +21,10 @@ function cheapenControlPlants(spells: Spell[], index: number) {
   });
 }
 function addOrCheapenControlPlants(
-  stats: CharacterStats,
+  sheet: CharacterSheet,
   spells: Spell[]
 ): Spell[] {
-  const index = stats.spells.findIndex(
+  const index = sheet.spells.findIndex(
     (spell) => spellsCircle1.controlarPlantas.nome === spell.nome
   );
 
@@ -63,11 +64,11 @@ const DAHLLAN: Race = {
       name: 'Amiga das Plantas',
       description:
         'Você pode lançar a magia Controlar Plantas (atributo-chave Sabedoria). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
-      action(stats: CharacterStats): CharacterStats {
-        const statsClone = cloneDeep(stats);
-        const spells = addOrCheapenControlPlants(stats, statsClone.spells);
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        const spells = addOrCheapenControlPlants(sheet, sheetClone.spells);
 
-        return merge<CharacterStats, Partial<CharacterStats>>(statsClone, {
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
           spells,
         });
       },

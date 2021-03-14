@@ -22,7 +22,7 @@ import {
   CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/Character';
-import Race, { CharacterStats, RaceAttributeAbility } from '../interfaces/Race';
+import Race, { RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -252,22 +252,44 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributos;
 }
 
-function generateFinalAttributes(
-  atributosNumericos: number[],
-  classe: ClassDescription,
-  race: Race
-) {
-  // TODO: Invés de mapear cada valor para cada atributo na ordem, utilizar ordem de preferência da classe
+function generateFinalAttributes(classe: ClassDescription, race: Race) {
+  const atributosNumericos = rollAttributeValues();
+  let freeAttrs = Object.values(Atributo);
 
-  const charAttributes = Object.values(Atributo).reduce((acc, attr, index) => {
+  const priorityAttrs = _.shuffle(classe.attrPriority);
+  const priorityGeneratedAttrs = {} as CharacterAttributes;
+
+  priorityAttrs.forEach((attr) => {
+    const maxAttr = Math.max(...atributosNumericos);
+    priorityGeneratedAttrs[attr] = {
+      name: attr,
+      value: maxAttr,
+      mod: getModValue(maxAttr),
+    };
+
+    atributosNumericos.splice(atributosNumericos.indexOf(maxAttr), 1);
+
+    freeAttrs = freeAttrs.filter((freeAttr) => freeAttr !== attr);
+  });
+
+  const charAttributes = freeAttrs.reduce((acc, attr, index) => {
     const mod = getModValue(atributosNumericos[index]);
     return {
       ...acc,
       [attr]: { name: attr, value: atributosNumericos[index], mod },
     };
-  }, {}) as CharacterAttributes;
+  }, priorityGeneratedAttrs) as CharacterAttributes;
 
-  return modifyAttributesBasedOnRace(race, charAttributes);
+  const finalAttrs = modifyAttributesBasedOnRace(race, charAttributes);
+
+  // sort and return
+  return Object.values(Atributo).reduce(
+    (acc, attr) => ({
+      ...acc,
+      [attr]: finalAttrs[attr],
+    }),
+    {} as CharacterAttributes
+  );
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
@@ -522,21 +544,56 @@ function calcDisplacement(
   return raceDisplacement;
 }
 
-export function applyRaceHabilities(
-  race: Race,
-  stats: CharacterStats
-): CharacterStats {
-  const statsClone = _.cloneDeep(stats);
+export function applyRaceHabilities(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
 
-  return (race.abilities || []).reduce(
+  return (sheetClone.raca.abilities || []).reduce(
     (acc, ability) => (ability.action ? ability.action(acc) : acc),
-    statsClone
+    sheetClone
   );
 }
 
-// TODO: Implement this
+function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.devoto?.poderes || []).reduce(
+    (acc, power) => (power.action ? power.action(acc) : acc),
+    sheetClone
+  );
+}
+
+function applyClassHabilities(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.classe.abilities || []).reduce(
+    (acc, ability) => (ability.action ? ability.action(acc) : acc),
+    sheetClone
+  );
+}
+
+function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.generalPowers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc) : acc),
+    sheetClone
+  );
+}
+
 function getAndApplyPowers(sheet: CharacterSheet): CharacterSheet {
-  return sheet;
+  // Aplicar poderes de divindade
+  let updatedSheet = applyDivinePowers(sheet);
+
+  // Aplicar habilidades da raça
+  updatedSheet = applyRaceHabilities(sheet);
+
+  // Aplicar habilidades da classe
+  updatedSheet = applyClassHabilities(sheet);
+
+  // Aplicar poderes gerais da origem
+  updatedSheet = applyGeneralPowers(sheet);
+
+  return updatedSheet;
 }
 
 export default function generateRandomSheet(
@@ -546,9 +603,6 @@ export default function generateRandomSheet(
 
   // Lista do passo-a-passo que deve ser populada
   const steps = STEPS;
-
-  // Passo 1: Gerar os atributos base desse personagem
-  const atributosNumericos = rollAttributeValues();
 
   // Passo 1.1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
@@ -574,7 +628,7 @@ export default function generateRandomSheet(
   const initialDefense = 10;
 
   // Passo 6: Gerar atributos finais
-  const atributos = generateFinalAttributes(atributosNumericos, classe, race);
+  const atributos = generateFinalAttributes(classe, race);
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxWeight = atributos.Força.value * 3;
@@ -645,6 +699,15 @@ export default function generateRandomSheet(
     charSheet.atributos
   );
   charSheet.displacement = displacement;
+
+  // (enquanto nível atual < nivel desejado) {
+  //   Aumentar PV e PM
+  //   Seguir spell path
+  //   Pra cada poder em poderes:
+  //       sheet, poder -> sheet // atualiza a ficha pra o nível atual pelos poderes que modificam ao upar
+  //   nivel, classe, poderesgerais -> escolher poder novo aleatorio
+  //   sheet, poder novo -> sheet
+  // }
 
   return charSheet;
 }
