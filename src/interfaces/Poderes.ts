@@ -18,12 +18,14 @@ export enum RequirementType {
   PODER_TORMENTA = 'PODER_TORMENTA',
   PROFICIENCIA = 'PROFICIENCIA',
   NIVEL = 'NIVEL',
+  CLASSE = 'CLASSE',
 }
 
 interface Requirement {
   type: RequirementType;
   name?: string | Atributo;
   value?: number;
+  not?: boolean;
 }
 
 export interface GeneralPower {
