@@ -1,4 +1,4 @@
-import _, { find } from 'lodash';
+import _ from 'lodash';
 import { applyRaceHabilities } from '../../../functions/general';
 import { CharacterStats } from '../../../interfaces/Race';
 import { Spell } from '../../../interfaces/Spells';
