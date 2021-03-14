@@ -50,7 +50,7 @@ describe('Teste geração de perícias e poderes para Goblin Inventor Assistente
       });
       test('Origem deve retornar 2 entre o grupo permitido, sem repetições', () => {
         const used: (OriginPower | Skill)[] = [Skill.OFICIO_ALQUIMIA];
-        const received = getOriginBenefits(origin, [Skill.OFICIO_ALQUIMIA]);
+        const received = getOriginBenefits([Skill.OFICIO_ALQUIMIA], origin);
         const benefits = [
           ...received.powers.general,
           ...received.powers.origin,
