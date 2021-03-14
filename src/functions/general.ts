@@ -332,17 +332,20 @@ export function getSkillsAndPowersByClassAndOrigin(
   skills: Skill[];
   powers: { origin: OriginPower[]; general: GeneralPower[] };
 } {
-  const skills: Skill[] = [];
+  const usedSkills: Skill[] = [];
 
-  skills.push(...getClassBaseSkills(classe));
-  const { skills: originSkills, powers } = getOriginBenefits(origin, skills);
+  usedSkills.push(...getClassBaseSkills(classe));
+  const { skills: originSkills, powers } = getOriginBenefits(
+    usedSkills,
+    origin
+  );
 
-  skills.push(...originSkills);
-  skills.push(...getRemainingSkills(skills, classe));
-  skills.push(...getAttributesSkills(attributes, skills));
+  usedSkills.push(...originSkills);
+  usedSkills.push(...getRemainingSkills(usedSkills, classe));
+  usedSkills.push(...getAttributesSkills(attributes, usedSkills));
 
   return {
-    skills,
+    skills: usedSkills,
     powers,
   };
 }
@@ -565,7 +568,8 @@ export default function generateRandomSheet(
   const initialDefense = getInitialDef(destAttr);
 
   // Passo 4: Definição de origem
-  const origin = getRandomItemFromArray(Object.values(ORIGINS));
+  // const origin = getRandomItemFromArray(Object.values(ORIGINS));
+  const origin = ORIGINS.Capanga;
 
   // Passo 5: Marcar as perícias treinadas
   // 5.1: Definir perícias da classe

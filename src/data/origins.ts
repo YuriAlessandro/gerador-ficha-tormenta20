@@ -16,6 +16,136 @@ import Skill from '../interfaces/Skills';
 import { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
 
+const benefitsStrategies = {
+  string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
+    _.merge(benefits, {
+      skills: [...benefits.skills, benefit],
+    }),
+  OriginPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        origin: [...benefits.powers.origin, benefit],
+      },
+    }),
+  GeneralPower: (
+    benefit: OriginPower,
+    benefits: OriginBenefits
+  ): OriginBenefits =>
+    _.merge(benefits, {
+      powers: {
+        general: [...benefits.powers.general, benefit],
+      },
+    }),
+};
+
+function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
+  return benefits.reduce<OriginBenefits>(
+    (acc, benefit) => {
+      if (typeof benefit === 'string') {
+        return benefitsStrategies.string(benefit, acc);
+      }
+
+      if (benefit.type === ORIGIN_POWER_TYPE) {
+        return benefitsStrategies.OriginPower(benefit, acc);
+      }
+
+      return benefitsStrategies.GeneralPower(benefit, acc);
+    },
+    {
+      skills: [],
+      powers: {
+        origin: [],
+        general: [],
+      },
+    }
+  );
+}
+
+function sortDefaultBenefits(usedSkills: Skill[], origin: Origin) {
+  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+    usedSkills,
+    origin.pericias
+  );
+
+  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
+    [...notRepeatedSkills, ...origin.poderes],
+    2
+  );
+
+  return getBenefits(sortedBenefits);
+}
+
+export function getOriginBenefits(
+  usedSkills: Skill[],
+  origin: Origin
+): OriginBenefits {
+  if (origin.getPowersAndSkills) {
+    return origin.getPowersAndSkills(usedSkills, origin);
+  }
+
+  return sortDefaultBenefits(usedSkills, origin);
+}
+
+// Amnésico recebe uma skill random e um poder geral random
+function sortAmnesicBenefits(usedSkills: Skill[]): OriginBenefits {
+  const newSkill = getNotRepeatedRandomSkill(usedSkills);
+
+  return {
+    skills: [newSkill],
+    powers: {
+      general: [getRandomItemFromArray(Object.values(generalPowers).flat())],
+      origin: [originPowers.LEMBRANCAS_GRADUAIS],
+    },
+  };
+}
+
+// Assitente de Laboratório recebe um poder da Tormenta
+function sortLabAssistentBenefits(
+  skills: Skill[],
+  origin?: Origin
+): OriginBenefits {
+  const allowedTormentaPowers = getUnrestricedTormentaPowers();
+  const choosenTormentaPower = getRandomItemFromArray(allowedTormentaPowers);
+
+  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+    skills,
+    origin ? origin.pericias : []
+  );
+
+  const actualOriginPowers = origin ? origin.poderes : [];
+
+  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
+    [...notRepeatedSkills, ...actualOriginPowers, choosenTormentaPower],
+    2
+  );
+
+  return getBenefits(sortedBenefits);
+}
+
+// Para origens que recebem um poder de combate aleatório
+function getBenefitsWithRandomCombatPower(
+  skills: Skill[],
+  origin?: Origin
+): OriginBenefits {
+  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+    skills,
+    origin ? origin.pericias : []
+  );
+
+  const actualOriginPowers = origin ? origin.poderes : [];
+  const choosenCombatPower = getRandomItemFromArray(generalPowers.COMBATE);
+
+  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
+    [...notRepeatedSkills, ...actualOriginPowers, choosenCombatPower],
+    2
+  );
+
+  return getBenefits(sortedBenefits);
+}
+
 export type origins =
   | 'Acólito'
   | 'Amigo dos Animais'
@@ -90,8 +220,9 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [],
-    poderes: [originPowers.LEMBRANCAS_GRADUAIS],
-  }, // TODO: Em vez de dois benefícios de uma lista, Amnésico recebe uma perícia e um poder escolhidos pelo mestre e o poder Lembranças Graduais
+    poderes: [],
+    getPowersAndSkills: sortAmnesicBenefits,
+  },
   Aristocrata: {
     name: 'Aristocrata',
     itens: [
@@ -141,7 +272,8 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ALQUIMIA, Skill.MISTICISMO],
-    poderes: [originPowers.ESSE_CHEIRO, DestinyPowers.VENEFICIO], // TODO: Um poder da tormenta a sua escolha
+    poderes: [originPowers.ESSE_CHEIRO, DestinyPowers.VENEFICIO],
+    getPowersAndSkills: sortLabAssistentBenefits,
   },
   Batedor: {
     name: 'Batedor',
@@ -166,7 +298,8 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ], // TODO: uma arma simples corpo a corpo.
     pericias: [Skill.LUTA, Skill.INTIMIDACAO],
-    poderes: [originPowers.CONFISSAO], // TODO: Um poder de combate random
+    poderes: [originPowers.CONFISSAO],
+    getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Charlatão: {
     name: 'Charlatão',
@@ -319,7 +452,8 @@ export const ORIGINS: Record<origins, Origin> = {
       originPowers.PAO_E_CIRCO,
       DestinyPowers.ATRAENTE,
       DestinyPowers.TORCIDA,
-    ], // TODO: um poder de combate Random
+    ],
+    getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Guarda: {
     name: 'Guarda',
@@ -332,7 +466,8 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ], // TODO: Uma arma marcial
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
-    poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR], // TODO: um poder de combate random
+    poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR],
+    getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Herdeiro: {
     name: 'Herdeiro',
@@ -527,7 +662,8 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.FORTITUDE, Skill.GUERRA, Skill.LUTA, Skill.PONTARIA],
-    poderes: [originPowers.INFLUENCIA_MILITAR], // TODO: Um poder de combate random
+    poderes: [originPowers.INFLUENCIA_MILITAR],
+    getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Taverneiro: {
     name: 'Taverneiro',
@@ -568,117 +704,5 @@ export const ORIGINS: Record<origins, Origin> = {
     poderes: [originPowers.ESFORCADO, DestinyPowers.ATLETICO],
   },
 };
-
-const benefitsStrategies = {
-  string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
-    _.merge(benefits, {
-      skills: [...benefits.skills, benefit],
-    }),
-  OriginPower: (
-    benefit: OriginPower,
-    benefits: OriginBenefits
-  ): OriginBenefits =>
-    _.merge(benefits, {
-      powers: {
-        origin: [...benefits.powers.origin, benefit],
-      },
-    }),
-  GeneralPower: (
-    benefit: OriginPower,
-    benefits: OriginBenefits
-  ): OriginBenefits =>
-    _.merge(benefits, {
-      powers: {
-        origin: [...benefits.powers.origin, benefit],
-      },
-    }),
-};
-
-function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
-  return benefits.reduce<OriginBenefits>(
-    (acc, benefit) => {
-      if (typeof benefit === 'string') {
-        return benefitsStrategies.string(benefit, acc);
-      }
-
-      if (benefit.type === ORIGIN_POWER_TYPE) {
-        return benefitsStrategies.OriginPower(benefit, acc);
-      }
-
-      return benefitsStrategies.GeneralPower(benefit, acc);
-    },
-    {
-      skills: [],
-      powers: {
-        origin: [],
-        general: [],
-      },
-    }
-  );
-}
-
-function sortDefaultBenefits(usedSkills: Skill[], origin: Origin) {
-  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
-    usedSkills,
-    origin.pericias
-  );
-
-  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...origin.poderes],
-    2
-  );
-
-  return getBenefits(sortedBenefits);
-}
-
-function sortAmnesicBenefits(skills: Skill[]): OriginBenefits {
-  const powers: (OriginPower | GeneralPower)[] = [];
-
-  const newSkill = getNotRepeatedRandomSkill(skills);
-  powers.push(originPowers.LEMBRANCAS_GRADUAIS);
-
-  return {
-    skills: [newSkill],
-    powers: {
-      general: [getRandomItemFromArray(Object.values(generalPowers).flat())],
-      origin: [originPowers.LEMBRANCAS_GRADUAIS],
-    },
-  };
-}
-
-function sortLabAssistentBenefits(usedSkills: Skill[]): OriginBenefits {
-  const allowedTormentaPowers = getUnrestricedTormentaPowers();
-  const choosenTormentaPower = getRandomItemFromArray(allowedTormentaPowers);
-  const origin = ORIGINS['Assistente de Laboratório'];
-
-  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
-    usedSkills,
-    origin.pericias
-  );
-
-  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...origin.poderes, choosenTormentaPower],
-    2
-  );
-
-  return getBenefits(sortedBenefits);
-}
-
-const originStrategies = {
-  [ORIGINS.Amnésico.name]: sortAmnesicBenefits,
-  [ORIGINS['Assistente de Laboratório'].name]: sortLabAssistentBenefits,
-};
-
-// TODO: EVITAR PODER REPETIDO
-export function getOriginBenefits(
-  origin: Origin,
-  skills: Skill[]
-): OriginBenefits {
-  if (originStrategies[origin.name]) {
-    return originStrategies[origin.name](skills);
-  }
-
-  return sortDefaultBenefits(skills, origin);
-}
 
 export default ORIGINS;
