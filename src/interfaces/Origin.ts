@@ -10,18 +10,17 @@ export interface OriginBenefits {
   skills: Skill[];
 }
 
-interface Items {
+export interface Items {
   equipment: Equipment | string;
   qtd?: number;
 }
 
 interface Origin {
   name: string;
-  itens: Items[];
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
   getPowersAndSkills?: (usedSkills: Skill[], origin?: Origin) => OriginBenefits;
-  getItems?: (origin: Origin, items: Items[]) => Items[];
+  getItems: () => Items[];
 }
 
 export default Origin;

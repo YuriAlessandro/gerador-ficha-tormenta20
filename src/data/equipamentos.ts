@@ -198,6 +198,24 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perfuração',
     group: 'Arma',
   },
+  ARCO_LONGO: {
+    nome: 'Arco Longo',
+    dano: '1d8',
+    critico: 'x3',
+    alcance: 'Médio',
+    peso: 1.5,
+    tipo: 'Perfuração',
+    group: 'Arma',
+  },
+  BESTA_PESADA: {
+    nome: 'Besta Pesada',
+    dano: '1d12',
+    critico: '19',
+    alcance: 'Médio',
+    peso: 4,
+    tipo: 'Perfuração',
+    group: 'Arma',
+  },
 };
 
 export const Armaduras: Record<string, DefenseEquipment> = {
