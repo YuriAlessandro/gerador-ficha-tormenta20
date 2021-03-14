@@ -34,6 +34,7 @@
         "tsx": "never"
       }
     ],
+    "import/no-cycle": "off",
     "react/prop-types": "off",
     "react/jsx-filename-extension": "off",
     "prettier/prettier": ["error"],

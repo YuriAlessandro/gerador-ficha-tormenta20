@@ -1,4 +1,6 @@
 import { Atributo } from '../data/atributos';
+// eslint-disable-next-line
+import CharacterSheet from './CharacterSheet';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -28,6 +30,7 @@ export interface GeneralPower {
   name: string;
   requirements: Requirement[];
   allowSeveralPicks?: boolean;
+  action?: (sheet: CharacterSheet) => CharacterSheet;
 }
 
 export type GeneralPowers = {

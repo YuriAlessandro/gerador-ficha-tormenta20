@@ -36,14 +36,12 @@ const LUTADOR: ClassDescription = {
       name: 'Briga',
       text:
         'Seus ataques desarmados causam 1d6 pontos de dano e podem causar dano letal ou não letal (sem penalidades). A cada quatro níveis, seu dano desarmado aumenta, conforme a tabela. O dano na tabela é para criaturas Pequenas e Médias. Criaturas Minúsculas diminuem esse dano em um passo, Grandes e Enormes aumentam em um passo e Colossais aumentam em dois passos.',
-      effect: null,
       nivel: 1,
     },
     {
       name: 'Golpe Relâmpago',
       text:
         'Quando usa a ação atacar para fazer um ataque desarmado, você pode gastar 1 PM para realizar um ataque desarmado adicional.',
-      effect: null,
       nivel: 1,
     },
   ],
