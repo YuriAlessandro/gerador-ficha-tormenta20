@@ -66,34 +66,6 @@ const MainScreen: React.FC = () => {
 
   return (
     <div id='main-screen'>
-      <Fade in={showPresentation}>
-        <div id='presentation'>
-          <p className='deskOnly'>
-            “Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”. Deixe que
-            Nimb toque o seu destino de jogo com o Fichas de Nimb.
-          </p>
-          <p>
-            <strong>Fichas de Nimb</strong> é um gerador de fichas aleátorios
-            para o sistema Tormenta 20. Com ele, é possível gerar fichas de
-            raças e classes aleatórias, e ter sua ficha montada
-            instanteneamente. Todos as características de uma ficha de Tormenta
-            20 serão gerados aleatoriamente: atributos, perícias, origem,
-            divindades, magias, etc. Tudo respeitando as regras oficiais do
-            jogo.
-          </p>
-          <p className='deskOnly'>
-            Fichas de Nimb é uma ótima pedida para jogadores que queiram
-            experimentar um pouco de aleatoriedade ou não gastar muito tempo
-            criando a ficha, e principalmente para mestres que queriam gerar
-            seus NPCs de forma rápida e indolor.
-          </p>
-          <p className='deskOnly'>
-            Para isso, adicionamos também a opção de filtro de raça, classe e
-            nivel, para que o mestre possa gerar NPCs conforme a narrativa
-            requisite.
-          </p>
-        </div>
-      </Fade>
       <div className='filterArea'>
         <Select
           className='filterSelect'
@@ -124,6 +96,35 @@ const MainScreen: React.FC = () => {
           Gerar Ficha
         </Button>
       </div>
+
+      <Fade in={showPresentation}>
+        <div id='presentation'>
+          <p className='deskOnly'>
+            “Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”. Deixe que
+            Nimb toque o seu destino de jogo com o Fichas de Nimb.
+          </p>
+          <p>
+            <strong>Fichas de Nimb</strong> é um gerador de fichas aleátorios
+            para o sistema Tormenta 20. Com ele, é possível gerar fichas de
+            raças e classes aleatórias, e ter sua ficha montada
+            instanteneamente. Todos as características de uma ficha de Tormenta
+            20 serão gerados aleatoriamente: atributos, perícias, origem,
+            divindades, magias, etc. Tudo respeitando as regras oficiais do
+            jogo.
+          </p>
+          <p className='deskOnly'>
+            Fichas de Nimb é uma ótima pedida para jogadores que queiram
+            experimentar um pouco de aleatoriedade ou não gastar muito tempo
+            criando a ficha, e principalmente para mestres que queriam gerar
+            seus NPCs de forma rápida e indolor.
+          </p>
+          <p className='deskOnly'>
+            Para isso, adicionamos também a opção de filtro de raça, classe e
+            nivel, para que o mestre possa gerar NPCs conforme a narrativa
+            requisite.
+          </p>
+        </div>
+      </Fade>
 
       {randomSheet && <Result sheet={randomSheet} />}
     </div>

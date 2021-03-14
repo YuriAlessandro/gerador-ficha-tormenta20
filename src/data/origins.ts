@@ -58,7 +58,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Acólito',
     itens: [
       {
-        equipment: 'Símbolo sagrado,',
+        equipment: 'Símbolo sagrado',
       },
       {
         equipment: 'Traje de Sacerdote',
