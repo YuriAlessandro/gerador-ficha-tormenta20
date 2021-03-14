@@ -31,7 +31,12 @@ describe('Testa modificações da raça Aggelus', () => {
       Sabedoria: { name: Atributo.SABEDORIA, value: 17, mod: 3 },
     };
 
-    const received = modifyAttributesBasedOnRace(AGGELUS, originalAttrs);
+    const received = modifyAttributesBasedOnRace(
+      AGGELUS,
+      originalAttrs,
+      [],
+      []
+    );
 
     expect(received).toEqual(expectedAttrs);
   });
@@ -49,7 +54,12 @@ describe('Testa modificações da raça Humano', () => {
     .fill(0)
     .forEach(() => {
       test('Se o Humano recebe +2 em 3 atributos diferentes', () => {
-        const received = modifyAttributesBasedOnRace(HUMANO, originalAttrs);
+        const received = modifyAttributesBasedOnRace(
+          HUMANO,
+          originalAttrs,
+          [],
+          []
+        );
         const qtdOfAttrWithPlusTwo = countAttrWithPlusTwo(
           Object.values(received)
         );

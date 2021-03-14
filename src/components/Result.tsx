@@ -177,6 +177,18 @@ const Result: React.FC<ResultProps> = (props) => {
         </li>
       );
     }
+    if (step.type === 'Perícias') {
+      return (
+        <li>
+          <strong>{step.label}:</strong>
+          <ul className='stepAttrList'>
+            {step.value.map((attr) => (
+              <li>{attr.valor}</li>
+            ))}
+          </ul>
+        </li>
+      );
+    }
     return (
       <li>
         <strong>{step.label}</strong>

@@ -56,100 +56,6 @@ import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
 
-const STEPS: Step[] = [
-  {
-    label: 'Atributos Iniciais',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: 17 },
-      { nome: 'Destreza', valor: 17 },
-      { nome: 'Constituição', valor: 17 },
-      { nome: 'Inteligência', valor: 17 },
-      { nome: 'Sabedoria', valor: 17 },
-      { nome: 'Carisma', valor: 17 },
-    ],
-  },
-  {
-    label: 'Gênero',
-    value: [{ valor: 'Mulher' }],
-  },
-  {
-    label: 'Raça',
-    value: [{ valor: 'Elfo' }],
-  },
-  {
-    label: 'Nome',
-    value: [{ valor: 'Rapunzel' }],
-  },
-  {
-    label: 'Classe',
-    value: [{ valor: 'Ladino' }],
-  },
-  {
-    label: 'Origem',
-    value: [{ valor: 'Mercador' }],
-  },
-  {
-    label: 'PV Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'PM Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Atributos modificados',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: '+2' },
-      { nome: 'Constituição', valor: '+2' },
-      { nome: 'Sabedoria', valor: '+2' },
-    ],
-  },
-  {
-    label: 'Defesa Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Perícias Treinadas',
-    value: [{ valor: 'Igual a da ficha' }],
-  },
-  {
-    type: 'Equipamentos',
-    label: 'Equipamentos iniciais',
-    value: [{ nome: 'Armadura', valor: '+2 Defesa' }],
-  },
-  {
-    label: 'Poderes de Raça',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Elfo', valor: '+2 em carisma' },
-      { nome: 'Poder de Elfo', valor: '' },
-      { nome: 'Poder de Elfo', valor: '' },
-    ],
-  },
-  {
-    label: 'Poderes de Classe',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Ladino', valor: '' },
-      { nome: 'Poder de Ladino', valor: '+2 em Ladinagem' },
-    ],
-  },
-  {
-    label: 'Poderes de Origem',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Mercador', valor: '' },
-      { nome: 'Poder de Mercador', valor: '' },
-    ],
-  },
-  {
-    label: 'Magias Iniciais',
-    value: [],
-  },
-];
-
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
@@ -220,8 +126,10 @@ interface ReduceAttributesParams {
 export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
-  priorityAttrs: Atributo[]
+  priorityAttrs: Atributo[],
+  steps: Step[]
 ): CharacterAttributes {
+  const values: { nome: string; valor: string | number }[] = [];
   const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
@@ -236,6 +144,11 @@ export function modifyAttributesBasedOnRace(
         atributos,
         attrDaRaca
       );
+
+      values.push({
+        nome: selectedAttrName,
+        valor: `${attrDaRaca.mod > 0 ? `+` : ''}${attrDaRaca.mod}`,
+      });
 
       return {
         atributos: {
@@ -254,10 +167,20 @@ export function modifyAttributesBasedOnRace(
     }
   );
 
+  steps.push({
+    type: 'Atributos',
+    label: 'Atributos Modificados (raça)',
+    value: values,
+  });
+
   return reducedAttrs.atributos;
 }
 
-function generateFinalAttributes(classe: ClassDescription, race: Race) {
+function generateFinalAttributes(
+  classe: ClassDescription,
+  race: Race,
+  steps: Step[]
+) {
   const atributosNumericos = rollAttributeValues();
   let freeAttrs = Object.values(Atributo);
 
@@ -288,9 +211,18 @@ function generateFinalAttributes(classe: ClassDescription, race: Race) {
   const finalAttrs = modifyAttributesBasedOnRace(
     race,
     charAttributes,
-    classe.attrPriority
+    classe.attrPriority,
+    steps
   );
 
+  steps.push({
+    label: 'Atributos iniciais',
+    type: 'Atributos',
+    value: Object.values(charAttributes).map((attr) => ({
+      nome: attr.name,
+      valor: attr.value,
+    })),
+  });
   // sort and return
   return Object.values(Atributo).reduce(
     (acc, attr) => ({
@@ -351,7 +283,8 @@ export function getAttributesSkills(
 export function getSkillsAndPowersByClassAndOrigin(
   classe: ClassDescription,
   origin: Origin | undefined,
-  attributes: CharacterAttributes
+  attributes: CharacterAttributes,
+  steps: Step[]
 ): {
   skills: Skill[];
   powers: { origin: OriginPower[]; general: GeneralPower[] };
@@ -362,18 +295,53 @@ export function getSkillsAndPowersByClassAndOrigin(
   };
 
   const usedSkills: Skill[] = [];
-  usedSkills.push(...getClassBaseSkills(classe));
+  const classBaseSkills = getClassBaseSkills(classe);
+
+  usedSkills.push(...classBaseSkills);
   if (origin) {
     const { skills: originSkills, powers: originPowers } = getOriginBenefits(
       usedSkills,
       origin
     );
+
+    if (originSkills.length) {
+      steps.push({
+        label: 'Perícias da origem',
+        type: 'Perícias',
+        value: originSkills.map((skill) => ({ valor: `${skill}` })),
+      });
+    }
+
+    steps.push({
+      label: 'Poderes da origem',
+      value: [],
+    });
+
     powers = originPowers;
     usedSkills.push(...originSkills);
   }
 
-  usedSkills.push(...getRemainingSkills(usedSkills, classe));
-  usedSkills.push(...getAttributesSkills(attributes, usedSkills));
+  const remainingSkills = getRemainingSkills(usedSkills, classe);
+  usedSkills.push(...remainingSkills);
+
+  const classSkills = [...classBaseSkills, ...remainingSkills];
+  steps.push({
+    label: 'Perícias da classe',
+    type: 'Perícias',
+    value: classSkills.map((skill) => ({ valor: `${skill}` })),
+  });
+
+  const attributesSkills = getAttributesSkills(attributes, usedSkills);
+
+  if (attributesSkills.length) {
+    steps.push({
+      label: 'Perícias (+INT)',
+      type: 'Perícias',
+      value: attributesSkills.map((skill) => ({ valor: `${skill}` })),
+    });
+  }
+
+  usedSkills.push(...attributesSkills);
 
   return {
     skills: usedSkills,
@@ -611,22 +579,52 @@ export default function generateRandomSheet(
   const level = 1;
 
   // Lista do passo-a-passo que deve ser populada
-  const steps = STEPS;
+  const steps = [];
 
-  // Passo 1.1: Definir sexo
+  // Passo 1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
   // Passo 2: Definir raça
   const { race, nome } = getRaceAndName(selectedOptions, sexo);
 
+  if (race.name !== 'Golem') {
+    steps.push({
+      label: 'Sexo',
+      value: [{ valor: sexo }],
+    });
+  }
+
+  steps.push(
+    {
+      label: 'Raça',
+      value: [{ valor: race.name }],
+    },
+    {
+      label: 'Nome',
+      value: [{ valor: nome }],
+    }
+  );
+
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
+
+  steps.push({
+    label: 'Classe',
+    value: [{ valor: classe.name }],
+  });
 
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
   if (race.name !== 'Golem') {
     origin = getRandomItemFromArray(Object.values(ORIGINS));
+  }
+
+  if (origin) {
+    steps.push({
+      label: 'Origem',
+      value: [{ valor: origin?.name }],
+    });
   }
 
   // Passo 5: itens, feitiços, e valores iniciais
@@ -636,21 +634,58 @@ export default function generateRandomSheet(
   const initialPM = classe.pm;
   const initialDefense = 10;
 
+  steps.push(
+    {
+      label: 'PV Inicial',
+      value: [{ valor: initialPV }],
+    },
+    {
+      label: 'PM Inicial',
+      value: [{ valor: initialPM }],
+    },
+    {
+      label: 'Defesa Inicial',
+      value: [{ valor: initialDefense }],
+    },
+    {
+      label: 'Equipamentos Inciais e de Origem',
+      value: [],
+    }
+  );
+
   // Passo 6: Gerar atributos finais
-  const atributos = generateFinalAttributes(classe, race);
+  const atributos = generateFinalAttributes(classe, race, steps);
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxWeight = atributos.Força.value * 3;
   const summedPV = initialPV + atributos.Constituição.mod;
 
+  steps.push({
+    label: 'Vida máxima (+CON)',
+    value: [{ valor: summedPV }],
+  });
+
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devote = getReligiosidade(classe, race);
+
+  if (devote) {
+    steps.push({
+      label: `Devoto de ${devote.divindade.name}`,
+      value: [],
+    });
+  } else {
+    steps.push({
+      label: 'Não será devoto',
+      value: [],
+    });
+  }
 
   // Passo 8: Gerar pericias treinadas
   const { powers, skills } = getSkillsAndPowersByClassAndOrigin(
     classe,
     origin,
-    atributos
+    atributos,
+    steps
   );
 
   let sheetOrigin;
@@ -688,19 +723,41 @@ export default function generateRandomSheet(
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet);
 
+  steps.push({
+    label: 'Gera habilidades de classe e raça',
+    value: [],
+  });
+
   // Passo 10:
   // Gerar equipamento
   const bagEquipments = getInitialEquipments(charSheet.bag.equipments, classe);
   const updatedBag = updateEquipments(charSheet.bag, bagEquipments);
   charSheet.bag = updatedBag;
 
+  steps.push({
+    label: 'Equipamentos da classe',
+    value: [],
+  });
+
   // Passo 11:
   // Recalcular defesa
   charSheet = calcDefense(charSheet);
 
+  steps.push({
+    label: 'Nova defesa',
+    value: [{ valor: charSheet.defesa }],
+  });
+
   // Passo 12: Gerar magias se possível
   const spells = getSpells(charSheet.classe, charSheet.spells);
   charSheet.spells = spells;
+
+  if (spells.length) {
+    steps.push({
+      label: 'Magias (1º círculo)',
+      value: [],
+    });
+  }
 
   const displacement = calcDisplacement(
     charSheet.bag,
