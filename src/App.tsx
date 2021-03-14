@@ -87,8 +87,8 @@ function App(): JSX.Element {
           </div>
         </div>
       </HashRouter>
-      <footer>
-        <div id='bottom'>
+      <footer id='bottom'>
+        <div>
           <p>
             Tormenta 20 é um produto da Jambô Editora e seus respectivos
             criadores, todos os direitos reservados.
