@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const PALADINO: ClassDescription = {
@@ -43,21 +44,18 @@ const PALADINO: ClassDescription = {
       name: 'Abençoado',
       text:
         'Você soma seu bônus de Carisma no seu total de pontos de mana no 1º nível. Além disso, torna-se devoto de uma divindade disponível para paladinos (Azgher, Khalmyr, Lena, Lin-Wu, Marah, Tanna-Toh, Thyatis, Valkaria). Você deve obedecer às Obrigações & Restrições de seu deus, mas, em troca, ganha os Poderes Concedidos dele. Como alternativa, você pode ser um paladino do bem, lutando em prol da bondade e da justiça como um todo. Não recebe nenhum Poder Concedido, mas não precisa seguir nenhuma Obrigação & Restrição (além do Código do Herói, abaixo).',
-      effect: null,
       nivel: 1,
     },
     {
       name: 'Código de Héroi',
       text:
         'Você deve sempre manter sua palavra e nunca pode recusar um pedido de ajuda de alguém inocente. Além disso, nunca pode mentir, trapacear ou roubar. Se violar o código, você perde todos os seus PM e só pode recuperá-los a partir do próximo dia.',
-      effect: null,
       nivel: 1,
     },
     {
       name: 'Golpe Divino',
       text:
         'Quando faz um ataque corpo a corpo, você pode gastar 2 PM para desferir um golpe destruidor. Você soma seu bônus de Carisma no teste de ataque e +1d8 na rolagem de dano. A cada quatro níveis, pode gastar +1 PM para aumentar o dano em +1d8.',
-      effect: null,
       nivel: 1,
     },
   ],
@@ -72,7 +70,20 @@ const PALADINO: ClassDescription = {
     TANNATOH: 1,
     THYATIS: 1,
     VALKARIA: 1,
+    AHARADAK: 0,
+    ALLIHANNA: 0,
+    ARSENAL: 0,
+    HYNINN: 0,
+    KALLYADRANOCH: 0,
+    MEGALOKK: 0,
+    NIMB: 0,
+    OCEANO: 0,
+    SSZZAAS: 0,
+    TENEBRA: 0,
+    THWOR: 0,
+    WYNNA: 0,
   },
+  attrPriority: [Atributo.FORCA, Atributo.CONSTITUICAO, Atributo.CARISMA],
 };
 
 export default PALADINO;

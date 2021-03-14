@@ -1,12 +1,19 @@
 import { GeneralPowerType } from '../../interfaces/Poderes';
-import { CharacterStats } from '../../interfaces/Race';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { spellsCircles } from '../../interfaces/Spells';
 import { Atributo } from '../../data/atributos';
 import { spellsCircle1 } from '../../data/magias/generalSpells';
+import Dahllan from '../../data/races/dahllan';
 
-export const druida: CharacterStats = {
-  attributes: {
+export const druida: CharacterSheet = {
+  id: 'testid2',
+  maxWeight: 30,
+  nome: 'Fulano',
+  raca: Dahllan,
+  sexo: 'Homem',
+  steps: [],
+  atributos: {
     Força: { name: Atributo.FORCA, value: 10, mod: 0 },
     Destreza: { name: Atributo.DESTREZA, value: 13, mod: 1 },
     Constituição: { name: Atributo.CONSTITUICAO, value: 11, mod: 0 },
@@ -53,7 +60,7 @@ export const druida: CharacterStats = {
     weight: 5.5,
     armorPenalty: 0,
   },
-  classDescription: {
+  classe: {
     name: 'Druida',
     pv: 16,
     addpv: 4,
@@ -62,6 +69,7 @@ export const druida: CharacterStats = {
     periciasbasicas: [
       { type: 'and', list: [Skill.SOBREVIVENCIA, Skill.VONTADE] },
     ],
+    attrPriority: [Atributo.SABEDORIA],
     periciasrestantes: {
       qtd: 4,
       list: [
@@ -86,21 +94,18 @@ export const druida: CharacterStats = {
         name: 'Devoto',
         text:
           'Você se torna devoto de uma divindade disponível para druidas (Allihanna, Megalokk ou Oceano). Você deve obedecer às Obrigações & Restrições de seu deus, mas, em troca, ganha os Poderes Concedidos dele. O nome desta habilidade muda de acordo com a divindade escolhida: Devoto de Allihanna, Devoto de Megalokk ou Devoto de Oceano.',
-        effect: null,
         nivel: 1,
       },
       {
         name: 'Empatia Selvagem',
         text:
           'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento com animais para mudar atitude e pedir favores (veja Diplomacia, na página 117).',
-        effect: null,
         nivel: 1,
       },
       {
         name: 'Magias',
         text:
           'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias divinas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma seu bônus de Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
-        effect: null,
         nivel: 1,
       },
     ],
@@ -143,9 +148,9 @@ export const druida: CharacterStats = {
       },
     },
   },
-  defense: 11,
+  defesa: 11,
   displacement: 9,
-  level: 1,
+  nivel: 1,
   size: {
     modifiers: { maneuver: 0, stealth: 0 },
     naturalRange: 1.5,
@@ -153,9 +158,7 @@ export const druida: CharacterStats = {
   },
   origin: {
     name: 'Assistente de Laboratório',
-    itens: [],
-    pericias: [Skill.OFICIO],
-    poderes: [
+    powers: [
       {
         name: 'Esse Cheiro...',
         description:
@@ -196,7 +199,7 @@ export const druida: CharacterStats = {
       manaExpense: 1,
     },
   ],
-  devote: {
+  devoto: {
     divindade: {
       name: 'Allihanna',
       poderes: [
@@ -245,17 +248,7 @@ export const druida: CharacterStats = {
       },
     ],
   },
-  powers: {
-    general: [],
-    origin: [
-      {
-        name: 'Esse Cheiro...',
-        description:
-          'Você recebe +2 em Fortitude e passa automaticamente em testes de Ofício (alquimia) para identificar itens alquímicos.',
-        type: 'ORIGEM',
-      },
-    ],
-  },
+  generalPowers: [],
   pv: 16,
   pm: 4,
 };

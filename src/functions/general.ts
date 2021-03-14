@@ -22,7 +22,7 @@ import {
   CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/Character';
-import Race, { CharacterStats, RaceAttributeAbility } from '../interfaces/Race';
+import Race, { RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
@@ -56,100 +56,6 @@ import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
 
-const STEPS: Step[] = [
-  {
-    label: 'Atributos Iniciais',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: 17 },
-      { nome: 'Destreza', valor: 17 },
-      { nome: 'Constituição', valor: 17 },
-      { nome: 'Inteligência', valor: 17 },
-      { nome: 'Sabedoria', valor: 17 },
-      { nome: 'Carisma', valor: 17 },
-    ],
-  },
-  {
-    label: 'Gênero',
-    value: [{ valor: 'Mulher' }],
-  },
-  {
-    label: 'Raça',
-    value: [{ valor: 'Elfo' }],
-  },
-  {
-    label: 'Nome',
-    value: [{ valor: 'Rapunzel' }],
-  },
-  {
-    label: 'Classe',
-    value: [{ valor: 'Ladino' }],
-  },
-  {
-    label: 'Origem',
-    value: [{ valor: 'Mercador' }],
-  },
-  {
-    label: 'PV Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'PM Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Atributos modificados',
-    type: 'Atributos',
-    value: [
-      { nome: 'Força', valor: '+2' },
-      { nome: 'Constituição', valor: '+2' },
-      { nome: 'Sabedoria', valor: '+2' },
-    ],
-  },
-  {
-    label: 'Defesa Inicial',
-    value: [{ valor: 10 }],
-  },
-  {
-    label: 'Perícias Treinadas',
-    value: [{ valor: 'Igual a da ficha' }],
-  },
-  {
-    type: 'Equipamentos',
-    label: 'Equipamentos iniciais',
-    value: [{ nome: 'Armadura', valor: '+2 Defesa' }],
-  },
-  {
-    label: 'Poderes de Raça',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Elfo', valor: '+2 em carisma' },
-      { nome: 'Poder de Elfo', valor: '' },
-      { nome: 'Poder de Elfo', valor: '' },
-    ],
-  },
-  {
-    label: 'Poderes de Classe',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Ladino', valor: '' },
-      { nome: 'Poder de Ladino', valor: '+2 em Ladinagem' },
-    ],
-  },
-  {
-    label: 'Poderes de Origem',
-    type: 'Poderes',
-    value: [
-      { nome: 'Poder de Mercador', valor: '' },
-      { nome: 'Poder de Mercador', valor: '' },
-    ],
-  },
-  {
-    label: 'Magias Iniciais',
-    value: [],
-  },
-];
-
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
@@ -175,20 +81,23 @@ function rollAttributeValues(): number[] {
   return rolledValues;
 }
 
-function getNotRepeatedAttribute(atributosModificados: string[]) {
-  const atributosPermitidos = Object.values(Atributo).filter(
-    (atributo) => !atributosModificados.includes(atributo)
-  );
-
-  return getRandomItemFromArray<Atributo>(atributosPermitidos);
-}
-
 function selectAttributeToChange(
   atributosModificados: string[],
-  atributo: RaceAttributeAbility
+  atributo: RaceAttributeAbility,
+  priorityAttrs: Atributo[]
 ) {
   if (atributo.attr === 'any') {
-    return getNotRepeatedAttribute(atributosModificados);
+    const atributosPermitidos = Object.values(Atributo).filter(
+      (attr) => !atributosModificados.includes(attr)
+    );
+
+    const atributosPreferidos = priorityAttrs.filter((attr) =>
+      atributosPermitidos.includes(attr)
+    );
+
+    return getRandomItemFromArray<Atributo>(
+      atributosPreferidos.length > 0 ? atributosPreferidos : atributosPermitidos
+    );
   }
 
   return atributo.attr;
@@ -217,6 +126,7 @@ interface ReduceAttributesParams {
 export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
+  priorityAttrs: Atributo[],
   steps: Step[]
 ): CharacterAttributes {
   const values: { nome: string; valor: string | number }[] = [];
@@ -225,7 +135,8 @@ export function modifyAttributesBasedOnRace(
       // Definir que atributo muda (se for any é um random)
       const selectedAttrName = selectAttributeToChange(
         nomesDosAtributosModificados,
-        attrDaRaca
+        attrDaRaca,
+        priorityAttrs
       );
 
       const atributoModificado = getModifiedAttribute(
@@ -270,15 +181,39 @@ function generateFinalAttributes(
   race: Race,
   steps: Step[]
 ) {
-  // TODO: Invés de mapear cada valor para cada atributo na ordem, utilizar ordem de preferência da classe
   const atributosNumericos = rollAttributeValues();
-  const charAttributes = Object.values(Atributo).reduce((acc, attr, index) => {
+  let freeAttrs = Object.values(Atributo);
+
+  const priorityAttrs = _.shuffle(classe.attrPriority);
+  const priorityGeneratedAttrs = {} as CharacterAttributes;
+
+  priorityAttrs.forEach((attr) => {
+    const maxAttr = Math.max(...atributosNumericos);
+    priorityGeneratedAttrs[attr] = {
+      name: attr,
+      value: maxAttr,
+      mod: getModValue(maxAttr),
+    };
+
+    atributosNumericos.splice(atributosNumericos.indexOf(maxAttr), 1);
+
+    freeAttrs = freeAttrs.filter((freeAttr) => freeAttr !== attr);
+  });
+
+  const charAttributes = freeAttrs.reduce((acc, attr, index) => {
     const mod = getModValue(atributosNumericos[index]);
     return {
       ...acc,
       [attr]: { name: attr, value: atributosNumericos[index], mod },
     };
-  }, {}) as CharacterAttributes;
+  }, priorityGeneratedAttrs) as CharacterAttributes;
+
+  const finalAttrs = modifyAttributesBasedOnRace(
+    race,
+    charAttributes,
+    classe.attrPriority,
+    steps
+  );
 
   steps.push({
     label: 'Atributos iniciais',
@@ -288,8 +223,14 @@ function generateFinalAttributes(
       valor: attr.value,
     })),
   });
-
-  return modifyAttributesBasedOnRace(race, charAttributes, steps);
+  // sort and return
+  return Object.values(Atributo).reduce(
+    (acc, attr) => ({
+      ...acc,
+      [attr]: finalAttrs[attr],
+    }),
+    {} as CharacterAttributes
+  );
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
@@ -580,21 +521,56 @@ function calcDisplacement(
   return raceDisplacement;
 }
 
-export function applyRaceHabilities(
-  race: Race,
-  stats: CharacterStats
-): CharacterStats {
-  const statsClone = _.cloneDeep(stats);
+export function applyRaceHabilities(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
 
-  return (race.abilities || []).reduce(
+  return (sheetClone.raca.abilities || []).reduce(
     (acc, ability) => (ability.action ? ability.action(acc) : acc),
-    statsClone
+    sheetClone
   );
 }
 
-// TODO: Implement this
+function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.devoto?.poderes || []).reduce(
+    (acc, power) => (power.action ? power.action(acc) : acc),
+    sheetClone
+  );
+}
+
+function applyClassHabilities(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.classe.abilities || []).reduce(
+    (acc, ability) => (ability.action ? ability.action(acc) : acc),
+    sheetClone
+  );
+}
+
+function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
+  const sheetClone = _.cloneDeep(sheet);
+
+  return (sheetClone.generalPowers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc) : acc),
+    sheetClone
+  );
+}
+
 function getAndApplyPowers(sheet: CharacterSheet): CharacterSheet {
-  return sheet;
+  // Aplicar poderes de divindade
+  let updatedSheet = applyDivinePowers(sheet);
+
+  // Aplicar habilidades da raça
+  updatedSheet = applyRaceHabilities(sheet);
+
+  // Aplicar habilidades da classe
+  updatedSheet = applyClassHabilities(sheet);
+
+  // Aplicar poderes gerais da origem
+  updatedSheet = applyGeneralPowers(sheet);
+
+  return updatedSheet;
 }
 
 export default function generateRandomSheet(
@@ -789,6 +765,15 @@ export default function generateRandomSheet(
     charSheet.atributos
   );
   charSheet.displacement = displacement;
+
+  // (enquanto nível atual < nivel desejado) {
+  //   Aumentar PV e PM
+  //   Seguir spell path
+  //   Pra cada poder em poderes:
+  //       sheet, poder -> sheet // atualiza a ficha pra o nível atual pelos poderes que modificam ao upar
+  //   nivel, classe, poderesgerais -> escolher poder novo aleatorio
+  //   sheet, poder novo -> sheet
+  // }
 
   return charSheet;
 }

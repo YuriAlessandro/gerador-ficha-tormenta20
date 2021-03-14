@@ -1,5 +1,5 @@
 import { applyRaceHabilities } from '../../../functions/general';
-import { CharacterStats } from '../../../interfaces/Race';
+import CharacterSheet from '../../../interfaces/CharacterSheet';
 import Skill from '../../../interfaces/Skills';
 import HUMANO from '../humano';
 
@@ -8,15 +8,13 @@ describe('Testa habilidades da raça Humano', () => {
     Array(20)
       .fill(0)
       .forEach(() => {
-        const stats: CharacterStats = ({
+        const sheet: CharacterSheet = ({
           skills: [Skill.ACROBACIA],
-          powers: {
-            general: [],
-            origin: [],
-          },
-        } as unknown) as CharacterStats;
+          generalPowers: [],
+          raca: HUMANO,
+        } as unknown) as CharacterSheet;
 
-        const received = applyRaceHabilities(HUMANO, stats);
+        const received = applyRaceHabilities(sheet);
 
         expect(received.skills.length).toBeGreaterThan(1);
         expect(received.skills.length).toBeLessThan(4);
@@ -25,7 +23,7 @@ describe('Testa habilidades da raça Humano', () => {
         if (received.skills.length > 2) {
           expect(received.skills[1]).not.toBe(received.skills[2]);
         } else {
-          expect(received.powers.general).toHaveLength(1);
+          expect(received.generalPowers).toHaveLength(1);
         }
       });
   });

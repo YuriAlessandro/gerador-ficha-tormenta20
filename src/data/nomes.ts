@@ -139,7 +139,6 @@ export const nomes: {
   Minotauro: {
     Homem: [
       'Moufen',
-      'Emsia Bravestriker',
       'Faster',
       'Moufen',
       'Emsia',

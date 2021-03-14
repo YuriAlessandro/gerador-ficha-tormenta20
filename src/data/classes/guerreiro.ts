@@ -1,5 +1,6 @@
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 
 const GUERREIRO: ClassDescription = {
@@ -46,7 +47,6 @@ const GUERREIRO: ClassDescription = {
       name: 'Ataque Especial',
       text:
         'Quando faz um ataque, você pode gastar 1 PM para receber +4 no teste de ataque ou na rolagem de dano. A cada quatro níveis, pode gastar +1 PM para aumentar o bônus em +4. Você pode dividir os bônus igualmente. Por exemplo, no 17º nível, pode gastar 5 PM para receber +20 no ataque, +20 no dano ou +10 no ataque e +10 no dano.',
-      effect: null,
       nivel: 1,
     },
   ],
@@ -60,6 +60,7 @@ const GUERREIRO: ClassDescription = {
     THYATIS: 1,
     VALKARIA: 1,
   },
+  attrPriority: [Atributo.FORCA, Atributo.DESTREZA, Atributo.CONSTITUICAO],
 };
 
 export default GUERREIRO;

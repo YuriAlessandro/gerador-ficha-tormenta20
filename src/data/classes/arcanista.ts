@@ -129,6 +129,7 @@ const ARCANISTA: ClassDescription = {
     VALKARIA: 1,
     WYNNA: 1,
   },
+  attrPriority: [Atributo.INTELIGENCIA],
   setup: (classe) => {
     const modifiedClasse = _.cloneDeep(classe);
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
@@ -137,6 +138,7 @@ const ARCANISTA: ClassDescription = {
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
       modifiedClasse.abilities.push(getRandomItemFromArray(feiticeiroPaths));
+      modifiedClasse.attrPriority = [Atributo.CARISMA];
     }
 
     return modifiedClasse;

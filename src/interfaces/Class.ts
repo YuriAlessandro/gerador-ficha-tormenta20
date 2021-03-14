@@ -1,4 +1,5 @@
 import { Atributo } from '../data/atributos';
+import CharacterSheet from './CharacterSheet';
 import { FaithProbability } from './Divindade';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
@@ -16,8 +17,8 @@ export interface RemainingExpertise {
 export interface ClassAbility {
   name: string;
   text: string;
-  effect?: string | null;
   nivel: number;
+  action?: (sheet: CharacterSheet) => CharacterSheet;
 }
 
 export interface SpellPath {
@@ -42,6 +43,7 @@ export interface ClassDescription {
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;
+  attrPriority: Atributo[];
   spellPath?: SpellPath;
   setup?: (classe: ClassDescription) => ClassDescription;
 }

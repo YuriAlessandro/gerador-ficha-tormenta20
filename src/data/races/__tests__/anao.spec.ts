@@ -1,19 +1,15 @@
 import _ from 'lodash';
 import { applyRaceHabilities } from '../../../functions/general';
-import { CharacterStats } from '../../../interfaces/Race';
-import ANAO from '../anao';
 import { inventor } from '../../../__mocks__/classes/inventor';
 
 describe('Testa habilidades da raça Anão', () => {
-  const stats: CharacterStats = _.cloneDeep(inventor);
-  const received = applyRaceHabilities(ANAO, stats);
+  const sheet = _.cloneDeep(inventor);
+  const received = applyRaceHabilities(sheet);
 
   test('Duro como Pedra: +3 pv', () => {
-    expect(received.pv).toBe(stats.pv + 3);
+    expect(received.pv).toBe(sheet.pv + 3);
   });
   test('Duro como Pedra: +1 pv por nível', () => {
-    expect(received.classDescription.addpv).toBe(
-      stats.classDescription.addpv + 1
-    );
+    expect(received.classe.addpv).toBe(sheet.classe.addpv + 1);
   });
 });
