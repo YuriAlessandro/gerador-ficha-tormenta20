@@ -91,7 +91,7 @@ export const ORIGINS: Record<origins, Origin> = {
     ],
     pericias: [],
     poderes: [originPowers.LEMBRANCAS_GRADUAIS],
-  },
+  }, // TODO: Em vez de dois benefícios de uma lista, Amnésico recebe uma perícia e um poder escolhidos pelo mestre e o poder Lembranças Graduais
   Aristocrata: {
     name: 'Aristocrata',
     itens: [
@@ -103,7 +103,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.DIPLOMACIA, Skill.ENGANACAO, Skill.NOBREZA],
-    poderes: [originPowers.SANGUE_AZUL],
+    poderes: [originPowers.SANGUE_AZUL, DestinyPowers.COMANDAR],
   },
   Artesão: {
     name: 'Artesão',
@@ -116,7 +116,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
-    poderes: [originPowers.FRUTOS_DO_TRABALHO],
+    poderes: [originPowers.FRUTOS_DO_TRABALHO, DestinyPowers.SORTUDO],
   },
   Artista: {
     name: 'Artista',
@@ -126,7 +126,12 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ATUACAO, Skill.ENGANACAO],
-    poderes: [originPowers.DOM_ARTISTICO],
+    poderes: [
+      DestinyPowers.ATRAENTE,
+      originPowers.DOM_ARTISTICO,
+      DestinyPowers.SORTUDO,
+      DestinyPowers.TORCIDA,
+    ],
   },
   'Assistente de Laboratório': {
     name: 'Assistente de Laboratório',
@@ -135,8 +140,8 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Kit de Ofício (alquimia)',
       },
     ],
-    pericias: [Skill.OFICIO_ALQUIMIA],
-    poderes: [originPowers.ESSE_CHEIRO],
+    pericias: [Skill.OFICIO_ALQUIMIA, Skill.MISTICISMO],
+    poderes: [originPowers.ESSE_CHEIRO, DestinyPowers.VENEFICIO], // TODO: Um poder da tormenta a sua escolha
   },
   Batedor: {
     name: 'Batedor',
@@ -145,8 +150,12 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Barraca',
       }, // TODO: uma arma simples ou marcial de ataque à distância.
     ],
-    pericias: [Skill.PERCEPCAO, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.PROVA_DE_TUDO],
+    pericias: [Skill.FURTIVIDADE, Skill.PERCEPCAO, Skill.SOBREVIVENCIA],
+    poderes: [
+      originPowers.PROVA_DE_TUDO,
+      combatPowers.ESTILO_DE_DISPARO,
+      DestinyPowers.SENTIDOS_AGUCADOS,
+    ],
   },
   Capanga: {
     name: 'Capanga',
@@ -157,7 +166,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ], // TODO: uma arma simples corpo a corpo.
     pericias: [Skill.LUTA, Skill.INTIMIDACAO],
-    poderes: [originPowers.CONFISSAO],
+    poderes: [originPowers.CONFISSAO], // TODO: Um poder de combate random
   },
   Charlatão: {
     name: 'Charlatão',
@@ -192,16 +201,13 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ACROBACIA, Skill.ATUACAO, Skill.REFLEXOS],
-    poderes: [originPowers.TRUQUE_DE_MAGICA],
+    poderes: [DestinyPowers.ACROBATICO, originPowers.TRUQUE_DE_MAGICA],
   },
   Criminoso: {
     name: 'Criminoso',
     itens: [
       {
         equipment: 'Kit de Ladrão',
-      },
-      {
-        equipment: 'Kit de Disfarces',
       },
     ],
     pericias: [Skill.ENGANACAO, Skill.FURTIVIDADE, Skill.LADINAGEM],
@@ -283,16 +289,10 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ADESTRAMENTO, Skill.CAVALGAR, Skill.OFICIO_FAZENDEIRO],
-    poderes: [originPowers.AGUA_NO_FEIJAO],
+    poderes: [originPowers.AGUA_NO_FEIJAO, combatPowers.GINETE],
   },
   Forasteiro: {
     name: 'Forasteiro',
-    itens: [],
-    pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
-    poderes: [originPowers.CULTURA_EXOTICA, DestinyPowers.LOBO_SOLITARIO],
-  },
-  Gladiador: {
-    name: 'Gladiador',
     itens: [
       {
         equipment: 'Diário de Viagens',
@@ -301,9 +301,19 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Traje de Viagem Estrangeiro',
       },
       {
-        equipment: 'Instrumento Musical Exótico',
+        equipment: 'Instrumento Músical Exótico',
       },
     ],
+    pericias: [Skill.CAVALGAR, Skill.PILOTAGEM, Skill.SOBREVIVENCIA],
+    poderes: [originPowers.CULTURA_EXOTICA, DestinyPowers.LOBO_SOLITARIO],
+  },
+  Gladiador: {
+    name: 'Gladiador',
+    itens: [
+      {
+        equipment: 'Item sem valor recebido de um admirador',
+      },
+    ], // TODO: Arma marcia ou exótica
     pericias: [Skill.ATUACAO, Skill.LUTA],
     poderes: [
       originPowers.PAO_E_CIRCO,
