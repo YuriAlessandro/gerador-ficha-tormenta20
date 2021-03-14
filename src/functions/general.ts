@@ -313,10 +313,10 @@ export function selectClass(
   return selectedClass;
 }
 
-function getAttributesSkills(
+export function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: Skill[]
-) {
+): Skill[] {
   if (attributes.Inteligência.mod > 0) {
     return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
   }
@@ -324,7 +324,7 @@ function getAttributesSkills(
   return [];
 }
 
-export function getSkillsAndPowers(
+export function getSkillsAndPowersByClassAndOrigin(
   classe: ClassDescription,
   origin: Origin,
   attributes: CharacterAttributes
@@ -335,7 +335,6 @@ export function getSkillsAndPowers(
   const skills: Skill[] = [];
 
   skills.push(...getClassBaseSkills(classe));
-
   const { skills: originSkills, powers } = getOriginBenefits(origin, skills);
 
   skills.push(...originSkills);
@@ -555,26 +554,15 @@ export default function generateRandomSheet(
     sexo
   );
 
-  console.log(selectedOptions);
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
   // Passo 3.1: Determinando o PV baseado na classe
   const constAttr = atributos.Constituição;
   const pvInicial = getInitialPV(classe.pv, constAttr);
 
-  // Passo 3.2: Determinando o PM baseado na classe
-  const { pm: pmInicial } = classe;
-
-  // Passo 3.3: Determinando a Defesa inicial
+  // Passo 3.2: Determinando a Defesa inicial
   const destAttr = atributos.Destreza;
   const initialDefense = getInitialDef(destAttr);
-
-  // Passo 3.4: Alterar características da classe com base na raça
-  const classDetails = {
-    pv: pvInicial,
-    pm: pmInicial,
-    defesa: initialDefense,
-  };
 
   // Passo 4: Definição de origem
   const origin = getRandomItemFromArray(Object.values(ORIGINS));
@@ -584,12 +572,12 @@ export default function generateRandomSheet(
   const {
     powers: { origin: originPowers, general: originGeneralPowers },
     skills,
-  } = getSkillsAndPowers(classe, origin, atributos);
+  } = getSkillsAndPowersByClassAndOrigin(classe, origin, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
   // 6.1: Incrementar defesa com base nos Equipamentos
-  const defense = calcDefense(classDetails.defesa, bag);
+  const defense = calcDefense(initialDefense, bag);
 
   // 6.2: Adicionar itens de origem
   getOriginItems(origin, bag);
@@ -607,7 +595,7 @@ export default function generateRandomSheet(
     attributes: atributos,
     bag,
     classDescription: classe,
-    defense: initialDefense,
+    defense,
     displacement: getRaceDisplacement(race),
     level,
     size,
@@ -619,7 +607,8 @@ export default function generateRandomSheet(
       general: originGeneralPowers,
       origin: originPowers,
     },
-    ...classDetails,
+    pm: classe.pm,
+    pv: pvInicial,
   });
 
   const displacement = calcDisplacement(bag, stats.displacement, atributos);
@@ -636,19 +625,19 @@ export default function generateRandomSheet(
       atributos,
       maxWeight,
       raca: race,
-      classe,
-      pv: pvInicial,
-      pm: pmInicial,
-      defesa: defense,
-      bag,
-      devoto: devote,
+      classe: stats.classDescription,
+      pv: stats.pv,
+      pm: stats.pm,
+      defesa: stats.defense,
+      bag: stats.bag,
+      devoto: stats.devote,
       origin: {
         name: origin.name,
-        powers: originPowers,
+        powers: stats.powers.origin,
       },
       displacement,
-      size,
-      generalPowers: [...originGeneralPowers],
+      size: stats.size,
+      generalPowers: [...stats.powers.general],
       steps,
     },
     stats
