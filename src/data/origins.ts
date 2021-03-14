@@ -279,8 +279,12 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Batedor',
     getItems: (): Items[] => {
       const allowedWapons = [
-        ...[Armas.ARCOCURTO, Armas.BESTALEVE, Armas.AZAGAIA, Armas.FUNDA],
-        ...[Armas.ARCO_LONGO, Armas.BESTA_PESADA],
+        Armas.ARCOCURTO,
+        Armas.BESTALEVE,
+        Armas.AZAGAIA,
+        Armas.FUNDA,
+        Armas.ARCO_LONGO,
+        Armas.BESTA_PESADA,
       ];
 
       const selectedWeapon = getRandomItemFromArray(allowedWapons);
@@ -467,24 +471,10 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Gladiador: {
     name: 'Gladiador',
-    // itens: [
-    //   {
-    //     equipment: 'Item sem valor recebido de um admirador',
-    //   },
-    // ], // TODO: Arma marcia ou exótica
     getItems: (): Items[] => {
       const allowedWapons = [
-        ...[
-          Armas.MACHADINHA,
-          Armas.CIMITARRA,
-          Armas.FLORETE,
-          Armas.MACHADO_DE_BATALHA,
-          Armas.MANGUAL,
-          Armas.MARTELO_DE_GUERRA,
-          Armas.PICARETA,
-          Armas.TRIDENTE,
-        ],
-        ...[],
+        ...EQUIPAMENTOS.armasMarciais,
+        ...EQUIPAMENTOS.armasExoticas,
       ];
 
       const selectedWeapon = getRandomItemFromArray(allowedWapons);
@@ -494,7 +484,7 @@ export const ORIGINS: Record<origins, Origin> = {
           equipment: selectedWeapon,
         },
         {
-          equipment: 'Barraca',
+          equipment: 'Item sem valor recebido de um admirador',
         },
       ];
 
@@ -510,21 +500,32 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Guarda: {
     name: 'Guarda',
-    itens: [
-      {
-        equipment: 'Apito',
-      },
-      {
-        equipment: 'Insígnia da Milícia',
-      },
-    ], // TODO: Uma arma marcial
+    getItems: (): Items[] => {
+      const allowedWapons = [...EQUIPAMENTOS.armasMarciais];
+
+      const selectedWeapon = getRandomItemFromArray(allowedWapons);
+
+      const originItems = [
+        {
+          equipment: 'Insígnia da Milícia',
+        },
+        {
+          equipment: 'Apito',
+        },
+        {
+          equipment: selectedWeapon,
+        },
+      ];
+
+      return originItems;
+    },
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
     poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR],
     getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Herdeiro: {
     name: 'Herdeiro',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Símbolo de Herança',
       },
@@ -538,7 +539,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   'Herói Camponês': {
     name: 'Herói Camponês',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Kit de Ofício',
       },
@@ -556,7 +557,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Marujo: {
     name: 'Marujo',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Corda',
       },
@@ -566,7 +567,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Mateiro: {
     name: 'Mateiro',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Barraca',
       },
@@ -583,11 +584,16 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   'Membro de Guilda': {
     name: 'Membro de Guilda',
-    itens: [
-      {
-        equipment: 'Kit de Ladrão',
-      },
-    ], // TODO: Kit de ladrão ou kit de ofício.
+    getItems: (): Items[] => {
+      const allowedEquipments = [
+        { equipment: 'Kit de Ladrão' },
+        { equipment: 'Kit de Ofício' },
+      ];
+
+      const selectedItem = getRandomItemFromArray(allowedEquipments);
+
+      return [selectedItem];
+    },
     pericias: [
       Skill.DIPLOMACIA,
       Skill.ENGANACAO,
@@ -598,7 +604,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Mercador: {
     name: 'Mercador',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Carroça',
       },
@@ -618,7 +624,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Minerador: {
     name: 'Minerador',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Gemas preciosas no valor de T$ 100',
       },
@@ -635,7 +641,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Nômade: {
     name: 'Nômade',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: Armas.BORDAO,
       },
@@ -648,7 +654,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Pivete: {
     name: 'Pivete',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Kit de Ladrão',
       },
@@ -668,7 +674,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Refugiado: {
     name: 'Refugiado',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Um item estrangeiro de até T$ 100.',
       },
@@ -678,7 +684,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Seguidor: {
     name: 'Seguidor',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Um item recebido de seu mestre de até T$ 100.',
       },
@@ -692,11 +698,22 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Selvagem: {
     name: 'Selvagem',
-    itens: [
-      {
-        equipment: 'Pequeno animal de estimação como um pássaro ou esquilo',
-      }, // TODO: Uma arma simples
-    ],
+    getItems: (): Items[] => {
+      const allowedWapons = [...EQUIPAMENTOS.armasSimples];
+
+      const selectedWeapon = getRandomItemFromArray(allowedWapons);
+
+      const originItems = [
+        {
+          equipment: 'Pequeno animal de estimação como um pássaro ou esquilo',
+        },
+        {
+          equipment: selectedWeapon,
+        },
+      ];
+
+      return originItems;
+    },
     pericias: [Skill.PERCEPCAO, Skill.REFLEXOS, Skill.SOBREVIVENCIA],
     poderes: [
       originPowers.VIDA_RUSTICA,
@@ -706,7 +723,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Soldado: {
     name: 'Soldado',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment: 'Uniforme Militar',
       },
@@ -720,7 +737,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Taverneiro: {
     name: 'Taverneiro',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment:
           'Rolo de macarrão ou martelo de carne (mesmas estatísticas de uma clava)',
@@ -747,7 +764,7 @@ export const ORIGINS: Record<origins, Origin> = {
   },
   Trabalhador: {
     name: 'Trabalhador',
-    itens: [
+    getItems: (): Items[] => [
       {
         equipment:
           'Uma ferramenta pesada (mesmas estatísticas de uma maça ou lança, a sua escolha).',
