@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import AGGELUS from './races/aggelus';
 import ANAO from './races/anao';
 import DAHLLAN from './races/dahllan';
@@ -42,7 +43,7 @@ const RACAS = [
 export default RACAS;
 
 export function getRaceByName(name: string): Race {
-  const race = RACAS.find((element) => element.name === name);
+  const race = _.cloneDeep(RACAS.find((element) => element.name === name));
   if (race) {
     if (race.setup) {
       return race.setup(race, RACAS);
@@ -50,7 +51,7 @@ export function getRaceByName(name: string): Race {
     return race;
   }
 
-  const [defaultRace] = RACAS;
+  const defaultRace = _.cloneDeep(RACAS[0]);
   if (defaultRace.setup) {
     return defaultRace.setup(defaultRace, RACAS);
   }
