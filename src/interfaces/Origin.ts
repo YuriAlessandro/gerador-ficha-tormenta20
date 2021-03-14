@@ -20,6 +20,8 @@ interface Origin {
   itens: Items[];
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
+  getPowersAndSkills?: (usedSkills: Skill[], origin?: Origin) => OriginBenefits;
+  getItems?: (origin: Origin, items: Items[]) => Items[];
 }
 
 export default Origin;

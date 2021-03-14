@@ -38,6 +38,7 @@ const Result: React.FC<ResultProps> = (props) => {
     spells,
     displacement,
     maxWeight,
+    generalPowers,
     steps,
   } = sheet;
 
@@ -52,6 +53,11 @@ const Result: React.FC<ResultProps> = (props) => {
   const [isClassPowersVisible, setClassPowersVisible] = React.useState<boolean>(
     false
   );
+
+  const [
+    generalPowersVisible,
+    setGeneralPowersVisible,
+  ] = React.useState<boolean>(false);
 
   const [showExportButton, setExportButton] = React.useState<boolean>();
 
@@ -120,6 +126,14 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const originPowers = origin?.powers
     ? origin?.powers.map((power) => (
+        <li key={getKey(power.name)}>
+          <strong>{power.name}:</strong> {power.description}
+        </li>
+      ))
+    : '';
+
+  const generalPowersDiv = generalPowers
+    ? generalPowers.map((power) => (
         <li key={getKey(power.name)}>
           <strong>{power.name}:</strong> {power.description}
         </li>
@@ -357,6 +371,32 @@ const Result: React.FC<ResultProps> = (props) => {
                 }}
               >
                 <ul>{originPowers}</ul>
+              </div>
+            </div>
+          )}
+
+          {generalPowers.length > 0 && (
+            <div className='resultRow powers'>
+              <div
+                className='powersNameRow'
+                onClick={() => setGeneralPowersVisible(!generalPowersVisible)}
+                onKeyDown={() => setGeneralPowersVisible(!generalPowersVisible)}
+                role='button'
+                tabIndex={0}
+              >
+                <ChevronRightIcon
+                  className={`powerIcon ${
+                    generalPowersVisible ? 'down' : 'normal'
+                  }`}
+                />
+                <strong>Poderes Gerais</strong>
+              </div>
+              <div
+                style={{
+                  display: `${generalPowersVisible ? 'block' : 'none'}`,
+                }}
+              >
+                <ul>{generalPowersDiv}</ul>
               </div>
             </div>
           )}

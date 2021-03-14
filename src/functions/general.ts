@@ -330,22 +330,22 @@ export function getSkillsAndPowersByClassAndOrigin(
     general: [],
   };
 
-  const skills: Skill[] = [];
-  skills.push(...getClassBaseSkills(classe));
+  const usedSkills: Skill[] = [];
+  usedSkills.push(...getClassBaseSkills(classe));
   if (origin) {
     const { skills: originSkills, powers: originPowers } = getOriginBenefits(
-      origin,
-      skills
+      usedSkills,
+      origin
     );
     powers = originPowers;
-    skills.push(...originSkills);
+    usedSkills.push(...originSkills);
   }
 
-  skills.push(...getRemainingSkills(skills, classe));
-  skills.push(...getAttributesSkills(attributes, skills));
+  usedSkills.push(...getRemainingSkills(usedSkills, classe));
+  usedSkills.push(...getAttributesSkills(attributes, usedSkills));
 
   return {
-    skills,
+    skills: usedSkills,
     powers,
   };
 }
