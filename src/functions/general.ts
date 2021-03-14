@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _, { merge } from 'lodash';
+import _ from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -159,7 +159,7 @@ export function getModValue(attr: number): number {
 //   return getRandomItemFromArray(keys);
 // }
 
-function rollAttributeValues(): CharacterAttributes {
+function rollAttributeValues(): number[] {
   const rolledValues = Object.values(Atributo).map(() => rollDice(4, 6, 1));
 
   // eslint-disable-next-line
@@ -172,13 +172,7 @@ function rollAttributeValues(): CharacterAttributes {
     rolledValues.push(rollDice(4, 6, 1));
   }
 
-  return Object.values(Atributo).reduce((acc, attr, index) => {
-    const mod = getModValue(rolledValues[index]);
-    return {
-      ...acc,
-      [attr]: { name: attr, value: rolledValues[index], mod },
-    };
-  }, {}) as CharacterAttributes;
+  return rolledValues;
 }
 
 function getNotRepeatedAttribute(atributosModificados: string[]) {
@@ -258,21 +252,22 @@ export function modifyAttributesBasedOnRace(
   return reducedAttrs.atributos;
 }
 
-function getInitialPV(pv: number, constAttr: CharacterAttribute | undefined) {
-  if (constAttr) {
-    return pv + constAttr?.mod ?? 0;
-  }
-  return pv;
-}
+function generateFinalAttributes(
+  atributosNumericos: number[],
+  classe: ClassDescription,
+  race: Race
+) {
+  // TODO: Invés de mapear cada valor para cada atributo na ordem, utilizar ordem de preferência da classe
 
-function getInitialDef(destAttr: CharacterAttribute | undefined) {
-  const baseDef = 10;
+  const charAttributes = Object.values(Atributo).reduce((acc, attr, index) => {
+    const mod = getModValue(atributosNumericos[index]);
+    return {
+      ...acc,
+      [attr]: { name: attr, value: atributosNumericos[index], mod },
+    };
+  }, {}) as CharacterAttributes;
 
-  if (destAttr) {
-    return baseDef + destAttr?.mod ?? 0;
-  }
-
-  return baseDef;
+  return modifyAttributesBasedOnRace(race, charAttributes);
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
@@ -283,25 +278,22 @@ export function selectRace(selectedOptions: SelectedOptions): Race {
   return getRaceByName(getRandomItemFromArray(RACAS).name);
 }
 
-function getRaceAndRaceStats(
+function getRaceAndName(
   selectedOptions: SelectedOptions,
-  atributosRolados: CharacterAttributes,
   sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
   const race = selectRace(selectedOptions);
-  // Passo 2.2: Cada raça pode modificar atributos, isso será feito aqui
-  const atributos = modifyAttributesBasedOnRace(race, atributosRolados);
   // Passo 2.3: Definir nome
   const nome = generateRandomName(race, sex);
 
-  return { atributos, nome, race };
+  return { nome, race };
 }
 
 export function selectClass(
   selectedOptions: SelectedOptions
 ): ClassDescription {
-  let selectedClass;
+  let selectedClass: ClassDescription | undefined;
   if (selectedOptions.classe) {
     selectedClass = CLASSES.find(
       (currentClasse) => currentClasse.name === selectedOptions.classe
@@ -309,6 +301,7 @@ export function selectClass(
   }
 
   if (!selectedClass) selectedClass = getRandomItemFromArray(CLASSES);
+  selectedClass = _.cloneDeep(selectedClass);
   if (selectedClass.setup) return selectedClass.setup(selectedClass);
   return selectedClass;
 }
@@ -326,21 +319,28 @@ export function getAttributesSkills(
 
 export function getSkillsAndPowersByClassAndOrigin(
   classe: ClassDescription,
-  origin: Origin,
+  origin: Origin | undefined,
   attributes: CharacterAttributes
 ): {
   skills: Skill[];
   powers: { origin: OriginPower[]; general: GeneralPower[] };
 } {
+  let powers: { origin: OriginPower[]; general: GeneralPower[] } = {
+    origin: [],
+    general: [],
+  };
+
   const usedSkills: Skill[] = [];
-
   usedSkills.push(...getClassBaseSkills(classe));
-  const { skills: originSkills, powers } = getOriginBenefits(
-    usedSkills,
-    origin
-  );
+  if (origin) {
+    const { skills: originSkills, powers: originPowers } = getOriginBenefits(
+      usedSkills,
+      origin
+    );
+    powers = originPowers;
+    usedSkills.push(...originSkills);
+  }
 
-  usedSkills.push(...originSkills);
   usedSkills.push(...getRemainingSkills(usedSkills, classe));
   usedSkills.push(...getAttributesSkills(attributes, usedSkills));
 
@@ -399,7 +399,7 @@ function getInitialEquipments(
   };
 }
 
-function getInitialBag(classe: ClassDescription): Bag {
+function getInitialBag(origin: Origin | undefined): Bag {
   // 6.1 A depender da classe os itens podem variar
   const bag: Bag = _.cloneDeep(DEFAULT_BAG);
 
@@ -409,10 +409,20 @@ function getInitialBag(classe: ClassDescription): Bag {
     group: 'Item Geral',
   });
 
-  const bagEquipments = getInitialEquipments(bag.equipments, classe);
-  const updatedBag = updateEquipments(bag, bagEquipments);
+  origin?.itens.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      const newEquip: Equipment = {
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      };
+      bag.equipments['Item Geral'].push(newEquip);
+    } else {
+      // É uma arma
+      bag.equipments.Arma.push(equip.equipment);
+    }
+  });
 
-  return updatedBag;
+  return bag;
 }
 
 function getThyatisPowers() {
@@ -472,9 +482,9 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getSpells(classe: ClassDescription): Spell[] {
+function getSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
   const { spellPath } = classe;
-  if (!spellPath) return [];
+  if (!spellPath) return usedSpells;
 
   // TODO: enable picking spells from other circles besides c1 for higher levels
   const { initialSpells, schools, spellType } = spellPath;
@@ -489,7 +499,11 @@ function getSpells(classe: ClassDescription): Spell[] {
     }
   }
 
-  const selectedSpells = pickFromArray(spellList, initialSpells);
+  const filteredSpellList = spellList.filter(
+    (spell) => !usedSpells.find((usedSpell) => usedSpell.nome === spell.nome)
+  );
+
+  const selectedSpells = pickFromArray(filteredSpellList, initialSpells);
 
   return selectedSpells.map((spell) => setupSpell(spell));
 }
@@ -520,19 +534,9 @@ export function applyRaceHabilities(
   );
 }
 
-function getOriginItems(origin: Origin, bag: Bag) {
-  origin.itens.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      const newEquip: Equipment = {
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      };
-      bag.equipments['Item Geral'].push(newEquip);
-    } else {
-      // É uma arma
-      bag.equipments.Arma.push(equip.equipment);
-    }
-  });
+// TODO: Implement this
+function getAndApplyPowers(sheet: CharacterSheet): CharacterSheet {
+  return sheet;
 }
 
 export default function generateRandomSheet(
@@ -544,106 +548,103 @@ export default function generateRandomSheet(
   const steps = STEPS;
 
   // Passo 1: Gerar os atributos base desse personagem
-  const atributosRolados = rollAttributeValues();
+  const atributosNumericos = rollAttributeValues();
 
   // Passo 1.1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
   // Passo 2: Definir raça
-  const { race, atributos, nome } = getRaceAndRaceStats(
-    selectedOptions,
-    atributosRolados as CharacterAttributes,
-    sexo
-  );
+  const { race, nome } = getRaceAndName(selectedOptions, sexo);
 
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
-  // Passo 3.1: Determinando o PV baseado na classe
-  const constAttr = atributos.Constituição;
-  const pvInicial = getInitialPV(classe.pv, constAttr);
 
-  // Passo 3.2: Determinando a Defesa inicial
-  const destAttr = atributos.Destreza;
-  const initialDefense = getInitialDef(destAttr);
+  // Passo 4: Definir origem (se houver)
+  let origin: Origin | undefined;
+  if (race.name !== 'Golem') {
+    origin = getRandomItemFromArray(Object.values(ORIGINS));
+  }
 
-  // Passo 4: Definição de origem
-  // const origin = getRandomItemFromArray(Object.values(ORIGINS));
-  const origin = ORIGINS.Capanga;
+  // Passo 5: itens, feitiços, e valores iniciais
+  const initialBag = getInitialBag(origin);
+  const initialSpells: Spell[] = [];
+  const initialPV = classe.pv;
+  const initialPM = classe.pm;
+  const initialDefense = 10;
 
-  // Passo 5: Marcar as perícias treinadas
-  // 5.1: Definir perícias da classe
-  const {
-    powers: { origin: originPowers, general: originGeneralPowers },
-    skills,
-  } = getSkillsAndPowersByClassAndOrigin(classe, origin, atributos);
+  // Passo 6: Gerar atributos finais
+  const atributos = generateFinalAttributes(atributosNumericos, classe, race);
 
-  // Passo 6: Definição de itens iniciais
-  const bag = getInitialBag(classe);
-  // 6.1: Incrementar defesa com base nos Equipamentos
-  const defense = calcDefense(initialDefense, bag);
-
-  // 6.2: Adicionar itens de origem
-  getOriginItems(origin, bag);
+  // Passo 6.1: Gerar valores dependentes de atributos
+  const maxWeight = atributos.Força.value * 3;
+  const summedPV = initialPV + atributos.Constituição.mod;
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devote = getReligiosidade(classe, race);
 
-  // Passo 8: Gerar magias se possível
-  const spells = getSpells(classe);
-
-  // Passo 9: Recuperar deslocamento e tamanho com base na Raça, Atributos e Equipamentos
-  const size = getRaceSize(race);
-
-  const stats = applyRaceHabilities(race, {
-    attributes: atributos,
-    bag,
-    classDescription: classe,
-    defense,
-    displacement: getRaceDisplacement(race),
-    level,
-    size,
+  // Passo 8: Gerar pericias treinadas
+  const { powers, skills } = getSkillsAndPowersByClassAndOrigin(
+    classe,
     origin,
-    skills,
-    spells,
-    devote,
-    powers: {
-      general: originGeneralPowers,
-      origin: originPowers,
-    },
-    pm: classe.pm,
-    pv: pvInicial,
-  });
-
-  const displacement = calcDisplacement(bag, stats.displacement, atributos);
-
-  // Passo 10: Calcular o peso máximo com base na força
-  const maxWeight = atributos.Força.value * 3;
-
-  return merge(
-    {
-      id: uuid(),
-      nome,
-      sexo,
-      nivel: level,
-      atributos,
-      maxWeight,
-      raca: race,
-      classe: stats.classDescription,
-      pv: stats.pv,
-      pm: stats.pm,
-      defesa: stats.defense,
-      bag: stats.bag,
-      devoto: stats.devote,
-      origin: {
-        name: origin.name,
-        powers: stats.powers.origin,
-      },
-      displacement,
-      size: stats.size,
-      generalPowers: [...stats.powers.general],
-      steps,
-    },
-    stats
+    atributos
   );
+
+  let sheetOrigin;
+  if (origin) {
+    sheetOrigin = {
+      name: origin.name,
+      powers: powers.origin,
+    };
+  }
+
+  let charSheet: CharacterSheet = {
+    id: uuid(),
+    nome,
+    sexo,
+    nivel: level,
+    atributos,
+    maxWeight,
+    raca: race,
+    classe,
+    pv: summedPV,
+    pm: initialPM,
+    defesa: initialDefense,
+    bag: initialBag,
+    devoto: devote,
+    origin: sheetOrigin,
+    displacement: 0,
+    size: getRaceSize(race),
+    generalPowers: [...powers.general],
+    steps,
+    skills,
+    spells: initialSpells,
+  };
+
+  // Passo 9:
+  // Gerar poderes restantes, e aplicar habilidades, e poderes
+  charSheet = getAndApplyPowers(charSheet);
+
+  // Passo 10:
+  // Gerar equipamento
+  const bagEquipments = getInitialEquipments(charSheet.bag.equipments, classe);
+  const updatedBag = updateEquipments(charSheet.bag, bagEquipments);
+  charSheet.bag = updatedBag;
+
+  // Passo 11:
+  // Recalcular defesa
+  charSheet = calcDefense(charSheet);
+
+  // Passo 12: Gerar magias se possível
+  const spells = getSpells(charSheet.classe, charSheet.spells);
+  charSheet.spells = spells;
+
+  const displacement = calcDisplacement(
+    charSheet.bag,
+    getRaceDisplacement(charSheet.raca),
+    charSheet.atributos
+  );
+  charSheet.displacement = displacement;
+
+  return charSheet;
 }
