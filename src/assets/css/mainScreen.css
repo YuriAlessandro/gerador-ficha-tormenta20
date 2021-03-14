@@ -21,6 +21,11 @@
   cursor: pointer;
 }
 
+#presentation {
+  max-width: 70vw;
+  padding: 30px;
+}
+
 @media (max-width: 720px) {
   .filterArea {
     flex-wrap: wrap;
