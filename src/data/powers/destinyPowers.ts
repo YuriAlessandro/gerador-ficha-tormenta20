@@ -11,7 +11,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você pode usar seu modificador de Destreza em vez de Força em testes de Atletismo. Além disso, terreno difícil não reduz seu deslocamento nem o impede de realizar investidas.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 }],
     ],
   },
   AO_SABOR_DO_DESTINO: {
@@ -20,10 +20,12 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe diversos benefícios, de acordo com seu nível de personagem e a tabela da página 129.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      {
-        type: RequirementType.PODER,
-        name: '5º nível de personagem.',
-      },
+      [
+        {
+          type: RequirementType.NIVEL,
+          value: 5,
+        },
+      ],
     ],
   },
   APARENCIA_INOFENSIVA: {
@@ -32,7 +34,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'A primeira criatura inteligente (Int 3 ou mais) que atacar você em uma cena deve fazer um teste de Vontade (CD Car). Se falhar, perderá sua ação. Este poder só funciona uma vez por cena; independentemente de a criatura falhar ou não no teste, poderá atacá-lo nas rodadas seguintes.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
     ],
   },
   ATLETICO: {
@@ -40,7 +42,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description: 'Você recebe +2 em Atletismo e +3m em seu deslocamento.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Força', value: 15 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 15 }],
     ],
   },
   ATRAENTE: {
@@ -49,7 +51,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em testes de perícias baseadas em Carisma contra criaturas que possam se sentir fisicamente atraídas por você.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
     ],
   },
   COMANDAR: {
@@ -58,7 +60,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você pode gastar uma ação de movimento e 1 PM para gritar ordens para seus aliados em alcance médio. Eles recebem +1 em testes de perícia até o fim da cena.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
     ],
   },
   FOCO_EM_PERICIA: {
@@ -67,7 +69,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Escolha uma perícia. Quando faz um teste dessa perícia, você pode gastar 1 PM para rolar dois dados e usar o melhor resultado. Você pode escolher este poder outras vezes para perícias diferentes. Este poder não pode ser aplicado em Luta e Pontaria',
     type: GeneralPowerType.DESTINO,
     allowSeveralPicks: true,
-    requirements: [],
+    requirements: [[]],
   },
   INVESTIGADOR: {
     name: 'Investigador',
@@ -75,7 +77,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em Investigação e soma seu bônus de Inteligência em Intuição.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
     ],
   },
   LOBO_SOLITARIO: {
@@ -83,7 +85,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe +1 em testes de perícia e Defesa se estiver sem nenhum aliado em alcance curto. Você não sofre penalidade por usar a perícia Cura em si mesmo.',
     type: GeneralPowerType.DESTINO,
-    requirements: [],
+    requirements: [[]],
   },
   MEDICINA: {
     name: 'Medicina',
@@ -91,8 +93,10 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você pode gastar uma ação completa para fazer um teste de Cura (CD 15) em uma criatura. Se você passar, ela recupera 1d6 PV, mais 1d6 para cada 5 pontos pelos quais o resultado do teste exceder a CD (2d6 com um resultado 20, 3d6 com um resultado 25 e assim por diante). Você só pode usar este poder uma vez por dia numa mesma criatura.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
-      { type: RequirementType.PODER, name: 'treinado em Cura' },
+      [
+        { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
+        { type: RequirementType.PERICIA, name: 'Cura' },
+      ],
     ],
   },
   PARCEIRO: {
@@ -101,11 +105,26 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description: '',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      {
-        type: RequirementType.PODER,
-        name:
-          'treinado em Adestramento (parceiro animal) ou Diplomacia (parceiro humanoide), 6º nível de personagem.',
-      },
+      [
+        {
+          type: RequirementType.PERICIA,
+          name: 'Adestramento',
+        },
+        {
+          type: RequirementType.NIVEL,
+          value: 6,
+        },
+      ],
+      [
+        {
+          type: RequirementType.PERICIA,
+          name: 'Diplomacia',
+        },
+        {
+          type: RequirementType.NIVEL,
+          value: 6,
+        },
+      ],
     ],
   },
   SENTIDOS_AGUCADOS: {
@@ -114,14 +133,14 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
     ],
   },
   SORTUDO: {
     name: 'Sortudo',
     description:
       'Você pode gastar 3 PM para rolar novamente um teste recém realizado (apenas uma vez por teste).',
-    requirements: [],
+    requirements: [[]],
     type: GeneralPowerType.DESTINO,
   },
   SURTO_HEROICO: {
@@ -130,7 +149,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Uma vez por rodada, você pode gastar 5 PM para realizar uma ação padrão ou de movimento adicional.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
     ],
   },
   TORCIDA: {
@@ -139,7 +158,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em testes de perícia e Defesa quando tem a torcida a seu favor. Entenda-se por “torcida” qualquer número de criaturas inteligentes em alcance médio que não esteja realizando nenhuma ação além de torcer por você.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
     ],
   },
   TREINAMENTO_EM_PERICIA: {
@@ -147,7 +166,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description:
       'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
-    requirements: [],
+    requirements: [[]],
   },
   VENEFICIO: {
     name: 'Venefício',
@@ -155,7 +174,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Quando usa um veneno, você não corre risco de se envenenar acidentalmente. Além disso, a CD para resistir aos seus venenos aumenta em +2.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.PODER, name: 'treinado em Ofício (alquimia).' },
+      [{ type: RequirementType.PERICIA, name: 'Ofício (Alquimia)' }],
     ],
   },
   VONTADE_DE_FERRO: {
@@ -164,7 +183,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +1 PM para cada dois níveis de personagem e +2 em Vontade.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
+      [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 }],
     ],
   },
 };
