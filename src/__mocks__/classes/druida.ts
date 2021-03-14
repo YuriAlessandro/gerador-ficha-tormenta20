@@ -1,9 +1,9 @@
-import { GeneralPowerType } from '../../../interfaces/Poderes';
-import { CharacterStats } from '../../../interfaces/Race';
-import Skill from '../../../interfaces/Skills';
-import { spellsCircles } from '../../../interfaces/Spells';
-import { Atributo } from '../../atributos';
-import { spellsCircle1 } from '../../magias/generalSpells';
+import { GeneralPowerType } from '../../interfaces/Poderes';
+import { CharacterStats } from '../../interfaces/Race';
+import Skill from '../../interfaces/Skills';
+import { spellsCircles } from '../../interfaces/Spells';
+import { Atributo } from '../../data/atributos';
+import { spellsCircle1 } from '../../data/magias/generalSpells';
 
 export const druida: CharacterStats = {
   attributes: {
@@ -133,8 +133,9 @@ export const druida: CharacterStats = {
       spellType: 'Divine',
       schools: ['Abjur', 'Evoc', 'Necro'],
       keyAttribute: Atributo.SABEDORIA,
-      qtySpellsLearnAtLevel: (level) => (level % 2 === 0 ? 1 : 0),
-      spellCircleAvailableAtLevel: (level) => {
+      qtySpellsLearnAtLevel: (level: number): number =>
+        level % 2 === 0 ? 1 : 0,
+      spellCircleAvailableAtLevel: (level: number): number => {
         if (level < 6) return 1;
         if (level < 10) return 2;
         if (level < 14) return 3;

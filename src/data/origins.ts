@@ -11,11 +11,10 @@ import {
   pickFromArray,
 } from '../functions/randomUtils';
 import { OriginPower, GeneralPower } from '../interfaces/Poderes';
-import generalPowers from './poderes';
+import generalPowers, { getUnrestricedTormentaPowers } from './poderes';
 import Skill from '../interfaces/Skills';
 import { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
-import tormentaPowers from './powers/tormentaPowers';
 
 export type origins =
   | 'Acólito'
@@ -137,7 +136,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ALQUIMIA],
-    poderes: [originPowers.ESSE_CHEIRO, ...Object.values(tormentaPowers)],
+    poderes: [originPowers.ESSE_CHEIRO],
   },
   Batedor: {
     name: 'Batedor',
@@ -608,7 +607,7 @@ function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
   );
 }
 
-function sortOriginBenefits(origin: Origin, usedSkills: Skill[]) {
+function sortDefaultBenefits(usedSkills: Skill[], origin: Origin) {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     usedSkills,
     origin.pericias
@@ -637,16 +636,39 @@ function sortAmnesicBenefits(skills: Skill[]): OriginBenefits {
   };
 }
 
+function sortLabAssistentBenefits(usedSkills: Skill[]): OriginBenefits {
+  const allowedTormentaPowers = getUnrestricedTormentaPowers();
+  const choosenTormentaPower = getRandomItemFromArray(allowedTormentaPowers);
+  const origin = ORIGINS['Assistente de Laboratório'];
+
+  const notRepeatedSkills = getNotUsedSkillsFromAllowed(
+    usedSkills,
+    origin.pericias
+  );
+
+  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
+    [...notRepeatedSkills, ...origin.poderes, choosenTormentaPower],
+    2
+  );
+
+  return getBenefits(sortedBenefits);
+}
+
+const originStrategies = {
+  [ORIGINS.Amnésico.name]: sortAmnesicBenefits,
+  [ORIGINS['Assistente de Laboratório'].name]: sortLabAssistentBenefits,
+};
+
 // TODO: EVITAR PODER REPETIDO
 export function getOriginBenefits(
   origin: Origin,
   skills: Skill[]
 ): OriginBenefits {
-  if (origin.name === ORIGINS.Amnésico.name) {
-    return sortAmnesicBenefits(skills);
+  if (originStrategies[origin.name]) {
+    return originStrategies[origin.name](skills);
   }
 
-  return sortOriginBenefits(origin, skills);
+  return sortDefaultBenefits(skills, origin);
 }
 
 export default ORIGINS;

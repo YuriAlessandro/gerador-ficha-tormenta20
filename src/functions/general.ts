@@ -275,7 +275,7 @@ function getInitialDef(destAttr: CharacterAttribute | undefined) {
   return baseDef;
 }
 
-function selectRace(selectedOptions: SelectedOptions): Race {
+export function selectRace(selectedOptions: SelectedOptions): Race {
   if (selectedOptions.raca) {
     return getRaceByName(selectedOptions.raca);
   }
@@ -298,7 +298,9 @@ function getRaceAndRaceStats(
   return { atributos, nome, race };
 }
 
-function selectClass(selectedOptions: SelectedOptions): ClassDescription {
+export function selectClass(
+  selectedOptions: SelectedOptions
+): ClassDescription {
   let selectedClass;
   if (selectedOptions.classe) {
     selectedClass = CLASSES.find(
@@ -311,10 +313,10 @@ function selectClass(selectedOptions: SelectedOptions): ClassDescription {
   return selectedClass;
 }
 
-function getAttributesSkills(
+export function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: Skill[]
-) {
+): Skill[] {
   if (attributes.Inteligência.mod > 0) {
     return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
   }
@@ -322,7 +324,7 @@ function getAttributesSkills(
   return [];
 }
 
-function getSkillsAndPowers(
+export function getSkillsAndPowersByClassAndOrigin(
   classe: ClassDescription,
   origin: Origin,
   attributes: CharacterAttributes
@@ -333,7 +335,6 @@ function getSkillsAndPowers(
   const skills: Skill[] = [];
 
   skills.push(...getClassBaseSkills(classe));
-
   const { skills: originSkills, powers } = getOriginBenefits(origin, skills);
 
   skills.push(...originSkills);
@@ -516,6 +517,21 @@ export function applyRaceHabilities(
   );
 }
 
+function getOriginItems(origin: Origin, bag: Bag) {
+  origin.itens.forEach((equip) => {
+    if (typeof equip.equipment === 'string') {
+      const newEquip: Equipment = {
+        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+        group: 'Item Geral',
+      };
+      bag.equipments['Item Geral'].push(newEquip);
+    } else {
+      // É uma arma
+      bag.equipments.Arma.push(equip.equipment);
+    }
+  });
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -544,19 +560,9 @@ export default function generateRandomSheet(
   const constAttr = atributos.Constituição;
   const pvInicial = getInitialPV(classe.pv, constAttr);
 
-  // Passo 3.2: Determinando o PM baseado na classe
-  const { pm: pmInicial } = classe;
-
-  // Passo 3.3: Determinando a Defesa inicial
+  // Passo 3.2: Determinando a Defesa inicial
   const destAttr = atributos.Destreza;
   const initialDefense = getInitialDef(destAttr);
-
-  // Passo 3.4: Alterar características da classe com base na raça
-  const classDetails = {
-    pv: pvInicial,
-    pm: pmInicial,
-    defesa: initialDefense,
-  };
 
   // Passo 4: Definição de origem
   const origin = getRandomItemFromArray(Object.values(ORIGINS));
@@ -566,26 +572,15 @@ export default function generateRandomSheet(
   const {
     powers: { origin: originPowers, general: originGeneralPowers },
     skills,
-  } = getSkillsAndPowers(classe, origin, atributos);
+  } = getSkillsAndPowersByClassAndOrigin(classe, origin, atributos);
 
   // Passo 6: Definição de itens iniciais
   const bag = getInitialBag(classe);
   // 6.1: Incrementar defesa com base nos Equipamentos
-  const defense = calcDefense(classDetails.defesa, bag);
+  const defense = calcDefense(initialDefense, bag);
 
   // 6.2: Adicionar itens de origem
-  origin.itens.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      const newEquip: Equipment = {
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      };
-      bag.equipments['Item Geral'].push(newEquip);
-    } else {
-      // É uma arma
-      bag.equipments.Arma.push(equip.equipment);
-    }
-  });
+  getOriginItems(origin, bag);
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
   const devote = getReligiosidade(classe, race);
@@ -600,7 +595,7 @@ export default function generateRandomSheet(
     attributes: atributos,
     bag,
     classDescription: classe,
-    defense: initialDefense,
+    defense,
     displacement: getRaceDisplacement(race),
     level,
     size,
@@ -612,7 +607,8 @@ export default function generateRandomSheet(
       general: originGeneralPowers,
       origin: originPowers,
     },
-    ...classDetails,
+    pm: classe.pm,
+    pv: pvInicial,
   });
 
   const displacement = calcDisplacement(bag, stats.displacement, atributos);
@@ -629,19 +625,19 @@ export default function generateRandomSheet(
       atributos,
       maxWeight,
       raca: race,
-      classe,
-      pv: pvInicial,
-      pm: pmInicial,
-      defesa: defense,
-      bag,
-      devoto: devote,
+      classe: stats.classDescription,
+      pv: stats.pv,
+      pm: stats.pm,
+      defesa: stats.defense,
+      bag: stats.bag,
+      devoto: stats.devote,
       origin: {
         name: origin.name,
-        powers: originPowers,
+        powers: stats.powers.origin,
       },
       displacement,
-      size,
-      generalPowers: [...originGeneralPowers],
+      size: stats.size,
+      generalPowers: [...stats.powers.general],
       steps,
     },
     stats
