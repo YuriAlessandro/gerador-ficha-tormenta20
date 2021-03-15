@@ -1,8 +1,11 @@
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
+import { getNotRepeatedRandomSkill } from '../pericias';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
   ACROBATICO: {
@@ -39,11 +42,30 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   },
   ATLETICO: {
     name: 'Atlético',
-    description: 'Você recebe +2 em Atletismo e +3m em seu deslocamento.',
+    description:
+      'Você recebe +2 em Atletismo e +3m em seu deslocamento (JÁ INCLUSO).',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 15 }],
     ],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Atlético',
+        value: 'Deslocamento +3',
+      });
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        displacement: sheetClone.displacement + 3,
+      });
+    },
   },
   ATRAENTE: {
     name: 'Atraente',
@@ -164,9 +186,29 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   TREINAMENTO_EM_PERICIA: {
     name: 'Treinamento em Perícia',
     description:
-      'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
+      'Você se torna treinado em uma perícia a sua escolha (JÁ INCLUSO). Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      const newSkill = getNotRepeatedRandomSkill(sheetClone.skills);
+
+      subSteps.push({
+        name: 'Treinamento em Perícia',
+        value: newSkill,
+      });
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        skills: [...sheetClone.skills, newSkill],
+      });
+    },
   },
   VENEFICIO: {
     name: 'Venefício',
