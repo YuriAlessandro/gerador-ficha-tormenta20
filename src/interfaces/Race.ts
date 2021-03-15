@@ -57,7 +57,7 @@ export interface RaceAbility {
   name: string;
   description: string;
   action?: (
-    stats: CharacterSheet,
+    sheet: CharacterSheet,
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
 }
