@@ -7,7 +7,6 @@ const AGGELUS: Race = {
     attrs: [
       { attr: Atributo.SABEDORIA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },
-      { attr: Atributo.DESTREZA, mod: 4 },
     ],
     texts: [
       'Você é uma criatura do tipo espírito e recebe visão no escuro.',

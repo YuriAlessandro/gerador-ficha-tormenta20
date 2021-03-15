@@ -43,12 +43,11 @@
 }
 
 .resultLeft {
-  width: 67vw;
+  flex: 2;
 }
 
 .resultRight {
-  margin-left: 30px;
-  width: 30vw;
+  flex: 1;
 }
 
 .resultMainDiv {

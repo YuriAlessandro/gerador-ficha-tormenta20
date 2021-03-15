@@ -30,7 +30,10 @@ export interface GeneralPower {
   name: string;
   requirements: Requirement[];
   allowSeveralPicks?: boolean;
-  action?: (sheet: CharacterSheet) => CharacterSheet;
+  action?: (
+    sheet: CharacterSheet,
+    subSteps: { name: string; value: string }[]
+  ) => CharacterSheet;
 }
 
 export type GeneralPowers = {
