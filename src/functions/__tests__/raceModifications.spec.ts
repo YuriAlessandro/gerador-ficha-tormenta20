@@ -22,11 +22,11 @@ describe('Testa modificações da raça Aggelus', () => {
       Força: { name: Atributo.FORCA, value: 17, mod: 3 },
       Constituição: { name: Atributo.CONSTITUICAO, value: 12, mod: 1 },
       Inteligência: { name: Atributo.INTELIGENCIA, value: 12, mod: 1 },
+      Destreza: { name: Atributo.DESTREZA, value: 10, mod: 0 },
     };
 
     const expectedAttrs = {
       ...attrNotChanged,
-      Destreza: { name: Atributo.DESTREZA, value: 14, mod: 2 },
       Carisma: { name: Atributo.CARISMA, value: 14, mod: 2 },
       Sabedoria: { name: Atributo.SABEDORIA, value: 17, mod: 3 },
     };

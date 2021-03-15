@@ -18,7 +18,7 @@ export enum RequirementType {
   PODER_TORMENTA = 'PODER_TORMENTA',
 }
 
-interface Requirement {
+export interface Requirement {
   type: RequirementType;
   name?: string | Atributo;
   value?: number;

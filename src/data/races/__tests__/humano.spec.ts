@@ -1,4 +1,4 @@
-import { applyRaceHabilities } from '../../../functions/general';
+import { applyRaceAbilities } from '../../../functions/general';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 import Skill from '../../../interfaces/Skills';
 import HUMANO from '../humano';
@@ -14,7 +14,7 @@ describe('Testa habilidades da raça Humano', () => {
           raca: HUMANO,
         } as unknown) as CharacterSheet;
 
-        const received = applyRaceHabilities(sheet);
+        const received = applyRaceAbilities(sheet);
 
         expect(received.skills.length).toBeGreaterThan(1);
         expect(received.skills.length).toBeLessThan(4);
