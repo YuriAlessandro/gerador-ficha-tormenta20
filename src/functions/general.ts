@@ -129,7 +129,7 @@ export function modifyAttributesBasedOnRace(
   priorityAttrs: Atributo[],
   steps: Step[]
 ): CharacterAttributes {
-  const values: { nome: string; valor: string | number }[] = [];
+  const values: { name: string; value: string | number }[] = [];
   const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random)
@@ -146,8 +146,8 @@ export function modifyAttributesBasedOnRace(
       );
 
       values.push({
-        nome: selectedAttrName,
-        valor: `${attrDaRaca.mod > 0 ? `+` : ''}${attrDaRaca.mod}`,
+        name: selectedAttrName,
+        value: `${attrDaRaca.mod > 0 ? `+` : ''}${attrDaRaca.mod}`,
       });
 
       return {
@@ -208,6 +208,15 @@ function generateFinalAttributes(
     };
   }, priorityGeneratedAttrs) as CharacterAttributes;
 
+  steps.push({
+    label: 'Atributos iniciais',
+    type: 'Atributos',
+    value: Object.values(charAttributes).map((attr) => ({
+      name: attr.name,
+      value: attr.value,
+    })),
+  });
+
   const finalAttrs = modifyAttributesBasedOnRace(
     race,
     charAttributes,
@@ -215,14 +224,6 @@ function generateFinalAttributes(
     steps
   );
 
-  steps.push({
-    label: 'Atributos iniciais',
-    type: 'Atributos',
-    value: Object.values(charAttributes).map((attr) => ({
-      nome: attr.name,
-      valor: attr.value,
-    })),
-  });
   // sort and return
   return Object.values(Atributo).reduce(
     (acc, attr) => ({
@@ -308,7 +309,7 @@ export function getSkillsAndPowersByClassAndOrigin(
       steps.push({
         label: 'Perícias da origem',
         type: 'Perícias',
-        value: originSkills.map((skill) => ({ valor: `${skill}` })),
+        value: originSkills.map((skill) => ({ value: `${skill}` })),
       });
     }
 
@@ -328,7 +329,7 @@ export function getSkillsAndPowersByClassAndOrigin(
   steps.push({
     label: 'Perícias da classe',
     type: 'Perícias',
-    value: classSkills.map((skill) => ({ valor: `${skill}` })),
+    value: classSkills.map((skill) => ({ value: `${skill}` })),
   });
 
   const attributesSkills = getAttributesSkills(attributes, usedSkills);
@@ -337,7 +338,7 @@ export function getSkillsAndPowersByClassAndOrigin(
     steps.push({
       label: 'Perícias (+INT)',
       type: 'Perícias',
-      value: attributesSkills.map((skill) => ({ valor: `${skill}` })),
+      value: attributesSkills.map((skill) => ({ value: `${skill}` })),
     });
   }
 
@@ -481,7 +482,7 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
+function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return usedSpells;
 
@@ -521,54 +522,96 @@ function calcDisplacement(
   return raceDisplacement;
 }
 
-export function applyRaceHabilities(sheet: CharacterSheet): CharacterSheet {
-  const sheetClone = _.cloneDeep(sheet);
+export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
+  let sheetClone = _.cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
-  return (sheetClone.raca.abilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc) : acc),
+  sheetClone = (sheetClone.raca.abilities || []).reduce(
+    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
     sheetClone
   );
+  if (subSteps.length) {
+    sheetClone.steps.push({
+      type: 'Poderes',
+      label: 'Habilidades de Raça',
+      value: subSteps,
+    });
+  }
+
+  return sheetClone;
 }
 
 function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
-  const sheetClone = _.cloneDeep(sheet);
+  let sheetClone = _.cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
-  return (sheetClone.devoto?.poderes || []).reduce(
-    (acc, power) => (power.action ? power.action(acc) : acc),
+  sheetClone = (sheetClone.devoto?.poderes || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
     sheetClone
   );
+  if (subSteps.length) {
+    sheetClone.steps.push({
+      type: 'Poderes',
+      label: 'Poderes Concedidos',
+      value: subSteps,
+    });
+  }
+
+  return sheetClone;
 }
 
-function applyClassHabilities(sheet: CharacterSheet): CharacterSheet {
-  const sheetClone = _.cloneDeep(sheet);
+function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
+  let sheetClone = _.cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
-  return (sheetClone.classe.abilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc) : acc),
+  sheetClone = (sheetClone.classe.abilities || []).reduce(
+    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
     sheetClone
   );
+  if (subSteps.length) {
+    sheetClone.steps.push({
+      type: 'Poderes',
+      label: 'Habilidades de Classe',
+      value: subSteps,
+    });
+  }
+
+  return sheetClone;
 }
 
 function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
-  const sheetClone = _.cloneDeep(sheet);
+  let sheetClone = _.cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
-  return (sheetClone.generalPowers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc) : acc),
+  sheetClone = (sheetClone.generalPowers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
     sheetClone
   );
+
+  if (subSteps.length) {
+    sheetClone.steps.push({
+      type: 'Poderes',
+      label: 'Poderes Gerais',
+      value: subSteps,
+    });
+  }
+
+  return sheetClone;
 }
 
 function getAndApplyPowers(sheet: CharacterSheet): CharacterSheet {
+  let updatedSheet = sheet;
   // Aplicar poderes de divindade
-  let updatedSheet = applyDivinePowers(sheet);
+  updatedSheet = applyDivinePowers(updatedSheet);
 
   // Aplicar habilidades da raça
-  updatedSheet = applyRaceHabilities(sheet);
+  updatedSheet = applyRaceAbilities(updatedSheet);
 
   // Aplicar habilidades da classe
-  updatedSheet = applyClassHabilities(sheet);
+  updatedSheet = applyClassAbilities(updatedSheet);
 
   // Aplicar poderes gerais da origem
-  updatedSheet = applyGeneralPowers(sheet);
+  updatedSheet = applyGeneralPowers(updatedSheet);
 
   return updatedSheet;
 }
@@ -591,18 +634,18 @@ export default function generateRandomSheet(
   if (race.name !== 'Golem') {
     steps.push({
       label: 'Sexo',
-      value: [{ valor: sexo }],
+      value: [{ value: sexo }],
     });
   }
 
   steps.push(
     {
       label: 'Raça',
-      value: [{ valor: race.name }],
+      value: [{ value: race.name }],
     },
     {
       label: 'Nome',
-      value: [{ valor: nome }],
+      value: [{ value: nome }],
     }
   );
 
@@ -611,7 +654,7 @@ export default function generateRandomSheet(
 
   steps.push({
     label: 'Classe',
-    value: [{ valor: classe.name }],
+    value: [{ value: classe.name }],
   });
 
   // Passo 4: Definir origem (se houver)
@@ -623,7 +666,7 @@ export default function generateRandomSheet(
   if (origin) {
     steps.push({
       label: 'Origem',
-      value: [{ valor: origin?.name }],
+      value: [{ value: origin?.name }],
     });
   }
 
@@ -637,15 +680,15 @@ export default function generateRandomSheet(
   steps.push(
     {
       label: 'PV Inicial',
-      value: [{ valor: initialPV }],
+      value: [{ value: initialPV }],
     },
     {
       label: 'PM Inicial',
-      value: [{ valor: initialPM }],
+      value: [{ value: initialPM }],
     },
     {
       label: 'Defesa Inicial',
-      value: [{ valor: initialDefense }],
+      value: [{ value: initialDefense }],
     },
     {
       label: 'Equipamentos Inciais e de Origem',
@@ -662,7 +705,7 @@ export default function generateRandomSheet(
 
   steps.push({
     label: 'Vida máxima (+CON)',
-    value: [{ valor: summedPV }],
+    value: [{ value: summedPV }],
   });
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
@@ -723,39 +766,40 @@ export default function generateRandomSheet(
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet);
 
-  steps.push({
-    label: 'Gera habilidades de classe e raça',
-    value: [],
-  });
-
   // Passo 10:
   // Gerar equipamento
   const bagEquipments = getInitialEquipments(charSheet.bag.equipments, classe);
   const updatedBag = updateEquipments(charSheet.bag, bagEquipments);
   charSheet.bag = updatedBag;
 
-  steps.push({
+  charSheet.steps.push({
+    type: 'Equipamentos',
     label: 'Equipamentos da classe',
-    value: [],
+    value: [
+      ...bagEquipments.Arma,
+      ...bagEquipments.Armadura,
+      ...bagEquipments.Escudo,
+    ].map((equip) => ({ value: equip.nome })),
   });
 
   // Passo 11:
   // Recalcular defesa
   charSheet = calcDefense(charSheet);
 
-  steps.push({
+  charSheet.steps.push({
     label: 'Nova defesa',
-    value: [{ valor: charSheet.defesa }],
+    value: [{ value: charSheet.defesa }],
   });
 
   // Passo 12: Gerar magias se possível
-  const spells = getSpells(charSheet.classe, charSheet.spells);
-  charSheet.spells = spells;
+  const newSpells = getNewSpells(charSheet.classe, charSheet.spells);
+  charSheet.spells.push(...newSpells);
 
-  if (spells.length) {
-    steps.push({
+  if (newSpells.length) {
+    charSheet.steps.push({
       label: 'Magias (1º círculo)',
-      value: [],
+      type: 'Magias',
+      value: newSpells.map((spell) => ({ value: spell.nome })),
     });
   }
 

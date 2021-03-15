@@ -37,5 +37,5 @@ export default interface CharacterSheet {
 export interface Step {
   label: string;
   type?: string;
-  value: { nome?: string; valor: number | string }[];
+  value: { name?: string; value: number | string }[];
 }

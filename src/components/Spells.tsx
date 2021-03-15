@@ -44,7 +44,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
           <table>
             <thead>
               <tr>
-                <th>Magia</th>
+                <th>(Custo) Magia</th>
                 <th>Escola</th>
                 <th>Execução</th>
                 <th>Alcance</th>
