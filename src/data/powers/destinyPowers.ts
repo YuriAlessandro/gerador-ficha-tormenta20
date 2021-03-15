@@ -186,7 +186,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   TREINAMENTO_EM_PERICIA: {
     name: 'Treinamento em Perícia',
     description:
-      'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
+      'Você se torna treinado em uma perícia a sua escolha (JÁ INCLUSO). Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
     requirements: [[]],
     action(
