@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { applyRaceHabilities } from '../../../functions/general';
+import { applyRaceAbilities } from '../../../functions/general';
 import { inventor } from '../../../__mocks__/classes/inventor';
 import ANAO from '../anao';
 

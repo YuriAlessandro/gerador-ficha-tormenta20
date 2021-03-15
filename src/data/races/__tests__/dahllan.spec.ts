@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { applyRaceHabilities } from '../../../functions/general';
+import { applyRaceAbilities } from '../../../functions/general';
 import { Spell } from '../../../interfaces/Spells';
 import { spellsCircle1, spellsCircle1Names } from '../../magias/generalSpells';
 import DAHLLAN, { PLANTS_FRIEND_MANA_REDUCTION } from '../dahllan';
