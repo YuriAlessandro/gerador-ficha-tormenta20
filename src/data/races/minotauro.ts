@@ -49,6 +49,17 @@ const MINOTAURO: Race = {
         });
       },
     },
+    {
+      name: 'Couro Rígido',
+      description:
+        'Sua pele é dura como a de um touro. Você recebe +1 na Defesa.',
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          defesa: sheetClone.defesa + 1,
+        });
+      },
+    },
   ],
 };
 
