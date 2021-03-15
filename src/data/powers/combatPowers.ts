@@ -1,8 +1,13 @@
+import { cloneDeep, merge } from 'lodash';
+import { getNotRepeatedRandom } from '../../functions/randomUtils';
+
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
+import PROFICIENCIAS from '../proficiencias';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
@@ -128,7 +133,7 @@ const combatPowers: Record<string, GeneralPower> = {
   DISPARO_RAPIDO: {
     name: 'Disparo Rápido',
     description:
-      'Se estiver usando uma arma de ataque à distância e gastar uma ação completa para atacar, você pode fazer um ataque adicional com ela (se puder recarregá- -la como ação livre). Se fizer isso, sofre –2 em todos os testes de ataque até o seu próximo turno.',
+      'Se estiver usando uma arma de ataque à distância e gastar uma ação completa para atacar, você pode fazer um ataque adicional com ela (se puder recarregá-la como ação livre). Se fizer isso, sofre –2 em todos os testes de ataque até o seu próximo turno.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [
@@ -159,7 +164,7 @@ const combatPowers: Record<string, GeneralPower> = {
   ENCOURACADO: {
     name: 'Encouraçado',
     description:
-      'Se estiver usando uma armadura pesada, você recebe +2 na Defesa. Esse bônus aumenta em +2 para cada outro poder que você possua que tenha Encouraçado como pré-requisito.',
+      'Se estiver usando uma armadura pesada, você recebe +2 na Defesa (NÃO INCLUSO). Esse bônus aumenta em +2 para cada outro poder que você possua que tenha Encouraçado como pré-requisito.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [
@@ -172,11 +177,29 @@ const combatPowers: Record<string, GeneralPower> = {
   },
   ESQUIVA: {
     name: 'Esquiva',
-    description: 'Você recebe +2 em Defesa e Reflexos.',
+    description: 'Você recebe +2 em Defesa (JÁ INCLUSO) e Reflexos.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 13 }],
     ],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Esquiva',
+        value: '+2 na Defesa',
+      });
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        defesa: sheetClone.defesa + 2,
+      });
+    },
   },
   ESTILO_DE_ARMA_E_ESCUDO: {
     name: 'Estilo de Arma e Escudo',
@@ -248,17 +271,9 @@ const combatPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Luta' }]],
   },
-  PODER: {
-    name: '',
-    description: '',
-    type: GeneralPowerType.COMBATE,
-    requirements: [
-      [{ type: RequirementType.PODER, name: 'Estilo de Uma Arma' }],
-    ],
-  },
   FANATICO: {
     name: 'Fanático',
-    description: 'Seu deslocamento não é reduzido por usar armaduras pesadas',
+    description: 'Seu deslocamento não é reduzido por usar armaduras pesadas.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [
@@ -342,6 +357,40 @@ const combatPowers: Record<string, GeneralPower> = {
       'Escolha uma proficiência: armas marciais, armas de fogo, armaduras pesadas ou escudos (se for proficiente em armas marciais, você também pode escolher armas exóticas). Você recebe essa proficiência. Você pode escolher este poder outras vezes para proficiências diferentes.',
     type: GeneralPowerType.COMBATE,
     requirements: [],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      const allowedProf = [
+        PROFICIENCIAS.MARCIAIS,
+        PROFICIENCIAS.FOGO,
+        PROFICIENCIAS.PESADAS,
+      ];
+
+      if (sheet.classe.proeficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
+        allowedProf.push(PROFICIENCIAS.EXOTICAS);
+      }
+
+      const newProf = getNotRepeatedRandom(
+        sheetClone.classe.proeficiencias,
+        'proficiencia',
+        allowedProf
+      ) as string;
+
+      subSteps.push({
+        name: 'Proficiência',
+        value: newProf,
+      });
+
+      sheetClone.classe.proeficiencias.push(newProf);
+
+      return sheetClone;
+    },
   },
   QUEBRAR_APRIMORADO: {
     name: 'Quebrar Aprimorado',
@@ -380,6 +429,23 @@ const combatPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Constituição', value: 13 }],
     ],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      sheetClone.classe.addpv += 1;
+
+      subSteps.push({
+        name: 'Vitalidade',
+        value: '+1 PV por nível',
+      });
+
+      return sheetClone;
+    },
   },
 };
 export default combatPowers;
