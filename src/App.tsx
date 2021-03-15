@@ -51,7 +51,7 @@ function App(): JSX.Element {
 
   return (
     <div className='App' data-testid='app-component'>
-      <HashRouter basename='/gerador-ficha-tormenta20'>
+      <HashRouter basename='/gerador-ficha-tormenta20/#'>
         <div className='mainApp'>
           <header className='App-header'>
             <Sidebar
@@ -77,10 +77,10 @@ function App(): JSX.Element {
           </header>
           <div className='mainArea'>
             <Switch>
-              <Route exact path='/changelog'>
+              <Route path='/changelog'>
                 <Changelog />
               </Route>
-              <Route exact path='/'>
+              <Route>
                 <MainScreen />
               </Route>
             </Switch>
