@@ -46,3 +46,10 @@ code {
 #bottom a {
   color: white;
 }
+
+@media screen and (max-width: 720px) {
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
