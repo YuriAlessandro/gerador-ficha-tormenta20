@@ -208,29 +208,28 @@ function generateFinalAttributes(
     };
   }, priorityGeneratedAttrs) as CharacterAttributes;
 
+  const sortedAttributes = Object.values(Atributo).reduce(
+    (acc, attr) => ({
+      ...acc,
+      [attr]: charAttributes[attr],
+    }),
+    {} as CharacterAttributes
+  );
+
   steps.push({
     label: 'Atributos iniciais',
     type: 'Atributos',
-    value: Object.values(charAttributes).map((attr) => ({
+    value: Object.values(sortedAttributes).map((attr) => ({
       name: attr.name,
       value: attr.value,
     })),
   });
 
-  const finalAttrs = modifyAttributesBasedOnRace(
+  return modifyAttributesBasedOnRace(
     race,
-    charAttributes,
+    sortedAttributes,
     classe.attrPriority,
     steps
-  );
-
-  // sort and return
-  return Object.values(Atributo).reduce(
-    (acc, attr) => ({
-      ...acc,
-      [attr]: finalAttrs[attr],
-    }),
-    {} as CharacterAttributes
   );
 }
 
