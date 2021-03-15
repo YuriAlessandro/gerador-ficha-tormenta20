@@ -183,9 +183,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         skills: [
           ...sheetClone.skills,
-          getRandomItemFromArray(
-            getNotRepeatedSkillsByQtd(sheetClone.skills, 1)
-          ),
+         getNotRepeatedRandomSkill(sheetClone.skills),
         ],
       });
     },
