@@ -60,6 +60,11 @@ const MINOTAURO: Race = {
         });
       },
     },
+    {
+      name: 'Faro',
+      description:
+        'Você tem olfato apurado. Você não fica desprevenido e sofre apenas camuflagem (em vez de camuflagem total) contra inimigos em alcance curto que não possa ver.',
+    },
   ],
 };
 
