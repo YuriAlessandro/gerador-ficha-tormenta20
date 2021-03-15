@@ -5,9 +5,8 @@ const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
   attributes: {
     attrs: [
-      { attr: Atributo.SABEDORIA, mod: 4 },
-      { attr: Atributo.INTELIGENCIA, mod: 2 },
       { attr: Atributo.DESTREZA, mod: 4 },
+      { attr: Atributo.INTELIGENCIA, mod: 2 },
     ],
     texts: [
       'Você é uma criatura do tipo espírito e recebe visão no escuro.',

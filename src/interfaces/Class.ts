@@ -18,7 +18,10 @@ export interface ClassAbility {
   name: string;
   text: string;
   nivel: number;
-  action?: (sheet: CharacterSheet) => CharacterSheet;
+  action?: (
+    sheet: CharacterSheet,
+    subSteps: { name: string; value: string }[]
+  ) => CharacterSheet;
 }
 
 export interface SpellPath {

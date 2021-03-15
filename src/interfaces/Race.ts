@@ -56,7 +56,10 @@ export interface CharacterStats {
 export interface RaceAbility {
   name: string;
   description: string;
-  action?: (stats: CharacterSheet) => CharacterSheet;
+  action?: (
+    stats: CharacterSheet,
+    subSteps: { name: string; value: string }[]
+  ) => CharacterSheet;
 }
 
 export default interface Race {

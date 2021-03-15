@@ -7,7 +7,7 @@ const ANAO: Race = {
   name: 'Anão',
   attributes: {
     attrs: [
-      { attr: 'any', mod: 4 },
+      { attr: Atributo.CONSTITUICAO, mod: 4 },
       { attr: Atributo.SABEDORIA, mod: 2 },
       { attr: Atributo.DESTREZA, mod: -2 },
     ],
