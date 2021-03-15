@@ -17,6 +17,6 @@ export default generalPowers;
 
 export function getUnrestricedTormentaPowers(): GeneralPower[] {
   return Object.values(tormentaPowers).filter(
-    (power) => power.requirements.length === 0
+    (power) => power.requirements.flat().length === 0
   );
 }

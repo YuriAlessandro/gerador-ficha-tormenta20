@@ -1,3 +1,5 @@
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -22,6 +24,43 @@ const MINOTAURO: Race = {
     OCEANO: 1,
     THWOR: 1,
   },
+  abilities: [
+    {
+      name: 'Chifres',
+      description:
+        'Você possui uma arma natural de chifres (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.',
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        return merge(sheetClone, {
+          bag: {
+            equipments: {
+              Arma: [
+                ...sheetClone.bag.equipments.Arma,
+                {
+                  group: 'Arma',
+                  nome: 'Chifres',
+                  dano: '1d6',
+                  critico: 'x2',
+                  tipo: 'Perf.',
+                },
+              ],
+            },
+          },
+        });
+      },
+    },
+    {
+      name: 'Couro Rígido',
+      description:
+        'Sua pele é dura como a de um touro. Você recebe +1 na Defesa.',
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          defesa: sheetClone.defesa + 1,
+        });
+      },
+    },
+  ],
 };
 
 export default MINOTAURO;

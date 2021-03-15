@@ -9,7 +9,7 @@ import {
 import attributes from '../../__mocks__/attributes';
 import { getRandomItemFromArray } from '../randomUtils';
 import Skill from '../../interfaces/Skills';
-import { getRemainingSkills } from '../../data/pericias';
+import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
 import { OriginPower } from '../../interfaces/Poderes';
 
 describe('Teste geração de perícias e poderes para Goblin Inventor Assistente de Laboratório', () => {
@@ -32,6 +32,13 @@ describe('Teste geração de perícias e poderes para Goblin Inventor Assistente
         expect(skills).toHaveUniqueElements();
         expect(originPowers).toHaveUniqueElements();
         expect(originGeneralPowers).toHaveUniqueElements();
+      });
+
+      test('Perícias base devem ser adicionadas sem repetições', () => {
+        const used = [Skill.OFICIO_ALQUIMIA];
+        const received = getClassBaseSkills(INVENTOR);
+        used.push(...received);
+        expect(used).toHaveUniqueElements();
       });
 
       test('Perícias restantes devem ser adicionadas sem repetições', () => {
@@ -64,17 +71,17 @@ describe('Teste geração de perícias e poderes para Goblin Inventor Assistente
 });
 
 describe('Teste geração de perícias e poderes para personagem aleatório', () => {
-  const classe = selectClass({
-    classe: '',
-    nivel: 1,
-    raca: '',
-  });
-
-  const origin = getRandomItemFromArray(Object.values(ORIGINS));
-
   Array(20)
     .fill(0)
     .forEach(() => {
+      const classe = selectClass({
+        classe: '',
+        nivel: 1,
+        raca: '',
+      });
+
+      const origin = getRandomItemFromArray(Object.values(ORIGINS));
+
       const {
         powers: { origin: originPowers, general: originGeneralPowers },
         skills,

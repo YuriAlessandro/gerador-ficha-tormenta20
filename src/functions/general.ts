@@ -296,8 +296,8 @@ export function getSkillsAndPowersByClassAndOrigin(
 
   const usedSkills: Skill[] = [];
   const classBaseSkills = getClassBaseSkills(classe);
-
   usedSkills.push(...classBaseSkills);
+
   if (origin) {
     const { skills: originSkills, powers: originPowers } = getOriginBenefits(
       usedSkills,

@@ -1,9 +1,10 @@
 import _ from 'lodash';
 import { applyRaceAbilities } from '../../../functions/general';
 import { inventor } from '../../../__mocks__/classes/inventor';
+import ANAO from '../anao';
 
 describe('Testa habilidades da raça Anão', () => {
-  const sheet = _.cloneDeep(inventor);
+  const sheet = _.cloneDeep(inventor(ANAO));
   const received = applyRaceAbilities(sheet);
 
   test('Duro como Pedra: +3 pv', () => {

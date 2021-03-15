@@ -15,14 +15,12 @@ describe('Testa habilidades da raça Dahllan', () => {
     spell.nome === spellsCircle1[spellsCircle1Names.controlarPlantas].nome;
 
   test('Amiga das plantas: ganha Controlar Plantas', () => {
-    const sheet = _.cloneDeep(inventor);
-    sheet.raca = DAHLLAN;
+    const sheet = _.cloneDeep(inventor(DAHLLAN));
     const received = applyRaceAbilities(sheet);
     expect(received.spells.some(findControlPlants)).toBe(true);
   });
   test('Amiga das Plantas: se já tiver Controlar Plantas, diminui o custo em -1 PM', () => {
-    const sheet = _.cloneDeep(druida);
-    sheet.raca = DAHLLAN;
+    const sheet = _.cloneDeep(druida(DAHLLAN));
     const received = applyRaceAbilities(sheet);
 
     const oldControlPlants = sheet.spells.find(findControlPlants);
