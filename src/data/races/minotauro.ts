@@ -65,6 +65,11 @@ const MINOTAURO: Race = {
       description:
         'Você tem olfato apurado. Você não fica desprevenido e sofre apenas camuflagem (em vez de camuflagem total) contra inimigos em alcance curto que não possa ver.',
     },
+    {
+      name: 'Medo de Altura',
+      description:
+        'Se estiver adjacente a uma queda de 3m ou mais de altura (como um buraco ou penhasco), você fica abalado.',
+    },
   ],
 };
 
