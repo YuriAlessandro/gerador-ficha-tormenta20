@@ -511,7 +511,8 @@ function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
 function calcDisplacement(
   bag: Bag,
   raceDisplacement: number,
-  atributos: CharacterAttributes
+  atributos: CharacterAttributes,
+  baseDisplacement: number
 ): number {
   const maxWeight = atributos.Força.value * 3;
 
@@ -519,7 +520,7 @@ function calcDisplacement(
     return raceDisplacement - 3;
   }
 
-  return raceDisplacement;
+  return raceDisplacement + baseDisplacement;
 }
 
 export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
@@ -806,7 +807,8 @@ export default function generateRandomSheet(
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),
-    charSheet.atributos
+    charSheet.atributos,
+    charSheet.displacement
   );
   charSheet.displacement = displacement;
 

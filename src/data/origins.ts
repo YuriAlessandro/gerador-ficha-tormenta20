@@ -42,7 +42,6 @@ const benefitsStrategies = {
 };
 
 function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
-  console.log(benefits);
   return benefits.reduce<OriginBenefits>(
     (acc, benefit) => {
       if (typeof benefit === 'string') {
@@ -83,8 +82,6 @@ export function getOriginBenefits(
   usedSkills: Skill[],
   origin: Origin
 ): OriginBenefits {
-  console.log(origin);
-
   if (origin.getPowersAndSkills) {
     return origin.getPowersAndSkills(usedSkills, origin);
   }

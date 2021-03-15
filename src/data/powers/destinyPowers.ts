@@ -1,8 +1,12 @@
+import { cloneDeep, merge } from 'lodash';
+import { getRandomItemFromArray } from '../../functions/randomUtils';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
+import { getNotRepeatedSkillsByQtd } from '../pericias';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
   ACROBATICO: {
@@ -39,11 +43,18 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   },
   ATLETICO: {
     name: 'Atlético',
-    description: 'Você recebe +2 em Atletismo e +3m em seu deslocamento.',
+    description:
+      'Você recebe +2 em Atletismo e +3m em seu deslocamento (JÁ INCLUSO).',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 15 }],
     ],
+    action(sheet: CharacterSheet): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        displacement: sheetClone.displacement + 3,
+      });
+    },
   },
   ATRAENTE: {
     name: 'Atraente',
@@ -167,6 +178,17 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
     requirements: [[]],
+    action(sheet: CharacterSheet): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        skills: [
+          ...sheetClone.skills,
+          getRandomItemFromArray(
+            getNotRepeatedSkillsByQtd(sheetClone.skills, 1)
+          ),
+        ],
+      });
+    },
   },
   VENEFICIO: {
     name: 'Venefício',
