@@ -1,12 +1,11 @@
 import { cloneDeep, merge } from 'lodash';
-import { getRandomItemFromArray } from '../../functions/randomUtils';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
-import { getNotRepeatedSkillsByQtd } from '../pericias';
+import { getNotRepeatedRandomSkill } from '../pericias';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
   ACROBATICO: {
@@ -49,8 +48,20 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 15 }],
     ],
-    action(sheet: CharacterSheet): CharacterSheet {
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Atlético',
+        value: 'Deslocamento +3',
+      });
+
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         displacement: sheetClone.displacement + 3,
       });
@@ -178,13 +189,24 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
     requirements: [[]],
-    action(sheet: CharacterSheet): CharacterSheet {
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
+
+      const newSkill = getNotRepeatedRandomSkill(sheetClone.skills);
+
+      subSteps.push({
+        name: 'Treinamento em Perícia',
+        value: newSkill,
+      });
+
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        skills: [
-          ...sheetClone.skills,
-         getNotRepeatedRandomSkill(sheetClone.skills),
-        ],
+        skills: [...sheetClone.skills, newSkill],
       });
     },
   },
