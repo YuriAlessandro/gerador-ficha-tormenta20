@@ -459,7 +459,8 @@ function getReligiosidade(
   classe: ClassDescription,
   race: Race
 ): CharacterReligion | undefined {
-  const isDevoto = Math.random() <= classe.probDevoto;
+  // const isDevoto = Math.random() <= classe.probDevoto;
+  const isDevoto = true;
   if (!isDevoto) {
     return undefined;
   }

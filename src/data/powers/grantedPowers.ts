@@ -1,9 +1,17 @@
+import { cloneDeep, merge } from 'lodash';
+import { getRandomItemFromArray } from '../../functions/randomUtils';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   grantedPowers,
   RequirementType,
 } from '../../interfaces/Poderes';
+import Skill from '../../interfaces/Skills';
+import { Atributo } from '../atributos';
+import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { getNotRepeatedRandomSkill } from '../pericias';
+import { PLANTS_FRIEND_MANA_REDUCTION } from '../races/dahllan';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AFINIDADE_COM_A_TORMENTA: {
@@ -70,9 +78,27 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   BENCAO_DO_MANA: {
     name: 'Bênção do Mana',
-    description: 'Você recebe +3 pontos de mana.',
+    description: 'Você recebe +3 pontos de mana (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Bênção do Mana',
+        value: '+3 de mana',
+      });
+
+      sheetClone.pm += 3;
+
+      return sheetClone;
+    },
   },
   CARICIA_SOMBRIA: {
     name: 'Carícia Sombria',
@@ -84,18 +110,70 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   CENTELHA_MAGICA: {
     name: 'Centelha Mágica',
     description:
-      'Escolha uma magia arcana ou divina de 1º círculo. Você aprende e pode lançar essa magia. Pré-requisito: não possuir a habilidade de classe Magias.',
+      'Escolha uma magia arcana ou divina de 1º círculo. Você aprende e pode lançar essa magia (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [{ type: RequirementType.HABILIDADE, name: 'Magias', not: true }],
     ],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      const newSpell = getRandomItemFromArray(Object.values(spellsCircle1));
+
+      subSteps.push({
+        name: 'Centelha Mágica',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   CONHECIMENTO_ENCICLOPEDICO: {
     name: 'Conhecimento Enciclopédico',
     description:
-      'Você se torna treinado em duas perícias baseadas em Inteligência a sua escolha.',
+      'Você se torna treinado em duas perícias baseadas em Inteligência a sua escolha (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: {
+        name: string;
+        value: string;
+      }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      const allowedSkills = [
+        Skill.CONHECIMENTO,
+        Skill.GUERRA,
+        Skill.INVESTIGACAO,
+        Skill.MISTICISMO,
+        Skill.NOBREZA,
+        Skill.OFICIO,
+      ];
+
+      const newSkill = getNotRepeatedRandomSkill(
+        sheetClone.skills,
+        allowedSkills
+      );
+
+      subSteps.push({
+        name: 'Conhecimento Enciclopédico',
+        value: `Treinamento em ${newSkill}`,
+      });
+
+      sheetClone.skills.push(newSkill);
+
+      return sheetClone;
+    },
   },
   CONJURAR_ARMA: {
     name: 'Conjurar Arma',
@@ -130,6 +208,28 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você aprende e pode lançar Controlar Plantas.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
+      const spells = addOrCheapenSpell(
+        sheet,
+        spellsCircle1.controlarPlantas,
+        manaReduction,
+        Atributo.SABEDORIA
+      );
+
+      subSteps.push({
+        name: 'Dedo Verde',
+        value: 'Adicionou magia "Controlar Plantas"',
+      });
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        spells,
+      });
+    },
   },
   DESCANSO_NATURAL: {
     name: 'Descanso Natural',
@@ -151,6 +251,20 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode lançar Augúrio. Você também pode gastar 2 PM para receber +2 em um teste.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      // TODO: N2
+      subSteps.push({
+        name: 'Dom da Profecia',
+        value: 'A FAZER NO NÍVEL 2',
+      });
+
+      return sheetClone;
+    },
   },
   DOM_DA_RESSUREICAO: {
     name: 'Dom da Ressurreição',
@@ -168,9 +282,24 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   ESCAMAS_DRACONICAS: {
     name: 'Escamas Dracônicas',
-    description: 'Você recebe +1 na Defesa.',
+    description: 'Você recebe +1 na Defesa (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Escamas Dracônicas',
+        value: '+1 na Defesa',
+      });
+
+      sheetClone.defesa += 1;
+
+      return sheetClone;
+    },
   },
   ESCUDO_MAGICO: {
     name: 'Escudo Mágico',
@@ -198,6 +327,22 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você aprende e pode lançar Criar Ilusão.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const newSpell = spellsCircle1.criarIlusao;
+
+      subSteps.push({
+        name: 'Farsa do Fingidor',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   FORMA_DE_MACACO: {
     name: 'Forma de Macaco',
@@ -252,6 +397,22 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você aprende e pode lançar Escuridão.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const newSpell = spellsCircle1.escuridao;
+
+      subSteps.push({
+        name: 'Manto da Penumbra',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   MENTE_ANALITICA: {
     name: 'Mente Analítica',
@@ -277,12 +438,44 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você aprende e pode lançar Amedrontar.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const newSpell = spellsCircle1.amedrontar;
+
+      subSteps.push({
+        name: 'Olhar Amedrontador',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   PALAVRAS_DE_BONDADE: {
     name: 'Palavras de Bondade',
     description: 'Você aprende e pode lançar Enfeitiçar.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const newSpell = spellsCircle1.enfeiticar;
+
+      subSteps.push({
+        name: 'Palavras de Bondade',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   PERCEPCAO_TEMPORAL: {
     name: 'Percepção Temporal',
@@ -349,15 +542,29 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   TEURGISTA_MISTICO: {
     name: 'Teurgista Místico',
     description:
-      'Até uma magia de cada círculo que você aprender poderá ser escolhida entre magias divinas (se você for um conjurador arcano) ou entre magias arcanas (se for um conjurador divino). Pré-requisito: habilidade de classe Magias.',
+      'Até uma magia de cada círculo que você aprender poderá ser escolhida entre magias divinas (se você for um conjurador arcano) ou entre magias arcanas (se for um conjurador divino).',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[]],
+    requirements: [[{ type: RequirementType.HABILIDADE, name: 'Magias' }]],
   },
   TRANSMISSAO_DA_LOUCURA: {
     name: 'Transmissão da Loucura',
     description: 'Você pode lançar Sussurros Insanos (CD Car).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      // TODO: N2
+      subSteps.push({
+        name: 'Transmissão da Loucura',
+        value: 'A FAZER NO NÍVEL 2',
+      });
+
+      return sheetClone;
+    },
   },
   TROPAS_DUYSHIDAKK: {
     name: 'Tropas Duyshidakk',
@@ -392,6 +599,22 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode falar com animais (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra animais.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      const newSpell = spellsCircle1.acalmarAnimal;
+
+      subSteps.push({
+        name: 'Voz da Natureza',
+        value: newSpell.nome,
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   VOZ_DOS_MONSTROS: {
     name: 'Voz dos Monstros',
