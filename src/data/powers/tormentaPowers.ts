@@ -1,3 +1,5 @@
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -57,9 +59,30 @@ const tormentaPowers: Record<string, GeneralPower> = {
   CARAPACA: {
     name: 'Carapaça',
     description:
-      'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
+      'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa (JÁ INCLUSO). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [[]],
+    // action(
+    //   sheet: CharacterSheet,
+    //   subSteps: { name: string; value: string }[]
+    // ): CharacterSheet {
+    //   const sheetClone = cloneDeep(sheet);
+
+    //   const tormentaPowersQtd = sheetClone.generalPowers.filter(
+    //     (power) => power.type === GeneralPowerType.TORMENTA
+    //   ).length;
+
+    //   const defenseBonus = Math.floor(tormentaPowersQtd / 2);
+
+    //   subSteps.push({
+    //     name: 'Carapaça',
+    //     value: `+${defenseBonus} na Defesa`,
+    //   });
+
+    //   sheetClone.defesa += defenseBonus;
+
+    //   return sheetClone;
+    // }, // TODO: Isso aqui tem que ser feito direitinho depois
   },
   CORPO_ABERRANTE: {
     name: 'Corpo Aberrante',
@@ -81,6 +104,29 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
     type: GeneralPowerType.TORMENTA,
     requirements: [[]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+      subSteps.push({ name: 'Dentes Afiados', value: 'Ataque "Mordida"' });
+      return merge(sheetClone, {
+        bag: {
+          equipments: {
+            Arma: [
+              ...sheetClone.bag.equipments.Arma,
+              {
+                group: 'Arma',
+                nome: 'Mordida',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Corte',
+              },
+            ],
+          },
+        },
+      });
+    },
   },
   EMPUNHADURA_RUBRA: {
     name: 'Empunhadura Rubra',
