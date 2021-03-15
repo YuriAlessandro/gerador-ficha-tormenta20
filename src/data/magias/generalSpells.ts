@@ -1,5 +1,7 @@
-import { merge } from 'lodash';
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import { Spell, spellsCircles } from '../../interfaces/Spells';
+import { Atributo } from '../atributos';
 
 export const manaExpenseByCircle: Record<spellsCircles, number> = {
   [spellsCircles.c1]: 1,
@@ -528,4 +530,41 @@ export function setupSpell(spell: Spell): Spell {
   return merge<Spell, Partial<Spell>>(spell, {
     manaExpense: manaExpenseByCircle[spell.spellCircle],
   });
+}
+
+function cheapenSpell(spells: Spell[], index: number, manaReduction: number) {
+  const spellsToChange = spells;
+  const { manaReduction: actualManaReduction = 0 } = spells[index];
+
+  if (actualManaReduction < manaReduction) {
+    spellsToChange[index] = {
+      ...spells[index],
+      manaReduction,
+    };
+  }
+
+  return spells;
+}
+
+export function addOrCheapenSpell(
+  sheet: CharacterSheet,
+  spell: Spell,
+  manaReduction: number,
+  customKeyAttr?: Atributo
+): Spell[] {
+  const index = sheet.spells.findIndex(
+    (sheetSpell) => spell.nome === sheetSpell.nome
+  );
+
+  const spellClone = cloneDeep(spell);
+
+  const spellToAdd = customKeyAttr
+    ? { ...spellClone, customKeyAttr }
+    : spellClone;
+
+  if (index < 0) {
+    return [...sheet.spells, spellToAdd];
+  }
+
+  return cheapenSpell(sheet.spells, index, manaReduction);
 }

@@ -14,4 +14,7 @@ describe('Testa habilidades da raça Minotauro', () => {
 
     expect(foundChifres).toBe(true);
   });
+  test('Couro rígido: adiciona +1 na defesa', () => {
+    expect(received.defesa).toBe(sheet.defesa + 1);
+  });
 });
