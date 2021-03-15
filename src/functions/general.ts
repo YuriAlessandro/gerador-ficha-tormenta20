@@ -486,7 +486,7 @@ function getReligiosidade(
 
 function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
   const { spellPath } = classe;
-  if (!spellPath) return usedSpells;
+  if (!spellPath) return [];
 
   // TODO: enable picking spells from other circles besides c1 for higher levels
   const { initialSpells, schools, spellType } = spellPath;
@@ -506,7 +506,6 @@ function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
   );
 
   const selectedSpells = pickFromArray(filteredSpellList, initialSpells);
-
   return selectedSpells.map((spell) => setupSpell(spell));
 }
 

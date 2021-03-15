@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { applyRaceHabilities } from '../../../functions/general';
+import { applyRaceAbilities } from '../../../functions/general';
 import { Spell } from '../../../interfaces/Spells';
 import { spellsCircle1, spellsCircle1Names } from '../../magias/generalSpells';
 import DAHLLAN, { PLANTS_FRIEND_MANA_REDUCTION } from '../dahllan';
@@ -17,13 +17,13 @@ describe('Testa habilidades da raça Dahllan', () => {
   test('Amiga das plantas: ganha Controlar Plantas', () => {
     const sheet = _.cloneDeep(inventor);
     sheet.raca = DAHLLAN;
-    const received = applyRaceHabilities(sheet);
+    const received = applyRaceAbilities(sheet);
     expect(received.spells.some(findControlPlants)).toBe(true);
   });
   test('Amiga das Plantas: se já tiver Controlar Plantas, diminui o custo em -1 PM', () => {
     const sheet = _.cloneDeep(druida);
     sheet.raca = DAHLLAN;
-    const received = applyRaceHabilities(sheet);
+    const received = applyRaceAbilities(sheet);
 
     const oldControlPlants = sheet.spells.find(findControlPlants);
     const controlPlants = received.spells.find(findControlPlants);

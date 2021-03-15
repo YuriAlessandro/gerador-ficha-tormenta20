@@ -21,7 +21,7 @@ export enum RequirementType {
   CLASSE = 'CLASSE',
 }
 
-interface Requirement {
+export interface Requirement {
   type: RequirementType;
   name?: string | Atributo;
   value?: number;
