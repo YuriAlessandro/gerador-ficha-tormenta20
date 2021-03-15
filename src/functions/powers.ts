@@ -7,9 +7,7 @@ import {
 } from '../interfaces/Poderes';
 
 function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
-  const req0xtab: Requirement[][] = [];
-
-  return req0xtab.some((req) =>
+  return power.requirements.some((req) =>
     req.every((rule) => {
       switch (rule.type) {
         case RequirementType.ATRIBUTO: {
