@@ -3,7 +3,7 @@ import { applyRaceHabilities } from '../../../functions/general';
 import { inventor } from '../../../__mocks__/classes/inventor';
 import ELFO from '../elfo';
 
-describe('Testa habilidades da raça Anão', () => {
+describe('Testa habilidades da raça Elfo', () => {
   const sheet = _.cloneDeep(inventor(ELFO));
   const received = applyRaceHabilities(sheet);
 
