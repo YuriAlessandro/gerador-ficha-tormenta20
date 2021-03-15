@@ -55,6 +55,7 @@ import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
+import WYNNA from '../data/divindades/wynna';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -459,7 +460,8 @@ function getReligiosidade(
   classe: ClassDescription,
   race: Race
 ): CharacterReligion | undefined {
-  const isDevoto = Math.random() <= classe.probDevoto;
+  // const isDevoto = Math.random() <= classe.probDevoto;
+  const isDevoto = true;
   if (!isDevoto) {
     return undefined;
   }
@@ -475,7 +477,8 @@ function getReligiosidade(
   );
 
   const divindadeName = pickFaith(faithProbability);
-  const divindade = DivindadeEnum[divindadeName];
+  // const divindade = DivindadeEnum[divindadeName];
+  const divindade = DivindadeEnum.HYNINN;
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
   const poderes = getPoderesConcedidos(divindade, todosPoderes);
