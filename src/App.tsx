@@ -77,10 +77,10 @@ function App(): JSX.Element {
           </header>
           <div className='mainArea'>
             <Switch>
-              <Route path='/changelog'>
+              <Route exact path='/changelog'>
                 <Changelog />
               </Route>
-              <Route path='/'>
+              <Route exact path='/'>
                 <MainScreen />
               </Route>
             </Switch>
