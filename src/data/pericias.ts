@@ -19,8 +19,8 @@ export function getNotRepeatedRandomSkill(
   allowedSkills?: Skill[]
 ): Skill {
   const notRepeatedSkills = allowedSkills
-    ? getNotUsedSkillsFromAllowed(usedSkills)
-    : getNotUsedSkillsFromAllowed(usedSkills, allowedSkills);
+    ? getNotUsedSkillsFromAllowed(usedSkills, allowedSkills)
+    : getNotUsedSkillsFromAllowed(usedSkills);
 
   return getRandomItemFromArray(notRepeatedSkills);
 }
