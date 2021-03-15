@@ -42,6 +42,7 @@ const benefitsStrategies = {
 };
 
 function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
+  console.log(benefits);
   return benefits.reduce<OriginBenefits>(
     (acc, benefit) => {
       if (typeof benefit === 'string') {
@@ -82,6 +83,8 @@ export function getOriginBenefits(
   usedSkills: Skill[],
   origin: Origin
 ): OriginBenefits {
+  console.log(origin);
+
   if (origin.getPowersAndSkills) {
     return origin.getPowersAndSkills(usedSkills, origin);
   }
@@ -108,7 +111,9 @@ function sortLabAssistentBenefits(
   origin?: Origin
 ): OriginBenefits {
   const allowedTormentaPowers = getUnrestricedTormentaPowers();
-  const choosenTormentaPower = getRandomItemFromArray(allowedTormentaPowers);
+  const choosenTormentaPowers = allowedTormentaPowers.length
+    ? [getRandomItemFromArray(allowedTormentaPowers)]
+    : [];
 
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     skills,
@@ -118,7 +123,7 @@ function sortLabAssistentBenefits(
   const actualOriginPowers = origin ? origin.poderes : [];
 
   const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...actualOriginPowers, choosenTormentaPower],
+    [...notRepeatedSkills, ...actualOriginPowers, ...choosenTormentaPowers],
     2
   );
 
