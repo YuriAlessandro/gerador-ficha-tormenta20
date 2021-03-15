@@ -408,7 +408,9 @@ function getInitialBag(origin: Origin | undefined): Bag {
     group: 'Item Geral',
   });
 
-  origin?.itens.forEach((equip) => {
+  const originItems = origin?.getItems();
+
+  originItems?.forEach((equip) => {
     if (typeof equip.equipment === 'string') {
       const newEquip: Equipment = {
         nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
