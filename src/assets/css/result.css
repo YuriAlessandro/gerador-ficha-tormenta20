@@ -280,12 +280,8 @@ table {
   }
 
   .resultContainer {
-    width: 90vw;
+    width: 100vw;
     justify-content: center;
-  }
-
-  .resultLeft {
-    width: 80vw;
   }
 
   .resultRight {
