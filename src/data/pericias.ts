@@ -36,21 +36,22 @@ export function getNotRepeatedSkillsByQtd(
 
 const baseSkillsStrategies: Record<
   string,
-  (baseSkills: Skill[], skills: Skill[]) => Skill[]
+  (baseSkills: Skill[], usedSkills: Skill[]) => Skill[]
 > = {
-  and(baseSkills: Skill[], skills: Skill[]) {
-    return [...skills, ...baseSkills];
+  and(baseSkills: Skill[], usedSkills: Skill[]) {
+    const notUsed = getNotUsedSkillsFromAllowed(usedSkills, baseSkills);
+    return [...usedSkills, ...notUsed];
   },
-  or(baseSkills: Skill[], skills: Skill[]) {
-    const newSkill = getNotRepeatedRandomSkill(skills, baseSkills);
-    return [...skills, newSkill];
+  or(baseSkills: Skill[], usedSkills: Skill[]) {
+    const newSkill = getNotRepeatedRandomSkill(usedSkills, baseSkills);
+    return [...usedSkills, newSkill];
   },
 };
 
 export function getClassBaseSkills(classe: ClassDescription): Skill[] {
   return classe.periciasbasicas.reduce<Skill[]>(
-    (skills, baseSkill) =>
-      baseSkillsStrategies[baseSkill.type](baseSkill.list, skills),
+    (usedSkills, baseSkill) =>
+      baseSkillsStrategies[baseSkill.type](baseSkill.list, usedSkills),
     []
   );
 }
