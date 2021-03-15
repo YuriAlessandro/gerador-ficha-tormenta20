@@ -16,19 +16,23 @@ export enum RequirementType {
   PERICIA = 'PERICIA',
   HABILIDADE = 'HABILIDADE',
   PODER_TORMENTA = 'PODER_TORMENTA',
+  PROFICIENCIA = 'PROFICIENCIA',
+  NIVEL = 'NIVEL',
+  CLASSE = 'CLASSE',
 }
 
 interface Requirement {
   type: RequirementType;
   name?: string | Atributo;
   value?: number;
+  not?: boolean;
 }
 
 export interface GeneralPower {
   type: GeneralPowerType;
   description: string;
   name: string;
-  requirements: Requirement[];
+  requirements: Requirement[][];
   allowSeveralPicks?: boolean;
   action?: (
     sheet: CharacterSheet,
