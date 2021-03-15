@@ -1,42 +1,10 @@
 import { cloneDeep, merge } from 'lodash';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
-import { Spell } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
-import { spellsCircle1 } from '../magias/generalSpells';
+import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 
 export const PLANTS_FRIEND_MANA_REDUCTION = 1;
-function cheapenControlPlants(spells: Spell[], index: number) {
-  let { manaReduction = 0 } = spells[index];
-  if (manaReduction < PLANTS_FRIEND_MANA_REDUCTION)
-    manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
-  return spells.map((spell) => {
-    if (spellsCircle1.controlarPlantas.nome === spell.nome) {
-      return merge<Spell, Partial<Spell>>(spell, {
-        manaReduction,
-      });
-    }
-
-    return spell;
-  });
-}
-function addOrCheapenControlPlants(
-  sheet: CharacterSheet,
-  spells: Spell[]
-): Spell[] {
-  const index = sheet.spells.findIndex(
-    (spell) => spellsCircle1.controlarPlantas.nome === spell.nome
-  );
-
-  if (index < 0) {
-    return [
-      ...spells,
-      { ...spellsCircle1.controlarPlantas, customKeyAttr: Atributo.SABEDORIA },
-    ];
-  }
-
-  return cheapenControlPlants(spells, index);
-}
 
 const DAHLLAN: Race = {
   name: 'Dahllan',
@@ -69,7 +37,13 @@ const DAHLLAN: Race = {
         subSteps: { name: string; value: string }[]
       ): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
-        const spells = addOrCheapenControlPlants(sheet, sheetClone.spells);
+        const manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
+        const spells = addOrCheapenSpell(
+          sheet,
+          spellsCircle1.controlarPlantas,
+          manaReduction,
+          Atributo.SABEDORIA
+        );
 
         subSteps.push({
           name: 'Amiga das Plantas',
