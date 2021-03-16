@@ -28,7 +28,6 @@ code {
 
 #bottom {
   bottom: 0;
-  z-index: -1;
   background: rgb(209, 50, 53);
   color: #fff;
   width: 100%;
