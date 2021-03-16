@@ -32,14 +32,13 @@ const defaultEquipments: BagEquipments = {
 };
 
 function calcBagWeight(equipments: BagEquipments): number {
-  const equipmentGroups = Object.values(equipments) as Equipment[][];
+  const equipmentGroups = Object.values(equipments).flat();
+
   let weight = 0;
 
-  equipmentGroups.forEach((group) => {
-    group.forEach((equipment) => {
-      const equipmentWeight = equipment.peso || 0;
-      weight += equipmentWeight;
-    });
+  equipmentGroups.forEach((equipment) => {
+    const equipmentWeight = equipment || 0;
+    weight += equipmentWeight;
   });
 
   return weight;
