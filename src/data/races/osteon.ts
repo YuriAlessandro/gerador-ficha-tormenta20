@@ -63,11 +63,6 @@ const OSTEON: Race = {
       { attr: 'any', mod: 2 },
       { attr: 'any', mod: 2 },
     ],
-    texts: [
-      'Você recebe resistência a corte, frio e perfuração 5.',
-      'Você se torna treinado em uma perícia (não precisa ser da sua classe) ou recebe um poder geral a sua escolha. Como alternativa, você pode ser um osteon de outra raça humanoide que não humano. Neste caso, você ganha uma habilidade dessa raça a sua escolha. Se a raça era de tamanho diferente de Médio, você também possui sua categoria de tamanho',
-      'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
-    ],
   },
   faithProbability: {
     AHARADAK: 1,

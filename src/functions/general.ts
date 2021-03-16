@@ -690,7 +690,7 @@ export default function generateRandomSheet(
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
   if (race.name !== 'Golem') {
-    origin = ORIGINS.Criminoso;
+    origin = getRandomItemFromArray(Object.values(ORIGINS));
   }
 
   if (origin) {

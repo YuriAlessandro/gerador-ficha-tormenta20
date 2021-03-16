@@ -56,7 +56,7 @@ function makeOriginGeneralPowerGetter(
       sheet.generalPowers.push(randomPower);
       subSteps.push({
         name: origin.name,
-        value: `Poder geral recebido ${randomPower.name}`,
+        value: `Poder recebido (${randomPower.name})`,
       });
       return;
     }
@@ -70,7 +70,7 @@ function makeOriginGeneralPowerGetter(
       sheet.skills.push(randomSkillFromOrigin);
       subSteps.push({
         name: origin.name,
-        value: `Perícia recebida ${randomSkillFromOrigin}`,
+        value: `Perícia recebida (${randomSkillFromOrigin})`,
       });
       return;
     }
@@ -79,7 +79,7 @@ function makeOriginGeneralPowerGetter(
     sheet.skills.push(randomSkill);
     subSteps.push({
       name: origin.name,
-      value: `Perícia (extra) recebida ${randomSkillFromOrigin}`,
+      value: `Perícia (extra) recebida (${randomSkillFromOrigin})`,
     });
   };
 }

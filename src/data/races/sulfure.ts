@@ -11,10 +11,6 @@ const SULFURE: Race = {
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },
     ],
-    texts: [
-      'Você é uma criatura do tipo espírito e recebe visão no escuro.',
-      'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributo-chave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
-    ],
   },
   faithProbability: {
     AHARADAK: 1,
