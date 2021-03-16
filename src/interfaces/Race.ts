@@ -6,7 +6,7 @@ import { ClassDescription } from './Class';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
-import { Bag } from './Equipment';
+import Bag from './Bag';
 import Skill from './Skills';
 import { Spell } from './Spells';
 

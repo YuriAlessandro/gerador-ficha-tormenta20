@@ -1,4 +1,4 @@
-import { cloneDeep, merge } from 'lodash';
+import { cloneDeep } from 'lodash';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
@@ -110,22 +110,19 @@ const tormentaPowers: Record<string, GeneralPower> = {
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
       subSteps.push({ name: 'Dentes Afiados', value: 'Ataque "Mordida"' });
-      return merge(sheetClone, {
-        bag: {
-          equipments: {
-            Arma: [
-              ...sheetClone.bag.equipments.Arma,
-              {
-                group: 'Arma',
-                nome: 'Mordida',
-                dano: '1d4',
-                critico: 'x2',
-                tipo: 'Corte',
-              },
-            ],
+      sheetClone.bag.addEquipment({
+        Arma: [
+          {
+            group: 'Arma',
+            nome: 'Mordida',
+            dano: '1d4',
+            critico: 'x2',
+            tipo: 'Corte',
           },
-        },
+        ],
       });
+
+      return sheetClone;
     },
   },
   EMPUNHADURA_RUBRA: {

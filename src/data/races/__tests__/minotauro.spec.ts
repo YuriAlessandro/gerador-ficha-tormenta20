@@ -8,9 +8,9 @@ describe('Testa habilidades da raça Minotauro', () => {
   const received = applyRaceAbilities(sheet);
 
   test('Chifres: adiciona arma "Chifres"', () => {
-    const foundChifres = received.bag.equipments.Arma.some(
-      (weapon) => weapon.nome === 'Chifres'
-    );
+    const foundChifres = received.bag
+      .getEquipments()
+      .Arma.some((weapon) => weapon.nome === 'Chifres');
 
     expect(foundChifres).toBe(true);
   });

@@ -41,6 +41,7 @@
     "import/prefer-default-export": "off",
     "jsx-quotes": ["error", "prefer-single"],
     "no-use-before-define": "off",
-    "@typescript-eslint/no-use-before-define": ["error"]
+    "@typescript-eslint/no-use-before-define": ["error"],
+    "react/static-property-placement":"off"
   }
 }

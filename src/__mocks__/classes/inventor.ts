@@ -2,6 +2,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../../data/atributos';
 import Race from '../../interfaces/Race';
+import Bag from '../../interfaces/Bag';
 
 export function inventor(race: Race): CharacterSheet {
   return {
@@ -19,7 +20,7 @@ export function inventor(race: Race): CharacterSheet {
       Sabedoria: { name: Atributo.SABEDORIA, value: 18, mod: 4 },
       Carisma: { name: Atributo.CARISMA, value: 16, mod: 3 },
     },
-    bag: {
+    bag: new Bag({
       equipments: {
         'Item Geral': [
           { nome: 'Mochila', group: 'Item Geral', peso: 1 },
@@ -57,7 +58,7 @@ export function inventor(race: Race): CharacterSheet {
       },
       weight: 16.5,
       armorPenalty: 1,
-    },
+    }),
     classe: {
       attrPriority: [Atributo.INTELIGENCIA],
       name: 'Inventor',

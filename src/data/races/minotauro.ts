@@ -1,7 +1,16 @@
 import { cloneDeep, merge } from 'lodash';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+
+const chifres: Equipment = {
+  group: 'Arma',
+  nome: 'Chifres',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf.',
+};
 
 const MINOTAURO: Race = {
   name: 'Minotauro',
@@ -31,22 +40,11 @@ const MINOTAURO: Race = {
         'Você possui uma arma natural de chifres (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.',
       action(sheet: CharacterSheet): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
-        return merge(sheetClone, {
-          bag: {
-            equipments: {
-              Arma: [
-                ...sheetClone.bag.equipments.Arma,
-                {
-                  group: 'Arma',
-                  nome: 'Chifres',
-                  dano: '1d6',
-                  critico: 'x2',
-                  tipo: 'Perf.',
-                },
-              ],
-            },
-          },
+        sheetClone.bag.addEquipment({
+          Arma: [chifres],
         });
+
+        return sheetClone;
       },
     },
     {

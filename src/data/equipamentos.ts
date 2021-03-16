@@ -1,10 +1,7 @@
-import _ from 'lodash';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment, {
-  Bag,
   DefenseEquipment,
   CombatItems,
-  BagEquipments,
 } from '../interfaces/Equipment';
 
 export const Armas: Record<string, Equipment> = {
@@ -414,82 +411,6 @@ export const Escudos: Record<string, DefenseEquipment> = {
   },
 };
 
-export function calcArmorPenalty(equipments: BagEquipments): number {
-  const armorPenalty = equipments.Armadura.reduce(
-    (acc, armor) => acc + armor.armorPenalty,
-    0
-  );
-
-  const shieldPenalty = equipments.Escudo.reduce(
-    (acc, armor) => acc + armor.armorPenalty,
-    0
-  );
-
-  return armorPenalty + shieldPenalty;
-}
-
-export function calcBagWeight(equipments: BagEquipments): number {
-  const equipmentGroups = Object.values(equipments) as Equipment[][];
-  let weight = 0;
-
-  equipmentGroups.forEach((group) => {
-    group.forEach((equipment) => {
-      const equipmentWeight = equipment.peso || 0;
-      weight += equipmentWeight;
-    });
-  });
-
-  return weight;
-}
-
-const defaultEquipments: BagEquipments = {
-  'Item Geral': [
-    {
-      nome: 'Mochila',
-      group: 'Item Geral',
-      peso: 1,
-    },
-    {
-      nome: 'Saco de dormir',
-      group: 'Item Geral',
-      peso: 2.5,
-    },
-    {
-      nome: 'Traje de viajante',
-      group: 'Item Geral',
-      peso: 2,
-    },
-  ],
-  Alimentação: [],
-  Alquimía: [],
-  Animal: [],
-  Arma: [],
-  Armadura: [],
-  Escudo: [],
-  Hospedagem: [],
-  Serviço: [],
-  Vestuário: [],
-  Veículo: [],
-};
-
-export function updateEquipments(
-  bag: Bag,
-  updatedBagEquipments: BagEquipments
-): Bag {
-  const bagClone = _.cloneDeep(bag);
-
-  bagClone.equipments = updatedBagEquipments;
-  bagClone.weight = calcBagWeight(bagClone.equipments);
-  bagClone.armorPenalty = calcArmorPenalty(bagClone.equipments);
-  return bagClone;
-}
-
-export const DEFAULT_BAG: Bag = {
-  equipments: defaultEquipments,
-  weight: calcBagWeight(defaultEquipments),
-  armorPenalty: calcArmorPenalty(defaultEquipments),
-};
-
 const EQUIPAMENTOS: CombatItems = {
   armasSimples: [
     Armas.ADAGA,
@@ -559,7 +480,7 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   // TODO: Use CHA instead of DES to Nobre
   const equipped: Equipment[] = [];
 
-  let updatedDefense = Object.values(charSheet.bag.equipments)
+  let updatedDefense = Object.values(charSheet.bag.getEquipments())
     .flat()
     .reduce((acc, equip) => {
       if (isDefenseEquip(equip)) {

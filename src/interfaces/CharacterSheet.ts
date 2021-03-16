@@ -1,7 +1,7 @@
 import { ClassDescription } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
-import { Bag } from './Equipment';
+import Bag from './Bag';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill from './Skills';
