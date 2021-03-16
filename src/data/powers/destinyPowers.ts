@@ -91,7 +91,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Escolha uma perícia. Quando faz um teste dessa perícia, você pode gastar 1 PM para rolar dois dados e usar o melhor resultado. Você pode escolher este poder outras vezes para perícias diferentes. Este poder não pode ser aplicado em Luta e Pontaria',
     type: GeneralPowerType.DESTINO,
     allowSeveralPicks: true,
-    requirements: [[]],
+    requirements: [],
   },
   INVESTIGADOR: {
     name: 'Investigador',
@@ -107,7 +107,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe +1 em testes de perícia e Defesa se estiver sem nenhum aliado em alcance curto. Você não sofre penalidade por usar a perícia Cura em si mesmo.',
     type: GeneralPowerType.DESTINO,
-    requirements: [[]],
+    requirements: [],
   },
   MEDICINA: {
     name: 'Medicina',
@@ -162,7 +162,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     name: 'Sortudo',
     description:
       'Você pode gastar 3 PM para rolar novamente um teste recém realizado (apenas uma vez por teste).',
-    requirements: [[]],
+    requirements: [],
     type: GeneralPowerType.DESTINO,
   },
   SURTO_HEROICO: {
@@ -188,7 +188,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description:
       'Você se torna treinado em uma perícia a sua escolha (JÁ INCLUSO). Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
-    requirements: [[]],
+    requirements: [],
     action(
       sheet: CharacterSheet,
       subSteps: {

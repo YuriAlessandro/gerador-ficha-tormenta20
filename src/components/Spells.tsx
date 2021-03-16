@@ -54,7 +54,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
               </tr>
             </thead>
             {spells.map((spell) => (
-              <SpellRow spell={spell} />
+              <SpellRow key={spell.nome} spell={spell} />
             ))}
           </table>
 

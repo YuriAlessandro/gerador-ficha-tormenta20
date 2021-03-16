@@ -164,11 +164,13 @@ const Result: React.FC<ResultProps> = (props) => {
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
       return (
-        <li>
+        <li key={step.label}>
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li>{`${attr.name}${attr.value ? ': ' : ''}${attr.value}`}</li>
+              <li key={attr.name}>{`${attr.name}${attr.value ? ': ' : ''}${
+                attr.value
+              }`}</li>
             ))}
           </ul>
         </li>
@@ -180,11 +182,11 @@ const Result: React.FC<ResultProps> = (props) => {
       step.type === 'Equipamentos'
     ) {
       return (
-        <li>
+        <li key={step.label}>
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li>{attr.value}</li>
+              <li key={attr.value}>{attr.value}</li>
             ))}
           </ul>
         </li>
@@ -192,18 +194,20 @@ const Result: React.FC<ResultProps> = (props) => {
     }
     if (step.type === 'Poderes') {
       return (
-        <li>
+        <li key={step.label}>
           <strong>{step.label}:</strong>
           <ul>
             {step.value.map((attr) => (
-              <li>{`${attr.name}${attr.value ? ': ' : ''}${attr.value}`}</li>
+              <li key={attr.name}>{`${attr.name}${attr.value ? ': ' : ''}${
+                attr.value
+              }`}</li>
             ))}
           </ul>
         </li>
       );
     }
     return (
-      <li>
+      <li key={step.label}>
         <strong>{step.label}</strong>
         {`${step.value[0] ? `: ${step.value[0].value}` : ''}`}
       </li>
