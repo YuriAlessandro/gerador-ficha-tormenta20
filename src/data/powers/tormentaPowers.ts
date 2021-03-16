@@ -12,14 +12,14 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Você tem 25% de chance (resultado “1” em 1d4) de ignorar o dano adicional de um acerto crítico ou ataque furtivo. A chance aumenta em +25% para cada dois outros poderes da Tormenta que você possui',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   ANTENAS: {
     name: 'Antenas',
     description:
       'Você recebe +1 em Iniciativa, Percepção e Vontade. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   ARMAMENTO_ABERRANTE: {
     name: 'Armamento Aberrante',
@@ -40,7 +40,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe +1 em Acrobacia, Furtividade e Reflexos. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   ASAS_INSETOIDES: {
     name: 'Asas Insetoides',
@@ -61,7 +61,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa (JÁ INCLUSO). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
     // action(
     //   sheet: CharacterSheet,
     //   subSteps: { name: string; value: string }[]
@@ -103,7 +103,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
     action(
       sheet: CharacterSheet,
       subSteps: { name: string; value: string }[]
@@ -133,14 +133,14 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Você pode gastar 1 PM para cobrir suas mãos com uma carapaça rubra. Até o final da cena, você recebe +1 em Luta. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   MAOS_MEMBRANOSAS: {
     name: 'Mãos Membranosas',
     description:
       'Você recebe +1 em Atletismo, Fortitude e testes de agarrar. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   MEMBROS_EXTRAS: {
     name: 'Membros extras',
@@ -161,28 +161,28 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Você recebe visão no escuro e +1 em Intimidação. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   PELE_CORROMPIDA: {
     name: 'Pele Corrompida',
     description:
       'Sua carne foi mesclada à matéria vermelha. Você recebe resistência a ácido, eletricidade, fogo, frio, luz e trevas 2. Esta RD aumenta em +2 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   SANGUE_ACIDO: {
     name: 'Sangue Ácido',
     description:
       'Quando você sofre dano por um ataque corpo a corpo, o atacante sofre 1 ponto de dano de ácido. Este dano aumenta em +1 para cada outro poder da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
   VISCO_RUBRO: {
     name: 'Visco Rubro',
     description:
       'Você pode gastar 1 PM para expelir um líquido escuro, grosso e corrosivo. Até o final da cena, você recebe +1 nas rolagens de dano corpo a corpo. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [[]],
+    requirements: [],
   },
 };
 

@@ -39,7 +39,7 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
         <div>
           <div>
             {spells.map((spell) => (
-              <div className='spellMobile'>
+              <div key={spell.nome} className='spellMobile'>
                 <div className='spellName'>
                   ({spell.manaExpense}) {spell.nome}
                 </div>

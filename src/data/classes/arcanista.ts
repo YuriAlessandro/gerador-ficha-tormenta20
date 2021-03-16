@@ -117,7 +117,14 @@ const ARCANISTA: ClassDescription = {
     list: [Skill.CONHECIMENTO, Skill.INICIATIVA, Skill.OFICIO, Skill.PERCEPCAO],
   },
   proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
-  abilities: [],
+  abilities: [
+    {
+      name: 'Magias',
+      text:
+        'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2o círculo no 5o nível, 3o círculo no 9o nível e assim por diante).',
+      nivel: 1,
+    },
+  ],
   probDevoto: 0.3,
   faithProbability: {
     AZGHER: 1,

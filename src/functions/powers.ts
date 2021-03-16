@@ -1,10 +1,6 @@
 import { Atributo } from '../data/atributos';
 import CharacterSheet from '../interfaces/CharacterSheet';
-import {
-  GeneralPower,
-  Requirement,
-  RequirementType,
-} from '../interfaces/Poderes';
+import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 
 function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
@@ -12,7 +8,12 @@ function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
     req.every((rule) => {
       switch (rule.type) {
         case RequirementType.PODER: {
-          return false;
+          const allPowers = [
+            ...sheet.generalPowers,
+            ...(sheet.origin?.powers || []),
+          ];
+
+          return allPowers.some((currPower) => currPower.name === rule.name);
         }
         case RequirementType.ATRIBUTO: {
           const attr = rule.name as Atributo;
@@ -23,14 +24,19 @@ function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
           return rule.name && sheet.skills.includes(pericia);
         }
         case RequirementType.HABILIDADE: {
-          return false;
+          const result = sheet.classe.abilities.some(
+            (ability) => ability.name === rule.name
+          );
+          if (rule.not) return !result;
+          return result;
         }
         case RequirementType.PODER_TORMENTA: {
           const qtdPowers = rule.value as number;
           return (
             sheet.generalPowers.filter(
               (actualPower) => actualPower.type === 'TORMENTA'
-            ).length >= qtdPowers
+            ).length >=
+            qtdPowers + 1 // OTHER powers, so can't count itself
           );
         }
         case RequirementType.PROFICIENCIA: {
