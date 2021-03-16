@@ -1,37 +1,40 @@
 import INVENTOR from '../../data/classes/inventor';
 import { getOriginBenefits, ORIGINS } from '../../data/origins';
-import GOBLIN from '../../data/races/goblin';
 import {
   getAttributesSkills,
   getSkillsAndPowersByClassAndOrigin,
-  selectClass,
 } from '../general';
 import attributes from '../../__mocks__/attributes';
 import { getRandomItemFromArray } from '../randomUtils';
 import Skill from '../../interfaces/Skills';
 import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
 import { OriginPower } from '../../interfaces/Poderes';
+import { inventor } from '../../__mocks__/classes/inventor';
+import HUMANO from '../../data/races/humano';
+import RACAS from '../../data/racas';
 
 describe('Teste geração de perícias e poderes para Goblin Inventor Assistente de Laboratório', () => {
-  const classe = selectClass({
-    classe: INVENTOR.name,
-    nivel: 1,
-    raca: GOBLIN.name,
-  });
-
-  const origin = ORIGINS['Assistente de Laboratório'];
-
-  Array(20)
+  Array(5)
     .fill(0)
     .forEach(() => {
+      const sheet = inventor(HUMANO);
+      const origin = ORIGINS['Assistente de Laboratório'];
+
       test('Função deve retornar perícias e poderes sem repetição', () => {
         const {
           powers: { origin: originPowers, general: originGeneralPowers },
           skills,
-        } = getSkillsAndPowersByClassAndOrigin(classe, origin, attributes, []);
+        } = getSkillsAndPowersByClassAndOrigin(
+          sheet.classe,
+          origin,
+          attributes,
+          []
+        );
+        originGeneralPowers.Origem.forEach((getPower) => getPower(sheet, []));
+
         expect(skills).toHaveUniqueElements();
         expect(originPowers).toHaveUniqueElements();
-        expect(originGeneralPowers).toHaveUniqueElements();
+        expect(sheet.generalPowers).toHaveUniqueElements();
       });
 
       test('Perícias base devem ser adicionadas sem repetições', () => {
@@ -55,18 +58,6 @@ describe('Teste geração de perícias e poderes para Goblin Inventor Assistente
         used.push(...received);
         expect(received).toHaveUniqueElements();
       });
-      test('Origem deve retornar 2 entre o grupo permitido, sem repetições', () => {
-        const used: (OriginPower | Skill)[] = [Skill.OFICIO_ALQUIMIA];
-        const received = getOriginBenefits([Skill.OFICIO_ALQUIMIA], origin);
-        const benefits = [
-          ...received.powers.general,
-          ...received.powers.origin,
-          ...received.skills,
-        ];
-        used.push(...benefits);
-        expect(used).toHaveLength(3);
-        expect(used).toHaveUniqueElements();
-      });
     });
 });
 
@@ -74,25 +65,27 @@ describe('Teste geração de perícias e poderes para personagem aleatório', ()
   Array(20)
     .fill(0)
     .forEach(() => {
-      const classe = selectClass({
-        classe: '',
-        nivel: 1,
-        raca: '',
-      });
+      const sheet = inventor(getRandomItemFromArray(RACAS));
 
       const origin = getRandomItemFromArray(Object.values(ORIGINS));
 
       const {
-        powers: { origin: originPowers, general: originGeneralPowers },
+        powers: { origin: originPowers, general: powersGetters },
         skills,
-      } = getSkillsAndPowersByClassAndOrigin(classe, origin, attributes, []);
+      } = getSkillsAndPowersByClassAndOrigin(
+        sheet.classe,
+        origin,
+        attributes,
+        []
+      );
 
       test('Função deve retornar perícias não repitidas', () => {
         expect(skills).toHaveUniqueElements();
       });
       test('Função deve retornar poderes não repetidos', () => {
+        powersGetters.Origem.forEach((getPower) => getPower(sheet, []));
         expect(originPowers).toHaveUniqueElements();
-        expect(originGeneralPowers).toHaveUniqueElements();
+        expect(sheet.generalPowers).toHaveUniqueElements();
       });
     });
 });

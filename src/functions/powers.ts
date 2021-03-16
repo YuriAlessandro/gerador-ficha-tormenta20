@@ -1,9 +1,13 @@
 import { Atributo } from '../data/atributos';
+import generalPowers from '../data/poderes';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 
-function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
+export function isPowerAvailable(
+  sheet: CharacterSheet,
+  power: GeneralPower
+): boolean {
   return power.requirements.some((req) =>
     req.every((rule) => {
       switch (rule.type) {
@@ -58,4 +62,12 @@ function isPowerAvailable(sheet: CharacterSheet, power: GeneralPower) {
       }
     })
   );
+}
+
+export function getPowersAllowedByRequirements(
+  sheet: CharacterSheet
+): GeneralPower[] {
+  return Object.values(generalPowers)
+    .flat()
+    .filter((power) => isPowerAvailable(sheet, power));
 }

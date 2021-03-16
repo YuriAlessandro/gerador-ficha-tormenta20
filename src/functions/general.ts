@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _ from 'lodash';
+import _, { cloneDeep } from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -49,8 +49,8 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import { GeneralPower, OriginPower } from '../interfaces/Poderes';
-import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
+import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
+import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
 import Bag from '../interfaces/Bag';
@@ -286,9 +286,12 @@ export function getSkillsAndPowersByClassAndOrigin(
   steps: Step[]
 ): {
   skills: Skill[];
-  powers: { origin: OriginPower[]; general: GeneralPower[] };
+  powers: { origin: OriginPower[]; general: PowersGetters };
 } {
-  let powers: { origin: OriginPower[]; general: GeneralPower[] } = {
+  let powers: {
+    origin: OriginPower[];
+    general: PowerGetter[];
+  } = {
     origin: [],
     general: [],
   };
@@ -310,11 +313,6 @@ export function getSkillsAndPowersByClassAndOrigin(
         value: originSkills.map((skill) => ({ value: `${skill}` })),
       });
     }
-
-    steps.push({
-      label: 'Poderes da origem',
-      value: [],
-    });
 
     powers = originPowers;
     usedSkills.push(...originSkills);
@@ -341,10 +339,14 @@ export function getSkillsAndPowersByClassAndOrigin(
   }
 
   usedSkills.push(...attributesSkills);
-
   return {
     skills: usedSkills,
-    powers,
+    powers: {
+      ...powers,
+      general: {
+        Origem: powers.general,
+      },
+    },
   };
 }
 function getWeapons(classe: ClassDescription) {
@@ -598,9 +600,34 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
 
   return sheetClone;
 }
+function applyPowerGetters(
+  sheet: CharacterSheet,
+  powersGetters: PowersGetters
+): CharacterSheet {
+  const sheetClone = cloneDeep(sheet);
 
-function getAndApplyPowers(sheet: CharacterSheet): CharacterSheet {
+  const subSteps: SubStep[] = [];
+
+  powersGetters.Origem.forEach((addPower) => {
+    addPower(sheetClone, subSteps);
+  });
+
+  if (subSteps.length) {
+    sheetClone.steps.push({
+      type: 'Poderes',
+      label: 'Benefícios da Origem',
+      value: subSteps,
+    });
+  }
+  return sheetClone;
+}
+function getAndApplyPowers(
+  sheet: CharacterSheet,
+  powersGetters: PowersGetters
+): CharacterSheet {
   let updatedSheet = sheet;
+
+  updatedSheet = applyPowerGetters(updatedSheet, powersGetters);
   // Aplicar poderes de divindade
   updatedSheet = applyDivinePowers(updatedSheet);
 
@@ -620,6 +647,9 @@ export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
   const level = 1;
+  let powersGetters: PowersGetters = {
+    Origem: [],
+  };
 
   // Lista do passo-a-passo que deve ser populada
   const steps: Step[] = [];
@@ -660,7 +690,7 @@ export default function generateRandomSheet(
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
   if (race.name !== 'Golem') {
-    origin = getRandomItemFromArray(Object.values(ORIGINS));
+    origin = ORIGINS.Criminoso;
   }
 
   if (origin) {
@@ -724,18 +754,18 @@ export default function generateRandomSheet(
   }
 
   // Passo 8: Gerar pericias treinadas
-  const { powers, skills } = getSkillsAndPowersByClassAndOrigin(
-    classe,
-    origin,
-    atributos,
-    steps
-  );
+  const {
+    powers: { general: generalGetters, origin: originPowers },
+    skills,
+  } = getSkillsAndPowersByClassAndOrigin(classe, origin, atributos, steps);
+
+  powersGetters = generalGetters;
 
   let sheetOrigin;
   if (origin) {
     sheetOrigin = {
       name: origin.name,
-      powers: powers.origin,
+      powers: originPowers,
     };
   }
 
@@ -756,7 +786,7 @@ export default function generateRandomSheet(
     origin: sheetOrigin,
     displacement: 0,
     size: getRaceSize(race),
-    generalPowers: [...powers.general],
+    generalPowers: [],
     steps,
     skills,
     spells: initialSpells,
@@ -764,7 +794,7 @@ export default function generateRandomSheet(
 
   // Passo 9:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
-  charSheet = getAndApplyPowers(charSheet);
+  charSheet = getAndApplyPowers(charSheet, powersGetters);
 
   // Passo 10:
   // Gerar equipamento

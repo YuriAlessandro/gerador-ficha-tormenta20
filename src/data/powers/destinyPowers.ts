@@ -5,6 +5,7 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
+import Skill from '../../interfaces/Skills';
 import { getNotRepeatedRandomSkill } from '../pericias';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
@@ -216,7 +217,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Quando usa um veneno, você não corre risco de se envenenar acidentalmente. Além disso, a CD para resistir aos seus venenos aumenta em +2.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.PERICIA, name: 'Ofício (Alquimia)' }],
+      [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA }],
     ],
   },
   VONTADE_DE_FERRO: {

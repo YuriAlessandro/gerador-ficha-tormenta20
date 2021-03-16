@@ -1,11 +1,11 @@
 import Equipment from './Equipment';
-import { OriginPower, GeneralPower } from './Poderes';
+import { OriginPower, GeneralPower, PowerGetter } from './Poderes';
 import Skill from './Skills';
 
 export interface OriginBenefits {
   powers: {
     origin: OriginPower[];
-    general: GeneralPower[];
+    general: PowerGetter[];
   };
   skills: Skill[];
 }
@@ -19,7 +19,7 @@ interface Origin {
   name: string;
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
-  getPowersAndSkills?: (usedSkills: Skill[], origin?: Origin) => OriginBenefits;
+  getPowersAndSkills?: (usedSkills: Skill[], origin: Origin) => OriginBenefits;
   getItems: () => Items[];
 }
 

@@ -1,6 +1,6 @@
 import { Atributo } from '../data/atributos';
 // eslint-disable-next-line
-import CharacterSheet from './CharacterSheet';
+import CharacterSheet, { SubStep } from './CharacterSheet';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -49,6 +49,10 @@ export interface OriginPower {
   description: string;
   type: string;
 }
+
+export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
+
+export type PowersGetters = Record<'Origem', PowerGetter[]>;
 
 export type grantedPowers =
   | 'AFINIDADE_COM_A_TORMENTA'
