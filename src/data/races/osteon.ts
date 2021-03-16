@@ -8,6 +8,7 @@ import { getRaceDisplacement, getRaceSize } from './functions/functions';
 import { Atributo } from '../atributos';
 import HUMANO from './humano';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
+import { getPowersAllowedByRequirements } from '../../functions/powers';
 
 function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
   const shouldGetSkill = Math.random() > 0.5;
@@ -20,7 +21,12 @@ function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
       value: `Perícia treinada (${randomSkill})`,
     });
   } else {
-    const randomPower = getNotRepeatedRandom(sheet.generalPowers, 'power');
+    const allowedPowers = getPowersAllowedByRequirements(sheet);
+    const randomPower = getNotRepeatedRandom(
+      sheet.generalPowers,
+      'power',
+      allowedPowers
+    );
     sheet.generalPowers.push(randomPower);
     substeps.push({
       name: 'Memória Póstuma',

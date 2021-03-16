@@ -142,8 +142,8 @@ export function getNotRepeatedRandom<T extends notRepeatedTypes>(
   allowed?: T[]
 ): T {
   const notRepeated = allowed
-    ? getNotUsedFromAllowed(used, type)
-    : getNotUsedFromAllowed(used, type, allowed);
+    ? getNotUsedFromAllowed(used, type, allowed)
+    : getNotUsedFromAllowed(used, type);
 
   return getRandomItemFromArray<T>(notRepeated);
 }

@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { getPowersAllowedByRequirements } from '../../functions/powers';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
@@ -14,7 +15,12 @@ function addSkillOrPower(sheet: CharacterSheet, substeps: SubStep[]) {
       value: `Perícia treinada (${randomSkill})`,
     });
   } else {
-    const randomPower = getNotRepeatedRandom(sheet.generalPowers, 'power');
+    const allowedPowers = getPowersAllowedByRequirements(sheet);
+    const randomPower = getNotRepeatedRandom(
+      sheet.generalPowers,
+      'power',
+      allowedPowers
+    );
     sheet.generalPowers.push(randomPower);
     substeps.push({
       name: 'Versátil',

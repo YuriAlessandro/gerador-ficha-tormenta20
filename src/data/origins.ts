@@ -7,14 +7,82 @@ import {
 import originPowers, { ORIGIN_POWER_TYPE } from './powers/originPowers';
 import { DestinyPowers } from './powers/destinyPowers';
 import {
+  getNotRepeatedRandom,
   getRandomItemFromArray,
   pickFromArray,
 } from '../functions/randomUtils';
-import { OriginPower, GeneralPower } from '../interfaces/Poderes';
+import {
+  OriginPower,
+  GeneralPower,
+  GeneralPowerType,
+  PowerGetter,
+} from '../interfaces/Poderes';
 import generalPowers, { getUnrestricedTormentaPowers } from './poderes';
 import Skill from '../interfaces/Skills';
 import EQUIPAMENTOS, { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
+import CharacterSheet, { SubStep } from '../interfaces/CharacterSheet';
+import { isPowerAvailable } from '../functions/powers';
+
+function removeOriginPowers(origin: Origin) {
+  return origin.poderes.filter((power) =>
+    Object.values(GeneralPowerType).includes(power.type as GeneralPowerType)
+  ) as GeneralPower[];
+}
+
+function makeOriginGeneralPowerGetter(
+  origin: Origin,
+  type?: GeneralPowerType
+): PowerGetter {
+  const originGeneralPowers = removeOriginPowers(origin);
+
+  return (sheet: CharacterSheet, subSteps: SubStep[]) => {
+    sheet.skills.push(Skill.OFICIO_ALQUIMIA);
+    const allowedByRequirement = originGeneralPowers.filter((power) => {
+      if (type && power.type !== type) {
+        return false;
+      }
+
+      return isPowerAvailable(sheet, power);
+    });
+
+    const randomPower = getNotRepeatedRandom(
+      sheet.generalPowers,
+      'power',
+      allowedByRequirement
+    );
+
+    if (randomPower) {
+      sheet.generalPowers.push(randomPower);
+      subSteps.push({
+        name: origin.name,
+        value: `Poder geral recebido ${randomPower.name}`,
+      });
+      return;
+    }
+
+    const randomSkillFromOrigin = getNotRepeatedRandom(
+      sheet.skills,
+      'skill',
+      origin.pericias
+    );
+    if (randomSkillFromOrigin) {
+      sheet.skills.push(randomSkillFromOrigin);
+      subSteps.push({
+        name: origin.name,
+        value: `Perícia recebida ${randomSkillFromOrigin}`,
+      });
+      return;
+    }
+
+    const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+    sheet.skills.push(randomSkill);
+    subSteps.push({
+      name: origin.name,
+      value: `Perícia (extra) recebida ${randomSkillFromOrigin}`,
+    });
+  };
+}
 
 const benefitsStrategies = {
   string: (benefit: string, benefits: OriginBenefits): OriginBenefits =>
@@ -31,17 +99,26 @@ const benefitsStrategies = {
       },
     }),
   GeneralPower: (
-    benefit: OriginPower,
-    benefits: OriginBenefits
+    benefit: GeneralPower,
+    benefits: OriginBenefits,
+    origin: Origin,
+    type?: GeneralPowerType
   ): OriginBenefits =>
     _.merge(benefits, {
       powers: {
-        general: [...benefits.powers.general, benefit],
+        general: [
+          ...benefits.powers.general,
+          makeOriginGeneralPowerGetter(origin, type),
+        ],
       },
     }),
 };
 
-function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
+function getBenefits(
+  benefits: (string | OriginPower | GeneralPower)[],
+  origin: Origin,
+  type?: GeneralPowerType
+) {
   return benefits.reduce<OriginBenefits>(
     (acc, benefit) => {
       if (typeof benefit === 'string') {
@@ -52,7 +129,12 @@ function getBenefits(benefits: (string | OriginPower | GeneralPower)[]) {
         return benefitsStrategies.OriginPower(benefit, acc);
       }
 
-      return benefitsStrategies.GeneralPower(benefit, acc);
+      return benefitsStrategies.GeneralPower(
+        benefit as GeneralPower,
+        acc,
+        origin,
+        type
+      );
     },
     {
       skills: [],
@@ -75,7 +157,7 @@ function sortDefaultBenefits(usedSkills: Skill[], origin: Origin) {
     2
   );
 
-  return getBenefits(sortedBenefits);
+  return getBenefits(sortedBenefits, origin);
 }
 
 export function getOriginBenefits(
@@ -90,13 +172,16 @@ export function getOriginBenefits(
 }
 
 // Amnésico recebe uma skill random e um poder geral random
-function sortAmnesicBenefits(usedSkills: Skill[]): OriginBenefits {
+function sortAmnesicBenefits(
+  usedSkills: Skill[],
+  origin: Origin
+): OriginBenefits {
   const newSkill = getNotRepeatedRandomSkill(usedSkills);
 
   return {
     skills: [newSkill],
     powers: {
-      general: [getRandomItemFromArray(Object.values(generalPowers).flat())],
+      general: [makeOriginGeneralPowerGetter(origin)],
       origin: [originPowers.LEMBRANCAS_GRADUAIS],
     },
   };
@@ -105,7 +190,7 @@ function sortAmnesicBenefits(usedSkills: Skill[]): OriginBenefits {
 // Assitente de Laboratório recebe um poder da Tormenta
 function sortLabAssistentBenefits(
   skills: Skill[],
-  origin?: Origin
+  origin: Origin
 ): OriginBenefits {
   const allowedTormentaPowers = getUnrestricedTormentaPowers();
   const choosenTormentaPowers = allowedTormentaPowers.length
@@ -124,13 +209,13 @@ function sortLabAssistentBenefits(
     2
   );
 
-  return getBenefits(sortedBenefits);
+  return getBenefits(sortedBenefits, origin, GeneralPowerType.TORMENTA);
 }
 
 // Para origens que recebem um poder de combate aleatório
 function getBenefitsWithRandomCombatPower(
   skills: Skill[],
-  origin?: Origin
+  origin: Origin
 ): OriginBenefits {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     skills,
@@ -145,7 +230,7 @@ function getBenefitsWithRandomCombatPower(
     2
   );
 
-  return getBenefits(sortedBenefits);
+  return getBenefits(sortedBenefits, origin, GeneralPowerType.COMBATE);
 }
 
 export type origins =

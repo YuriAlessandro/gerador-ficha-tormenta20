@@ -1,7 +1,6 @@
 import { GeneralPowerType } from '../../interfaces/Poderes';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { spellsCircles } from '../../interfaces/Spells';
 import { Atributo } from '../../data/atributos';
 import { spellsCircle1 } from '../../data/magias/generalSpells';
 import Race from '../../interfaces/Race';

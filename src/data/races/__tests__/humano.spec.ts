@@ -1,6 +1,6 @@
+import { cloneDeep } from 'lodash';
 import { applyRaceAbilities } from '../../../functions/general';
-import CharacterSheet from '../../../interfaces/CharacterSheet';
-import Skill from '../../../interfaces/Skills';
+import { druida } from '../../../__mocks__/classes/druida';
 import HUMANO from '../humano';
 
 describe('Testa habilidades da raça Humano', () => {
@@ -8,17 +8,12 @@ describe('Testa habilidades da raça Humano', () => {
     Array(20)
       .fill(0)
       .forEach(() => {
-        const sheet: CharacterSheet = ({
-          skills: [Skill.ACROBACIA],
-          generalPowers: [],
-          raca: HUMANO,
-          steps: [],
-        } as unknown) as CharacterSheet;
+        const sheet = cloneDeep(druida(HUMANO));
 
         const received = applyRaceAbilities(sheet);
 
-        expect(received.skills.length).toBeGreaterThan(1);
-        expect(received.skills.length).toBeLessThan(4);
+        expect(received.skills.length).toBeGreaterThan(8);
+        expect(received.skills.length).toBeLessThan(11);
         expect(received.skills).toHaveUniqueElements();
 
         if (received.skills.length > 2) {
