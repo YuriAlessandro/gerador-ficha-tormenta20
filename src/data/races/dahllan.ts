@@ -34,18 +34,18 @@ const DAHLLAN: Race = {
         'Você pode lançar a magia Controlar Plantas (atributo-chave Sabedoria). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
       action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
-        const manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
-        const spells = addOrCheapenSpell(
+        const { spells, stepValue } = addOrCheapenSpell(
           sheet,
           spellsCircle1.controlarPlantas,
-          manaReduction,
           Atributo.SABEDORIA
         );
 
-        subSteps.push({
-          name: 'Amiga das Plantas',
-          value: 'Adicionou magia "Controlar Plantas"',
-        });
+        if (stepValue) {
+          subSteps.push({
+            name: 'Amiga das Plantas',
+            value: stepValue,
+          });
+        }
 
         return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
           spells,

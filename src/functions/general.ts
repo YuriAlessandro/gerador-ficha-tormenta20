@@ -622,7 +622,7 @@ export default function generateRandomSheet(
   const level = 1;
 
   // Lista do passo-a-passo que deve ser populada
-  const steps = [];
+  const steps: Step[] = [];
 
   // Passo 1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];

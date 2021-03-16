@@ -1,5 +1,5 @@
 import { cloneDeep, merge } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
@@ -51,10 +51,17 @@ const MINOTAURO: Race = {
       name: 'Couro Rígido',
       description:
         'Sua pele é dura como a de um touro. Você recebe +1 na Defesa.',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
+        const finalDefense = sheetClone.defesa + 1;
+
+        substeps.push({
+          name: 'Chassi',
+          value: `+1 defesa (${sheet.defesa} + 1 = ${finalDefense})`,
+        });
+
         return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: sheetClone.defesa + 1,
+          defesa: finalDefense,
         });
       },
     },

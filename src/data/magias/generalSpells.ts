@@ -1,5 +1,6 @@
 import { cloneDeep, merge } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import { pickFromArray } from '../../functions/randomUtils';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { Spell, spellsCircles } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
 
@@ -532,7 +533,14 @@ export function setupSpell(spell: Spell): Spell {
   });
 }
 
-function cheapenSpell(spells: Spell[], index: number, manaReduction: number) {
+function cheapenSpell(
+  spells: Spell[],
+  index: number,
+  manaReduction = 1
+): {
+  spells: Spell[];
+  stepValue?: string;
+} {
   const spellsToChange = spells;
   const { manaReduction: actualManaReduction = 0 } = spells[index];
 
@@ -541,17 +549,26 @@ function cheapenSpell(spells: Spell[], index: number, manaReduction: number) {
       ...spells[index],
       manaReduction,
     };
+
+    return {
+      spells: spellsToChange,
+      stepValue: `Redução de mana -${manaReduction} (${spellsToChange[index].nome})`,
+    };
   }
 
-  return spells;
+  return {
+    spells,
+  };
 }
 
 export function addOrCheapenSpell(
   sheet: CharacterSheet,
   spell: Spell,
-  manaReduction: number,
   customKeyAttr?: Atributo
-): Spell[] {
+): {
+  spells: Spell[];
+  stepValue?: string;
+} {
   const index = sheet.spells.findIndex(
     (sheetSpell) => spell.nome === sheetSpell.nome
   );
@@ -563,8 +580,44 @@ export function addOrCheapenSpell(
     : spellClone;
 
   if (index < 0) {
-    return [...sheet.spells, spellToAdd];
+    return {
+      spells: [...sheet.spells, spellToAdd],
+      stepValue: `Adicionou magia ${spellToAdd.nome}`,
+    };
   }
 
-  return cheapenSpell(sheet.spells, index, manaReduction);
+  return cheapenSpell(sheet.spells, index);
+}
+
+function getRandomSpells(allowedSpells: Spell[], qtd: number) {
+  return pickFromArray(allowedSpells, qtd);
+}
+
+export function addOrCheapenRandomSpells(
+  sheet: CharacterSheet,
+  substeps: SubStep[],
+  allowedSpells: Spell[],
+  stepName: string,
+  customKeyAttr: Atributo,
+  qtd = 2
+): void {
+  const sheetToChange = sheet;
+  const randomSpells = getRandomSpells(allowedSpells, qtd);
+
+  randomSpells.forEach((randomSpell) => {
+    const { spells, stepValue } = addOrCheapenSpell(
+      sheet,
+      randomSpell,
+      customKeyAttr
+    );
+
+    sheetToChange.spells = spells;
+
+    if (stepValue) {
+      substeps.push({
+        name: stepName,
+        value: stepValue,
+      });
+    }
+  });
 }

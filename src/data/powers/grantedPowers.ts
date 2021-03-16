@@ -11,7 +11,6 @@ import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 import { getNotRepeatedRandomSkill } from '../pericias';
-import { PLANTS_FRIEND_MANA_REDUCTION } from '../races/dahllan';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AFINIDADE_COM_A_TORMENTA: {
@@ -213,18 +212,18 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       subSteps: { name: string; value: string }[]
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
-      const manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
-      const spells = addOrCheapenSpell(
+      const { spells, stepValue } = addOrCheapenSpell(
         sheet,
         spellsCircle1.controlarPlantas,
-        manaReduction,
         Atributo.SABEDORIA
       );
 
-      subSteps.push({
-        name: 'Dedo Verde',
-        value: 'Adicionou magia "Controlar Plantas"',
-      });
+      if (stepValue) {
+        subSteps.push({
+          name: 'Dedo Verde',
+          value: stepValue,
+        });
+      }
 
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         spells,

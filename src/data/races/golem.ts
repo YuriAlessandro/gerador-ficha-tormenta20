@@ -1,5 +1,5 @@
 import { cloneDeep, merge } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -35,13 +35,26 @@ const GOLEM: Race = {
       name: 'Chassi',
       description:
         'Seu corpo artificial é resistente, mas rígido. Você recebe +2 na Defesa, mas possui penalidade de armadura –2 e seu deslocamento é 6m. Você leva um dia para vestir ou remover uma armadura (pois precisa acoplar as peças dela a seu chassi).',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
+        const { extraArmorPenalty = 0 } = sheetClone;
+
+        const finalDefense = sheetClone.defesa + 2;
+        const finalExtraArmorPenalty = extraArmorPenalty + 2;
+
+        substeps.push({
+          name: 'Chassi',
+          value: `+2 defesa (${sheet.defesa} + 2 = ${finalDefense})`,
+        });
+
+        substeps.push({
+          name: 'Chassi',
+          value: `+2 penalidade de armadura`,
+        });
+
         return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: sheetClone.defesa + 2,
-          extraArmorPenalty: sheetClone.extraArmorPenalty
-            ? sheetClone.extraArmorPenalty + 2
-            : 2,
+          defesa: finalDefense,
+          extraArmorPenalty: finalExtraArmorPenalty,
         });
       },
     },

@@ -1,5 +1,8 @@
+import { cloneDeep } from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 
 const AGGELUS: Race = {
   name: 'Suraggel (Aggelus)',
@@ -30,6 +33,25 @@ const AGGELUS: Race = {
       name: 'Luz Sagrada',
       description:
         'Você recebe +2 em Diplomacia e Intuição. Além disso, pode lançar Luz (como uma magia divina; atributo-chave Carisma). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        const { stepValue, spells } = addOrCheapenSpell(
+          sheetClone,
+          spellsCircle1.luz,
+          Atributo.CARISMA
+        );
+        sheetClone.spells = spells;
+
+        if (stepValue) {
+          substeps.push({
+            name: 'Luz Sagrada',
+            value: stepValue,
+          });
+        }
+
+        return sheetClone;
+      },
     },
   ],
 };

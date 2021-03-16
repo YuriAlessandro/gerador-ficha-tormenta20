@@ -1,9 +1,10 @@
 import _ from 'lodash';
 import { applyRaceAbilities } from '../../../functions/general';
 import { inventor } from '../../../__mocks__/classes/inventor';
+import PROFICIENCIAS from '../../proficiencias';
 import KLIREN from '../kliren';
 
-describe('Testa habilidades da raça Elfo', () => {
+describe('Testa habilidades da raça Kliren', () => {
   const sheet = _.cloneDeep(inventor(KLIREN));
   const received = applyRaceAbilities(sheet);
 
@@ -12,5 +13,10 @@ describe('Testa habilidades da raça Elfo', () => {
   });
   test('Híbrido: perícias não repetidas', () => {
     expect(received.skills).toHaveUniqueElements();
+  });
+  test('Vanguardista: proficiência com armas de fogo', () => {
+    expect(received.classe.proeficiencias.includes(PROFICIENCIAS.FOGO)).toBe(
+      true
+    );
   });
 });
