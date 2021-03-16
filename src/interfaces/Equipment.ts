@@ -59,9 +59,3 @@ export interface BagEquipments {
   Veículo: Equipment[];
   Serviço: Equipment[];
 }
-
-export interface Bag {
-  equipments: BagEquipments;
-  weight: number;
-  armorPenalty: number;
-}

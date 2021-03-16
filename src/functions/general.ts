@@ -10,10 +10,8 @@ import {
 } from '../data/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
-  DEFAULT_BAG,
   Armaduras,
   Escudos,
-  updateEquipments,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -34,7 +32,7 @@ import {
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
 import { getOriginBenefits, ORIGINS } from '../data/origins';
-import Equipment, { Bag, BagEquipments } from '../interfaces/Equipment';
+import Equipment, { BagEquipments } from '../interfaces/Equipment';
 import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
@@ -55,6 +53,7 @@ import { GeneralPower, OriginPower } from '../interfaces/Poderes';
 import CharacterSheet, { Step } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
+import Bag from '../interfaces/Bag';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -380,18 +379,14 @@ function getArmors(classe: ClassDescription) {
   return armors;
 }
 
-function getInitialEquipments(
-  bagEquipments: BagEquipments,
+function getClassEquipments(
   classe: ClassDescription
-): BagEquipments {
-  const newBagEquipments: BagEquipments = { ...bagEquipments };
-
+): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura'> {
   const weapons = getWeapons(classe);
   const shields = getShields(classe);
   const armors = getArmors(classe);
 
   return {
-    ...newBagEquipments,
     Arma: weapons,
     Escudo: shields,
     Armadura: armors,
@@ -400,13 +395,15 @@ function getInitialEquipments(
 
 function getInitialBag(origin: Origin | undefined): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const bag: Bag = _.cloneDeep(DEFAULT_BAG);
-
   const initialMoney = rollDice(4, 6, 0);
-  bag.equipments['Item Geral'].push({
-    nome: `T$ ${initialMoney}`,
-    group: 'Item Geral',
-  });
+  const equipments: Partial<BagEquipments> = {
+    'Item Geral': [
+      {
+        nome: `T$ ${initialMoney}`,
+        group: 'Item Geral',
+      },
+    ],
+  };
 
   const originItems = origin?.getItems();
 
@@ -416,14 +413,14 @@ function getInitialBag(origin: Origin | undefined): Bag {
         nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
         group: 'Item Geral',
       };
-      bag.equipments['Item Geral'].push(newEquip);
+      equipments['Item Geral']?.push(newEquip);
     } else {
       // É uma arma
-      bag.equipments.Arma.push(equip.equipment);
+      equipments.Arma?.push(equip.equipment);
     }
   });
 
-  return bag;
+  return new Bag(equipments);
 }
 
 function getThyatisPowers() {
@@ -517,7 +514,7 @@ function calcDisplacement(
 ): number {
   const maxWeight = atributos.Força.value * 3;
 
-  if (bag.weight > maxWeight) {
+  if (bag.getWeight() > maxWeight) {
     return raceDisplacement - 3;
   }
 
@@ -532,6 +529,7 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
     (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
     sheetClone
   );
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
@@ -770,18 +768,15 @@ export default function generateRandomSheet(
 
   // Passo 10:
   // Gerar equipamento
-  const bagEquipments = getInitialEquipments(charSheet.bag.equipments, classe);
-  const updatedBag = updateEquipments(charSheet.bag, bagEquipments);
-  charSheet.bag = updatedBag;
+  const classEquipments = getClassEquipments(classe);
+  charSheet.bag.addEquipment(classEquipments);
 
   charSheet.steps.push({
     type: 'Equipamentos',
     label: 'Equipamentos da classe',
-    value: [
-      ...bagEquipments.Arma,
-      ...bagEquipments.Armadura,
-      ...bagEquipments.Escudo,
-    ].map((equip) => ({ value: equip.nome })),
+    value: [...Object.values(classEquipments).flat()].map((equip) => ({
+      value: equip.nome,
+    })),
   });
 
   // Passo 11:

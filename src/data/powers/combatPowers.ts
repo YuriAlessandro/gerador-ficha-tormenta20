@@ -380,7 +380,7 @@ const combatPowers: Record<string, GeneralPower> = {
         sheetClone.classe.proeficiencias,
         'proficiencia',
         allowedProf
-      ) as string;
+      );
 
       subSteps.push({
         name: 'Proficiência',

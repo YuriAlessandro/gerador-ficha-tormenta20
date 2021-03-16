@@ -5,6 +5,7 @@ import { spellsCircles } from '../../interfaces/Spells';
 import { Atributo } from '../../data/atributos';
 import { spellsCircle1 } from '../../data/magias/generalSpells';
 import Race from '../../interfaces/Race';
+import Bag from '../../interfaces/Bag';
 
 export function druida(race: Race): CharacterSheet {
   return {
@@ -22,45 +23,41 @@ export function druida(race: Race): CharacterSheet {
       Sabedoria: { name: Atributo.SABEDORIA, value: 18, mod: 4 },
       Carisma: { name: Atributo.CARISMA, value: 16, mod: 3 },
     },
-    bag: {
-      equipments: {
-        'Item Geral': [
-          { nome: 'Mochila', group: 'Item Geral', peso: 1 },
-          { nome: 'Saco de dormir', group: 'Item Geral', peso: 2.5 },
-          { nome: 'Traje de viajante', group: 'Item Geral', peso: 2 },
-        ],
-        Alimentação: [],
-        Alquimía: [],
-        Animal: [],
-        Arma: [
-          {
-            nome: 'Pique',
-            dano: '1d8',
-            critico: '2x',
-            peso: 5,
-            tipo: 'Perf.',
-            alcance: '-',
-            group: 'Arma',
-          },
-        ],
-        Armadura: [
-          {
-            nome: 'Gibão de peles',
-            defenseBonus: 4,
-            armorPenalty: 3,
-            peso: 12,
-            group: 'Armadura',
-          },
-        ],
-        Escudo: [],
-        Hospedagem: [],
-        Serviço: [],
-        Vestuário: [],
-        Veículo: [],
-      },
-      weight: 5.5,
-      armorPenalty: 0,
-    },
+    bag: new Bag({
+      'Item Geral': [
+        { nome: 'Mochila', group: 'Item Geral', peso: 1 },
+        { nome: 'Saco de dormir', group: 'Item Geral', peso: 2.5 },
+        { nome: 'Traje de viajante', group: 'Item Geral', peso: 2 },
+      ],
+      Alimentação: [],
+      Alquimía: [],
+      Animal: [],
+      Arma: [
+        {
+          nome: 'Pique',
+          dano: '1d8',
+          critico: '2x',
+          peso: 5,
+          tipo: 'Perf.',
+          alcance: '-',
+          group: 'Arma',
+        },
+      ],
+      Armadura: [
+        {
+          nome: 'Gibão de peles',
+          defenseBonus: 4,
+          armorPenalty: 3,
+          peso: 12,
+          group: 'Armadura',
+        },
+      ],
+      Escudo: [],
+      Hospedagem: [],
+      Serviço: [],
+      Vestuário: [],
+      Veículo: [],
+    }),
     classe: {
       name: 'Druida',
       pv: 16,
@@ -178,28 +175,7 @@ export function druida(race: Race): CharacterSheet {
       Skill.INICIATIVA,
       Skill.JOGATINA,
     ],
-    spells: [
-      spellsCircle1.controlarPlantas,
-      {
-        spellCircle: spellsCircles.c1,
-        nome: 'Proteção Divina',
-        execucao: 'Padrão',
-        alcance: 'Toque',
-        alvo: '1 criatura',
-        duracao: 'Cena',
-        manaExpense: 1,
-      },
-      {
-        spellCircle: spellsCircles.c1,
-        nome: 'Despedaçar',
-        execucao: 'Padrão',
-        alcance: 'Curto',
-        alvo: '1 critura ou objeto mundano pequeno',
-        duracao: 'Instantânea',
-        resistencia: 'Fortitude parcial ou Reflexos anula',
-        manaExpense: 1,
-      },
-    ],
+    spells: [spellsCircle1.controlarPlantas], // qareen test based on having this unique spell
     devoto: {
       divindade: {
         name: 'Allihanna',

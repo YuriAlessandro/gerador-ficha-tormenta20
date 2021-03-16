@@ -1,12 +1,12 @@
 import { Atributo } from '../data/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
-import CharacterSheet from './CharacterSheet';
+import CharacterSheet, { SubStep } from './CharacterSheet';
 import { ClassDescription } from './Class';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
-import { Bag } from './Equipment';
+import Bag from './Bag';
 import Skill from './Skills';
 import { Spell } from './Spells';
 
@@ -56,10 +56,7 @@ export interface CharacterStats {
 export interface RaceAbility {
   name: string;
   description: string;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  action?: (sheet: CharacterSheet, subSteps: SubStep[]) => CharacterSheet;
 }
 
 export default interface Race {
@@ -68,7 +65,7 @@ export default interface Race {
     attrs: RaceAttributeAbility[];
     texts: string[];
   };
-  abilities?: RaceAbility[];
+  abilities: RaceAbility[];
   oldRace?: Race;
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;

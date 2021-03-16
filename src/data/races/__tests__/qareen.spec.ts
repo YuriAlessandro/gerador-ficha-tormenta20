@@ -14,7 +14,7 @@ describe('Testa habilidades da raça Qareen', () => {
     expect(received.spells).toHaveLength(sheet.spells.length + 1);
   });
 
-  test('Tatuagem Mística: magia aprendida deve ter atributo-chave Carisma e aplicar redução de mana', () => {
+  test('Tatuagem Mística: magia aprendida com atributo-chave Carisma ou aplicar redução de mana', () => {
     const sheetWithSpell = cloneDeep(druida(QAREEN));
     const { spells } = applyRaceAbilities(sheetWithSpell);
     const [addedSpell] = differenceBy(spells, sheetWithSpell.spells, 'nome');

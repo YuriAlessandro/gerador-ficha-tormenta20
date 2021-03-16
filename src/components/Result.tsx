@@ -89,8 +89,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const periciasDiv = periciasSorted.map((pericia) => (
     <li key={getKey(pericia)}>{pericia}</li>
   ));
-  const habilidadesRacaDiv = raca.attributes.texts.map((hab) => (
-    <li key={getKey(hab)}>{hab}</li>
+  const habilidadesRacaDiv = raca.abilities.map((hab) => (
+    <li key={getKey(hab.name)}>
+      <strong>{hab.name}</strong>: {hab.description}
+    </li>
   ));
 
   const habilidadesClasseDiv = classe.abilities.map((hab) => (
@@ -103,7 +105,9 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(proe)}>{proe}</li>
   ));
 
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(bag.equipments)
+  const bagEquipments = bag.getEquipments();
+
+  const equipsEntriesNoWeapons: Equipment[] = Object.entries(bagEquipments)
     .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
     .flatMap((value) => value[1]);
 
@@ -113,10 +117,10 @@ const Result: React.FC<ResultProps> = (props) => {
     </li>
   ));
 
-  const weaponsDiv = <Weapons getKey={getKey} weapons={bag.equipments.Arma} />;
+  const weaponsDiv = <Weapons getKey={getKey} weapons={bagEquipments.Arma} />;
   const defenseEquipments = [
-    ...bag.equipments.Armadura,
-    ...bag.equipments.Escudo,
+    ...bagEquipments.Armadura,
+    ...bagEquipments.Escudo,
   ];
 
   const poderesConcedidos = devoto?.poderes.map((poder) => (
@@ -318,13 +322,14 @@ const Result: React.FC<ResultProps> = (props) => {
             <div className='textToRight equipmentsValues'>
               <span>
                 <strong>Penalidade de Armadura:</strong>{' '}
-                {(bag.armorPenalty + extraArmorPenalty) * -1}
+                {(bag.getArmorPenalty() + extraArmorPenalty) * -1}
               </span>
             </div>
             <div className='tableWrap'>{equipamentosDiv}</div>
             <div className='textToRight equipmentsValues'>
               <span>
-                <strong>Peso (atual/máximo):</strong> {bag.weight}/{maxWeight}kg
+                <strong>Peso (atual/máximo):</strong> {bag.getWeight()}/
+                {maxWeight}kg
               </span>
             </div>
           </div>

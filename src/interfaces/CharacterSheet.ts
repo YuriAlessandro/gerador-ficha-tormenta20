@@ -1,7 +1,7 @@
 import { ClassDescription } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
-import { Bag } from './Equipment';
+import Bag from './Bag';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill from './Skills';
@@ -38,5 +38,10 @@ export default interface CharacterSheet {
 export interface Step {
   label: string;
   type?: string;
-  value: { name?: string; value: number | string }[];
+  value: SubStep[];
+}
+
+export interface SubStep {
+  name?: string;
+  value: number | string;
 }

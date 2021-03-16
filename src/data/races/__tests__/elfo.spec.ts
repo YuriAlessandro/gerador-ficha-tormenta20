@@ -7,7 +7,7 @@ describe('Testa habilidades da raça Elfo', () => {
   const sheet = _.cloneDeep(inventor(ELFO));
   const received = applyRaceAbilities(sheet);
 
-  test('Herança Feérica: +1 PM por n´vel', () => {
+  test('Herança Feérica: +1 PM por nível', () => {
     expect(received.classe.addpm).toBe(sheet.classe.addpm + 1);
   });
 });
