@@ -29,6 +29,24 @@
 	border-right: 1px solid rgb(48,49,51);
 }
 
+.div-transparent.dark:before {
+	background-image: linear-gradient(to right, transparent, white, transparent);
+}
+
+.div-arrow-down.dark:after,
+.div-arrow-up.dark:after {
+	content: "";
+	position: absolute;
+	top: -7px;
+	left: calc(50% - 7px);
+	width: 14px;
+	height: 14px;
+	background-color: #363636;
+	border-bottom: 1px solid white;
+	border-right: 1px solid white;
+}
+
+
 .div-arrow-down:after {
   transform: rotate(45deg);
 }
@@ -58,6 +76,10 @@
   -webkit-box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
   -moz-box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
   box-shadow: 1px -2px 5px 0px rgba(0,0,0,0.5);
+}
+
+.resultMainDiv.dark {
+  background-color: #363636;
 }
 
 .characterInfos {
@@ -111,6 +133,15 @@
   background-color: white;
 }
 
+.attributeItem.dark {
+  border: 2px solid white;
+}
+
+.attributeItem.dark .mod {
+  border: 1px solid white;
+  background-color: #363636;
+}
+
 .resultRow.nameArea {
   display: flex;
   align-items: center;
@@ -150,6 +181,10 @@
   text-align: center;
 }
 
+.characterStat.dark {
+  border: 1px solid white;
+}
+
 .characterStat .name {
   font-weight: bold;
   margin-top: 5px;
@@ -186,6 +221,10 @@ table {
   border-radius: 5px;
   padding: 15px;
   margin: 10px 0px;
+}
+
+.tableWrap.dark {
+  border: 1px solid white;
 }
 
 .textToRight {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -7,6 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
 import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
+import { useCookies } from 'react-cookie';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
@@ -16,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '0 30px',
   },
   appbar: {
-    background: 'rgb(209, 50, 53);',
+    background: 'rgb(209, 50, 53)',
   },
   title: {
     display: 'flex',
@@ -36,10 +37,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const lightTheme = {
+  backgroundColor: '#f3f2f1',
+};
+
+const darkTheme = {
+  backgroundColor: '#212121',
+  color: '#FFF',
+};
+
 function App(): JSX.Element {
   const classes = useStyles();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
+  const [isDarkTheme, setIsDarkTheme] = React.useState(false);
+  const [cookies, setCookie, removeCookie] = useCookies();
 
   const onClickMenu = () => {
     setSidebarVisibility(true);
@@ -49,14 +61,35 @@ function App(): JSX.Element {
     setSidebarVisibility(false);
   };
 
+  const onChangeTheme = () => {
+    if (isDarkTheme) {
+      removeCookie('dkmFdn');
+    } else {
+      setCookie('dkmFdn', !isDarkTheme);
+    }
+
+    setIsDarkTheme(!isDarkTheme);
+  };
+
+  useEffect(() => {
+    const darkMod = cookies.dkmFdn;
+    setIsDarkTheme(darkMod);
+  }, []);
+
   return (
-    <div className='App' data-testid='app-component'>
+    <div
+      className='App'
+      data-testid='app-component'
+      style={isDarkTheme ? darkTheme : lightTheme}
+    >
       <HashRouter basename='/gerador-ficha-tormenta20/#'>
         <div className='mainApp'>
           <header className='App-header'>
             <Sidebar
               visible={sidebarVisibility}
               onCloseSidebar={onCloseSidebar}
+              isDarkTheme={isDarkTheme}
+              onChangeTheme={onChangeTheme}
             />
             <AppBar position='static' className={classes.appbar}>
               <Toolbar>
@@ -81,7 +114,10 @@ function App(): JSX.Element {
                 <Changelog />
               </Route>
               <Route>
-                <MainScreen />
+                <MainScreen
+                  setIsDarkTheme={setIsDarkTheme}
+                  isDarkMode={isDarkTheme}
+                />
               </Route>
             </Switch>
           </div>

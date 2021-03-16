@@ -1,5 +1,4 @@
 import React from 'react';
-
 import Typography from '@material-ui/core/Typography';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -9,14 +8,14 @@ import { makeStyles } from '@material-ui/core/styles';
 import { RouteComponentProps } from 'react-router';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Paper from '@material-ui/core/Paper';
-
 import HomeIcon from '@material-ui/icons/Home';
+import Brightness4Icon from '@material-ui/icons/Brightness4';
 import ForumIcon from '@material-ui/icons/Forum';
 import CloseIcon from '@material-ui/icons/Close';
 import CodeIcon from '@material-ui/icons/Code';
 import NotesIcon from '@material-ui/icons/Notes';
-
 import Slide from '@material-ui/core/Slide';
+import { FormControlLabel, FormGroup, Switch } from '@material-ui/core';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
@@ -24,12 +23,20 @@ import '../assets/css/sidebar.css';
 type SidebarProps = RouteComponentProps & {
   visible: boolean;
   onCloseSidebar: () => void;
+  isDarkTheme: boolean;
+  onChangeTheme: () => void;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  visible,
+  onCloseSidebar,
+  isDarkTheme,
+  onChangeTheme,
+}) => {
   const useStyles = makeStyles(() => ({
     link: {
       cursor: 'pointer',
+      color: isDarkTheme ? '#fff' : '#757575',
     },
     paper: {
       position: 'fixed',
@@ -70,7 +77,14 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
   document.addEventListener('keydown', handleEscKeyPress, false);
 
   return (
-    <Slide direction='right' in={visible}>
+    <Slide
+      direction='right'
+      in={visible}
+      style={{
+        background: isDarkTheme ? '#3b3b3b' : 'white',
+        color: isDarkTheme ? '#fff' : 'black',
+      }}
+    >
       <Paper className={classes.paper}>
         <div className='sidebarHeader'>
           <Link
@@ -130,6 +144,24 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onCloseSidebar }) => {
             <Typography variant='inherit' className='specialMenu'>
               Changelog
             </Typography>
+          </MenuItem>
+          <MenuItem>
+            <ListItemIcon>
+              <Brightness4Icon className={classes.link} />
+            </ListItemIcon>
+            <FormGroup>
+              <FormControlLabel
+                labelPlacement='end'
+                control={
+                  <Switch
+                    checked={isDarkTheme}
+                    onChange={onChangeTheme}
+                    color='default'
+                  />
+                }
+                label='Tema Escuro'
+              />
+            </FormGroup>
           </MenuItem>
         </MenuList>
       </Paper>

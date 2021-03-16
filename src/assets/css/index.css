@@ -6,7 +6,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f3f2f1;
+  /* background-color: #; */
 }
 
 code {
@@ -44,6 +44,10 @@ code {
 
 #bottom a {
   color: white;
+}
+
+a:visited {
+  color: inherit;
 }
 
 @media screen and (max-width: 720px) {

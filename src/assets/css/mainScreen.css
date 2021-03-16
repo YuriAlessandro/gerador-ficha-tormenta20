@@ -21,7 +21,7 @@
 
 #presentation {
   max-width: 70vw;
-  padding: 30px;
+  padding: 0 30px;
 }
 
 @media (max-width: 720px) {
@@ -38,9 +38,5 @@
 
   #presentation {
     max-width: 100vw;
-  }
-
-  #presentation .deskOnly{
-    display: none;
   }
 }

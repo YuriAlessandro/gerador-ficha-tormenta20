@@ -5,6 +5,10 @@
   padding: 0 15px;
 }
 
+.sidebarHeader.dark {
+  color: "#FFF";
+}
+
 .logo {
   width: 30px;
   margin-right: 10px;

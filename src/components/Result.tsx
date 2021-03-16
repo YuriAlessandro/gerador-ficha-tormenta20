@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactToPrint from 'react-to-print';
+import BugReportIcon from '@material-ui/icons/BugReport';
+import { useCookies } from 'react-cookie';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 import CharacterStat from './CharacterStat';
@@ -15,10 +17,12 @@ import SpellsMobile from './SpellsMobile';
 
 interface ResultProps {
   sheet: CharacterSheet;
+  isDarkMode: boolean;
+  setIsDarkTheme: (darkMode: boolean) => void;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet } = props;
+  const { sheet, isDarkMode, setIsDarkTheme } = props;
 
   const {
     nome,
@@ -78,6 +82,7 @@ const Result: React.FC<ResultProps> = (props) => {
       id={id}
       value={atributo.value}
       key={getKey(atributo.name)}
+      isDarkMode={isDarkMode}
     />
   ));
 
@@ -153,12 +158,18 @@ const Result: React.FC<ResultProps> = (props) => {
   }, [resultRef]);
 
   const handleExport = () => {
+    setIsDarkTheme(false);
     setisRacePowersVisible(true);
     setClassPowersVisible(true);
     setOriginPowersVisible(true);
     setGodPowersVisible(true);
 
     return resultRef.current;
+  };
+
+  const [cookies] = useCookies();
+  const handleAfterPrint = () => {
+    setIsDarkTheme(cookies.dkmFdn);
   };
 
   const keyAttr = classe.spellPath
@@ -233,12 +244,16 @@ const Result: React.FC<ResultProps> = (props) => {
                 Exportar ou imprimir essa ficha
               </button>
             )}
+            onAfterPrint={handleAfterPrint}
             content={handleExport}
             documentTitle={`${nome} - ${classe.name} ${raca.name}`}
           />
         </div>
 
-        <div className='resultMainDiv' ref={resultRef}>
+        <div
+          className={`resultMainDiv ${isDarkMode ? 'dark' : ''}`}
+          ref={resultRef}
+        >
           <div className='characterInfos'>
             <div>
               <div className='resultRow nameArea'>
@@ -272,10 +287,15 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
 
             <div className='stats'>
-              <CharacterStat name='PV' value={pv} />
-              <CharacterStat name='PM' value={pm} />
-              <CharacterStat name='Defesa' value={defesa} />
+              <CharacterStat isDarkMode={isDarkMode} name='PV' value={pv} />
+              <CharacterStat isDarkMode={isDarkMode} name='PM' value={pm} />
               <CharacterStat
+                isDarkMode={isDarkMode}
+                name='Defesa'
+                value={defesa}
+              />
+              <CharacterStat
+                isDarkMode={isDarkMode}
                 name='Deslocamento'
                 value={displacement}
                 isMovement
@@ -283,11 +303,11 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
           </div>
 
-          <Divider direction='down' />
+          <Divider isDarkMode={isDarkMode} direction='down' />
 
           <div className='attributesRow'>{atributosDiv}</div>
 
-          <Divider direction='down' />
+          <Divider isDarkMode={isDarkMode} direction='down' />
 
           <div className='condense'>
             <div className='resultRow'>
@@ -305,15 +325,17 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
           </div>
 
-          <Divider direction='down' />
+          <Divider isDarkMode={isDarkMode} direction='down' />
 
           <div className='sectionTitle'>
             <span>Equipamentos</span>
           </div>
 
           <div className='equipaments'>
-            <div className='tableWrap'>{weaponsDiv}</div>
-            <div className='tableWrap'>
+            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
+              {weaponsDiv}
+            </div>
+            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
               <DefenseEquipments
                 getKey={getKey}
                 defenseEquipments={defenseEquipments}
@@ -325,7 +347,9 @@ const Result: React.FC<ResultProps> = (props) => {
                 {(bag.getArmorPenalty() + extraArmorPenalty) * -1}
               </span>
             </div>
-            <div className='tableWrap'>{equipamentosDiv}</div>
+            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
+              {equipamentosDiv}
+            </div>
             <div className='textToRight equipmentsValues'>
               <span>
                 <strong>Peso (atual/máximo):</strong> {bag.getWeight()}/
@@ -334,7 +358,7 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
           </div>
 
-          <Divider direction='down' />
+          <Divider isDarkMode={isDarkMode} direction='down' />
 
           <div className='sectionTitle'>
             <span>Habilidades e Poderes</span>
@@ -460,13 +484,13 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
           )}
 
-          <Divider direction='down' />
+          <Divider isDarkMode={isDarkMode} direction='down' />
 
           <div className='sectionTitle'>
             <span>Magias</span>
           </div>
 
-          <div className='tableWrap tableDesk'>
+          <div className={`tableWrap tableDesk ${isDarkMode ? 'dark' : ''}`}>
             <Spells
               spells={spells}
               spellPath={classe.spellPath}
@@ -488,6 +512,17 @@ const Result: React.FC<ResultProps> = (props) => {
       <div className='resultRight'>
         <h1>Passo-a-Passo:</h1>
         <ol>{changesDiv}</ol>
+        <p>
+          <small style={{ display: 'flex', alignItems: 'center' }}>
+            <BugReportIcon /> Encontrou algum problema nessa ficha?{' '}
+            <a
+              target='blank'
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
+            >
+              Nos avise!
+            </a>
+          </small>
+        </p>
       </div>
     </div>
   );
