@@ -89,8 +89,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const periciasDiv = periciasSorted.map((pericia) => (
     <li key={getKey(pericia)}>{pericia}</li>
   ));
-  const habilidadesRacaDiv = raca.attributes.texts.map((hab) => (
-    <li key={getKey(hab)}>{hab}</li>
+  const habilidadesRacaDiv = raca.abilities.map((hab) => (
+    <li key={getKey(hab.name)}>
+      <strong>{hab.name}</strong>: {hab.description}
+    </li>
   ));
 
   const habilidadesClasseDiv = classe.abilities.map((hab) => (

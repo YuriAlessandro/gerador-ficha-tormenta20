@@ -20,6 +20,18 @@ const AGGELUS: Race = {
     MARAH: 1,
     THYATIS: 1,
   },
+  abilities: [
+    {
+      name: 'Herança Divina',
+      description:
+        'Você é uma criatura do tipo espírito e recebe visão no escuro.',
+    },
+    {
+      name: 'Luz Sagrada',
+      description:
+        'Você recebe +2 em Diplomacia e Intuição. Além disso, pode lançar Luz (como uma magia divina; atributo-chave Carisma). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
+    },
+  ],
 };
 
 export default AGGELUS;

@@ -1,6 +1,6 @@
 import { cloneDeep, merge } from 'lodash';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -29,13 +29,16 @@ const KLIREN: Race = {
       name: 'Híbrido',
       description:
         'Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe).Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe).',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
+        const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');
+        substeps.push({
+          name: 'Híbrido',
+          value: `Perícia treinada (${randomSkill})`,
+        });
+
         return merge(sheetClone, {
-          skills: [
-            ...sheetClone.skills,
-            getNotRepeatedRandom(sheetClone.skills, 'skill'),
-          ],
+          skills: [...sheetClone.skills, randomSkill],
         });
       },
     },

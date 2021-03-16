@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -31,7 +31,7 @@ const ANAO: Race = {
     {
       name: 'Conhecimento das Rochas',
       description:
-        'Você recebe visão no escuro e +2 em testes de Precepção e Sobrevivência realizados no subterrâneo.',
+        'Você recebe visão no escuro e +2 em testes de Percepção e Sobrevivência realizados no subterrâneo.',
     },
     {
       name: 'Devagar e Sempre',
@@ -47,11 +47,23 @@ const ANAO: Race = {
       name: 'Duro com Pedra',
       description:
         'Você recebe +3 pontos de vida no 1º nível e +1 por nível seguinte.',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const finalPV = sheet.pv + 3;
+        substeps.push({
+          name: 'Duro com Pedra',
+          value: `+3 PV inicial (${sheet.pv} + 3 = ${finalPV})`,
+        });
+
+        const finalAddPV = sheet.classe.addpv + 1;
+        substeps.push({
+          name: 'Duro com Pedra',
+          value: `+1 PV por nível (${sheet.classe.addpv} + 1 = ${finalAddPV})`,
+        });
+
         return _.merge(sheet, {
-          pv: sheet.pv + 3,
+          pv: finalPV,
           classe: {
-            addpv: sheet.classe.addpv + 1,
+            addpv: finalAddPV,
           },
         });
       },

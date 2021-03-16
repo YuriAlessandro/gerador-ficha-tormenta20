@@ -4,7 +4,7 @@ import { RACE_SIZES } from '../raceSizes/raceSizes';
 export const DEFAULT_RACE_SIZE = RACE_SIZES.MEDIO;
 export const DEFAULT_RACE_DISPLACEMENT = 9;
 
-function getDefaultSize(race: Race) {
+export function getDefaultSize(race: Race): RaceSize {
   if (race.size) {
     return race.size;
   }
@@ -12,7 +12,7 @@ function getDefaultSize(race: Race) {
   return DEFAULT_RACE_SIZE;
 }
 
-function getDefaultDisplacement(race: Race) {
+export function getDefaultDisplacement(race: Race): number {
   if (race.getDisplacement) {
     return race.getDisplacement(race);
   }

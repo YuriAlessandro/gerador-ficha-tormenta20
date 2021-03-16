@@ -529,6 +529,7 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
     (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
     sheetClone
   );
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',

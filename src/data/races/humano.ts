@@ -1,9 +1,29 @@
+import { cloneDeep } from 'lodash';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
-import CharacterSheet from '../../interfaces/CharacterSheet';
-import { GeneralPower } from '../../interfaces/Poderes';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
-import Skill from '../../interfaces/Skills';
-import { getNotRepeatedRandomSkill } from '../pericias';
+
+function addSkillOrPower(sheet: CharacterSheet, substeps: SubStep[]) {
+  const shouldGetSkill = Math.random() > 0.5;
+
+  if (shouldGetSkill) {
+    const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+    sheet.skills.push(randomSkill);
+    substeps.push({
+      name: 'Versátil',
+      value: `Perícia treinada (${randomSkill})`,
+    });
+  } else {
+    const randomPower = getNotRepeatedRandom(sheet.generalPowers, 'power');
+    sheet.generalPowers.push(randomPower);
+    substeps.push({
+      name: 'Versátil',
+      value: `Poder geral recebido (${randomPower.name})`,
+    });
+  }
+
+  return sheet;
+}
 
 const HUMANO: Race = {
   name: 'Humano',
@@ -28,26 +48,20 @@ const HUMANO: Race = {
       name: 'Versátil',
       description:
         'Você se torna treinado em duas perícias a sua escolha (não precisam ser da sua classe). Você pode trocar uma dessas perícias por um poder geral a sua escolha.',
-      action(sheet: CharacterSheet): CharacterSheet {
-        const newSkills: Skill[] = [];
-        const newGeneralPowers: GeneralPower[] = [];
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
 
-        newSkills.push(getNotRepeatedRandomSkill(sheet.skills));
+        const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');
+        sheetClone.skills.push(randomSkill);
 
-        if (Math.random() > 0.5) {
-          newSkills.push(
-            getNotRepeatedRandomSkill([...newSkills, ...sheet.skills])
-          );
-        } else {
-          const power = getNotRepeatedRandom(sheet.generalPowers, 'power');
-          newGeneralPowers.push(power);
-        }
+        substeps.push({
+          name: 'Versátil',
+          value: `Perícia treinada (${randomSkill})`,
+        });
 
-        return {
-          ...sheet,
-          skills: [...sheet.skills, ...newSkills],
-          generalPowers: [...sheet.generalPowers, ...newGeneralPowers],
-        };
+        addSkillOrPower(sheetClone, substeps);
+
+        return sheetClone;
       },
     },
   ],
