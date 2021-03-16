@@ -532,7 +532,14 @@ export function setupSpell(spell: Spell): Spell {
   });
 }
 
-function cheapenSpell(spells: Spell[], index: number, manaReduction: number) {
+function cheapenSpell(
+  spells: Spell[],
+  index: number,
+  manaReduction: number
+): {
+  spells: Spell[];
+  stepValue?: string;
+} {
   const spellsToChange = spells;
   const { manaReduction: actualManaReduction = 0 } = spells[index];
 
@@ -541,9 +548,16 @@ function cheapenSpell(spells: Spell[], index: number, manaReduction: number) {
       ...spells[index],
       manaReduction,
     };
+
+    return {
+      spells: spellsToChange,
+      stepValue: `Redução de mana -${manaReduction} (${spellsToChange[index].nome})`,
+    };
   }
 
-  return spells;
+  return {
+    spells,
+  };
 }
 
 export function addOrCheapenSpell(
@@ -551,7 +565,10 @@ export function addOrCheapenSpell(
   spell: Spell,
   manaReduction: number,
   customKeyAttr?: Atributo
-): Spell[] {
+): {
+  spells: Spell[];
+  stepValue?: string;
+} {
   const index = sheet.spells.findIndex(
     (sheetSpell) => spell.nome === sheetSpell.nome
   );
@@ -563,7 +580,10 @@ export function addOrCheapenSpell(
     : spellClone;
 
   if (index < 0) {
-    return [...sheet.spells, spellToAdd];
+    return {
+      spells: [...sheet.spells, spellToAdd],
+      stepValue: `Adicionou magia ${spellToAdd.nome}`,
+    };
   }
 
   return cheapenSpell(sheet.spells, index, manaReduction);

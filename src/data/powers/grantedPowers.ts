@@ -214,17 +214,19 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
       const manaReduction = PLANTS_FRIEND_MANA_REDUCTION;
-      const spells = addOrCheapenSpell(
+      const { spells, stepValue } = addOrCheapenSpell(
         sheet,
         spellsCircle1.controlarPlantas,
         manaReduction,
         Atributo.SABEDORIA
       );
 
-      subSteps.push({
-        name: 'Dedo Verde',
-        value: 'Adicionou magia "Controlar Plantas"',
-      });
+      if (stepValue) {
+        subSteps.push({
+          name: 'Dedo Verde',
+          value: stepValue,
+        });
+      }
 
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         spells,
