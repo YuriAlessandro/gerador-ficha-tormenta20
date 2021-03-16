@@ -1,5 +1,16 @@
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
+import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+
+const mordida: Equipment = {
+  group: 'Arma',
+  nome: 'Mordida',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf.',
+};
 
 const TROG: Race = {
   name: 'Trog',
@@ -32,11 +43,25 @@ const TROG: Race = {
       name: 'Mordida',
       description:
         'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        sheetClone.bag.addEquipment({
+          Arma: [mordida],
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Reptiliano.',
       description:
         'Você é uma criatura do tipo monstro e recebe visão no escuro, +1 na Defesa (JÁ INCLUSO) e, se estiver sem armadura ou roupas pesadas, +5 em Furtividade.',
+      action(sheet: CharacterSheet): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          defesa: sheetClone.defesa + 1,
+        });
+      },
     },
     {
       name: 'Sangue Frio',
