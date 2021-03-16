@@ -31,13 +31,13 @@ const defaultEquipments: BagEquipments = {
   Veículo: [],
 };
 
-function calcBagWeight(equipments: BagEquipments): number {
-  const equipmentGroups = Object.values(equipments).flat();
+function calcBagWeight(bagEquipments: BagEquipments): number {
+  const equipments = Object.values(bagEquipments).flat();
 
   let weight = 0;
 
-  equipmentGroups.forEach((equipment) => {
-    const equipmentWeight = equipment || 0;
+  equipments.forEach((equipment: Equipment) => {
+    const equipmentWeight = equipment.peso || 0;
     weight += equipmentWeight;
   });
 
