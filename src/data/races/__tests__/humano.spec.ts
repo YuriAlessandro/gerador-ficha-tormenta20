@@ -12,6 +12,7 @@ describe('Testa habilidades da raça Humano', () => {
           skills: [Skill.ACROBACIA],
           generalPowers: [],
           raca: HUMANO,
+          steps: [],
         } as unknown) as CharacterSheet;
 
         const received = applyRaceAbilities(sheet);
