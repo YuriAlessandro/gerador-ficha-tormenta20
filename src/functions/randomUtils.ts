@@ -114,6 +114,7 @@ export function rollDice(
 }
 
 type notRepeatedDefaultsTypes = 'power' | 'skill' | 'proficiencia';
+type notRepeatedTypes = GeneralPower | Skill | string;
 
 const generalPowersEmpty: GeneralPower[] = [];
 
@@ -126,23 +127,23 @@ const NOT_REPEATED_DEFAULTS: Record<
   proficiencia: Object.values(PROFICIENCIAS),
 };
 
-export function getNotUsedFromAllowed(
-  used: (GeneralPower | Skill | string)[],
+export function getNotUsedFromAllowed<T>(
+  used: T[],
   type: notRepeatedDefaultsTypes,
-  allowed?: (GeneralPower | Skill | string)[]
-): (GeneralPower | Skill | string)[] {
-  return (allowed || NOT_REPEATED_DEFAULTS[type]).filter(
-    (element) => used.indexOf(element) < 0
+  allowed?: T[]
+): T[] {
+  return ((allowed || NOT_REPEATED_DEFAULTS[type]) as T[]).filter(
+    (element: T) => !used.includes(element)
   );
 }
-export function getNotRepeatedRandom(
-  used: (GeneralPower | Skill | string)[],
+export function getNotRepeatedRandom<T extends notRepeatedTypes>(
+  used: T[],
   type: notRepeatedDefaultsTypes,
-  allowed?: (GeneralPower | Skill | string)[]
-): GeneralPower | Skill | string {
+  allowed?: T[]
+): T {
   const notRepeated = allowed
     ? getNotUsedFromAllowed(used, type)
     : getNotUsedFromAllowed(used, type, allowed);
 
-  return getRandomItemFromArray(notRepeated);
+  return getRandomItemFromArray<T>(notRepeated);
 }

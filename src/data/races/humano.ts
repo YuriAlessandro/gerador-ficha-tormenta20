@@ -39,10 +39,7 @@ const HUMANO: Race = {
             getNotRepeatedRandomSkill([...newSkills, ...sheet.skills])
           );
         } else {
-          const power = getNotRepeatedRandom(
-            sheet.generalPowers,
-            'power'
-          ) as GeneralPower;
+          const power = getNotRepeatedRandom(sheet.generalPowers, 'power');
           newGeneralPowers.push(power);
         }
 

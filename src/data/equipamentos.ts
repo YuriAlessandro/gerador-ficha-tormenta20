@@ -479,8 +479,8 @@ export function updateEquipments(
   const bagClone = _.cloneDeep(bag);
 
   bagClone.equipments = updatedBagEquipments;
-  bagClone.weight = calcBagWeight(bag.equipments);
-  bagClone.armorPenalty = calcArmorPenalty(bag.equipments);
+  bagClone.weight = calcBagWeight(bagClone.equipments);
+  bagClone.armorPenalty = calcArmorPenalty(bagClone.equipments);
   return bagClone;
 }
 
