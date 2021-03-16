@@ -165,7 +165,6 @@ const Result: React.FC<ResultProps> = (props) => {
     ? atributos[classe.spellPath.keyAttribute]
     : null;
 
-  console.log(steps);
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
       return (
