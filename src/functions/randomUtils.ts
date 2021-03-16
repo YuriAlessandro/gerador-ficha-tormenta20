@@ -1,4 +1,5 @@
 import generalPowers from '../data/poderes';
+import PROFICIENCIAS from '../data/proficiencias';
 import {
   allDivindadeNames,
   DivindadeNames,
@@ -112,32 +113,33 @@ export function rollDice(
   return sum;
 }
 
-type notRepeatedDefaultsTypes = 'power' | 'skill';
+type notRepeatedDefaultsTypes = 'power' | 'skill' | 'proficiencia';
 
 const generalPowersEmpty: GeneralPower[] = [];
 
 const NOT_REPEATED_DEFAULTS: Record<
   notRepeatedDefaultsTypes,
-  (GeneralPower | Skill)[]
+  (GeneralPower | Skill | string)[]
 > = {
   power: generalPowersEmpty.concat(...Object.values(generalPowers)),
   skill: Object.values(Skill),
+  proficiencia: Object.values(PROFICIENCIAS),
 };
 
 export function getNotUsedFromAllowed(
-  used: (GeneralPower | Skill)[],
+  used: (GeneralPower | Skill | string)[],
   type: notRepeatedDefaultsTypes,
-  allowed?: (GeneralPower | Skill)[]
-): (GeneralPower | Skill)[] {
+  allowed?: (GeneralPower | Skill | string)[]
+): (GeneralPower | Skill | string)[] {
   return (allowed || NOT_REPEATED_DEFAULTS[type]).filter(
     (element) => used.indexOf(element) < 0
   );
 }
 export function getNotRepeatedRandom(
-  used: (GeneralPower | Skill)[],
+  used: (GeneralPower | Skill | string)[],
   type: notRepeatedDefaultsTypes,
-  allowed?: (GeneralPower | Skill)[]
-): GeneralPower | Skill {
+  allowed?: (GeneralPower | Skill | string)[]
+): GeneralPower | Skill | string {
   const notRepeated = allowed
     ? getNotUsedFromAllowed(used, type)
     : getNotUsedFromAllowed(used, type, allowed);
