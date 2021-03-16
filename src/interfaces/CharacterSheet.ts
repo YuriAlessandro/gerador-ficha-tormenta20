@@ -32,6 +32,7 @@ export default interface CharacterSheet {
   maxWeight: number;
   generalPowers: GeneralPower[];
   steps: Step[];
+  extraArmorPenalty?: number;
 }
 
 export interface Step {

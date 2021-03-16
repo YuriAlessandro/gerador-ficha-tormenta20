@@ -40,6 +40,7 @@ const Result: React.FC<ResultProps> = (props) => {
     maxWeight,
     generalPowers,
     steps,
+    extraArmorPenalty = 0,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -312,7 +313,8 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
             <div className='textToRight equipmentsValues'>
               <span>
-                <strong>Penalidade de Armadura:</strong> {bag.armorPenalty * -1}
+                <strong>Penalidade de Armadura:</strong>{' '}
+                {(bag.armorPenalty + extraArmorPenalty) * -1}
               </span>
             </div>
             <div className='tableWrap'>{equipamentosDiv}</div>

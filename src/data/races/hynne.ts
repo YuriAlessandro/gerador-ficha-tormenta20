@@ -25,6 +25,23 @@ const HYNNE: Race = {
   },
   size: RACE_SIZES.PEQUENO,
   getDisplacement: () => 6,
+  abilities: [
+    {
+      name: 'Arremessador',
+      description:
+        'Quando faz um ataque à distância com uma funda ou uma arma de arremesso, seu dano aumenta em um passo.',
+    },
+    {
+      name: 'Pequeno e Rechonchudo',
+      description:
+        'Seu tamanho é Pequeno (veja a página 106) e seu deslocamento é 6m. Você recebe +2 em Enganação e usa o modificador de Destreza para Atletismo (em vez de Força).',
+    },
+    {
+      name: 'Sorte Salvadora',
+      description:
+        'Quando faz um teste de resistência, você pode gastar 1 PM para rolar este teste novamente.',
+    },
+  ],
 };
 
 export default HYNNE;
