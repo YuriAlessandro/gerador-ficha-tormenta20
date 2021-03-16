@@ -47,12 +47,12 @@ const KLIREN: Race = {
     {
       name: 'Ossos Frágeis',
       description:
-        'Você sofre 1 ponto de dano adicional por dado de dano de impacto. Por exemplo, se for atingido por uma clava (dano 1d6), so- fre 1d6+1 pontos de dano. Se cair de 3m de altura (dano 2d6), sofre 2d6+2 pontos de dano.',
+        'Você sofre 1 ponto de dano adicional por dado de dano de impacto. Por exemplo, se for atingido por uma clava (dano 1d6), sofre 1d6+1 pontos de dano. Se cair de 3m de altura (dano 2d6), sofre 2d6+2 pontos de dano.',
     },
     {
       name: 'Vanguardista',
       description:
-        'Você recebe proficiência em armas de fogo e +2 em tes- tes de Ofício (um qualquer, a sua escolha).',
+        'Você recebe proficiência em armas de fogo e +2 em testes de Ofício (um qualquer, a sua escolha).',
     },
   ],
 };
