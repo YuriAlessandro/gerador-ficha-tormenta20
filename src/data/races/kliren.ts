@@ -3,6 +3,7 @@ import { getNotRepeatedRandom } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import PROFICIENCIAS from '../proficiencias';
 
 const KLIREN: Race = {
   name: 'Kliren',
@@ -56,6 +57,19 @@ const KLIREN: Race = {
       name: 'Vanguardista',
       description:
         'Você recebe proficiência em armas de fogo e +2 em testes de Ofício (um qualquer, a sua escolha).',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        if (!sheetClone.classe.proeficiencias.includes(PROFICIENCIAS.FOGO)) {
+          sheetClone.classe.proeficiencias.push(PROFICIENCIAS.FOGO);
+          substeps.push({
+            name: 'Vanguardista',
+            value: 'Proficiência com armas de fogo',
+          });
+        }
+
+        return sheetClone;
+      },
     },
   ],
 };
