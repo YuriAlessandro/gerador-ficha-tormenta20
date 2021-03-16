@@ -165,10 +165,11 @@ const Result: React.FC<ResultProps> = (props) => {
     ? atributos[classe.spellPath.keyAttribute]
     : null;
 
+  console.log(steps);
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
       return (
-        <li key={step.label}>
+        <li key={getKey(`${step.label}-${step.value}`)}>
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
@@ -202,9 +203,9 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul>
             {step.value.map((attr) => (
-              <li key={attr.name}>{`${attr.name}${attr.value ? ': ' : ''}${
-                attr.value
-              }`}</li>
+              <li key={`${attr.name}-${attr.value}`}>{`${attr.name}${
+                attr.value ? ': ' : ''
+              }${attr.value}`}</li>
             ))}
           </ul>
         </li>

@@ -1,5 +1,5 @@
 import { cloneDeep, merge } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -34,12 +34,19 @@ const ELFO: Race = {
     {
       name: 'Herança Feérica',
       description: 'Você recebe +1 ponto de mana por nível.',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
+
+        const finalAddPM = sheet.classe.addpm + 1;
+        substeps.push({
+          name: 'Herança Feérica',
+          value: `+1 PM por nível (${sheet.classe.addpm} + 1 = ${finalAddPM})`,
+        });
+
         return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
           classe: {
             ...sheetClone.classe,
-            addpm: sheet.classe.addpm + 1,
+            addpm: finalAddPM,
           },
         });
       },

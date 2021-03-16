@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _ from 'lodash';
+import _, { cloneDeep } from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -622,7 +622,7 @@ export default function generateRandomSheet(
   const level = 1;
 
   // Lista do passo-a-passo que deve ser populada
-  const steps = [];
+  const steps: Step[] = [];
 
   // Passo 1: Definir sexo
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
