@@ -1,5 +1,8 @@
+import { cloneDeep } from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 
 const SULFURE: Race = {
   name: 'Suraggel (Sulfure)',
@@ -10,7 +13,7 @@ const SULFURE: Race = {
     ],
     texts: [
       'Você é uma criatura do tipo espírito e recebe visão no escuro.',
-      'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributochave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
+      'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributo-chave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
     ],
   },
   faithProbability: {
@@ -27,7 +30,26 @@ const SULFURE: Race = {
     {
       name: 'Sombras Profanas',
       description:
-        'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributochave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
+        'Você recebe +2 em Enganação e Furtividade. Além disso, pode lançar Escuridão (como uma magia divina; atributo-chave Inteligência). Caso aprenda novamente essa magia, o custo para lançá-la diminui em –1 PM.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        const { stepValue, spells } = addOrCheapenSpell(
+          sheetClone,
+          spellsCircle1.escuridao,
+          Atributo.INTELIGENCIA
+        );
+        sheetClone.spells = spells;
+
+        if (stepValue) {
+          substeps.push({
+            name: 'Sombras Profanas',
+            value: stepValue,
+          });
+        }
+
+        return sheetClone;
+      },
     },
   ],
 };
