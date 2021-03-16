@@ -63,7 +63,6 @@ export default interface Race {
   name: string;
   attributes: {
     attrs: RaceAttributeAbility[];
-    texts: string[];
   };
   abilities: RaceAbility[];
   oldRace?: Race;
