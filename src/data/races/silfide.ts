@@ -1,5 +1,18 @@
+import { cloneDeep } from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import {
+  addOrCheapenRandomSpells,
+  spellsCircle1,
+} from '../magias/generalSpells';
+
+const fairySpells = [
+  spellsCircle1.criarIlusao,
+  spellsCircle1.enfeiticar,
+  spellsCircle1.luz,
+  spellsCircle1.sono,
+];
 
 const SILFIDE: Race = {
   name: 'Sílfide',
@@ -36,7 +49,20 @@ const SILFIDE: Race = {
     {
       name: 'Magia das Fadas',
       description:
-        'Você pode lançar duas das magias a seguir (todas atributo- chave Carisma): Criar Ilusão, Enfeitiçar, Luz (como uma magia arcana) e Sono. Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
+        'Você pode lançar duas das magias a seguir (todas atributo-chave Carisma): Criar Ilusão, Enfeitiçar, Luz (como uma magia arcana) e Sono. Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        addOrCheapenRandomSpells(
+          sheetClone,
+          substeps,
+          fairySpells,
+          'Magia das Fadas',
+          Atributo.CARISMA
+        );
+
+        return sheetClone;
+      },
     },
   ],
 };

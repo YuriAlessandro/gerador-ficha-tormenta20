@@ -5,8 +5,6 @@ import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 
-export const MYSTIC_TATTOO_MANA_REDUCTION = 1;
-
 const QAREEN: Race = {
   name: 'Qareen',
   attributes: {
@@ -55,7 +53,6 @@ const QAREEN: Race = {
         const { stepValue, spells } = addOrCheapenSpell(
           sheetClone,
           randomSpell,
-          MYSTIC_TATTOO_MANA_REDUCTION,
           Atributo.CARISMA
         );
 

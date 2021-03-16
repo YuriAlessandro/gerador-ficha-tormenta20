@@ -1,9 +1,11 @@
 import { cloneDeep } from 'lodash';
-import { getRandomItemFromArray } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import {
+  addOrCheapenRandomSpells,
+  spellsCircle1,
+} from '../magias/generalSpells';
 
 const seaSongSpells = [
   spellsCircle1.amedrontar,
@@ -40,24 +42,14 @@ const SEREIA: Race = {
         'Você pode lançar duas das magias a seguir: Amedrontar, Comando, Despedaçar, Enfeitiçar, Hipnotismo ou Sono (atributo-chave Carisma). Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
-        const randomSpell = getRandomItemFromArray(seaSongSpells);
-        const manaReduction = 1;
 
-        const { spells, stepValue } = addOrCheapenSpell(
+        addOrCheapenRandomSpells(
           sheetClone,
-          randomSpell,
-          manaReduction,
+          substeps,
+          seaSongSpells,
+          'Canção dos Mares',
           Atributo.CARISMA
         );
-
-        sheetClone.spells = spells;
-
-        if (stepValue) {
-          substeps.push({
-            name: 'Canção dos Mares',
-            value: stepValue,
-          });
-        }
 
         return sheetClone;
       },
