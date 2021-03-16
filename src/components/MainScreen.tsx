@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Select from 'react-select';
 import Fade from '@material-ui/core/Fade';
+import { Link } from 'react-router-dom';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -13,6 +14,7 @@ import generateRandomSheet from '../functions/general';
 import CharacterSheet from '../interfaces/CharacterSheet';
 
 import '../assets/css/mainScreen.css';
+import getSelectTheme from '../functions/style';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -24,7 +26,15 @@ const useStyles = makeStyles(() => ({
 
 type SelectedOption = { value: string; label: string };
 
-const MainScreen: React.FC = () => {
+type MainScreenProps = {
+  isDarkMode: boolean;
+  setIsDarkTheme: (darkMode: boolean) => void;
+};
+
+const MainScreen: React.FC<MainScreenProps> = ({
+  isDarkMode,
+  setIsDarkTheme,
+}) => {
   const classes = useStyles();
 
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
@@ -64,6 +74,10 @@ const MainScreen: React.FC = () => {
   }));
   const niveis = [{ value: 1, label: 'Nível 1' }];
 
+  const formThemeColors = isDarkMode
+    ? getSelectTheme('dark')
+    : getSelectTheme('default');
+
   return (
     <div id='main-screen'>
       <div className='filterArea'>
@@ -72,6 +86,13 @@ const MainScreen: React.FC = () => {
           options={[{ value: '', label: 'Todas as raças' }, ...racas]}
           placeholder='Todas as raças'
           onChange={onSelectRaca}
+          style={{ background: 'blue' }}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
         />
 
         <Select
@@ -79,6 +100,12 @@ const MainScreen: React.FC = () => {
           options={[{ value: '', label: 'Todas as classes' }, ...classesopt]}
           placeholder='Todas as classes'
           onChange={onSelectClasse}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
         />
 
         <Select
@@ -86,6 +113,12 @@ const MainScreen: React.FC = () => {
           options={niveis}
           isSearchable={false}
           value={niveis.filter((option) => option.value === 1)}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
         />
 
         <Button
@@ -99,34 +132,66 @@ const MainScreen: React.FC = () => {
 
       <Fade in={showPresentation}>
         <div id='presentation'>
-          <p className='deskOnly'>
-            “Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”. Deixe que
-            Nimb toque o seu destino de jogo com o Fichas de Nimb.
+          <p>
+            <u>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</u>.
+            Deixe que Nimb decida o seu personagem.
           </p>
           <p>
-            <strong>Fichas de Nimb</strong> é um gerador de fichas aleátorios
+            <strong>Fichas de Nimb</strong> é um gerador de fichas aleátorias
             para o sistema Tormenta 20. Com ele, é possível gerar fichas de
             raças e classes aleatórias, e ter sua ficha montada
             instanteneamente. Todos as características de uma ficha de Tormenta
-            20 serão gerados aleatoriamente: atributos, perícias, origem,
-            divindades, magias, etc. Tudo respeitando as regras oficiais do
-            jogo.
+            20 serão gerados: atributos, perícias, origem, divindades, magias,
+            etc. Tudo respeitando as regras oficiais do jogo.
           </p>
-          <p className='deskOnly'>
-            Fichas de Nimb é uma ótima pedida para jogadores que queiram
+          <p>
+            Esse gerador é uma ótima pedida para jogadores que queiram
             experimentar um pouco de aleatoriedade ou não gastar muito tempo
             criando a ficha, e principalmente para mestres que queriam gerar
-            seus NPCs de forma rápida e indolor.
+            seus NPCs de forma rápida e prática.
           </p>
-          <p className='deskOnly'>
+          <p>
             Para isso, adicionamos também a opção de filtro de raça, classe e
             nivel, para que o mestre possa gerar NPCs conforme a narrativa
             requisite.
           </p>
+          <p>
+            Você pode ver as últimas alterações e o que planejamos para o futuro
+            no <Link to='/changelog'>changelog</Link>.
+          </p>
+
+          <p>
+            Se você encontrou algum problema, tem alguma sugestão ou quer
+            discutir e entender como é o funcionamento do Fichas de Nimb,{' '}
+            <a
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
+              target='blank'
+            >
+              clique aqui.
+            </a>
+          </p>
+
+          <p>
+            Se você é um desenvolvedor que queira contribuir com o projeto,
+            utilize o nosso{' '}
+            <a
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
+              target='blank'
+            >
+              GitHub
+            </a>
+            .
+          </p>
         </div>
       </Fade>
 
-      {randomSheet && <Result sheet={randomSheet} />}
+      {randomSheet && (
+        <Result
+          sheet={randomSheet}
+          isDarkMode={isDarkMode}
+          setIsDarkTheme={setIsDarkTheme}
+        />
+      )}
     </div>
   );
 };

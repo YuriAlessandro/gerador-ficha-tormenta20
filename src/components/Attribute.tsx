@@ -6,16 +6,20 @@ interface AttributeProps {
   name: string;
   value: number;
   mod: number;
+  isDarkMode: boolean;
 }
 
 const Attribute: React.FC<AttributeProps> = (props) => {
-  const { value, mod, name, id } = props;
+  const { value, mod, name, id, isDarkMode } = props;
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
   }
 
   return (
-    <div key={getKey(name)} className='attributeItem'>
+    <div
+      key={getKey(name)}
+      className={`attributeItem ${isDarkMode ? 'dark' : ''}`}
+    >
       <div>
         <strong>{name.substring(0, 3).toUpperCase()}</strong>
       </div>
