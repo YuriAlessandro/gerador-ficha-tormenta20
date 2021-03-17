@@ -183,9 +183,9 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={attr.name}>{`${attr.name}${attr.value ? ': ' : ''}${
-                attr.value
-              }`}</li>
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}${
+                attr.value ? ': ' : ''
+              }${attr.value}`}</li>
             ))}
           </ul>
         </li>
@@ -197,11 +197,11 @@ const Result: React.FC<ResultProps> = (props) => {
       step.type === 'Equipamentos'
     ) {
       return (
-        <li key={step.label}>
+        <li key={getKey(step.label)}>
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={attr.value}>{attr.value}</li>
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{attr.value}</li>
             ))}
           </ul>
         </li>
@@ -209,11 +209,11 @@ const Result: React.FC<ResultProps> = (props) => {
     }
     if (step.type === 'Poderes') {
       return (
-        <li key={step.label}>
+        <li key={getKey(step.label)}>
           <strong>{step.label}:</strong>
           <ul>
             {step.value.map((attr) => (
-              <li key={`${attr.name}-${attr.value}`}>{`${attr.name}${
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}${
                 attr.value ? ': ' : ''
               }${attr.value}`}</li>
             ))}
@@ -222,7 +222,11 @@ const Result: React.FC<ResultProps> = (props) => {
       );
     }
     return (
-      <li key={step.label}>
+      <li
+        key={getKey(
+          `${step.label}-${step.value[0] ? `: ${step.value[0].value}` : ''}`
+        )}
+      >
         <strong>{step.label}</strong>
         {`${step.value[0] ? `: ${step.value[0].value}` : ''}`}
       </li>
@@ -514,7 +518,15 @@ const Result: React.FC<ResultProps> = (props) => {
         <ol>{changesDiv}</ol>
         <p>
           <small style={{ display: 'flex', alignItems: 'center' }}>
-            <BugReportIcon /> Encontrou algum problema nessa ficha?{' '}
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: '5px',
+              }}
+            >
+              <BugReportIcon /> Encontrou algum problema nessa ficha?
+            </span>
             <a
               target='blank'
               href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'

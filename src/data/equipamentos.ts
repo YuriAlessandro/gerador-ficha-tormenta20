@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment, {
   DefenseEquipment,
@@ -477,27 +478,68 @@ function isDefenseEquip(
 }
 
 export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
-  // TODO: Use CHA instead of DES to Nobre
   const equipped: Equipment[] = [];
 
-  let updatedDefense = Object.values(charSheet.bag.getEquipments())
+  const cloneSheet = _.cloneDeep(charSheet);
+
+  let updatedDefense = Object.values(cloneSheet.bag.getEquipments())
     .flat()
     .reduce((acc, equip) => {
       if (isDefenseEquip(equip)) {
         equipped.push(equip);
+
+        cloneSheet.steps.push({
+          label: 'Incrementou Defesa',
+          value: [
+            {
+              value: `Bonus de ${equip.nome} (${acc} + ${
+                equip.defenseBonus
+              } = ${acc + equip.defenseBonus})`,
+            },
+          ],
+        });
+
         return acc + equip.defenseBonus;
       }
 
       return acc;
-    }, charSheet.defesa);
+    }, cloneSheet.defesa);
 
   const heavyArmor = equipped.some((equip) =>
     EQUIPAMENTOS.armaduraPesada.find((armadura) => armadura.nome === equip.nome)
   );
 
+  // Se não tem armadura pesada
   if (!heavyArmor) {
-    updatedDefense += charSheet.atributos.Destreza.mod;
+    // Se for nobre
+    if (cloneSheet.classe.name === 'Nobre') {
+      cloneSheet.steps.push({
+        label: 'Incrementou Defesa (+CAR)',
+        value: [
+          {
+            value: `${updatedDefense} + ${cloneSheet.atributos.Carisma.mod} = ${
+              updatedDefense + cloneSheet.atributos.Carisma.mod
+            }`,
+          },
+        ],
+      });
+      updatedDefense += cloneSheet.atributos.Carisma.mod;
+    }
+    // Se não for Nobre
+    else {
+      cloneSheet.steps.push({
+        label: 'Incrementou Defesa (+DES)',
+        value: [
+          {
+            value: `${updatedDefense} + ${
+              cloneSheet.atributos.Destreza.mod
+            } = ${updatedDefense + cloneSheet.atributos.Destreza.mod}`,
+          },
+        ],
+      });
+      updatedDefense += cloneSheet.atributos.Destreza.mod;
+    }
   }
 
-  return { ...charSheet, defesa: updatedDefense };
+  return { ...cloneSheet, defesa: updatedDefense };
 }

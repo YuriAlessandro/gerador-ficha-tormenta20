@@ -157,6 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     checked={isDarkTheme}
                     onChange={onChangeTheme}
                     color='default'
+                    value='dark'
                   />
                 }
                 label='Tema Escuro'
