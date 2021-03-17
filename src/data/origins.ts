@@ -74,7 +74,6 @@ function makeOriginGeneralPowerGetter(
   const originGeneralPowers = removeOriginPowers(origin);
 
   return (sheet: CharacterSheet, subSteps: SubStep[]) => {
-    sheet.skills.push(Skill.OFICIO_ALQUIMIA);
     const originGeneralPowersbyOrigin =
       origin.name === 'Amnésico'
         ? Object.values(generalPowers).flat()
