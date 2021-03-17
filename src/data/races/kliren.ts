@@ -54,8 +54,8 @@ const KLIREN: Race = {
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
 
-        if (!sheetClone.classe.proeficiencias.includes(PROFICIENCIAS.FOGO)) {
-          sheetClone.classe.proeficiencias.push(PROFICIENCIAS.FOGO);
+        if (!sheetClone.classe.proficiencias.includes(PROFICIENCIAS.FOGO)) {
+          sheetClone.classe.proficiencias.push(PROFICIENCIAS.FOGO);
           substeps.push({
             name: 'Vanguardista',
             value: 'Proficiência com armas de fogo',

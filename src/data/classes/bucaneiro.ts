@@ -38,7 +38,7 @@ const BUCANEIRO: ClassDescription = {
       Skill.PONTARIA,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.SIMPLES,

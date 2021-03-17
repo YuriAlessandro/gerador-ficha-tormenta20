@@ -32,7 +32,7 @@ const PALADINO: ClassDescription = {
       Skill.RELIGIAO,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.PESADAS,

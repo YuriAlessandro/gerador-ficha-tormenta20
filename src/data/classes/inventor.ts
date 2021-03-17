@@ -32,7 +32,7 @@ const INVENTOR: ClassDescription = {
       Skill.PERCEPCAO,
     ],
   },
-  proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
   abilities: [
     {
       name: 'Engenhosidade',

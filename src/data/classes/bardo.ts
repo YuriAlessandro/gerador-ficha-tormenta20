@@ -41,7 +41,7 @@ const BARDO: ClassDescription = {
       Skill.VONTADE,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.SIMPLES,
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,

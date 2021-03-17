@@ -35,7 +35,7 @@ const GUERREIRO: ClassDescription = {
       Skill.REFLEXOS,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.PESADAS,

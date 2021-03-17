@@ -116,7 +116,7 @@ const ARCANISTA: ClassDescription = {
     qtd: 1,
     list: [Skill.CONHECIMENTO, Skill.INICIATIVA, Skill.OFICIO, Skill.PERCEPCAO],
   },
-  proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Magias',

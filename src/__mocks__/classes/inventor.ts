@@ -84,7 +84,7 @@ export function inventor(race: Race): CharacterSheet {
           Skill.PERCEPCAO,
         ],
       },
-      proeficiencias: ['Armaduras Leves', 'Armas Simples'],
+      proficiencias: ['Armaduras Leves', 'Armas Simples'],
       abilities: [
         {
           name: 'Engenhosidade',

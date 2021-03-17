@@ -41,7 +41,7 @@ export interface ClassDescription {
   addpm: number;
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
-  proeficiencias: string[];
+  proficiencias: string[];
   abilities: ClassAbility[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;

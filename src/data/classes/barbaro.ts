@@ -30,7 +30,7 @@ const BARBARO: ClassDescription = {
       Skill.VONTADE,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.ESCUDOS,
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,

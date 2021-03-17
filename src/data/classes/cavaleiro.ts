@@ -30,7 +30,7 @@ const CAVALEIRO: ClassDescription = {
       Skill.VONTADE,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.PESADAS,
