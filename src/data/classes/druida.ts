@@ -64,7 +64,7 @@ const DRUIDA: ClassDescription = {
   probDevoto: 1,
   qtdPoderesConcedidos: 'all',
   faithProbability: {
-    AHARADAK: 1,
+    AHARADAK: 0,
     OCEANO: 1,
     TENEBRA: 0,
     VALKARIA: 0,
@@ -82,7 +82,7 @@ const DRUIDA: ClassDescription = {
     HYNINN: 0,
     AZGHER: 0,
     LINWU: 0,
-    MEGALOKK: 0,
+    MEGALOKK: 1,
     NIMB: 0,
   },
   attrPriority: [Atributo.SABEDORIA],
