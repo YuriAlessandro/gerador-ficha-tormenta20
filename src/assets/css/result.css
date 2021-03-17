@@ -35,12 +35,6 @@
 
 .div-arrow-down.dark:after,
 .div-arrow-up.dark:after {
-	content: "";
-	position: absolute;
-	top: -7px;
-	left: calc(50% - 7px);
-	width: 14px;
-	height: 14px;
 	background-color: #363636;
 	border-bottom: 1px solid white;
 	border-right: 1px solid white;
@@ -419,5 +413,65 @@ table {
 
   .resultRight {
     width: 100vw;
+  }
+}
+
+@media print {
+  html, body {
+    height: initial !important;
+    overflow: initial !important;
+    -webkit-print-color-adjust: exact;
+    background-color: #FFF;
+  }
+}
+
+@media print {
+  .divider {
+    margin-top: 1rem;
+    display: block;
+    page-break-before: auto;
+  }
+  .div-transparent.dark:before {
+    background-image: linear-gradient(to right, transparent, rgb(48,49,51), transparent);
+  }
+  
+  .div-arrow-down.dark:after,
+  .div-arrow-up.dark:after {
+    background-color: white;
+    border-bottom: 1px solid rgb(48,49,51);
+    border-right: 1px solid rgb(48,49,51);
+  }
+
+  .resultMainDiv {
+    background-color: #FFF;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+  }
+
+  .resultMainDiv.dark {
+    background-color: #FFF !important;
+  }
+
+  .attributeItem.dark {
+    border: 2px solid black;
+  }
+
+  .attributeItem.dark .mod {
+    border: 1px solid black;
+    background-color: white;
+  }
+
+  .characterStat.dark {
+    border: 1px solid black;
+  }
+
+  .tableWrap.dark {
+    border: 1px solid black;
+  }
+
+  .spellsArea,
+  .powersArea {
+    page-break-before: always;
   }
 }
