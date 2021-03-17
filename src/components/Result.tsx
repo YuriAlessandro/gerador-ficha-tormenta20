@@ -163,6 +163,7 @@ const Result: React.FC<ResultProps> = (props) => {
     setClassPowersVisible(true);
     setOriginPowersVisible(true);
     setGodPowersVisible(true);
+    setGeneralPowersVisible(true);
 
     return resultRef.current;
   };
