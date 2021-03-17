@@ -69,6 +69,11 @@ export enum spellsCircle1Names {
   vitalidadeFantasma = 'vitalidadeFantasma',
 }
 
+export enum spellsCircle2Names {
+  sussurosInsanos = 'sussurosInsanos',
+  augurio = 'augurio',
+}
+
 export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
   [spellsCircle1Names.abencoarAlimentos]: {
     spellCircle: spellsCircles.c1,
@@ -526,6 +531,27 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Instantânea',
   },
 };
+
+export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
+  [spellsCircle2Names.sussurosInsanos]: {
+    spellCircle: spellsCircles.c2,
+    nome: 'Sussuros Insanos',
+    execucao: 'Padrão',
+    alcance: 'Curto',
+    alvo: '1 humanoide',
+    duracao: 'Cena',
+    resistencia: 'Vontade anula',
+  },
+  [spellsCircle2Names.augurio]: {
+    spellCircle: spellsCircles.c2,
+    nome: 'Augúrio',
+    execucao: 'Completa',
+    alcance: 'Pessoal',
+    alvo: 'Você',
+    duracao: 'Instatânea',
+  },
+};
+
 function cheapenSpell(
   spells: Spell[],
   index: number,
