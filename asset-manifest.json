@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/gerador-ficha-tormenta20/static/css/main.8e78dbd8.chunk.css",
-    "main.js": "/gerador-ficha-tormenta20/static/js/main.7a565fb8.chunk.js",
-    "main.js.map": "/gerador-ficha-tormenta20/static/js/main.7a565fb8.chunk.js.map",
+    "main.js": "/gerador-ficha-tormenta20/static/js/main.7e8fddbe.chunk.js",
+    "main.js.map": "/gerador-ficha-tormenta20/static/js/main.7e8fddbe.chunk.js.map",
     "runtime-main.js": "/gerador-ficha-tormenta20/static/js/runtime-main.2d9c4ec2.js",
     "runtime-main.js.map": "/gerador-ficha-tormenta20/static/js/runtime-main.2d9c4ec2.js.map",
     "static/js/2.ae9af89e.chunk.js": "/gerador-ficha-tormenta20/static/js/2.ae9af89e.chunk.js",
@@ -19,6 +19,6 @@
     "static/js/runtime-main.2d9c4ec2.js",
     "static/js/2.ae9af89e.chunk.js",
     "static/css/main.8e78dbd8.chunk.css",
-    "static/js/main.7a565fb8.chunk.js"
+    "static/js/main.7e8fddbe.chunk.js"
   ]
 }
