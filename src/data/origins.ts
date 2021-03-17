@@ -24,6 +24,43 @@ import combatPowers from './powers/combatPowers';
 import CharacterSheet, { SubStep } from '../interfaces/CharacterSheet';
 import { isPowerAvailable } from '../functions/powers';
 
+export type origins =
+  | 'Acólito'
+  | 'Amigo dos Animais'
+  | 'Amnésico'
+  | 'Aristocrata'
+  | 'Artesão'
+  | 'Artista'
+  | 'Assistente de Laboratório'
+  | 'Batedor'
+  | 'Capanga'
+  | 'Charlatão'
+  | 'Circense'
+  | 'Criminoso'
+  | 'Curandeiro'
+  | 'Eremita'
+  | 'Escravo'
+  | 'Estudioso'
+  | 'Fazendeiro'
+  | 'Forasteiro'
+  | 'Gladiador'
+  | 'Guarda'
+  | 'Herdeiro'
+  | 'Herói Camponês'
+  | 'Marujo'
+  | 'Mateiro'
+  | 'Membro de Guilda'
+  | 'Mercador'
+  | 'Minerador'
+  | 'Nômade'
+  | 'Pivete'
+  | 'Refugiado'
+  | 'Seguidor'
+  | 'Selvagem'
+  | 'Soldado'
+  | 'Taverneiro'
+  | 'Trabalhador';
+
 function removeOriginPowers(origin: Origin) {
   return origin.poderes.filter((power) =>
     Object.values(GeneralPowerType).includes(power.type as GeneralPowerType)
@@ -38,7 +75,11 @@ function makeOriginGeneralPowerGetter(
 
   return (sheet: CharacterSheet, subSteps: SubStep[]) => {
     sheet.skills.push(Skill.OFICIO_ALQUIMIA);
-    const allowedByRequirement = originGeneralPowers.filter((power) => {
+    const originGeneralPowersbyOrigin =
+      origin.name === 'Amnésico'
+        ? Object.values(generalPowers).flat()
+        : originGeneralPowers;
+    const allowedByRequirement = originGeneralPowersbyOrigin.filter((power) => {
       if (type && power.type !== type) {
         return false;
       }
@@ -55,8 +96,8 @@ function makeOriginGeneralPowerGetter(
     if (randomPower) {
       sheet.generalPowers.push(randomPower);
       subSteps.push({
-        name: origin.name,
-        value: `Poder recebido (${randomPower.name})`,
+        name: 'Poder Geral',
+        value: randomPower.name,
       });
       return;
     }
@@ -69,17 +110,18 @@ function makeOriginGeneralPowerGetter(
     if (randomSkillFromOrigin) {
       sheet.skills.push(randomSkillFromOrigin);
       subSteps.push({
-        name: origin.name,
-        value: `Perícia recebida (${randomSkillFromOrigin})`,
+        name: 'Perícia',
+        value: randomSkillFromOrigin,
       });
       return;
     }
 
     const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+
     sheet.skills.push(randomSkill);
     subSteps.push({
-      name: origin.name,
-      value: `Perícia (extra) recebida (${randomSkillFromOrigin})`,
+      name: 'Perícia*',
+      value: randomSkill,
     });
   };
 }
@@ -232,43 +274,6 @@ function getBenefitsWithRandomCombatPower(
 
   return getBenefits(sortedBenefits, origin, GeneralPowerType.COMBATE);
 }
-
-export type origins =
-  | 'Acólito'
-  | 'Amigo dos Animais'
-  | 'Amnésico'
-  | 'Aristocrata'
-  | 'Artesão'
-  | 'Artista'
-  | 'Assistente de Laboratório'
-  | 'Batedor'
-  | 'Capanga'
-  | 'Charlatão'
-  | 'Circense'
-  | 'Criminoso'
-  | 'Curandeiro'
-  | 'Eremita'
-  | 'Escravo'
-  | 'Estudioso'
-  | 'Fazendeiro'
-  | 'Forasteiro'
-  | 'Gladiador'
-  | 'Guarda'
-  | 'Herdeiro'
-  | 'Herói Camponês'
-  | 'Marujo'
-  | 'Mateiro'
-  | 'Membro de Guilda'
-  | 'Mercador'
-  | 'Minerador'
-  | 'Nômade'
-  | 'Pivete'
-  | 'Refugiado'
-  | 'Seguidor'
-  | 'Selvagem'
-  | 'Soldado'
-  | 'Taverneiro'
-  | 'Trabalhador';
 
 export const ORIGINS: Record<origins, Origin> = {
   Acólito: {
