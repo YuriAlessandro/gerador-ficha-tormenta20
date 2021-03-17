@@ -57,13 +57,14 @@ const TROG: Race = {
         'Você é uma criatura do tipo monstro e recebe visão no escuro, +1 na Defesa (JÁ INCLUSO) e, se estiver sem armadura ou roupas pesadas, +5 em Furtividade.',
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: sheetClone.defesa + 1,
-        });
 
         substeps.push({
           name: 'Reptiliano',
           value: `+1 na Defesa`,
+        });
+
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          defesa: sheetClone.defesa + 1,
         });
       },
     },
