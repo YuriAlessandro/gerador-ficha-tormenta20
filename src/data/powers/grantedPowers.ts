@@ -9,7 +9,11 @@ import {
 } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import {
+  addOrCheapenSpell,
+  spellsCircle1,
+  spellsCircle2,
+} from '../magias/generalSpells';
 import { getNotRepeatedRandomSkill } from '../pericias';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
@@ -256,11 +260,14 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
 
-      // TODO: N2
+      const newSpell = spellsCircle2.augurio;
+
       subSteps.push({
         name: 'Dom da Profecia',
-        value: 'A FAZER NO NÍVEL 2',
+        value: 'Adicionou magia Augúrio',
       });
+
+      sheetClone.spells.push(newSpell);
 
       return sheetClone;
     },
@@ -556,11 +563,14 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
 
-      // TODO: N2
+      const newSpell = spellsCircle2.sussurosInsanos;
+
       subSteps.push({
         name: 'Transmissão da Loucura',
-        value: 'A FAZER NO NÍVEL 2',
+        value: 'Ganhou a magia Sussurros Insanos',
       });
+
+      sheetClone.spells.push(newSpell);
 
       return sheetClone;
     },
