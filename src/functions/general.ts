@@ -311,11 +311,34 @@ export function getSkillsAndPowersByClassAndOrigin(
       origin
     );
 
+    const originSubSteps: SubStep[] = [];
+
     if (originSkills.length) {
+      originSubSteps.push(
+        ...originSkills.map((skill) => ({
+          name: 'Perícia',
+          value: `${skill}`,
+        }))
+      );
+    }
+
+    if (originPowers.origin.length) {
+      originSubSteps.push(
+        ...originPowers.origin.map((power) => ({
+          name: 'Poder Geral',
+          value: ` ${power.name}`,
+        }))
+      );
+    }
+
+    if (originSubSteps.length) {
       steps.push({
-        label: 'Perícias da origem',
-        type: 'Perícias',
-        value: originSkills.map((skill) => ({ value: `${skill}` })),
+        label: `Benefícios da orígem (${origin.name})`,
+        type: 'Poderes',
+        value: originSubSteps.map((substep) => ({
+          name: substep.name,
+          value: `${substep.value}`,
+        })),
       });
     }
 
@@ -629,10 +652,10 @@ function applyPowerGetters(
     addPower(sheetClone, subSteps);
   });
 
-  if (subSteps.length) {
+  if (subSteps.length && sheet.origin) {
     sheetClone.steps.push({
       type: 'Poderes',
-      label: 'Benefícios da Origem',
+      label: `Benefícios da Origem (${sheet.origin.name})`,
       value: subSteps,
     });
   }
