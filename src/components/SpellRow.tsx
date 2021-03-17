@@ -1,4 +1,5 @@
 import React from 'react';
+import { manaExpenseByCircle } from '../data/magias/generalSpells';
 import { Spell } from '../interfaces/Spells';
 
 interface SpellProps {
@@ -12,7 +13,7 @@ const SpellRow: React.FC<SpellProps> = (props) => {
     <tbody>
       <tr key={spell.nome}>
         <td>
-          ({spell.manaExpense || 1}) {spell.nome}{' '}
+          ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}{' '}
           {spell.customKeyAttr && `(${spell.customKeyAttr})`}{' '}
         </td>
         <td>-</td>
