@@ -49,7 +49,12 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
+import {
+  GeneralPowerType,
+  OriginPower,
+  PowerGetter,
+  PowersGetters,
+} from '../interfaces/Poderes';
 import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import { setupSpell } from '../data/magias/generalSpells';
@@ -585,9 +590,21 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
-  sheetClone = (sheetClone.generalPowers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
+  sheetClone = (sheetClone.generalPowers || []).reduce((acc, power) => {
+    // Se for Poder da Tormenta, remover 2 de Carisma
+    if (power.type === GeneralPowerType.TORMENTA) {
+      sheetClone.atributos.Carisma.value -= 1;
+      subSteps.push({
+        name: power.name,
+        value: 'Perdeu 1 de Carisma',
+      });
+    }
+    return power.action ? power.action(acc, subSteps) : acc;
+  }, sheetClone);
+
+  // Recalcular mod de carisma
+  sheetClone.atributos.Carisma.mod = getModValue(
+    sheetClone.atributos.Carisma.value
   );
 
   if (subSteps.length) {
@@ -812,11 +829,6 @@ export default function generateRandomSheet(
   // Passo 11:
   // Recalcular defesa
   charSheet = calcDefense(charSheet);
-
-  charSheet.steps.push({
-    label: 'Nova defesa',
-    value: [{ value: charSheet.defesa }],
-  });
 
   // Passo 12: Gerar magias se possível
   const newSpells = getNewSpells(charSheet.classe, charSheet.spells);
