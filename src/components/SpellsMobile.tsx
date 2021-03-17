@@ -1,5 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
+import { manaExpenseByCircle } from '../data/magias/generalSpells';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
@@ -41,7 +42,7 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
             {spells.map((spell) => (
               <div key={spell.nome} className='spellMobile'>
                 <div className='spellName'>
-                  ({spell.manaExpense}) {spell.nome}
+                  ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}
                 </div>
                 <div>
                   <strong>- Escola: </strong> -{' '}
