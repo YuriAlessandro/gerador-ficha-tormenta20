@@ -57,7 +57,6 @@ import {
 } from '../interfaces/Poderes';
 import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
-import { setupSpell } from '../data/magias/generalSpells';
 import Bag from '../interfaces/Bag';
 
 export function getModValue(attr: number): number {
@@ -533,7 +532,7 @@ function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
   );
 
   const selectedSpells = pickFromArray(filteredSpellList, initialSpells);
-  return selectedSpells.map((spell) => setupSpell(spell));
+  return selectedSpells;
 }
 
 function calcDisplacement(

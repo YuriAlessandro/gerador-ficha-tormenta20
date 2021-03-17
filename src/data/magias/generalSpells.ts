@@ -1,4 +1,4 @@
-import { cloneDeep, merge } from 'lodash';
+import { cloneDeep } from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { Spell, spellsCircles } from '../../interfaces/Spells';
@@ -526,13 +526,6 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Instantânea',
   },
 };
-
-export function setupSpell(spell: Spell): Spell {
-  return merge<Spell, Partial<Spell>>(spell, {
-    manaExpense: manaExpenseByCircle[spell.spellCircle],
-  });
-}
-
 function cheapenSpell(
   spells: Spell[],
   index: number,
