@@ -28,13 +28,9 @@ type SelectedOption = { value: string; label: string };
 
 type MainScreenProps = {
   isDarkMode: boolean;
-  setIsDarkTheme: (darkMode: boolean) => void;
 };
 
-const MainScreen: React.FC<MainScreenProps> = ({
-  isDarkMode,
-  setIsDarkTheme,
-}) => {
+const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const classes = useStyles();
 
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
@@ -185,13 +181,7 @@ const MainScreen: React.FC<MainScreenProps> = ({
         </div>
       </Fade>
 
-      {randomSheet && (
-        <Result
-          sheet={randomSheet}
-          isDarkMode={isDarkMode}
-          setIsDarkTheme={setIsDarkTheme}
-        />
-      )}
+      {randomSheet && <Result sheet={randomSheet} isDarkMode={isDarkMode} />}
     </div>
   );
 };

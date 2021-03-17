@@ -114,10 +114,7 @@ function App(): JSX.Element {
                 <Changelog />
               </Route>
               <Route>
-                <MainScreen
-                  setIsDarkTheme={setIsDarkTheme}
-                  isDarkMode={isDarkTheme}
-                />
+                <MainScreen isDarkMode={isDarkTheme} />
               </Route>
             </Switch>
           </div>
