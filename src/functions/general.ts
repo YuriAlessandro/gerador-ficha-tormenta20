@@ -702,8 +702,8 @@ export default function generateRandomSheet(
 
   if (race.name !== 'Golem') {
     steps.push({
-      label: 'Sexo',
-      value: [{ value: sexo }],
+      label: 'Gênero',
+      value: [{ value: `${sexo === 'Homem' ? 'Masculino' : 'Feminino'}` }],
     });
   }
 
