@@ -6,7 +6,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 13/03/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 17/03/2021.
     </p>
 
     <p>
@@ -21,6 +21,45 @@ const Changelog: React.FC = () => (
       </a>
       .
     </p>
+
+    <h3>Versão 1.0.1</h3>
+    <ul>
+      <li>
+        Trocamos o termo &quot;sexo&quot; por &quot;gênero&quot; no
+        passo-a-passo (até para melhor refletir o livro).
+      </li>
+      <li>
+        Na versão mobile, algumas magias não estavam com o custo de PM
+        aparecendo (é o valor entre paranteses antes do nome da magia). Isso foi
+        corrigido.
+      </li>
+      <li>
+        As magias <strong>Trasmissão da Loucura</strong> e{' '}
+        <strong>Augúrio</strong> são de segundo círculo, mas existem poderes
+        divinos que dão elas logo no primeiro nível. Antes, estava um texto
+        temporário no passo-a-passo e as magias não apareciam na lista. Agora,
+        elas aparecem e também está devidamente indicado no passo-a-passo.
+      </li>
+      <li>
+        O Druida estava sendo devoto de Allihanna, Aharadak ou Oceano, mas o
+        correto seria Megalokk ao invés de Aharadak. A troca foi realizada.
+      </li>
+      <li>
+        Todos os personagens estavam sendo sempre devotos. Essa não é a ideia do
+        Fichas de Nimb, portanto corrigimos o problema. Existe uma chance do
+        personagem ser devoto, e isso é baseado na raça e na classe, como
+        indicamos no changelog da primeira versão.
+      </li>
+      <li>
+        O Minotauro estava com textos de Golem no passo-a-passo. Apesar disso,
+        as habilidades estavam sendo selecionadas corretamente e os efeitos bem
+        aplicados. A informação foi corrigida no passo-a-passo.
+      </li>
+      <li>
+        As habilidades de Trog que modificavam a ficha não estavam aparecendo no
+        passo-a-passo, e adicionamos lá agora.
+      </li>
+    </ul>
 
     <h3>Versão 1.0</h3>
     <ul>
