@@ -36,7 +36,7 @@ const DRUIDA: ClassDescription = {
       Skills.RELIGIAO,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.SIMPLES,
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.ESCUDOS,

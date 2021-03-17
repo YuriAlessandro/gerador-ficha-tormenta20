@@ -31,7 +31,7 @@ const LUTADOR: ClassDescription = {
       Skill.REFLEXOS,
     ],
   },
-  proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
   abilities: [
     {
       name: 'Briga',

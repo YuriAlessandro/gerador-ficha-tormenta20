@@ -85,7 +85,7 @@ export function druida(race: Race): CharacterSheet {
           Skill.RELIGIAO,
         ],
       },
-      proeficiencias: ['Armas Simples', 'Armaduras Leves'],
+      proficiencias: ['Armas Simples', 'Armaduras Leves'],
       abilities: [
         {
           name: 'Devoto',

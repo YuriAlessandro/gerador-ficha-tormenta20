@@ -42,7 +42,7 @@ const NOBRE: ClassDescription = {
       Skill.PONTARIA,
     ],
   },
-  proeficiencias: [
+  proficiencias: [
     PROFICIENCIAS.LEVES,
     PROFICIENCIAS.MARCIAIS,
     PROFICIENCIAS.PESADAS,

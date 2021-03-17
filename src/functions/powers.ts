@@ -45,9 +45,7 @@ export function isPowerAvailable(
         }
         case RequirementType.PROFICIENCIA: {
           const proficiencia = (rule.value as unknown) as string;
-          return (
-            rule.name && sheet.classe.proeficiencias.includes(proficiencia)
-          );
+          return rule.name && sheet.classe.proficiencias.includes(proficiencia);
         }
         case RequirementType.NIVEL: {
           const nivel = rule.value as number;

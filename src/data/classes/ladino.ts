@@ -38,7 +38,7 @@ const LADINO: ClassDescription = {
       Skill.PILOTAGEM,
     ],
   },
-  proeficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
+  proficiencias: [PROFICIENCIAS.LEVES, PROFICIENCIAS.SIMPLES],
   abilities: [
     {
       name: 'Ataque Furtivo',

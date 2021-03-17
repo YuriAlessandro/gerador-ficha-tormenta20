@@ -372,12 +372,12 @@ const combatPowers: Record<string, GeneralPower> = {
         PROFICIENCIAS.PESADAS,
       ];
 
-      if (sheet.classe.proeficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
+      if (sheet.classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
         allowedProf.push(PROFICIENCIAS.EXOTICAS);
       }
 
       const newProf = getNotRepeatedRandom(
-        sheetClone.classe.proeficiencias,
+        sheetClone.classe.proficiencias,
         'proficiencia',
         allowedProf
       );
@@ -387,7 +387,7 @@ const combatPowers: Record<string, GeneralPower> = {
         value: newProf,
       });
 
-      sheetClone.classe.proeficiencias.push(newProf);
+      sheetClone.classe.proficiencias.push(newProf);
 
       return sheetClone;
     },

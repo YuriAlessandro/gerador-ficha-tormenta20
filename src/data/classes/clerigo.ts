@@ -33,7 +33,7 @@ const CLERIGO: ClassDescription = {
       Skill.PERCEPCAO,
     ],
   },
-  proeficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
+  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
     {
       name: 'Devoto',

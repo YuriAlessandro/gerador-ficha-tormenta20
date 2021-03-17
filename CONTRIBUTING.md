@@ -47,7 +47,7 @@ interface ClassDescription {
   addpm: number;
   periciasbasicas: BasicExpertise[];
   periciasrestantes: RemainingExpertise;
-  proeficiencias: string[];
+  proficiencias: string[];
   abilities: ClassAbility[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
@@ -138,7 +138,7 @@ interface RemainingExpertise {
 
 Onde _`qtd`_ é a quantidade de perícias que podem ser escolhidas e _`list`_ a lista de perícias disponíveis.
 
-### **proeficiencias**
+### **proficiencias**
 
 Uma lista de strings com o nome das prificiências disponíveis para essa classe.
 

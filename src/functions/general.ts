@@ -381,7 +381,7 @@ function getWeapons(classe: ClassDescription) {
 
   weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasSimples));
 
-  if (classe.proeficiencias.includes(todasProficiencias.MARCIAIS)) {
+  if (classe.proficiencias.includes(todasProficiencias.MARCIAIS)) {
     weapons.push(getRandomItemFromArray(EQUIPAMENTOS.armasMarciais));
   }
 
@@ -390,7 +390,7 @@ function getWeapons(classe: ClassDescription) {
 
 function getShields(classe: ClassDescription) {
   const shields = [];
-  if (classe.proeficiencias.includes(todasProficiencias.ESCUDOS)) {
+  if (classe.proficiencias.includes(todasProficiencias.ESCUDOS)) {
     shields.push(Escudos.ESCUDOLEVE);
   }
 
@@ -399,7 +399,7 @@ function getShields(classe: ClassDescription) {
 
 function getArmors(classe: ClassDescription) {
   const armors = [];
-  if (classe.proeficiencias.includes(todasProficiencias.PESADAS)) {
+  if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
     armors.push(Armaduras.BRUNEA);
   } else if (classe.name !== 'Arcanista') {
     armors.push(getRandomItemFromArray(EQUIPAMENTOS.armadurasLeves));

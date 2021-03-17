@@ -104,7 +104,7 @@ const Result: React.FC<ResultProps> = (props) => {
     </li>
   ));
 
-  const proeficienciasDiv = classe.proeficiencias.map((proe) => (
+  const proficienciasDiv = classe.proficiencias.map((proe) => (
     <li key={getKey(proe)}>{proe}</li>
   ));
 
@@ -312,7 +312,7 @@ const Result: React.FC<ResultProps> = (props) => {
             <div className='resultRow'>
               <div>
                 <strong>Proficiências</strong>
-                <div>{proeficienciasDiv}</div>
+                <div>{proficienciasDiv}</div>
               </div>
             </div>
 

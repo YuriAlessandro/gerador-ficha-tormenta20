@@ -15,7 +15,7 @@ describe('Testa habilidades da raça Kliren', () => {
     expect(received.skills).toHaveUniqueElements();
   });
   test('Vanguardista: proficiência com armas de fogo', () => {
-    expect(received.classe.proeficiencias.includes(PROFICIENCIAS.FOGO)).toBe(
+    expect(received.classe.proficiencias.includes(PROFICIENCIAS.FOGO)).toBe(
       true
     );
   });
