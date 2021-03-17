@@ -33,10 +33,15 @@ const MINOTAURO: Race = {
       name: 'Chifres',
       description:
         'Você possui uma arma natural de chifres (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.',
-      action(sheet: CharacterSheet): CharacterSheet {
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
         sheetClone.bag.addEquipment({
           Arma: [chifres],
+        });
+
+        substeps.push({
+          name: 'Nova Arma',
+          value: `Chifres pode ser usado como arma.`,
         });
 
         return sheetClone;
@@ -51,7 +56,7 @@ const MINOTAURO: Race = {
         const finalDefense = sheetClone.defesa + 1;
 
         substeps.push({
-          name: 'Chassi',
+          name: 'Couro Rígido',
           value: `+1 defesa (${sheet.defesa} + 1 = ${finalDefense})`,
         });
 
