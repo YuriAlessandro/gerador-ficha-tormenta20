@@ -219,7 +219,18 @@ Não é obrigatório. É utilizado quando a classe precisa de algo aleatório. E
 
 ## Divindades
 
-As divindidades de Tormenta 20
+O arquivo [divindades.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/divindades.ts) exporta a lista de Divindades definidas na pasta [/divindades](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/tree/main/src/data/divindades).
+
+Cada divindade é definida pela interface [Divindade](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Divindade.ts):
+
+```TypeScript
+interface Divindade {
+  name: string;
+  poderes: GeneralPower[];
+}
+```
+
+Onde _`name`_ é o nome da divindade e _`poderes`_ é uma lista de [poderes](#poderes) que essa divindade pode dar.
 
 ## Equipamentos
 
