@@ -328,8 +328,59 @@ Cada perícia é definida apenas pelo nome.
 
 ## Poderes
 
-Definição dos poderes
+Definição dos poderes.
 
 ## Raças
 
-Definição das raças
+A lista de raças está exportada no arquivo [racas.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/racas.ts). Cada raça é definida pela interface `Race`:
+
+```TypeScript
+interface Race {
+  name: string;
+  attributes: {
+    attrs: RaceAttributeAbility[];
+  };
+  abilities: RaceAbility[];
+  oldRace?: Race;
+  setup?: (race: Race, allRaces: Race[]) => Race;
+  getSize?: (race: Race) => RaceSize;
+  getDisplacement?: (race: Race) => number;
+  faithProbability?: FaithProbability;
+  size?: RaceSize;
+}
+```
+
+### **name**
+
+Nome da raça.
+
+### **attributes**
+
+Atributos da raça.
+
+### **abilities**
+
+Lista de habilidades da raça.
+
+### **oldRace**
+
+Uma espécie de raça "anterior". É primordialmente utilizado para o Osteon, então define o que ele era antes de morrer.
+
+### **setup**
+
+Função de setup da raça.
+
+### **getSize**
+
+Função que retorna o tamanho da raça.
+### **getDisplacement**
+
+Função que retorna o deslocamento da raça.
+### **faithProbability**
+
+Probabilidade de ser devoto de uma divindade específica.
+
+### **size**
+
+Tamanho da raça.
+
