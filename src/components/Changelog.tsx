@@ -6,7 +6,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 17/03/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 20/03/2021.
     </p>
 
     <p>
@@ -21,6 +21,39 @@ const Changelog: React.FC = () => (
       </a>
       .
     </p>
+
+    <h3>Versão 1.0.2</h3>
+    <ul>
+      <li>
+        Modificadores do atributo base não estavam sendo aplicados na PM inicial
+        na ficha. Isso foi corrigido (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/224'>
+          @malkavfelipe
+        </a>
+        ):
+        <ul>
+          <li>Modificador de Carisma na PM inicial do Arcanista.</li>
+          <li>Modificador de Carisma na PM inicial do Bardo.</li>
+          <li>Modificador de Sabedoria na PM inicial do Clérigo.</li>
+          <li>Modificador de Sabedoria na PM inicial do Druída.</li>
+        </ul>
+      </li>
+      <li>
+        Corrigimos um problema que estava possibilitando que devotos de Thyatis
+        recebessem Dom da Imortalidade ou Dom da Resurreição sem poderem. Existe
+        uma restrição de classe para esses dois poderes:
+        <ul>
+          <li>Dom da Imortalidade só pode ser utilizado por Paladinos.</li>
+          <li>Dom da Ressureição só pode ser utilizado por Clérigos.</li>
+        </ul>
+      </li>
+      <li>Agora todas as magias estão mostrando a escola correspondente.</li>
+      <li>Os poderes na ficha agora estão expandidos por padrão.</li>
+      <li>
+        Bardo agora virá com um instrumento aleatório na lista de equipamentos
+        (sinta-se a vontade para sugerir novos instrumentos).
+      </li>
+    </ul>
 
     <h3>Versão 1.0.1</h3>
     <ul>
@@ -42,7 +75,12 @@ const Changelog: React.FC = () => (
       </li>
       <li>
         O Druida estava sendo devoto de Allihanna, Aharadak ou Oceano, mas o
-        correto seria Megalokk ao invés de Aharadak. A troca foi realizada.
+        correto seria Megalokk ao invés de Aharadak. A troca foi realizada
+        (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues/212'>
+          @RuanOniiKun
+        </a>
+        )
       </li>
       <li>
         Todos os personagens estavam sendo sempre devotos. Essa não é a ideia do
@@ -53,11 +91,19 @@ const Changelog: React.FC = () => (
       <li>
         O Minotauro estava com textos de Golem no passo-a-passo. Apesar disso,
         as habilidades estavam sendo selecionadas corretamente e os efeitos bem
-        aplicados. A informação foi corrigida no passo-a-passo.
+        aplicados. A informação foi corrigida no passo-a-passo (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues/214'>
+          @dcatein
+        </a>
+        ).
       </li>
       <li>
         As habilidades de Trog que modificavam a ficha não estavam aparecendo no
-        passo-a-passo, e adicionamos lá agora.
+        passo-a-passo, e adicionamos lá agora (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues/214#issuecomment-801424801'>
+          @dcatein
+        </a>
+        ).
       </li>
     </ul>
 
