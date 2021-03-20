@@ -83,7 +83,7 @@ Pontos de mana extra por nível
 
 ### **periciasbasicas**
 
-Perícias que a classe ganha com certeza.
+[Perícias](#perícias) que a classe ganha com certeza.
 
 A forma de definir esse tipo de situação é utilizar a interface [BasicExpertise](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Class.ts):
 
@@ -125,7 +125,7 @@ Exemplos:
 
 ### **periciasrestantes**
 
-Lista de quaisquer outras perícias que o jogador possa escolher.
+Lista de quaisquer outras [perícias](#perícias) que o jogador possa escolher.
 
 Definida pela interface [RemainingExpertise](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Class.ts):
 
@@ -219,28 +219,168 @@ Não é obrigatório. É utilizado quando a classe precisa de algo aleatório. E
 
 ## Divindades
 
-As divindidades de Tormenta 20
+O arquivo [divindades.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/divindades.ts) exporta a lista de Divindades definidas na pasta [/divindades](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/tree/main/src/data/divindades).
+
+Cada divindade é definida pela interface [Divindade](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Divindade.ts):
+
+```TypeScript
+interface Divindade {
+  name: string;
+  poderes: GeneralPower[];
+}
+```
+
+Onde _`name`_ é o nome da divindade e _`poderes`_ é uma lista de [poderes](#poderes) que essa divindade pode dar.
 
 ## Equipamentos
 
-Definição dos equipamentos
+Definição dos equipamentos. O arquivo [equipamentos.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/equipamentos.ts) exporta os equipamentos. Note que cada equipamento está sendo exportado em uma lista própria: Armas, Armaduras, Escudos, etc.
+
+Cada equipamento é definido pela interface [Equipment](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Equipment.ts):
+
+```TypeScript
+interface Equipment {
+  nome: string;
+  dano?: string;
+  critico?: string;
+  peso?: number;
+  tipo?: string;
+  alcance?: string;
+  group: equipGroup;
+}
+```
+
+Onde _`group`_ é o grupo da arma, definido pelo tipo _`equipGroup`_:
+
+```TypeScript
+type equipGroup =
+  | 'Arma'
+  | 'Armadura'
+  | 'Escudo'
+  | 'Item Geral'
+  | 'Alquimía'
+  | 'Vestuário'
+  | 'Hospedagem'
+  | 'Alimentação'
+  | 'Animal'
+  | 'Veículo'
+  | 'Serviço'
+  ```
 
 ## Nomes
 
-Geração de nomes dependendo da raça
+Geração de nomes dependendo da raça. Cada raça recebe duas listas de string: _`Homem`_ para a lista de nomes masculinos e _`Mulher`_ para a lista de nomes femininos.
+
+O nome do objeto deve ser necessariametne o nome da raça (da mesma forma como está escrito no campo _`name`_ das [raças](#raças)).
 
 ## Origens
 
-Definição das origens
+Definição das origens. O arquivo [origins.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/origins.ts) define e exporta a lista de origens.
+
+Cada origem é definida pela interface [Origin](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Origin.ts):
+
+```TypeScript
+interface Origin {
+  name: string;
+  pericias: Skill[];
+  poderes: (OriginPower | GeneralPower)[];
+  getPowersAndSkills?: (usedSkills: Skill[], origin: Origin) => OriginBenefits;
+  getItems: () => Items[];
+}
+```
+
+### **name**
+
+É o nome da origem
+### **pericias**
+
+Lista de [perícias](#perícias) adicionais que uma origem oferece.
+
+### **poderes**
+
+Lista de [poderes](#poderes) que a origem oferece.
+
+### **getPowersAndSkills**
+
+É a função que seleciona os poderes e perícias da origem, de acordo com a regra do livro (ou seja, duas opções entre a lista de perícias e poderes combinadas).
+
+Essa função recebe os parâmetros _`usedSkills`_, que é a lista de perícias já selecionadas pelo personagem, e _`origin`_, que é a própria origem em si e retorna um objeto _`OriginBenefits`_, definido como:
+
+```TypeScript
+interface OriginBenefits {
+  powers: {
+    origin: OriginPower[];
+    general: PowerGetter[];
+  };
+  skills: Skill[];
+}
+```
+
+### **getItems**
+
+É a função que retorna os [itens](#equipamentos) que a origem dá ao personagem.
 
 ## Perícias
 
-Definição das perícias
+A lista te perícias está exportada em [Skills.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Skills.ts).
+
+Cada perícia é definida apenas pelo nome.
 
 ## Poderes
 
-Definição dos poderes
+Definição dos poderes.
 
 ## Raças
 
-Definição das raças
+A lista de raças está exportada no arquivo [racas.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/racas.ts). Cada raça é definida pela interface `Race`:
+
+```TypeScript
+interface Race {
+  name: string;
+  attributes: {
+    attrs: RaceAttributeAbility[];
+  };
+  abilities: RaceAbility[];
+  oldRace?: Race;
+  setup?: (race: Race, allRaces: Race[]) => Race;
+  getSize?: (race: Race) => RaceSize;
+  getDisplacement?: (race: Race) => number;
+  faithProbability?: FaithProbability;
+  size?: RaceSize;
+}
+```
+
+### **name**
+
+Nome da raça.
+
+### **attributes**
+
+Atributos da raça.
+
+### **abilities**
+
+Lista de habilidades da raça.
+
+### **oldRace**
+
+Uma espécie de raça "anterior". É primordialmente utilizado para o Osteon, então define o que ele era antes de morrer.
+
+### **setup**
+
+Função de setup da raça.
+
+### **getSize**
+
+Função que retorna o tamanho da raça.
+### **getDisplacement**
+
+Função que retorna o deslocamento da raça.
+### **faithProbability**
+
+Probabilidade de ser devoto de uma divindade específica.
+
+### **size**
+
+Tamanho da raça.
+
