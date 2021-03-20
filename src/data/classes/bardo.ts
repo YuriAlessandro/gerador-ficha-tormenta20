@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
 import { allSpellSchools } from '../../interfaces/Spells';
@@ -58,6 +59,19 @@ const BARDO: ClassDescription = {
       text:
         'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias arcanas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Você pode lançar essas magias vestindo armaduras leves sem precisar de testes de Misticismo. Seu atributo-chave para lançar magias é Carisma e você soma seu bônus de Carisma no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const finalPM = sheet.pm + sheet.atributos.Carisma.mod;
+        substeps.push({
+          name: 'Magias',
+          value: `+(Mod CAR) PMs inicias (${sheet.pm} + ${sheet.atributos.Carisma.mod} = ${finalPM})`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm: finalPM,
+        });
+      },
     },
   ],
   probDevoto: 0.3,

@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
@@ -46,6 +47,19 @@ const CLERIGO: ClassDescription = {
       text:
         'Você pode lançar magias divinas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2º círculo no 5º nível, 3º círculo no 9º nível e assim por diante). Você começa com três magias de 1º círculo. A cada nível, aprende uma magia de qualquer círculo que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma seu bônus de Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const finalPM = sheet.pm + sheet.atributos.Sabedoria.mod;
+        substeps.push({
+          name: 'Magias',
+          value: `+(Mod SAB) PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm: finalPM,
+        });
+      },
     },
   ],
   probDevoto: 0.95,
