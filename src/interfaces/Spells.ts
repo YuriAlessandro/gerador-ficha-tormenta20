@@ -20,6 +20,7 @@ export type Spell = {
   manaExpense?: number;
   manaReduction?: number;
   customKeyAttr?: Atributo;
+  school: SpellSchool;
 };
 
 export type SpellSchool =

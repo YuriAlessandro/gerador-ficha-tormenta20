@@ -82,6 +82,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Alimento para 1 criatura',
     duracao: 'Cena',
+    school: 'Trans',
   },
   [spellsCircle1Names.acalmarAnimal]: {
     spellCircle: spellsCircles.c1,
@@ -91,6 +92,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 animal',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Encan',
   },
   [spellsCircle1Names.adagaMental]: {
     spellCircle: spellsCircles.c1,
@@ -100,6 +102,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura',
     duracao: 'Instantânea',
     resistencia: 'Vontade parcial',
+    school: 'Encan',
   },
   [spellsCircle1Names.alarme]: {
     spellCircle: spellsCircles.c1,
@@ -108,6 +111,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     area: 'Esfera de 9m de raio',
     duracao: '1 dia',
+    school: 'Abjur',
   },
   [spellsCircle1Names.amedrontar]: {
     spellCircle: spellsCircles.c1,
@@ -117,6 +121,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 animal ou humanoide de ND 2 ou menor',
     duracao: 'Cena',
     resistencia: 'Vontade parcial',
+    school: 'Necro',
   },
   [spellsCircle1Names.areaEscorregadia]: {
     spellCircle: spellsCircles.c1,
@@ -126,6 +131,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: 'Quadrado de 3m ou 1 objeto',
     duracao: 'Cena',
     resistencia: 'Reflexos',
+    school: 'Conv',
   },
   [spellsCircle1Names.armaEspiritual]: {
     spellCircle: spellsCircles.c1,
@@ -134,6 +140,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
+    school: 'Conv',
   },
   [spellsCircle1Names.armaMagica]: {
     spellCircle: spellsCircles.c1,
@@ -142,6 +149,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 arma',
     duracao: 'Cena',
+    school: 'Trans',
   },
   [spellsCircle1Names.armaduraArcana]: {
     spellCircle: spellsCircles.c1,
@@ -150,6 +158,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
+    school: 'Abjur',
   },
   [spellsCircle1Names.armamentoDaNatureza]: {
     spellCircle: spellsCircles.c1,
@@ -158,6 +167,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 arma',
     duracao: 'Cena',
+    school: 'Trans',
   },
   [spellsCircle1Names.aviso]: {
     spellCircle: spellsCircles.c1,
@@ -166,6 +176,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Longo',
     alvo: '1 criatura',
     duracao: 'Instantânea',
+    school: 'Adiv',
   },
   [spellsCircle1Names.bencao]: {
     spellCircle: spellsCircles.c1,
@@ -174,6 +185,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Criaturas escolhidas',
     duracao: 'Cena',
+    school: 'Encan',
   },
   [spellsCircle1Names.caminhosDaNatureza]: {
     spellCircle: spellsCircles.c1,
@@ -182,6 +194,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 arma',
     duracao: 'Cena',
+    school: 'Conv',
   },
   [spellsCircle1Names.comando]: {
     spellCircle: spellsCircles.c1,
@@ -191,6 +204,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 humanoide',
     duracao: '1 rodada',
     resistencia: 'Vontade anula',
+    school: 'Encan',
   },
   [spellsCircle1Names.compreensao]: {
     spellCircle: spellsCircles.c1,
@@ -200,6 +214,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura ou texto',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Adiv',
   },
   [spellsCircle1Names.concentracaoDeCombate]: {
     spellCircle: spellsCircles.c1,
@@ -208,6 +223,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: '1 rodada',
+    school: 'Adiv',
   },
   [spellsCircle1Names.conjurarMonstro]: {
     spellCircle: spellsCircles.c1,
@@ -216,6 +232,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura conjurada',
     duracao: 'Sustentada',
+    school: 'Conv',
   },
   [spellsCircle1Names.consagrar]: {
     spellCircle: spellsCircles.c1,
@@ -224,6 +241,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Longo',
     area: 'Esfera com 9m de raio',
     duracao: '1 dia',
+    school: 'Evoc',
   },
   [spellsCircle1Names.controlarPlantas]: {
     spellCircle: spellsCircles.c1,
@@ -233,6 +251,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     area: 'quadrado com 9m de lado',
     duracao: 'Cena',
     resistencia: 'Reflexos anula',
+    school: 'Trans',
   },
   [spellsCircle1Names.criarElementos]: {
     spellCircle: spellsCircles.c1,
@@ -241,6 +260,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Elemento escolhido',
     duracao: 'Instantânea',
+    school: 'Conv',
   },
   [spellsCircle1Names.criarIlusao]: {
     spellCircle: spellsCircles.c1,
@@ -250,6 +270,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: 'Ilusão que se estende a até 4 cubos de 1,5m',
     duracao: 'Cena',
     resistencia: 'Vontade desacredita',
+    school: 'Ilusão',
   },
   [spellsCircle1Names.curarFerimentos]: {
     spellCircle: spellsCircles.c1,
@@ -258,6 +279,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Instantânea',
+    school: 'Evoc',
   },
   [spellsCircle1Names.despedacar]: {
     spellCircle: spellsCircles.c1,
@@ -267,6 +289,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 critura ou objeto mundano pequeno',
     duracao: 'Instantânea',
     resistencia: 'Fortitude parcial ou Reflexos anula',
+    school: 'Evoc',
   },
   [spellsCircle1Names.detectarAmeacas]: {
     spellCircle: spellsCircles.c1,
@@ -275,6 +298,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Esfera de 9m de raio',
     duracao: 'Instantânea',
+    school: 'Adiv',
   },
   [spellsCircle1Names.disfarceIlusorio]: {
     spellCircle: spellsCircles.c1,
@@ -284,6 +308,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: 'Você',
     duracao: 'Cena',
     resistencia: 'Vontade desacredita',
+    school: 'Ilusão',
   },
   [spellsCircle1Names.enfeiticar]: {
     spellCircle: spellsCircles.c1,
@@ -293,6 +318,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 humanoide',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Encan',
   },
   [spellsCircle1Names.escudoDaFe]: {
     spellCircle: spellsCircles.c1,
@@ -301,6 +327,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: '1 turno',
+    school: 'Abjur',
   },
   [spellsCircle1Names.escuridao]: {
     spellCircle: spellsCircles.c1,
@@ -310,6 +337,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 objeto',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Necro',
   },
   [spellsCircle1Names.explosaoDeChamas]: {
     spellCircle: spellsCircles.c1,
@@ -318,6 +346,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: '6m',
     area: 'Cone',
     duracao: 'Instantânea',
+    school: 'Evoc',
   },
   [spellsCircle1Names.hipnotismo]: {
     spellCircle: spellsCircles.c1,
@@ -327,6 +356,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: 'Criaturas escolhidas de ND 2 ou menor',
     duracao: '1d4 rodadas',
     resistencia: 'Vontade anula',
+    school: 'Encan',
   },
   [spellsCircle1Names.imagemEspelhada]: {
     spellCircle: spellsCircles.c1,
@@ -335,6 +365,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
+    school: 'Ilusão',
   },
   [spellsCircle1Names.infligirFerimentos]: {
     spellCircle: spellsCircles.c1,
@@ -344,6 +375,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura',
     duracao: 'Instantânea',
     resistencia: 'Fortitude reduz à metade',
+    school: 'Necro',
   },
   [spellsCircle1Names.lequeCromatico]: {
     spellCircle: spellsCircles.c1,
@@ -353,6 +385,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     area: 'Cone',
     duracao: 'Instantânea',
     resistencia: 'Vontade anula',
+    school: 'Ilusão',
   },
   [spellsCircle1Names.luz]: {
     spellCircle: spellsCircles.c1,
@@ -362,6 +395,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 objeto',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Evoc',
   },
   [spellsCircle1Names.nevoa]: {
     spellCircle: spellsCircles.c1,
@@ -370,6 +404,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     area: 'Nuvem com 6m de raio e altura',
     duracao: 'Cena',
+    school: 'Conv',
   },
   [spellsCircle1Names.orientacao]: {
     spellCircle: spellsCircles.c1,
@@ -378,6 +413,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Cena',
+    school: 'Adiv',
   },
   [spellsCircle1Names.perdicao]: {
     spellCircle: spellsCircles.c1,
@@ -387,6 +423,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: 'Criaturas escolhidas',
     duracao: 'Cena',
     resistencia: 'Nenhuma',
+    school: 'Necro',
   },
   [spellsCircle1Names.primorAtletico]: {
     spellCircle: spellsCircles.c1,
@@ -395,6 +432,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
+    school: 'Trans',
   },
   [spellsCircle1Names.profanar]: {
     spellCircle: spellsCircles.c1,
@@ -403,6 +441,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Longo',
     area: 'Esfera com 9m de raio',
     duracao: '1 dia',
+    school: 'Necro',
   },
   [spellsCircle1Names.protecaoDivina]: {
     spellCircle: spellsCircles.c1,
@@ -411,6 +450,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
+    school: 'Abjur',
   },
   [spellsCircle1Names.quedaSuave]: {
     spellCircle: spellsCircles.c1,
@@ -419,6 +459,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura ou objeto com até 200kg',
     duracao: 'Até chegar ao solo ou cena, o que vier primeiro',
+    school: 'Trans',
   },
   [spellsCircle1Names.raioDoEnfraquecimento]: {
     spellCircle: spellsCircles.c1,
@@ -428,6 +469,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura',
     duracao: 'Cena',
     resistencia: 'Fortitude parcial',
+    school: 'Necro',
   },
   [spellsCircle1Names.resistenciaAEnergia]: {
     spellCircle: spellsCircles.c1,
@@ -436,6 +478,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
+    school: 'Abjur',
   },
   [spellsCircle1Names.santuario]: {
     spellCircle: spellsCircles.c1,
@@ -445,6 +488,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
+    school: 'Abjur',
   },
   [spellsCircle1Names.setaInfalivelDeTalude]: {
     spellCircle: spellsCircles.c1,
@@ -453,6 +497,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Médio',
     alvo: 'Até 2 criaturas',
     duracao: 'Instantânea',
+    school: 'Evoc',
   },
   [spellsCircle1Names.sono]: {
     spellCircle: spellsCircles.c1,
@@ -462,6 +507,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura de ND 2 ou menor',
     duracao: 'Cena',
     resistencia: 'Vontade parcial',
+    school: 'Encan',
   },
   [spellsCircle1Names.suporteAmbiental]: {
     spellCircle: spellsCircles.c1,
@@ -470,6 +516,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: '1 dia',
+    school: 'Abjur',
   },
   [spellsCircle1Names.teia]: {
     spellCircle: spellsCircles.c1,
@@ -479,6 +526,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     area: 'Cubo com 6m de lado',
     duracao: 'Cena',
     resistencia: 'Reflexos anula',
+    school: 'Conv',
   },
   [spellsCircle1Names.toqueChocante]: {
     spellCircle: spellsCircles.c1,
@@ -488,6 +536,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 criatura',
     duracao: 'Instantânea',
     resistencia: 'Fortitude reduz à metade',
+    school: 'Evoc',
   },
   [spellsCircle1Names.trancaArcana]: {
     spellCircle: spellsCircles.c1,
@@ -496,6 +545,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 objeto Grande ou menor',
     duracao: 'Permanente',
+    school: 'Abjur',
   },
   [spellsCircle1Names.tranquilidade]: {
     spellCircle: spellsCircles.c1,
@@ -505,6 +555,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alvo: '1 animal ou humanoide',
     duracao: 'Cena',
     resistencia: 'Vontade parcial',
+    school: 'Encan',
   },
   [spellsCircle1Names.transmutarObjetos]: {
     spellCircle: spellsCircles.c1,
@@ -513,6 +564,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: 'Matéria-prima, como madeeira, rochas, ossos',
     duracao: 'Cena',
+    school: 'Trans',
   },
   [spellsCircle1Names.visaoMistica]: {
     spellCircle: spellsCircles.c1,
@@ -521,6 +573,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Toque',
     alvo: 'Você',
     duracao: 'Cena',
+    school: 'Adiv',
   },
   [spellsCircle1Names.vitalidadeFantasma]: {
     spellCircle: spellsCircles.c1,
@@ -529,10 +582,20 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Instantânea',
+    school: 'Necro',
   },
 };
 
 export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
+  [spellsCircle2Names.augurio]: {
+    spellCircle: spellsCircles.c2,
+    nome: 'Augúrio',
+    execucao: 'Completa',
+    alcance: 'Pessoal',
+    alvo: 'Você',
+    duracao: 'Instatânea',
+    school: 'Adiv',
+  },
   [spellsCircle2Names.sussurosInsanos]: {
     spellCircle: spellsCircles.c2,
     nome: 'Sussuros Insanos',
@@ -541,14 +604,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alvo: '1 humanoide',
     duracao: 'Cena',
     resistencia: 'Vontade anula',
-  },
-  [spellsCircle2Names.augurio]: {
-    spellCircle: spellsCircles.c2,
-    nome: 'Augúrio',
-    execucao: 'Completa',
-    alcance: 'Pessoal',
-    alvo: 'Você',
-    duracao: 'Instatânea',
+    school: 'Encan',
   },
 };
 
