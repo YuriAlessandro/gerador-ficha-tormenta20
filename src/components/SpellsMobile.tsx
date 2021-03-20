@@ -45,7 +45,7 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
                   ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}
                 </div>
                 <div>
-                  <strong>- Escola: </strong> -{' '}
+                  <strong>- Escola: </strong> {spell.school}
                 </div>
                 <div>
                   <strong>- Execução: </strong> {spell.execucao}
