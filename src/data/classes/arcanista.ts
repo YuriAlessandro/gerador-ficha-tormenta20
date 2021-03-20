@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   ClassDescription,
   ClassAbility,
@@ -123,6 +124,26 @@ const ARCANISTA: ClassDescription = {
       text:
         'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2o círculo no 5o nível, 3o círculo no 9o nível e assim por diante).',
       nivel: 1,
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        let keyAttr = 'INT';
+        let keyAttrMod = sheet.atributos.Inteligência.mod;
+        if (sheet.classe.subname === 'Feiticeiro') {
+          keyAttr = 'CAR';
+          keyAttrMod = sheet.atributos.Carisma.mod;
+        }
+
+        const finalPM = sheet.pm + keyAttrMod;
+        substeps.push({
+          name: 'Magias',
+          value: `+(Mod ${keyAttr}) PMs inicias (${sheet.pm} + ${keyAttrMod} = ${finalPM})`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm: finalPM,
+        });
+      },
     },
   ],
   probDevoto: 0.3,

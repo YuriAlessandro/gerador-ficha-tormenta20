@@ -452,26 +452,31 @@ function getInitialBag(origin: Origin | undefined): Bag {
   return new Bag(equipments);
 }
 
-function getThyatisPowers() {
+function getThyatisPowers(classe: ClassDescription) {
   const unrestrictedPowers = DivindadeEnum.THYATIS.poderes.filter(
     (poder) =>
       poder.name !== GRANTED_POWERS.DOM_DA_IMORTALIDADE.name &&
       poder.name !== GRANTED_POWERS.DOM_DA_RESSUREICAO.name
   );
 
-  const randomRestricted = getRandomItemFromArray([
-    GRANTED_POWERS.DOM_DA_IMORTALIDADE,
-    GRANTED_POWERS.DOM_DA_RESSUREICAO,
-  ]);
+  if (classe.name === 'Paladino')
+    return [...unrestrictedPowers, GRANTED_POWERS.DOM_DA_IMORTALIDADE];
 
-  return [...unrestrictedPowers, randomRestricted];
+  if (classe.name === 'Clérigo')
+    return [...unrestrictedPowers, GRANTED_POWERS.DOM_DA_RESSUREICAO];
+
+  return [...unrestrictedPowers];
 }
 
 // Retorna a lista de poderes concedidos de uma divindade
-function getPoderesConcedidos(divindade: Divindade, todosPoderes: boolean) {
+function getPoderesConcedidos(
+  divindade: Divindade,
+  todosPoderes: boolean,
+  classe: ClassDescription
+) {
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
-      return getThyatisPowers();
+      return getThyatisPowers(classe);
     }
 
     return [...divindade.poderes];
@@ -504,7 +509,7 @@ function getReligiosidade(
   const divindade = DivindadeEnum[divindadeName];
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
-  const poderes = getPoderesConcedidos(divindade, todosPoderes);
+  const poderes = getPoderesConcedidos(divindade, todosPoderes, classe);
 
   return { divindade, poderes };
 }
