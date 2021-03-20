@@ -50,27 +50,27 @@ const Result: React.FC<ResultProps> = (props) => {
   }
 
   const [isRacePowersVisible, setisRacePowersVisible] = React.useState<boolean>(
-    false
+    true
   );
 
   const [isClassPowersVisible, setClassPowersVisible] = React.useState<boolean>(
-    false
+    true
   );
 
   const [
     generalPowersVisible,
     setGeneralPowersVisible,
-  ] = React.useState<boolean>(false);
+  ] = React.useState<boolean>(true);
 
   const [showExportButton, setExportButton] = React.useState<boolean>();
 
   const [
     isOriginPowersVisible,
     setOriginPowersVisible,
-  ] = React.useState<boolean>(false);
+  ] = React.useState<boolean>(true);
 
   const [isGodPowersVisible, setGodPowersVisible] = React.useState<boolean>(
-    false
+    true
   );
 
   const atributosDiv = Object.values(atributos).map((atributo) => (
