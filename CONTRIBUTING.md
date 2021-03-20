@@ -83,7 +83,7 @@ Pontos de mana extra por nível
 
 ### **periciasbasicas**
 
-Perícias que a classe ganha com certeza.
+[Perícias](#perícias) que a classe ganha com certeza.
 
 A forma de definir esse tipo de situação é utilizar a interface [BasicExpertise](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Class.ts):
 
@@ -125,7 +125,7 @@ Exemplos:
 
 ### **periciasrestantes**
 
-Lista de quaisquer outras perícias que o jogador possa escolher.
+Lista de quaisquer outras [perícias](#perícias) que o jogador possa escolher.
 
 Definida pela interface [RemainingExpertise](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Class.ts):
 
@@ -250,6 +250,23 @@ interface Equipment {
 }
 ```
 
+Onde _`group`_ é o grupo da arma, definido pelo tipo _`equipGroup`_:
+
+```TypeScript
+type equipGroup =
+  | 'Arma'
+  | 'Armadura'
+  | 'Escudo'
+  | 'Item Geral'
+  | 'Alquimía'
+  | 'Vestuário'
+  | 'Hospedagem'
+  | 'Alimentação'
+  | 'Animal'
+  | 'Veículo'
+  | 'Serviço'
+  ```
+
 ## Nomes
 
 Geração de nomes dependendo da raça. Cada raça recebe duas listas de string: _`Homem`_ para a lista de nomes masculinos e _`Mulher`_ para a lista de nomes femininos.
@@ -258,11 +275,56 @@ O nome do objeto deve ser necessariametne o nome da raça (da mesma forma como e
 
 ## Origens
 
-Definição das origens
+Definição das origens. O arquivo [origins.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/origins.ts) define e exporta a lista de origens.
+
+Cada origem é definida pela interface [Origin](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Origin.ts):
+
+```TypeScript
+interface Origin {
+  name: string;
+  pericias: Skill[];
+  poderes: (OriginPower | GeneralPower)[];
+  getPowersAndSkills?: (usedSkills: Skill[], origin: Origin) => OriginBenefits;
+  getItems: () => Items[];
+}
+```
+
+### **name**
+
+É o nome da origem
+### **pericias**
+
+Lista de [perícias](#perícias) adicionais que uma origem oferece.
+
+### **poderes**
+
+Lista de [poderes](#poderes) que a origem oferece.
+
+### **getPowersAndSkills**
+
+É a função que seleciona os poderes e perícias da origem, de acordo com a regra do livro (ou seja, duas opções entre a lista de perícias e poderes combinadas).
+
+Essa função recebe os parâmetros _`usedSkills`_, que é a lista de perícias já selecionadas pelo personagem, e _`origin`_, que é a própria origem em si e retorna um objeto _`OriginBenefits`_, definido como:
+
+```TypeScript
+interface OriginBenefits {
+  powers: {
+    origin: OriginPower[];
+    general: PowerGetter[];
+  };
+  skills: Skill[];
+}
+```
+
+### **getItems**
+
+É a função que retorna os [itens](#equipamentos) que a origem dá ao personagem.
 
 ## Perícias
 
-Definição das perícias
+A lista te perícias está exportada em [Skills.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Skills.ts).
+
+Cada perícia é definida apenas pelo nome.
 
 ## Poderes
 
