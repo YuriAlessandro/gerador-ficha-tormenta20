@@ -12,6 +12,7 @@ import EQUIPAMENTOS, {
   calcDefense,
   Armaduras,
   Escudos,
+  bardInstruments,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -410,15 +411,25 @@ function getArmors(classe: ClassDescription) {
 
 function getClassEquipments(
   classe: ClassDescription
-): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura'> {
+): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
   const weapons = getWeapons(classe);
   const shields = getShields(classe);
   const armors = getArmors(classe);
+
+  const instruments: Equipment[] = [];
+  if (classe.name === 'Bardo') {
+    const instrumentName = getRandomItemFromArray(bardInstruments);
+    instruments.push({
+      nome: instrumentName,
+      group: 'Item Geral',
+    });
+  }
 
   return {
     Arma: weapons,
     Escudo: shields,
     Armadura: armors,
+    'Item Geral': instruments,
   };
 }
 
