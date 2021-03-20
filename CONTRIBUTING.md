@@ -234,11 +234,27 @@ Onde _`name`_ é o nome da divindade e _`poderes`_ é uma lista de [poderes](#po
 
 ## Equipamentos
 
-Definição dos equipamentos
+Definição dos equipamentos. O arquivo [equipamentos.ts](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/data/equipamentos.ts) exporta os equipamentos. Note que cada equipamento está sendo exportado em uma lista própria: Armas, Armaduras, Escudos, etc.
+
+Cada equipamento é definido pela interface [Equipment](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/src/interfaces/Equipment.ts):
+
+```TypeScript
+interface Equipment {
+  nome: string;
+  dano?: string;
+  critico?: string;
+  peso?: number;
+  tipo?: string;
+  alcance?: string;
+  group: equipGroup;
+}
+```
 
 ## Nomes
 
-Geração de nomes dependendo da raça
+Geração de nomes dependendo da raça. Cada raça recebe duas listas de string: _`Homem`_ para a lista de nomes masculinos e _`Mulher`_ para a lista de nomes femininos.
+
+O nome do objeto deve ser necessariametne o nome da raça (da mesma forma como está escrito no campo _`name`_ das [raças](#raças)).
 
 ## Origens
 
