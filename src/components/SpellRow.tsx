@@ -16,7 +16,7 @@ const SpellRow: React.FC<SpellProps> = (props) => {
           ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}{' '}
           {spell.customKeyAttr && `(${spell.customKeyAttr})`}{' '}
         </td>
-        <td>-</td>
+        <td>{spell.school}</td>
         <td>{spell.execucao}</td>
         <td>{spell.alcance}</td>
         <td>{spell.alvo || spell.area || '-'}</td>
