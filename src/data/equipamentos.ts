@@ -471,6 +471,22 @@ const EQUIPAMENTOS: CombatItems = {
 
 export default EQUIPAMENTOS;
 
+export const bardInstruments: string[] = [
+  'Violão',
+  'Violino',
+  'Harpa',
+  'Bandolim',
+  'Alaúde',
+  'Cítara',
+  'Flauta Doce',
+  'Tambor',
+  'Charamela',
+  'Ukulele',
+  'Harmônica',
+  'Oboé',
+  'Ocarina',
+];
+
 function isDefenseEquip(
   equip: Equipment | DefenseEquipment
 ): equip is DefenseEquipment {
