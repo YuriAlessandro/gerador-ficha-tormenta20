@@ -1,6 +1,7 @@
 import { Atributo } from '../data/atributos';
 import CharacterSheet from './CharacterSheet';
 import { FaithProbability } from './Divindade';
+import { Requirement } from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
 
@@ -22,6 +23,8 @@ export interface ClassAbility {
     sheet: CharacterSheet,
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
+  requirements?: Requirement[][];
+  canRepeat?: boolean;
 }
 
 export interface SpellPath {
