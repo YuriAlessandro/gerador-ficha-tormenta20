@@ -88,6 +88,7 @@ const CAVALEIRO: ClassDescription = {
       text:
         'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
+      canRepeat: true,
     },
     {
       name: 'Autoridade Feudal',
