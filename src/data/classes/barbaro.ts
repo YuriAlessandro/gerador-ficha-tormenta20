@@ -68,12 +68,14 @@ const BARBARO: ClassDescription = {
       name: 'Alma de Bronze',
       text:
         'Quando entra em fúria, você recebe uma quantidade de pontos de vida temporários igual a metade do seu nível + mod. Força.',
+      requirements: [],
     },
     {
       name: 'Aumento de Atributo',
       text:
         'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       canRepeat: true,
+      requirements: [],
     },
     {
       name: 'Brado Assustador',
@@ -107,41 +109,49 @@ const BARBARO: ClassDescription = {
       name: 'Esquiva Sobrenatural',
       text:
         'Seus instintos ficam tão apurados que você consegue reagir ao perigo antes que seus sentidos percebam. Você nunca fica surpreendido.',
+      requirements: [],
     },
     {
       name: 'Força Indomável',
       text:
         'Você pode gastar 1 PM para somar seu nível em um teste de Força ou Atletismo. Você pode usar esta habilidade depois de rolar o dado, mas deve usá-la antes de o mestre dizer se você passou ou não.',
+      requirements: [],
     },
     {
       name: 'Frenesi',
       text:
         'Se estiver em fúria e usar a ação atacar para fazer um ataque corpo a corpo, você pode gastar 2 PM para fazer um ataque adicional.',
+      requirements: [],
     },
     {
       name: 'Fúria da Savana',
       text:
         'Seu deslocamento aumenta em +3m. Quando usa Fúria, você aplica o bônus em ataque e dano também a armas de arremesso.',
+      requirements: [],
     },
     {
       name: 'Fúria Raivosa',
       text:
         'Se sua Fúria for terminar por você não ter atacado nem sido alvo de um efeito hostil, você pode pagar 1 PM para continuar em fúria nesta rodada. Se você atacar ou for atacado na rodada seguinte, sua fúria continua normalmente.',
+      requirements: [],
     },
     {
       name: 'Golpe Poderoso',
       text:
         'Ao acertar um ataque corpo a corpo, você pode gastar 1 PM para causar um dado de dano extra do mesmo tipo (por exemplo, com um montante, causa +1d6, para um dano total de 3d6; com um machado de guerra, causa +1d12).',
+      requirements: [],
     },
     {
       name: 'Ímpeto',
       text:
         'Você pode gastar 1 PM para aumentar seu deslocamento em +6m por uma rodada.',
+      requirements: [],
     },
     {
       name: 'Investida Imprudente',
       text:
         'Quando faz uma investida, você pode aumentar sua penalidade em Defesa pela investida para –5 para receber um bônus de +1d8 na rolagem de dano deste ataque.',
+      requirements: [],
     },
     {
       name: 'Pele de Aço',
@@ -157,6 +167,7 @@ const BARBARO: ClassDescription = {
       name: 'Pele de Ferro',
       text:
         'Você recebe +2 na Defesa, mas apenas se não estiver usando armadura pesada.',
+      requirements: [],
     },
     {
       name: 'Sangue dos Inimigos',
@@ -168,6 +179,7 @@ const BARBARO: ClassDescription = {
       name: 'Superstição',
       text:
         'Você odeia magia, o que faz com que seja mais resistente a ela. Você recebe resistência a magia +2.',
+      requirements: [],
     },
     {
       name: 'Totem Espiritual',
@@ -184,6 +196,7 @@ const BARBARO: ClassDescription = {
       name: 'Vigor Primal',
       text:
         'Você pode gastar uma ação de movimento e 1 PM para recuperar 1d12 pontos de vida. Para cada 2 PM extras que você gastar, cura +1d12 PV (pode gastar 3 PM para recuperar 2d12 PV, 5 PM para recuperar 3d12 PV e assim por diante).',
+      requirements: [],
     },
   ],
   probDevoto: 0.3,
