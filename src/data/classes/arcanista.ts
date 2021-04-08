@@ -158,12 +158,14 @@ const ARCANISTA: ClassDescription = {
       name: 'Arcano de Batalha',
       text:
         'Você soma o bônus de seu atributo-chave nas rolagens de dano para magias e para seu Raio Arcano (caso possua).',
+      requirements: [],
     },
     {
       name: 'Aumento de Atributo',
       text:
         'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       canRepeat: true,
+      requirements: [],
     },
     {
       name: 'Caldeirão do Bruxo',
@@ -181,6 +183,7 @@ const ARCANISTA: ClassDescription = {
       text:
         'Você aprende duas magias de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
+      requirements: [],
     },
     {
       name: 'Contramágica Aprimorada',
@@ -192,6 +195,7 @@ const ARCANISTA: ClassDescription = {
       name: 'Envolto em Mistério',
       text:
         'Sua aparência e postura assombrosas o permitem manipular e assustar pessoas ignorantes ou supersticiosas. O mestre define o que exatamente você pode fazer e quem se encaixa nessa descrição. Como regra geral, você recebe +5 em Enganação e Intimidação contra pessoas não treinadas em Conhecimento ou Misticismo.',
+      requirements: [],
     },
     {
       name: 'Escriba Arcano',
@@ -211,6 +215,7 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Familiar',
       text: 'Você possui um animal de estimação mágico (ver página 36).',
+      requirements: [],
     },
     {
       name: 'Fluxo de Mana',
@@ -228,11 +233,11 @@ const ARCANISTA: ClassDescription = {
       name: 'Fortalecimento Arcano',
       text:
         'A CD para resistir a suas magias aumenta em +1. Se você puder lançar magias de 4º círculo, em vez disso ela aumenta em +2.',
+      requirements: [],
     },
     {
       name: 'Herança Aprimorada',
       text: 'Você recebe a herança aprimorada de sua linhagem sobrenatural.',
-
       requirements: [
         [
           { type: RequirementType.TIPO_ARCANISTA, name: 'Feiticeiro' },
@@ -254,6 +259,7 @@ const ARCANISTA: ClassDescription = {
       name: 'Magia Pungente',
       text:
         'Quando lança uma magia, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ela.',
+      requirements: [],
     },
     {
       name: 'Mestre em Escola',
@@ -270,11 +276,13 @@ const ARCANISTA: ClassDescription = {
       name: 'Poder Mágico',
       text:
         'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
+      requirements: [],
     },
     {
       name: 'Raio Arcano',
       text:
         'Você pode gastar uma ação padrão para disparar um raio num alvo em alcance curto que causa 1d6 pontos de dano de essência. Esse dano aumenta em +1d6 para cada círculo de magia acima do 1º que você puder lançar. O alvo pode fazer um teste de Reflexos (CD atributo-chave) para reduzir o dano à metade.',
+      requirements: [],
     },
     {
       name: 'Raio Elemental',
