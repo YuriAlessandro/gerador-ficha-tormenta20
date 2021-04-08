@@ -5,6 +5,21 @@ import { Requirement } from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
 
+export type ClassNames =
+  | 'Arcanista'
+  | 'Bárbaro'
+  | 'Bardo'
+  | 'Caçador'
+  | 'Cavaleiro'
+  | 'Clérigo'
+  | 'Guerreiro'
+  | 'Inventor'
+  | 'Ladino'
+  | 'Lutador'
+  | 'Nobre'
+  | 'Paladino'
+  | 'Bucaneiro'
+  | 'Druida';
 export interface BasicExpertise {
   type: string;
   list: Skill[];
