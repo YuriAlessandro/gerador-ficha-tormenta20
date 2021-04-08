@@ -74,6 +74,7 @@ const BARDO: ClassDescription = {
       },
     },
   ],
+  powers: [],
   probDevoto: 0.3,
   faithProbability: {
     HYNINN: 1,

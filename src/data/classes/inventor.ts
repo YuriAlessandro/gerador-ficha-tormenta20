@@ -47,6 +47,7 @@ const INVENTOR: ClassDescription = {
       nivel: 1,
     },
   ],
+  powers: [],
   probDevoto: 0.3,
   faithProbability: {
     HYNINN: 1,

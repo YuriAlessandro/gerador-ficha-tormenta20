@@ -106,6 +106,7 @@ export function druida(race: Race): CharacterSheet {
           nivel: 1,
         },
       ],
+      powers: [],
       probDevoto: 1,
       qtdPoderesConcedidos: 'all',
       faithProbability: {

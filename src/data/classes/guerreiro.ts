@@ -50,6 +50,7 @@ const GUERREIRO: ClassDescription = {
       nivel: 1,
     },
   ],
+  powers: [],
   probDevoto: 0.3,
   faithProbability: {
     ARSENAL: 1,
