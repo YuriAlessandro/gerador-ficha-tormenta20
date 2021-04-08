@@ -75,6 +75,7 @@ const DRUIDA: ClassDescription = {
       },
     },
   ],
+  powers: [],
   probDevoto: 1,
   qtdPoderesConcedidos: 'all',
   faithProbability: {

@@ -23,7 +23,16 @@ export interface ClassAbility {
     sheet: CharacterSheet,
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
+}
+
+export interface ClassPower {
+  name: string;
+  text: string;
   requirements?: Requirement[][];
+  action?: (
+    sheet: CharacterSheet,
+    subSteps: { name: string; value: string }[]
+  ) => CharacterSheet;
   canRepeat?: boolean;
 }
 
@@ -46,6 +55,7 @@ export interface ClassDescription {
   periciasrestantes: RemainingExpertise;
   proficiencias: string[];
   abilities: ClassAbility[];
+  powers: ClassPower[];
   probDevoto: number;
   qtdPoderesConcedidos?: string;
   faithProbability?: FaithProbability;

@@ -62,6 +62,7 @@ const CLERIGO: ClassDescription = {
       },
     },
   ],
+  powers: [],
   probDevoto: 0.95,
   qtdPoderesConcedidos: 'all',
   faithProbability: standardFaithProbability,

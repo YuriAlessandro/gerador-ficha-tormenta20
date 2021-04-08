@@ -68,6 +68,7 @@ const NOBRE: ClassDescription = {
       nivel: 1,
     },
   ],
+  powers: [],
   probDevoto: 0.3,
   faithProbability: {
     AZGHER: 1,
