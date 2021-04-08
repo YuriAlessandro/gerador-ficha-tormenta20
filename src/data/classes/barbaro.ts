@@ -44,6 +44,24 @@ const BARBARO: ClassDescription = {
         'Você pode gastar 2 PM para invocar uma fúria selvagem, tornando-se temível em combate. Você recebe +2 em testes de ataque e rolagens de dano corpo a corpo, mas não pode fazer nenhuma ação que exija calma e concentração (como usar a perícia Furtividade ou lançar magias). A cada cinco níveis, pode gastar +2 PM para aumentar os bônus em +1. A Fúria termina se, ao fim da rodada, você não tiver atacado nem sido alvo de um efeito (ataque, habilidade, magia...) hostil.',
       nivel: 1,
     },
+    {
+      name: 'Instinto Selvagem',
+      text:
+        'Você recebe +1 em Percepção e Reflexos. A cada seis níveis, esse bônus aumenta em +1.',
+      nivel: 3,
+    },
+    {
+      name: 'Resistência a Dano',
+      text:
+        'Graças a seu vigor e força de vontade, você ignora parte de seus ferimentos. Você recebe resistência a dano 2 (todo dano que sofre é reduzido em 2). A cada três níveis, sua RD aumenta em 2, até um máximo de RD 10 no 17º nível.',
+      nivel: 5,
+    },
+    {
+      name: 'Fúria Titânica',
+      text:
+        'No 20º nível, o bônus que você recebe nos testes de ataque e rolagens de dano quando usa Fúria é dobrado. Por exemplo, se gastar 8 PM, em vez de um bônus de +5, recebe um bônus de +10',
+      nivel: 20,
+    },
   ],
   powers: [
     {
