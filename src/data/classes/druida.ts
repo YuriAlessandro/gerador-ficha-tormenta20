@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
+import { RequirementType } from '../../interfaces/Poderes';
 import Skills from '../../interfaces/Skills';
 import { allSpellSchools } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
@@ -74,8 +75,191 @@ const DRUIDA: ClassDescription = {
         });
       },
     },
+    {
+      name: 'Caminho dos Ermos',
+      text:
+        'Você pode atravessar terrenos difíceis sem sofrer redução em seu deslocamento e a CD para rastreá-lo aumenta em +10. Esta habilidade só funciona em terrenos naturais.',
+      nivel: 2,
+    },
+    {
+      name: 'Força da Natureza',
+      text:
+        'Você diminui o custo de todas as suas magias em –2 PM e aumenta a CD delas em +2. Os bônus dobram (–4 PM e +4 na CD) se você estiver em terrenos naturais.',
+      nivel: 20,
+    },
   ],
-  powers: [],
+  powers: [
+    {
+      name: 'Aspecto do Inverno',
+      text:
+        'Você recebe resistência a frio 5 e suas magias que causam dano de frio causam +1 ponto de dano por dado. Durante o inverno, suas magias de druida custam −1 PM.',
+      requirements: [[]],
+    },
+    {
+      name: 'Aspecto do Outono',
+      text:
+        'Você aprende uma magia de necromancia, arcana ou divina, de qualquer círculo que possa lançar. Você pode gastar 1 PM para impor uma penalidade de –2 nos testes de resistência de todos os inimigos em alcance médio até o início do seu próximo turno. Durante o outono, suas magias de druida custam −1 PM.',
+      requirements: [[]],
+    },
+    {
+      name: 'Aspecto da Primavera',
+      text:
+        'Você recebe +1 em Carisma e suas magias de cura curam +1 PV por dado. Durante a primavera, suas magias de druida custam −1 PM.',
+      requirements: [[]],
+    },
+    {
+      name: 'Aspecto do Verão',
+      text:
+        'Você recebe +2 em Iniciativa e pode gastar 1 PM para cobrir suas armas ou armas naturais com chamas, causando +1d6 pontos de dano de fogo até o fim da cena. Durante o verão, suas magias de druida custam −1 PM.',
+      requirements: [[]],
+    },
+    {
+      name: 'Aumento de Atributo',
+      text:
+        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      requirements: [[]],
+      canRepeat: true,
+    },
+    {
+      name: 'Companheiro Animal',
+      text:
+        'Você recebe um companheiro animal. Veja o quadro a seguir para detalhes.',
+      requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
+    },
+    {
+      name: 'Companheiro Animal Adicional',
+      text:
+        'Você recebe um companheiro animal adicional, de um tipo diferente dos que já tenha. Você pode escolher este poder quantas vezes quiser, mas ainda está sujeito ao limite de aliados que pode ter (veja a página 246)',
+      requirements: [
+        [
+          { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 15 },
+          { type: RequirementType.PODER, name: 'Companheiro Animal' },
+          { type: RequirementType.NIVEL, value: 7 },
+        ],
+      ],
+      canRepeat: true,
+    },
+    {
+      name: 'Companheiro Animal Aprimorado',
+      text:
+        'Escolha um de seus companheiros animais. Esse animal recebe um segundo tipo diferente, ganhando os bônus equivalentes. Por exemplo, se você tiver um companheiro guardião, pode adicionar o tipo fortão a ele, tornando-o um guardião fortão que concede +2 na Defesa e +1d8 nas rolagens de dano corpo a corpo.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Companheiro Animal' },
+          { type: RequirementType.NIVEL, value: 8 },
+        ],
+      ],
+    },
+    {
+      name: 'Companheiro Animal Lendário',
+      text:
+        'Escolha um de seus companheiros animais. Esse animal passa a dobrar seus bônus concedidos. No caso de companheiros que concedem dados de bônus, o número de dados aumenta em 1.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Companheiro Animal' },
+          { type: RequirementType.NIVEL, value: 18 },
+        ],
+      ],
+    },
+    {
+      name: 'Companheiro Animal Mágico',
+      text:
+        'Escolha um de seus companheiros animais. Esse animal recebe um segundo tipo diferente, entre destruidor ou médico, ganhando os bônus equivalentes.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Companheiro Animal' },
+          { type: RequirementType.NIVEL, value: 8 },
+        ],
+      ],
+    },
+    {
+      name: 'Coração da Selva',
+      text: 'Você recebe +2 em Fortitude e se torna imune a venenos.',
+      requirements: [[]],
+    },
+    {
+      name: 'Espírito dos Equinócios',
+      text:
+        'Sua alma e corpo estão em equilíbrio. Você pode gastar 1 PM para escolher 10 em um teste de resistência.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Aspecto da Primavera' },
+          { type: RequirementType.PODER, name: 'Aspecto do Outono' },
+          { type: RequirementType.NIVEL, value: 10 },
+        ],
+      ],
+    },
+    {
+      name: 'Espírito dos Solstícios',
+      text:
+        'Você transita entre os extremos do mundo natural. Quando lança uma magia, pode gastar +4 PM para maximizar os efeitos numéricos variáveis dela. Por exemplo, uma magia Curar Ferimentos aprimorada para curar 5d8+5 PV irá curar automaticamente 45 PV, sem a necessidade de rolar dados. Uma magia sem efeitos variáveis não pode ser afetada por este poder.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Aspecto do Inverno' },
+          { type: RequirementType.PODER, name: 'Aspecto do Verão' },
+          { type: RequirementType.NIVEL, value: 10 },
+        ],
+      ],
+    },
+    {
+      name: 'Força dos Penhascos',
+      text:
+        'Você recebe +2 em Fortitude. Se estiver pisando em rocha sólida, pode gastar 1 PM e uma reação para receber RD 10 contra um ataque.',
+      requirements: [[]],
+    },
+    {
+      name: 'Forma Primal',
+      text:
+        'Quando usa Forma Selvagem, você pode se transformar em uma fera primal. Você recebe os benefícios de dois tipos de animais (bônus iguais não se acumulam; use o que você quiser de cada tipo).',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Forma Selvagem', value: 2 },
+          { type: RequirementType.NIVEL, value: 18 },
+        ],
+      ],
+    },
+    {
+      name: 'Forma Selvagem',
+      text:
+        'Você pode se transformar em um tipo de animal. Veja a seguir. Você pode escolher este poder diversas vezes. A cada vez, aprende uma forma selvagem diferente.',
+      requirements: [[]],
+      canRepeat: true,
+    },
+    {
+      name: 'Liberdade da Pradaria',
+      text:
+        'Você recebe +2 em Reflexos. Se estiver ao ar livre, você pode gastar 1 PM sempre que lançar uma magia para aumentar o alcance dela em um passo (de toque para curto, de curto para médio etc.).',
+      requirements: [[]],
+    },
+    {
+      name: 'Magia Natural',
+      text: 'Você pode lançar magias em forma selvagem.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Forma Selvagem' },
+          { type: RequirementType.NIVEL, value: 8 },
+        ],
+      ],
+    },
+    {
+      name: 'Presas Afiadas',
+      text:
+        'A margem de ameaça de suas armas naturais em forma selvagem aumenta em +2.',
+      requirements: [[{ type: RequirementType.PODER, name: 'Forma Selvagem' }]],
+    },
+    {
+      name: 'Segredos da Natureza',
+      text:
+        'Você aprende duas magias de qualquer círculo que possa lançar. Elas devem pertencer às escolas que você sabe usar, mas podem ser arcanas ou divinas. Você pode escolher este poder quantas vezes quiser.',
+      requirements: [[]],
+    },
+    {
+      name: 'Tranquilidade dos Lagos',
+      text:
+        'Você recebe +2 em Vontade. Se estiver em alcance médio de um lago, rio ou equivalente, pode gastar 1 PM uma vez por rodada para repetir um teste de resistência recém realizado.',
+      requirements: [[]],
+    },
+  ],
   probDevoto: 1,
   qtdPoderesConcedidos: 'all',
   faithProbability: {
