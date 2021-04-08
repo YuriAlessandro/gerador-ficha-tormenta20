@@ -74,13 +74,13 @@ const CLERIGO: ClassDescription = {
       name: 'Abençoar Arma',
       text:
         'Você se torna proficiente na arma preferida de sua divindade. Se estiver empunhando essa arma, pode gastar uma ação de movimento e 3 PM para infundi-la com poder divino. Até o final da cena, a arma emite luz dourada ou púrpura (como uma tocha) e você pode usar seu modificador de Sabedoria em testes de ataque e rolagens de dano com ela (em vez do modificador padrão). Além disso, o dano da arma aumenta em um passo e ela é considerada mágica para propósitos de resistência a dano.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Aumento de Atributo',
       text:
         'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
-      requirements: [[]],
+      requirements: [],
       canRepeat: true,
     },
     {
@@ -93,7 +93,7 @@ const CLERIGO: ClassDescription = {
       name: 'Canalizar Energia Positiva/Negativa',
       text:
         'Você pode gastar uma ação padrão e 1 PM para liberar uma onda de energia positiva ou negativa (de acordo com sua divindade) que afeta todas as criaturas em alcance curto. Energia positiva cura 1d6 pontos de dano em criaturas vivas a sua escolha e causa 1d6 pontos de dano de luz em mortos-vivos. Energia negativa tem o efeito inverso — causa dano de trevas em criaturas vivas a sua escolha e cura mortos-vivos. Uma criatura que sofra dano tem direito a um teste de Vontade (CD Car) para reduzi-lo à metade. Para cada 2 PM extras que você gastar, a cura ou dano aumenta em +1d6 PV (ou seja, pode gastar 3 PM para curar 2d6 PV, 5 PM para curar 3d6 PV e assim por diante).',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Canalizar Amplo',
@@ -112,13 +112,14 @@ const CLERIGO: ClassDescription = {
       name: 'Comunhão Vital',
       text:
         'Quando lança uma magia que cure uma criatura, você pode pagar +2 PM para que outra criatura em alcance curto (incluindo você mesmo) recupere uma quantidade de pontos de vida igual à metade dos PV da cura original.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Conhecimento Mágico',
       text:
         'Você aprende duas magias divinas de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
-      requirements: [[]],
+      requirements: [],
+      canRepeat: true,
     },
     {
       name: 'Expulsar/Comandar Mortos-Vivos',
@@ -137,13 +138,13 @@ const CLERIGO: ClassDescription = {
       name: 'Liturgia Mágica',
       text:
         'Você pode gastar uma ação de movimento para executar uma breve liturgia de sua fé. Se fizer isso, a CD para resistir à sua próxima magia divina (desde que lançada até o final de seu próximo turno) aumenta em +2.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Magia Sagrada/Profana',
       text:
         'Quando lança uma magia divina que causa dano, você pode gastar +1 PM. Se fizer isso, muda o tipo de dano da magia para luz ou trevas (de acordo com a sua divindade).',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Mestre Celebrante',
@@ -161,43 +162,43 @@ const CLERIGO: ClassDescription = {
       name: 'Missa: Bênção da Vida',
       text:
         'Você abençoa os presentes com energia positiva. Os participantes recebem pontos de vida temporários em um valor igual ao seu nível + seu bônus de Sabedoria.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Missa: Chamado às Armas',
       text:
         'Sua prece fortalece o espírito de luta. Os participantes recebem +1 em testes de ataque e rolagens de dano.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Missa: Elevação do Espírito',
       text:
         'Você inflama a determinação dos ouvintes. Os participantes recebem pontos de mana temporários em um valor igual ao seu bônus de Sabedoria.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Missa: Escudo Divino',
       text:
         'Sua fé protege os ouvintes. Os participantes recebem +1 em Defesa e testes de resistência.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Missa: Superar as Limitações',
       text:
         'Você encoraja os ouvintes a superar suas próprias habilidades. Cada participante recebe +1d6 num único teste a sua escolha.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Prece de Combate',
       text:
         'Quando lança uma magia divina com tempo de conjuração de uma ação padrão em si mesmo, você pode gastar +2 PM para lançá-la como uma ação de movimento.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Símbolo Sagrado Abençoado',
       text:
         'Você pode gastar uma ação de movimento e 1 PM para fazer uma prece e energizar seu símbolo sagrado até o fim da cena. Um símbolo sagrado energizado emite uma luz dourada ou prateada (se sua divindade canaliza energia positiva) ou púrpura ou avermelhada (se canaliza energia negativa) que ilumina como uma tocha. Enquanto você estiver empunhando um símbolo sagrado energizado, o custo em PM para lançar suas magias divinas diminui em 1.',
-      requirements: [[]],
+      requirements: [],
     },
   ],
   probDevoto: 0.95,
