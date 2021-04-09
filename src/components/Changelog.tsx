@@ -22,6 +22,18 @@ const Changelog: React.FC = () => (
       .
     </p>
 
+    <h3>Versão 1.0.3</h3>
+    <ul>
+      <li>
+        Corrigimos os poderes de Lena, que estavam definidos como os poderes de
+        Megalokk (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/277'>
+          @vnmontanhavn
+        </a>
+        ).
+      </li>
+    </ul>
+
     <h3>Versão 1.0.2</h3>
     <ul>
       <li>
