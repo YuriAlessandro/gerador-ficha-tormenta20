@@ -6,7 +6,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 20/03/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 09/04/2021.
     </p>
 
     <p>
@@ -21,6 +21,18 @@ const Changelog: React.FC = () => (
       </a>
       .
     </p>
+
+    <h3>Versão 1.0.3</h3>
+    <ul>
+      <li>
+        Corrigimos os poderes de Lena, que estavam definidos como os poderes de
+        Megalokk (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/277'>
+          @vnmontanhavn
+        </a>
+        ).
+      </li>
+    </ul>
 
     <h3>Versão 1.0.2</h3>
     <ul>

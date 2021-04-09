@@ -59,6 +59,7 @@ const PALADINO: ClassDescription = {
       nivel: 1,
     },
   ],
+  powers: [],
   probDevoto: 0.8,
   qtdPoderesConcedidos: 'all',
   faithProbability: {

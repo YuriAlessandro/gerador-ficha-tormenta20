@@ -59,8 +59,30 @@ export interface RaceAbility {
   action?: (sheet: CharacterSheet, subSteps: SubStep[]) => CharacterSheet;
 }
 
+export type RaceNames =
+  | 'Humano'
+  | 'Dahlan'
+  | 'Anão'
+  | 'Elfo'
+  | 'Dahllan'
+  | 'Osteon'
+  | 'Goblin'
+  | 'Lefou'
+  | 'Kliren'
+  | 'Minotauro'
+  | 'Qareen'
+  | 'Golem'
+  | 'Hynne'
+  | 'Medusa'
+  | 'Sereia'
+  | 'Sílfide'
+  | 'Suraggel'
+  | 'Trog'
+  | 'Suraggel (Aggelus)'
+  | 'Suraggel (Sulfure)';
+
 export default interface Race {
-  name: string;
+  name: RaceNames;
   attributes: {
     attrs: RaceAttributeAbility[];
   };

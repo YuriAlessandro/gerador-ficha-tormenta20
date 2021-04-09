@@ -59,6 +59,8 @@ import {
 import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
 import Skill from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
+import roles from '../data/roles';
+import { RoleNames } from '../interfaces/Role';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -257,14 +259,36 @@ function getRaceAndName(
   return { nome, race };
 }
 
+function classByName(classe: ClassDescription, classeName: string) {
+  return classe.name === classeName;
+}
+
+function getClassByFilter(selectedOptions: SelectedOptions) {
+  const foundClass = CLASSES.find((classe) =>
+    classByName(classe, selectedOptions.classe)
+  );
+
+  if (foundClass) return foundClass;
+
+  const foundRole = Object.keys(roles).find(
+    (role) => role === selectedOptions.classe
+  ) as RoleNames | undefined;
+
+  if (foundRole) {
+    const choosenClassName = getRandomItemFromArray(roles[foundRole]);
+
+    return CLASSES.find((classe) => classByName(classe, choosenClassName));
+  }
+
+  return null;
+}
+
 export function selectClass(
   selectedOptions: SelectedOptions
 ): ClassDescription {
-  let selectedClass: ClassDescription | undefined;
+  let selectedClass: ClassDescription | undefined | null;
   if (selectedOptions.classe) {
-    selectedClass = CLASSES.find(
-      (currentClasse) => currentClasse.name === selectedOptions.classe
-    );
+    selectedClass = getClassByFilter(selectedOptions);
   }
 
   if (!selectedClass) selectedClass = getRandomItemFromArray(CLASSES);

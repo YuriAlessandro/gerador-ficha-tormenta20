@@ -99,6 +99,7 @@ export function inventor(race: Race): CharacterSheet {
           nivel: 1,
         },
       ],
+      powers: [],
       probDevoto: 0.3,
       faithProbability: {
         HYNINN: 1,

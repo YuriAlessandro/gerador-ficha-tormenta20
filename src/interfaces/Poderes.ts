@@ -19,6 +19,8 @@ export enum RequirementType {
   PROFICIENCIA = 'PROFICIENCIA',
   NIVEL = 'NIVEL',
   CLASSE = 'CLASSE',
+  TIPO_ARCANISTA = 'TIPO_ARCANISTA',
+  MAGIA = 'MAGIA',
 }
 
 export interface Requirement {
