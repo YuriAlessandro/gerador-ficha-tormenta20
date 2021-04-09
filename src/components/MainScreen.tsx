@@ -15,6 +15,7 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 
 import '../assets/css/mainScreen.css';
 import getSelectTheme from '../functions/style';
+import roles from '../data/roles';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -64,6 +65,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
+  const rolesopt = Object.keys(roles).map((role) => ({
+    value: role,
+    label: role,
+  }));
+
   const classesopt = CLASSES.map((classe) => ({
     value: classe.name,
     label: classe.name,
@@ -93,8 +99,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         <Select
           className='filterSelect'
-          options={[{ value: '', label: 'Todas as classes' }, ...classesopt]}
-          placeholder='Todas as classes'
+          options={[
+            { value: '', label: 'Todas as Classes e Roles' },
+            { value: '', label: '---- Classes ----' },
+            ...classesopt,
+            { value: '', label: '---- Roles ----' },
+            ...rolesopt,
+          ]}
+          placeholder='Todas as Classes e Roles'
           onChange={onSelectClasse}
           theme={(theme) => ({
             ...theme,
