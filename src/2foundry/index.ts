@@ -1,4 +1,7 @@
+import { cloneDeep } from 'lodash';
 import CharacterSheet from '../interfaces/CharacterSheet';
+import Skill from '../interfaces/Skills';
+import { DEFAULT_SKILLS, FoundryCharSkill, FOUNDRY_SKILLS } from './skills';
 
 interface FoundryCharAttribute {
   value: number;
@@ -8,6 +11,7 @@ interface FoundryCharAttribute {
   mod: number;
   penalidade: number;
 }
+
 export interface FoundryJSON {
   name: string;
   type: string;
@@ -82,6 +86,7 @@ export interface FoundryJSON {
       sab: FoundryCharAttribute;
       car: FoundryCharAttribute;
     };
+    pericias: Record<string, FoundryCharSkill>;
   };
 }
 
@@ -101,11 +106,45 @@ function getOriginAndDevotionString(sheet: CharacterSheet) {
   return '';
 }
 
+function setOficio(acc: Record<string, FoundryCharSkill>, skill: Skill) {
+  const nextIndex = Object.keys(acc.ofi.mais || {}).length;
+  acc.ofi = {
+    ...acc.ofi,
+    mais: {
+      ...acc.ofi.mais,
+      [nextIndex]: {
+        atributo: 'int',
+        label: skill,
+        treino: 0,
+        treinado: 1,
+        outros: 0,
+      },
+    },
+  };
+}
+
+function getSkills(sheet: CharacterSheet): Record<string, FoundryCharSkill> {
+  return sheet.skills.reduce((acc, skill) => {
+    if (FOUNDRY_SKILLS[skill]) {
+      if (skill.startsWith('Of')) {
+        setOficio(acc, skill);
+        return acc;
+      }
+
+      const skillKey = FOUNDRY_SKILLS[skill];
+      acc[skillKey].treinado = 1;
+    }
+
+    return acc;
+  }, cloneDeep(DEFAULT_SKILLS));
+}
+
 export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
   return {
     name: sheet.nome,
     type: 'character',
     data: {
+      pericias: getSkills(sheet),
       attributes: {
         raca: sheet.raca.name,
         pv: {
