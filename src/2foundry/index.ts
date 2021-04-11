@@ -8,7 +8,7 @@ interface FoundryCharAttribute {
   mod: number;
   penalidade: number;
 }
-interface FoundryJSON {
+export interface FoundryJSON {
   name: string;
   type: string;
   data: {

@@ -17,11 +17,16 @@
   color: #069;
   text-decoration: underline;
   cursor: pointer;
+  font-size: 14px;
 }
 
 #presentation {
   max-width: 70vw;
   padding: 0 30px;
+}
+
+.exportButtonsContainer {
+  margin-left: 30px;
 }
 
 @media (max-width: 1116px) {
