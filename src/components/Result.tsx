@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-has-content */
 import React, { useEffect } from 'react';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactToPrint from 'react-to-print';
@@ -13,6 +14,7 @@ import Equipment from '../interfaces/Equipment';
 import '../assets/css/result.css';
 import Spells from './Spells';
 import SpellsMobile from './SpellsMobile';
+import { convertToFoundry, FoundryJSON } from '../2foundry';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -48,6 +50,19 @@ const Result: React.FC<ResultProps> = (props) => {
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
   }
+
+  function encodeFoundryJSON(json: FoundryJSON | undefined) {
+    if (json) {
+      return `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(json)
+      )}`;
+    }
+
+    return '';
+  }
+
+  const foundryJSON = convertToFoundry(sheet);
+  const encodedJSON = encodeFoundryJSON(foundryJSON);
 
   const [isRacePowersVisible, setisRacePowersVisible] = React.useState<boolean>(
     true
@@ -231,22 +246,32 @@ const Result: React.FC<ResultProps> = (props) => {
   return (
     <div className='resultContainer'>
       <div className='resultLeft'>
-        <div
-          style={{
-            display: showExportButton ? 'flex' : 'none',
-            marginLeft: '30px',
-          }}
-        >
-          <ReactToPrint
-            trigger={() => (
-              <button className='exportBtn' type='button'>
-                Exportar ou imprimir essa ficha
-              </button>
-            )}
-            onBeforeGetContent={preparePrint}
-            content={handleExport}
-            documentTitle={`${nome} - ${classe.name} ${raca.name}`}
-          />
+        <div className='exportButtonsContainer'>
+          <div className='export-to-foundry'>
+            <a
+              href={encodedJSON}
+              className='exportBtn'
+              download={`${sheet.nome}.json`}
+            >
+              Exportar para o Foundry
+            </a>
+          </div>
+          <div
+            style={{
+              display: showExportButton ? 'flex' : 'none',
+            }}
+          >
+            <ReactToPrint
+              trigger={() => (
+                <button className='exportBtn' type='button'>
+                  Exportar ou imprimir PDF
+                </button>
+              )}
+              onBeforeGetContent={preparePrint}
+              content={handleExport}
+              documentTitle={`${nome} - ${classe.name} ${raca.name}`}
+            />
+          </div>
         </div>
 
         <div
