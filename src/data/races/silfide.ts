@@ -6,6 +6,7 @@ import {
   addOrCheapenRandomSpells,
   spellsCircle1,
 } from '../magias/generalSpells';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const fairySpells = [
   spellsCircle1.criarIlusao,
@@ -23,6 +24,7 @@ const SILFIDE: Race = {
       { attr: Atributo.FORCA, mod: -4 },
     ],
   },
+  size: RACE_SIZES.MINUSCULO,
   faithProbability: {
     AHARADAK: 1,
     ALLIHANNA: 1,

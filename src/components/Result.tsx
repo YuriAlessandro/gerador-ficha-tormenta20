@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ReactToPrint from 'react-to-print';
 import BugReportIcon from '@material-ui/icons/BugReport';
