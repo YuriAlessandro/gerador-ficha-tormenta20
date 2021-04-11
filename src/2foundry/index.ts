@@ -12,10 +12,19 @@ interface FoundryCharAttribute {
   penalidade: number;
 }
 
+const foundrySizes: Record<string, string> = {
+  Minúsculo: 'Minusculo',
+  Pequeno: 'Pequeno',
+  Médio: 'Medio',
+  Gigante: 'Gigante',
+  Enorme: 'Enorme',
+  Colossal: 'Colossal',
+};
 export interface FoundryJSON {
   name: string;
   type: string;
   data: {
+    tamanho: string;
     attributes: {
       raca: string;
       pv: {
@@ -144,6 +153,7 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
     name: sheet.nome,
     type: 'character',
     data: {
+      tamanho: foundrySizes[sheet.size.name],
       pericias: getSkills(sheet),
       attributes: {
         raca: sheet.raca.name,
