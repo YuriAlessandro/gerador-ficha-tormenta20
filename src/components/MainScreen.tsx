@@ -5,6 +5,7 @@ import Button from '@material-ui/core/Button';
 import Select from 'react-select';
 import Fade from '@material-ui/core/Fade';
 import { Link } from 'react-router-dom';
+import { formatGroupLabel } from 'react-select/src/builtins';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -80,6 +81,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     ? getSelectTheme('dark')
     : getSelectTheme('default');
 
+  const fmtGroupLabel: formatGroupLabel = (data) => (
+    <div>
+      <span>{data.label}</span>
+    </div>
+  );
+
   return (
     <div id='main-screen'>
       <div className='filterArea'>
@@ -100,13 +107,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         <Select
           className='filterSelect'
           options={[
-            { value: '', label: 'Todas as Classes e Roles' },
-            { value: '', label: '---- Classes ----' },
-            ...classesopt,
-            { value: '', label: '---- Roles ----' },
-            ...rolesopt,
+            {
+              label: 'Classes',
+              options: [
+                { value: '', label: 'Todas as Classes' },
+                ...classesopt,
+              ],
+            },
+            {
+              label: 'Roles',
+              options: [{ value: '', label: 'Todas as Roles' }, ...rolesopt],
+            },
           ]}
           placeholder='Todas as Classes e Roles'
+          formatGroupLabel={fmtGroupLabel}
           onChange={onSelectClasse}
           theme={(theme) => ({
             ...theme,

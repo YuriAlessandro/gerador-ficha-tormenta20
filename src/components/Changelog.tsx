@@ -6,7 +6,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 09/04/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 14/04/2021.
     </p>
 
     <p>
@@ -21,6 +21,40 @@ const Changelog: React.FC = () => (
       </a>
       .
     </p>
+
+    <h3>Versão 1.1.0</h3>
+    <ul>
+      <li>
+        Filtro por Role: agora conseguimos criar personagens com classes apenas
+        vinculadas à role.
+        <ul>
+          <li>Tank</li>
+          <li>Off Tank</li>
+          <li>Dano</li>
+          <li>Face</li>
+          <li>Mago</li>
+          <li>Suporte</li>
+        </ul>
+      </li>
+      <li>
+        Adicionamos uma opção de exportar a ficha para o{' '}
+        <strong>Foundry VTT</strong>.{' '}
+        <a
+          href="https://github.com/YuriAlessandro/gerador-ficha-tormenta20/wiki/Como-importar-uma-'Ficha-de-Nimb'-no-Foundry-VTT"
+          target='blank'
+        >
+          Clique aqui
+        </a>{' '}
+        para ver um tutorial de como importar sua ficha dentro do Foundry.
+        <ul>
+          <li>
+            Até o momento, apenas as informações básicas e as perícias estão
+            sendo exportadas (basicamente, tudo que você não precisa arrastar
+            para sua ficha no Foundry).
+          </li>
+        </ul>
+      </li>
+    </ul>
 
     <h3>Versão 1.0.3</h3>
     <ul>
