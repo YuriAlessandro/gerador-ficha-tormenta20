@@ -22,6 +22,20 @@ const Changelog: React.FC = () => (
       .
     </p>
 
+    <h3>Versão 1.1.0</h3>
+    <li>
+      Filtro por Role: agora conseguimos criar personagens com classes apenas
+      vinculadas à role.
+      <ul>
+        <li>Tank</li>
+        <li>Off Tank</li>
+        <li>Dano</li>
+        <li>Face</li>
+        <li>Mago</li>
+        <li>Suporte</li>
+      </ul>
+    </li>
+
     <h3>Versão 1.0.3</h3>
     <ul>
       <li>
