@@ -7,7 +7,7 @@ Um gerador de fichas para o sistema de RPG Tormenta 20.
 Você pode gerar raças e classes aleatórias ou selecionar específicas.
 
 É possível testar e utilizar a versão mais recente em [yurialessandro.github.io/gerador-ficha-tormenta20](https://yurialessandro.github.io/gerador-ficha-tormenta20/)
-Para ver o changelog com a lista de alterações [clique aqui](http://localhost:3001/gerador-ficha-tormenta20/#/changelog)
+Para ver o changelog com a lista de alterações [clique aqui](https://yurialessandro.github.io/gerador-ficha-tormenta20/#/changelog)
 
 ## Sugestões e Ideias
 
