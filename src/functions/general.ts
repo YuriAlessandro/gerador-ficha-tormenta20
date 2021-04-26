@@ -632,7 +632,11 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
-  sheetClone = (sheetClone.classe.abilities || []).reduce(
+  const availableAbilities = sheetClone.classe.abilities.filter(
+    (abilitie) => abilitie.nivel <= sheet.nivel
+  );
+
+  sheetClone = (availableAbilities || []).reduce(
     (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
     sheetClone
   );
@@ -643,6 +647,8 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
       value: subSteps,
     });
   }
+
+  sheetClone.classe.abilities = availableAbilities;
 
   return sheetClone;
 }
