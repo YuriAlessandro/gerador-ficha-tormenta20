@@ -95,7 +95,7 @@ const LADINO: ClassDescription = {
       name: 'Aumento de Atributo',
       text:
         'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
-      requirements: [[]],
+      requirements: [],
       canRepeat: true,
     },
     {
@@ -110,7 +110,7 @@ const LADINO: ClassDescription = {
       name: 'Escapista',
       text:
         'Você recebe +5 em testes de Acrobacia para escapar e em testes para resistir a efeitos que restrinjam seu movimento, como a manobra agarrar e a magia Amarras Etéreas.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Fuga Formidável',
@@ -132,7 +132,7 @@ const LADINO: ClassDescription = {
       name: 'Integrante de Guilda',
       text:
         'Você é membro de uma organização criminosa, desde uma pequena guilda de ladrões a uma irmandade de Valkaria. Os efeitos deste poder variam de acordo com a organização e ficam a cargo do mestre. Como regra geral, você recebe +5 em testes de Diplomacia com pessoas ligadas ao submundo e +5 em testes de Intimidação com pessoas comuns que temeriam sua organização. Além disso, tem acesso a itens e serviços roubados ou proibidos (como armas de pólvora e venenos).',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Ladrão Arcano',
@@ -173,7 +173,7 @@ const LADINO: ClassDescription = {
       name: 'Oportunismo',
       text:
         'Você recebe +2 em testes de ataque contra inimigos que já sofreram dano desde seu último turno.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Rolamento Defensivo',
@@ -196,7 +196,7 @@ const LADINO: ClassDescription = {
       name: 'Saqueador de Tumbas',
       text:
         'Você recebe +5 em testes de Investigação para encontrar armadilhas e em testes de Reflexos para evitá-las. Além disso, gasta uma ação padrão para desabilitar mecanismos, em vez de 1d4 rodadas (veja a perícia Ladinagem).',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Sombra',
@@ -213,6 +213,7 @@ const LADINO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
       ],
+      canRepeat: true,
     },
     {
       name: 'Velocidade Ladina',
