@@ -21,6 +21,7 @@ export enum RequirementType {
   CLASSE = 'CLASSE',
   TIPO_ARCANISTA = 'TIPO_ARCANISTA',
   MAGIA = 'MAGIA',
+  DEVOTO = 'DEVOTO',
 }
 
 export interface Requirement {
