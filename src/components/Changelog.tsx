@@ -22,6 +22,14 @@ const Changelog: React.FC = () => (
       .
     </p>
 
+    <h3>Versão 1.1.1</h3>
+    <ul>
+      <li>
+        Estavam sendo selecionadas todas as habilidades, independente de nível,
+        no nível 1. Corrigimos esse problema.
+      </li>
+    </ul>
+
     <h3>Versão 1.1.0</h3>
     <ul>
       <li>
