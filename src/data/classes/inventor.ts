@@ -90,7 +90,7 @@ const INVENTOR: ClassDescription = {
       text:
         'Quando usa um item alquímico que cause dano, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu bônus de Inteligência). Para cada PM que gastar, o item causa um dado extra de dano do mesmo tipo.',
       requirements: [
-        [{ type: RequirementType.PERICIA, name: 'Ofício (Alquímia)' }],
+        [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA }],
       ],
     },
     {
@@ -115,7 +115,7 @@ const INVENTOR: ClassDescription = {
         [
           { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
           { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
-          { type: RequirementType.PERICIA, name: 'Ofício (Alquímia)' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA },
         ],
       ],
     },
@@ -125,8 +125,8 @@ const INVENTOR: ClassDescription = {
         'Você recebe proficiência com armas marciais corpo a corpo. Quando usa uma arma corpo a corpo, pode usar seu modificador de Inteligência em vez de Força nos testes de ataque e rolagens de dano.',
       requirements: [
         [
-          { type: RequirementType.PERICIA, name: 'Ofício (Armeiro)' },
-          { type: RequirementType.PERICIA, name: 'Luta' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO },
+          { type: RequirementType.PERICIA, name: Skill.LUTA },
         ],
       ],
     },
@@ -172,7 +172,7 @@ const INVENTOR: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.PERICIA, name: 'Pontaria' },
-          { type: RequirementType.PERICIA, name: 'Ofício (Armeiro)' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO },
         ],
       ],
     },
@@ -219,13 +219,14 @@ const INVENTOR: ClassDescription = {
       requirements: [
         [{ type: RequirementType.PODER, name: 'Alquimista Iniciado' }],
       ],
+      canRepeat: true,
     },
     {
       name: 'Couraceiro',
       text:
         'Você recebe proficiência com armaduras pesadas e escudos. Quando usa armadura, pode somar seu bônus de Inteligência em vez de Destreza na Defesa (mas continua não podendo somar um bônus de atributo na Defesa quando usa armadura pesada).',
       requirements: [
-        [{ type: RequirementType.PERICIA, name: 'Ofício (Armeiro)' }],
+        [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO }],
       ],
     },
     {
@@ -235,7 +236,7 @@ const INVENTOR: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 17 },
-          { type: RequirementType.PERICIA, name: 'Ofício (Engenhoqueiro)' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_EGENHOQUEIRO },
         ],
       ],
     },
@@ -246,7 +247,7 @@ const INVENTOR: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
-          { type: RequirementType.PERICIA, name: 'Ofício (Alquimia)' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA },
         ],
       ],
     },
@@ -317,7 +318,7 @@ const INVENTOR: ClassDescription = {
       text:
         'Todas as comidas que você cozinha têm seu bônus numérico aumentado em +1.',
       requirements: [
-        [{ type: RequirementType.PERICIA, name: 'Ofício (Culinária)' }],
+        [{ type: RequirementType.PERICIA, name: Skill.OFICIO_CULINARIA }],
       ],
     },
     {
@@ -336,7 +337,7 @@ const INVENTOR: ClassDescription = {
       text:
         'Você pode gastar uma hora e 2 PM para fazer a manutenção do equipamento de seu grupo. Cada membro do grupo escolhe uma arma, armadura ou escudo para manutenção. Armas recebem +1 em testes de ataque, armaduras e escudos têm sua penalidade de armadura reduzida em 1. Os benefícios duram um dia.',
       requirements: [
-        [{ type: RequirementType.PERICIA, name: 'Ofício (Armeiro)' }],
+        [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO }],
       ],
     },
     {
