@@ -43,6 +43,7 @@ const Result: React.FC<ResultProps> = (props) => {
     displacement,
     maxWeight,
     generalPowers,
+    classPowers,
     steps,
     extraArmorPenalty = 0,
   } = sheet;
@@ -68,14 +69,19 @@ const Result: React.FC<ResultProps> = (props) => {
     true
   );
 
-  const [isClassPowersVisible, setClassPowersVisible] = React.useState<boolean>(
-    true
-  );
+  const [
+    isClassAbilitiesBisible,
+    setClassAbilitiesVisible,
+  ] = React.useState<boolean>(true);
 
   const [
     generalPowersVisible,
     setGeneralPowersVisible,
   ] = React.useState<boolean>(true);
+
+  const [classPowersVisible, setClassPowersVisible] = React.useState<boolean>(
+    true
+  );
 
   const [showExportButton, setExportButton] = React.useState<boolean>();
 
@@ -163,6 +169,14 @@ const Result: React.FC<ResultProps> = (props) => {
       ))
     : '';
 
+  const classPowersDiv = classPowers
+    ? classPowers.map((power) => (
+        <li key={getKey(power.name)}>
+          <strong>{power.name}:</strong> {power.text}
+        </li>
+      ))
+    : '';
+
   const resultRef = React.createRef<HTMLDivElement>();
   useEffect(() => {
     if (resultRef.current) {
@@ -172,10 +186,11 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const preparePrint = async () => {
     setisRacePowersVisible(true);
-    setClassPowersVisible(true);
+    setClassAbilitiesVisible(true);
     setOriginPowersVisible(true);
     setGodPowersVisible(true);
     setGeneralPowersVisible(true);
+    setClassPowersVisible(true);
 
     return new Promise((resolve) => setTimeout(resolve, 10));
   };
@@ -217,7 +232,7 @@ const Result: React.FC<ResultProps> = (props) => {
         </li>
       );
     }
-    if (step.type === 'Poderes') {
+    if (step.type === 'Poderes' || step.type === 'Nível') {
       return (
         <li key={getKey(step.label)}>
           <strong>{step.label}:</strong>
@@ -311,6 +326,11 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
 
             <div className='stats'>
+              <CharacterStat
+                isDarkMode={isDarkMode}
+                name='Nível'
+                value={nivel}
+              />
               <CharacterStat isDarkMode={isDarkMode} name='PV' value={pv} />
               <CharacterStat isDarkMode={isDarkMode} name='PM' value={pm} />
               <CharacterStat
@@ -414,21 +434,25 @@ const Result: React.FC<ResultProps> = (props) => {
             <div className='resultRow powers'>
               <div
                 className='powersNameRow'
-                onClick={() => setClassPowersVisible(!isClassPowersVisible)}
-                onKeyDown={() => setClassPowersVisible(!isClassPowersVisible)}
+                onClick={() =>
+                  setClassAbilitiesVisible(!isClassAbilitiesBisible)
+                }
+                onKeyDown={() =>
+                  setClassAbilitiesVisible(!isClassAbilitiesBisible)
+                }
                 role='button'
                 tabIndex={0}
               >
                 <ChevronRightIcon
                   className={`powerIcon ${
-                    isClassPowersVisible ? 'down' : 'normal'
+                    isClassAbilitiesBisible ? 'down' : 'normal'
                   }`}
                 />
                 <strong>Habilidades de {classe.name}</strong>
               </div>
               <div
                 style={{
-                  display: `${isClassPowersVisible ? 'block' : 'none'}`,
+                  display: `${isClassAbilitiesBisible ? 'block' : 'none'}`,
                 }}
               >
                 <ul>{habilidadesClasseDiv}</ul>
@@ -459,6 +483,32 @@ const Result: React.FC<ResultProps> = (props) => {
                   }}
                 >
                   <ul>{originPowers}</ul>
+                </div>
+              </div>
+            )}
+
+            {classPowers && classPowers.length > 0 && (
+              <div className='resultRow powers'>
+                <div
+                  className='powersNameRow'
+                  onClick={() => setClassPowersVisible(!classPowersVisible)}
+                  onKeyDown={() => setClassPowersVisible(!classPowersVisible)}
+                  role='button'
+                  tabIndex={0}
+                >
+                  <ChevronRightIcon
+                    className={`powerIcon ${
+                      classPowersVisible ? 'down' : 'normal'
+                    }`}
+                  />
+                  <strong>Poderes de {className}</strong>
+                </div>
+                <div
+                  style={{
+                    display: `${classPowersVisible ? 'block' : 'none'}`,
+                  }}
+                >
+                  <ul>{classPowersDiv}</ul>
                 </div>
               </div>
             )}

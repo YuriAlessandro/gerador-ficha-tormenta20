@@ -61,6 +61,10 @@ import Skill from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
 import roles from '../data/roles';
 import { RoleNames } from '../interfaces/Role';
+import {
+  getAllowedClassPowers,
+  getPowersAllowedByRequirements,
+} from './powers';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -727,10 +731,77 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
+function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
+  const updatedSheet = cloneDeep(sheet);
+
+  const newPvTotal =
+    updatedSheet.pv +
+    updatedSheet.classe.addpv +
+    updatedSheet.atributos.Constituição.mod;
+  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  const subSteps = [];
+
+  // Aumentar PV e PM
+  subSteps.push(
+    {
+      name: `PV (${updatedSheet.pv} + ${
+        updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod
+      } por nível)`,
+      value: newPvTotal,
+    },
+    {
+      name: `PM (+${updatedSheet.classe.addpm} por nível)`,
+      value: newPmTotal,
+    }
+  );
+
+  updatedSheet.pv = newPvTotal;
+  updatedSheet.pm = newPmTotal;
+
+  // TODO: Seguir spell path (pendente de cadastrar novas magias)
+  // TODO: Atualizar a ficha para o nível atual com os poderes que modificam ao upar
+
+  // Escolher novo poder aleatório (geral ou poder da classe)
+  const randomNumber = Math.floor(Math.random() * 100) + 1;
+  if (randomNumber <= 70) {
+    // Escolha poder da classe
+    const allowedPowers = getAllowedClassPowers(updatedSheet);
+    const newPower = getRandomItemFromArray(allowedPowers);
+    if (updatedSheet.classPowers) {
+      updatedSheet.classPowers.push(newPower);
+
+      subSteps.push({
+        name: `Novo poder de ${updatedSheet.classe.name}`,
+        value: newPower.name,
+      });
+    }
+  } else {
+    // Escolha poder geral
+    const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
+    const newPower = getRandomItemFromArray(allowedGeneralPowers);
+
+    updatedSheet.generalPowers.push(newPower);
+
+    subSteps.push({
+      name: `Novo poder geral`,
+      value: newPower.name,
+    });
+  }
+
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${newLevel}`,
+    value: subSteps,
+  });
+
+  return updatedSheet;
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  const level = 1;
+  const level = selectedOptions.nivel;
   let powersGetters: PowersGetters = {
     Origem: [],
   };
@@ -805,7 +876,7 @@ export default function generateRandomSheet(
       value: [{ value: initialDefense }],
     },
     {
-      label: 'Equipamentos Inciais e de Origem',
+      label: 'Equipamentos Iniciais e de Origem',
       value: [],
     }
   );
@@ -871,6 +942,7 @@ export default function generateRandomSheet(
     displacement: 0,
     size: getRaceSize(race),
     generalPowers: [],
+    classPowers: [],
     steps,
     skills,
     spells: initialSpells,
@@ -917,14 +989,9 @@ export default function generateRandomSheet(
   );
   charSheet.displacement = displacement;
 
-  // (enquanto nível atual < nivel desejado) {
-  //   Aumentar PV e PM
-  //   Seguir spell path
-  //   Pra cada poder em poderes:
-  //       sheet, poder -> sheet // atualiza a ficha pra o nível atual pelos poderes que modificam ao upar
-  //   nivel, classe, poderesgerais -> escolher poder novo aleatorio
-  //   sheet, poder novo -> sheet
-  // }
+  for (let index = 2; index <= charSheet.nivel; index += 1) {
+    charSheet = setUpLevel(charSheet, index);
+  }
 
   return charSheet;
 }
