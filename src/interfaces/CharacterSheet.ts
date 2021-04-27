@@ -1,4 +1,4 @@
-import { ClassDescription } from './Class';
+import { ClassDescription, ClassPower } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
 import Bag from './Bag';
@@ -31,6 +31,7 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxWeight: number;
   generalPowers: GeneralPower[];
+  classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;
 }
