@@ -326,11 +326,6 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
 
             <div className='stats'>
-              <CharacterStat
-                isDarkMode={isDarkMode}
-                name='Nível'
-                value={nivel}
-              />
               <CharacterStat isDarkMode={isDarkMode} name='PV' value={pv} />
               <CharacterStat isDarkMode={isDarkMode} name='PM' value={pm} />
               <CharacterStat

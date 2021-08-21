@@ -147,6 +147,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         <Select
           className='filterSelect'
+          placeholder='Nível 1'
           options={niveis}
           isSearchable
           onChange={onSelectNivel}

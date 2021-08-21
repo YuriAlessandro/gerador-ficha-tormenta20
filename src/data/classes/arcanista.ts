@@ -22,7 +22,10 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   Bruxo: {
     initialSpells: 3,
     spellType: 'Arcane',
-    qtySpellsLearnAtLevel: () => 1,
+    qtySpellsLearnAtLevel: (level: number) => {
+      if (level === 1) return 0;
+      return 1;
+    },
     spellCircleAvailableAtLevel: (level) => {
       if (level < 5) return 1;
       if (level < 9) return 2;

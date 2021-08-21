@@ -38,6 +38,7 @@ import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
   allArcaneSpellsCircle1,
+  allArcaneSpellsCircle2,
   arcaneSpellsCircle1,
 } from '../data/magias/arcane';
 import {
@@ -553,14 +554,36 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
+function getNewSpells(
+  nivel: number,
+  classe: ClassDescription,
+  usedSpells: Spell[]
+): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
 
-  // TODO: enable picking spells from other circles besides c1 for higher levels
-  const { initialSpells, schools, spellType } = spellPath;
-  let spellList =
-    spellType === 'Arcane' ? allArcaneSpellsCircle1 : allDivineSpellsCircle1;
+  const {
+    initialSpells,
+    schools,
+    spellType,
+    spellCircleAvailableAtLevel,
+    qtySpellsLearnAtLevel,
+  } = spellPath;
+
+  const circle = spellCircleAvailableAtLevel(nivel);
+  const qtySpellsLearn = qtySpellsLearnAtLevel(nivel);
+
+  let spellList: Spell[] = [];
+  if (spellType === 'Arcane') {
+    for (let index = 1; index < circle + 1; index += 1) {
+      if (index === 1) spellList = allArcaneSpellsCircle1;
+      if (index === 2) spellList = allArcaneSpellsCircle2;
+    }
+  } else {
+    for (let index = 1; index < circle + 1; index += 1) {
+      if (index === 1) spellList = allDivineSpellsCircle1;
+    }
+  }
 
   if (schools) {
     if (spellType === 'Arcane') {
@@ -574,7 +597,11 @@ function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
     (spell) => !usedSpells.find((usedSpell) => usedSpell.nome === spell.nome)
   );
 
-  const selectedSpells = pickFromArray(filteredSpellList, initialSpells);
+  const selectedSpells = pickFromArray(
+    filteredSpellList,
+    nivel === 1 ? initialSpells : qtySpellsLearn
+  );
+
   return selectedSpells;
 }
 
@@ -759,7 +786,17 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
   updatedSheet.pv = newPvTotal;
   updatedSheet.pm = newPmTotal;
 
-  // TODO: Seguir spell path (pendente de cadastrar novas magias)
+  // Selecionar novas magias para esse nível (de acordo com o Spell Path)
+  const newSpells = getNewSpells(newLevel, sheet.classe, sheet.spells);
+  sheet.spells.push(...newSpells);
+
+  newSpells.forEach((spell) => {
+    subSteps.push({
+      name: `Nova magia`,
+      value: spell.nome,
+    });
+  });
+
   // TODO: Atualizar a ficha para o nível atual com os poderes que modificam ao upar
 
   // Escolher novo poder aleatório (geral ou poder da classe)
@@ -970,16 +1007,14 @@ export default function generateRandomSheet(
   charSheet = calcDefense(charSheet);
 
   // Passo 12: Gerar magias se possível
-  const newSpells = getNewSpells(charSheet.classe, charSheet.spells);
+  const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
   charSheet.spells.push(...newSpells);
 
-  if (newSpells.length) {
-    charSheet.steps.push({
-      label: 'Magias (1º círculo)',
-      type: 'Magias',
-      value: newSpells.map((spell) => ({ value: spell.nome })),
-    });
-  }
+  charSheet.steps.push({
+    label: `Magias Iniciais`,
+    type: 'Magias',
+    value: newSpells.map((spell) => ({ value: spell.nome })),
+  });
 
   const displacement = calcDisplacement(
     charSheet.bag,
