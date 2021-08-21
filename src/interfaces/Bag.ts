@@ -59,11 +59,11 @@ function calcArmorPenalty(equipments: BagEquipments): number {
 }
 
 export default class Bag {
-  private equipments: BagEquipments;
+  public equipments: BagEquipments;
 
-  private weight: number;
+  public weight: number;
 
-  private armorPenalty: number;
+  public armorPenalty: number;
 
   constructor(equipments = {}) {
     this.equipments = merge(equipments, cloneDeep(defaultEquipments));

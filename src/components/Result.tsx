@@ -129,7 +129,12 @@ const Result: React.FC<ResultProps> = (props) => {
     <li key={getKey(proe)}>{proe}</li>
   ));
 
-  const bagEquipments = bag.getEquipments();
+  let bagEquipments;
+  if (bag.getEquipments) {
+    bagEquipments = bag.getEquipments();
+  } else {
+    bagEquipments = bag.equipments;
+  }
 
   const equipsEntriesNoWeapons: Equipment[] = Object.entries(bagEquipments)
     .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
@@ -383,7 +388,11 @@ const Result: React.FC<ResultProps> = (props) => {
             <div className='textToRight equipmentsValues'>
               <span>
                 <strong>Penalidade de Armadura:</strong>{' '}
-                {(bag.getArmorPenalty() + extraArmorPenalty) * -1}
+                {((bag.getArmorPenalty
+                  ? bag.getArmorPenalty()
+                  : bag.armorPenalty) +
+                  extraArmorPenalty) *
+                  -1}
               </span>
             </div>
             <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
@@ -391,8 +400,8 @@ const Result: React.FC<ResultProps> = (props) => {
             </div>
             <div className='textToRight equipmentsValues'>
               <span>
-                <strong>Peso (atual/máximo):</strong> {bag.getWeight()}/
-                {maxWeight}kg
+                <strong>Peso (atual/máximo):</strong>{' '}
+                {bag.getWeight ? bag.getWeight() : bag.weight}/{maxWeight}kg
               </span>
             </div>
           </div>

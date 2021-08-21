@@ -17,6 +17,8 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import '../assets/css/mainScreen.css';
 import getSelectTheme from '../functions/style';
 import roles from '../data/roles';
+import { HistoricI } from '../interfaces/Historic';
+import Historic from './Historic';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -32,6 +34,22 @@ type MainScreenProps = {
   isDarkMode: boolean;
 };
 
+const saveSheetOnHistoric = (sheet: CharacterSheet) => {
+  const ls = localStorage;
+  const lsHistoric = ls.getItem('fdnHistoric');
+  const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
+
+  if (historic.length === 100) historic.shift();
+
+  historic.push({
+    sheet,
+    date: new Date().toLocaleDateString('pt-BR'),
+    id: sheet.id,
+  });
+
+  ls.setItem('fdnHistoric', JSON.stringify(historic));
+};
+
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const classes = useStyles();
 
@@ -43,8 +61,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showPresentation, setShowPresentation] = React.useState(true);
+  const [showHistoric, setShowHistoric] = React.useState(false);
 
   const onClickGenerate = () => {
+    setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -54,7 +74,33 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
     setShowPresentation(false);
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
+    saveSheetOnHistoric(anotherRandomSheet);
     setRandomSheet(anotherRandomSheet);
+  };
+
+  const onClickSeeSheet = (sheet: CharacterSheet) => {
+    setShowHistoric(false);
+    const presentation = document.getElementById('presentation');
+    if (presentation) {
+      setInterval(() => {
+        presentation.style.opacity = '0';
+        presentation.style.display = 'none';
+      }, 200);
+    }
+    setShowPresentation(false);
+    setRandomSheet(sheet);
+  };
+
+  const onClickShowHistoric = () => {
+    const presentation = document.getElementById('presentation');
+    if (presentation) {
+      setInterval(() => {
+        presentation.style.opacity = '0';
+        presentation.style.display = 'none';
+      }, 200);
+    }
+    setShowPresentation(false);
+    setShowHistoric(true);
   };
 
   const onSelectRaca = (raca: SelectedOption | null) => {
@@ -166,6 +212,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         >
           Gerar Ficha
         </Button>
+
+        <Button
+          variant='contained'
+          onClick={onClickShowHistoric}
+          className={classes.button}
+          style={{ marginLeft: '10px' }}
+        >
+          Ver histórico
+        </Button>
       </div>
 
       <Fade in={showPresentation}>
@@ -223,7 +278,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         </div>
       </Fade>
 
-      {randomSheet && <Result sheet={randomSheet} isDarkMode={isDarkMode} />}
+      {randomSheet && !showHistoric && (
+        <Result sheet={randomSheet} isDarkMode={isDarkMode} />
+      )}
+
+      {showHistoric && (
+        <Historic isDarkTheme={isDarkMode} onClickSeeSheet={onClickSeeSheet} />
+      )}
     </div>
   );
 };

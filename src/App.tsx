@@ -7,7 +7,6 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
 import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
-import { useCookies } from 'react-cookie';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
@@ -49,9 +48,10 @@ const darkTheme = {
 function App(): JSX.Element {
   const classes = useStyles();
 
+  const ls = localStorage;
+
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const [isDarkTheme, setIsDarkTheme] = React.useState(false);
-  const [cookies, setCookie, removeCookie] = useCookies();
 
   const onClickMenu = () => {
     setSidebarVisibility(true);
@@ -63,16 +63,16 @@ function App(): JSX.Element {
 
   const onChangeTheme = () => {
     if (isDarkTheme) {
-      removeCookie('dkmFdn');
+      ls.removeItem('dkmFdn');
     } else {
-      setCookie('dkmFdn', !isDarkTheme);
+      ls.setItem('dkmFdn', `${!isDarkTheme}`);
     }
 
     setIsDarkTheme(!isDarkTheme);
   };
 
   useEffect(() => {
-    const darkMod = cookies.dkmFdn;
+    const darkMod = ls.getItem('dkmFdn') === 'true';
     setIsDarkTheme(darkMod);
   }, []);
 

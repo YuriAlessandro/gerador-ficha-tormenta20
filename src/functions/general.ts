@@ -652,10 +652,7 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-export function applyRaceAbilities(
-  sheet: CharacterSheet,
-  level = 1
-): CharacterSheet {
+export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 

@@ -22,6 +22,41 @@ const Changelog: React.FC = () => (
       .
     </p>
 
+    <h2>
+      Versão 2.0 <small>(beta)</small>
+    </h2>
+    <ul>
+      <li>
+        <strong>
+          Esse é um teste beta da versão 2. Deve estar com alguns bugs,
+          PRINCIPALMENTE nos níveis grandes. Reporte os bugs que você encontrar
+          e revise sua ficha com cuidado antes de usar ela.
+        </strong>
+      </li>
+      <li>Agora é possível gerar fichas em qualquer nível.</li>
+      <ul>
+        <li>
+          Nessa versão, apenas magias de até 3º círculo estão sendo selecionadas
+          (mesmo que você gere uma ficha com nível alto).
+        </li>
+        <li>Todos os poderes de todas as classes estão adicionados.</li>
+        <li>
+          Alguns poderes ainda não estão sendo aplicados ao subir de nível (como
+          por exemplo o poder <strong>Aumento de Atributo</strong> das classes.
+          Verifique sua ficha com calma para validar o que ainda precisa ser
+          feito.
+        </li>
+      </ul>
+      <li>
+        Foi adicionado um histórico de fichas, onde ficará salvo em{' '}
+        <strong>seu navegador</strong> as últimas 100 fichas geradas.
+      </li>
+      <li>
+        O modo escuro vai parar de resetar de tempo em tempo, e a sua
+        configuração ficará salva em definitivo.
+      </li>
+    </ul>
+
     <h3>Versão 1.1.2</h3>
     <ul>
       <li>
