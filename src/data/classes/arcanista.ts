@@ -22,7 +22,10 @@ const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   Bruxo: {
     initialSpells: 3,
     spellType: 'Arcane',
-    qtySpellsLearnAtLevel: () => 1,
+    qtySpellsLearnAtLevel: (level: number) => {
+      if (level === 1) return 0;
+      return 1;
+    },
     spellCircleAvailableAtLevel: (level) => {
       if (level < 5) return 1;
       if (level < 9) return 2;
@@ -275,7 +278,7 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Poder Mágico',
       text:
-        'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
+        'Você recebe +1 ponto de mana por nível de arcanista (NÃO CONTABILIZADO). Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
       requirements: [],
     },
     {

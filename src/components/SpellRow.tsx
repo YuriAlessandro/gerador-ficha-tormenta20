@@ -12,6 +12,7 @@ const SpellRow: React.FC<SpellProps> = (props) => {
   return (
     <tbody>
       <tr key={spell.nome}>
+        <td>{spell.spellCircle}</td>
         <td>
           ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}{' '}
           {spell.customKeyAttr && `(${spell.customKeyAttr})`}{' '}

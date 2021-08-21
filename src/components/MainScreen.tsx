@@ -65,6 +65,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setSelectedOptions({ ...selectedOptions, classe: classe?.value ?? '' });
   };
 
+  const onSelectNivel = (nivel: SelectedOption | null) => {
+    if (nivel) {
+      const selectedNivel = parseInt(nivel.value, 10);
+      setSelectedOptions({ ...selectedOptions, nivel: selectedNivel });
+    }
+  };
+
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
   const rolesopt = Object.keys(roles).map((role) => ({
     value: role,
@@ -75,7 +82,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     value: classe.name,
     label: classe.name,
   }));
-  const niveis = [{ value: 1, label: 'Nível 1' }];
+
+  const niveis: { value: string; label: string }[] = [];
+
+  for (let index = 1; index < 21; index += 1) {
+    niveis.push({
+      value: (index as unknown) as string,
+      label: `Nível ${index}`,
+    });
+  }
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
@@ -132,9 +147,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         <Select
           className='filterSelect'
+          placeholder='Nível 1'
           options={niveis}
-          isSearchable={false}
-          value={niveis.filter((option) => option.value === 1)}
+          isSearchable
+          onChange={onSelectNivel}
           theme={(theme) => ({
             ...theme,
             colors: {

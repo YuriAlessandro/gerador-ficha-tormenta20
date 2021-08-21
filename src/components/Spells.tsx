@@ -15,6 +15,11 @@ interface SpellsProp {
 const Spells: React.FC<SpellsProp> = (props) => {
   const { spells, spellPath, keyAttr, nivel } = props;
 
+  spells.sort((spell1, spell2) => {
+    if (spell1.spellCircle < spell2.spellCircle) return -1;
+    return 1;
+  });
+
   const mod = keyAttr ? keyAttr.mod : 0;
   const resistence = 10 + Math.floor(nivel * 0.5) + mod;
 
@@ -44,6 +49,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
           <table>
             <thead>
               <tr>
+                <th>Círculo</th>
                 <th>(Custo) Magia</th>
                 <th>Escola</th>
                 <th>Execução</th>

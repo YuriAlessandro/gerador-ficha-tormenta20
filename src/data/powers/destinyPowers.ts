@@ -123,9 +123,9 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     ],
   },
   PARCEIRO: {
-    name:
+    name: 'Parceiro',
+    description:
       'Você possui um parceiro animal ou humanoide que o acompanha em aventuras. Escolha os detalhes dele, como nome, aparência e personalidade. Em termos de jogo, é um aliado iniciante de um tipo a sua escolha (veja a página 246). O parceiro obedece às suas ordens e se arrisca para ajudá-lo. Entretanto, se for maltratado, pode parar de segui-lo (de acordo com o mestre). Se perder seu parceiro, você recebe outro no início da próxima aventura.',
-    description: '',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [

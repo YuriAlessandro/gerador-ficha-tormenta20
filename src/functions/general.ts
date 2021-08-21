@@ -38,11 +38,19 @@ import Divindade from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
   allArcaneSpellsCircle1,
+  allArcaneSpellsCircle2,
+  allArcaneSpellsCircle3,
   arcaneSpellsCircle1,
+  arcaneSpellsCircle2,
+  arcaneSpellsCircle3,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
+  allDivineSpellsCircle2,
+  allDivineSpellsCircle3,
   divineSpellsCircle1,
+  divineSpellsCircle2,
+  divineSpellsCircle3,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
 import {
@@ -61,6 +69,10 @@ import Skill from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
 import roles from '../data/roles';
 import { RoleNames } from '../interfaces/Role';
+import {
+  getAllowedClassPowers,
+  getPowersAllowedByRequirements,
+} from './powers';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -549,20 +561,67 @@ function getReligiosidade(
   return { divindade, poderes };
 }
 
-function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
+function getNewSpells(
+  nivel: number,
+  classe: ClassDescription,
+  usedSpells: Spell[]
+): Spell[] {
   const { spellPath } = classe;
   if (!spellPath) return [];
 
-  // TODO: enable picking spells from other circles besides c1 for higher levels
-  const { initialSpells, schools, spellType } = spellPath;
-  let spellList =
-    spellType === 'Arcane' ? allArcaneSpellsCircle1 : allDivineSpellsCircle1;
+  const {
+    initialSpells,
+    schools,
+    spellType,
+    spellCircleAvailableAtLevel,
+    qtySpellsLearnAtLevel,
+  } = spellPath;
+
+  const circle = spellCircleAvailableAtLevel(nivel);
+  const qtySpellsLearn = qtySpellsLearnAtLevel(nivel);
+
+  let spellList: Spell[] = [];
+  if (spellType === 'Arcane') {
+    for (let index = 1; index < circle + 1; index += 1) {
+      if (index === 1) spellList = allArcaneSpellsCircle1;
+      if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
+      if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
+    }
+  } else {
+    for (let index = 1; index < circle + 1; index += 1) {
+      if (index === 1) spellList = allDivineSpellsCircle1;
+      if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
+      if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
+    }
+  }
 
   if (schools) {
     if (spellType === 'Arcane') {
-      spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
+      for (let index = 1; index < circle + 1; index += 1) {
+        if (index === 1)
+          spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
+        if (index === 2)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle2[school])
+          );
+        if (index === 3)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle3[school])
+          );
+      }
     } else {
-      spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
+      for (let index = 1; index < circle + 1; index += 1) {
+        if (index === 1)
+          spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
+        if (index === 2)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle2[school])
+          );
+        if (index === 3)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle3[school])
+          );
+      }
     }
   }
 
@@ -570,7 +629,11 @@ function getNewSpells(classe: ClassDescription, usedSpells: Spell[]): Spell[] {
     (spell) => !usedSpells.find((usedSpell) => usedSpell.nome === spell.nome)
   );
 
-  const selectedSpells = pickFromArray(filteredSpellList, initialSpells);
+  const selectedSpells = pickFromArray(
+    filteredSpellList,
+    nivel === 1 ? initialSpells : qtySpellsLearn
+  );
+
   return selectedSpells;
 }
 
@@ -589,7 +652,10 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
+export function applyRaceAbilities(
+  sheet: CharacterSheet,
+  level = 1
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
@@ -727,10 +793,85 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
+function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
+  const updatedSheet = cloneDeep(sheet);
+
+  const newPvTotal =
+    updatedSheet.pv +
+    updatedSheet.classe.addpv +
+    updatedSheet.atributos.Constituição.mod;
+  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  const subSteps = [];
+
+  // Aumentar PV e PM
+  subSteps.push(
+    {
+      name: `PV (${updatedSheet.pv} + ${
+        updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod
+      } por nível)`,
+      value: newPvTotal,
+    },
+    {
+      name: `PM (+${updatedSheet.classe.addpm} por nível)`,
+      value: newPmTotal,
+    }
+  );
+
+  updatedSheet.pv = newPvTotal;
+  updatedSheet.pm = newPmTotal;
+
+  // Selecionar novas magias para esse nível (de acordo com o Spell Path)
+  const newSpells = getNewSpells(newLevel, sheet.classe, sheet.spells);
+  updatedSheet.spells.push(...newSpells);
+
+  newSpells.forEach((spell) => {
+    subSteps.push({
+      name: `Nova magia (${spell.spellCircle})`,
+      value: spell.nome,
+    });
+  });
+
+  // Escolher novo poder aleatório (geral ou poder da classe)
+  const randomNumber = Math.floor(Math.random() * 100) + 1;
+  if (randomNumber <= 70) {
+    // Escolha poder da classe
+    const allowedPowers = getAllowedClassPowers(updatedSheet);
+    const newPower = getRandomItemFromArray(allowedPowers);
+    if (updatedSheet.classPowers) {
+      updatedSheet.classPowers.push(newPower);
+
+      subSteps.push({
+        name: `Novo poder de ${updatedSheet.classe.name}`,
+        value: newPower.name,
+      });
+    }
+  } else {
+    // Escolha poder geral
+    const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
+    const newPower = getRandomItemFromArray(allowedGeneralPowers);
+
+    updatedSheet.generalPowers.push(newPower);
+
+    subSteps.push({
+      name: `Novo poder geral`,
+      value: newPower.name,
+    });
+  }
+
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${newLevel}`,
+    value: subSteps,
+  });
+
+  return updatedSheet;
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  const level = 1;
+  const level = selectedOptions.nivel;
   let powersGetters: PowersGetters = {
     Origem: [],
   };
@@ -805,7 +946,7 @@ export default function generateRandomSheet(
       value: [{ value: initialDefense }],
     },
     {
-      label: 'Equipamentos Inciais e de Origem',
+      label: 'Equipamentos Iniciais e de Origem',
       value: [],
     }
   );
@@ -871,6 +1012,7 @@ export default function generateRandomSheet(
     displacement: 0,
     size: getRaceSize(race),
     generalPowers: [],
+    classPowers: [],
     steps,
     skills,
     spells: initialSpells,
@@ -898,12 +1040,12 @@ export default function generateRandomSheet(
   charSheet = calcDefense(charSheet);
 
   // Passo 12: Gerar magias se possível
-  const newSpells = getNewSpells(charSheet.classe, charSheet.spells);
+  const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
   charSheet.spells.push(...newSpells);
 
   if (newSpells.length) {
     charSheet.steps.push({
-      label: 'Magias (1º círculo)',
+      label: `Magias Iniciais`,
       type: 'Magias',
       value: newSpells.map((spell) => ({ value: spell.nome })),
     });
@@ -917,14 +1059,9 @@ export default function generateRandomSheet(
   );
   charSheet.displacement = displacement;
 
-  // (enquanto nível atual < nivel desejado) {
-  //   Aumentar PV e PM
-  //   Seguir spell path
-  //   Pra cada poder em poderes:
-  //       sheet, poder -> sheet // atualiza a ficha pra o nível atual pelos poderes que modificam ao upar
-  //   nivel, classe, poderesgerais -> escolher poder novo aleatorio
-  //   sheet, poder novo -> sheet
-  // }
+  for (let index = 2; index <= charSheet.nivel; index += 1) {
+    charSheet = setUpLevel(charSheet, index);
+  }
 
   return charSheet;
 }
