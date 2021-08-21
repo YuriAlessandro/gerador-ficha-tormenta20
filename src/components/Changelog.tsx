@@ -6,7 +6,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 14/04/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 21/08/2021.
     </p>
 
     <p>
@@ -21,6 +21,18 @@ const Changelog: React.FC = () => (
       </a>
       .
     </p>
+
+    <h3>Versão 1.1.2</h3>
+    <ul>
+      <li>
+        Corrigida a habilidade <strong>Herança Feérica</strong> que não estava
+        adicionando +1 de PM inicial para os elfos (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/293'>
+          @pedrokoii
+        </a>
+        ).
+      </li>
+    </ul>
 
     <h3>Versão 1.1.1</h3>
     <ul>
