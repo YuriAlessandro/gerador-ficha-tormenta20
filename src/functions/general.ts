@@ -43,6 +43,7 @@ import {
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
+  allDivineSpellsCircle2,
   divineSpellsCircle1,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
@@ -577,11 +578,12 @@ function getNewSpells(
   if (spellType === 'Arcane') {
     for (let index = 1; index < circle + 1; index += 1) {
       if (index === 1) spellList = allArcaneSpellsCircle1;
-      if (index === 2) spellList = allArcaneSpellsCircle2;
+      if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
       if (index === 1) spellList = allDivineSpellsCircle1;
+      if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
     }
   }
 
@@ -788,11 +790,11 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
 
   // Selecionar novas magias para esse nível (de acordo com o Spell Path)
   const newSpells = getNewSpells(newLevel, sheet.classe, sheet.spells);
-  sheet.spells.push(...newSpells);
+  updatedSheet.spells.push(...newSpells);
 
   newSpells.forEach((spell) => {
     subSteps.push({
-      name: `Nova magia`,
+      name: `Nova magia (${spell.spellCircle})`,
       value: spell.nome,
     });
   });
