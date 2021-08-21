@@ -1,4 +1,8 @@
-import { spellsCircle1 as c1, spellsCircle2 as c2 } from './generalSpells';
+import {
+  spellsCircle1 as c1,
+  spellsCircle2 as c2,
+  spellsCircle3 as c3,
+} from './generalSpells';
 
 import { SpellCircle, Spell } from '../../interfaces/Spells';
 
@@ -63,10 +67,29 @@ export const arcaneSpellsCircle2: SpellCircle = {
   Trans: [c2.alterarTamanho, c2.metamorfose, c2.velocidade],
 };
 
+export const arcaneSpellsCircle3: SpellCircle = {
+  Abjur: [
+    c3.ancoraDimensional,
+    c3.dificultarDeteccao,
+    c3.globoDeInvulnerabilidade,
+  ],
+  Adiv: [c3.contatoExtraplanar, c3.lendasEHistorias, c3.videncia],
+  Conv: [c3.convocacaoInstatanea, c3.enxameRubroDeIchabod, c3.teletransporte],
+  Encan: [c3.imobilizar, c3.seloDeMana],
+  Evoc: [c3.erupcaoGlacial, c3.lancaIgneaDeAleph, c3.muralhaElemental],
+  Ilusão: [c3.ilusaoLacerante, c3.mantoDeSombras, c3.miragem],
+  Necro: [c3.ferverSangue, c3.servoMortoVivo, c3.tentaculoDeTrevas],
+  Trans: [c3.peleDePedra, c3.telecinesia, c3.transformacaoDeGuerra, c3.voo],
+};
+
 export const allArcaneSpellsCircle1: Spell[] = Object.values(
   arcaneSpellsCircle1
 ).reduce((acc, current) => [...acc, ...current]);
 
 export const allArcaneSpellsCircle2: Spell[] = Object.values(
   arcaneSpellsCircle2
+).reduce((acc, current) => [...acc, ...current]);
+
+export const allArcaneSpellsCircle3: Spell[] = Object.values(
+  arcaneSpellsCircle3
 ).reduce((acc, current) => [...acc, ...current]);

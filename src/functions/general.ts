@@ -39,11 +39,13 @@ import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
+  allArcaneSpellsCircle3,
   arcaneSpellsCircle1,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
+  allDivineSpellsCircle3,
   divineSpellsCircle1,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
@@ -579,14 +581,17 @@ function getNewSpells(
     for (let index = 1; index < circle + 1; index += 1) {
       if (index === 1) spellList = allArcaneSpellsCircle1;
       if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
+      if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
       if (index === 1) spellList = allDivineSpellsCircle1;
       if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
+      if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
     }
   }
 
+  // TODO: Considerar as escolas em níveis acima de 1
   if (schools) {
     if (spellType === 'Arcane') {
       spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
