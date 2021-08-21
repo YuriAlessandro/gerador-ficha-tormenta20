@@ -43,6 +43,7 @@ const ELFO: Race = {
             ...sheetClone.classe,
             addpm: finalAddPM,
           },
+          pm: sheetClone.nivel === 1 ? sheetClone.pm + 1 : sheetClone.pm,
         });
       },
     },
