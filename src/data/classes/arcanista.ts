@@ -278,7 +278,7 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Poder Mágico',
       text:
-        'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
+        'Você recebe +1 ponto de mana por nível de arcanista (NÃO CONTABILIZADO). Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
       requirements: [],
     },
     {

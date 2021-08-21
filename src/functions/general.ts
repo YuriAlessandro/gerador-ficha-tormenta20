@@ -41,12 +41,16 @@ import {
   allArcaneSpellsCircle2,
   allArcaneSpellsCircle3,
   arcaneSpellsCircle1,
+  arcaneSpellsCircle2,
+  arcaneSpellsCircle3,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
   allDivineSpellsCircle3,
   divineSpellsCircle1,
+  divineSpellsCircle2,
+  divineSpellsCircle3,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
 import {
@@ -591,12 +595,33 @@ function getNewSpells(
     }
   }
 
-  // TODO: Considerar as escolas em níveis acima de 1
   if (schools) {
     if (spellType === 'Arcane') {
-      spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
+      for (let index = 1; index < circle + 1; index += 1) {
+        if (index === 1)
+          spellList = schools.flatMap((school) => arcaneSpellsCircle1[school]);
+        if (index === 2)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle2[school])
+          );
+        if (index === 3)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle3[school])
+          );
+      }
     } else {
-      spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
+      for (let index = 1; index < circle + 1; index += 1) {
+        if (index === 1)
+          spellList = schools.flatMap((school) => divineSpellsCircle1[school]);
+        if (index === 2)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle2[school])
+          );
+        if (index === 3)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle3[school])
+          );
+      }
     }
   }
 
@@ -627,7 +652,10 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
+export function applyRaceAbilities(
+  sheet: CharacterSheet,
+  level = 1
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
@@ -803,8 +831,6 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
       value: spell.nome,
     });
   });
-
-  // TODO: Atualizar a ficha para o nível atual com os poderes que modificam ao upar
 
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.floor(Math.random() * 100) + 1;
@@ -1017,11 +1043,13 @@ export default function generateRandomSheet(
   const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
   charSheet.spells.push(...newSpells);
 
-  charSheet.steps.push({
-    label: `Magias Iniciais`,
-    type: 'Magias',
-    value: newSpells.map((spell) => ({ value: spell.nome })),
-  });
+  if (newSpells.length) {
+    charSheet.steps.push({
+      label: `Magias Iniciais`,
+      type: 'Magias',
+      value: newSpells.map((spell) => ({ value: spell.nome })),
+    });
+  }
 
   const displacement = calcDisplacement(
     charSheet.bag,
