@@ -2,6 +2,8 @@ import {
   spellsCircle1 as c1,
   spellsCircle2 as c2,
   spellsCircle3 as c3,
+  spellsCircle4 as c4,
+  spellsCircle5 as c5,
 } from './generalSpells';
 
 import { SpellCircle, Spell } from '../../interfaces/Spells';
@@ -82,6 +84,37 @@ export const arcaneSpellsCircle3: SpellCircle = {
   Trans: [c3.peleDePedra, c3.telecinesia, c3.transformacaoDeGuerra, c3.voo],
 };
 
+export const arcaneSpellsCircle4: SpellCircle = {
+  Abjur: [c4.campoAntimagia, c4.libertacao],
+  Adiv: [c4.sonho, c4.visaoDaVerdade],
+  Conv: [c4.conjurarElemental, c4.maoPoderosaDeTalude, c4.viagemPlanar],
+  Encan: [c4.alterarMemoria, c4.marionete],
+  Evoc: [
+    c4.raioPolar,
+    c4.relampagoFlamejanteDeReynard,
+    c4.talhoInvisivelDeEdauros,
+  ],
+  Ilusão: [c4.duplicataIlusoria, c4.explosaoCaleidospica],
+  Necro: [c4.assassinoFantasmagorico, c4.muralhaDeOssos],
+  Trans: [
+    c4.animarObjetos,
+    c4.controlarAGravidade,
+    c4.desintegrar,
+    c4.formaEterea,
+  ],
+};
+
+export const arcaneSpellsCircle5: SpellCircle = {
+  Abjur: [c5.aprisionamento, c5.engenhoDeMana, c5.invulnerabilidade],
+  Adiv: [c5.alterarDestino, c5.projetarConsciencia],
+  Conv: [c5.buracoNegro, c5.chuvaDeMeteoros, c5.semiplano],
+  Encan: [c5.legiao, c5.palavraPrimordial, c5.possessao],
+  Evoc: [c5.barragemElementalDeVectorius, c5.deflagracaoDeMana, c5.mataDragao],
+  Ilusão: [c5.requiem, c5.sombraAssassina],
+  Necro: [c5.roubarAAlma, c5.toqueDaMorte],
+  Trans: [c5.controlarOTempo, c5.desejo],
+};
+
 export const allArcaneSpellsCircle1: Spell[] = Object.values(
   arcaneSpellsCircle1
 ).reduce((acc, current) => [...acc, ...current]);
@@ -92,4 +125,12 @@ export const allArcaneSpellsCircle2: Spell[] = Object.values(
 
 export const allArcaneSpellsCircle3: Spell[] = Object.values(
   arcaneSpellsCircle3
+).reduce((acc, current) => [...acc, ...current]);
+
+export const allArcaneSpellsCircle4: Spell[] = Object.values(
+  arcaneSpellsCircle4
+).reduce((acc, current) => [...acc, ...current]);
+
+export const allArcaneSpellsCircle5: Spell[] = Object.values(
+  arcaneSpellsCircle5
 ).reduce((acc, current) => [...acc, ...current]);

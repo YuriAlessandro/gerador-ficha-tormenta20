@@ -25,6 +25,15 @@ const Changelog: React.FC = () => (
     <h2>
       Versão 2.0 <small>(beta)</small>
     </h2>
+
+    <h3>2.0.1</h3>
+    <ul>
+      <li>Todas as magias restantes foram adicionadas.</li>
+      <li>Melhorias na visualização mobile das magias.</li>
+    </ul>
+
+    <h3>2.0</h3>
+
     <ul>
       <li>
         <strong>

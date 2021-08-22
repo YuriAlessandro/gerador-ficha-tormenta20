@@ -59,7 +59,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
   CARAPACA: {
     name: 'Carapaça',
     description:
-      'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa (JÁ INCLUSO). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
+      'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa (NÃO INCLUSO). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
     // action(
@@ -101,7 +101,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
   DENTES_AFIADOS: {
     name: 'Dentes Afiados',
     description:
-      'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+      'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida (JÁ INCLUSO).',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
     action(

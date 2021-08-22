@@ -40,17 +40,25 @@ import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
   allArcaneSpellsCircle3,
+  allArcaneSpellsCircle4,
+  allArcaneSpellsCircle5,
   arcaneSpellsCircle1,
   arcaneSpellsCircle2,
   arcaneSpellsCircle3,
+  arcaneSpellsCircle4,
+  arcaneSpellsCircle5,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
   allDivineSpellsCircle3,
+  allDivineSpellsCircle4,
+  allDivineSpellsCircle5,
   divineSpellsCircle1,
   divineSpellsCircle2,
   divineSpellsCircle3,
+  divineSpellsCircle4,
+  divineSpellsCircle5,
 } from '../data/magias/divine';
 import { Spell } from '../interfaces/Spells';
 import {
@@ -586,12 +594,16 @@ function getNewSpells(
       if (index === 1) spellList = allArcaneSpellsCircle1;
       if (index === 2) spellList = spellList.concat(allArcaneSpellsCircle2);
       if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
+      if (index === 4) spellList = spellList.concat(allArcaneSpellsCircle4);
+      if (index === 5) spellList = spellList.concat(allArcaneSpellsCircle5);
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
       if (index === 1) spellList = allDivineSpellsCircle1;
       if (index === 2) spellList = spellList.concat(allDivineSpellsCircle2);
       if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
+      if (index === 4) spellList = spellList.concat(allDivineSpellsCircle4);
+      if (index === 5) spellList = spellList.concat(allDivineSpellsCircle5);
     }
   }
 
@@ -608,6 +620,14 @@ function getNewSpells(
           spellList = spellList.concat(
             schools.flatMap((school) => arcaneSpellsCircle3[school])
           );
+        if (index === 4)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle4[school])
+          );
+        if (index === 5)
+          spellList = spellList.concat(
+            schools.flatMap((school) => arcaneSpellsCircle5[school])
+          );
       }
     } else {
       for (let index = 1; index < circle + 1; index += 1) {
@@ -620,6 +640,14 @@ function getNewSpells(
         if (index === 3)
           spellList = spellList.concat(
             schools.flatMap((school) => divineSpellsCircle3[school])
+          );
+        if (index === 4)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle4[school])
+          );
+        if (index === 5)
+          spellList = spellList.concat(
+            schools.flatMap((school) => divineSpellsCircle5[school])
           );
       }
     }

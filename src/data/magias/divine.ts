@@ -2,6 +2,8 @@ import {
   spellsCircle1 as c1,
   spellsCircle2 as c2,
   spellsCircle3 as c3,
+  spellsCircle4 as c4,
+  spellsCircle5 as c5,
 } from './generalSpells';
 import { SpellCircle, Spell } from '../../interfaces/Spells';
 
@@ -77,6 +79,33 @@ export const divineSpellsCircle3: SpellCircle = {
   ],
 };
 
+export const divineSpellsCircle4: SpellCircle = {
+  Abjur: [c4.cupulaDeRepulsao, c4.libertacao],
+  Adiv: [c4.premonicao, c4.visaoDaVerdade],
+  Conv: [c4.guardiaoDivino, c4.viagemPlanar],
+  Encan: [c4.concederMilagre],
+  Evoc: [
+    c4.circuloDaRestauracao,
+    c4.coleraDeAzguer,
+    c4.mantoDoCruzado,
+    c4.terremoto,
+  ],
+  Necro: [c4.ligacaoSombria, c4.muralhaDeOssos],
+  Ilusão: [],
+  Trans: [c4.controlarOClima],
+};
+
+export const divineSpellsCircle5: SpellCircle = {
+  Ilusão: [],
+  Trans: [],
+  Abjur: [c5.auraDivina, c5.invulnerabilidade, c5.lagrimasDeWynna],
+  Adiv: [c5.projetarConsciencia],
+  Conv: [c5.buracoNegro, c5.intervencaoDivina],
+  Encan: [c5.palavraPrimordial],
+  Evoc: [c5.furiaDoPanteao, c5.segundaChance],
+  Necro: [c5.reanimacaoImpura, c5.roubarAAlma, c5.toqueDaMorte],
+};
+
 export const allDivineSpellsCircle1: Spell[] = Object.values(
   divineSpellsCircle1
 ).reduce((acc, current) => [...acc, ...current]);
@@ -87,4 +116,12 @@ export const allDivineSpellsCircle2: Spell[] = Object.values(
 
 export const allDivineSpellsCircle3: Spell[] = Object.values(
   divineSpellsCircle3
+).reduce((acc, current) => [...acc, ...current]);
+
+export const allDivineSpellsCircle4: Spell[] = Object.values(
+  divineSpellsCircle4
+).reduce((acc, current) => [...acc, ...current]);
+
+export const allDivineSpellsCircle5: Spell[] = Object.values(
+  divineSpellsCircle5
 ).reduce((acc, current) => [...acc, ...current]);

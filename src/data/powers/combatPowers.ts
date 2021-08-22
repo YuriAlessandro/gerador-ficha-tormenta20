@@ -354,7 +354,7 @@ const combatPowers: Record<string, GeneralPower> = {
   PROFICIENCIA: {
     name: 'Proficiência',
     description:
-      'Escolha uma proficiência: armas marciais, armas de fogo, armaduras pesadas ou escudos (se for proficiente em armas marciais, você também pode escolher armas exóticas). Você recebe essa proficiência. Você pode escolher este poder outras vezes para proficiências diferentes.',
+      'Escolha uma proficiência: armas marciais, armas de fogo, armaduras pesadas ou escudos (se for proficiente em armas marciais, você também pode escolher armas exóticas). Você recebe essa proficiência. Você pode escolher este poder outras vezes para proficiências diferentes. (JÁ INCLUSO)',
     type: GeneralPowerType.COMBATE,
     requirements: [],
     action(
@@ -424,7 +424,8 @@ const combatPowers: Record<string, GeneralPower> = {
   },
   VITALIDADE: {
     name: 'Vitalidade',
-    description: 'Você recebe +1 PV por nível de personagem e +2 em Fortitude.',
+    description:
+      'Você recebe +1 PV por nível de personagem e +2 em Fortitude (JÁ INCLUSO).',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Constituição', value: 13 }],

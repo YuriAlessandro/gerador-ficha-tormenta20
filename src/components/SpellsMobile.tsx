@@ -41,8 +41,15 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
           <div>
             {spells.map((spell) => (
               <div key={spell.nome} className='spellMobile'>
-                <div className='spellName'>
-                  ({manaExpenseByCircle[spell.spellCircle]}) {spell.nome}
+                <div>
+                  <p>
+                    <small>{spell.spellCircle}</small>
+                  </p>
+                </div>
+                <div className='spellName'>{spell.nome}</div>
+                <div>
+                  <strong>- Custo: </strong>{' '}
+                  {manaExpenseByCircle[spell.spellCircle]} PM
                 </div>
                 <div>
                   <strong>- Escola: </strong> {spell.school}
