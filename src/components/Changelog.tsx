@@ -1,12 +1,10 @@
 import React from 'react';
 
-import roadmap from '../assets/images/roadmap.png';
-
 const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 21/08/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 22/08/2021.
     </p>
 
     <p>
@@ -26,22 +24,21 @@ const Changelog: React.FC = () => (
       Versão 2.0 <small>(beta)</small>
     </h2>
 
+    <strong>
+      Esse é um teste beta da versão 2. Deve estar com alguns bugs,
+      PRINCIPALMENTE nos níveis grandes. Reporte os bugs que você encontrar e
+      revise sua ficha com cuidado antes de usar ela.
+    </strong>
+
     <h3>2.0.1</h3>
     <ul>
       <li>Todas as magias restantes foram adicionadas.</li>
       <li>Melhorias na visualização mobile das magias.</li>
     </ul>
 
-    <h3>2.0</h3>
+    <h3>2.0.0</h3>
 
     <ul>
-      <li>
-        <strong>
-          Esse é um teste beta da versão 2. Deve estar com alguns bugs,
-          PRINCIPALMENTE nos níveis grandes. Reporte os bugs que você encontrar
-          e revise sua ficha com cuidado antes de usar ela.
-        </strong>
-      </li>
       <li>Agora é possível gerar fichas em qualquer nível.</li>
       <ul>
         <li>
@@ -66,7 +63,9 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.1.2</h3>
+    <h2>Versão 1.0</h2>
+
+    <h3>1.1.2</h3>
     <ul>
       <li>
         Corrigida a habilidade <strong>Herança Feérica</strong> que não estava
@@ -78,7 +77,7 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.1.1</h3>
+    <h3>1.1.1</h3>
     <ul>
       <li>
         Estavam sendo selecionadas todas as habilidades, independente de nível,
@@ -86,7 +85,7 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.1.0</h3>
+    <h3>1.1.0</h3>
     <ul>
       <li>
         Filtro por Role: agora conseguimos criar personagens com classes apenas
@@ -120,7 +119,7 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.0.3</h3>
+    <h3>1.0.3</h3>
     <ul>
       <li>
         Corrigimos os poderes de Lena, que estavam definidos como os poderes de
@@ -132,7 +131,7 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.0.2</h3>
+    <h3>1.0.2</h3>
     <ul>
       <li>
         Modificadores do atributo base não estavam sendo aplicados na PM inicial
@@ -165,16 +164,15 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.0.1</h3>
+    <h3>1.0.1</h3>
     <ul>
       <li>
         Trocamos o termo &quot;sexo&quot; por &quot;gênero&quot; no
         passo-a-passo (até para melhor refletir o livro).
       </li>
       <li>
-        Na versão mobile, algumas magias não estavam com o custo de PM
-        aparecendo (é o valor entre paranteses antes do nome da magia). Isso foi
-        corrigido.
+        Na mobile, algumas magias não estavam com o custo de PM aparecendo (é o
+        valor entre paranteses antes do nome da magia). Isso foi corrigido.
       </li>
       <li>
         As magias <strong>Trasmissão da Loucura</strong> e{' '}
@@ -217,7 +215,7 @@ const Changelog: React.FC = () => (
       </li>
     </ul>
 
-    <h3>Versão 1.0</h3>
+    <h3>1.0.0</h3>
     <ul>
       <li>Suporte a todas as raças.</li>
       <li>Suporte a todas as classes.</li>
@@ -262,9 +260,6 @@ const Changelog: React.FC = () => (
       código aberto, portanto alterações nele são feitas por voluntários que
       trabalham em seu tempo livre.
     </p>
-
-    <p>Segue abaixo o que ainda esperamos implementar nesse projeto.</p>
-    <img src={roadmap} alt='roadmap' />
   </div>
 );
 
