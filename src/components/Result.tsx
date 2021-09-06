@@ -16,6 +16,10 @@ import Spells from './Spells';
 import SpellsMobile from './SpellsMobile';
 import { convertToFoundry, FoundryJSON } from '../2foundry';
 
+function filterUnique<T extends unknown>(array: T[]) {
+  return array.filter((v, i, a) => a.indexOf(v) === i);
+}
+
 interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
@@ -42,8 +46,8 @@ const Result: React.FC<ResultProps> = (props) => {
     spells,
     displacement,
     maxWeight,
-    generalPowers,
-    classPowers,
+    generalPowers = [],
+    classPowers = [],
     steps,
     extraArmorPenalty = 0,
   } = sheet;
@@ -166,21 +170,19 @@ const Result: React.FC<ResultProps> = (props) => {
       ))
     : '';
 
-  const generalPowersDiv = generalPowers
-    ? generalPowers.map((power) => (
-        <li key={getKey(power.name)}>
-          <strong>{power.name}:</strong> {power.description}
-        </li>
-      ))
-    : '';
+  const uniqueGeneralPowers = filterUnique(generalPowers);
+  const generalPowersDiv = uniqueGeneralPowers.map((power) => (
+    <li key={getKey(power.name)}>
+      <strong>{power.name}:</strong> {power.description}
+    </li>
+  ));
 
-  const classPowersDiv = classPowers
-    ? classPowers.map((power) => (
-        <li key={getKey(power.name)}>
-          <strong>{power.name}:</strong> {power.text}
-        </li>
-      ))
-    : '';
+  const uniqueClassPowers = filterUnique(classPowers);
+  const classPowersDiv = uniqueClassPowers.map((power) => (
+    <li key={getKey(power.name)}>
+      <strong>{power.name}:</strong> {power.text}
+    </li>
+  ));
 
   const resultRef = React.createRef<HTMLDivElement>();
   useEffect(() => {
