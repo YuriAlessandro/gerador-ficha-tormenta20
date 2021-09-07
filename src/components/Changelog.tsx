@@ -30,6 +30,18 @@ const Changelog: React.FC = () => (
       revise sua ficha com cuidado antes de usar ela.
     </strong>
 
+    <h3>2.1.0</h3>
+    <ul>
+      <li>
+        Corrigimos o problema em que os poderes selecionados anteriormente
+        continuam na ficha após uma nova geração.
+      </li>
+      <li>
+        Corrigimos alguns outros problemas com a seleção de poderes de forma
+        geral. As coisas devem estar mais consistentes agora.
+      </li>
+    </ul>
+
     <h3>2.0.1</h3>
     <ul>
       <li>Todas as magias restantes foram adicionadas.</li>
