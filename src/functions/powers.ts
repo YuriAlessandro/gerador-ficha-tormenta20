@@ -17,6 +17,7 @@ export function isPowerAvailable(
             const allPowers = [
               ...sheet.generalPowers,
               ...(sheet.origin?.powers || []),
+              ...(sheet.classPowers || []),
             ];
 
             return allPowers.some((currPower) => currPower.name === rule.name);
@@ -91,14 +92,34 @@ export function isPowerAvailable(
 export function getPowersAllowedByRequirements(
   sheet: CharacterSheet
 ): GeneralPower[] {
+  const existingGeneralPowers = sheet.generalPowers;
+
   return Object.values(generalPowers)
     .flat()
-    .filter((power) => isPowerAvailable(sheet, power));
+    .filter((power) => {
+      const isRepeatedPower = existingGeneralPowers.find(
+        (existingPower) => existingPower.name === power.name
+      );
+
+      if (isRepeatedPower) {
+        return power.allowSeveralPicks;
+      }
+
+      return isPowerAvailable(sheet, power);
+    });
 }
 
 export function getAllowedClassPowers(sheet: CharacterSheet): ClassPower[] {
   return sheet.classe.powers.filter((power) => {
-    if (power.canRepeat) return true;
+    const existingClassPowers = sheet.classPowers || [];
+    const isRepeatedPower = existingClassPowers.find(
+      (existingPower) => existingPower.name === power.name
+    );
+
+    if (isRepeatedPower) {
+      return power.canRepeat;
+    }
+
     return isPowerAvailable(sheet, power);
   });
 }

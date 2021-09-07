@@ -818,8 +818,9 @@ function getAndApplyPowers(
   return updatedSheet;
 }
 
-function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
+function levelUp(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = cloneDeep(sheet);
+  updatedSheet.nivel += 1;
 
   const newPvTotal =
     updatedSheet.pv +
@@ -847,7 +848,11 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
   updatedSheet.pm = newPmTotal;
 
   // Selecionar novas magias para esse nível (de acordo com o Spell Path)
-  const newSpells = getNewSpells(newLevel, sheet.classe, sheet.spells);
+  const newSpells = getNewSpells(
+    updatedSheet.nivel,
+    sheet.classe,
+    sheet.spells
+  );
   updatedSheet.spells.push(...newSpells);
 
   newSpells.forEach((spell) => {
@@ -858,10 +863,12 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
   });
 
   // Escolher novo poder aleatório (geral ou poder da classe)
-  const randomNumber = Math.floor(Math.random() * 100) + 1;
-  if (randomNumber <= 70) {
+  const randomNumber = Math.random();
+  const allowedPowers = getAllowedClassPowers(updatedSheet);
+  const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
+  if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
-    const allowedPowers = getAllowedClassPowers(updatedSheet);
+
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
       updatedSheet.classPowers.push(newPower);
@@ -873,9 +880,7 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
     }
   } else {
     // Escolha poder geral
-    const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
     const newPower = getRandomItemFromArray(allowedGeneralPowers);
-
     updatedSheet.generalPowers.push(newPower);
 
     subSteps.push({
@@ -886,7 +891,7 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
 
   updatedSheet.steps.push({
     type: 'Poderes',
-    label: `Nível ${newLevel}`,
+    label: `Nível ${updatedSheet.nivel}`,
     value: subSteps,
   });
 
@@ -896,7 +901,7 @@ function setUpLevel(sheet: CharacterSheet, newLevel: number): CharacterSheet {
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  const level = selectedOptions.nivel;
+  const targetLevel = selectedOptions.nivel;
   let powersGetters: PowersGetters = {
     Origem: [],
   };
@@ -1023,7 +1028,7 @@ export default function generateRandomSheet(
     id: uuid(),
     nome,
     sexo,
-    nivel: level,
+    nivel: 1,
     atributos,
     maxWeight,
     raca: race,
@@ -1084,8 +1089,8 @@ export default function generateRandomSheet(
   );
   charSheet.displacement = displacement;
 
-  for (let index = 2; index <= charSheet.nivel; index += 1) {
-    charSheet = setUpLevel(charSheet, index);
+  for (let index = 2; index <= targetLevel; index += 1) {
+    charSheet = levelUp(charSheet);
   }
 
   return charSheet;
