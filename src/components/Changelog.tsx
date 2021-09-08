@@ -33,6 +33,18 @@ const Changelog: React.FC = () => (
     <h3>2.1.0</h3>
     <ul>
       <li>
+        Corrigido um problema em que os poderes concedidos eram aplicados ao
+        subir de nível, mesmo se o personagem não fosse devoto (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/298'>
+          @VitZinc
+        </a>
+        ).{' '}
+      </li>
+    </ul>
+
+    <h3>2.1.0</h3>
+    <ul>
+      <li>
         Corrigimos o problema em que os poderes selecionados anteriormente
         continuam na ficha após uma nova geração.
       </li>
