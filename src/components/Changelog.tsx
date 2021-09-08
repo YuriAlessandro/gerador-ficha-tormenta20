@@ -30,7 +30,7 @@ const Changelog: React.FC = () => (
       revise sua ficha com cuidado antes de usar ela.
     </strong>
 
-    <h3>2.1.0</h3>
+    <h3>2.1.1</h3>
     <ul>
       <li>
         Corrigido um problema em que os poderes concedidos eram aplicados ao
