@@ -2,11 +2,7 @@ import { Atributo } from '../data/atributos';
 import generalPowers from '../data/poderes';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
-import {
-  GeneralPower,
-  GeneralPowerType,
-  RequirementType,
-} from '../interfaces/Poderes';
+import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 
 export function isPowerAvailable(
@@ -101,9 +97,6 @@ export function getPowersAllowedByRequirements(
   return Object.values(generalPowers)
     .flat()
     .filter((power) => {
-      if (!sheet.devoto && power.type === GeneralPowerType.CONCEDIDOS)
-        return false;
-
       const isRepeatedPower = existingGeneralPowers.find(
         (existingPower) => existingPower.name === power.name
       );
