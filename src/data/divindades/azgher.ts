@@ -2,7 +2,7 @@ import Divindade from '../../interfaces/Divindade';
 import GRANTED_POWERS from '../powers/grantedPowers';
 
 const AZGUER: Divindade = {
-  name: 'Azguer',
+  name: 'Azgher',
   poderes: [
     GRANTED_POWERS.ESPADA_SOLAR,
     GRANTED_POWERS.HABITANTE_DO_DESERTO,
