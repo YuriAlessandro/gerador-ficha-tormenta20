@@ -30,6 +30,18 @@ const Changelog: React.FC = () => (
       revise sua ficha com cuidado antes de usar ela.
     </strong>
 
+    <h3>2.1.2</h3>
+    <ul>
+      <li>
+        Mais uma correção sobre os poderes concedidos, que não estavam
+        considerando corretamente a divindade selecionada na ficha (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/298'>
+          @VitZinc
+        </a>
+        ).{' '}
+      </li>
+    </ul>
+
     <h3>2.1.1</h3>
     <ul>
       <li>

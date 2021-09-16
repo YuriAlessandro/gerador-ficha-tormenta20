@@ -377,7 +377,7 @@ export function getSkillsAndPowersByClassAndOrigin(
 
     if (originSubSteps.length) {
       steps.push({
-        label: `Benefícios da orígem (${origin.name})`,
+        label: `Benefícios da origem (${origin.name})`,
         type: 'Poderes',
         value: originSubSteps.map((substep) => ({
           name: substep.name,
