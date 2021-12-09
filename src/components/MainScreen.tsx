@@ -19,6 +19,8 @@ import getSelectTheme from '../functions/style';
 import roles from '../data/roles';
 import { HistoricI } from '../interfaces/Historic';
 import Historic from './Historic';
+import { ORIGINS } from '../data/origins';
+import { allDivindadeNames } from '../interfaces/Divindade';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -57,6 +59,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     nivel: 1,
     classe: '',
     raca: '',
+    origin: '',
+    devocao: { label: 'Aleatória', value: '' },
   });
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
@@ -108,7 +112,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const onSelectClasse = (classe: SelectedOption | null) => {
-    setSelectedOptions({ ...selectedOptions, classe: classe?.value ?? '' });
+    setSelectedOptions({
+      ...selectedOptions,
+      classe: classe?.value ?? '',
+      devocao: { label: 'Padrão', value: '' },
+    });
+  };
+
+  const onSelectOrigin = (origin: SelectedOption | null) => {
+    setSelectedOptions({ ...selectedOptions, origin: origin?.value ?? '' });
+  };
+
+  const inSelectDivindade = (divindade: SelectedOption | null) => {
+    setSelectedOptions({
+      ...selectedOptions,
+      devocao: divindade ?? { label: 'Todas as Divindades', value: '**' },
+    });
   };
 
   const onSelectNivel = (nivel: SelectedOption | null) => {
@@ -137,6 +156,26 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       label: `Nível ${index}`,
     });
   }
+
+  const origens = Object.keys(ORIGINS).map((origin) => ({
+    value: origin,
+    label: origin,
+  }));
+
+  const divindades = allDivindadeNames
+    .filter((dv) => {
+      if (selectedOptions.classe) {
+        const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
+        if (classe) return classe?.faithProbability?.[dv] !== 0;
+        return true;
+      }
+
+      return true;
+    })
+    .map((sdv) => ({
+      value: sdv,
+      label: sdv.charAt(0).toUpperCase() + sdv.slice(1).toLowerCase(),
+    }));
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
@@ -183,6 +222,52 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           placeholder='Todas as Classes e Roles'
           formatGroupLabel={fmtGroupLabel}
           onChange={onSelectClasse}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
+        />
+
+        <Select
+          className='filterSelect'
+          placeholder='Todas as Origens'
+          options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
+          isSearchable
+          onChange={onSelectOrigin}
+          isDisabled={selectedOptions.raca === 'Golem'}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
+        />
+
+        <Select
+          className='filterSelect'
+          placeholder='Todas as Divindades'
+          options={[
+            {
+              label: '',
+              options: [
+                { value: '', label: 'Padrão' },
+                { value: '**', label: 'Qualquer divindade' },
+                { value: '--', label: 'Não devoto' },
+              ],
+            },
+            {
+              label: `Divindades Permitidas (${
+                selectedOptions.classe || 'Todas as Classes'
+              })`,
+              options: divindades,
+            },
+          ]}
+          isSearchable
+          value={selectedOptions.devocao}
+          onChange={inSelectDivindade}
+          // value={selectedOptions.devocao}
           theme={(theme) => ({
             ...theme,
             colors: {
