@@ -1,3 +1,5 @@
+import { cloneDeep, merge } from 'lodash';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -46,6 +48,29 @@ const PALADINO: ClassDescription = {
       text:
         'Você soma seu bônus de Carisma no seu total de pontos de mana no 1º nível. Além disso, torna-se devoto de uma divindade disponível para paladinos (Azgher, Khalmyr, Lena, Lin-Wu, Marah, Tanna-Toh, Thyatis, Valkaria). Você deve obedecer às Obrigações & Restrições de seu deus, mas, em troca, ganha os Poderes Concedidos dele. Como alternativa, você pode ser um paladino do bem, lutando em prol da bondade e da justiça como um todo. Não recebe nenhum Poder Concedido, mas não precisa seguir nenhuma Obrigação & Restrição (além do Código do Herói, abaixo).',
       nivel: 1,
+      action(
+        sheet: CharacterSheet,
+        subSteps: {
+          name: string;
+          value: string;
+        }[]
+      ): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        const initialPm = sheetClone.pm;
+        const carMod = sheetClone.atributos.Carisma.mod;
+
+        subSteps.push({
+          name: 'Abençoado',
+          value: `Adicionar Mod. de Carisma (${carMod}) na PM do 1º nível: ${initialPm} + ${carMod} = ${
+            initialPm + carMod
+          }`,
+        });
+
+        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm: sheetClone.pm + carMod,
+        });
+      },
     },
     {
       name: 'Código de Héroi',
