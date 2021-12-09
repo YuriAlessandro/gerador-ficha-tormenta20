@@ -822,10 +822,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
-  const newPvTotal =
-    updatedSheet.pv +
-    updatedSheet.classe.addpv +
-    updatedSheet.atributos.Constituição.mod;
+  let addPv =
+    updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod;
+
+  if (addPv < 1) addPv = 1;
+
+  const newPvTotal = updatedSheet.pv + addPv;
   const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
 
   const subSteps = [];
@@ -833,13 +835,11 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   // Aumentar PV e PM
   subSteps.push(
     {
-      name: `PV (${updatedSheet.pv} + ${
-        updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod
-      } por nível)`,
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível)`,
       value: newPvTotal,
     },
     {
-      name: `PM (+${updatedSheet.classe.addpm} por nível)`,
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm} por nível)`,
       value: newPmTotal,
     }
   );
