@@ -43,7 +43,7 @@ export const DivindadeEnum = {
   NIMB,
 };
 
-const DIVINDADES = [
+export const DIVINDADES = [
   AHARADAK,
   OCEANO,
   TENEBRA,

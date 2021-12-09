@@ -32,9 +32,9 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import { getOriginBenefits, ORIGINS } from '../data/origins';
+import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
 import Equipment, { BagEquipments } from '../interfaces/Equipment';
-import Divindade from '../interfaces/Divindade';
+import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
   allArcaneSpellsCircle1,
@@ -307,11 +307,19 @@ export function selectClass(
   selectedOptions: SelectedOptions
 ): ClassDescription {
   let selectedClass: ClassDescription | undefined | null;
+  let allClasses = CLASSES;
   if (selectedOptions.classe) {
     selectedClass = getClassByFilter(selectedOptions);
   }
 
-  if (!selectedClass) selectedClass = getRandomItemFromArray(CLASSES);
+  const dv = selectedOptions.devocao.value;
+  if (dv) {
+    allClasses = CLASSES.filter(
+      (cl) => cl.faithProbability?.[dv as DivindadeNames] !== 0
+    );
+  }
+
+  if (!selectedClass) selectedClass = getRandomItemFromArray(allClasses);
   selectedClass = _.cloneDeep(selectedClass);
   if (selectedClass.setup) return selectedClass.setup(selectedClass);
   return selectedClass;
@@ -543,25 +551,35 @@ function getPoderesConcedidos(
 // Retorna se é devoto e qual a divindade
 function getReligiosidade(
   classe: ClassDescription,
-  race: Race
+  race: Race,
+  selectedOption: string
 ): CharacterReligion | undefined {
-  const isDevoto = Math.random() <= classe.probDevoto;
+  if (selectedOption === '--') return undefined;
+
+  let isDevoto = Math.random() <= classe.probDevoto;
+  if (selectedOption) isDevoto = true;
+
   if (!isDevoto) {
     return undefined;
   }
 
-  const classFaithProbability =
-    classe.faithProbability || standardFaithProbability;
-  const raceFaithProbability =
-    race.faithProbability || standardFaithProbability;
+  let divindade;
+  if (!selectedOption || selectedOption === '**') {
+    const classFaithProbability =
+      classe.faithProbability || standardFaithProbability;
+    const raceFaithProbability =
+      race.faithProbability || standardFaithProbability;
 
-  const faithProbability = mergeFaithProbabilities(
-    classFaithProbability,
-    raceFaithProbability
-  );
+    const faithProbability = mergeFaithProbabilities(
+      classFaithProbability,
+      raceFaithProbability
+    );
 
-  const divindadeName = pickFaith(faithProbability);
-  const divindade = DivindadeEnum[divindadeName];
+    const divindadeName = pickFaith(faithProbability);
+    divindade = DivindadeEnum[divindadeName];
+  } else {
+    divindade = DivindadeEnum[selectedOption as DivindadeNames];
+  }
 
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
   const poderes = getPoderesConcedidos(divindade, todosPoderes, classe);
@@ -909,7 +927,7 @@ export default function generateRandomSheet(
   // Lista do passo-a-passo que deve ser populada
   const steps: Step[] = [];
 
-  // Passo 1: Definir sexo
+  // Passo 1: Definir gênero
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
@@ -944,8 +962,13 @@ export default function generateRandomSheet(
 
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
+
   if (race.name !== 'Golem') {
-    origin = getRandomItemFromArray(Object.values(ORIGINS));
+    if (selectedOptions.origin) {
+      origin = ORIGINS[selectedOptions.origin as origins];
+    } else {
+      origin = getRandomItemFromArray(Object.values(ORIGINS));
+    }
   }
 
   if (origin) {
@@ -994,7 +1017,8 @@ export default function generateRandomSheet(
   });
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
-  const devote = getReligiosidade(classe, race);
+
+  const devote = getReligiosidade(classe, race, selectedOptions.devocao.value);
 
   if (devote) {
     steps.push({
