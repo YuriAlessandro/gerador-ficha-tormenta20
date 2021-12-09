@@ -20,15 +20,46 @@ const Changelog: React.FC = () => (
       .
     </p>
 
-    <h2>
-      Versão 2.0 <small>(beta)</small>
-    </h2>
+    <h2>Versão 2.0</h2>
 
-    <strong>
-      Esse é um teste beta da versão 2. Deve estar com alguns bugs,
-      PRINCIPALMENTE nos níveis grandes. Reporte os bugs que você encontrar e
-      revise sua ficha com cuidado antes de usar ela.
-    </strong>
+    <h3>2.2.0</h3>
+    <ul>
+      <li>
+        Adicionamos a opção de selecionar a <strong>Origem</strong> e a{' '}
+        <strong>Devoção</strong> da ficha. A ideia foi reforçada por{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/305'>
+          @sitariom
+        </a>
+      </li>
+      <ul>
+        <li>
+          Observe que você{' '}
+          <strong>não pode selecionar uma origem para a raça Golem</strong>. Por
+          via de regra, essa raça não possui origem.
+        </li>
+        <li>
+          As divindades serão filtradas de acordo com a classe selecionada.
+          Dessa forma, você não poderá selecionar um Paladinho devoto de
+          Tenebra, por exemplo.
+        </li>
+      </ul>
+      <li>
+        Corrigido o comportamento do poder <strong>Abençoado</strong> do
+        Paladino, que agora está somando o modificador de carisma na PM do 1º
+        nível (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/310'>
+          @PaladinodeValkaria
+        </a>
+        ).
+      </li>
+      <li>
+        Agora a ficha irá adicionar o mínimo de 1 de PV por nível (obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/303'>
+          @PauloHenriqueOC
+        </a>
+        ).
+      </li>
+    </ul>
 
     <h3>2.1.2</h3>
     <ul>

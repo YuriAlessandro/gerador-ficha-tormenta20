@@ -103,12 +103,7 @@ function App(): JSX.Element {
                   <MenuIcon />
                 </IconButton>
                 <Typography variant='h6' className={classes.title}>
-                  <p>
-                    Fichas de Nimb&nbsp;
-                    <sup>
-                      <span style={{ fontSize: '10px' }}>versão 2.0 beta</span>
-                    </sup>
-                  </p>
+                  <p>Fichas de Nimb</p>
                 </Typography>
               </Toolbar>
             </AppBar>
