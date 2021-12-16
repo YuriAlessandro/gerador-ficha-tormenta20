@@ -1128,7 +1128,7 @@ export default function generateRandomSheet(
   charSheet.completeSkills = Object.values(Skill)
     .map((skill) => {
       const skillAttr = SkillsAttrs[skill];
-      const attr = atributos[(skillAttr as unknown) as Atributo];
+      const attr = atributos[skillAttr as unknown as Atributo];
 
       const armorPenalty = SkillsWithArmorPenalty.includes(skill)
         ? charSheet.bag.getArmorPenalty?.()

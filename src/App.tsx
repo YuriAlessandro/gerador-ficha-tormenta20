@@ -15,6 +15,7 @@ import {
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
+import Rewards from './components/Rewards';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -132,6 +133,9 @@ function App(): JSX.Element {
             <Switch>
               <Route path='/changelog'>
                 <Changelog />
+              </Route>
+              <Route path='/recompensas'>
+                <Rewards />
               </Route>
               <Route>
                 <MainScreen isDarkMode={isDarkTheme} />
