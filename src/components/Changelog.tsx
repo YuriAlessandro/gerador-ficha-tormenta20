@@ -4,7 +4,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 22/08/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 15/12/2021.
     </p>
 
     <p>
@@ -21,6 +21,48 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.3.0</h3>
+    <ul>
+      <li>Todas as perícias agora estão disponíveis com os valores somados.</li>
+      <ul>
+        <li>
+          Por causa dessa mudança, o passo-a-passo foi movido para a parte de
+          baixo da tela.
+        </li>
+        <li>
+          A grande maioria dos poderes e habilidades que aumentam perícias já
+          estarão somando automaticamente, na coluna <strong>Outros</strong>. Se
+          você encontrar algum poder que não está fazendo isso, nos avise.
+        </li>
+      </ul>
+      <li>
+        Adicionado o bônus de ataque das armas, baseado nas perícias de Luta e
+        Pontaria.
+      </li>
+      <ul>
+        <li>
+          Para este caso, os poderes que oferecem bônus de ataque{' '}
+          <strong>ainda não estão sendo somados automaticamente</strong>.
+        </li>
+      </ul>
+      <li>
+        Adicionado uma opção de <strong>Ficha Simplificada.</strong> Em resumo,
+        ela fica igual as fichas de NPCs padrões do jogo - mas com todas as
+        informações de poderes, para você poder chegar o que ainda falta ser
+        calculado automaticamente.
+      </li>
+      <ul>
+        <li>
+          É possível alterar uma ficha já gerada entre os modelos padrão e
+          simplificado, basta marcar o checkbox.
+        </li>
+      </ul>
+      <li>
+        Adicionado a opção de mudar o tema entre claro e escuro na barra
+        superior.
+      </li>
+    </ul>
 
     <h3>2.2.0</h3>
     <ul>

@@ -1,3 +1,5 @@
+import { Atributo } from '../data/atributos';
+
 enum Skill {
   ACROBACIA = 'Acrobacia',
   ADESTRAMENTO = 'Adestramento',
@@ -45,5 +47,71 @@ enum Skill {
   SOBREVIVENCIA = 'Sobrevivência',
   VONTADE = 'Vontade',
 }
+
+export enum SkillsAttrs {
+  Acrobacia = Atributo.DESTREZA,
+  Adestramento = Atributo.CARISMA,
+  Atletismo = Atributo.FORCA,
+  Atuação = Atributo.CARISMA,
+  Cavalgar = Atributo.DESTREZA,
+  Conhecimento = Atributo.INTELIGENCIA,
+  Cura = Atributo.SABEDORIA,
+  Diplomacia = Atributo.CARISMA,
+  Enganação = Atributo.CARISMA,
+  Fortitude = Atributo.CONSTITUICAO,
+  Furtividade = Atributo.DESTREZA,
+  Guerra = Atributo.INTELIGENCIA,
+  Iniciativa = Atributo.DESTREZA,
+  Intimidação = Atributo.CARISMA,
+  Intuição = Atributo.SABEDORIA,
+  Investigação = Atributo.INTELIGENCIA,
+  Jogatina = Atributo.CARISMA,
+  Ladinagem = Atributo.DESTREZA,
+  Luta = Atributo.FORCA,
+  Misticismo = Atributo.INTELIGENCIA,
+  Nobreza = Atributo.INTELIGENCIA,
+  'Ofício (Qualquer)' = Atributo.INTELIGENCIA,
+  'Ofício (Armeiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Artesanato)' = Atributo.INTELIGENCIA,
+  'Ofício (Alquímia)' = Atributo.INTELIGENCIA,
+  'Ofício (Culinária)' = Atributo.INTELIGENCIA,
+  'Ofício (Alfaiate)' = Atributo.INTELIGENCIA,
+  'Ofício (Alvenaria)' = Atributo.INTELIGENCIA,
+  'Ofício (Carpinteiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Joalheiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Fazendeiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Pescador)' = Atributo.INTELIGENCIA,
+  'Ofício (Estalajadeiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Escrita)' = Atributo.INTELIGENCIA,
+  'Ofício (Escultor)' = Atributo.INTELIGENCIA,
+  'Ofício (Engenhoqueiro)' = Atributo.INTELIGENCIA,
+  'Ofício (Pintor)' = Atributo.INTELIGENCIA,
+  'Ofício (Minerador)' = Atributo.INTELIGENCIA,
+  Percepção = Atributo.SABEDORIA,
+  Pilotagem = Atributo.DESTREZA,
+  Pontaria = Atributo.DESTREZA,
+  Reflexos = Atributo.DESTREZA,
+  Religião = Atributo.SABEDORIA,
+  Sobrevivência = Atributo.SABEDORIA,
+  Vontade = Atributo.SABEDORIA,
+}
+
+export const SkillsWithArmorPenalty: Skill[] = [
+  Skill.ACROBACIA,
+  Skill.FURTIVIDADE,
+  Skill.LADINAGEM,
+];
+
+export interface CompleteSkill {
+  name: Skill;
+  halfLevel?: number;
+  modAttr?: number;
+  training?: number;
+  others?: number;
+}
+
+export type SkillsTotals = {
+  [value in Skill]: number;
+};
 
 export default Skill;

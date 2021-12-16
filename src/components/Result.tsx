@@ -15,6 +15,7 @@ import '../assets/css/result.css';
 import Spells from './Spells';
 import SpellsMobile from './SpellsMobile';
 import { convertToFoundry, FoundryJSON } from '../2foundry';
+import SkillTable from './SkillTable';
 
 function filterUnique<T extends unknown>(array: T[]) {
   return array.filter((v, i, a) => a.indexOf(v) === i);
@@ -35,7 +36,6 @@ const Result: React.FC<ResultProps> = (props) => {
     atributos,
     raca,
     classe,
-    skills,
     pv,
     pm,
     defesa,
@@ -50,6 +50,7 @@ const Result: React.FC<ResultProps> = (props) => {
     classPowers = [],
     steps,
     extraArmorPenalty = 0,
+    completeSkills,
   } = sheet;
 
   function getKey(elementId: string) {
@@ -69,34 +70,25 @@ const Result: React.FC<ResultProps> = (props) => {
   const foundryJSON = convertToFoundry(sheet);
   const encodedJSON = encodeFoundryJSON(foundryJSON);
 
-  const [isRacePowersVisible, setisRacePowersVisible] = React.useState<boolean>(
-    true
-  );
+  const [isRacePowersVisible, setisRacePowersVisible] =
+    React.useState<boolean>(true);
 
-  const [
-    isClassAbilitiesBisible,
-    setClassAbilitiesVisible,
-  ] = React.useState<boolean>(true);
+  const [isClassAbilitiesBisible, setClassAbilitiesVisible] =
+    React.useState<boolean>(true);
 
-  const [
-    generalPowersVisible,
-    setGeneralPowersVisible,
-  ] = React.useState<boolean>(true);
+  const [generalPowersVisible, setGeneralPowersVisible] =
+    React.useState<boolean>(true);
 
-  const [classPowersVisible, setClassPowersVisible] = React.useState<boolean>(
-    true
-  );
+  const [classPowersVisible, setClassPowersVisible] =
+    React.useState<boolean>(true);
 
   const [showExportButton, setExportButton] = React.useState<boolean>();
 
-  const [
-    isOriginPowersVisible,
-    setOriginPowersVisible,
-  ] = React.useState<boolean>(true);
+  const [isOriginPowersVisible, setOriginPowersVisible] =
+    React.useState<boolean>(true);
 
-  const [isGodPowersVisible, setGodPowersVisible] = React.useState<boolean>(
-    true
-  );
+  const [isGodPowersVisible, setGodPowersVisible] =
+    React.useState<boolean>(true);
 
   const atributosDiv = Object.values(atributos).map((atributo) => (
     <Attribute
@@ -112,11 +104,14 @@ const Result: React.FC<ResultProps> = (props) => {
   let className = `${classe.name}`;
   if (classe.subname) className = `${className} (${classe.subname})`;
 
-  const periciasSorted = skills.sort();
+  const periciasSorted = completeSkills?.sort((skillA, skillB) =>
+    skillA.name < skillB.name ? -1 : 1
+  );
 
-  const periciasDiv = periciasSorted.map((pericia) => (
-    <li key={getKey(pericia)}>{pericia}</li>
-  ));
+  const periciasDiv = (
+    <SkillTable skills={periciasSorted} isDarkTheme={isDarkMode} />
+  );
+
   const habilidadesRacaDiv = raca.abilities.map((hab) => (
     <li key={getKey(hab.name)}>
       <strong>{hab.name}</strong>: {hab.description}
@@ -150,7 +145,32 @@ const Result: React.FC<ResultProps> = (props) => {
     </li>
   ));
 
-  const weaponsDiv = <Weapons getKey={getKey} weapons={bagEquipments.Arma} />;
+  const modFor = atributos.Força.mod;
+
+  const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
+  const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
+
+  const fightBonus =
+    (fightSkill?.halfLevel ?? 0) +
+    (fightSkill?.modAttr ?? 0) +
+    (fightSkill?.others ?? 0) +
+    (fightSkill?.training ?? 0);
+
+  const rangeBonus =
+    (rangeSkill?.halfLevel ?? 0) +
+    (rangeSkill?.modAttr ?? 0) +
+    (rangeSkill?.others ?? 0) +
+    (rangeSkill?.training ?? 0);
+
+  const weaponsDiv = (
+    <Weapons
+      getKey={getKey}
+      weapons={bagEquipments.Arma}
+      fightBonus={fightBonus}
+      rangeBonus={rangeBonus}
+      modFor={modFor}
+    />
+  );
   const defenseEquipments = [
     ...bagEquipments.Armadura,
     ...bagEquipments.Escudo,
@@ -269,15 +289,6 @@ const Result: React.FC<ResultProps> = (props) => {
     <div className='resultContainer'>
       <div className='resultLeft'>
         <div className='exportButtonsContainer'>
-          <div className='export-to-foundry'>
-            <a
-              href={encodedJSON}
-              className='exportBtn'
-              download={`${sheet.nome}.json`}
-            >
-              Exportar para o Foundry
-            </a>
-          </div>
           <div
             style={{
               display: showExportButton ? 'flex' : 'none',
@@ -293,6 +304,15 @@ const Result: React.FC<ResultProps> = (props) => {
               content={handleExport}
               documentTitle={`${nome} - ${classe.name} ${raca.name}`}
             />
+          </div>
+          <div className='export-to-foundry'>
+            <a
+              href={encodedJSON}
+              className='exportBtn'
+              download={`${sheet.nome}.json`}
+            >
+              Exportar para o Foundry
+            </a>
           </div>
         </div>
 
@@ -351,252 +371,259 @@ const Result: React.FC<ResultProps> = (props) => {
 
           <Divider isDarkMode={isDarkMode} direction='down' />
 
-          <div className='attributesRow'>{atributosDiv}</div>
+          <div className='sheetDivider'>
+            <div className='sheetLeft'>
+              <div className='attributesRow'>{atributosDiv}</div>
 
-          <Divider isDarkMode={isDarkMode} direction='down' />
+              <Divider isDarkMode={isDarkMode} direction='down' />
 
-          <div className='condense'>
-            <div className='resultRow'>
-              <div>
-                <strong>Proficiências</strong>
-                <div>{proficienciasDiv}</div>
+              <div className='sectionTitle'>
+                <span>Equipamentos</span>
               </div>
-            </div>
 
-            <div className='resdivtRow'>
-              <div>
-                <strong>Perícias Treinadas:</strong>
-                <ul className='periciasDiv'>{periciasDiv}</ul>
+              <div className='resultRow'>
+                <div>
+                  <strong>Proficiências</strong>
+                  <div>{proficienciasDiv}</div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <Divider isDarkMode={isDarkMode} direction='down' />
-
-          <div className='sectionTitle'>
-            <span>Equipamentos</span>
-          </div>
-
-          <div className='equipaments'>
-            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
-              {weaponsDiv}
-            </div>
-            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
-              <DefenseEquipments
-                getKey={getKey}
-                defenseEquipments={defenseEquipments}
-              />
-            </div>
-            <div className='textToRight equipmentsValues'>
-              <span>
-                <strong>Penalidade de Armadura:</strong>{' '}
-                {((bag.getArmorPenalty
-                  ? bag.getArmorPenalty()
-                  : bag.armorPenalty) +
-                  extraArmorPenalty) *
-                  -1}
-              </span>
-            </div>
-            <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
-              {equipamentosDiv}
-            </div>
-            <div className='textToRight equipmentsValues'>
-              <span>
-                <strong>Peso (atual/máximo):</strong>{' '}
-                {bag.getWeight ? bag.getWeight() : bag.weight}/{maxWeight}kg
-              </span>
-            </div>
-          </div>
-
-          <div className='powersArea'>
-            <Divider isDarkMode={isDarkMode} direction='down' />
-
-            <div className='sectionTitle'>
-              <span>Habilidades e Poderes</span>
-            </div>
-
-            <div className='resultRow powers'>
-              <div
-                className='powersNameRow'
-                onClick={() => setisRacePowersVisible(!isRacePowersVisible)}
-                role='button'
-                tabIndex={0}
-                onKeyDown={() => setisRacePowersVisible(!isRacePowersVisible)}
-              >
-                <ChevronRightIcon
-                  className={`powerIcon ${
-                    isRacePowersVisible ? 'down' : 'normal'
-                  }`}
-                />
-                <strong>Habilidades de {raca.name}</strong>
-              </div>
-              <div
-                style={{ display: `${isRacePowersVisible ? 'block' : 'none'}` }}
-              >
-                <ul>{habilidadesRacaDiv}</ul>
-              </div>
-            </div>
-
-            <div className='resultRow powers'>
-              <div
-                className='powersNameRow'
-                onClick={() =>
-                  setClassAbilitiesVisible(!isClassAbilitiesBisible)
-                }
-                onKeyDown={() =>
-                  setClassAbilitiesVisible(!isClassAbilitiesBisible)
-                }
-                role='button'
-                tabIndex={0}
-              >
-                <ChevronRightIcon
-                  className={`powerIcon ${
-                    isClassAbilitiesBisible ? 'down' : 'normal'
-                  }`}
-                />
-                <strong>Habilidades de {classe.name}</strong>
-              </div>
-              <div
-                style={{
-                  display: `${isClassAbilitiesBisible ? 'block' : 'none'}`,
-                }}
-              >
-                <ul>{habilidadesClasseDiv}</ul>
-              </div>
-            </div>
-
-            {origin && origin.powers.length > 0 && (
-              <div className='resultRow powers'>
-                <div
-                  className='powersNameRow'
-                  onClick={() => setOriginPowersVisible(!isOriginPowersVisible)}
-                  onKeyDown={() =>
-                    setOriginPowersVisible(!isOriginPowersVisible)
-                  }
-                  role='button'
-                  tabIndex={0}
-                >
-                  <ChevronRightIcon
-                    className={`powerIcon ${
-                      isOriginPowersVisible ? 'down' : 'normal'
-                    }`}
+              <div className='equipaments'>
+                <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
+                  {weaponsDiv}
+                </div>
+                <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
+                  <DefenseEquipments
+                    getKey={getKey}
+                    defenseEquipments={defenseEquipments}
                   />
-                  <strong>Habilidades de {origin?.name}</strong>
                 </div>
-                <div
-                  style={{
-                    display: `${isOriginPowersVisible ? 'block' : 'none'}`,
-                  }}
-                >
-                  <ul>{originPowers}</ul>
+                <div className='textToRight equipmentsValues'>
+                  <span>
+                    <strong>Penalidade de Armadura:</strong>{' '}
+                    {((bag.getArmorPenalty
+                      ? bag.getArmorPenalty()
+                      : bag.armorPenalty) +
+                      extraArmorPenalty) *
+                      -1}
+                  </span>
+                </div>
+                <div className={`tableWrap ${isDarkMode ? 'dark' : ''}`}>
+                  {equipamentosDiv}
+                </div>
+                <div className='textToRight equipmentsValues'>
+                  <span>
+                    <strong>Peso (atual/máximo):</strong>{' '}
+                    {bag.getWeight ? bag.getWeight() : bag.weight}/{maxWeight}kg
+                  </span>
                 </div>
               </div>
-            )}
 
-            {classPowers && classPowers.length > 0 && (
-              <div className='resultRow powers'>
+              <div className='powersArea'>
+                <Divider isDarkMode={isDarkMode} direction='down' />
+
+                <div className='sectionTitle'>
+                  <span>Habilidades e Poderes</span>
+                </div>
+
+                <div className='resultRow powers'>
+                  <div
+                    className='powersNameRow'
+                    onClick={() => setisRacePowersVisible(!isRacePowersVisible)}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={() =>
+                      setisRacePowersVisible(!isRacePowersVisible)
+                    }
+                  >
+                    <ChevronRightIcon
+                      className={`powerIcon ${
+                        isRacePowersVisible ? 'down' : 'normal'
+                      }`}
+                    />
+                    <strong>Habilidades de {raca.name}</strong>
+                  </div>
+                  <div
+                    style={{
+                      display: `${isRacePowersVisible ? 'block' : 'none'}`,
+                    }}
+                  >
+                    <ul>{habilidadesRacaDiv}</ul>
+                  </div>
+                </div>
+
+                <div className='resultRow powers'>
+                  <div
+                    className='powersNameRow'
+                    onClick={() =>
+                      setClassAbilitiesVisible(!isClassAbilitiesBisible)
+                    }
+                    onKeyDown={() =>
+                      setClassAbilitiesVisible(!isClassAbilitiesBisible)
+                    }
+                    role='button'
+                    tabIndex={0}
+                  >
+                    <ChevronRightIcon
+                      className={`powerIcon ${
+                        isClassAbilitiesBisible ? 'down' : 'normal'
+                      }`}
+                    />
+                    <strong>Habilidades de {classe.name}</strong>
+                  </div>
+                  <div
+                    style={{
+                      display: `${isClassAbilitiesBisible ? 'block' : 'none'}`,
+                    }}
+                  >
+                    <ul>{habilidadesClasseDiv}</ul>
+                  </div>
+                </div>
+
+                {origin && origin.powers.length > 0 && (
+                  <div className='resultRow powers'>
+                    <div
+                      className='powersNameRow'
+                      onClick={() =>
+                        setOriginPowersVisible(!isOriginPowersVisible)
+                      }
+                      onKeyDown={() =>
+                        setOriginPowersVisible(!isOriginPowersVisible)
+                      }
+                      role='button'
+                      tabIndex={0}
+                    >
+                      <ChevronRightIcon
+                        className={`powerIcon ${
+                          isOriginPowersVisible ? 'down' : 'normal'
+                        }`}
+                      />
+                      <strong>Habilidades de {origin?.name}</strong>
+                    </div>
+                    <div
+                      style={{
+                        display: `${isOriginPowersVisible ? 'block' : 'none'}`,
+                      }}
+                    >
+                      <ul>{originPowers}</ul>
+                    </div>
+                  </div>
+                )}
+
+                {classPowers && classPowers.length > 0 && (
+                  <div className='resultRow powers'>
+                    <div
+                      className='powersNameRow'
+                      onClick={() => setClassPowersVisible(!classPowersVisible)}
+                      onKeyDown={() =>
+                        setClassPowersVisible(!classPowersVisible)
+                      }
+                      role='button'
+                      tabIndex={0}
+                    >
+                      <ChevronRightIcon
+                        className={`powerIcon ${
+                          classPowersVisible ? 'down' : 'normal'
+                        }`}
+                      />
+                      <strong>Poderes de {className}</strong>
+                    </div>
+                    <div
+                      style={{
+                        display: `${classPowersVisible ? 'block' : 'none'}`,
+                      }}
+                    >
+                      <ul>{classPowersDiv}</ul>
+                    </div>
+                  </div>
+                )}
+
+                {generalPowers.length > 0 && (
+                  <div className='resultRow powers'>
+                    <div
+                      className='powersNameRow'
+                      onClick={() =>
+                        setGeneralPowersVisible(!generalPowersVisible)
+                      }
+                      onKeyDown={() =>
+                        setGeneralPowersVisible(!generalPowersVisible)
+                      }
+                      role='button'
+                      tabIndex={0}
+                    >
+                      <ChevronRightIcon
+                        className={`powerIcon ${
+                          generalPowersVisible ? 'down' : 'normal'
+                        }`}
+                      />
+                      <strong>Poderes Gerais</strong>
+                    </div>
+                    <div
+                      style={{
+                        display: `${generalPowersVisible ? 'block' : 'none'}`,
+                      }}
+                    >
+                      <ul>{generalPowersDiv}</ul>
+                    </div>
+                  </div>
+                )}
+
+                {devoto && (
+                  <div className='resultRow powers'>
+                    <div
+                      className='powersNameRow'
+                      onClick={() => setGodPowersVisible(!isGodPowersVisible)}
+                      onKeyDown={() => setGodPowersVisible(!isGodPowersVisible)}
+                      role='button'
+                      tabIndex={0}
+                    >
+                      <ChevronRightIcon
+                        className={`powerIcon ${
+                          isGodPowersVisible ? 'down' : 'normal'
+                        }`}
+                      />
+                      <strong>Habilidades de {devoto.divindade.name}</strong>
+                    </div>
+                    <div
+                      style={{
+                        display: `${isGodPowersVisible ? 'block' : 'none'}`,
+                      }}
+                    >
+                      <ul>{poderesConcedidos}</ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className='spellsArea'>
+                <Divider isDarkMode={isDarkMode} direction='down' />
+                <div className='sectionTitle'>
+                  <span>Magias</span>
+                </div>
+
                 <div
-                  className='powersNameRow'
-                  onClick={() => setClassPowersVisible(!classPowersVisible)}
-                  onKeyDown={() => setClassPowersVisible(!classPowersVisible)}
-                  role='button'
-                  tabIndex={0}
+                  className={`tableWrap tableDesk ${isDarkMode ? 'dark' : ''}`}
                 >
-                  <ChevronRightIcon
-                    className={`powerIcon ${
-                      classPowersVisible ? 'down' : 'normal'
-                    }`}
+                  <Spells
+                    spells={spells}
+                    spellPath={classe.spellPath}
+                    keyAttr={keyAttr}
+                    nivel={nivel}
                   />
-                  <strong>Poderes de {className}</strong>
                 </div>
-                <div
-                  style={{
-                    display: `${classPowersVisible ? 'block' : 'none'}`,
-                  }}
-                >
-                  <ul>{classPowersDiv}</ul>
-                </div>
-              </div>
-            )}
 
-            {generalPowers.length > 0 && (
-              <div className='resultRow powers'>
-                <div
-                  className='powersNameRow'
-                  onClick={() => setGeneralPowersVisible(!generalPowersVisible)}
-                  onKeyDown={() =>
-                    setGeneralPowersVisible(!generalPowersVisible)
-                  }
-                  role='button'
-                  tabIndex={0}
-                >
-                  <ChevronRightIcon
-                    className={`powerIcon ${
-                      generalPowersVisible ? 'down' : 'normal'
-                    }`}
+                <div className='tableMobile'>
+                  <SpellsMobile
+                    spells={spells}
+                    spellPath={classe.spellPath}
+                    keyAttr={keyAttr}
+                    nivel={nivel}
                   />
-                  <strong>Poderes Gerais</strong>
-                </div>
-                <div
-                  style={{
-                    display: `${generalPowersVisible ? 'block' : 'none'}`,
-                  }}
-                >
-                  <ul>{generalPowersDiv}</ul>
                 </div>
               </div>
-            )}
-
-            {devoto && (
-              <div className='resultRow powers'>
-                <div
-                  className='powersNameRow'
-                  onClick={() => setGodPowersVisible(!isGodPowersVisible)}
-                  onKeyDown={() => setGodPowersVisible(!isGodPowersVisible)}
-                  role='button'
-                  tabIndex={0}
-                >
-                  <ChevronRightIcon
-                    className={`powerIcon ${
-                      isGodPowersVisible ? 'down' : 'normal'
-                    }`}
-                  />
-                  <strong>Habilidades de {devoto.divindade.name}</strong>
-                </div>
-                <div
-                  style={{
-                    display: `${isGodPowersVisible ? 'block' : 'none'}`,
-                  }}
-                >
-                  <ul>{poderesConcedidos}</ul>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className='spellsArea'>
-            <Divider isDarkMode={isDarkMode} direction='down' />
-            <div className='sectionTitle'>
-              <span>Magias</span>
             </div>
 
-            <div className={`tableWrap tableDesk ${isDarkMode ? 'dark' : ''}`}>
-              <Spells
-                spells={spells}
-                spellPath={classe.spellPath}
-                keyAttr={keyAttr}
-                nivel={nivel}
-              />
-            </div>
-
-            <div className='tableMobile'>
-              <SpellsMobile
-                spells={spells}
-                spellPath={classe.spellPath}
-                keyAttr={keyAttr}
-                nivel={nivel}
-              />
-            </div>
+            <div className='sheetRight'>{periciasDiv}</div>
           </div>
         </div>
       </div>

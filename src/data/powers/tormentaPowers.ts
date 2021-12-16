@@ -1,5 +1,6 @@
-import { cloneDeep } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import _, { cloneDeep } from 'lodash';
+
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -20,6 +21,32 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe +1 em Iniciativa, Percepção e Vontade. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (
+          sk.name === 'Iniciativa' ||
+          sk.name === 'Percepção' ||
+          sk.name === 'Vontade'
+        ) {
+          value += 1;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Antenas',
+        value: `Somando +1 em Iniciativa, Percepção e Vontade`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   ARMAMENTO_ABERRANTE: {
     name: 'Armamento Aberrante',
@@ -41,6 +68,32 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe +1 em Acrobacia, Furtividade e Reflexos. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (
+          sk.name === 'Acrobacia' ||
+          sk.name === 'Furtividade' ||
+          sk.name === 'Reflexos'
+        ) {
+          value += 1;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Articulações Flexíveis',
+        value: `Somando +1 em Acrobacia, Furtividade e Reflexos`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   ASAS_INSETOIDES: {
     name: 'Asas Insetoides',

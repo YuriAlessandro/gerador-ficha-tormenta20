@@ -1,5 +1,6 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import _, { cloneDeep, merge } from 'lodash';
+
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -97,11 +98,37 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   INVESTIGADOR: {
     name: 'Investigador',
     description:
-      'Você recebe +2 em Investigação e soma seu bônus de Inteligência em Intuição.',
+      'Você recebe +2 em Investigação (JÁ INCLUSO) e soma seu bônus de Inteligência em Intuição (JÁ INCLUSO).',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
     ],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const bnsInt = sheetClone.atributos.Inteligência.mod;
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Investigação') {
+          value += 2;
+        }
+
+        if (sk.name === 'Intuição') value += bnsInt;
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Investigador',
+        value: `+2 em Investigação e +${bnsInt} em Intuição.`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   LOBO_SOLITARIO: {
     name: 'Lobo Solitário',
@@ -153,11 +180,33 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   SENTIDOS_AGUCADOS: {
     name: 'Sentidos Aguçados',
     description:
-      'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha.',
+      'Você recebe +2 em Percepção (JÁ INCLUSO), não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
     ],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Percepção') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Sentidos Aguçados',
+        value: `Somando +2 em Percepção`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   SORTUDO: {
     name: 'Sortudo',
@@ -223,11 +272,33 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   VONTADE_DE_FERRO: {
     name: 'Vontade de Ferro',
     description:
-      'Você recebe +1 PM para cada dois níveis de personagem e +2 em Vontade.',
+      'Você recebe +1 PM para cada dois níveis de personagem (NÃO INCLUSO) e +2 em Vontade (INCLUSO).',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 }],
     ],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Vontade') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Vontade de Ferro',
+        value: `Somando +2 em Vontade`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
 };
 

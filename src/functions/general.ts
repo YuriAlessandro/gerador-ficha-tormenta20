@@ -73,7 +73,10 @@ import {
   PowersGetters,
 } from '../interfaces/Poderes';
 import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
-import Skill from '../interfaces/Skills';
+import Skill, {
+  SkillsAttrs,
+  SkillsWithArmorPenalty,
+} from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
 import roles from '../data/roles';
 import { RoleNames } from '../interfaces/Role';
@@ -837,7 +840,7 @@ function getAndApplyPowers(
 }
 
 function levelUp(sheet: CharacterSheet): CharacterSheet {
-  const updatedSheet = cloneDeep(sheet);
+  let updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
   let addPv =
@@ -865,6 +868,27 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   updatedSheet.pv = newPvTotal;
   updatedSheet.pm = newPmTotal;
 
+  // Recalcular valor das perícias
+  const skillTrainingMod = (trained: boolean, level: number) => {
+    if (!trained) return 0;
+
+    if (level >= 7 && level < 15) return 4;
+    if (level >= 15) return 6;
+
+    return 2;
+  };
+
+  const newCompleteSkills = updatedSheet.completeSkills?.map((sk) => ({
+    ...sk,
+    halfLevel: Math.floor(updatedSheet.nivel / 2),
+    training: skillTrainingMod(
+      Object.values(updatedSheet.skills).includes(sk.name),
+      updatedSheet.nivel
+    ),
+  }));
+
+  updatedSheet.completeSkills = newCompleteSkills;
+
   // Selecionar novas magias para esse nível (de acordo com o Spell Path)
   const newSpells = getNewSpells(
     updatedSheet.nivel,
@@ -889,12 +913,27 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
 
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
+      const nSubSteps: { name: string; value: string }[] = [];
+
       updatedSheet.classPowers.push(newPower);
 
-      subSteps.push({
-        name: `Novo poder de ${updatedSheet.classe.name}`,
-        value: newPower.name,
-      });
+      const newSheet = newPower.action?.(updatedSheet, nSubSteps);
+      if (newSheet) updatedSheet = newSheet;
+
+      if (nSubSteps.length) {
+        updatedSheet.steps.push({
+          type: 'Poderes',
+          label: `Novo poder de ${updatedSheet.classe.name}`,
+          value: nSubSteps,
+        });
+      } else {
+        subSteps.push({
+          name: `Novo poder de ${updatedSheet.classe.name}`,
+          value: newPower.name,
+        });
+      }
+
+      // subSteps.push(nSubSteps);
     }
   } else {
     // Escolha poder geral
@@ -1073,10 +1112,6 @@ export default function generateRandomSheet(
   };
 
   // Passo 9:
-  // Gerar poderes restantes, e aplicar habilidades, e poderes
-  charSheet = getAndApplyPowers(charSheet, powersGetters);
-
-  // Passo 10:
   // Gerar equipamento
   const classEquipments = getClassEquipments(classe);
   charSheet.bag.addEquipment(classEquipments);
@@ -1088,6 +1123,34 @@ export default function generateRandomSheet(
       value: equip.nome,
     })),
   });
+
+  // Calcular valor das perícias
+  charSheet.completeSkills = Object.values(Skill)
+    .map((skill) => {
+      const skillAttr = SkillsAttrs[skill];
+      const attr = atributos[(skillAttr as unknown) as Atributo];
+
+      const armorPenalty = SkillsWithArmorPenalty.includes(skill)
+        ? charSheet.bag.getArmorPenalty?.()
+        : 0;
+
+      return {
+        name: skill,
+        halfLevel: Math.floor(charSheet.nivel / 2),
+        training: Object.values(skills).includes(skill) ? 2 : 0,
+        modAttr: attr.mod,
+        others: armorPenalty > 0 ? armorPenalty * -1 : 0,
+      };
+    })
+    .filter(
+      (skill) =>
+        !skill.name.startsWith('Of') ||
+        (skill.name.startsWith('Of') && skill.training > 0)
+    );
+
+  // Passo 10:
+  // Gerar poderes restantes, e aplicar habilidades, e poderes
+  charSheet = getAndApplyPowers(charSheet, powersGetters);
 
   // Passo 11:
   // Recalcular defesa

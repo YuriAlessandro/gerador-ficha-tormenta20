@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -47,8 +49,30 @@ const BARBARO: ClassDescription = {
     {
       name: 'Instinto Selvagem',
       text:
-        'Você recebe +1 em Percepção e Reflexos. A cada seis níveis, esse bônus aumenta em +1.',
+        'Você recebe +1 em Percepção e Reflexos (JÁ CONTABILIZADO). A cada seis níveis, esse bônus aumenta em +1.',
       nivel: 3,
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Percepção' || sk.name === 'Reflexos') {
+            value += 1;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Mente Criminosa',
+          value: `Somando modificador de INT em Ladinagem e Furtividade`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Resistência a Dano',
@@ -73,7 +97,7 @@ const BARBARO: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       canRepeat: true,
       requirements: [],
     },
@@ -126,8 +150,20 @@ const BARBARO: ClassDescription = {
     {
       name: 'Fúria da Savana',
       text:
-        'Seu deslocamento aumenta em +3m. Quando usa Fúria, você aplica o bônus em ataque e dano também a armas de arremesso.',
+        'Seu deslocamento aumenta em +3m (JÁ CONTABILIZADO). Quando usa Fúria, você aplica o bônus em ataque e dano também a armas de arremesso.',
       requirements: [],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        substeps.push({
+          name: 'Fúria da Savana',
+          value: `+3 na Movimentação`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          displacement: sheetClone.displacement + 3,
+        });
+      },
     },
     {
       name: 'Fúria Raivosa',
@@ -166,7 +202,7 @@ const BARBARO: ClassDescription = {
     {
       name: 'Pele de Ferro',
       text:
-        'Você recebe +2 na Defesa, mas apenas se não estiver usando armadura pesada.',
+        'Você recebe +2 na Defesa, mas apenas se não estiver usando armadura pesada (NÃO CONTABILIZADO).',
       requirements: [],
     },
     {
@@ -184,13 +220,25 @@ const BARBARO: ClassDescription = {
     {
       name: 'Totem Espiritual',
       text:
-        'Você soma seu bônus de Sabedoria no seu total de pontos de mana. Escolha um animal totêmico (veja o quadro). Você pode lançar uma magia definida pelo animal escolhido (atributo-chave Sabedoria).',
+        'Você soma seu bônus de Sabedoria no seu total de pontos de mana (JÁ CONTABILIZADO). Escolha um animal totêmico (veja o quadro). Você pode lançar uma magia definida pelo animal escolhido (atributo-chave Sabedoria).',
       requirements: [
         [
           { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
           { type: RequirementType.NIVEL, value: 4 },
         ],
       ],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        substeps.push({
+          name: 'Totem Espiritual',
+          value: `Somando modificador de SAB no total de mana.`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm: sheet.pm + sheet.atributos.Sabedoria.mod,
+        });
+      },
     },
     {
       name: 'Vigor Primal',

@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -87,7 +89,7 @@ const LUTADOR: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
       canRepeat: true,
     },
@@ -188,10 +190,35 @@ const LUTADOR: ClassDescription = {
     {
       name: 'Sarado',
       text:
-        'ocê soma seu bônus de Força no seu total de pontos de vida e em testes de Fortitude. A critério do mestre, você pode chamar a atenção de pessoas que se atraiam por físicos bem definidos.',
+        'Você soma seu bônus de Força no seu total de pontos de vida e em testes de Fortitude (JÁ CONTABIBLIZADO). A critério do mestre, você pode chamar a atenção de pessoas que se atraiam por físicos bem definidos.',
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 17 }],
       ],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const modFor = sheetClone.atributos.Força.mod;
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Fortitude') {
+            value += modFor;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Sarado',
+          value: `Somando mod. FOR na PV e em Fortitude`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+          pv: sheetClone.pv + modFor,
+        });
+      },
     },
     {
       name: 'Sequência Destruidora',

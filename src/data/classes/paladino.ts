@@ -124,7 +124,7 @@ const PALADINO: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
       canRepeat: true,
     },
@@ -220,7 +220,7 @@ const PALADINO: ClassDescription = {
     {
       name: 'Orar',
       text:
-        'Você aprende e pode lançar uma magia divina de 1º círculo a sua escolha. Seu atributo-chave para esta magia é Sabedoria. Você pode escolher este poder quantas vezes quiser.',
+        'Você aprende e pode lançar uma magia divina de 1º círculo a sua escolha (NÃO CONTABILIZADO). Seu atributo-chave para esta magia é Sabedoria. Você pode escolher este poder quantas vezes quiser.',
       requirements: [],
       canRepeat: true,
     },

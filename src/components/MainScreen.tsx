@@ -6,6 +6,9 @@ import Select from 'react-select';
 import Fade from '@material-ui/core/Fade';
 import { Link } from 'react-router-dom';
 import { formatGroupLabel } from 'react-select/src/builtins';
+import Checkbox from '@material-ui/core/Checkbox';
+import { FormControlLabel } from '@material-ui/core';
+import CreatableSelect from 'react-select/creatable';
 import RACAS from '../data/racas';
 import CLASSES from '../data/classes';
 import SelectOptions from '../interfaces/SelectedOptions';
@@ -21,6 +24,7 @@ import { HistoricI } from '../interfaces/Historic';
 import Historic from './Historic';
 import { ORIGINS } from '../data/origins';
 import { allDivindadeNames } from '../interfaces/Divindade';
+import SimpleResult from './SimpleResult';
 
 const useStyles = makeStyles(() => ({
   button: {
@@ -62,6 +66,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     origin: '',
     devocao: { label: 'Aleatória', value: '' },
   });
+
+  const [simpleSheet, setSimpleSheet] = React.useState(false);
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showPresentation, setShowPresentation] = React.useState(true);
@@ -152,7 +158,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   for (let index = 1; index < 21; index += 1) {
     niveis.push({
-      value: (index as unknown) as string,
+      value: index as unknown as string,
       label: `Nível ${index}`,
     });
   }
@@ -187,125 +193,148 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     </div>
   );
 
+  const sheetComponent =
+    randomSheet &&
+    (simpleSheet ? (
+      <SimpleResult isDarkMode={isDarkMode} sheet={randomSheet} />
+    ) : (
+      <Result sheet={randomSheet} isDarkMode={isDarkMode} />
+    ));
+
   return (
     <div id='main-screen'>
       <div className='filterArea'>
-        <Select
-          className='filterSelect'
-          options={[{ value: '', label: 'Todas as raças' }, ...racas]}
-          placeholder='Todas as raças'
-          onChange={onSelectRaca}
-          style={{ background: 'blue' }}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+        <div className='filtersRow'>
+          <Select
+            className='filterSelect'
+            options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+            placeholder='Todas as raças'
+            onChange={onSelectRaca}
+            style={{ background: 'blue' }}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        <Select
-          className='filterSelect'
-          options={[
-            {
-              label: 'Classes',
-              options: [
-                { value: '', label: 'Todas as Classes' },
-                ...classesopt,
-              ],
-            },
-            {
-              label: 'Roles',
-              options: [{ value: '', label: 'Todas as Roles' }, ...rolesopt],
-            },
-          ]}
-          placeholder='Todas as Classes e Roles'
-          formatGroupLabel={fmtGroupLabel}
-          onChange={onSelectClasse}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+          <Select
+            className='filterSelect'
+            options={[
+              {
+                label: 'Classes',
+                options: [
+                  { value: '', label: 'Todas as Classes' },
+                  ...classesopt,
+                ],
+              },
+              {
+                label: 'Roles',
+                options: [{ value: '', label: 'Todas as Roles' }, ...rolesopt],
+              },
+            ]}
+            placeholder='Todas as Classes e Roles'
+            formatGroupLabel={fmtGroupLabel}
+            onChange={onSelectClasse}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        <Select
-          className='filterSelect'
-          placeholder='Todas as Origens'
-          options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
-          isSearchable
-          onChange={onSelectOrigin}
-          isDisabled={selectedOptions.raca === 'Golem'}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+          <Select
+            className='filterSelect'
+            placeholder='Todas as Origens'
+            options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
+            isSearchable
+            onChange={onSelectOrigin}
+            isDisabled={selectedOptions.raca === 'Golem'}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        <Select
-          className='filterSelect'
-          placeholder='Todas as Divindades'
-          options={[
-            {
-              label: '',
-              options: [
-                { value: '', label: 'Padrão' },
-                { value: '**', label: 'Qualquer divindade' },
-                { value: '--', label: 'Não devoto' },
-              ],
-            },
-            {
-              label: `Divindades Permitidas (${
-                selectedOptions.classe || 'Todas as Classes'
-              })`,
-              options: divindades,
-            },
-          ]}
-          isSearchable
-          value={selectedOptions.devocao}
-          onChange={inSelectDivindade}
-          // value={selectedOptions.devocao}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+          <Select
+            className='filterSelect'
+            placeholder='Todas as Divindades'
+            options={[
+              {
+                label: '',
+                options: [
+                  { value: '', label: 'Padrão' },
+                  { value: '**', label: 'Qualquer divindade' },
+                  { value: '--', label: 'Não devoto' },
+                ],
+              },
+              {
+                label: `Divindades Permitidas (${
+                  selectedOptions.classe || 'Todas as Classes'
+                })`,
+                options: divindades,
+              },
+            ]}
+            isSearchable
+            value={selectedOptions.devocao}
+            onChange={inSelectDivindade}
+            // value={selectedOptions.devocao}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        <Select
-          className='filterSelect'
-          placeholder='Nível 1'
-          options={niveis}
-          isSearchable
-          onChange={onSelectNivel}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+          <CreatableSelect
+            className='filterSelect'
+            placeholder='Nível 1'
+            options={niveis}
+            isSearchable
+            formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
+            onChange={onSelectNivel}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        <Button
-          variant='contained'
-          onClick={onClickGenerate}
-          className={classes.button}
-        >
-          Gerar Ficha
-        </Button>
+          <FormControlLabel
+            control={
+              <Checkbox
+                value={simpleSheet}
+                onChange={() => setSimpleSheet(!simpleSheet)}
+              />
+            }
+            label='Ficha simplificada'
+          />
+        </div>
 
-        <Button
-          variant='contained'
-          onClick={onClickShowHistoric}
-          className={classes.button}
-          style={{ marginLeft: '10px' }}
-        >
-          Ver histórico
-        </Button>
+        <div className='buttonsRow'>
+          <Button
+            variant='contained'
+            onClick={onClickGenerate}
+            className={classes.button}
+          >
+            Gerar Ficha
+          </Button>
+
+          <Button
+            variant='contained'
+            onClick={onClickShowHistoric}
+            className={classes.button}
+            style={{ marginLeft: '10px' }}
+          >
+            Ver histórico
+          </Button>
+        </div>
       </div>
 
       <Fade in={showPresentation}>
@@ -363,9 +392,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         </div>
       </Fade>
 
-      {randomSheet && !showHistoric && (
-        <Result sheet={randomSheet} isDarkMode={isDarkMode} />
-      )}
+      {randomSheet && !showHistoric && sheetComponent}
 
       {showHistoric && (
         <Historic isDarkTheme={isDarkMode} onClickSeeSheet={onClickSeeSheet} />

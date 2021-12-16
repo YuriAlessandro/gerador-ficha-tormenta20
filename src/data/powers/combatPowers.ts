@@ -1,7 +1,8 @@
-import { cloneDeep, merge } from 'lodash';
+import _, { cloneDeep, merge } from 'lodash';
+
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
 
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -13,7 +14,7 @@ const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {
     name: 'Acuidade com Arma',
     description:
-      'Quando usa uma arma leve de corpo a corpo uma arma de arremesso, você pode usar seu modificador de Destreza em vez de Força nos testes de ataque e rolagens de dano.',
+      'Quando usa uma arma leve  de corpo a corpo uma arma de arremesso, você pode usar seu modificador de Destreza em vez de Força nos testes de ataque e rolagens de dano.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 13 }],
@@ -411,9 +412,31 @@ const combatPowers: Record<string, GeneralPower> = {
   SAQUE_RAPIDO: {
     name: 'Saque Rápido',
     description:
-      'Você recebe +2 em Iniciativa e pode sacar ou guardar itens como uma ação livre (em vez de ação de movimento). Além disso, a ação que você gasta para recarregar uma arma de disparo diminui em uma categoria (ação completa para padrão, padrão para movimento, movimento para livre).',
+      'Você recebe +2 em Iniciativa (JÁ CONTABILIZADO) e pode sacar ou guardar itens como uma ação livre (em vez de ação de movimento). Além disso, a ação que você gasta para recarregar uma arma de disparo diminui em uma categoria (ação completa para padrão, padrão para movimento, movimento para livre).',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Iniciativa' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Iniciativa') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Saque Rápido',
+        value: `Somando +2 em Iniciativa`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   TRESPASSAR: {
     name: 'Trespassar',

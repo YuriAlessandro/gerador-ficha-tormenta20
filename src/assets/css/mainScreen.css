@@ -1,18 +1,30 @@
 /* MainScreen */
 .filterArea {
   display: flex;
+  flex-direction: column;
   margin: 30px 30px 30px 25px;
+}
+
+.filtersRow {
+  display: flex;
+  width: 60%;
+  flex-wrap: wrap;
+}
+
+.buttonsRow {
+  margin-top: 10px;
 }
 
 .filterSelect {
   width: 300px;
   margin-right: 10px;
+  margin-top: 5px;
 }
 
 .exportBtn {
-  background: none!important;
+  background: none !important;
   border: none;
-  padding: 0!important;
+  padding: 0 !important;
   font-family: arial, sans-serif;
   color: #069;
   text-decoration: underline;

@@ -184,7 +184,7 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Conhecimento Mágico',
       text:
-        'Você aprende duas magias de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
+        'Você aprende duas magias de qualquer círculo que possa lançar (NÃO INCLUÍDO). Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
       requirements: [],
     },

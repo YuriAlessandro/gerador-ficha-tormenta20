@@ -104,19 +104,41 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aspecto da Primavera',
       text:
-        'Você recebe +1 em Carisma e suas magias de cura curam +1 PV por dado. Durante a primavera, suas magias de druida custam −1 PM.',
+        'Você recebe +1 em Carisma (NÃO CONTABILIZADO) e suas magias de cura curam +1 PV por dado. Durante a primavera, suas magias de druida custam −1 PM.',
       requirements: [[]],
     },
     {
       name: 'Aspecto do Verão',
       text:
-        'Você recebe +2 em Iniciativa e pode gastar 1 PM para cobrir suas armas ou armas naturais com chamas, causando +1d6 pontos de dano de fogo até o fim da cena. Durante o verão, suas magias de druida custam −1 PM.',
+        'Você recebe +2 em Iniciativa (JÁ CONTABILIZADO) e pode gastar 1 PM para cobrir suas armas ou armas naturais com chamas, causando +1d6 pontos de dano de fogo até o fim da cena. Durante o verão, suas magias de druida custam −1 PM.',
       requirements: [[]],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Iniciativa') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Aspecto do Verão',
+          value: `+2 em Iniciativa`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [[]],
       canRepeat: true,
     },
@@ -174,8 +196,31 @@ const DRUIDA: ClassDescription = {
     },
     {
       name: 'Coração da Selva',
-      text: 'Você recebe +2 em Fortitude e se torna imune a venenos.',
+      text:
+        'Você recebe +2 em Fortitude (JÁ CONTABILIZADO) e se torna imune a venenos.',
       requirements: [[]],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Fortitude') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Coração da Selva',
+          value: `+2 em Fortitude`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Espírito dos Equinócios',
@@ -204,8 +249,30 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Força dos Penhascos',
       text:
-        'Você recebe +2 em Fortitude. Se estiver pisando em rocha sólida, pode gastar 1 PM e uma reação para receber RD 10 contra um ataque.',
+        'Você recebe +2 em Fortitude (JÁ CONTABILIZADO). Se estiver pisando em rocha sólida, pode gastar 1 PM e uma reação para receber RD 10 contra um ataque.',
       requirements: [[]],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Fortitude') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Força dos Penhascos',
+          value: `Somando +2 em Fortitude`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Forma Primal',
@@ -228,8 +295,30 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Liberdade da Pradaria',
       text:
-        'Você recebe +2 em Reflexos. Se estiver ao ar livre, você pode gastar 1 PM sempre que lançar uma magia para aumentar o alcance dela em um passo (de toque para curto, de curto para médio etc.).',
+        'Você recebe +2 em Reflexos (JÁ CONTABILIZADO). Se estiver ao ar livre, você pode gastar 1 PM sempre que lançar uma magia para aumentar o alcance dela em um passo (de toque para curto, de curto para médio etc.).',
       requirements: [[]],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Reflexos') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Liberdade da Pradaria',
+          value: `Somando +2 em Reflexos`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Magia Natural',
@@ -256,8 +345,30 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Tranquilidade dos Lagos',
       text:
-        'Você recebe +2 em Vontade. Se estiver em alcance médio de um lago, rio ou equivalente, pode gastar 1 PM uma vez por rodada para repetir um teste de resistência recém realizado.',
+        'Você recebe +2 em Vontade (JÁ CONTABILIZADO). Se estiver em alcance médio de um lago, rio ou equivalente, pode gastar 1 PM uma vez por rodada para repetir um teste de resistência recém realizado.',
       requirements: [[]],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Vontade') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Tranquilidade dos Lagos',
+          value: `Somando +2 em Vontade`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
   ],
   probDevoto: 1,

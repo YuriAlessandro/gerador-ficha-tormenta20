@@ -1,6 +1,7 @@
-import { cloneDeep, merge } from 'lodash';
+import _, { cloneDeep, merge } from 'lodash';
+
 import { getRandomItemFromArray } from '../../functions/randomUtils';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -47,9 +48,31 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   ASTUCIA_DA_SERPENTE: {
     name: 'Astúcia da Serpente',
-    description: 'Você recebe +2 em Enganação e Intuição.',
+    description: 'Você recebe +2 em Enganação e Intuição (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Enganação' || sk.name === 'Intuição') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Astúcia da Serpente',
+        value: `Somando +2 em Enganação e Intuição`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   ATAQUE_PIEDOSO: {
     name: 'Ataque Piedoso',
@@ -218,7 +241,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   DEDO_VERDE: {
     name: 'Dedo Verde',
-    description: 'Você aprende e pode lançar Controlar Plantas.',
+    description: 'Você aprende e pode lançar Controlar Plantas (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
     action(
@@ -350,7 +373,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   FARSA_DO_FINGIDOR: {
     name: 'Farsa do Fingidor',
-    description: 'Você aprende e pode lançar Criar Ilusão.',
+    description: 'Você aprende e pode lançar Criar Ilusão (JÁ INCLUSO).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
     action(
@@ -389,6 +412,28 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 em Enganação e Ladinagem.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Enganação' || sk.name === 'Ladinagem') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Golpista Divino',
+        value: `Somando +2 em Enganação e Ladinagem`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   HABITANTE_DO_DESERTO: {
     name: 'Habitante do Deserto',
@@ -445,12 +490,56 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 em Intuição e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Intuição' || sk.name === 'Vontade') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Mente Analítica',
+        value: `Somando +2 em Intuição e Vontade`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   MENTE_VAZIA: {
     name: 'Mente Vazia',
     description: 'Você recebe +2 em Iniciativa e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Iniciativa' || sk.name === 'Vontade') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Mente Vazia',
+        value: `Somando +2 em Iniciativa e Vontade`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   MESTRE_DOS_MARES: {
     name: 'Mestre dos Mares',
@@ -567,6 +656,28 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 em Atuação e Diplomacia.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === 'Atuação' || sk.name === 'Diplomacia') {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Talento Artístico',
+        value: `Somando +2 em Atuação e Diplomacia`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   TEURGISTA_MISTICO: {
     name: 'Teurgista Místico',

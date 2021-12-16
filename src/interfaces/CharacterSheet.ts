@@ -4,7 +4,7 @@ import Race, { RaceSize } from './Race';
 import Bag from './Bag';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
-import Skill from './Skills';
+import Skill, { CompleteSkill } from './Skills';
 
 export default interface CharacterSheet {
   id: string;
@@ -34,6 +34,7 @@ export default interface CharacterSheet {
   classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;
+  completeSkills?: CompleteSkill[];
 }
 
 export interface Step {

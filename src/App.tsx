@@ -7,6 +7,11 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
 import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
+import {
+  FormControlLabel,
+  FormGroup,
+  Switch as SwitchMUI,
+} from '@material-ui/core';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
@@ -20,8 +25,9 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    flexGrow: 1,
   },
   input: {
     color: 'rgb(209, 50, 53)',
@@ -105,6 +111,20 @@ function App(): JSX.Element {
                 <Typography variant='h6' className={classes.title}>
                   <p>Fichas de Nimb</p>
                 </Typography>
+                <FormGroup>
+                  <FormControlLabel
+                    labelPlacement='end'
+                    control={
+                      <SwitchMUI
+                        checked={isDarkTheme}
+                        onChange={onChangeTheme}
+                        color='default'
+                        value='dark'
+                      />
+                    }
+                    label='Tema Escuro'
+                  />
+                </FormGroup>
               </Toolbar>
             </AppBar>
           </header>

@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -97,7 +99,7 @@ const NOBRE: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
       canRepeat: true,
     },
@@ -109,7 +111,8 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Educação Privilegiada',
-      text: 'Você se torna treinado em duas perícias de nobre a sua escolha.',
+      text:
+        'Você se torna treinado em duas perícias de nobre a sua escolha (NÃO CONTABILIZADO).',
       requirements: [],
     },
     {
@@ -243,6 +246,28 @@ const NOBRE: ClassDescription = {
       text:
         'Você recebe +2 em Diplomacia e Intimidação. Suas habilidades de nobre com alcance curto passam para alcance médio.',
       requirements: [],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Diplomacia' || sk.name === 'Intimidação') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Voz Poderosa',
+          value: `+2 em Diplomacia e Intimidação`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
   ],
   probDevoto: 0.3,

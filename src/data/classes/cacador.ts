@@ -1,3 +1,5 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -54,8 +56,30 @@ const CACADOR: ClassDescription = {
     {
       name: 'Rastreador',
       text:
-        'Você recebe +2 em Sobrevivência. Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência.',
+        'Você recebe +2 em Sobrevivência (JÁ CONTABILIZADO). Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência.',
       nivel: 1,
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Sobrevivência') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Rastreador',
+          value: `+2 em Sobrevivência`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Explorador',
@@ -120,7 +144,7 @@ const CACADOR: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
       canRepeat: true,
     },
@@ -155,9 +179,8 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Companheiro Animal',
-      text:
-        'Você recebe um companheiro animal. Veja o quadro na página 62. Pré-requisito: treinado em Adestramento.',
-      requirements: [],
+      text: 'Você recebe um companheiro animal. Veja o quadro na página 62.',
+      requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
     },
     {
       name: 'Elo com a Natureza',

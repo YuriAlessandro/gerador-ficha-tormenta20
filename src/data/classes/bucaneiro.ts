@@ -1,3 +1,6 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
+
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -66,7 +69,7 @@ const BUCANEIRO: ClassDescription = {
     {
       name: 'Esquiva Sagaz',
       text:
-        'Você recebe +1 na Defesa. Esse bônus aumenta em +1 a cada quatro níveis. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
+        'Você recebe +1 na Defesa (NÃO CONTABILIZADO). Esse bônus aumenta em +1 a cada quatro níveis. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 3,
     },
     {
@@ -129,7 +132,7 @@ const BUCANEIRO: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [],
       canRepeat: true,
     },
@@ -190,19 +193,63 @@ const BUCANEIRO: ClassDescription = {
       text:
         'Você está acostumado à superfície oscilante do convés. Você recebe +2 em Acrobacia e Atletismo e não fica desprevenido quando está se equilibrando ou escalando.',
       requirements: [],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Acrobacia' || sk.name === 'Atletismo') {
+            value += 2;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Pernas do Mar',
+          value: `+2 em Acrobacia e Atletismo`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Pistoleiro',
       text:
-        'Você recebe proficiência com armas de fogo e +2 nas rolagens de dano com essas armas.',
+        'Você recebe proficiência com armas de fogo e +2 nas rolagens de dano com essas armas (NÃO CONTABILIZADO).',
       requirements: [],
     },
     {
       name: 'Presença Paralisante',
-      text: 'Você soma seu bônus de Carisma em Iniciativa.',
+      text: 'Você soma seu bônus de Carisma em Iniciativa (JÁ CONTABILIZADO).',
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
       ],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+          let value = sk.others ?? 0;
+
+          if (sk.name === 'Percepção' || sk.name === 'Reflexos') {
+            value += sheetClone.atributos.Carisma.mod;
+          }
+
+          return { ...sk, others: value };
+        });
+
+        substeps.push({
+          name: 'Presença Paralisante',
+          value: `Somando modificador de CAR em Percepção e Reflexos`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          completeSkills: newCompleteSkills,
+        });
+      },
     },
     {
       name: 'Ripostar',

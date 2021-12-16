@@ -44,13 +44,13 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Protótipo',
       text:
-        'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
+        'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos (NÃO CONTABILIZADO), com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
       nivel: 1,
     },
     {
       name: 'Fabricar Item Superior',
       text:
-        'No 2º nível, você recebe um item superior com preço de até T$ 2.000 e passa a poder fabricar itens superiores com uma modificação. Veja o Capítulo 3: Equipamento para a lista de modificações.\nNos níveis 4, 6, 8, 10 e 12, você pode substituir esse item por um item superior com duas, três, quatro, cinco e seis modificações, respectivamente, e passa a poder fabricar itens superiores com essa quantidade de modificações. O item do 4º nível tem limite de preço de T$ 5.000. Os demais itens não possuem limitação de preço.\nConsidera-se que você estava trabalhando nos itens e você não gasta dinheiro ou tempo neles (mas gasta em itens que fabricar futuramente).',
+        'No 2º nível, você recebe um item superior com preço de até T$ 2.000 (NÃO CONTABILIZADO) e passa a poder fabricar itens superiores com uma modificação. Veja o Capítulo 3: Equipamento para a lista de modificações.\nNos níveis 4, 6, 8, 10 e 12, você pode substituir esse item por um item superior com duas, três, quatro, cinco e seis modificações, respectivamente, e passa a poder fabricar itens superiores com essa quantidade de modificações. O item do 4º nível tem limite de preço de T$ 5.000. Os demais itens não possuem limitação de preço.\nConsidera-se que você estava trabalhando nos itens e você não gasta dinheiro ou tempo neles (mas gasta em itens que fabricar futuramente).',
       nivel: 2,
     },
     {
@@ -122,7 +122,7 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Armeiro',
       text:
-        'Você recebe proficiência com armas marciais corpo a corpo. Quando usa uma arma corpo a corpo, pode usar seu modificador de Inteligência em vez de Força nos testes de ataque e rolagens de dano.',
+        'Você recebe proficiência com armas marciais corpo a corpo (NÃO CONTABILIZADO). Quando usa uma arma corpo a corpo, pode usar seu modificador de Inteligência em vez de Força nos testes de ataque e rolagens de dano.',
       requirements: [
         [
           { type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO },
@@ -144,7 +144,7 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text:
-        'Você recebe +2 em um atributo a sua escolha. Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+        'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
       requirements: [[]],
       canRepeat: true,
     },
@@ -168,7 +168,7 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Balística',
       text:
-        'Você recebe proficiência com armas marciais de ataque à distância ou com armas de fogo. Quando usa uma arma de ataque à distância, pode usar seu modificador de Inteligência em vez de Destreza nos testes de ataque (e, caso possua o poder Estilo de Disparo, nas rolagens de dano).',
+        'Você recebe proficiência com armas marciais de ataque à distância ou com armas de fogo (NÃO CONTABILIZADO). Quando usa uma arma de ataque à distância, pode usar seu modificador de Inteligência em vez de Destreza nos testes de ataque (e, caso possua o poder Estilo de Disparo, nas rolagens de dano).',
       requirements: [
         [
           { type: RequirementType.PERICIA, name: 'Pontaria' },
