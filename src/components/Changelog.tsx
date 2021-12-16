@@ -24,6 +24,16 @@ const Changelog: React.FC = () => (
 
     <h3>2.3.0</h3>
     <ul>
+      <li>
+        Agora é possível gerar fichas de <strong>qualquer nível</strong>. Basta
+        escrever o número e selecionar ele.
+      </li>
+      <ul>
+        <li>
+          É possível que a geração de fichas de níveis MUITO ALTOS cause bugs. O
+          projeto não dará suporte para bugs na geração de níveis acima de 20.
+        </li>
+      </ul>
       <li>Todas as perícias agora estão disponíveis com os valores somados.</li>
       <ul>
         <li>
