@@ -4,7 +4,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 15/12/2021.
+      Segue a lista de mudanças no projeto. Última atualização em 13/11/2022.
     </p>
 
     <p>
@@ -21,6 +21,18 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.3.1</h3>
+    <ul>
+      <li>
+        Na <strong>Ficha Simplificada</strong>, estavam faltando os poderes de
+        classe e de origem. Esse problema foi corrigido. (Obrigado{' '}
+        <a href='https://www.reddit.com/r/Tormenta/comments/rher2h/atualiza%C3%A7%C3%B5es_do_projeto_fichas_de_nimb_gerador_de/hsg19ol/'>
+          @EfficientDrink4367
+        </a>
+        ).
+      </li>
+    </ul>
 
     <h3>2.3.0</h3>
     <ul>
