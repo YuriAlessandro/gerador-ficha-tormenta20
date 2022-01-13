@@ -14,6 +14,7 @@ import ForumIcon from '@material-ui/icons/Forum';
 import CloseIcon from '@material-ui/icons/Close';
 import CodeIcon from '@material-ui/icons/Code';
 import NotesIcon from '@material-ui/icons/Notes';
+import AttachMoney from '@material-ui/icons/AttachMoney';
 import Slide from '@material-ui/core/Slide';
 import { FormControlLabel, FormGroup, Switch } from '@material-ui/core';
 
@@ -56,6 +57,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const onClickHome = () => {
     history.push('/');
+    onCloseSidebar();
+  };
+
+  const onClickRewards = () => {
+    history.push('/recompensas');
     onCloseSidebar();
   };
 
@@ -108,6 +114,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <HomeIcon className={classes.link} />
             </ListItemIcon>
             <Typography variant='inherit'>Inicio</Typography>
+          </MenuItem>
+          <MenuItem onClick={onClickRewards} className={classes.menuItem}>
+            <ListItemIcon>
+              <AttachMoney className={classes.link} />
+            </ListItemIcon>
+            <Typography variant='inherit'>Recompensas</Typography>
           </MenuItem>
           <MenuItem
             className={classes.menuItem}

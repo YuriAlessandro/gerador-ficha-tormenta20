@@ -6,12 +6,14 @@ import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import { makeStyles } from '@material-ui/core/styles';
-import { BrowserRouter as HashRouter, Switch, Route } from 'react-router-dom';
+import { Switch, Route, useHistory } from 'react-router-dom';
 import {
   FormControlLabel,
   FormGroup,
   Switch as SwitchMUI,
 } from '@material-ui/core';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/MainScreen';
 import Changelog from './components/Changelog';
@@ -56,9 +58,27 @@ function App(): JSX.Element {
   const classes = useStyles();
 
   const ls = localStorage;
+  const history = useHistory();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const [isDarkTheme, setIsDarkTheme] = React.useState(false);
+  const [tabValue, setTabValue] = React.useState(0);
+
+  const handleChangeTabValue = (pathname: string) => {
+    if (pathname === '/') setTabValue(0);
+    if (pathname === '/recompensas') setTabValue(1);
+    if (pathname === '/changelog') setTabValue(4);
+  };
+
+  history.listen((location) => {
+    const { pathname } = location;
+    handleChangeTabValue(pathname);
+  });
+
+  useEffect(() => {
+    const pathname = window.location.href.split('#')[1];
+    handleChangeTabValue(pathname);
+  }, []);
 
   const onClickMenu = () => {
     setSidebarVisibility(true);
@@ -83,67 +103,94 @@ function App(): JSX.Element {
     setIsDarkTheme(darkMod);
   }, []);
 
+  const handleTabChange = (_event: unknown, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  const onClickTab = (tab: number, link: string) => {
+    setTabValue(tab);
+    history.push(`/${link}`);
+  };
+
   return (
     <div
       className='App'
       data-testid='app-component'
       style={isDarkTheme ? darkTheme : lightTheme}
     >
-      <HashRouter basename='/gerador-ficha-tormenta20/#'>
-        <div className='mainApp'>
-          <header className='App-header'>
-            <Sidebar
-              visible={sidebarVisibility}
-              onCloseSidebar={onCloseSidebar}
-              isDarkTheme={isDarkTheme}
-              onChangeTheme={onChangeTheme}
-            />
-            <AppBar position='static' className={classes.appbar}>
-              <Toolbar>
-                <IconButton
-                  onClick={onClickMenu}
-                  edge='start'
-                  className={classes.menuButton}
-                  color='inherit'
-                  aria-label='menu'
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography variant='h6' className={classes.title}>
-                  <p>Fichas de Nimb</p>
-                </Typography>
-                <FormGroup>
-                  <FormControlLabel
-                    labelPlacement='end'
-                    control={
-                      <SwitchMUI
-                        checked={isDarkTheme}
-                        onChange={onChangeTheme}
-                        color='default'
-                        value='dark'
-                      />
-                    }
-                    label='Tema Escuro'
-                  />
-                </FormGroup>
-              </Toolbar>
-            </AppBar>
-          </header>
-          <div className='mainArea'>
-            <Switch>
-              <Route path='/changelog'>
-                <Changelog />
-              </Route>
-              <Route path='/recompensas'>
-                <Rewards />
-              </Route>
-              <Route>
-                <MainScreen isDarkMode={isDarkTheme} />
-              </Route>
-            </Switch>
-          </div>
+      <div className='mainApp'>
+        <header className='App-header'>
+          <Sidebar
+            visible={sidebarVisibility}
+            onCloseSidebar={onCloseSidebar}
+            isDarkTheme={isDarkTheme}
+            onChangeTheme={onChangeTheme}
+          />
+          <AppBar position='static' className={classes.appbar}>
+            <Toolbar>
+              <IconButton
+                onClick={onClickMenu}
+                edge='start'
+                className={classes.menuButton}
+                color='inherit'
+                aria-label='menu'
+              >
+                <MenuIcon />
+              </IconButton>
+              <Typography variant='h6' className={classes.title}>
+                <p>Fichas de Nimb</p>
+              </Typography>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                aria-label='Menu superior'
+                style={{ flexGrow: 1 }}
+                variant='scrollable'
+                className='topTabs'
+              >
+                <Tab label='Fichas' onClick={() => onClickTab(0, '')} />
+                <Tab
+                  label='Recompensas'
+                  onClick={() => onClickTab(1, 'recompensas')}
+                />
+                <Tab label='Itens Superiores' disabled />
+                <Tab label='Itens Mágicos' disabled />
+                <Tab
+                  label='Changelog'
+                  onClick={() => onClickTab(4, 'changelog')}
+                />
+              </Tabs>
+              <FormGroup>
+                <FormControlLabel
+                  labelPlacement='end'
+                  control={
+                    <SwitchMUI
+                      checked={isDarkTheme}
+                      onChange={onChangeTheme}
+                      color='default'
+                      value='dark'
+                    />
+                  }
+                  label='Tema Escuro'
+                />
+              </FormGroup>
+            </Toolbar>
+          </AppBar>
+        </header>
+        <div className='mainArea'>
+          <Switch>
+            <Route path='/changelog'>
+              <Changelog />
+            </Route>
+            <Route path='/recompensas'>
+              <Rewards />
+            </Route>
+            <Route>
+              <MainScreen isDarkMode={isDarkTheme} />
+            </Route>
+          </Switch>
         </div>
-      </HashRouter>
+      </div>
       <footer id='bottom'>
         <div>
           <p>

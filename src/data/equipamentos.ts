@@ -6,6 +6,42 @@ import Equipment, {
 } from '../interfaces/Equipment';
 
 export const Armas: Record<string, Equipment> = {
+  BALAS: {
+    nome: 'Balas (20)',
+    dano: '-',
+    critico: '-',
+    peso: 0.5,
+    tipo: '-',
+    alcance: '-',
+    group: 'Arma',
+  },
+  FLECHAS: {
+    nome: 'Flechas (20)',
+    dano: '-',
+    critico: '-',
+    peso: 0.5,
+    tipo: '-',
+    alcance: '-',
+    group: 'Arma',
+  },
+  MUNICAO: {
+    nome: 'Munição (20)',
+    dano: '-',
+    critico: '-',
+    peso: 0.5,
+    tipo: '-',
+    alcance: '-',
+    group: 'Arma',
+  },
+  VIROTES: {
+    nome: 'Virotes (20)',
+    dano: '-',
+    critico: '-',
+    peso: 0.5,
+    tipo: '-',
+    alcance: '-',
+    group: 'Arma',
+  },
   ADAGA: {
     nome: 'Adaga',
     dano: '1d4',
@@ -21,6 +57,15 @@ export const Armas: Record<string, Equipment> = {
     critico: '19',
     peso: 1,
     tipo: 'Perf.',
+    alcance: '-',
+    group: 'Arma',
+  },
+  ESPADA_LONGA: {
+    nome: 'Espada Longa',
+    dano: '1d8',
+    critico: '19',
+    peso: 2,
+    tipo: 'Corte',
     alcance: '-',
     group: 'Arma',
   },
@@ -393,6 +438,20 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     peso: 25,
     group: 'Armadura',
   },
+  ARMADURA_ACOLCHOADA: {
+    nome: 'Armadura Acolchoada',
+    defenseBonus: 1,
+    armorPenalty: 0,
+    peso: 5,
+    group: 'Armadura',
+  },
+  COURACA: {
+    nome: 'Couraça',
+    defenseBonus: 5,
+    armorPenalty: 4,
+    peso: 15,
+    group: 'Armadura',
+  },
 };
 
 export const Escudos: Record<string, DefenseEquipment> = {
@@ -444,6 +503,7 @@ const EQUIPAMENTOS: CombatItems = {
     Armas.LANCA_MONTADA,
     Armas.MACHADO_DE_GUERRA,
     Armas.MONTANTE,
+    Armas.ESPADA_LONGA,
   ],
   armasExoticas: [
     Armas.CHICOTE,
@@ -455,9 +515,11 @@ const EQUIPAMENTOS: CombatItems = {
     Armas.REDE,
   ],
   armadurasLeves: [
+    Armaduras.ARMADURA_ACOLCHOADA,
     Armaduras.ARMADURADECOURO,
     Armaduras.COUROBATIDO,
     Armaduras.GIBAODEPELES,
+    Armaduras.COURACA,
   ],
   armaduraPesada: [
     Armaduras.BRUNEA,
