@@ -119,24 +119,56 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
         ))}
       </div>
       <div className='simpleSheetDivisor' />
+      {/* Poderes de Raça */}
       {sheet.raca.abilities?.map((power) => (
         <div key={getKey(power.name)}>
           <span className='simpleSheetText'>{power.name}: </span>
           {power.description}
         </div>
       ))}
+      <div className='simpleSheetDivisor' />
+      {/* Habilidades de Classe */}
       {sheet.classe.abilities?.map((power) => (
         <div key={getKey(power.name)}>
           <span className='simpleSheetText'>{power.name}: </span>
           {power.text}
         </div>
       ))}
+      {/* Poderes de Classe */}
+      <div className='simpleSheetDivisor' />
+      {sheet.classPowers?.map((power) => (
+        <div key={getKey(power.name)}>
+          <span className='simpleSheetText'>{power.name}: </span>
+          {power.text}
+        </div>
+      ))}
+      {sheet.origin?.powers && sheet.origin?.powers.length > 0 && (
+        <div className='simpleSheetDivisor' />
+      )}
+      {/* Poderes de Origem */}
+      {sheet.origin?.powers.map((power) => (
+        <div key={getKey(power.name)}>
+          <span className='simpleSheetText'>{power.name}: </span>
+          {power.description}
+        </div>
+      ))}
+      <div className='simpleSheetDivisor' />
+      {/* Poderes gerais */}
       {sheet.generalPowers?.map((power) => (
         <div key={getKey(power.name)}>
           <span className='simpleSheetText'>{power.name}: </span>
           {power.description}
         </div>
       ))}
+      {/* Poderes concedidos */}
+      <div className='simpleSheetDivisor' />
+      {sheet.devoto?.poderes.map((power) => (
+        <div key={getKey(power.name)}>
+          <span className='simpleSheetText'>{power.name}: </span>
+          {power.description}
+        </div>
+      ))}
+      {/* Mágias */}
       {sheet.spells.length > 0 && (
         <div>
           <div className='simpleSheetDivisor' />
