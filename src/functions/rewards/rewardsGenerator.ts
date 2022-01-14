@@ -1,6 +1,7 @@
 import {
   armorEnchantments,
   armors,
+  armorsModifications,
   enchantedArmors,
   enchantedWeapons,
   itemsRewards,
@@ -11,6 +12,7 @@ import {
   potions,
   weapons,
   weaponsEnchantments,
+  weaponsModifications,
 } from '../../data/rewards/items';
 import {
   majorRych,
@@ -19,6 +21,7 @@ import {
   moneyRewards,
 } from '../../data/rewards/money';
 import {
+  ItemMod,
   ItemReward,
   ITEM_TYPE,
   LEVELS,
@@ -37,16 +40,18 @@ export interface RewardGenerated {
   itemApplied?: string;
 }
 
-export function rewardGenerator(nd: LEVELS): RewardGenerated {
+export function rewardGenerator(nd: LEVELS, isHalf: boolean): RewardGenerated {
   const moneyValue = rollDice(1, 100);
   const itemValue = rollDice(1, 100);
 
   const moneyReward = moneyRewards[nd];
   const itemsReward = itemsRewards[nd];
+  const halfRoll = rollDice(1, 2);
 
   const money = moneyReward.find(
     (r) => moneyValue >= r.min && moneyValue <= r.max
   );
+
   const item = itemsReward.find(
     (r) => itemValue >= r.min && itemValue <= r.max
   );
@@ -54,19 +59,24 @@ export function rewardGenerator(nd: LEVELS): RewardGenerated {
   return {
     itemRoll: itemValue,
     moneyRoll: moneyValue,
-    money,
-    item,
+    money: isHalf && halfRoll === 2 ? undefined : money,
+    item: isHalf && halfRoll === 1 ? undefined : item,
   };
 }
 
-export function applyMoneyReward(money: MoneyReward): string {
+export function applyMoneyReward(
+  money: MoneyReward,
+  isDouble?: boolean
+): string {
   if (money.reward) {
     const rewardType = money.reward.money;
     const diceRoll = rollDice(money.reward.qty, money.reward.dice);
 
-    const value = money.reward.som
+    let value = money.reward.som
       ? diceRoll + money.reward.som
       : diceRoll * money.reward.mult;
+
+    if (isDouble) value *= 2;
 
     let wealth: Rych | undefined;
     const wealthRoll = rollDice(1, 100);
@@ -89,8 +99,10 @@ export function applyMoneyReward(money: MoneyReward): string {
       let str = '';
 
       for (let i = 0; i < value; i += 1) {
-        const wealthValue =
+        let wealthValue =
           rollDice(wealth.value.qtd, wealth.value.dice) * wealth.value.mult;
+
+        if (isDouble) wealthValue *= 2;
 
         const wealthItem = getRandomItemFromArray(wealth.items);
         str = str.concat(
@@ -120,13 +132,111 @@ const getMiscellaneousItem = (diceRoll: number) => {
       return `${itemRoll} ${rolledItem.item}`;
     }
 
-    return rolledItem.item;
+    return `(${diceRoll}) ${rolledItem.item}`;
   }
 
   return '';
 };
 
-const getWeaponOrArmor = (diceRoll: number) => {
+const getSpecialMaterial = () => {
+  const materialRoll = rollDice(1, 6);
+
+  switch (materialRoll) {
+    case 1:
+      return 'aço rubi';
+    case 2:
+      return 'adamante';
+    case 3:
+      return 'gelo eterno';
+    case 4:
+      return 'madeira Tollon';
+    case 5:
+      return 'matéria vermelha';
+    case 6:
+      return 'mitral';
+    default:
+      break;
+  }
+
+  return '';
+};
+
+const getWeaponModification = (mods: number) => {
+  let realQtd = mods;
+  let str = '(';
+  let remainingMods = mods;
+  const takenMods: ItemMod[] = [];
+
+  for (let index = 0; index < realQtd; index += 1) {
+    const modRoll = rollDice(1, 100);
+    const modification = weaponsModifications.find(
+      (wm) => modRoll >= wm.min && modRoll <= wm.max
+    );
+
+    if (modification) {
+      if (takenMods.includes(modification)) {
+        realQtd += 1;
+      } else if (modification?.double && mods === 1) {
+        realQtd += 1;
+      } else if (modification?.double && remainingMods < 2) {
+        realQtd += 1;
+      } else {
+        if (modification?.double) realQtd -= 1;
+
+        remainingMods -= 1;
+        takenMods.push(modification);
+        if (modification?.mod === 'Material especial')
+          str = str.concat(`Material ${getSpecialMaterial()}; `);
+        else
+          str = str.concat(
+            `${modification?.mod}${index === realQtd - 1 ? `` : '; '}`
+          );
+      }
+    }
+  }
+
+  return `${str})`;
+};
+
+const getArmorModification = (mods: number) => {
+  let realQtd = mods;
+  let str = '(';
+  let remainingMods = mods;
+  const takenMods: ItemMod[] = [];
+
+  for (let index = 0; index < realQtd; index += 1) {
+    const modRoll = rollDice(1, 100);
+
+    const modification = armorsModifications.find(
+      (wm) => modRoll >= wm.min && modRoll <= wm.max
+    );
+
+    if (modification) {
+      if (takenMods.includes(modification)) {
+        realQtd += 1;
+      } else if (modification?.double && mods === 1) {
+        realQtd += 1;
+      } else if (modification?.double && remainingMods < 2) {
+        realQtd += 1;
+      } else {
+        if (modification?.double) realQtd -= 1;
+
+        remainingMods -= 1;
+        takenMods.push(modification);
+        if (modification?.mod === 'Material especial')
+          str = str.concat(`Material ${getSpecialMaterial()}; `);
+        else
+          str = str.concat(
+            `${modification?.mod}${index === realQtd - 1 ? `` : '; '}`
+          );
+      }
+    }
+  }
+
+  return `${str})`;
+};
+
+const getWeaponOrArmor = (diceRoll: number, mods: number) => {
   const typeRoll = rollDice(1, 6);
 
   if (typeRoll >= 1 && typeRoll <= 4) {
@@ -136,6 +246,11 @@ const getWeaponOrArmor = (diceRoll: number) => {
     );
 
     if (rolledItem) {
+      if (mods > 0) {
+        const modsStr = getWeaponModification(mods);
+        return `(${typeRoll},${diceRoll}) ${rolledItem.item.nome} ${modsStr}`;
+      }
+
       return `(${typeRoll},${diceRoll}) ${rolledItem.item.nome}`;
     }
   } else if (typeRoll >= 5 && typeRoll <= 6) {
@@ -145,6 +260,11 @@ const getWeaponOrArmor = (diceRoll: number) => {
     );
 
     if (rolledItem) {
+      if (mods > 0) {
+        const modsStr = getArmorModification(mods);
+        return `(${typeRoll},${diceRoll}) ${rolledItem.item.nome} ${modsStr}`;
+      }
+
       return `(${typeRoll},${diceRoll}) ${rolledItem.item.nome}`;
     }
   }
@@ -281,39 +401,49 @@ const getMagicalItem = (qtd: number) => {
   return '';
 };
 
-export function applyItemReward(item: ItemReward): string {
+export function applyItemReward(item: ItemReward, isDouble?: boolean): string {
   const diceRoll = rollDice(1, 100);
+  let rtn = '';
+  const l = isDouble ? 2 : 1;
 
-  if (item.reward?.type === ITEM_TYPE.DIVERSO) {
-    // Item diverso, rola 1d100 para determinar qual item é encontrado.
-    return getMiscellaneousItem(diceRoll);
-  }
-  if (
-    item.reward?.type === ITEM_TYPE.ARMA_ARMADURA ||
-    item.reward?.type === ITEM_TYPE.SUPERIOR
-  ) {
-    /* Armas e armaduras. Rola 1d6. Um resultado 1 a 4 é uma arma. Um resultado 5 ou 6, uma armadura ou escudo.
-    Então, rola 1d100 para determinar o item encontrado. */
-    return getWeaponOrArmor(diceRoll);
-  }
-  if (item.reward?.type === ITEM_TYPE.POCAO) {
-    /* É uma poção. Determinar primeira quantas poções foram encontradas
-    depois rolar 1d100 para determinar quais foram encontradas. */
-    if (item.reward.som)
-      return getPotionItem(item.reward.qty, item.reward.dice, item.reward.som);
-    return getPotionItem(item.reward.qty, item.reward.dice, 0);
-  }
-  if (item.reward?.type === ITEM_TYPE.MAGICO_MENOR) {
-    /* Para itens mágicos, role 1d6. Em um resultado 1 ou 2, é encontrado uma arma.
-    Em um resultado 3, uma armadura. Um resultado 4, 5 ou 6 é encontrado um acessório. */
-    return getMagicalItem(1);
-  }
-  if (item.reward?.type === ITEM_TYPE.MAGICO_MEDIO) {
-    return getMagicalItem(3);
-  }
-  if (item.reward?.type === ITEM_TYPE.MAGICO_MAIOR) {
-    return getMagicalItem(4);
+  for (let index = 0; index < l; index += 1) {
+    if (item.reward?.type === ITEM_TYPE.DIVERSO) {
+      // Item diverso, rola 1d100 para determinar qual item é encontrado.
+      rtn += getMiscellaneousItem(diceRoll);
+    }
+    if (
+      item.reward?.type === ITEM_TYPE.ARMA_ARMADURA ||
+      item.reward?.type === ITEM_TYPE.SUPERIOR
+    ) {
+      /* Armas e armaduras. Rola 1d6. Um resultado 1 a 4 é uma arma. Um resultado 5 ou 6, uma armadura ou escudo.
+      Então, rola 1d100 para determinar o item encontrado. */
+      rtn += getWeaponOrArmor(diceRoll, item.reward.mods || 0);
+    }
+    if (item.reward?.type === ITEM_TYPE.POCAO) {
+      /* É uma poção. Determinar primeira quantas poções foram encontradas
+      depois rolar 1d100 para determinar quais foram encontradas. */
+      if (item.reward.som)
+        rtn += getPotionItem(
+          item.reward.qty,
+          item.reward.dice,
+          item.reward.som
+        );
+      rtn += getPotionItem(item.reward.qty, item.reward.dice, 0);
+    }
+    if (item.reward?.type === ITEM_TYPE.MAGICO_MENOR) {
+      /* Para itens mágicos, role 1d6. Em um resultado 1 ou 2, é encontrado uma arma.
+      Em um resultado 3, uma armadura. Um resultado 4, 5 ou 6 é encontrado um acessório. */
+      rtn += getMagicalItem(1);
+    }
+    if (item.reward?.type === ITEM_TYPE.MAGICO_MEDIO) {
+      rtn += getMagicalItem(3);
+    }
+    if (item.reward?.type === ITEM_TYPE.MAGICO_MAIOR) {
+      rtn += getMagicalItem(4);
+    }
+
+    rtn += '\n';
   }
 
-  return '';
+  return rtn;
 }

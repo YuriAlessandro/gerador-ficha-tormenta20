@@ -43,6 +43,12 @@ code {
   margin-top: auto;
 }
 
+.rewardsFilter {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 #bottom a {
   color: white;
 }
@@ -59,5 +65,9 @@ a:visited {
 
   .topTabs {
     display: none !important;
+  }
+
+  .rewardsFilter {
+    flex-direction: column;
   }
 }

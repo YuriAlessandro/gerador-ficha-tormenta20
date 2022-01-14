@@ -183,7 +183,7 @@ function App(): JSX.Element {
               <Changelog />
             </Route>
             <Route path='/recompensas'>
-              <Rewards />
+              <Rewards isDarkMode={isDarkTheme} />
             </Route>
             <Route>
               <MainScreen isDarkMode={isDarkTheme} />

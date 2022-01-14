@@ -1,6 +1,7 @@
 import {
   ItemE,
   ItemM,
+  ItemMod,
   Items,
   ItemWeapons,
   ITEM_TYPE,
@@ -2088,5 +2089,139 @@ export const majorAccessories: ItemM[] = [
     min: 99,
     max: 100,
     item: 'Espelho do aprisionamento',
+  },
+];
+
+export const weaponsModifications: ItemMod[] = [
+  {
+    min: 1,
+    max: 10,
+    mod: 'Certeira',
+  },
+  {
+    min: 11,
+    max: 17,
+    mod: 'Pungente',
+    double: true,
+  },
+  {
+    min: 18,
+    max: 27,
+    mod: 'Cruel',
+  },
+  {
+    min: 28,
+    max: 35,
+    mod: 'Atroz',
+    double: true,
+  },
+  {
+    min: 36,
+    max: 40,
+    mod: 'Equilibrada',
+  },
+  {
+    min: 41,
+    max: 50,
+    mod: 'Precisa',
+  },
+  {
+    min: 51,
+    max: 60,
+    mod: 'Maciça',
+  },
+  {
+    min: 61,
+    max: 65,
+    mod: 'Mira telescópica',
+  },
+  {
+    min: 66,
+    max: 70,
+    mod: 'Injeção alquímica',
+  },
+  {
+    min: 71,
+    max: 75,
+    mod: 'Harmonizada',
+  },
+  {
+    min: 76,
+    max: 80,
+    mod: 'Banhada a ouro',
+  },
+  {
+    min: 81,
+    max: 85,
+    mod: 'Cravejada de gemas',
+  },
+  {
+    min: 86,
+    max: 90,
+    mod: 'Macabra',
+  },
+  {
+    min: 91,
+    max: 100,
+    mod: 'Material especial',
+  },
+];
+
+export const armorsModifications: ItemMod[] = [
+  {
+    min: 1,
+    max: 15,
+    mod: 'Ajustada',
+  },
+  {
+    min: 16,
+    max: 25,
+    mod: 'Sob medida',
+    double: true,
+  },
+  {
+    min: 26,
+    max: 50,
+    mod: 'Reforçada',
+  },
+  {
+    min: 51,
+    max: 60,
+    mod: 'Selada',
+  },
+  {
+    min: 61,
+    max: 65,
+    mod: 'Delicada',
+  },
+  {
+    min: 66,
+    max: 70,
+    mod: 'Polida',
+  },
+  {
+    min: 71,
+    max: 75,
+    mod: 'Espinhos',
+  },
+  {
+    min: 76,
+    max: 80,
+    mod: 'Banhada a ouro',
+  },
+  {
+    min: 81,
+    max: 85,
+    mod: 'Cravejada de gemas',
+  },
+  {
+    min: 86,
+    max: 90,
+    mod: 'Macabra',
+  },
+  {
+    min: 91,
+    max: 100,
+    mod: 'Material especial',
   },
 ];

@@ -112,3 +112,10 @@ export interface ItemE {
   double?: boolean;
   onlyShield?: boolean;
 }
+
+export interface ItemMod {
+  min: number;
+  max: number;
+  mod: string;
+  double?: boolean;
+}
