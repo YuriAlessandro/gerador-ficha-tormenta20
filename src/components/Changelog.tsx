@@ -22,6 +22,14 @@ const Changelog: React.FC = () => (
 
     <h2>Versão 2.0</h2>
 
+    <h3>2.4.0</h3>
+    <ul>
+      <li>
+        Adicionado um gerador de recompensas. Agora você pode gerar recompensas
+        para os combates da sua mesa com um único clique.
+      </li>
+    </ul>
+
     <h3>2.3.1</h3>
     <ul>
       <li>
