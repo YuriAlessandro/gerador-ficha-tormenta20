@@ -19,7 +19,7 @@ import '../../assets/css/mainScreen.css';
 import getSelectTheme from '../../functions/style';
 import roles from '../../data/roles';
 import { HistoricI } from '../../interfaces/Historic';
-import Historic from '../Historic';
+import Historic from './Historic';
 import { ORIGINS } from '../../data/origins';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import SimpleResult from '../SimpleResult';
