@@ -1,41 +1,31 @@
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import { withStyles, makeStyles } from '@material-ui/core/styles';
-import { Button } from '@material-ui/core';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
+import { styled } from '@mui/material';
 import { HistoricI } from '../interfaces/Historic';
 import CharacterSheet from '../interfaces/CharacterSheet';
-
-const useStyles = makeStyles(() => ({
-  button: {
-    background: 'rgb(209, 50, 53);',
-    color: '#FAFAFA',
-    marginBottom: '10px',
-  },
-}));
 
 const Historic: React.FC<{
   isDarkTheme: boolean;
   onClickSeeSheet: (sheet: CharacterSheet) => void;
 }> = ({ isDarkTheme, onClickSeeSheet }) => {
-  const StyledTableCell = withStyles(() => ({
-    head: {
+  const StyledTableCell = styled(TableCell)(() => ({
+    [`&.${tableCellClasses.head}`]: {
       backgroundColor: 'rgb(209, 50, 53)',
       color: '#FFF',
     },
-    body: {
+    [`&.${tableCellClasses.body}`]: {
       fontSize: 14,
       backgroundColor: isDarkTheme ? '#212121' : '#FFF',
       color: isDarkTheme ? '#FFF' : '#000',
     },
-  }))(TableCell);
-
-  const classes = useStyles();
+  }));
 
   const ls = localStorage;
 
@@ -82,7 +72,6 @@ const Historic: React.FC<{
                   <Button
                     variant='contained'
                     onClick={() => onClickSeeSheet(row.sheet)}
-                    className={classes.button}
                   >
                     Ver Ficha
                   </Button>

@@ -1,17 +1,18 @@
-import { Button, makeStyles, withStyles } from '@material-ui/core';
+/* eslint-disable prettier/prettier */
+import { Button, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
 
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import TextField from '@material-ui/core/TextField';
-import Radio from '@material-ui/core/Radio';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Radio from '@mui/material/Radio';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import getSelectTheme from '../functions/style';
 
 import { ITEM_TYPE, LEVELS } from '../interfaces/Rewards';
@@ -30,47 +31,47 @@ const nds = Object.keys(LEVELS).map((nd) => ({
 type SelectedOption = { value: string; label: string };
 
 const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
-  const StyledTableCell = withStyles(() => ({
-    head: {
+  const StyledTableCell = styled(TableCell)(() => ({
+    [`&.${tableCellClasses.head}`]: {
       backgroundColor: 'rgb(209, 50, 53)',
       color: '#FFF',
     },
-    body: {
+    [`&.${tableCellClasses.body}`]: {
       fontSize: 14,
       backgroundColor: isDarkMode ? '#212121' : '#FFF',
       color: isDarkMode ? '#FFF' : '#000',
     },
-  }))(TableCell);
-
-  const useStyles = makeStyles(() => ({
-    inputRoot: {
-      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: isDarkMode ? 'rgb(209, 50, 53)' : 'rgb(59, 59, 59)',
-      },
-      '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-        borderColor: isDarkMode ? 'rgb(59, 59, 59)' : 'rgba(0, 0, 0, 0.87)',
-      },
-    },
-    button: {
-      background: 'rgb(209, 50, 53);',
-      color: '#FAFAFA',
-      marginBottom: '10px',
-    },
-    input: {
-      color: isDarkMode ? 'white' : 'black',
-    },
-    inputLabel: {
-      color: isDarkMode ? 'white' : 'black',
-    },
-    inputLabelFocused: {
-      color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'black',
-    },
-    radioRoot: {
-      color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'rgb(59, 59, 59)',
-    },
   }));
 
-  const classes = useStyles();
+  // const useStyles = makeStyles(() => ({
+  //   inputRoot: {
+  //     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+  //       borderColor: isDarkMode ? 'rgb(209, 50, 53)' : 'rgb(59, 59, 59)',
+  //     },
+  //     '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+  //       borderColor: isDarkMode ? 'rgb(59, 59, 59)' : 'rgba(0, 0, 0, 0.87)',
+  //     },
+  //   },
+  //   button: {
+  //     background: 'rgb(209, 50, 53);',
+  //     color: '#FAFAFA',
+  //     marginBottom: '10px',
+  //   },
+  //   input: {
+  //     color: isDarkMode ? 'white' : 'black',
+  //   },
+  //   inputLabel: {
+  //     color: isDarkMode ? 'white' : 'black',
+  //   },
+  //   inputLabelFocused: {
+  //     color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'black',
+  //   },
+  //   radioRoot: {
+  //     color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'rgb(59, 59, 59)',
+  //   },
+  // }));
+
+  // const classes = useStyles();
 
   const [items, setItems] = useState<RewardGenerated[]>();
   const [numberOfItems, setNumberOfItems] = useState<number>(1);
@@ -230,16 +231,16 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           style={{ marginRight: '10px' }}
           size='small'
           value={numberOfItems}
-          className={classes.inputRoot}
-          InputProps={{
-            className: classes.input,
-          }}
-          InputLabelProps={{
-            className: classes.inputLabel,
-            classes: {
-              focused: classes.inputLabelFocused,
-            },
-          }}
+          // className={classes.inputRoot}
+          // InputProps={{
+          //   className: classes.input,
+          // }}
+          // InputLabelProps={{
+          //   className: classes.inputLabel,
+          //   classes: {
+          //     focused: classes.inputLabelFocused,
+          //   },
+          // }}
         />
 
         <Select
@@ -265,7 +266,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Padrão'
                 name='radio-button-demo'
                 color='default'
-                className={classes.radioRoot}
+                // className={classes.radioRoot}
               />
             }
             label='Padrão'
@@ -281,7 +282,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Metade'
                 name='radio-button-demo'
                 color='default'
-                className={classes.radioRoot}
+                // className={classes.radioRoot}
               />
             }
             label='Metade'
@@ -297,7 +298,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Dobro'
                 name='radio-button-demo'
                 color='default'
-                className={classes.radioRoot}
+                // className={classes.radioRoot}
               />
             }
             label='Dobro'
@@ -305,11 +306,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           />
         </div>
 
-        <Button
-          onClick={onClickGenerate}
-          type='button'
-          className={classes.button}
-        >
+        <Button onClick={onClickGenerate} type='button' variant='contained'>
           Gerar Recompensa
         </Button>
       </div>
