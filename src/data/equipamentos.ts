@@ -514,6 +514,7 @@ const EQUIPAMENTOS: CombatItems = {
     Armas.MACHADO_TAURICO,
     Armas.REDE,
   ],
+  armasDeFogo: [Armas.MOSQUETE, Armas.PISTOLA],
   armadurasLeves: [
     Armaduras.ARMADURA_ACOLCHOADA,
     Armaduras.ARMADURADECOURO,

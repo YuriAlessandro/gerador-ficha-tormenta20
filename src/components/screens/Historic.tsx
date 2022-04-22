@@ -8,8 +8,8 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import { withStyles, makeStyles } from '@material-ui/core/styles';
 import { Button } from '@material-ui/core';
-import { HistoricI } from '../interfaces/Historic';
-import CharacterSheet from '../interfaces/CharacterSheet';
+import { HistoricI } from '../../interfaces/Historic';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 
 const useStyles = makeStyles(() => ({
   button: {

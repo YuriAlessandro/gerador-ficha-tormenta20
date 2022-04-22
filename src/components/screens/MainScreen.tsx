@@ -9,22 +9,22 @@ import { formatGroupLabel } from 'react-select/src/builtins';
 import Checkbox from '@material-ui/core/Checkbox';
 import { FormControlLabel } from '@material-ui/core';
 import CreatableSelect from 'react-select/creatable';
-import RACAS from '../data/racas';
-import CLASSES from '../data/classes';
-import SelectOptions from '../interfaces/SelectedOptions';
-import Result from './Result';
+import RACAS from '../../data/racas';
+import CLASSES from '../../data/classes';
+import SelectOptions from '../../interfaces/SelectedOptions';
+import Result from '../Result';
 
-import generateRandomSheet from '../functions/general';
-import CharacterSheet from '../interfaces/CharacterSheet';
+import generateRandomSheet from '../../functions/general';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 
-import '../assets/css/mainScreen.css';
-import getSelectTheme from '../functions/style';
-import roles from '../data/roles';
-import { HistoricI } from '../interfaces/Historic';
+import '../../assets/css/mainScreen.css';
+import getSelectTheme from '../../functions/style';
+import roles from '../../data/roles';
+import { HistoricI } from '../../interfaces/Historic';
 import Historic from './Historic';
-import { ORIGINS } from '../data/origins';
-import { allDivindadeNames } from '../interfaces/Divindade';
-import SimpleResult from './SimpleResult';
+import { ORIGINS } from '../../data/origins';
+import { allDivindadeNames } from '../../interfaces/Divindade';
+import SimpleResult from '../SimpleResult';
 
 const useStyles = makeStyles(() => ({
   button: {

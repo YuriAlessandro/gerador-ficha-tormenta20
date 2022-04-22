@@ -15,9 +15,10 @@ import {
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Sidebar from './components/Sidebar';
-import MainScreen from './components/MainScreen';
-import Changelog from './components/Changelog';
-import Rewards from './components/Rewards';
+import MainScreen from './components/screens/MainScreen';
+import Changelog from './components/screens/Changelog';
+import Rewards from './components/screens/Rewards';
+import SuperiorItems from './components/screens/SuperiorItems';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -67,6 +68,7 @@ function App(): JSX.Element {
   const handleChangeTabValue = (pathname: string) => {
     if (pathname === '/') setTabValue(0);
     if (pathname === '/recompensas') setTabValue(1);
+    if (pathname === '/itens-superiores') setTabValue(2);
     if (pathname === '/changelog') setTabValue(4);
   };
 
@@ -153,7 +155,10 @@ function App(): JSX.Element {
                   label='Recompensas'
                   onClick={() => onClickTab(1, 'recompensas')}
                 />
-                <Tab label='Itens Superiores' disabled />
+                <Tab
+                  label='Itens Superiores'
+                  onClick={() => onClickTab(2, 'itens-superiores')}
+                />
                 <Tab label='Itens Mágicos' disabled />
                 <Tab
                   label='Changelog'
@@ -184,6 +189,9 @@ function App(): JSX.Element {
             </Route>
             <Route path='/recompensas'>
               <Rewards isDarkMode={isDarkTheme} />
+            </Route>
+            <Route path='/itens-superiores'>
+              <SuperiorItems isDarkMode={isDarkTheme} />
             </Route>
             <Route>
               <MainScreen isDarkMode={isDarkTheme} />

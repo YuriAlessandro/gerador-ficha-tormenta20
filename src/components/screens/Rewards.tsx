@@ -12,15 +12,15 @@ import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Radio from '@material-ui/core/Radio';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import getSelectTheme from '../functions/style';
+import getSelectTheme from '../../functions/style';
 
-import { ITEM_TYPE, LEVELS } from '../interfaces/Rewards';
+import { ITEM_TYPE, LEVELS } from '../../interfaces/Rewards';
 import {
   rewardGenerator,
   applyMoneyReward,
   applyItemReward,
   RewardGenerated,
-} from '../functions/rewards/rewardsGenerator';
+} from '../../functions/rewards/rewardsGenerator';
 
 const nds = Object.keys(LEVELS).map((nd) => ({
   value: nd,

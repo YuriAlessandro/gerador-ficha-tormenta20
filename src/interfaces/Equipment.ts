@@ -44,6 +44,7 @@ export interface CombatItems {
   armaduraPesada: DefenseEquipment[];
   escudos: DefenseEquipment[];
   armasExoticas: Equipment[];
+  armasDeFogo: Equipment[];
 }
 
 export interface BagEquipments {
