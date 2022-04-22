@@ -4,7 +4,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 14/11/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 22/04/2022.
     </p>
 
     <p>
@@ -21,6 +21,15 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.4.1</h3>
+    <ul>
+      <li>
+        Adicionado gerador de itens superiores. Ainda bem simples, a ideia é
+        evoluir isso para mostrar as stats dos itens no futuro.
+      </li>
+      <li>Atualização de alguns componentes gráficos das telas.</li>
+    </ul>
 
     <h3>2.4.0</h3>
     <ul>

@@ -17,9 +17,10 @@ import Tab from '@mui/material/Tab';
 import MenuIcon from '@mui/icons-material/Menu';
 
 import Sidebar from './components/Sidebar';
-import MainScreen from './components/MainScreen';
-import Changelog from './components/Changelog';
-import Rewards from './components/Rewards';
+import MainScreen from './components/screens/MainScreen';
+import Changelog from './components/screens/Changelog';
+import Rewards from './components/screens/Rewards';
+import SuperiorItems from './components/screens/SuperiorItems';
 
 const lightTheme = {
   backgroundColor: '#f3f2f1',
@@ -162,8 +163,7 @@ function App(): JSX.Element {
                   />
                   <Tab
                     label='Itens Superiores'
-                    // onClick={() => onClickTab(2, 'itens-superiores')}
-                    disabled
+                    onClick={() => onClickTab(2, 'itens-superiores')}
                   />
                   <Tab label='Itens Mágicos' disabled />
                   <Tab
@@ -195,6 +195,9 @@ function App(): JSX.Element {
               </Route>
               <Route path='/recompensas'>
                 <Rewards isDarkMode={isDarkTheme} />
+              </Route>
+              <Route path='/itens-superiores'>
+                <SuperiorItems isDarkMode={isDarkTheme} />
               </Route>
               <Route>
                 <MainScreen isDarkMode={isDarkTheme} />

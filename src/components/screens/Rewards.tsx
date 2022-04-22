@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Button, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
@@ -13,15 +12,15 @@ import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Radio from '@mui/material/Radio';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import getSelectTheme from '../functions/style';
+import getSelectTheme from '../../functions/style';
 
-import { ITEM_TYPE, LEVELS } from '../interfaces/Rewards';
+import { ITEM_TYPE, LEVELS } from '../../interfaces/Rewards';
 import {
   rewardGenerator,
   applyMoneyReward,
   applyItemReward,
   RewardGenerated,
-} from '../functions/rewards/rewardsGenerator';
+} from '../../functions/rewards/rewardsGenerator';
 
 const nds = Object.keys(LEVELS).map((nd) => ({
   value: nd,
@@ -42,36 +41,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
       color: isDarkMode ? '#FFF' : '#000',
     },
   }));
-
-  // const useStyles = makeStyles(() => ({
-  //   inputRoot: {
-  //     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-  //       borderColor: isDarkMode ? 'rgb(209, 50, 53)' : 'rgb(59, 59, 59)',
-  //     },
-  //     '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
-  //       borderColor: isDarkMode ? 'rgb(59, 59, 59)' : 'rgba(0, 0, 0, 0.87)',
-  //     },
-  //   },
-  //   button: {
-  //     background: 'rgb(209, 50, 53);',
-  //     color: '#FAFAFA',
-  //     marginBottom: '10px',
-  //   },
-  //   input: {
-  //     color: isDarkMode ? 'white' : 'black',
-  //   },
-  //   inputLabel: {
-  //     color: isDarkMode ? 'white' : 'black',
-  //   },
-  //   inputLabelFocused: {
-  //     color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'black',
-  //   },
-  //   radioRoot: {
-  //     color: isDarkMode ? 'rgb(209, 50, 53) !important' : 'rgb(59, 59, 59)',
-  //   },
-  // }));
-
-  // const classes = useStyles();
 
   const [items, setItems] = useState<RewardGenerated[]>();
   const [numberOfItems, setNumberOfItems] = useState<number>(1);
@@ -231,16 +200,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           style={{ marginRight: '10px' }}
           size='small'
           value={numberOfItems}
-          // className={classes.inputRoot}
-          // InputProps={{
-          //   className: classes.input,
-          // }}
-          // InputLabelProps={{
-          //   className: classes.inputLabel,
-          //   classes: {
-          //     focused: classes.inputLabelFocused,
-          //   },
-          // }}
         />
 
         <Select
@@ -266,7 +225,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Padrão'
                 name='radio-button-demo'
                 color='default'
-                // className={classes.radioRoot}
               />
             }
             label='Padrão'
@@ -282,7 +240,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Metade'
                 name='radio-button-demo'
                 color='default'
-                // className={classes.radioRoot}
               />
             }
             label='Metade'
@@ -298,7 +255,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 value='Dobro'
                 name='radio-button-demo'
                 color='default'
-                // className={classes.radioRoot}
               />
             }
             label='Dobro'

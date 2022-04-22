@@ -8,8 +8,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material';
-import { HistoricI } from '../interfaces/Historic';
-import CharacterSheet from '../interfaces/CharacterSheet';
+import { HistoricI } from '../../interfaces/Historic';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 
 const Historic: React.FC<{
   isDarkTheme: boolean;
