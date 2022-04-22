@@ -163,8 +163,7 @@ function App(): JSX.Element {
                   />
                   <Tab
                     label='Itens Superiores'
-                    // onClick={() => onClickTab(2, 'itens-superiores')}
-                    disabled
+                    onClick={() => onClickTab(2, 'itens-superiores')}
                   />
                   <Tab label='Itens Mágicos' disabled />
                   <Tab
@@ -196,6 +195,9 @@ function App(): JSX.Element {
               </Route>
               <Route path='/recompensas'>
                 <Rewards isDarkMode={isDarkTheme} />
+              </Route>
+              <Route path='/itens-superiores'>
+                <SuperiorItems isDarkMode={isDarkTheme} />
               </Route>
               <Route>
                 <MainScreen isDarkMode={isDarkTheme} />
