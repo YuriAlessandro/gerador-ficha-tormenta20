@@ -1,12 +1,12 @@
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import { withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import { styled } from '@mui/material';
 import { CompleteSkill } from '../interfaces/Skills';
 
 interface IProps {
@@ -15,18 +15,17 @@ interface IProps {
 }
 
 const SkillTable: React.FC<IProps> = ({ skills, isDarkTheme }) => {
-  const StyledTableCell = withStyles(() => ({
-    head: {
+  const StyledTableCell = styled(TableCell)(() => ({
+    [`&.${tableCellClasses.head}`]: {
       backgroundColor: 'rgb(209, 50, 53)',
       color: '#FFF',
-      fontSize: '12px',
     },
-    body: {
+    [`&.${tableCellClasses.body}`]: {
       fontSize: 12,
       backgroundColor: isDarkTheme ? '#212121' : '#FFF',
       color: isDarkTheme ? '#FFF' : '#000',
     },
-  }))(TableCell);
+  }));
 
   return (
     <TableContainer component={Paper}>
@@ -100,5 +99,4 @@ const SkillTable: React.FC<IProps> = ({ skills, isDarkTheme }) => {
     </TableContainer>
   );
 };
-
 export default SkillTable;

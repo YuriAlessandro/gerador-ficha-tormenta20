@@ -1,22 +1,22 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import MenuList from '@material-ui/core/MenuList';
-import MenuItem from '@material-ui/core/MenuItem';
-import Link from '@material-ui/core/Link';
+import Typography from '@mui/material/Typography';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import Link from '@mui/material/Link';
 import { withRouter, useHistory } from 'react-router-dom';
-import { makeStyles } from '@material-ui/core/styles';
+// import { makeStyles } from '@mui/material/styles';
 import { RouteComponentProps } from 'react-router';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import Paper from '@material-ui/core/Paper';
-import HomeIcon from '@material-ui/icons/Home';
-import Brightness4Icon from '@material-ui/icons/Brightness4';
-import ForumIcon from '@material-ui/icons/Forum';
-import CloseIcon from '@material-ui/icons/Close';
-import CodeIcon from '@material-ui/icons/Code';
-import NotesIcon from '@material-ui/icons/Notes';
-import AttachMoney from '@material-ui/icons/AttachMoney';
-import Slide from '@material-ui/core/Slide';
-import { FormControlLabel, FormGroup, Switch } from '@material-ui/core';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Paper from '@mui/material/Paper';
+import HomeIcon from '@mui/icons-material/Home';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import ForumIcon from '@mui/icons-material/Forum';
+import CloseIcon from '@mui/icons-material/Close';
+import CodeIcon from '@mui/icons-material/Code';
+import NotesIcon from '@mui/icons-material/Notes';
+import AttachMoney from '@mui/icons-material/AttachMoney';
+import Slide from '@mui/material/Slide';
+import { FormControlLabel, FormGroup, styled, Switch } from '@mui/material';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
@@ -28,32 +28,25 @@ type SidebarProps = RouteComponentProps & {
   onChangeTheme: () => void;
 };
 
+const StyledPaper = styled(Paper)`
+  position: fixed;
+  z-index: 1;
+  height: 97.9vh;
+  padding-top: 20px;
+  transition: visibility 0s, opacity 0.5s linear;
+`;
+
+const StyledMenuItem = styled(MenuItem)`
+  margin-bottom: 10px;
+`;
+
 const Sidebar: React.FC<SidebarProps> = ({
   visible,
   onCloseSidebar,
   isDarkTheme,
   onChangeTheme,
 }) => {
-  const useStyles = makeStyles(() => ({
-    link: {
-      cursor: 'pointer',
-      color: isDarkTheme ? '#fff' : '#757575',
-    },
-    paper: {
-      position: 'fixed',
-      zIndex: 1,
-      height: '97.9vh',
-      paddingTop: '20px',
-      transition: 'visibility 0s, opacity 0.5s linear',
-    },
-    menuItem: {
-      marginBottom: '10px',
-    },
-  }));
-
   const history = useHistory();
-
-  const classes = useStyles();
 
   const onClickHome = () => {
     history.push('/');
@@ -91,7 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         color: isDarkTheme ? '#fff' : 'black',
       }}
     >
-      <Paper className={classes.paper}>
+      <StyledPaper>
         <div className='sidebarHeader'>
           <Link
             href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
@@ -105,24 +98,23 @@ const Sidebar: React.FC<SidebarProps> = ({
               paddingRight: '15px',
             }}
           >
-            <CloseIcon className={classes.link} onClick={onCloseSidebar} />
+            <CloseIcon onClick={onCloseSidebar} />
           </div>
         </div>
         <MenuList>
-          <MenuItem onClick={onClickHome} className={classes.menuItem}>
+          <StyledMenuItem onClick={onClickHome}>
             <ListItemIcon>
-              <HomeIcon className={classes.link} />
+              <HomeIcon />
             </ListItemIcon>
             <Typography variant='inherit'>Inicio</Typography>
-          </MenuItem>
-          <MenuItem onClick={onClickRewards} className={classes.menuItem}>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickRewards}>
             <ListItemIcon>
-              <AttachMoney className={classes.link} />
+              <AttachMoney />
             </ListItemIcon>
             <Typography variant='inherit'>Recompensas</Typography>
-          </MenuItem>
-          <MenuItem
-            className={classes.menuItem}
+          </StyledMenuItem>
+          <StyledMenuItem
             onClick={() =>
               onClickLinks(
                 'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
@@ -130,14 +122,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             }
           >
             <ListItemIcon>
-              <ForumIcon className={classes.link} />
+              <ForumIcon />
             </ListItemIcon>
             <Typography variant='inherit'>
               Sugestões, Ideias e Feedbacks
             </Typography>
-          </MenuItem>
-          <MenuItem
-            className={classes.menuItem}
+          </StyledMenuItem>
+          <StyledMenuItem
             onClick={() => {
               onClickLinks(
                 'https://github.com/YuriAlessandro/gerador-ficha-tormenta20#gerador-de-fichas-de-tormenta-20'
@@ -145,21 +136,21 @@ const Sidebar: React.FC<SidebarProps> = ({
             }}
           >
             <ListItemIcon>
-              <CodeIcon className={classes.link} />
+              <CodeIcon />
             </ListItemIcon>
             <Typography variant='inherit'>Contribua com o Projeto</Typography>
-          </MenuItem>
-          <MenuItem className={classes.menuItem} onClick={onClickChangelog}>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickChangelog}>
             <ListItemIcon>
-              <NotesIcon className={classes.link} />
+              <NotesIcon />
             </ListItemIcon>
             <Typography variant='inherit' className='specialMenu'>
               Changelog
             </Typography>
-          </MenuItem>
-          <MenuItem>
+          </StyledMenuItem>
+          <StyledMenuItem>
             <ListItemIcon>
-              <Brightness4Icon className={classes.link} />
+              <Brightness4Icon />
             </ListItemIcon>
             <FormGroup>
               <FormControlLabel
@@ -175,9 +166,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                 label='Tema Escuro'
               />
             </FormGroup>
-          </MenuItem>
+          </StyledMenuItem>
         </MenuList>
-      </Paper>
+      </StyledPaper>
     </Slide>
   );
 };

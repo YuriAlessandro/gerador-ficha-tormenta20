@@ -1,5 +1,4 @@
-import { makeStyles } from '@material-ui/core';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 import React, { useState } from 'react';
 import Select from 'react-select';
 import EQUIPAMENTOS from '../../data/equipamentos';
@@ -8,14 +7,6 @@ import getSelectTheme from '../../functions/style';
 import Equipment from '../../interfaces/Equipment';
 
 type SelectedOption = { value: string; label: string };
-
-const useStyles = makeStyles(() => ({
-  button: {
-    background: 'rgb(209, 50, 53);',
-    color: '#FAFAFA',
-    marginBottom: '10px',
-  },
-}));
 
 const allWeapons = [
   ...EQUIPAMENTOS.armasSimples,
@@ -62,7 +53,6 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
     undefined
   );
 
-  const classes = useStyles();
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
     : getSelectTheme('default');
@@ -165,11 +155,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           isSearchable
         />
 
-        <Button
-          onClick={onClickGenerate}
-          type='button'
-          className={classes.button}
-        >
+        <Button onClick={onClickGenerate} type='button' variant='contained'>
           Gerar Recompensa
         </Button>
       </div>

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
+// import { makeStyles } from '@mui/material/styles';
+import Button from '@mui/material/Button';
 import Select from 'react-select';
-import Fade from '@material-ui/core/Fade';
+import Fade from '@mui/material/Fade';
 import { Link } from 'react-router-dom';
 import { formatGroupLabel } from 'react-select/src/builtins';
-import Checkbox from '@material-ui/core/Checkbox';
-import { FormControlLabel } from '@material-ui/core';
+import Checkbox from '@mui/material/Checkbox';
+import { FormControlLabel } from '@mui/material';
 import CreatableSelect from 'react-select/creatable';
 import RACAS from '../../data/racas';
 import CLASSES from '../../data/classes';
@@ -26,13 +26,13 @@ import { ORIGINS } from '../../data/origins';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import SimpleResult from '../SimpleResult';
 
-const useStyles = makeStyles(() => ({
-  button: {
-    background: 'rgb(209, 50, 53);',
-    color: '#FAFAFA',
-    marginBottom: '10px',
-  },
-}));
+// const useStyles = makeStyles(() => ({
+//   button: {
+//     background: 'rgb(209, 50, 53);',
+//     color: '#FAFAFA',
+//     marginBottom: '10px',
+//   },
+// }));
 
 type SelectedOption = { value: string; label: string };
 
@@ -57,8 +57,6 @@ const saveSheetOnHistoric = (sheet: CharacterSheet) => {
 };
 
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
-  const classes = useStyles();
-
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -318,18 +316,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         </div>
 
         <div className='buttonsRow'>
-          <Button
-            variant='contained'
-            onClick={onClickGenerate}
-            className={classes.button}
-          >
+          <Button variant='contained' onClick={onClickGenerate}>
             Gerar Ficha
           </Button>
 
           <Button
             variant='contained'
             onClick={onClickShowHistoric}
-            className={classes.button}
             style={{ marginLeft: '10px' }}
           >
             Ver histórico

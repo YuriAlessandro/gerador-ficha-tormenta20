@@ -1,8 +1,8 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
 import React, { useEffect } from 'react';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ReactToPrint from 'react-to-print';
-import BugReportIcon from '@material-ui/icons/BugReport';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Attribute from './Attribute';
 import CharacterStat from './CharacterStat';
