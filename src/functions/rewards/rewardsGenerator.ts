@@ -161,7 +161,7 @@ const getSpecialMaterial = () => {
   return '';
 };
 
-const getWeaponModification = (mods: number) => {
+export const getWeaponModification = (mods: number): string => {
   let realQtd = mods;
   let str = '(';
   let remainingMods = mods;
@@ -198,7 +198,7 @@ const getWeaponModification = (mods: number) => {
   return `${str})`;
 };
 
-const getArmorModification = (mods: number) => {
+export const getArmorModification = (mods: number): string => {
   let realQtd = mods;
   let str = '(';
   let remainingMods = mods;
