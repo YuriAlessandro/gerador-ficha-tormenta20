@@ -14,7 +14,7 @@ const TimelineStep: React.FC<{
   oppositeContent?: React.ReactNode;
 }> = ({ icon, children, oppositeContent }) => (
   <TimelineItem>
-    <TimelineOppositeContent sx={{ flexGrow: 0.15 }}>
+    <TimelineOppositeContent sx={{ flexGrow: 0.15, m: 'auto 0' }}>
       {oppositeContent || ''}
     </TimelineOppositeContent>
     <TimelineSeparator>

@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
-import { Paper, Box, IconButton, Typography, Slide } from '@mui/material';
+import {
+  Paper,
+  Box,
+  IconButton,
+  Typography,
+  Slide,
+  Alert,
+} from '@mui/material';
 import Select from 'react-select';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { TransitionGroup } from 'react-transition-group';
+import { cloneDeep } from 'lodash';
 import RACAS from '../../../data/racas';
 import { CardInterface } from './interfaces';
 import getSelectTheme from '../../../functions/style';
@@ -11,6 +19,7 @@ import Race from '../../../interfaces/Race';
 
 const RaceCard: React.FC<CardInterface> = ({ onContinue, sheet }) => {
   const [choosenRace, setChoosenRace] = useState<Race | undefined>(undefined);
+  const [error, setError] = useState('');
 
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
   const ls = window.localStorage;
@@ -26,17 +35,29 @@ const RaceCard: React.FC<CardInterface> = ({ onContinue, sheet }) => {
   };
 
   const onClickContinue = () => {
-    onContinue(2, sheet);
+    const sheetClone = cloneDeep(sheet);
+
+    if (choosenRace) {
+      sheetClone.raca = choosenRace;
+
+      onContinue(3, sheetClone);
+    } else {
+      setError('Você deve escolher uma raça antes de continuar');
+    }
   };
 
   return (
     <Paper elevation={0}>
-      <Box sx={{ p: 2, minHeight: 500 }}>
+      <Box sx={{ p: 2 }}>
         <h1>Escolha a raça</h1>
+
+        <Slide direction='right' in={error.length > 0}>
+          <Alert severity='error'>{error}</Alert>
+        </Slide>
 
         <Select
           className='filterSelect'
-          options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+          options={racas}
           placeholder='Escolha sua raça'
           onChange={onSelectRaca}
           theme={(theme) => ({
