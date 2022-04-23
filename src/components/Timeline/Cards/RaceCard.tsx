@@ -6,6 +6,7 @@ import {
   Typography,
   Slide,
   Alert,
+  Divider,
 } from '@mui/material';
 import Select from 'react-select';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -70,6 +71,23 @@ const RaceCard: React.FC<CardInterface> = ({ onContinue, sheet }) => {
 
         {choosenRace && (
           <TransitionGroup>
+            <Box sx={{ display: 'flex', mt: 3, mb: 3 }}>
+              {choosenRace.attributes.attrs.map((attr) => (
+                <Paper elevation={1} sx={{ mr: 3, p: 1 }}>
+                  {attr.attr !== 'any' ? (
+                    <>
+                      {attr.mod > 0 ? '+' : ''}
+                      {attr.mod} em {attr.attr}
+                    </>
+                  ) : (
+                    <span>humano imundo</span>
+                  )}
+                </Paper>
+              ))}
+            </Box>
+
+            <Divider />
+
             {choosenRace.abilities.map((abilitie) => (
               <Slide direction='up' key={`${abilitie.name}`}>
                 <Paper elevation={1} sx={{ mt: 3, p: 1 }}>
