@@ -21,6 +21,8 @@ import MainScreen from './components/screens/MainScreen';
 import Changelog from './components/screens/Changelog';
 import Rewards from './components/screens/Rewards';
 import SuperiorItems from './components/screens/SuperiorItems';
+import LandingPage from './components/screens/LandingPage';
+import ManualSheet from './components/screens/ManualSheet';
 
 const lightTheme = {
   backgroundColor: '#f3f2f1',
@@ -46,6 +48,7 @@ function App(): JSX.Element {
         dark: '#922325',
         light: '#da5b5d',
       },
+      mode: isDarkTheme ? 'dark' : 'light',
     },
     components: {
       MuiRadio: {
@@ -72,9 +75,11 @@ function App(): JSX.Element {
 
   const handleChangeTabValue = (pathname: string) => {
     if (pathname === '/') setTabValue(0);
-    if (pathname === '/recompensas') setTabValue(1);
-    if (pathname === '/itens-superiores') setTabValue(2);
-    if (pathname === '/changelog') setTabValue(4);
+    if (pathname === '/ficha-aleatoria') setTabValue(1);
+    if (pathname === '/ficha-manual') setTabValue(2);
+    if (pathname === '/recompensas') setTabValue(3);
+    if (pathname === '/itens-superiores') setTabValue(4);
+    if (pathname === '/changelog') setTabValue(6);
   };
 
   history.listen((location) => {
@@ -156,19 +161,27 @@ function App(): JSX.Element {
                   scrollButtons
                   className='topTabs'
                 >
-                  <Tab label='Fichas' onClick={() => onClickTab(0, '')} />
+                  <Tab label='Início' onClick={() => onClickTab(0, '')} />
+                  <Tab
+                    label='Fichas aleatórias'
+                    onClick={() => onClickTab(1, 'ficha-aleatoria')}
+                  />
+                  <Tab
+                    label='Fichas manuais'
+                    onClick={() => onClickTab(2, 'ficha-manual')}
+                  />
                   <Tab
                     label='Recompensas'
-                    onClick={() => onClickTab(1, 'recompensas')}
+                    onClick={() => onClickTab(2, 'recompensas')}
                   />
                   <Tab
                     label='Itens Superiores'
-                    onClick={() => onClickTab(2, 'itens-superiores')}
+                    onClick={() => onClickTab(3, 'itens-superiores')}
                   />
                   <Tab label='Itens Mágicos' disabled />
                   <Tab
                     label='Changelog'
-                    onClick={() => onClickTab(4, 'changelog')}
+                    onClick={() => onClickTab(5, 'changelog')}
                   />
                 </Tabs>
                 <FormGroup>
@@ -199,8 +212,17 @@ function App(): JSX.Element {
               <Route path='/itens-superiores'>
                 <SuperiorItems isDarkMode={isDarkTheme} />
               </Route>
-              <Route>
+              <Route path='/ficha-aleatoria'>
                 <MainScreen isDarkMode={isDarkTheme} />
+              </Route>
+              <Route path='/ficha-manual'>
+                <ManualSheet isDarkMode={isDarkTheme} />
+              </Route>
+              <Route>
+                <LandingPage
+                  isDarkMode={isDarkTheme}
+                  onClickButton={onClickTab}
+                />
               </Route>
             </Switch>
           </div>

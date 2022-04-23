@@ -1,8 +1,6 @@
 import React from 'react';
 import Button from '@mui/material/Button';
 import Select from 'react-select';
-import Fade from '@mui/material/Fade';
-import { Link } from 'react-router-dom';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
@@ -23,14 +21,6 @@ import Historic from './Historic';
 import { ORIGINS } from '../../data/origins';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import SimpleResult from '../SimpleResult';
-
-// const useStyles = makeStyles(() => ({
-//   button: {
-//     background: 'rgb(209, 50, 53);',
-//     color: '#FAFAFA',
-//     marginBottom: '10px',
-//   },
-// }));
 
 type SelectedOption = { value: string; label: string };
 
@@ -66,7 +56,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [simpleSheet, setSimpleSheet] = React.useState(false);
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
-  const [showPresentation, setShowPresentation] = React.useState(true);
   const [showHistoric, setShowHistoric] = React.useState(false);
 
   const onClickGenerate = () => {
@@ -78,7 +67,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
     saveSheetOnHistoric(anotherRandomSheet);
     setRandomSheet(anotherRandomSheet);
@@ -93,7 +81,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     setRandomSheet(sheet);
   };
 
@@ -105,7 +92,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     setShowHistoric(true);
   };
 
@@ -328,7 +314,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         </div>
       </div>
 
-      <Fade in={showPresentation}>
+      {/* <Fade in={showPresentation}>
         <div id='presentation'>
           <p>
             <u>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</u>.
@@ -381,7 +367,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             .
           </p>
         </div>
-      </Fade>
+      </Fade> */}
 
       {randomSheet && !showHistoric && sheetComponent}
 

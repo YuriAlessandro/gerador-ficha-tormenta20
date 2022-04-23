@@ -1,0 +1,82 @@
+import React, { useState } from 'react';
+import { Paper, Box, IconButton, Typography, Slide } from '@mui/material';
+import Select from 'react-select';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
+import { TransitionGroup } from 'react-transition-group';
+import RACAS from '../../../data/racas';
+import { CardInterface } from './interfaces';
+import getSelectTheme from '../../../functions/style';
+import Race from '../../../interfaces/Race';
+
+const RaceCard: React.FC<CardInterface> = ({ onContinue, sheet }) => {
+  const [choosenRace, setChoosenRace] = useState<Race | undefined>(undefined);
+
+  const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
+  const ls = window.localStorage;
+
+  const formThemeColors =
+    ls.getItem('dkmFdn') === 'true'
+      ? getSelectTheme('dark')
+      : getSelectTheme('default');
+
+  const onSelectRaca = (raca: { label: string; value: string } | null) => {
+    const selectedRaca = RACAS.find((pRaca) => pRaca.name === raca?.label);
+    setChoosenRace(selectedRaca);
+  };
+
+  const onClickContinue = () => {
+    onContinue(2, sheet);
+  };
+
+  return (
+    <Paper elevation={0}>
+      <Box sx={{ p: 2, minHeight: 500 }}>
+        <h1>Escolha a raça</h1>
+
+        <Select
+          className='filterSelect'
+          options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+          placeholder='Escolha sua raça'
+          onChange={onSelectRaca}
+          theme={(theme) => ({
+            ...theme,
+            colors: {
+              ...formThemeColors,
+            },
+          })}
+        />
+
+        {choosenRace && (
+          <TransitionGroup>
+            {choosenRace.abilities.map((abilitie) => (
+              <Slide direction='up' key={`${abilitie.name}`}>
+                <Paper elevation={1} sx={{ mt: 3, p: 1 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <FactCheckIcon sx={{ mr: 2 }} />
+                    <Typography fontSize={20} fontWeight='bold'>
+                      {abilitie.name}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mt: 1 }}>{abilitie.description}</Box>
+                </Paper>
+              </Slide>
+            ))}
+          </TransitionGroup>
+        )}
+      </Box>
+      <Box sx={{ textAlign: 'center', pb: 1 }}>
+        <IconButton title='Continuar' onClick={onClickContinue}>
+          <KeyboardArrowDownIcon />
+        </IconButton>
+      </Box>
+    </Paper>
+  );
+};
+
+export default RaceCard;
