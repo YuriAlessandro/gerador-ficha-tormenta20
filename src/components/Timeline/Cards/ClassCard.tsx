@@ -98,7 +98,7 @@ const ClassCard: React.FC<CardInterface> = ({ onContinue, sheet }) => {
 
       sheetClone.skills = skills;
 
-      onContinue(5, sheetClone);
+      onContinue(4, sheetClone);
     } else {
       setError('Você deve escolher uma classe antes de continuar');
     }

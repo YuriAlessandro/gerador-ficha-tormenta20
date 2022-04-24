@@ -29,7 +29,7 @@ const HYNNE: Race = {
     {
       name: 'Pequeno e Rechonchudo',
       description:
-        'Seu tamanho é Pequeno (veja a página 106) e seu deslocamento é 6m. Você recebe +2 em Enganação e usa o modificador de Destreza para Atletismo (em vez de Força).',
+        'Seu tamanho é Pequeno (veja a página 106) e seu deslocamento é 6m. Você recebe +2 em Enganação (não aplicado) e usa o modificador de Destreza para Atletismo (em vez de Força; não aplicado).',
     },
     {
       name: 'Sorte Salvadora',
