@@ -242,7 +242,7 @@ const combatPowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 },
-        { type: RequirementType.PODER, name: 'Estilo de Uma Arma' },
+        { type: RequirementType.PERICIA, name: 'Luta' },
       ],
     ],
   },

@@ -41,7 +41,7 @@ const ManualSheet: React.FC<{
     setCurrentStep(1);
   }, []);
 
-  // console.log(currentSheet);
+  console.log(currentSheet);
 
   return (
     <Box sx={{ m: 3 }}>
@@ -119,10 +119,19 @@ const ManualSheet: React.FC<{
             </TimelineStep>
           </div>
           <div>
-            <TimelineStep icon={<HistoryToggleOffIcon />}>
+            <TimelineStep
+              icon={<HistoryToggleOffIcon />}
+              oppositeContent={
+                currentStep === 4 ? (
+                  <SheetAttributesOnRace currentSheet={currentSheet} />
+                ) : (
+                  ''
+                )
+              }
+            >
               {currentStep < 4 && (
                 <Paper sx={{ p: 3 }} elevation={0}>
-                  Escolher Origem
+                  Escolher Origem e Poderes
                 </Paper>
               )}
               {currentStep === 4 && (
@@ -130,7 +139,7 @@ const ManualSheet: React.FC<{
               )}
               {currentStep > 4 && (
                 <Paper sx={{ p: 3 }} elevation={0}>
-                  EM BREVE
+                  Origem escolhida: {currentSheet.origin?.name}
                 </Paper>
               )}
             </TimelineStep>
