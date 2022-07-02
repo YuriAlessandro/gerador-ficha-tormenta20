@@ -21,6 +21,8 @@ import MainScreen from './components/screens/MainScreen';
 import Changelog from './components/screens/Changelog';
 import Rewards from './components/screens/Rewards';
 import SuperiorItems from './components/screens/SuperiorItems';
+import LandingPage from './components/screens/LandingPage';
+// import CreatureSheet from './components/screens/CreatureSheet';
 
 const lightTheme = {
   backgroundColor: '#f3f2f1',
@@ -37,7 +39,7 @@ function App(): JSX.Element {
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const [isDarkTheme, setIsDarkTheme] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState(0);
+  const [tabValue, setTabValue] = React.useState(-1);
 
   const theme = createTheme({
     palette: {
@@ -71,9 +73,11 @@ function App(): JSX.Element {
   });
 
   const handleChangeTabValue = (pathname: string) => {
-    if (pathname === '/') setTabValue(0);
+    if (pathname === '/') setTabValue(-1);
+    if (pathname === '/ficha-aleatoria') setTabValue(0);
     if (pathname === '/recompensas') setTabValue(1);
     if (pathname === '/itens-superiores') setTabValue(2);
+    if (pathname === '/itens-magicos') setTabValue(3);
     if (pathname === '/changelog') setTabValue(4);
   };
 
@@ -144,7 +148,11 @@ function App(): JSX.Element {
                 >
                   <MenuIcon />
                 </IconButton>
-                <Typography variant='h6'>
+                <Typography
+                  sx={{ cursor: 'pointer' }}
+                  variant='h6'
+                  onClick={() => onClickTab(-1, '')}
+                >
                   <p>Fichas de Nimb</p>
                 </Typography>
                 <Tabs
@@ -156,7 +164,10 @@ function App(): JSX.Element {
                   scrollButtons
                   className='topTabs'
                 >
-                  <Tab label='Fichas' onClick={() => onClickTab(0, '')} />
+                  <Tab
+                    label='Fichas'
+                    onClick={() => onClickTab(0, 'ficha-aleatoria')}
+                  />
                   <Tab
                     label='Recompensas'
                     onClick={() => onClickTab(1, 'recompensas')}
@@ -165,7 +176,11 @@ function App(): JSX.Element {
                     label='Itens Superiores'
                     onClick={() => onClickTab(2, 'itens-superiores')}
                   />
-                  <Tab label='Itens Mágicos' disabled />
+                  <Tab
+                    label='Itens Mágicos'
+                    disabled
+                    onClick={() => onClickTab(3, 'itens-magicos')}
+                  />
                   <Tab
                     label='Changelog'
                     onClick={() => onClickTab(4, 'changelog')}
@@ -199,8 +214,17 @@ function App(): JSX.Element {
               <Route path='/itens-superiores'>
                 <SuperiorItems isDarkMode={isDarkTheme} />
               </Route>
-              <Route>
+              <Route path='/ficha-aleatoria'>
                 <MainScreen isDarkMode={isDarkTheme} />
+              </Route>
+              {/* <Route path='/ficha-criatura'>
+                <CreatureSheet isDarkMode={isDarkTheme} />
+              </Route> */}
+              <Route>
+                <LandingPage
+                  isDarkMode={isDarkTheme}
+                  onClickButton={onClickTab}
+                />
               </Route>
             </Switch>
           </div>

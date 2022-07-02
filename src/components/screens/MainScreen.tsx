@@ -1,8 +1,6 @@
 import React from 'react';
 import Button from '@mui/material/Button';
 import Select from 'react-select';
-import Fade from '@mui/material/Fade';
-import { Link } from 'react-router-dom';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
@@ -23,14 +21,6 @@ import Historic from './Historic';
 import { ORIGINS } from '../../data/origins';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import SimpleResult from '../SimpleResult';
-
-// const useStyles = makeStyles(() => ({
-//   button: {
-//     background: 'rgb(209, 50, 53);',
-//     color: '#FAFAFA',
-//     marginBottom: '10px',
-//   },
-// }));
 
 type SelectedOption = { value: string; label: string };
 
@@ -66,7 +56,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [simpleSheet, setSimpleSheet] = React.useState(false);
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
-  const [showPresentation, setShowPresentation] = React.useState(true);
   const [showHistoric, setShowHistoric] = React.useState(false);
 
   const onClickGenerate = () => {
@@ -78,7 +67,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
     saveSheetOnHistoric(anotherRandomSheet);
     setRandomSheet(anotherRandomSheet);
@@ -93,7 +81,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     setRandomSheet(sheet);
   };
 
@@ -105,7 +92,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    setShowPresentation(false);
     setShowHistoric(true);
   };
 
@@ -327,61 +313,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           </Button>
         </div>
       </div>
-
-      <Fade in={showPresentation}>
-        <div id='presentation'>
-          <p>
-            <u>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</u>.
-            Deixe que Nimb decida o seu personagem.
-          </p>
-          <p>
-            <strong>Fichas de Nimb</strong> é um gerador de fichas aleátorias
-            para o sistema Tormenta 20. Com ele, é possível gerar fichas de
-            raças e classes aleatórias, e ter sua ficha montada
-            instanteneamente. Todos as características de uma ficha de Tormenta
-            20 serão gerados: atributos, perícias, origem, divindades, magias,
-            etc. Tudo respeitando as regras oficiais do jogo.
-          </p>
-          <p>
-            Esse gerador é uma ótima pedida para jogadores que queiram
-            experimentar um pouco de aleatoriedade ou não gastar muito tempo
-            criando a ficha, e principalmente para mestres que queriam gerar
-            seus NPCs de forma rápida e prática.
-          </p>
-          <p>
-            Para isso, adicionamos também a opção de filtro de raça, classe e
-            nivel, para que o mestre possa gerar NPCs conforme a narrativa
-            requisite.
-          </p>
-          <p>
-            Você pode ver as últimas alterações e o que planejamos para o futuro
-            no <Link to='/changelog'>changelog</Link>.
-          </p>
-
-          <p>
-            Se você encontrou algum problema, tem alguma sugestão ou quer
-            discutir e entender como é o funcionamento do Fichas de Nimb,{' '}
-            <a
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-              target='blank'
-            >
-              clique aqui.
-            </a>
-          </p>
-
-          <p>
-            Se você é um desenvolvedor que queira contribuir com o projeto,
-            utilize o nosso{' '}
-            <a
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-              target='blank'
-            >
-              GitHub
-            </a>
-            .
-          </p>
-        </div>
-      </Fade>
 
       {randomSheet && !showHistoric && sheetComponent}
 
