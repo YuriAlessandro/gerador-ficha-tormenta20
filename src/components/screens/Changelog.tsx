@@ -4,7 +4,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 22/04/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 02/07/2022.
     </p>
 
     <p>
@@ -21,6 +21,18 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.5.0</h3>
+    <ul>
+      <li>
+        Adicionado uma opção para imprimir a ficha simplificada. (Obrigado{' '}
+        <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/335'>
+          @EfficientDrink4367
+        </a>
+        ).
+      </li>
+      <li>Adicionado uma página inicial para organizar melhor o site.</li>
+    </ul>
 
     <h3>2.4.1</h3>
     <ul>
