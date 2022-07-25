@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import StorageIcon from '@mui/icons-material/Storage';
 
 import ficha from '../../assets/images/ficha.png';
 
@@ -10,13 +11,19 @@ const LandingPage: React.FC<{
   isDarkMode: boolean;
   onClickButton: (tab: number, link: string) => void;
 }> = ({ onClickButton }) => (
-  <>
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: ['column-reverse', 'column-reverse', 'row'],
+    }}
+  >
     <Box
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
         m: 2,
         width: '90vw',
+        flexDirection: ['column', 'column', 'row'],
       }}
     >
       <div id='presentation'>
@@ -72,7 +79,14 @@ const LandingPage: React.FC<{
     </Box>
     <Card
       variant='outlined'
-      sx={{ p: 3, width: 300, position: 'absolute', top: 100, right: '45%' }}
+      sx={{
+        p: 3,
+        width: 300,
+        position: ['initial', 'initial', 'absolute'],
+        top: 100,
+        right: ['0', '10%', '40%'],
+        m: [3, 0, 0],
+      }}
     >
       <h1>Começar agora mesmo</h1>
       <p>
@@ -89,14 +103,22 @@ const LandingPage: React.FC<{
         Gerar ficha de jogador
       </Button>
       <Button
+        sx={{ mb: 1 }}
         variant='contained'
         startIcon={<LocalAtmIcon />}
         onClick={() => onClickButton(2, 'recompensas')}
       >
         Gerar recompensa
       </Button>
+      <Button
+        variant='contained'
+        startIcon={<StorageIcon />}
+        onClick={() => onClickButton(4, 'database/raças')}
+      >
+        Database
+      </Button>
     </Card>
-  </>
+  </Box>
 );
 
 export default LandingPage;

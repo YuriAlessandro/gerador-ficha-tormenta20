@@ -1,10 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 02/07/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 25/07/2022.
     </p>
 
     <p>
@@ -23,6 +24,42 @@ const Changelog: React.FC = () => (
     <h2>Versão 2.0</h2>
 
     <h3>2.5.0</h3>
+    <ul>
+      <li>
+        Adicionado o <Link to='/database/raças'>Database Tormenta</Link>. Com
+        ele, é possível pesquisar (até mesmo por áudio) as raças, classes,
+        poderes e muito mais para consultar os textos.
+        <ul>
+          <li>
+            Esta sendo lançado nesse momento como uma versão inicial, sujeito a
+            diversas melhorias no futuro.
+          </li>
+          <li>
+            A funcionalidade de pesquisa por áudio está{' '}
+            <strong>disponível apenas no navegador Chrome</strong> e
+            provavelmente só irá funcionar com palavras regulares da língua
+            portuguesa (não espere que vá identificar &quot;Aharadak&quot;, por
+            exemplo).
+          </li>
+          <li>
+            As <strong>origens</strong> e <strong>magias</strong> ainda não
+            estão disponíveis porque preciso arrumar melhor os dados delas.
+          </li>
+        </ul>
+      </li>
+      <li>
+        Removido uma repetição de texto quando um usuário gerava várias
+        recompensas ao mesmo tempo. Agora a tela fica mais limpa e melhor de
+        vizualizar tudo que foi gerado.
+      </li>
+      <li>
+        Dei uma <strong>melhorada básica</strong> no site todo para celulares.
+        Ainda está longe do ideal e utilizar um computador é a melhor forma, mas
+        agora dá para pelo menos navegar direitinho e vizualizar as coisas.
+      </li>
+    </ul>
+
+    <h3>2.4.2</h3>
     <ul>
       <li>
         Adicionado uma opção para imprimir a ficha simplificada. (Obrigado{' '}

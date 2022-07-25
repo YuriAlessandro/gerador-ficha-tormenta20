@@ -22,6 +22,7 @@ import Changelog from './components/screens/Changelog';
 import Rewards from './components/screens/Rewards';
 import SuperiorItems from './components/screens/SuperiorItems';
 import LandingPage from './components/screens/LandingPage';
+import Database from './components/screens/Database';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 const lightTheme = {
@@ -78,7 +79,8 @@ function App(): JSX.Element {
     if (pathname === '/recompensas') setTabValue(1);
     if (pathname === '/itens-superiores') setTabValue(2);
     if (pathname === '/itens-magicos') setTabValue(3);
-    if (pathname === '/changelog') setTabValue(4);
+    if (pathname.includes('/database')) setTabValue(4);
+    if (pathname === '/changelog') setTabValue(5);
   };
 
   history.listen((location) => {
@@ -182,11 +184,15 @@ function App(): JSX.Element {
                     onClick={() => onClickTab(3, 'itens-magicos')}
                   />
                   <Tab
+                    label='Database'
+                    onClick={() => onClickTab(4, 'database/raças')}
+                  />
+                  <Tab
                     label='Changelog'
-                    onClick={() => onClickTab(4, 'changelog')}
+                    onClick={() => onClickTab(5, 'changelog')}
                   />
                 </Tabs>
-                <FormGroup>
+                <FormGroup sx={{ ml: ['15px', 0, 0] }}>
                   <FormControlLabel
                     labelPlacement='end'
                     control={
@@ -216,6 +222,9 @@ function App(): JSX.Element {
               </Route>
               <Route path='/ficha-aleatoria'>
                 <MainScreen isDarkMode={isDarkTheme} />
+              </Route>
+              <Route path='/database'>
+                <Database isDarkMode={isDarkTheme} />
               </Route>
               {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />
