@@ -192,7 +192,7 @@ function App(): JSX.Element {
                     onClick={() => onClickTab(5, 'changelog')}
                   />
                 </Tabs>
-                <FormGroup>
+                <FormGroup sx={{ ml: ['15px', 0, 0] }}>
                   <FormControlLabel
                     labelPlacement='end'
                     control={

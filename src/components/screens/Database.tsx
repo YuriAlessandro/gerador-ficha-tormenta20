@@ -7,6 +7,7 @@ import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import { Switch, Route, useRouteMatch, useHistory } from 'react-router-dom';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import RacesTable from '../DatabaseTables/RacesTable';
 import ClassesTable from '../DatabaseTables/ClassesTable';
 import DivindadesTable from '../DatabaseTables/DivindadesTable';
@@ -22,33 +23,37 @@ const DatabaseMenuItem: React.FC<{
   title: string;
   icon: React.ReactElement;
   disabled?: boolean;
-}> = ({ selected, onClick, title, icon, disabled }) => (
-  <Button
-    sx={{
-      border: '1px solid #d13235',
-      p: 2,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontSize: 20,
-      width: 150,
-      cursor: 'pointer',
-      background: selected ? '#d13235' : 'white',
-      color: selected ? 'white' : '#d13235',
-    }}
-    onClick={onClick}
-    disabled={disabled}
-  >
-    {icon}
-    {title}
-  </Button>
-);
+}> = ({ selected, onClick, title, icon, disabled }) => {
+  const isMobile = useMediaQuery('(max-width: 720px)');
+  return (
+    <Button
+      sx={{
+        border: '1px solid #d13235',
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontSize: isMobile ? 14 : 20,
+        width: isMobile ? 100 : 150,
+        cursor: 'pointer',
+        background: selected ? '#d13235' : 'white',
+        color: selected ? 'white' : '#d13235',
+      }}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon}
+      {title}
+    </Button>
+  );
+};
 
 const Database: React.FC<IProps> = () => {
   const [selectedMenu, setSelectedMenu] = useState<number>(-1);
   const { path, url } = useRouteMatch();
   const history = useHistory();
+  const isMobile = useMediaQuery('(max-width: 720px)');
 
   const onSelectMenu = (menu: number, name: string) => {
     setSelectedMenu(menu);
@@ -70,17 +75,20 @@ const Database: React.FC<IProps> = () => {
   return (
     <Container>
       <Stack
-        direction='row'
+        direction={isMobile ? 'column' : 'row'}
         spacing={2}
         justifyContent='start'
         alignItems='start'
         sx={{ mt: 2, mb: 2 }}
       >
         <Stack
-          direction='column'
+          direction={isMobile ? 'row' : 'column'}
           spacing={2}
           justifyContent='center'
           alignItems='start'
+          sx={{
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+          }}
         >
           <DatabaseMenuItem
             selected={selectedMenu === 0}
