@@ -142,36 +142,6 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
             </TableBody>
           </Table>
         </TableContainer>
-        <p>
-          Os valores entre parênteses dizem respeito a ordem de rolagem dos
-          dados.
-          <ul>
-            <li>
-              Para dinheiro, o valor entre parênteses é o rolado originalmente
-              para calcular o total.
-            </li>
-            <li>
-              Para riquezas, o primeiro número é para determinar qual a riqueza,
-              o segundo é para determinar o valor dela.
-            </li>
-            <li>
-              Para itens diversos, o valor determina qual item foi selecionado.
-            </li>
-            <li>
-              Para armas e armaduras e (inclusive com modificações), o primeiro
-              valor é 1d6 para determinar se o item é uma arma (1 a 4) ou
-              armadura (5 ou 6). O segundo valor determina qual item foi
-              selecionado.
-            </li>
-            <li>Para poções, é o valor correspondente à poção selecionada.</li>
-            <li>
-              Para itens mágicos, o primeiro valor é 1d6 para determina se
-              encontra uma arma (1 ou 2), uma armadura (3) ou um acessório (4,5
-              ou 6). O segundo valor determina o efeito mágico (ou o acessório
-              mágico específico).
-            </li>
-          </ul>
-        </p>
       </>
     );
   });
@@ -305,6 +275,34 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
         inimigos de ND 8 formam um combate de ND 12 e assim por diante.
       </p>
       {items && ResultDiv}
+      <p>
+        Os valores entre parênteses dizem respeito a ordem de rolagem dos dados.
+        <ul>
+          <li>
+            Para dinheiro, o valor entre parênteses é o rolado originalmente
+            para calcular o total.
+          </li>
+          <li>
+            Para riquezas, o primeiro número é para determinar qual a riqueza, o
+            segundo é para determinar o valor dela.
+          </li>
+          <li>
+            Para itens diversos, o valor determina qual item foi selecionado.
+          </li>
+          <li>
+            Para armas e armaduras e (inclusive com modificações), o primeiro
+            valor é 1d6 para determinar se o item é uma arma (1 a 4) ou armadura
+            (5 ou 6). O segundo valor determina qual item foi selecionado.
+          </li>
+          <li>Para poções, é o valor correspondente à poção selecionada.</li>
+          <li>
+            Para itens mágicos, o primeiro valor é 1d6 para determina se
+            encontra uma arma (1 ou 2), uma armadura (3) ou um acessório (4,5 ou
+            6). O segundo valor determina o efeito mágico (ou o acessório mágico
+            específico).
+          </li>
+        </ul>
+      </p>
     </div>
   );
 };
