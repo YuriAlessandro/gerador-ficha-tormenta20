@@ -84,7 +84,7 @@ const LandingPage: React.FC<{
         width: 300,
         position: ['initial', 'initial', 'absolute'],
         top: 100,
-        right: ['0', '10%', '45%'],
+        right: ['0', '10%', '40%'],
         m: [3, 0, 0],
       }}
     >
