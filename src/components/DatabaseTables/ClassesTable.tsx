@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -10,10 +11,13 @@ import {
   IconButton,
   Collapse,
   Box,
+  Snackbar,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
+import { useHistory, useRouteMatch } from 'react-router-dom';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CLASSES from '../../data/classes';
 import SearchInput from './SearchInput';
 import { ClassDescription } from '../../interfaces/Class';
@@ -25,13 +29,27 @@ interface IProps {
 
 const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
   const [open, setOpen] = useState(false);
+  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const onCopy = (name: string) => {
+    navigator.clipboard.writeText(
+      `${window.location.href}/${name.toLowerCase()}`
+    );
+    setAlert(true);
+  };
+
   return (
     <>
+      <Snackbar
+        open={alert}
+        autoHideDuration={5000}
+        message='Link copiado para a área de transferência.'
+        onClose={() => setAlert(false)}
+      />
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell width={10}>
           <IconButton
@@ -44,6 +62,11 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
         </TableCell>
         <TableCell component='th' scope='row'>
           {classe.name}
+        </TableCell>
+        <TableCell>
+          <IconButton title='Copiar URL' onClick={() => onCopy(classe.name)}>
+            <ContentCopyIcon />
+          </IconButton>
         </TableCell>
       </TableRow>
       <TableRow>
@@ -111,6 +134,8 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
 const ClassesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [classes, setClasses] = useState<ClassDescription[]>(CLASSES);
+  const { params } = useRouteMatch();
+  const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
@@ -134,11 +159,21 @@ const ClassesTable: React.FC = () => {
         return false;
       });
 
+      if (filteredRaces.length > 1) history.push('/database/classes');
+
       setClasses(filteredRaces);
     } else {
       setClasses(CLASSES);
     }
   };
+
+  useEffect(() => {
+    const { selectedClass } = params as any;
+    if (selectedClass) {
+      setValue(selectedClass);
+      filter(selectedClass);
+    }
+  }, [params]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
@@ -159,6 +194,7 @@ const ClassesTable: React.FC = () => {
             <TableCell>
               <h1>Classes e Poderes de Classe</h1>
             </TableCell>
+            <TableCell />
           </TableRow>
           <TableRow>
             <TableCell />
@@ -169,6 +205,7 @@ const ClassesTable: React.FC = () => {
                 onVoiceSearch={onVoiceSearch}
               />
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>

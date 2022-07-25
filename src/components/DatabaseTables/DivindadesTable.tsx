@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -10,13 +11,14 @@ import {
   IconButton,
   Collapse,
   Box,
+  Snackbar,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
-// import CLASSES from '../../data/classes';
+import { useHistory, useRouteMatch } from 'react-router-dom';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchInput from './SearchInput';
-// import { ClassDescription } from '../../interfaces/Class';
 import { DIVINDADES } from '../../data/divindades';
 import Divindade from '../../interfaces/Divindade';
 
@@ -27,13 +29,27 @@ interface IProps {
 
 const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
   const [open, setOpen] = useState(false);
+  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
+  const onCopy = (name: string) => {
+    navigator.clipboard.writeText(
+      `${window.location.href}/${name.toLowerCase()}`
+    );
+    setAlert(true);
+  };
+
   return (
     <>
+      <Snackbar
+        open={alert}
+        autoHideDuration={5000}
+        message='Link copiado para a área de transferência.'
+        onClose={() => setAlert(false)}
+      />
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell width={10}>
           <IconButton
@@ -46,6 +62,11 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
         </TableCell>
         <TableCell component='th' scope='row'>
           {divindade.name}
+        </TableCell>
+        <TableCell>
+          <IconButton title='Copiar URL' onClick={() => onCopy(divindade.name)}>
+            <ContentCopyIcon />
+          </IconButton>
         </TableCell>
       </TableRow>
       <TableRow>
@@ -71,19 +92,31 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
 const DivindadesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [divindades, setDivindades] = useState<Divindade[]>(DIVINDADES);
+  const { params } = useRouteMatch();
+  const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
     if (search.length > 0) {
-      const filteredRaces = DIVINDADES.filter((divindade) =>
+      const filteredGods = DIVINDADES.filter((divindade) =>
         divindade.name.toLocaleLowerCase().includes(search)
       );
 
-      setDivindades(filteredRaces);
+      if (filteredGods.length > 1) history.push('/database/divindades');
+
+      setDivindades(filteredGods);
     } else {
       setDivindades(DIVINDADES);
     }
   };
+
+  useEffect(() => {
+    const { selectedGod } = params as any;
+    if (selectedGod) {
+      setValue(selectedGod);
+      filter(selectedGod);
+    }
+  }, [params]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
@@ -104,6 +137,7 @@ const DivindadesTable: React.FC = () => {
             <TableCell>
               <h1>Divindades</h1>
             </TableCell>
+            <TableCell />
           </TableRow>
           <TableRow>
             <TableCell />
@@ -114,6 +148,7 @@ const DivindadesTable: React.FC = () => {
                 onVoiceSearch={onVoiceSearch}
               />
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableHead>
         <TableBody>

@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import { Stack, Button, Container } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Stack, Button, Container, Paper } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import { Switch, Route, useRouteMatch, useHistory } from 'react-router-dom';
 import RacesTable from '../DatabaseTables/RacesTable';
 import ClassesTable from '../DatabaseTables/ClassesTable';
 import DivindadesTable from '../DatabaseTables/DivindadesTable';
+import PowersTable from '../DatabaseTables/PowersTable';
 
 interface IProps {
-  isDarkMode: boolean;
+  isDarkMode?: boolean;
 }
 
 const DatabaseMenuItem: React.FC<{
@@ -43,19 +45,34 @@ const DatabaseMenuItem: React.FC<{
   </Button>
 );
 
-const Database: React.FC<IProps> = ({ isDarkMode }) => {
-  const [selectedMenu, setSelectedMenu] = useState<number>(0);
+const Database: React.FC<IProps> = () => {
+  const [selectedMenu, setSelectedMenu] = useState<number>(-1);
+  const { path, url } = useRouteMatch();
+  const history = useHistory();
 
-  const onSelectMenu = (menu: number) => {
+  const onSelectMenu = (menu: number, name: string) => {
     setSelectedMenu(menu);
+    history.push(`${url}/${name}`);
   };
+
+  useEffect(() => {
+    const { pathname } = history.location;
+
+    if (pathname.includes('raças')) setSelectedMenu(0);
+    else if (pathname.includes('classes')) setSelectedMenu(1);
+    else if (pathname.includes('origens')) setSelectedMenu(2);
+    else if (pathname.includes('divindades')) setSelectedMenu(3);
+    else if (pathname.includes('poderes')) setSelectedMenu(4);
+    else if (pathname.includes('magias')) setSelectedMenu(5);
+    else setSelectedMenu(-1);
+  }, [history.location]);
 
   return (
     <Container>
       <Stack
         direction='row'
         spacing={2}
-        justifyContent='center'
+        justifyContent='start'
         alignItems='start'
         sx={{ mt: 2, mb: 2 }}
       >
@@ -67,48 +84,63 @@ const Database: React.FC<IProps> = ({ isDarkMode }) => {
         >
           <DatabaseMenuItem
             selected={selectedMenu === 0}
-            onClick={() => onSelectMenu(0)}
+            onClick={() => onSelectMenu(0, 'raças')}
             title='Raças'
             icon={<GroupIcon />}
           />
           <DatabaseMenuItem
             selected={selectedMenu === 1}
-            onClick={() => onSelectMenu(1)}
+            onClick={() => onSelectMenu(1, 'classes')}
             title='Classes'
             icon={<WhatshotIcon />}
           />
           <DatabaseMenuItem
             selected={selectedMenu === 2}
-            onClick={() => onSelectMenu(2)}
+            onClick={() => onSelectMenu(2, 'origens')}
             title='Origens'
             icon={<BrowseGalleryIcon />}
             disabled
           />
           <DatabaseMenuItem
             selected={selectedMenu === 3}
-            onClick={() => onSelectMenu(3)}
-            title='Deuses'
+            onClick={() => onSelectMenu(3, 'divindades')}
+            title='Divindades'
             icon={<FilterDramaIcon />}
           />
           <DatabaseMenuItem
             selected={selectedMenu === 4}
-            onClick={() => onSelectMenu(4)}
+            onClick={() => onSelectMenu(4, 'poderes')}
             title='Poderes'
             icon={<LocalFireDepartmentIcon />}
-            disabled
           />
           <DatabaseMenuItem
             selected={selectedMenu === 5}
-            onClick={() => onSelectMenu(5)}
+            onClick={() => onSelectMenu(5, 'magias')}
             title='Magias'
             icon={<AutoFixHighIcon />}
             disabled
           />
         </Stack>
 
-        {selectedMenu === 0 && <RacesTable />}
-        {selectedMenu === 1 && <ClassesTable />}
-        {selectedMenu === 3 && <DivindadesTable />}
+        <Switch>
+          <Route exact path={path}>
+            <Paper sx={{ width: '100%', height: '40vh', p: 2 }}>
+              <p>Selecione uma das categorias ao lado.</p>
+            </Paper>
+          </Route>
+          <Route path={`${path}/raças/:selectedRace?`}>
+            <RacesTable />
+          </Route>
+          <Route path={`${path}/classes/:selectedClass?`}>
+            <ClassesTable />
+          </Route>
+          <Route path={`${path}/divindades/:selectedGod?`}>
+            <DivindadesTable />
+          </Route>
+          <Route path={`${path}/poderes/:selectedPower?`}>
+            <PowersTable />
+          </Route>
+        </Switch>
       </Stack>
     </Container>
   );

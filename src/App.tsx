@@ -79,7 +79,7 @@ function App(): JSX.Element {
     if (pathname === '/recompensas') setTabValue(1);
     if (pathname === '/itens-superiores') setTabValue(2);
     if (pathname === '/itens-magicos') setTabValue(3);
-    if (pathname === '/database') setTabValue(4);
+    if (pathname.includes('/database')) setTabValue(4);
     if (pathname === '/changelog') setTabValue(5);
   };
 
@@ -185,7 +185,7 @@ function App(): JSX.Element {
                   />
                   <Tab
                     label='Database'
-                    onClick={() => onClickTab(4, 'database')}
+                    onClick={() => onClickTab(4, 'database/raças')}
                   />
                   <Tab
                     label='Changelog'
