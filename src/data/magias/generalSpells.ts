@@ -1798,8 +1798,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Animar Objetos',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo:
-      'Até 8 objetos Minúsculos ou Pequenos, 4 objetos Médios, 2 objetos Grandes ou 1 objeto Enorme',
+    alvo: 'Até 8 objetos Minúsculos ou Pequenos, 4 objetos Médios, 2 objetos Grandes ou 1 objeto Enorme',
     duracao: 'Cena',
     resistencia: '',
     school: 'Trans',
