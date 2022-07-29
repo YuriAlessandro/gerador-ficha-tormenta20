@@ -74,13 +74,22 @@ function App(): JSX.Element {
   });
 
   const handleChangeTabValue = (pathname: string) => {
-    if (pathname === '/') setTabValue(-1);
-    if (pathname === '/ficha-aleatoria') setTabValue(0);
-    if (pathname === '/recompensas') setTabValue(1);
-    if (pathname === '/itens-superiores') setTabValue(2);
-    if (pathname === '/itens-magicos') setTabValue(3);
-    if (pathname && pathname.includes('/database')) setTabValue(4);
-    if (pathname === '/changelog') setTabValue(5);
+    const pathnamesTabValues = {
+      none: -1,
+      'ficha-aleatoria': 0,
+      recompensas: 1,
+      'itens-superiores': 2,
+      'itens-magicos': 3,
+      database: 4,
+      changelog: 5,
+    } as const;
+
+    const currentPath = (Object.keys(pathnamesTabValues).find((path) =>
+      pathname?.includes(path)
+    ) || 'none') as string;
+    const currentTabValue =
+      pathnamesTabValues[currentPath as keyof typeof pathnamesTabValues];
+    setTabValue(currentTabValue);
   };
 
   history.listen((location) => {

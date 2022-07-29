@@ -49,7 +49,7 @@ export function isPowerAvailable(
             );
           }
           case RequirementType.PROFICIENCIA: {
-            const proficiencia = (rule.value as unknown) as string;
+            const proficiencia = rule.value as unknown as string;
             return (
               rule.name && sheet.classe.proficiencias.includes(proficiencia)
             );
@@ -59,7 +59,7 @@ export function isPowerAvailable(
             return sheet.nivel >= nivel;
           }
           case RequirementType.CLASSE: {
-            const className = (rule.value as unknown) as string;
+            const className = rule.value as unknown as string;
             return rule.name && sheet.classe.name === className;
           }
           case RequirementType.TIPO_ARCANISTA: {
