@@ -16,7 +16,7 @@ import {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchInput from './SearchInput';
 import { DIVINDADES } from '../../data/divindades';
@@ -74,10 +74,15 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
           <Collapse in={open} timeout='auto' unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Box>
-                <h2>Poderes de Condedidos</h2>
+                <h2>Poderes Concedidos</h2>
                 {divindade.poderes.map((power) => (
                   <Box>
-                    <h4>{power.name}</h4>
+                    <h4>
+                      <Link to={`/database/poderes/${power.name}`}>
+                        {power.name}
+                      </Link>
+                    </h4>
+                    <p>{power.description}</p>
                   </Box>
                 ))}
               </Box>

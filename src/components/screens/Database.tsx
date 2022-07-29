@@ -12,6 +12,7 @@ import RacesTable from '../DatabaseTables/RacesTable';
 import ClassesTable from '../DatabaseTables/ClassesTable';
 import DivindadesTable from '../DatabaseTables/DivindadesTable';
 import PowersTable from '../DatabaseTables/PowersTable';
+import SpellsTable from '../DatabaseTables/SpellsTable';
 
 interface IProps {
   isDarkMode?: boolean;
@@ -23,6 +24,7 @@ const DatabaseMenuItem: React.FC<{
   title: string;
   icon: React.ReactElement;
   disabled?: boolean;
+  subItem?: boolean;
 }> = ({ selected, onClick, title, icon, disabled }) => {
   const isMobile = useMediaQuery('(max-width: 720px)');
   return (
@@ -126,7 +128,6 @@ const Database: React.FC<IProps> = () => {
             onClick={() => onSelectMenu(5, 'magias')}
             title='Magias'
             icon={<AutoFixHighIcon />}
-            disabled
           />
         </Stack>
 
@@ -147,6 +148,9 @@ const Database: React.FC<IProps> = () => {
           </Route>
           <Route path={`${path}/poderes/:selectedPower?`}>
             <PowersTable />
+          </Route>
+          <Route path={`${path}/magias`}>
+            <SpellsTable />
           </Route>
         </Switch>
       </Stack>

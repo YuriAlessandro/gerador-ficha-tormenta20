@@ -5,7 +5,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 25/07/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 29/07/2022.
     </p>
 
     <p>
@@ -22,6 +22,20 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.5.1</h3>
+    <ul>
+      <li>Adicionado tabela de magias arcanas e divinas ao Database.</li>
+      <li>
+        Adicionado a descrição dos poderes divinos na Database de Divindades
+      </li>
+      <ul>
+        <li>
+          Os poderes concedidos continuam aparecendo na Database de Poderes.
+        </li>
+      </ul>
+      <li>Adicionado os pré-requisitos dos poderes de classe.</li>
+    </ul>
 
     <h3>2.5.0</h3>
     <ul>

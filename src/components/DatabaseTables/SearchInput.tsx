@@ -1,3 +1,4 @@
+import 'regenerator-runtime';
 import React, { useEffect } from 'react';
 import {
   Stack,
