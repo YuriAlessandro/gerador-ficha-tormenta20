@@ -21,11 +21,44 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CLASSES from '../../data/classes';
 import SearchInput from './SearchInput';
 import { ClassDescription } from '../../interfaces/Class';
+import { Requirement, RequirementType } from '../../interfaces/Poderes';
 
 interface IProps {
   classe: ClassDescription;
   defaultOpen: boolean;
 }
+
+const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
+  if (requirement.type === RequirementType.ATRIBUTO) {
+    return (
+      <li>
+        {requirement.name} {requirement.value}
+      </li>
+    );
+  }
+
+  if (requirement.type === RequirementType.DEVOTO) {
+    return <li>Devoto de {requirement.name}</li>;
+  }
+
+  if (requirement.type === RequirementType.NIVEL) {
+    return <li>Nível {requirement.value}</li>;
+  }
+
+  if (requirement.type === RequirementType.PERICIA) {
+    return <li>Treinado em {requirement.name}</li>;
+  }
+
+  if (requirement.type === RequirementType.PODER_TORMENTA) {
+    return (
+      <li>{`Pelo menos ${requirement.value} ${
+        (requirement.value || 0) > 1 ? 'poderes' : 'poder'
+      } da Tormenta`}</li>
+    );
+  }
+
+  return <li>{requirement.name}</li>;
+};
 
 const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
   const [open, setOpen] = useState(false);
@@ -120,6 +153,21 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   <Box>
                     <h4>{power.name}</h4>
                     <p>{power.text}</p>
+                    {power.requirements && power.requirements?.length > 0 && (
+                      <p>
+                        <i>Requisitos:</i>
+                        {power.requirements?.map((reqs, idx) => (
+                          <>
+                            {reqs.map((req) => (
+                              <Req requirement={req} />
+                            ))}
+                            {power.requirements &&
+                              power.requirements.length > 1 &&
+                              idx + 1 < power.requirements.length && <p>ou</p>}
+                          </>
+                        ))}
+                      </p>
+                    )}
                   </Box>
                 ))}
               </Box>
