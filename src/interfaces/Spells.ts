@@ -1,5 +1,10 @@
 import { Atributo } from '../data/atributos';
 
+export interface Aprimoramento {
+  addPm: number;
+  text: string;
+}
+
 export enum spellsCircles {
   c1 = '1º Circulo',
   c2 = '2º Circulo',
@@ -21,6 +26,7 @@ export type Spell = {
   manaReduction?: number;
   customKeyAttr?: Atributo;
   school: SpellSchool;
+  aprimoramentos?: Aprimoramento[];
 };
 
 export type SpellSchool =

@@ -383,6 +383,7 @@ export const ORIGINS: Record<origins, Origin> = {
       const originItems = [
         {
           equipment: selectedWeapon,
+          description: 'Uma arma simples ou marcial de ataque à distância',
         },
         {
           equipment: 'Barraca',
@@ -573,6 +574,7 @@ export const ORIGINS: Record<origins, Origin> = {
       const originItems = [
         {
           equipment: selectedWeapon,
+          description: 'Uma arma marcial ou exótica',
         },
         {
           equipment: 'Item sem valor recebido de um admirador',
@@ -605,6 +607,7 @@ export const ORIGINS: Record<origins, Origin> = {
         },
         {
           equipment: selectedWeapon,
+          description: 'Uma arma marcial',
         },
       ];
 
@@ -664,6 +667,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
       {
         equipment: Armas.ARCOCURTO,
+        description: 'Arco curto',
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.FURTIVIDADE, Skill.SOBREVIVENCIA],
@@ -721,6 +725,7 @@ export const ORIGINS: Record<origins, Origin> = {
       },
       {
         equipment: Armas.PICARETA,
+        description: 'Picareta',
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE, Skill.OFICIO_MINERADOR],
@@ -735,6 +740,7 @@ export const ORIGINS: Record<origins, Origin> = {
     getItems: (): Items[] => [
       {
         equipment: Armas.BORDAO,
+        description: 'Bordão',
       },
       {
         equipment: 'Bussola',
@@ -800,6 +806,7 @@ export const ORIGINS: Record<origins, Origin> = {
         },
         {
           equipment: selectedWeapon,
+          description: 'Uma arma simples',
         },
       ];
 

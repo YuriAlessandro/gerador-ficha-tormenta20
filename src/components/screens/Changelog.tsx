@@ -5,7 +5,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 29/07/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 07/08/2022.
     </p>
 
     <p>
@@ -22,6 +22,19 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.5.2</h3>
+    <ul>
+      <li>Adicionado todos os aprimoramentos das magias arcanas e divinas.</li>
+      <ul>
+        <li>
+          Muito obrigado a todos da comunidade que ajudaram a transcrever todos
+          os aprimoramentos
+        </li>
+      </ul>
+      <li>Adicionado Origens ao Database</li>
+      <li>Adicionado links úteis de projetos de Tormenta 20</li>
+    </ul>
 
     <h3>2.5.1</h3>
     <ul>
