@@ -15,8 +15,18 @@ import CloseIcon from '@mui/icons-material/Close';
 import CodeIcon from '@mui/icons-material/Code';
 import NotesIcon from '@mui/icons-material/Notes';
 import AttachMoney from '@mui/icons-material/AttachMoney';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import StorageIcon from '@mui/icons-material/Storage';
+import ArchitectureIcon from '@mui/icons-material/Architecture';
+import LinkIcon from '@mui/icons-material/Link';
 import Slide from '@mui/material/Slide';
-import { FormControlLabel, FormGroup, styled, Switch } from '@mui/material';
+import {
+  Divider,
+  FormControlLabel,
+  FormGroup,
+  styled,
+  Switch,
+} from '@mui/material';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
@@ -73,6 +83,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const onClickSheets = () => {
+    history.push('/ficha-aleatoria');
+    onCloseSidebar();
+  };
+
+  const onClickItems = () => {
+    history.push('/itens-superiores');
+    onCloseSidebar();
+  };
+
+  const onClickDatabase = () => {
+    history.push('/database');
+    onCloseSidebar();
+  };
+
   document.addEventListener('keydown', handleEscKeyPress, false);
 
   return (
@@ -84,7 +109,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         color: isDarkTheme ? '#fff' : 'black',
       }}
     >
-      <StyledPaper>
+      <StyledPaper sx={{ overflowY: 'auto' }}>
         <div className='sidebarHeader'>
           <Link
             href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
@@ -108,12 +133,32 @@ const Sidebar: React.FC<SidebarProps> = ({
             </ListItemIcon>
             <Typography variant='inherit'>Inicio</Typography>
           </StyledMenuItem>
+          <Divider />
+          <StyledMenuItem onClick={onClickSheets}>
+            <ListItemIcon>
+              <PersonAddIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Fichas Aleátorias</Typography>
+          </StyledMenuItem>
           <StyledMenuItem onClick={onClickRewards}>
             <ListItemIcon>
               <AttachMoney />
             </ListItemIcon>
             <Typography variant='inherit'>Recompensas</Typography>
           </StyledMenuItem>
+          <StyledMenuItem onClick={onClickItems}>
+            <ListItemIcon>
+              <ArchitectureIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Itens Superiores</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickDatabase}>
+            <ListItemIcon>
+              <StorageIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Database</Typography>
+          </StyledMenuItem>
+          <Divider />
           <StyledMenuItem
             onClick={() =>
               onClickLinks(
@@ -148,6 +193,38 @@ const Sidebar: React.FC<SidebarProps> = ({
               Changelog
             </Typography>
           </StyledMenuItem>
+          <Divider />
+          <StyledMenuItem
+            onClick={() => {
+              onClickLinks('https://ameacas-t20.herokuapp.com/');
+            }}
+          >
+            <ListItemIcon>
+              <LinkIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Gerador de Ameaças</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem
+            onClick={() => {
+              onClickLinks('https://eduardomarques.pythonanywhere.com/');
+            }}
+          >
+            <ListItemIcon>
+              <LinkIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Grimório T20</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem
+            onClick={() => {
+              onClickLinks('https://mclemente.github.io/Calculadora-ND/');
+            }}
+          >
+            <ListItemIcon>
+              <LinkIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Calculadora ND</Typography>
+          </StyledMenuItem>
+          <Divider />
           <StyledMenuItem>
             <ListItemIcon>
               <Brightness4Icon />

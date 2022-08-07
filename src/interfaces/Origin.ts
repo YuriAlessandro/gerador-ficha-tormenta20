@@ -13,6 +13,7 @@ export interface OriginBenefits {
 export interface Items {
   equipment: Equipment | string;
   qtd?: number;
+  description?: string;
 }
 
 interface Origin {

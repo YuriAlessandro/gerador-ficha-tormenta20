@@ -13,6 +13,7 @@ import ClassesTable from '../DatabaseTables/ClassesTable';
 import DivindadesTable from '../DatabaseTables/DivindadesTable';
 import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
+import OriginsTable from '../DatabaseTables/OriginsTable';
 
 interface IProps {
   isDarkMode?: boolean;
@@ -109,7 +110,6 @@ const Database: React.FC<IProps> = () => {
             onClick={() => onSelectMenu(2, 'origens')}
             title='Origens'
             icon={<BrowseGalleryIcon />}
-            disabled
           />
           <DatabaseMenuItem
             selected={selectedMenu === 3}
@@ -142,6 +142,9 @@ const Database: React.FC<IProps> = () => {
           </Route>
           <Route path={`${path}/classes/:selectedClass?`}>
             <ClassesTable />
+          </Route>
+          <Route path={`${path}/origens/:selectedOrigin?`}>
+            <OriginsTable />
           </Route>
           <Route path={`${path}/divindades/:selectedGod?`}>
             <DivindadesTable />
