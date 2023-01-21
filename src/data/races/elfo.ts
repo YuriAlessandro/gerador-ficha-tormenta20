@@ -2,26 +2,33 @@ import { cloneDeep, merge } from 'lodash';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const ELFO: Race = {
-  name: 'Elfo',
-  attributes: {
+class ELFO implements Race {
+  name = 'Elfo';
+
+  attributes = {
     attrs: [
       { attr: Atributo.INTELIGENCIA, mod: 4 },
       { attr: Atributo.DESTREZA, mod: 2 },
       { attr: Atributo.CONSTITUICAO, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     ALLIHANNA: 1,
     THWOR: 1,
     KALLYADRANOCH: 1,
     MARAH: 1,
     WYNNA: 1,
-  },
-  getDisplacement: () => 12,
-  abilities: [
+  };
+
+  size = RACE_SIZES.MEDIO;
+
+  displacement = 12;
+
+  abilities = [
     {
       name: 'Graça de Glórienn',
       description: 'Seu deslocamento é 12m (em vez de 9m).',
@@ -52,7 +59,7 @@ const ELFO: Race = {
       description:
         'Você recebe visão na penumbra e +2 em Misticismo e Percepção.',
     },
-  ],
-};
+  ];
+}
 
 export default ELFO;

@@ -4,22 +4,30 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const KLIREN: Race = {
-  name: 'Kliren',
-  attributes: {
+class KLIREN implements Race {
+  name = 'Kliren';
+
+  attributes = {
     attrs: [
       { attr: Atributo.INTELIGENCIA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },
       { attr: Atributo.FORCA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     TANNATOH: 1,
     THWOR: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 0;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Híbrido',
       description:
@@ -65,7 +73,7 @@ const KLIREN: Race = {
         return sheetClone;
       },
     },
-  ],
-};
+  ];
+}
 
 export default KLIREN;

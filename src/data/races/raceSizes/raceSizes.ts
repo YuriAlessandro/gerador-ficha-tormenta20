@@ -8,7 +8,7 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     naturalRange: 1.5,
     name: 'Minúsculo',
-  },
+  } as const,
   PEQUENO: {
     modifiers: {
       maneuver: -2,
@@ -16,7 +16,7 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     naturalRange: 1.5,
     name: 'Pequeno',
-  },
+  } as const,
   MEDIO: {
     modifiers: {
       maneuver: 0,
@@ -24,7 +24,7 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     naturalRange: 1.5,
     name: 'Médio',
-  },
+  } as const,
   GRANDE: {
     modifiers: {
       maneuver: 2,
@@ -32,7 +32,7 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     name: 'Grande',
     naturalRange: 1.5,
-  },
+  } as const,
   ENORME: {
     modifiers: {
       maneuver: 5,
@@ -40,7 +40,7 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     name: 'Enorme',
     naturalRange: 1.5,
-  },
+  } as const,
   COLOSSAL: {
     modifiers: {
       maneuver: 10,
@@ -48,5 +48,5 @@ export const RACE_SIZES: Record<raceSize, RaceSize> = {
     },
     name: 'Colossal',
     naturalRange: 1.5,
-  },
+  } as const,
 };

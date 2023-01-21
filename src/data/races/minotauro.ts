@@ -3,6 +3,7 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const chifres: Equipment = {
   group: 'Arma',
@@ -12,23 +13,30 @@ const chifres: Equipment = {
   tipo: 'Perf.',
 };
 
-const MINOTAURO: Race = {
-  name: 'Minotauro',
-  attributes: {
+class MINOTAURO implements Race {
+  name = 'Minotauro';
+
+  attributes = {
     attrs: [
       { attr: Atributo.FORCA, mod: 4 },
       { attr: Atributo.CONSTITUICAO, mod: 2 },
       { attr: Atributo.SABEDORIA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     ARSENAL: 1,
     MEGALOKK: 1,
     OCEANO: 1,
     THWOR: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Chifres',
       description:
@@ -75,7 +83,7 @@ const MINOTAURO: Race = {
       description:
         'Se estiver adjacente a uma queda de 3m ou mais de altura (como um buraco ou penhasco), você fica abalado.',
     },
-  ],
-};
+  ];
+}
 
 export default MINOTAURO;

@@ -3,21 +3,29 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const SULFURE: Race = {
-  name: 'Suraggel (Sulfure)',
-  attributes: {
+class SULFURE implements Race {
+  name = 'Suraggel (Sulfure)';
+
+  attributes = {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  faithProbability = {
     AHARADAK: 1,
     KALLYADRANOCH: 1,
     TENEBRA: 1,
-  },
-  abilities: [
+  };
+
+  abilities = [
     {
       name: 'Herança Divina',
       description:
@@ -47,7 +55,7 @@ const SULFURE: Race = {
         return sheetClone;
       },
     },
-  ],
-};
+  ];
+}
 
 export default SULFURE;

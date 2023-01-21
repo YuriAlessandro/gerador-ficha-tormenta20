@@ -1,4 +1,4 @@
-import { getRaceByName } from '../../data/racas';
+import { getRaceByName } from '../../data/races';
 import { nomes, generateRandomName, lefou } from '../../data/nomes';
 import Race from '../../interfaces/Race';
 

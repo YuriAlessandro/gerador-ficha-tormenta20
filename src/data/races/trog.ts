@@ -3,6 +3,7 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 const mordida: Equipment = {
   group: 'Arma',
@@ -12,22 +13,29 @@ const mordida: Equipment = {
   tipo: 'Perf.',
 };
 
-const TROG: Race = {
-  name: 'Trog',
-  attributes: {
+class TROG implements Race {
+  name = 'Trog';
+
+  attributes = {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: 4 },
       { attr: Atributo.FORCA, mod: 2 },
       { attr: Atributo.INTELIGENCIA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     MEGALOKK: 1,
     TENEBRA: 1,
     THWOR: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Mau Cheiro',
       description:
@@ -73,7 +81,7 @@ const TROG: Race = {
       description:
         'Você sofre 1 ponto de dano adicional por dado de dano de frio.',
     },
-  ],
-};
+  ];
+}
 
 export default TROG;

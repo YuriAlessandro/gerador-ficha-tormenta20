@@ -2,26 +2,33 @@ import _ from 'lodash';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const ANAO: Race = {
-  name: 'Anão',
-  attributes: {
+class ANAO implements Race {
+  name = 'Anão';
+
+  attributes = {
     attrs: [
       { attr: Atributo.CONSTITUICAO, mod: 4 },
       { attr: Atributo.SABEDORIA, mod: 2 },
       { attr: Atributo.DESTREZA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     ARSENAL: 1,
     KHALMYR: 1,
     LINWU: 1,
     THWOR: 1,
     TENEBRA: 1,
-  },
-  getDisplacement: () => 6,
-  abilities: [
+  };
+
+  size = RACE_SIZES.MEDIO;
+
+  displacement = 6;
+
+  abilities = [
     {
       name: 'Conhecimento das Rochas',
       description:
@@ -62,7 +69,7 @@ const ANAO: Race = {
         });
       },
     },
-  ],
-};
+  ];
+}
 
 export default ANAO;

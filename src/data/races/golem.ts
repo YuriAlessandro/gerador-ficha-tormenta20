@@ -2,23 +2,30 @@ import { cloneDeep, merge } from 'lodash';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const GOLEM: Race = {
-  name: 'Golem',
-  attributes: {
+class GOLEM implements Race {
+  name = 'Golem';
+
+  attributes = {
     attrs: [
       { attr: Atributo.FORCA, mod: 4 },
       { attr: Atributo.CONSTITUICAO, mod: 2 },
       { attr: Atributo.CARISMA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     TANNATOH: 1,
     WYNNA: 1,
-  },
-  getDisplacement: () => 6,
-  abilities: [
+  };
+
+  size = RACE_SIZES.MEDIO;
+
+  displacement = 6;
+
+  abilities = [
     {
       name: 'Canalizar Reparos',
       description:
@@ -66,7 +73,7 @@ const GOLEM: Race = {
       description:
         'Como uma criatura artificial, você já foi construído “pronto”. Não teve uma infância — portanto, não tem direito a escolher uma origem e receber benefícios por ela.',
     },
-  ],
-};
+  ];
+}
 
 export default GOLEM;

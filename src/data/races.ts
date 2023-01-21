@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import AGGELUS from './races/aggelus';
 import ANAO from './races/anao';
 import DAHLLAN from './races/dahllan';
@@ -17,9 +16,8 @@ import SEREIA from './races/sereia';
 import SILFIDE from './races/silfide';
 import SULFURE from './races/sulfure';
 import TROG from './races/trog';
-import Race from '../interfaces/Race';
 
-const RACAS = [
+const RACES = [
   AGGELUS,
   ANAO,
   DAHLLAN,
@@ -40,20 +38,4 @@ const RACAS = [
   TROG,
 ];
 
-export default RACAS;
-
-export function getRaceByName(name: string): Race {
-  const race = _.cloneDeep(RACAS.find((element) => element.name === name));
-  if (race) {
-    if (race.setup) {
-      return race.setup(race, RACAS);
-    }
-    return race;
-  }
-
-  const defaultRace = _.cloneDeep(RACAS[0]);
-  if (defaultRace.setup) {
-    return defaultRace.setup(defaultRace, RACAS);
-  }
-  return defaultRace;
-}
+export default RACES;

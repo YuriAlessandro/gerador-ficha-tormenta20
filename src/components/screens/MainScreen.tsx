@@ -5,7 +5,7 @@ import { formatGroupLabel } from 'react-select/src/builtins';
 import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
 import CreatableSelect from 'react-select/creatable';
-import RACAS from '../../data/racas';
+import RACAS from '../../data/races';
 import CLASSES from '../../data/classes';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Result from '../Result';

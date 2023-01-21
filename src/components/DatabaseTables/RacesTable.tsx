@@ -18,7 +18,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import RACAS from '../../data/racas';
+import RACAS from '../../data/races';
 import Race from '../../interfaces/Race';
 import SearchInput from './SearchInput';
 

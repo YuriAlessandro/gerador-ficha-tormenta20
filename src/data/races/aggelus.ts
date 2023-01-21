@@ -3,23 +3,31 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const AGGELUS: Race = {
-  name: 'Suraggel (Aggelus)',
-  attributes: {
+class AGGELUS implements Race {
+  name = 'Suraggel (Aggelus)';
+
+  attributes = {
     attrs: [
       { attr: Atributo.SABEDORIA, mod: 4 },
       { attr: Atributo.CARISMA, mod: 2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     AZGHER: 1,
     KHALMYR: 1,
     MARAH: 1,
     THYATIS: 1,
-  },
-  abilities: [
+  };
+
+  size = RACE_SIZES.MEDIO;
+
+  displacement = 9;
+
+  abilities = [
     {
       name: 'Herança Divina',
       description:
@@ -49,7 +57,7 @@ const AGGELUS: Race = {
         return sheetClone;
       },
     },
-  ],
-};
+  ];
+}
 
 export default AGGELUS;

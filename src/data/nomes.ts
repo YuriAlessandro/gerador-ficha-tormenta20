@@ -1,12 +1,12 @@
 import { getRandomItemFromArray } from '../functions/randomUtils';
 import Race from '../interfaces/Race';
-import RACAS from './racas';
+import RACAS from './races';
 
 export const nomes: {
-  [key: string]: Record<'Homem' | 'Mulher', string[]>;
+  [key: string]: Record<'Masculino' | 'Feminino', string[]>;
 } = {
   Humano: {
-    Homem: [
+    Masculino: [
       'Aldor',
       'Aran',
       'Beren',
@@ -19,7 +19,7 @@ export const nomes: {
       'Gryffen',
       'Evass',
     ],
-    Mulher: [
+    Feminino: [
       'Alysia',
       'Avelin',
       'Catryn',
@@ -33,7 +33,7 @@ export const nomes: {
     ],
   },
   Anão: {
-    Homem: [
+    Masculino: [
       'Arduramm',
       'Bartarinn',
       'Doragramm',
@@ -45,7 +45,7 @@ export const nomes: {
       'Khovarinn',
       'Thardaramm',
     ],
-    Mulher: [
+    Feminino: [
       'Atrudda',
       'Burgala',
       'Dorotha',
@@ -59,7 +59,7 @@ export const nomes: {
     ],
   },
   Dahllan: {
-    Homem: [
+    Masculino: [
       'Asterius',
       'Aulus',
       'Caelus',
@@ -71,7 +71,7 @@ export const nomes: {
       'Tyraxus',
       'Vobius',
     ],
-    Mulher: [
+    Feminino: [
       'Aster',
       'Azalia',
       'Celandine',
@@ -85,7 +85,7 @@ export const nomes: {
     ],
   },
   Elfo: {
-    Homem: [
+    Masculino: [
       'Avoldar',
       'Ellandor',
       'Felarin',
@@ -97,7 +97,7 @@ export const nomes: {
       'Thassarion',
       'Zharian',
     ],
-    Mulher: [
+    Feminino: [
       'Allora',
       'Auruel',
       'Calaena',
@@ -111,7 +111,7 @@ export const nomes: {
     ],
   },
   Goblin: {
-    Homem: [
+    Masculino: [
       'Ark',
       'Barg',
       'Buduc',
@@ -123,7 +123,7 @@ export const nomes: {
       'Vrix',
       'Vrug',
     ],
-    Mulher: [
+    Feminino: [
       'Ashi',
       'Floba',
       'Grin',
@@ -137,7 +137,7 @@ export const nomes: {
     ],
   },
   Minotauro: {
-    Homem: [
+    Masculino: [
       'Moufen',
       'Faster',
       'Moufen',
@@ -150,7 +150,7 @@ export const nomes: {
       'Zamfuran',
       'Djundrin',
     ],
-    Mulher: [
+    Feminino: [
       'Winafa',
       'Hilaken',
       'Viafen',
@@ -164,7 +164,7 @@ export const nomes: {
     ],
   },
   Qareen: {
-    Homem: [
+    Masculino: [
       'Ahad',
       'Barakat',
       'Dawud',
@@ -176,7 +176,7 @@ export const nomes: {
       'Tariq',
       'Wassim',
     ],
-    Mulher: [
+    Feminino: [
       'Aliyah',
       'Batuhla',
       'Hanifa',
@@ -190,7 +190,7 @@ export const nomes: {
     ],
   },
   Golem: {
-    Homem: [
+    Masculino: [
       'Bozgo',
       'Gron',
       'Dhogglac',
@@ -212,7 +212,7 @@ export const nomes: {
       'Nachin',
       'Levi',
     ],
-    Mulher: [
+    Feminino: [
       'Rerbod',
       'Drulahk',
       'Kheflahn',
@@ -235,7 +235,7 @@ export const nomes: {
     ],
   },
   Hynne: {
-    Homem: [
+    Masculino: [
       'Frodo',
       'Arno',
       'Flippo',
@@ -246,7 +246,7 @@ export const nomes: {
       'Pippo',
       'Saruc',
     ],
-    Mulher: [
+    Feminino: [
       'Arabella',
       'Ghyla',
       'Joly',
@@ -258,7 +258,7 @@ export const nomes: {
     ],
   },
   Kliren: {
-    Homem: [
+    Masculino: [
       'Yosston',
       'Gatix',
       'Horpos',
@@ -270,7 +270,7 @@ export const nomes: {
       'Wreryn',
       'Corbar',
     ],
-    Mulher: [
+    Feminino: [
       'Xyrolin',
       'Banqaryn',
       'Tafyx',
@@ -284,7 +284,7 @@ export const nomes: {
     ],
   },
   Medusa: {
-    Homem: [
+    Masculino: [
       'Chrenthanes',
       'Phametus',
       'Chivos',
@@ -296,7 +296,7 @@ export const nomes: {
       'Ruses',
       'Xulcon',
     ],
-    Mulher: [
+    Feminino: [
       'Chrula',
       'Thyada',
       'Huro',
@@ -310,7 +310,7 @@ export const nomes: {
     ],
   },
   Sereia: {
-    Homem: [
+    Masculino: [
       'Alon',
       'Dalax',
       'Kairus',
@@ -320,7 +320,7 @@ export const nomes: {
       'Orin',
       'Tempestus',
     ],
-    Mulher: [
+    Feminino: [
       'Alda',
       'Darya',
       'Layna',
@@ -332,7 +332,7 @@ export const nomes: {
     ],
   },
   Sílfide: {
-    Homem: [
+    Masculino: [
       'Cecil',
       'Burble',
       'Flax',
@@ -342,7 +342,7 @@ export const nomes: {
       'Pingo',
       'Rolyn',
     ],
-    Mulher: [
+    Feminino: [
       'Céu',
       'Bedra',
       'Flama',
@@ -354,7 +354,7 @@ export const nomes: {
     ],
   },
   Trog: {
-    Homem: [
+    Masculino: [
       'Atszo',
       'Bhaz',
       'Crosk',
@@ -364,7 +364,7 @@ export const nomes: {
       'Qrux',
       'Truusz',
     ],
-    Mulher: [
+    Feminino: [
       'Arxsa',
       'Bakzha',
       'Chask',
@@ -376,7 +376,7 @@ export const nomes: {
     ],
   },
   'Suraggel (Aggelus)': {
-    Homem: [
+    Masculino: [
       'Qaspiel',
       'Charoum',
       'Ongkanon',
@@ -388,7 +388,7 @@ export const nomes: {
       'Bariel',
       'Hadraniel',
     ],
-    Mulher: [
+    Feminino: [
       'Gadiel',
       'Amnayel',
       'Gadreel',
@@ -402,7 +402,7 @@ export const nomes: {
     ],
   },
   'Suraggel (Sulfure)': {
-    Homem: [
+    Masculino: [
       'Drongrorath',
       'Barnezuun',
       'Sugdreketh',
@@ -424,7 +424,7 @@ export const nomes: {
       'Ired',
       'Gogmemar',
     ],
-    Mulher: [
+    Feminino: [
       'Drongrorath',
       'Barnezuun',
       'Sugdreketh',
@@ -462,8 +462,8 @@ const lefouNames = [
   'Zênite',
 ];
 
-const lefouSurnames: Record<'Homem' | 'Mulher', string[]> = {
-  Homem: [
+const lefouSurnames: Record<'Masculino' | 'Feminino', string[]> = {
+  Masculino: [
     'Afiado',
     'Cadavérico',
     'da Perdição',
@@ -475,7 +475,7 @@ const lefouSurnames: Record<'Homem' | 'Mulher', string[]> = {
     'Rubro',
     'Serrilhado',
   ],
-  Mulher: [
+  Feminino: [
     'Afiada',
     'Cadavérica',
     'da Perdição',
@@ -496,7 +496,7 @@ export const lefou = {
 
 export const nameGenerators: Record<
   string,
-  (race: Race, sex: 'Homem' | 'Mulher') => string
+  (race: Race, sex: 'Masculino' | 'Feminino') => string
 > = {
   Osteon: (race, sex) => {
     if (race.oldRace) {
@@ -520,7 +520,7 @@ export const nameGenerators: Record<
 
     return nameGenerators.default(randomRace, sex);
   },
-  Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
+  Lefou: (race: Race, sex: 'Masculino' | 'Feminino') => {
     const firstName = getRandomItemFromArray(lefouNames);
     const lastName = getRandomItemFromArray(lefouSurnames[sex]);
 
@@ -531,7 +531,7 @@ export const nameGenerators: Record<
 
 export function generateRandomName(
   race: Race,
-  sexo: 'Homem' | 'Mulher'
+  sexo: 'Masculino' | 'Feminino'
 ): string {
   if (nameGenerators[race.name]) {
     return nameGenerators[race.name](race, sexo);

@@ -1,14 +1,14 @@
 import { cloneDeep } from 'lodash';
-import Race from '../../interfaces/Race';
+import Race, { RaceSize } from '../../interfaces/Race';
 import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
 } from '../../functions/randomUtils';
-import { getRaceDisplacement, getRaceSize } from './functions/functions';
 import { Atributo } from '../atributos';
 import HUMANO from './humano';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { getPowersAllowedByRequirements } from '../../functions/powers';
+import RACES from '../races';
 
 function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
   const shouldGetSkill = Math.random() > 0.5;
@@ -54,46 +54,42 @@ function getAndApplyRandomOldRaceAbility(
   return sheet;
 }
 
-const OSTEON: Race = {
-  name: 'Osteon',
-  attributes: {
-    attrs: [
-      { attr: Atributo.CONSTITUICAO, mod: -2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-    ],
-  },
-  faithProbability: {
-    AHARADAK: 1,
-    TENEBRA: 1,
-    THWOR: 1,
-  },
-  setup: (race, allRaces) => {
-    const validRaces = allRaces.filter(
+class OSTEON implements Race {
+  constructor() {
+    const validRaces = RACES.filter(
       (element) => element.name !== 'Golem' && element.name !== 'Osteon'
     );
 
-    return {
-      ...race,
-      oldRace: getRandomItemFromArray(validRaces),
-    };
-  },
-  getDisplacement(race) {
-    if (race.oldRace) {
-      return getRaceDisplacement(race.oldRace);
-    }
+    const OldRaceClass = getRandomItemFromArray(validRaces);
+    this.oldRace = new OldRaceClass();
+    this.displacement = this.oldRace.displacement;
+    this.size = this.oldRace.size;
+  }
 
-    return getRaceDisplacement(race);
-  },
-  getSize(race) {
-    if (race.oldRace) {
-      return getRaceSize(race.oldRace);
-    }
+  name = 'Osteon';
 
-    return getRaceSize(race);
-  },
-  abilities: [
+  oldRace: Race;
+
+  attributes = {
+    attrs: [
+      { attr: Atributo.CONSTITUICAO, mod: -2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
+    ],
+  };
+
+  faithProbability = {
+    AHARADAK: 1,
+    TENEBRA: 1,
+    THWOR: 1,
+  };
+
+  displacement: number;
+
+  size: RaceSize;
+
+  abilities = [
     {
       name: 'Armadura Óssea',
       description: 'Você recebe resistência a corte, frio e perfuração 5.',
@@ -121,6 +117,6 @@ const OSTEON: Race = {
       description:
         'Você é uma criatura do tipo morto-vivo. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, habilidades mágicas de cura causam dano a você e você não se beneficia de itens ingeríveis (comidas, poções etc.), mas dano de trevas recupera seus PV.',
     },
-  ],
-};
+  ];
+}
 export default OSTEON;

@@ -3,6 +3,8 @@ import { getPowersAllowedByRequirements } from '../../functions/powers';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
+import { Atributo } from '../atributos';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 function addSkillOrPower(sheet: CharacterSheet, substeps: SubStep[]) {
   const shouldGetSkill = Math.random() > 0.5;
@@ -31,21 +33,28 @@ function addSkillOrPower(sheet: CharacterSheet, substeps: SubStep[]) {
   return sheet;
 }
 
-const HUMANO: Race = {
-  name: 'Humano',
-  attributes: {
+class HUMANO implements Race {
+  name = 'Humano';
+
+  attributes = {
     attrs: [
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
+      { attr: 'any' as 'any' | Atributo, mod: 2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     VALKARIA: 1,
     THWOR: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Versátil',
       description:
@@ -66,7 +75,7 @@ const HUMANO: Race = {
         return sheetClone;
       },
     },
-  ],
-};
+  ];
+}
 
 export default HUMANO;

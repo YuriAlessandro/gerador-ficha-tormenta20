@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep } from 'lodash';
 import { Atributo } from '../data/atributos';
-import RACAS, { getRaceByName } from '../data/racas';
+import RACAS, { getRaceByName } from '../data/races';
 import CLASSES from '../data/classes';
 import {
   getClassBaseSkills,

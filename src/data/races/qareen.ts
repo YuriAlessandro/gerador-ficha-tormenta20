@@ -4,17 +4,20 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const QAREEN: Race = {
-  name: 'Qareen',
-  attributes: {
+class QAREEN implements Race {
+  name = 'Qareen';
+
+  attributes = {
     attrs: [
       { attr: Atributo.CARISMA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },
       { attr: Atributo.SABEDORIA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     AZGHER: 1,
     LENA: 1,
@@ -23,8 +26,13 @@ const QAREEN: Race = {
     TENEBRA: 1,
     THWOR: 1,
     WYNNA: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Desejos',
       description:
@@ -63,7 +71,7 @@ const QAREEN: Race = {
         });
       },
     },
-  ],
-};
+  ];
+}
 
 export default QAREEN;

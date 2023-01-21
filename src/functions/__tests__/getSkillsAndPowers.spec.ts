@@ -11,7 +11,7 @@ import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
 import { OriginPower } from '../../interfaces/Poderes';
 import { inventor } from '../../__mocks__/classes/inventor';
 import HUMANO from '../../data/races/humano';
-import RACAS from '../../data/racas';
+import RACAS from '../../data/races';
 
 describe('Teste geração de perícias e poderes para Goblin Inventor Assistente de Laboratório', () => {
   Array(5)

@@ -2,24 +2,30 @@ import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { RACE_SIZES } from './raceSizes/raceSizes';
 
-const GOBLIN: Race = {
-  name: 'Goblin',
-  attributes: {
+class GOBLIN implements Race {
+  name = 'Goblin';
+
+  attributes = {
     attrs: [
       { attr: Atributo.DESTREZA, mod: 4 },
       { attr: Atributo.INTELIGENCIA, mod: 2 },
       { attr: Atributo.CARISMA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     HYNINN: 1,
     MEGALOKK: 1,
     NIMB: 1,
     THWOR: 2,
-  },
-  size: RACE_SIZES.PEQUENO,
-  abilities: [
+  };
+
+  size = RACE_SIZES.PEQUENO;
+
+  displacement = 9;
+
+  abilities = [
     {
       name: 'Engenhoso',
       description:
@@ -40,7 +46,7 @@ const GOBLIN: Race = {
       description:
         'Você recebe +2 em Fortitude e sua recuperação de PV e PM nunca é inferior ao seu nível.',
     },
-  ],
-};
+  ];
+}
 
 export default GOBLIN;

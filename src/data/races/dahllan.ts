@@ -3,26 +3,34 @@ import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { RACE_SIZES } from './raceSizes/raceSizes';
 
 export const PLANTS_FRIEND_MANA_REDUCTION = 1;
 
-const DAHLLAN: Race = {
-  name: 'Dahllan',
-  attributes: {
+class DAHLLAN implements Race {
+  name = 'Dahllan';
+
+  attributes = {
     attrs: [
       { attr: Atributo.SABEDORIA, mod: 4 },
       { attr: Atributo.DESTREZA, mod: 2 },
       { attr: Atributo.INTELIGENCIA, mod: -2 },
     ],
-  },
-  faithProbability: {
+  };
+
+  faithProbability = {
     AHARADAK: 1,
     ALLIHANNA: 1,
     LENA: 1,
     OCEANO: 1,
     THWOR: 1,
-  },
-  abilities: [
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MEDIO;
+
+  abilities = [
     {
       name: 'Amiga das Plantas',
       description:
@@ -57,7 +65,7 @@ const DAHLLAN: Race = {
       description:
         'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 117). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
     },
-  ],
-};
+  ];
+}
 
 export default DAHLLAN;

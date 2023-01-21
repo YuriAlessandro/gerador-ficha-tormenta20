@@ -15,24 +15,30 @@ const fairySpells = [
   spellsCircle1.sono,
 ];
 
-const SILFIDE: Race = {
-  name: 'Sílfide',
-  attributes: {
+class SILFIDE implements Race {
+  name = 'Sílfide';
+
+  attributes = {
     attrs: [
       { attr: Atributo.CARISMA, mod: 4 },
       { attr: Atributo.DESTREZA, mod: 2 },
       { attr: Atributo.FORCA, mod: -4 },
     ],
-  },
-  size: RACE_SIZES.MINUSCULO,
-  faithProbability: {
+  };
+
+  displacement = 9;
+
+  size = RACE_SIZES.MINUSCULO;
+
+  faithProbability = {
     AHARADAK: 1,
     ALLIHANNA: 1,
     HYNINN: 1,
     NIMB: 1,
     WYNNA: 1,
-  },
-  abilities: [
+  };
+
+  abilities = [
     {
       name: 'Asas de Borboleta',
       description:
@@ -61,7 +67,7 @@ const SILFIDE: Race = {
         return sheetClone;
       },
     },
-  ],
-};
+  ];
+}
 
 export default SILFIDE;

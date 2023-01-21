@@ -3,7 +3,7 @@ import Race from '../interfaces/Race';
 export default class CustomizableCharacterSheet {
   public name = '';
 
-  public gender = '';
+  public gender?: 'Masculino' | 'Feminino';
 
   public race?: Race;
 
