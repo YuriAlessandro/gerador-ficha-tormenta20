@@ -1,0 +1,2284 @@
+{
+  "_id": "LKKmV9iliS0hgpe4",
+  "name": "Shuruh",
+  "type": "character",
+  "data": {
+    "attributes": {
+      "raca": "Trog (F)",
+      "pv": {
+        "value": 8,
+        "min": -500,
+        "max": 16,
+        "temp": 0
+      },
+      "pm": {
+        "value": 11,
+        "min": 0,
+        "max": 15,
+        "temp": 0
+      },
+      "nivel": {
+        "value": 1,
+        "xp": {
+          "value": 0,
+          "min": 0,
+          "proximo": 1000
+        }
+      },
+      "movement": {
+        "burrow": 0,
+        "climb": 0,
+        "fly": 0,
+        "swim": 0,
+        "walk": 9,
+        "hover": false
+      },
+      "info": "+5 furtiv. sem armadura ou roupas pesadas\nEspecialista em Necromancia (+2 CD)",
+      "cd": 0,
+      "hp": 0,
+      "classe": "Arcanista (Bruxo)",
+      "divindade": "",
+      "origem": "Minerador",
+      "senses": {
+        "darkvision": 0,
+        "blindsight": 0,
+        "tremorsense": 0,
+        "truesight": 0,
+        "units": "m",
+        "special": ""
+      }
+    },
+    "rd": {
+      "value": 0,
+      "base": 0,
+      "temp": 0,
+      "bonus": 0,
+      "penalidade": 0
+    },
+    "defesa": {
+      "value": 10,
+      "outro": 0,
+      "bonus": "",
+      "penalidade": 0,
+      "final": 0,
+      "des": true,
+      "pda": 0,
+      "temp": null
+    },
+    "atributos": {
+      "for": {
+        "value": 12,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      },
+      "des": {
+        "value": 12,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      },
+      "con": {
+        "value": 17,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      },
+      "int": {
+        "value": 16,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      },
+      "sab": {
+        "value": 14,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      },
+      "car": {
+        "value": 14,
+        "raca": 0,
+        "bonus": 0,
+        "temp": 0,
+        "mod": 0,
+        "penalidade": 0
+      }
+    },
+    "pericias": {
+      "acr": {
+        "label": "Acrobacia",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": true,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "ade": {
+        "label": "Adestramento",
+        "value": 0,
+        "atributo": "car",
+        "st": true,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "atl": {
+        "label": "Atletismo",
+        "value": 0,
+        "atributo": "for",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "atu": {
+        "label": "Atuação",
+        "value": 0,
+        "atributo": "car",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "cav": {
+        "label": "Cavalgar",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "con": {
+        "label": "Conhecimento",
+        "value": 0,
+        "atributo": "int",
+        "st": true,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "cur": {
+        "label": "Cura",
+        "value": 0,
+        "atributo": "sab",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "dip": {
+        "label": "Diplomacia",
+        "value": 0,
+        "atributo": "car",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "eng": {
+        "label": "Enganação",
+        "value": 0,
+        "atributo": "car",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "for": {
+        "label": "Fortitude",
+        "value": 0,
+        "atributo": "con",
+        "st": false,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "fur": {
+        "label": "Furtividade",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": true,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "gue": {
+        "label": "Guerra",
+        "value": 0,
+        "atributo": "int",
+        "st": true,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "ini": {
+        "label": "Iniciativa",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "int": {
+        "label": "Intimidação",
+        "value": 0,
+        "atributo": "car",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "intu": {
+        "label": "Intuição",
+        "value": 0,
+        "atributo": "sab",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "inv": {
+        "label": "Investigação",
+        "value": 0,
+        "atributo": "int",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "jog": {
+        "label": "Jogatina",
+        "value": 0,
+        "atributo": "car",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "lad": {
+        "label": "Ladinagem",
+        "value": 0,
+        "atributo": "des",
+        "st": true,
+        "pda": true,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "lut": {
+        "label": "Luta",
+        "value": 0,
+        "atributo": "for",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "mis": {
+        "label": "Misticismo",
+        "value": 0,
+        "atributo": "int",
+        "st": true,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "nob": {
+        "label": "Nobreza",
+        "value": 0,
+        "atributo": "int",
+        "st": true,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "ofi": {
+        "label": "Oficios",
+        "value": 0,
+        "atributo": "int",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "mais": [],
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "per": {
+        "label": "Percepção",
+        "value": 0,
+        "atributo": "sab",
+        "st": false,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "pil": {
+        "label": "Pilotagem",
+        "value": 0,
+        "atributo": "des",
+        "st": true,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "pon": {
+        "label": "Pontaria",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "ref": {
+        "label": "Reflexos",
+        "value": 0,
+        "atributo": "des",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "rel": {
+        "label": "Religião",
+        "value": 0,
+        "atributo": "sab",
+        "st": true,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "sob": {
+        "label": "Sobrevivência",
+        "value": 0,
+        "atributo": "sab",
+        "st": false,
+        "pda": false,
+        "treinado": 0,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      },
+      "von": {
+        "label": "Vontade",
+        "value": 0,
+        "atributo": "sab",
+        "st": false,
+        "pda": false,
+        "treinado": 1,
+        "treino": 0,
+        "outros": 0,
+        "notes": "",
+        "mod": 0,
+        "temp": 0,
+        "bonus": 0,
+        "penalidade": 0
+      }
+    },
+    "periciasCustom": {},
+    "resistencias": "",
+    "tamanho": "Medio",
+    "detalhes": {
+      "dinheiro": {
+        "tl": 0,
+        "to": 0,
+        "tp": 89,
+        "tc": 117
+      },
+      "carga": 0,
+      "idiomas": {
+        "value": [
+          "comum"
+        ]
+      },
+      "profArmas": {
+        "value": [
+          "sim"
+        ]
+      },
+      "profArmaduras": {
+        "value": [
+          "leve"
+        ]
+      },
+      "biografia": "",
+      "altura": 0,
+      "peso": 0,
+      "aparencia": "",
+      "personalidade": "",
+      "biography": "",
+      "diario1": {
+        "name": ""
+      },
+      "diario2": {
+        "name": ""
+      },
+      "diario3": {
+        "name": ""
+      },
+      "diario4": {
+        "name": ""
+      },
+      "diario": {
+        "value": "<ul>\n<li>&nbsp;</li>\n<li>Origem: sentidos agu&ccedil;ados</li>\n<li>Bruxo - N&iacute;vel 1 :\n<ul>\n<li>Magias: raio do enfraquecimento, queda suave,&nbsp; concentra&ccedil;&atilde;o de combate</li>\n</ul>\n</li>\n<li>Bruxo - N&iacute;vel 2:<br />\n<ul>\n<li>Vitalidade Fantasma</li>\n<li>Especialista em esccola</li>\n</ul>\n</li>\n</ul>"
+      }
+    },
+    "biography": "<p>Shuruh nasceu em uma tribo Trog, Nehanda. N&atilde;o era um local, pois estavam sempre se mudando - para onde conseguissem mais facilmente comida ou a&ccedil;o. Segundo a grande anci&atilde;, a Okwui, ela era a Kayin Iniko - crian&ccedil;a aguardada, nascida em tempos dif&iacute;ceis. Por isso, ela recebeu um certo tratamento especial na tribo. Isso n&atilde;o quer dizer que ela ganhava mais comida, ela era mais ensinada e por tanto, cobrada. Ca&ccedil;ar, minerar, sobreviver. Mesmo com o restante da tribo n&atilde;o entendendo, foi ensinada sobre magia e at&eacute; a lidar com outras ra&ccedil;as, a se portar em certos ambientes. Quando se tornou uma Trog adulta, partiu, pronta para provar que Okwui n&atilde;o era uma velha gag&aacute; e que conseguiria sim fazer a diferen&ccedil;a em Arton.</p>\n<p>&nbsp;</p>",
+    "referencias": {},
+    "modificadores": {
+      "atributos": {
+        "geral": 0,
+        "fisicos": 0,
+        "mentais": 0,
+        "for": 0,
+        "des": 0,
+        "con": 0,
+        "int": 0,
+        "sab": 0,
+        "car": 0
+      },
+      "dano": {
+        "geral": 0,
+        "cac": 0,
+        "ad": 0,
+        "mag": 0
+      },
+      "custoPM": 0,
+      "pericias": {
+        "geral": 0,
+        "semataque": 0,
+        "ataque": 0,
+        "resistencia": 0,
+        "atr": {
+          "for": 0,
+          "des": 0,
+          "con": 0,
+          "int": 0,
+          "sab": 0,
+          "car": 0
+        }
+      }
+    },
+    "deslocamento": {
+      "base": 9,
+      "bonus": 0,
+      "penalidade": 0,
+      "total": 9,
+      "cond": "nao",
+      "subst": 0,
+      "descricao": ""
+    },
+    "atributoChave": "int"
+  },
+  "sort": 200000,
+  "flags": {
+    "editarPericias": true,
+    "pvBonus": [
+      "0",
+      "0"
+    ],
+    "pmBonus": [
+      "0",
+      "0"
+    ],
+    "forPV": false,
+    "desPV": false,
+    "intPV": false,
+    "sabPV": false,
+    "carPV": false,
+    "forPM": false,
+    "desPM": false,
+    "conPM": false,
+    "intPM": true,
+    "sabPM": false,
+    "carPM": false,
+    "maestro": {
+      "track": "fJoqCZGe22wqmmXI"
+    },
+    "exportSource": {
+      "world": "yuvalin",
+      "system": "tormenta20",
+      "coreVersion": "0.7.9",
+      "systemVersion": "1.2.0.21"
+    }
+  },
+  "img": "images/yuri/shurah.png",
+  "token": {
+    "flags": {},
+    "name": "Shuruh",
+    "displayName": 50,
+    "img": "images/yuri/m2/shuruh.webm",
+    "tint": "",
+    "width": 1,
+    "height": 1,
+    "scale": 1,
+    "mirrorX": false,
+    "mirrorY": false,
+    "lockRotation": false,
+    "rotation": 0,
+    "vision": true,
+    "dimSight": 20,
+    "brightSight": 0,
+    "dimLight": 0,
+    "brightLight": 0,
+    "sightAngle": 360,
+    "lightAngle": 360,
+    "lightColor": "",
+    "lightAlpha": 1,
+    "lightAnimation": {
+      "type": "",
+      "speed": 5,
+      "intensity": 5
+    },
+    "actorId": "LKKmV9iliS0hgpe4",
+    "actorLink": true,
+    "disposition": 1,
+    "displayBars": 50,
+    "bar1": {
+      "attribute": "attributes.pv"
+    },
+    "bar2": {
+      "attribute": "attributes.pm"
+    },
+    "randomImg": false
+  },
+  "items": [
+    {
+      "_id": "BGHpKLj2IyV6uHAG",
+      "name": "Arcanista",
+      "type": "classe",
+      "data": {
+        "description": "",
+        "niveis": 2,
+        "pvPorNivel": "2",
+        "pmPorNivel": "6",
+        "pericias": {
+          "numero": 1,
+          "inatas": "Misticismo e Vontade",
+          "escolhas": {
+            "con": true,
+            "ini": true,
+            "ofi": true,
+            "per": true
+          },
+          "value": []
+        }
+      },
+      "sort": 100000,
+      "flags": {
+        "exportSource": {
+          "world": "tormenta-20-teste",
+          "system": "tormenta20",
+          "coreVersion": "0.7.9",
+          "systemVersion": "1.1.21"
+        },
+        "core": {
+          "sourceId": "Compendium.tormenta20.classes.TH7OIKaDqtLLQUrs"
+        }
+      },
+      "img": "systems/tormenta20/icons/classes/arcanista.webp",
+      "effects": []
+    },
+    {
+      "_id": "EdW61a9TCohetacD",
+      "name": "Mordida",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "racial",
+        "subtipo": "Trog"
+      },
+      "sort": 200000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.2z58hpmL9p4VNyPW"
+        }
+      },
+      "img": "systems/tormenta20/icons/ra%C3%A7as/trog.webp",
+      "effects": []
+    },
+    {
+      "_id": "sh47VMfHaSVyWvXU",
+      "name": "Clava",
+      "type": "arma",
+      "data": {
+        "description": "<p>Um pedaço de madeira empunhado como arma, geralmente usado por bárbaros ou criaturas brutais — ou como arma improvisada, como um galho de árvore ou pedaço de mobília. Sendo fácil de conseguir, seu preço é zero.</p>",
+        "peso": 1.5,
+        "qtd": 1,
+        "preco": 0,
+        "atrAtq": "for",
+        "pericia": "lut",
+        "atrDan": "for",
+        "dano": "1d6",
+        "atqBns": "0",
+        "danoBns": "0",
+        "criticoM": 20,
+        "criticoX": 2,
+        "lancinante": false,
+        "tipo": "Impacto",
+        "alcance": "-",
+        "custo": null,
+        "tipoUso": "simples",
+        "propriedades": {
+          "adaptavel": false,
+          "agil": false,
+          "alongada": false,
+          "arremesso": false,
+          "ataqueDistancia": false,
+          "duasMaos": false,
+          "dupla": false,
+          "leve": false,
+          "municao": false,
+          "versatil": false
+        },
+        "encantos": {
+          "arremesso": false,
+          "lancinante": false
+        },
+        "chatFlavor": ""
+      },
+      "sort": 300000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.JUlyA7UGoTGdXkCP"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": true,
+          "animType": "t2",
+          "animName": "Marreta",
+          "color": "regular",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/clava.webp",
+      "effects": []
+    },
+    {
+      "_id": "l9hXJSjDVuTNQdcj",
+      "name": "Reptiliano",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você é uma criatura do tipo monstro e recebe visão no escuro, +1 na Defesa e, se estiver sem armadura ou roupas pesadas, +5 em Furtividade.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "racial",
+        "subtipo": "Trog"
+      },
+      "sort": 1200000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.3AyZ8AOGrzH0rHMw"
+        }
+      },
+      "img": "systems/tormenta20/icons/ra%C3%A7as/trog.webp",
+      "effects": [
+        {
+          "_id": "P9FyEx2kKVCKuHMD",
+          "flags": {
+            "t20": {
+              "onuse": false,
+              "durationScene": false
+            }
+          },
+          "changes": [
+            {
+              "key": "data.defesa.value",
+              "value": 1,
+              "mode": 2
+            }
+          ],
+          "disabled": false,
+          "duration": {
+            "startTime": null,
+            "seconds": null,
+            "rounds": null,
+            "turns": null,
+            "startRound": null,
+            "startTurn": null
+          },
+          "icon": "icons/svg/aura.svg",
+          "label": "Reptiliano (Defesa)",
+          "origin": "Item.t7bGdeKlw6DzlNHN",
+          "tint": "",
+          "transfer": true
+        },
+        {
+          "_id": "Cq8dUXKliOMGFKVC",
+          "flags": {
+            "t20": {
+              "onuse": false,
+              "durationScene": false
+            }
+          },
+          "changes": [
+            {
+              "key": "data.pericias.fur.temp",
+              "value": 5,
+              "mode": 2
+            }
+          ],
+          "disabled": false,
+          "duration": {
+            "startTime": null,
+            "seconds": null,
+            "rounds": null,
+            "turns": null,
+            "startRound": null,
+            "startTurn": null
+          },
+          "icon": "icons/svg/aura.svg",
+          "label": "Reptiliano (Furtividade)",
+          "origin": "Item.p17iMH1VsaYmlsRC",
+          "tint": "",
+          "transfer": true
+        }
+      ]
+    },
+    {
+      "_id": "cUQTyG987dua5LJ6",
+      "name": "Raio do Enfraquecimento",
+      "type": "magia",
+      "data": {
+        "description": "<p>Você dispara um raio púrpura que drena as forças do alvo. Se falhar na resistência, o alvo fica fatigado. Se passar, fica vulnerável.</p>",
+        "aprimoramentos": [
+          {
+            "custo": "0",
+            "tipo": "Truque",
+            "formula": "",
+            "description": "muda o alcance para toque e a resistência para Fortitude anula. Em vez do normal, ao tocar o alvo, sua mão emana um brilho púrpura. O alvo fica fatigado. Note que, como efeitos de magia não acumulam, lançar este truque duas vezes contra o mesmo alvo não irá deixá-lo exausto.",
+            "_id": "",
+            "id": "2346e673-3628-46f1-a355-5c039107ea37",
+            "ativo": false
+          },
+          {
+            "custo": "2",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "em vez do normal, se falhar na resistência o alvo fica exausto. Se passar, fica fatigado. Requer 2º círculo.",
+            "_id": "",
+            "id": "63fc47c2-b96e-4489-9812-02b4de7f298c",
+            "ativo": false
+          },
+          {
+            "custo": "5",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "em vez do normal, se falhar na resistência o alvo fica inconsciente. Se passar, fica exausto. Requer 3º círculo.",
+            "_id": "",
+            "id": "4c86b2a6-e6fd-4c66-bd3f-daf041c726bc",
+            "ativo": false
+          }
+        ],
+        "alcance": "Curto",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "1 criatura",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "cena"
+        },
+        "resistencia": "Fortitude parcial",
+        "atrRes": "int",
+        "cd": 2,
+        "tipo": "Arcana",
+        "circulo": "1",
+        "preparada": false,
+        "escola": "Necromancia",
+        "efeito": "",
+        "chatFlavor": "sugue os tenebra"
+      },
+      "sort": 600000,
+      "flags": {
+        "core": {
+          "sourceId": "Item.JfNM4D7BR0mPG1zh"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": true,
+          "animType": "t6",
+          "animName": "Blast de Eldritch.",
+          "color": "purple",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/magias/raio-do-enfraquecimento.webp",
+      "effects": [
+        {
+          "_id": "h9YSgDixO3JIQakZ",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "alcance",
+              "value": "Toque",
+              "mode": 5
+            },
+            {
+              "key": "resistencia",
+              "value": "Fortitude anula",
+              "mode": 5
+            },
+            {
+              "key": "condicao",
+              "value": "fatigado",
+              "mode": 0
+            },
+            {
+              "key": "condicao",
+              "value": "exausto",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda o alcance para toque e a resistência para Fortitude anula. Em vez do normal, ao tocar o alvo, sua mão emana um brilho púrpura. O alvo fica fatigado. Note que, como efeitos de magia não acumulam, lançar este truque duas vezes contra o mesmo alvo não irá deixá-lo exausto.",
+          "origin": "Compendium.tormenta20.magias.hikpz9g3jwJoTcRZ",
+          "transfer": false
+        },
+        {
+          "_id": "Mxv1Ddofr1ILIZ7n",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "2",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "condicao",
+              "value": "exausto",
+              "mode": 0
+            },
+            {
+              "key": "condicao",
+              "value": "fatigado",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "em vez do normal, se falhar na resistência o alvo fica exausto. Se passar, fica fatigado. Requer 2º círculo.",
+          "origin": "Compendium.tormenta20.magias.hikpz9g3jwJoTcRZ",
+          "transfer": false
+        },
+        {
+          "_id": "k2YDfSRA8tF21vZB",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "5",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "condicao",
+              "value": "inconsciente",
+              "mode": 0
+            },
+            {
+              "key": "condicao",
+              "value": "exausto",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "em vez do normal, se falhar na resistência o alvo fica inconsciente. Se passar, fica exausto. Requer 3º círculo.",
+          "origin": "Compendium.tormenta20.magias.hikpz9g3jwJoTcRZ",
+          "transfer": false
+        }
+      ]
+    },
+    {
+      "_id": "XWMqiO5hd740SeeX",
+      "name": "Queda Suave",
+      "type": "magia",
+      "data": {
+        "description": "<p>O alvo cai lentamente. A velocidade da queda é reduzida para 18m por rodada — o suficiente para não causar dano.</p><p>Como lançar esta magia é uma reação, você pode lançá-la rápido o bastante para salvar a si ou um aliado de quedas inesperadas.</p><p>Lançada sobre um projétil — como uma flecha ou uma rocha largada do alto de um penhasco —, a magia faz com que ele cause metade do dano normal, devido à lentidão.</p><p>Queda Suave só funciona em criaturas e objetos em queda livre ou similar; a magia não vai frear um golpe de espada ou o mergulho rasante de um atacante voador.</p>",
+        "aprimoramentos": [
+          {
+            "custo": "0",
+            "tipo": "Truque",
+            "formula": "",
+            "description": "muda o alvo para objeto com até 5kg. Em vez do normal, você pode gastar uma ação de movimento para levitar o alvo até 4,5m em qualquer direção.",
+            "_id": "",
+            "id": "a91cd003-7fe1-4100-bcf5-960ff85d0440",
+            "ativo": false
+          },
+          {
+            "custo": "2",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "muda o alvo para até 10 criaturas ou objetos.",
+            "_id": "",
+            "id": "d50361ba-eaaf-45be-8505-6986640d6d87",
+            "ativo": false
+          }
+        ],
+        "alcance": "Curto",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "1 criatura ou objeto com até 200kg",
+        "area": "",
+        "ativacao": {
+          "execucao": "reacao",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "até chegar ao solo ou cena, o que vier primeiro",
+          "unidade": "outra"
+        },
+        "resistencia": "",
+        "atrRes": "int",
+        "cd": 0,
+        "tipo": "Arcana",
+        "circulo": "1",
+        "preparada": false,
+        "escola": "Transmutação",
+        "efeito": ""
+      },
+      "sort": 700000,
+      "flags": {
+        "core": {
+          "sourceId": "Item.1Bq3ueG02VWEykaj"
+        }
+      },
+      "img": "systems/tormenta20/icons/magias/queda-suave.webp",
+      "effects": [
+        {
+          "_id": "JK0Ct96UdwVaay78",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "alvo",
+              "value": "objeto com até 5kg",
+              "mode": 5
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda o alvo para objeto com até 5kg. Em vez do normal, você pode gastar uma ação de movimento para levitar o alvo até 4,5m em qualquer direção.",
+          "origin": "Compendium.tormenta20.magias.9A5LyhPsCrdowfcL",
+          "transfer": false
+        },
+        {
+          "_id": "jGo03V8MaoXuq7zT",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "2",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "alvo",
+              "value": "até 10 criaturas ou objetos",
+              "mode": 5
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda o alvo para até 10 criaturas ou objetos.",
+          "origin": "Compendium.tormenta20.magias.9A5LyhPsCrdowfcL",
+          "transfer": false
+        }
+      ]
+    },
+    {
+      "_id": "ADvCrAcpHpGjdLiT",
+      "name": "Concentração de Combate",
+      "type": "magia",
+      "data": {
+        "description": "<p>Você amplia sua percepção, antecipando movimentos dos inimigos e achando brechas em sua defesa. Quando faz um ataque, você rola dois dados e usa o melhor resultado.</p>",
+        "aprimoramentos": [
+          {
+            "custo": "2",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "muda a execução para padrão e a duração para cena. Requer 2º círculo.",
+            "_id": "",
+            "id": "5520261d-b9e8-4e23-80e5-ddc3c6e67af5",
+            "ativo": false
+          },
+          {
+            "custo": "5",
+            "tipo": "Outros",
+            "formula": "",
+            "description": "além do normal, ao atacar você, um inimigo deve rolar dois dados e usar o pior resultado. Requer 3º círculo.",
+            "_id": "",
+            "id": "cf1cba3e-5aff-4cde-a3b6-300cfb7eac4a",
+            "ativo": false
+          },
+          {
+            "custo": "9",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "muda a execução para padrão, o alcance para curto, o alvo para criaturas escolhidas e a duração para cena. Requer 4º círculo.",
+            "_id": "",
+            "id": "e66653e3-9795-46c0-9c9f-bbe9043034d9",
+            "ativo": false
+          },
+          {
+            "custo": "14",
+            "tipo": "Muda",
+            "formula": "",
+            "description": "muda a execução para padrão e a duração para 1 dia. Além do normal, você recebe um sexto sentido que o avisa de qualquer perigo ou ameaça. Você fica imune às condições surpreendido e desprevenido e recebe +10 em Defesa e Reflexos. Requer 5º círculo.",
+            "_id": "",
+            "id": "2bc4cff3-69ec-4acc-b91d-b52c75491d50",
+            "ativo": false
+          }
+        ],
+        "alcance": "Pessoal",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "Você",
+        "area": "",
+        "ativacao": {
+          "execucao": "livre",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "1 rodada",
+          "unidade": "outra"
+        },
+        "resistencia": "",
+        "atrRes": "int",
+        "cd": 0,
+        "tipo": "Arcana",
+        "circulo": "1",
+        "preparada": false,
+        "escola": "Adivinhação",
+        "efeito": "",
+        "chatFlavor": ""
+      },
+      "sort": 800000,
+      "flags": {
+        "core": {
+          "sourceId": "Item.1UBi6j1FJdnCdLH1"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": false,
+          "animType": "t1",
+          "animName": "",
+          "color": "n1",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/magias/concentracao-de-combate.webp",
+      "effects": [
+        {
+          "_id": "LvHT31M1UBY6eqIL",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "2",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "execucao",
+              "value": "padrão",
+              "mode": 5
+            },
+            {
+              "key": "duracao",
+              "value": "Cena",
+              "mode": 5
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda a execução para padrão e a duração para cena. Requer 2º círculo.",
+          "origin": "Compendium.tormenta20.magias.lAsj1NrA2J6GbvDi",
+          "transfer": false
+        },
+        {
+          "_id": "2XHxvPBjrqijXw9I",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "5",
+              "aumenta": false
+            }
+          },
+          "changes": [],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "além do normal, ao atacar você, um inimigo deve rolar dois dados e usar o pior resultado. Requer 3º círculo.",
+          "origin": "Compendium.tormenta20.magias.lAsj1NrA2J6GbvDi",
+          "transfer": false
+        },
+        {
+          "_id": "NrEAsxaqpXAWVZ5d",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "9",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "execucao",
+              "value": "padrão",
+              "mode": 5
+            },
+            {
+              "key": "alcance",
+              "value": "curto",
+              "mode": 5
+            },
+            {
+              "key": "alvo",
+              "value": "criaturas escolhidas",
+              "mode": 5
+            },
+            {
+              "key": "duracao",
+              "value": "Cena",
+              "mode": 5
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda a execução para padrão, o alcance para curto, o alvo para criaturas escolhidas e a duração para cena. Requer 4º círculo.",
+          "origin": "Compendium.tormenta20.magias.lAsj1NrA2J6GbvDi",
+          "transfer": false
+        },
+        {
+          "_id": "Q9xwXkqN6t3iEhBD",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "14",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "execucao",
+              "value": "padrão",
+              "mode": 5
+            },
+            {
+              "key": "duracao",
+              "value": "1 dia",
+              "mode": 5
+            },
+            {
+              "key": "condicao",
+              "value": "surpreendido",
+              "mode": 0
+            },
+            {
+              "key": "condicao",
+              "value": "desprevenido",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda a execução para padrão e a duração para 1 dia. Além do normal, você recebe um sexto sentido que o avisa de qualquer perigo ou ameaça. Você fica imune às condições surpreendido e desprevenido e recebe +10 em Defesa e Reflexos. Requer 5º círculo.",
+          "origin": "Compendium.tormenta20.magias.lAsj1NrA2J6GbvDi",
+          "transfer": false
+        }
+      ]
+    },
+    {
+      "_id": "BIenDTVg6MyhCcFF",
+      "name": "Picareta",
+      "type": "arma",
+      "data": {
+        "description": "<p>Usada por mineradores, esta ferramenta quebra pedras com facilidade. Imagine o que pode fazer com carne e osso!</p>",
+        "peso": 3,
+        "qtd": 1,
+        "preco": 8,
+        "atrAtq": "for",
+        "pericia": "lut",
+        "atrDan": "0",
+        "dano": "1d6",
+        "atqBns": "0",
+        "danoBns": "0",
+        "criticoM": 20,
+        "criticoX": 4,
+        "lancinante": false,
+        "tipo": "Perfuração",
+        "alcance": "-",
+        "custo": null,
+        "tipoUso": "marcial",
+        "propriedades": {
+          "adaptavel": false,
+          "agil": false,
+          "alongada": false,
+          "arremesso": false,
+          "ataqueDistancia": false,
+          "duasMaos": false,
+          "dupla": false,
+          "leve": false,
+          "municao": false,
+          "versatil": false
+        },
+        "encantos": {
+          "arremesso": false,
+          "lancinante": false
+        },
+        "chatFlavor": ""
+      },
+      "sort": 900000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.nsTbFWXERXChuTS4"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": true,
+          "animType": "t2",
+          "animName": "Machado",
+          "color": "regular",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/picareta.webp",
+      "effects": []
+    },
+    {
+      "_id": "t1wMCH51MIIweJsL",
+      "name": "Mau Cheiro",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você pode gastar uma ação padrão e 2 PM para expelir um gás fétido. Todas as criaturas (exceto trogs) em alcance curto devem passar em um teste de Fortitude contra veneno (CD Con) ou ficarão enjoadas durante 1d6 rodadas. Uma criatura que passe no teste de resistência fica imune a esta habilidade por um dia.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 2,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "Fortitude",
+        "atrRes": "con",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "racial",
+        "subtipo": "Trog",
+        "chatFlavor": ""
+      },
+      "sort": 1300000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.KOxJPGUZSjZp9T9l"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": false,
+          "animType": "t1",
+          "animName": "",
+          "color": "n1",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/ra%C3%A7as/trog.webp",
+      "effects": []
+    },
+    {
+      "_id": "ucRsFiHN95l3YI9M",
+      "name": "Sangue Frio",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você sofre 1 ponto de dano adicional por cada dado de dano de frio.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "racial",
+        "subtipo": "Trog"
+      },
+      "sort": 1100000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.0uPMzPcd5TJqZ0GD"
+        }
+      },
+      "img": "systems/tormenta20/icons/ra%C3%A7as/trog.webp",
+      "effects": []
+    },
+    {
+      "_id": "e3SjaCVZwp6RmCpD",
+      "name": "Mochila",
+      "type": "tesouro",
+      "data": {
+        "description": "<p>Esta bolsa reforçada de couro tem bolsos e tiras para ser carregada nas costas e prender equipamentos diversos.</p>",
+        "peso": 1,
+        "qtd": 1,
+        "preco": 2
+      },
+      "sort": 1500000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.aEa1jA74DcgjMdlC"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/mochila.webp",
+      "effects": []
+    },
+    {
+      "_id": "Y1TX1ScHbr6ii2LP",
+      "name": "Saco de Dormir",
+      "type": "tesouro",
+      "data": {
+        "description": "<p>Composto por um colchão e uma coberta fina o bastante para ser enrolada e amarrada, é especialmente útil para aventureiros, que nunca sabem onde vão passar a noite. Dormir ao relento sem um saco de dormir diminui sua recuperação de PV e PM.</p>",
+        "peso": 2.5,
+        "qtd": 1,
+        "preco": 0
+      },
+      "sort": 1600000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.ohZXRVN8Ji4Z1uSm"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/saco-de-dormir.webp",
+      "effects": []
+    },
+    {
+      "_id": "OtLLzTVQUqCaa63g",
+      "name": "Traje de viajante",
+      "type": "tesouro",
+      "data": {
+        "description": "<p>Inclui botas resistentes, calças ou saias, cinto, camisa de linho e capa com capuz. São as roupas padrão de aventureiros. CD 15.</p>",
+        "peso": 2,
+        "qtd": 1,
+        "preco": 5
+      },
+      "sort": 1700000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.5S1fxBo6Z5KXuMTC"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/traje-viajante.webp",
+      "effects": []
+    },
+    {
+      "_id": "IkSNIMFNI62CHUxO",
+      "name": "Carícia Sombria",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você pode gastar 1 PM e uma ação padrão para cobrir sua mão com energia negativa e tocar uma criatura em alcance corpo a corpo. A criatura sofre 2d6 pontos de dano de trevas (Fortitude CD Sab reduz à metade) e você recupera PV iguais à metade do dano causado. Você pode aprender <i>Toque Vampírico</i> como uma magia divina. Se fizer isso, o custo dela diminui em –1 PM.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "sab",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "concedido",
+        "subtipo": "Trevas"
+      },
+      "sort": 1800000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.OfBZl1NhiMQ4oYN3"
+        }
+      },
+      "img": "systems/tormenta20/icons/poderes/concedidos.webp",
+      "effects": []
+    },
+    {
+      "_id": "Aoiq7wSne46E8LU2",
+      "name": "Vitalidade Fantasma",
+      "type": "magia",
+      "data": {
+        "description": "<p>Você suga energia vital da terra, recebendo 2d8 pontos de vida temporários. Os PV temporários desaparecem ao final da cena.</p>",
+        "aprimoramentos": [
+          {
+            "custo": "2",
+            "tipo": "Aumenta",
+            "formula": "1d8",
+            "description": "aumenta os PV temporários recebidos em +1d8.",
+            "_id": "",
+            "id": "67b48eab-94a1-4671-967a-dc20a965914a",
+            "ativo": false
+          },
+          {
+            "custo": "5",
+            "tipo": "Muda",
+            "formula": "1d8",
+            "description": "muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d8 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo.",
+            "_id": "",
+            "id": "3beb5444-7f07-4a06-8b9b-301208c2a7db",
+            "ativo": false
+          }
+        ],
+        "alcance": "Pessoal",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "você",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 1,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "instant"
+        },
+        "resistencia": "",
+        "atrRes": "int",
+        "cd": 2,
+        "tipo": "Arcana",
+        "circulo": "1",
+        "preparada": false,
+        "escola": "Necromancia",
+        "efeito": "2d8",
+        "chatFlavor": ""
+      },
+      "sort": 2000000,
+      "flags": {
+        "core": {
+          "sourceId": "Item.7FppkWUX7ku2V1qt"
+        },
+        "autoanimations": {
+          "killAnim": false,
+          "override": true,
+          "animType": "t7",
+          "animName": "Cura genérica",
+          "color": "purple",
+          "dtvar": "dt1",
+          "explosion": false,
+          "explodeVariant": "ev1",
+          "explodeColor": "ec1",
+          "explodeRadius": "0",
+          "explodeLoop": "1"
+        }
+      },
+      "img": "systems/tormenta20/icons/magias/vitalidade-fantasma.webp",
+      "effects": [
+        {
+          "_id": "8ky11WxusJyBeRiV",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "2",
+              "aumenta": true
+            }
+          },
+          "changes": [
+            {
+              "key": "roll",
+              "value": "1d8",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "aumenta os PV temporários recebidos em +1d8.",
+          "origin": "Compendium.tormenta20.magias.505PykOz1CmG2CU3",
+          "transfer": false
+        },
+        {
+          "_id": "FQSR5xVzMWSV6cjs",
+          "flags": {
+            "t20": {
+              "onuse": true,
+              "self": true,
+              "custo": "5",
+              "aumenta": false
+            }
+          },
+          "changes": [
+            {
+              "key": "alvo",
+              "value": "área: esfera com 6m de raio centrada em você",
+              "mode": 5
+            },
+            {
+              "key": "resistencia",
+              "value": "Fortitude reduz à metade",
+              "mode": 5
+            },
+            {
+              "key": "roll",
+              "value": "1d8",
+              "mode": 0
+            }
+          ],
+          "disabled": true,
+          "duration": {},
+          "icon": "icons/svg/upgrade.svg",
+          "label": "muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d8 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo.",
+          "origin": "Compendium.tormenta20.magias.505PykOz1CmG2CU3",
+          "transfer": false
+        }
+      ]
+    },
+    {
+      "_id": "SQpoYnj9QFrMBXzx",
+      "name": "Especialista em Escola",
+      "type": "poder",
+      "data": {
+        "description": "<p>Escolha uma escola de magia. A CD para resistir a suas magias dessa escola aumenta em +2.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "classe",
+        "subtipo": "Arcanista"
+      },
+      "sort": 2100000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.xicIWimbloEfiB1r"
+        }
+      },
+      "img": "systems/tormenta20/icons/classes/arcanista.webp",
+      "effects": []
+    },
+    {
+      "_id": "S7vh9LZA8vzgMLd9",
+      "name": "Essência de mana",
+      "type": "consumivel",
+      "data": {
+        "description": "<p>Alquimia</p><p>Esta poção feita de ervas raras e compostos alquímicos recupera energia pessoal. Beber a essência de mana é uma ação padrão e recupera 1d4 pontos de mana. CD 20.</p>",
+        "peso": 0.1,
+        "qtd": 2,
+        "preco": 50,
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "instant"
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": "",
+        "efeito": "1d4"
+      },
+      "sort": 2200000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.JC6bm2uh4g7oaGge"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/mana.webp",
+      "effects": []
+    },
+    {
+      "_id": "j0fxGVBUYSB9eQFr",
+      "name": "Macarrão de Mineiro",
+      "type": "consumivel",
+      "data": {
+        "description": "<p>Alimenta&ccedil;&atilde;o</p>\n<p>Origin&aacute;rio de uma cidade mineradora na fronteira com as montanhas. Seus habitantes criaram este prato refor&ccedil;ado (macarr&atilde;o, bacon e creme de leite!) para encarar suas &aacute;rduas jornadas de trabalho nas minas. Delicioso, o prato se espalhou por outras cidades e reinos. Voc&ecirc; recebe +5 PV tempor&aacute;rios. CD 15.</p>",
+        "peso": 0.5,
+        "qtd": 3,
+        "preco": 6,
+        "alcance": "Pessoal",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "instant"
+        },
+        "resistencia": "",
+        "atrRes": "for",
+        "cd": 0,
+        "efeito": "",
+        "chatFlavor": ""
+      },
+      "sort": 2300000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.qOJQpsOhHltX2BUZ"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/macarrao-de-mineiro.webp",
+      "effects": []
+    },
+    {
+      "_id": "DG9JJ9yeLKuEJRbg",
+      "name": "Gorad quente",
+      "type": "consumivel",
+      "data": {
+        "description": "<p>Alimentação</p><p>Gorad e leite, servidos quentes. Não tem erro. O gorad ativa o cérebro, fornecendo +2 PM temporários. CD 20.</p>",
+        "peso": 0.5,
+        "qtd": 2,
+        "preco": 18,
+        "alcance": "Pessoal",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "instant"
+        },
+        "resistencia": "",
+        "atrRes": "for",
+        "cd": 0,
+        "efeito": "",
+        "chatFlavor": ""
+      },
+      "sort": 2400000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.g5L7NWwNvdR5RPKG"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/gorad.webp",
+      "effects": []
+    },
+    {
+      "_id": "OK0lWlXLYGnCu7IV",
+      "name": "Sentidos Aguçados",
+      "type": "poder",
+      "data": {
+        "description": "<p>Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha. <i>Pré-requisitos:</i> Sab 13, treinado em Percepção.</p>",
+        "alcance": "",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": ""
+        },
+        "resistencia": "",
+        "atrRes": "",
+        "cd": 0,
+        "aprimoramentos": [],
+        "roll": "",
+        "tipo": "geral",
+        "subtipo": "Destino"
+      },
+      "sort": 2500000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.poderes.QEkw59wKjXEN2IMZ"
+        }
+      },
+      "img": "systems/tormenta20/icons/poderes/destino.webp",
+      "effects": [
+        {
+          "_id": "0blvcj4jRD8yxeGn",
+          "flags": {
+            "t20": {
+              "onuse": false,
+              "durationScene": false
+            }
+          },
+          "changes": [
+            {
+              "key": "data.pericias.per.outros",
+              "value": "2",
+              "mode": 2
+            }
+          ],
+          "disabled": false,
+          "duration": {
+            "startTime": null,
+            "seconds": null,
+            "rounds": null,
+            "turns": null,
+            "startRound": null,
+            "startTurn": null
+          },
+          "icon": "systems/tormenta20/icons/poderes/destino.webp",
+          "label": "Sentidos Aguçados",
+          "origin": "Item.q6On6q29Fj6YtXzJ",
+          "tint": "",
+          "transfer": true
+        }
+      ]
+    },
+    {
+      "_id": "AbQ6irWslQCdddgi",
+      "name": "Punhado de Cogumelos",
+      "type": "consumivel",
+      "data": {
+        "description": "",
+        "peso": 0,
+        "qtd": 1,
+        "preco": 0,
+        "alcance": "Pessoal",
+        "target": {
+          "value": null,
+          "comprimento": null,
+          "unidades": "",
+          "type": ""
+        },
+        "alvo": "",
+        "area": "",
+        "ativacao": {
+          "execucao": "padrao",
+          "custo": 0,
+          "condicao": ""
+        },
+        "duracao": {
+          "valor": "",
+          "unidade": "instant"
+        },
+        "resistencia": "",
+        "atrRes": "for",
+        "cd": 0,
+        "efeito": "",
+        "chatFlavor": ""
+      },
+      "sort": 2600000,
+      "flags": {},
+      "img": "icons/svg/mystery-man.svg",
+      "effects": []
+    },
+    {
+      "_id": "HQ7J96aWfcOUBfuy",
+      "name": "Machado de batalha",
+      "type": "arma",
+      "data": {
+        "description": "<p>Adaptado do machado de lenhador, este não é um instrumento para corte de árvores, mas sim uma arma capaz de causar ferimentos terríveis.</p>",
+        "peso": 3,
+        "qtd": 1,
+        "preco": 10,
+        "atrAtq": "0",
+        "pericia": "lut",
+        "atrDan": "0",
+        "dano": "1d8",
+        "atqBns": "0",
+        "danoBns": "0",
+        "criticoM": 20,
+        "criticoX": 3,
+        "lancinante": false,
+        "tipo": "Corte",
+        "alcance": "-",
+        "custo": null,
+        "tipoUso": "marcial",
+        "propriedades": {
+          "adaptavel": false,
+          "agil": false,
+          "alongada": false,
+          "arremesso": false,
+          "ataqueDistancia": false,
+          "duasMaos": false,
+          "dupla": false,
+          "leve": false,
+          "municao": false,
+          "versatil": false
+        },
+        "encantos": {
+          "arremesso": false,
+          "lancinante": false
+        }
+      },
+      "sort": 2700000,
+      "flags": {
+        "core": {
+          "sourceId": "Compendium.tormenta20.equipamentos.v5HYdRxOsBcnXATP"
+        }
+      },
+      "img": "systems/tormenta20/icons/itens/machado-de-batalha.webp",
+      "effects": []
+    }
+  ],
+  "effects": [
+    {
+      "_id": "J6deyKhCCkojVzTf",
+      "flags": {
+        "t20": {
+          "onuse": false,
+          "durationScene": false
+        }
+      },
+      "changes": [
+        {
+          "key": "data.defesa.outro",
+          "value": "1",
+          "mode": 2
+        }
+      ],
+      "disabled": false,
+      "duration": {
+        "startTime": 0,
+        "seconds": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
+      },
+      "icon": "icons/svg/aura.svg",
+      "label": "Reptiliano (Defesa)",
+      "origin": "Actor.LKKmV9iliS0hgpe4.OwnedItem.l9hXJSjDVuTNQdcj",
+      "tint": ""
+    },
+    {
+      "_id": "DhtCOvaL0yUVX1qC",
+      "flags": {
+        "t20": {
+          "onuse": false,
+          "durationScene": false
+        }
+      },
+      "changes": [
+        {
+          "key": "data.pericias.fur.temp",
+          "value": 5,
+          "mode": 2
+        }
+      ],
+      "disabled": false,
+      "duration": {
+        "startTime": 0,
+        "seconds": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
+      },
+      "icon": "icons/svg/aura.svg",
+      "label": "Reptiliano (Furtividade)",
+      "origin": "Actor.LKKmV9iliS0hgpe4.OwnedItem.l9hXJSjDVuTNQdcj",
+      "tint": ""
+    },
+    {
+      "_id": "28P7ti1uxUQd2GzB",
+      "flags": {
+        "t20": {
+          "onuse": false,
+          "durationScene": false
+        }
+      },
+      "changes": [
+        {
+          "key": "data.pericias.per.outros",
+          "value": "2",
+          "mode": 2
+        }
+      ],
+      "disabled": false,
+      "duration": {
+        "startTime": 7361395260,
+        "seconds": null,
+        "rounds": null,
+        "turns": null,
+        "startRound": null,
+        "startTurn": null
+      },
+      "icon": "systems/tormenta20/icons/poderes/destino.webp",
+      "label": "Sentidos Aguçados",
+      "origin": "Actor.LKKmV9iliS0hgpe4.OwnedItem.OK0lWlXLYGnCu7IV",
+      "tint": ""
+    }
+  ]
+}
