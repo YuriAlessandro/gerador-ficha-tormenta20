@@ -507,18 +507,7 @@ export const nameGenerators: Record<
       return nameGenerators.default(race.oldRace, sex);
     }
 
-    const allRaces = [...Object.keys(nomes), 'Lefou'];
-    const validRaces = allRaces.filter((element) => element !== 'Golem');
-    const randomRaceName = getRandomItemFromArray(validRaces);
-    const randomRace = RACAS.find(
-      (element) => element.name === randomRaceName
-    ) as Race;
-
-    if (nameGenerators[randomRaceName]) {
-      return nameGenerators[randomRaceName](randomRace, sex);
-    }
-
-    return nameGenerators.default(randomRace, sex);
+    return '';
   },
   Lefou: (race: Race, sex: 'Masculino' | 'Feminino') => {
     const firstName = getRandomItemFromArray(lefouNames);

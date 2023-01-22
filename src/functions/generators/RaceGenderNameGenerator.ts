@@ -1,10 +1,12 @@
+/* eslint-disable class-methods-use-this */
 import CustomizableCharacterSheet from '../../model/CustomizableCharacterSheet';
 import { getRandomItemFromArray } from '../randomUtils';
 import RACES from '../../data/races';
 import { generateRandomName } from '../../data/nomes';
+import Generator from '../../interfaces/Generator';
 
-export class RaceGenderNameGenerator {
-  static generateRaceGenderName(
+export class RaceGenderNameGenerator extends Generator {
+  public generate(
     characterSheet: CustomizableCharacterSheet
   ): CustomizableCharacterSheet {
     const sheet = characterSheet;

@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep } from 'lodash';
 import { Atributo } from '../data/atributos';
-import RACAS, { getRaceByName } from '../data/races';
+import RACES from '../data/races';
 import CLASSES from '../data/classes';
 import {
   getClassBaseSkills,
@@ -262,24 +262,15 @@ function generateFinalAttributes(
   );
 }
 
-export function selectRace(selectedOptions: SelectedOptions): Race {
-  if (selectedOptions.raca) {
-    return getRaceByName(selectedOptions.raca);
-  }
-
-  return getRaceByName(getRandomItemFromArray(RACAS).name);
-}
-
 function getRaceAndName(
   selectedOptions: SelectedOptions,
   sex: 'Homem' | 'Mulher'
 ) {
   // Passo 2.2: Escolher raça
-  const race = selectRace(selectedOptions);
   // Passo 2.3: Definir nome
-  const nome = generateRandomName(race, sex);
+  // const nome = generateRandomName(race, sex);
 
-  return { nome, race };
+  return { nome: '', race: new RACES[0]() };
 }
 
 function classByName(classe: ClassDescription, classeName: string) {
