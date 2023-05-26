@@ -23,7 +23,7 @@ const Changelog: React.FC = () => (
 
     <h2>Versão 2.0</h2>
 
-    <h3>2.5.2</h3>
+    <h3>2.5.3</h3>
     <ul>
       <li>Concertado problema no filtro de magias do Database.</li>
       <li>Melhorado um pouco a navegação na Database de Poderes.</li>
