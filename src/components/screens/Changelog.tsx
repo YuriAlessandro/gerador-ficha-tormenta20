@@ -5,7 +5,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 07/08/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 26/05/2023.
     </p>
 
     <p>
