@@ -122,13 +122,13 @@ const LandingPage: React.FC<{
           >
             Database
           </Button>
-          <Button
+          {/* <Button
             variant='contained'
             startIcon={<LinkIcon />}
             onClick={() => onOpenLink('https://ameacas-t20.herokuapp.com/')}
           >
             Gerador de Ameaças
-          </Button>
+          </Button> */}
           <Button
             variant='contained'
             startIcon={<LinkIcon />}
