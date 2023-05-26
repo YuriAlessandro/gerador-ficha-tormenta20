@@ -5,7 +5,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 07/08/2022.
+      Segue a lista de mudanças no projeto. Última atualização em 26/05/2023.
     </p>
 
     <p>
@@ -22,6 +22,19 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.5.2</h3>
+    <ul>
+      <li>Concertado problema no filtro de magias do Database.</li>
+      <li>Melhorado um pouco a navegação na Database de Poderes.</li>
+      <ul>
+        <li>
+          Agora é possível clicar numa aba que leva diretamente aos tipos de
+          poderes (Combate, Concedido, Destino, Magia eTormenta). Está mais
+          fácil de navegar nesse menu.
+        </li>
+      </ul>
+    </ul>
 
     <h3>2.5.2</h3>
     <ul>

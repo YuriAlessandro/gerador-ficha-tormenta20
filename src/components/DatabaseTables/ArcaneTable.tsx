@@ -157,7 +157,7 @@ const ArcaneTable: React.FC = () => {
         spell.nome.toLowerCase().includes(search)
       );
 
-      if (filteredSpells.length > 1) history.push('/database/magias');
+      if (filteredSpells.length > 1) history.push('/database/magias/arcanas');
 
       setSpells(filteredSpells);
     } else {

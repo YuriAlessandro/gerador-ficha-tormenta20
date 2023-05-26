@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -12,6 +12,8 @@ import {
   Collapse,
   Box,
   Snackbar,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -149,6 +151,12 @@ const PowersTable: React.FC = () => {
   const { params } = useRouteMatch();
   const history = useHistory();
 
+  const combatRef = useRef<null | HTMLDivElement>(null);
+  const concedidoRef = useRef<null | HTMLDivElement>(null);
+  const destinyRef = useRef<null | HTMLDivElement>(null);
+  const magicRef = useRef<null | HTMLDivElement>(null);
+  const tormentaRef = useRef<null | HTMLDivElement>(null);
+
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
     if (search.length > 0) {
@@ -182,6 +190,28 @@ const PowersTable: React.FC = () => {
     filter(event.target.value);
   };
 
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    switch (newValue) {
+      case 0:
+        combatRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 1:
+        concedidoRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 2:
+        destinyRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 3:
+        magicRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      case 4:
+        tormentaRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label='collapsible table'>
@@ -204,7 +234,28 @@ const PowersTable: React.FC = () => {
             </TableCell>
             <TableCell />
           </TableRow>
+          <TableRow>
+            <TableCell />
+            <TableCell>
+              <Tabs
+                // value={circle - 1}
+                onChange={handleTabChange}
+                aria-label='basic tabs example'
+                variant='fullWidth'
+                sx={{
+                  background: '#da5b5d',
+                }}
+              >
+                <Tab label='Combate' id='tab1' />
+                <Tab label='Concedido' id='tab2' />
+                <Tab label='Destino' id='tab2' />
+                <Tab label='Magia' id='tab2' />
+                <Tab label='Tormenta' id='tab2' />
+              </Tabs>
+            </TableCell>
+          </TableRow>
         </TableHead>
+
         <TableBody>
           {powers.length > 0 &&
             powers.map((power) => (
@@ -218,7 +269,7 @@ const PowersTable: React.FC = () => {
             <>
               <TableRow>
                 <TableCell />
-                <TableCell>
+                <TableCell ref={combatRef}>
                   <h3>De Combate</h3>
                 </TableCell>
                 <TableCell />
@@ -232,7 +283,7 @@ const PowersTable: React.FC = () => {
               ))}
               <TableRow>
                 <TableCell />
-                <TableCell>
+                <TableCell ref={concedidoRef}>
                   <h3>Concedidos</h3>
                 </TableCell>
                 <TableCell />
@@ -246,7 +297,7 @@ const PowersTable: React.FC = () => {
               ))}
               <TableRow>
                 <TableCell />
-                <TableCell>
+                <TableCell ref={destinyRef}>
                   <h3>De Destino</h3>
                 </TableCell>
                 <TableCell />
@@ -260,7 +311,7 @@ const PowersTable: React.FC = () => {
               ))}
               <TableRow>
                 <TableCell />
-                <TableCell>
+                <TableCell ref={magicRef}>
                   <h3>De Magia</h3>
                 </TableCell>
                 <TableCell />
@@ -274,7 +325,7 @@ const PowersTable: React.FC = () => {
               ))}
               <TableRow>
                 <TableCell />
-                <TableCell>
+                <TableCell ref={tormentaRef}>
                   <h3>Da Tormenta</h3>
                 </TableCell>
                 <TableCell />
