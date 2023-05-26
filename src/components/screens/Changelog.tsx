@@ -25,6 +25,19 @@ const Changelog: React.FC = () => (
 
     <h3>2.5.2</h3>
     <ul>
+      <li>Concertado problema no filtro de magias do Database.</li>
+      <li>Melhorado um pouco a navegação na Database de Poderes.</li>
+      <ul>
+        <li>
+          Agora é possível clicar numa aba que leva diretamente aos tipos de
+          poderes (Combate, Concedido, Destino, Magia eTormenta). Está mais
+          fácil de navegar nesse menu.
+        </li>
+      </ul>
+    </ul>
+
+    <h3>2.5.2</h3>
+    <ul>
       <li>Adicionado todos os aprimoramentos das magias arcanas e divinas.</li>
       <ul>
         <li>
