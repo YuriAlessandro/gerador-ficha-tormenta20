@@ -71,6 +71,48 @@ function App(): JSX.Element {
           },
         },
       },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
+            color: isDarkTheme ? '#FFF' : 'auto',
+          },
+        },
+      },
+      MuiList: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
+            color: isDarkTheme ? '#FFF' : 'auto',
+          },
+        },
+      },
+      MuiListSubheader: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
+            color: isDarkTheme ? '#FFF' : 'auto',
+          },
+        },
+      },
+      MuiListItemButton: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
+            color: isDarkTheme ? '#FFF' : 'auto',
+            '&:hover': {
+              color: '#d13235',
+            },
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            color: isDarkTheme ? '#FFF' : 'auto',
+          },
+        },
+      },
     },
   });
 
