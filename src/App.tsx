@@ -23,6 +23,7 @@ import Rewards from './components/screens/Rewards';
 import SuperiorItems from './components/screens/SuperiorItems';
 import LandingPage from './components/screens/LandingPage';
 import Database from './components/screens/Database';
+import CavernaDoSaber from './components/screens/CavernaDoSaber';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 const lightTheme = {
@@ -81,7 +82,8 @@ function App(): JSX.Element {
       'itens-superiores': 2,
       'itens-magicos': 3,
       database: 4,
-      changelog: 5,
+      'caverna-do-saber': 5,
+      changelog: 6,
     } as const;
 
     const currentPath = (Object.keys(pathnamesTabValues).find((path) =>
@@ -160,7 +162,7 @@ function App(): JSX.Element {
                   <MenuIcon />
                 </IconButton>
                 <Typography
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
                   variant='h6'
                   onClick={() => onClickTab(-1, '')}
                 >
@@ -197,8 +199,12 @@ function App(): JSX.Element {
                     onClick={() => onClickTab(4, 'database/raças')}
                   />
                   <Tab
+                    label='Caverna do Saber'
+                    onClick={() => onClickTab(5, 'caverna-do-saber')}
+                  />
+                  <Tab
                     label='Changelog'
-                    onClick={() => onClickTab(5, 'changelog')}
+                    onClick={() => onClickTab(6, 'changelog')}
                   />
                 </Tabs>
                 <FormGroup sx={{ ml: ['15px', 0, 0] }}>
@@ -234,6 +240,9 @@ function App(): JSX.Element {
               </Route>
               <Route path='/database'>
                 <Database isDarkMode={isDarkTheme} />
+              </Route>
+              <Route path='/caverna-do-saber'>
+                <CavernaDoSaber />
               </Route>
               {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />
