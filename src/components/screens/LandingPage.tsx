@@ -5,6 +5,7 @@ import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import StorageIcon from '@mui/icons-material/Storage';
 import LinkIcon from '@mui/icons-material/Link';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 import ficha from '../../assets/images/ficha.png';
 
@@ -107,6 +108,13 @@ const LandingPage: React.FC<{
             onClick={() => onClickButton(1, 'ficha-aleatoria')}
           >
             Gerar ficha de jogador
+          </Button>
+          <Button
+            variant='contained'
+            startIcon={<LibraryBooksIcon />}
+            onClick={() => onClickButton(1, 'caverna-do-saber')}
+          >
+            Caverna do Saber
           </Button>
           <Button
             variant='contained'

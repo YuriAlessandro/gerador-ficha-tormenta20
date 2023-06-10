@@ -1,9 +1,16 @@
 /* General CSS */
+@import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans&family=Alegreya+Sans+SC:ital,wght@1,300&display=swap');
+
+
+@font-face {
+  font-family: "Tfont";   /*Can be any text*/
+  src: local("AirbnbCerealLight"),
+    url("../fonts/Tormenta20x.ttf") format("truetype");
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Alegreya Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* background-color: #; */
