@@ -27,6 +27,7 @@ import {
   styled,
   Switch,
 } from '@mui/material';
+import { Book } from '@mui/icons-material';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
@@ -98,6 +99,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     onCloseSidebar();
   };
 
+  const onClickRevista = () => {
+    history.push('/caverna-do-saber');
+    onCloseSidebar();
+  };
+
   document.addEventListener('keydown', handleEscKeyPress, false);
 
   return (
@@ -145,6 +151,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <AttachMoney />
             </ListItemIcon>
             <Typography variant='inherit'>Recompensas</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickRevista}>
+            <ListItemIcon>
+              <Book />
+            </ListItemIcon>
+            <Typography variant='inherit'>Caverna do Saber</Typography>
           </StyledMenuItem>
           <StyledMenuItem onClick={onClickItems}>
             <ListItemIcon>
@@ -194,7 +206,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Typography>
           </StyledMenuItem>
           <Divider />
-          <StyledMenuItem
+          {/* <StyledMenuItem
             onClick={() => {
               onClickLinks('https://ameacas-t20.herokuapp.com/');
             }}
@@ -203,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <LinkIcon />
             </ListItemIcon>
             <Typography variant='inherit'>Gerador de Ameaças</Typography>
-          </StyledMenuItem>
+          </StyledMenuItem> */}
           <StyledMenuItem
             onClick={() => {
               onClickLinks('https://eduardomarques.pythonanywhere.com/');

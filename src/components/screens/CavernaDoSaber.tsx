@@ -9,6 +9,7 @@ import {
   Paper,
   Stack,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
@@ -136,6 +137,8 @@ const TableOfContents: React.FC = () => {
 const CavernaDoSaber: React.FC = () => {
   const theme = useTheme();
 
+  const isMobile = useMediaQuery('(max-width:720px)');
+
   const MainDiv = styled.div`
     margin: 0 50px;
   `;
@@ -170,7 +173,7 @@ const CavernaDoSaber: React.FC = () => {
         Caverna do Saber
       </Typography>
       <Stack direction='row' alignItems='flex-start'>
-        <div style={{ maxWidth: '70%' }}>
+        <div style={{ maxWidth: isMobile ? '100%' : '70%' }}>
           <StyledPaper sx={{ mt: 3, p: 2 }}>
             <p>
               Boas-vindas à{' '}
@@ -692,7 +695,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
           </StyledPaper>
         </div>
-        <TableOfContents />
+        {!isMobile && <TableOfContents />}
       </Stack>
     </MainDiv>
   );
