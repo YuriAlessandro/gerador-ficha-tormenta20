@@ -287,7 +287,9 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <SubTitle id='mistico'>Místico</SubTitle>
             <p>
-              Adicionado na <Db>DB #191</Db>.
+              Uma classe conjuradora, meio inspirada pelos dobradores de Avatar,
+              permite que você manipule os elementos em forma de magias e
+              habilidades. Disponível na <Db>DB #191</Db>.
             </p>
             <Divider />
             {/* Habilidades/Poderes de Classes */}
