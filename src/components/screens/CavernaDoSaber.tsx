@@ -256,10 +256,27 @@ const CavernaDoSaber: React.FC = () => {
               - até o momento, raças adicionadas no Ameaças de Arton não estarão
               inclusas.
             </p>
+            <SubTitle id='golem-reformulado'>Golem (Reformulado)</SubTitle>
+            <p>
+              Não é propriamente uma raça nova, mas a <Db>DB #180</Db> apresenta
+              uma reformulação para a raça Golem, que muda bastante a forma como
+              a raça funciona. Vale a pena conferir.
+            </p>
             <SubTitle id='kally'>Kallyanach</SubTitle>
             <p>
               Uma espécie de meio-dragão, provavelmente estará incluso e melhor
               descrito do Ameaças de Arton. Disponível na <Db>DB #181</Db>.
+            </p>
+            <SubTitle id='moreau'>Moreau</SubTitle>
+            <p>
+              A raça dos Moreau foi adicionada na <Db>DB #172</Db>. É muito
+              provável que esse conteúdo esteja disponível no Ameaças de Arton
+              (talvez repaginado, ou não).
+            </p>
+            <SubTitle id='povo-trovao'>Povo-Trovão</SubTitle>
+            <p>
+              Uma raça oriunda dos dinossauros (também referida como
+              povo-dinossauro). Disponível na <Db>DB #174</Db>.
             </p>
             <Divider />
             {/* Classes */}
