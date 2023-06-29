@@ -16,6 +16,7 @@ import {
   SheetBuilderStateRace,
   SheetBuilderStateRaceHumanVersatileChoice,
 } from '../../../../../../store/slices/sheetBuilder/types';
+import { SheetBuilderFormError } from '../../../../common/SheetBuilderFormError';
 import ConfirmButton from '../../../ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
@@ -70,15 +71,15 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
 
   const makeHuman = () => {
     if (!firstVersatileOption) {
-      throw new Error('MISSING_VERSATILE_FIRST_OPTION');
+      throw new SheetBuilderFormError('MISSING_VERSATILE_FIRST_OPTION');
     }
 
     if (!secondVersatileOptionType) {
-      throw new Error('MISSING_VERSATILE_SECOND_OPTION_TYPE');
+      throw new SheetBuilderFormError('MISSING_VERSATILE_SECOND_OPTION_TYPE');
     }
 
     if (!secondVersatileOption) {
-      throw new Error('MISSING_VERSATILE_SECOND_OPTION');
+      throw new SheetBuilderFormError('MISSING_VERSATILE_SECOND_OPTION');
     }
 
     const firstOption = VersatileChoiceFactory.make(
