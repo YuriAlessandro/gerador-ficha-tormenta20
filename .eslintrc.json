@@ -23,6 +23,7 @@
   "plugins": ["react", "prettier", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "no-shadow": "off",
+    "import/no-extraneous-dependencies": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],

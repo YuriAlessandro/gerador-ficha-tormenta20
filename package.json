@@ -43,8 +43,8 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "test": "vite test --watchAll=false",
-    "testWatch": "vite test",
+    "test": "vitest run",
+    "testWatch": "vitest",
     "eject": "vite eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
@@ -88,13 +88,15 @@
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "gh-pages": "^3.1.0",
+    "jsdom": "^22.1.0",
     "postcss": "^8.4.24",
     "prettier": "^2.5.1",
     "tailwindcss": "^3.3.2",
     "vite": "^4.3.9",
     "vite-plugin-checker": "^0.6.1",
     "vite-plugin-handlebars": "^1.6.0",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.32.2"
   },
   "jest": {
     "moduleNameMapper": {
