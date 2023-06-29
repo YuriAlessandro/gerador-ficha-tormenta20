@@ -13,8 +13,6 @@
 
 .buttonsRow {
   margin-top: 10px;
-  display: flex;
-  gap: 10px
 }
 
 .filterSelect {
@@ -41,12 +39,6 @@
 
 .exportButtonsContainer {
   margin-left: 30px;
-}
-
-@media (max-width: 768px) {
-  .buttonsRow {
-    flex-direction: column;
-  }
 }
 
 @media (max-width: 1116px) {
