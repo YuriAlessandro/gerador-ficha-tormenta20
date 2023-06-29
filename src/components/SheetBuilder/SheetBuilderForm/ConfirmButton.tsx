@@ -6,7 +6,7 @@ type Props = {
 
 const ConfirmButton = ({ confirm }: Props) => (
   <button
-    onClick={() => confirm()}
+    onClick={ confirm }
     type='button'
     className='
           bg-white px-8 py-3 mb-3 rounded-2xl 
