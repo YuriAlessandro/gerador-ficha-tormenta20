@@ -1,7 +1,11 @@
+import { TabContext, TabList, TabPanel } from '@material-ui/lab';
+import { Tab } from '@mui/material';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Tabs, Tab } from '@mui/material';
+import {
+  resetFormAlert,
+  selectFormAlert,
+} from '../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
 import SheetBuilderFormAlertError from './SheetBuilderFormAlertError';
 import SheetBuilderFormAlertSuccess from './SheetBuilderFormAlertSuccess';
 import SheetBuilderFormStepAttributesDefinition from './SheetBuilderFormStep/SheetBuilderFormStepAttributesDefinition/SheetBuilderFormStepAttributesDefinition';
@@ -10,10 +14,6 @@ import SheetBuilderFormStepIntelligenceSkillsTraining from './SheetBuilderFormSt
 import SheetBuilderFormStepOriginDefinition from './SheetBuilderFormStep/SheetBuilderFormStepOriginDefinition/SheetBuilderFormStepOriginDefinition';
 import SheetBuilderFormStepRaceDefinition from './SheetBuilderFormStep/SheetBuilderFormStepRaceDefinition/SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRoleDefinition from './SheetBuilderFormStep/SheetBuilderFormStepRoleDefinition/SheetBuilderFormStepRoleDefinition';
-import {
-  selectFormAlert,
-  resetFormAlert,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
 
 const SheetBuilderForm = () => {
   const [tab, setTab] = React.useState('1');
@@ -26,7 +26,7 @@ const SheetBuilderForm = () => {
   return (
     <div className='py-2'>
       <TabContext value={tab}>
-        <Tabs>
+        <TabList>
           <Tab
             onClick={() => onChangeTab('1')}
             label='1 - Atributos Iniciais'
@@ -39,27 +39,27 @@ const SheetBuilderForm = () => {
             label='5 - Perícias de inteligência'
           />
           <Tab onClick={() => onChangeTab('6')} label='6 - Equipamento' />
-        </Tabs>
+        </TabList>
 
         <section className='container mx-auto pt-5'>
-          <TabPanel value='1'>
+          <div className={`${tab !== '1' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepAttributesDefinition />
-          </TabPanel>
-          <TabPanel value='2'>
+          </div>
+          <div className={`${tab !== '2' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepRaceDefinition />
-          </TabPanel>
-          <TabPanel value='3'>
+          </div>
+          <div className={`${tab !== '3' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepRoleDefinition />
-          </TabPanel>
-          <TabPanel value='4'>
+          </div>
+          <div className={`${tab !== '4' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepOriginDefinition />
-          </TabPanel>
-          <TabPanel value='5'>
+          </div>
+          <div className={`${tab !== '5' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepIntelligenceSkillsTraining />
-          </TabPanel>
-          <TabPanel value='6'>
+          </div>
+          <div className={`${tab !== '6' ? 'hidden' : ''}`}>
             <SheetBuilderFormStepEquipmentDefinition />
-          </TabPanel>
+          </div>
         </section>
         <div className='container mx-auto'>
           {alert?.type === 'error' && (

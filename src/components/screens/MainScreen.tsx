@@ -46,7 +46,6 @@ const saveSheetOnHistoric = (sheet: CharacterSheet) => {
 };
 
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
-  const history = useHistory();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',

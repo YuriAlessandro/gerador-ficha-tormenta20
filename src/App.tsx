@@ -129,6 +129,7 @@ function App(): JSX.Element {
       database: 4,
       'caverna-do-saber': 5,
       changelog: 6,
+      'sheet-builder': 7,
     } as const;
 
     const currentPath = (Object.keys(pathnamesTabValues).find((path) =>
@@ -301,10 +302,7 @@ function App(): JSX.Element {
                 <CreatureSheet isDarkMode={isDarkTheme} />
               </Route> */}
                 <Route>
-                  <LandingPage
-                    isDarkMode={isDarkTheme}
-                    onClickButton={onClickTab}
-                  />
+                  <LandingPage onClickButton={onClickTab} />
                 </Route>
               </Switch>
             </div>
