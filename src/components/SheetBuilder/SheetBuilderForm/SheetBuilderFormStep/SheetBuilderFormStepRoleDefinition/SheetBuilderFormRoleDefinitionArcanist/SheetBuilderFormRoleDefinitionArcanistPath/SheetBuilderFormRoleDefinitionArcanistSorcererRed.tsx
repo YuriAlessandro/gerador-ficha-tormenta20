@@ -40,7 +40,7 @@ const SheetBuilderFormRoleDefinitionArcanistSorcererRed = () => {
         onChange={(option) =>
           setSorcererLineageRedAttribute(option?.value as Attribute)
         }
-        defaultValue='charisma'
+        defaultValue={{ label: 'Carisma', value: 'charisma' }}
         placeholder='Escolha um atributo (opcional)'
         isClearable
       />
