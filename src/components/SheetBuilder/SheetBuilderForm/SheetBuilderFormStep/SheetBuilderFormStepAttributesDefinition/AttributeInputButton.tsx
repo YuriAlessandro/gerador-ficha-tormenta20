@@ -11,8 +11,8 @@ const AttributeInputButton = ({
   side,
 }: PropsWithChildren<Props>) => {
   const sidesClasses = {
-    right: 'rounded-tl-2xl rounded-bl-2xl',
-    left: 'rounded-tr-2xl rounded-br-2xl',
+    left: 'rounded-tl-2xl rounded-bl-2xl',
+    right: 'rounded-tr-2xl rounded-br-2xl',
   };
 
   return (
