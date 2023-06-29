@@ -8,7 +8,7 @@ type Value<T, IsMulti extends boolean> = IsMulti extends true
   ? readonly Option<T>[]
   : Option<T>;
 
-type Props<T, IsMulti extends boolean, V = Value<T, IsMulti>> = {
+type Props<T, IsMulti extends boolean = false, V = Value<T, IsMulti>> = {
   options: Option<T>[];
   placeholder?: string;
   className?: ComponentProps<'div'>['className'];
