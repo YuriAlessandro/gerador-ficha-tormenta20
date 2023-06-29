@@ -7,6 +7,7 @@ import SheetBuilder, {
   MartialWeaponFactory,
   OriginFactory,
   OutOfGameContext,
+  Race,
   RaceInterface,
   RaceName,
   RoleFactory,
@@ -36,7 +37,7 @@ function makeRace(serializedRace: SheetBuilderStateRace): RaceInterface {
     const choices = serializedRace.versatileChoices.map((choice) =>
       VersatileChoiceFactory.make(choice.type, choice.name)
     );
-    return new Human(serializedRace.selectedAttributes, choices);
+    return new Human(serializedRace.selectedAttributes, choices) as Race;
   }
 
   if (serializedRace.name === RaceName.dwarf) {

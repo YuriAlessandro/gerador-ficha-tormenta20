@@ -2,7 +2,9 @@ import React from 'react';
 import Select from 'react-select';
 import { selectStyles } from '../common/selectStyles';
 
-type Value<T, IsMulti extends boolean> = IsMulti extends true ? T[] : T;
+type Value<T, IsMulti extends boolean> = IsMulti extends true
+  ? readonly T[]
+  : T;
 
 type Props<T, IsMulti extends boolean, V = Value<T, IsMulti>> = Record<
   string,

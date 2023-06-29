@@ -1,23 +1,27 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import React, { useCallback } from 'react';
 import {
   Attribute,
   Attributes,
   GeneralPowerName,
   Human,
+  Race,
   RaceName,
   SkillName,
   VersatileChoiceFactory,
   VersatileChoiceType,
 } from 't20-sheet-builder';
 import { submitRace } from '../../../../../../store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import { SheetBuilderStateRaceHumanVersatileChoice } from '../../../../../../store/slices/sheetBuilder/types';
+import {
+  SheetBuilderStateRace,
+  SheetBuilderStateRaceHumanVersatileChoice,
+} from '../../../../../../store/slices/sheetBuilder/types';
 import ConfirmButton from '../../../ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
 import SheetBuilderFormStepRaceDefinitionHumanVersatile from './SheetBuilderFormStepRaceDefinitionHumanVersatile';
 
 export type AttributeCheckboxes = Record<Attribute, boolean>;
-
 const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   attributesPreview,
   setAttributeModifiers,
@@ -86,10 +90,11 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
       secondVersatileOption
     );
 
-    return new Human(selectedAttributes, [firstOption, secondOption]);
+    return new Human(selectedAttributes, [firstOption, secondOption]) as Race;
   };
 
-  const createSubmitAction = (human: Human) => {
+  const createSubmitAction = (h: Race) => {
+    const human = h as Human;
     const choices = human.versatileChoices.map((choice) => ({
       type: choice.type,
       name: choice.name,
@@ -115,7 +120,13 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
         setSecondVersatileOptionType={setSecondVersatileOptionType}
       />
       <ConfirmButton
-        confirm={() => confirmRace(makeHuman, createSubmitAction)}
+        confirm={() =>
+          confirmRace<
+            Race,
+            SheetBuilderStateRace,
+            PayloadAction<SheetBuilderStateRace>
+          >(makeHuman, createSubmitAction)
+        }
       />
     </div>
   );

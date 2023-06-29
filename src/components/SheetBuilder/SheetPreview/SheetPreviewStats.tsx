@@ -41,7 +41,7 @@ const SheetPreviewStats = () => {
   };
 
   return (
-    <div className='flex flex-col gap-6'>
+    <div className='flex flex-col gap-6 items-center'>
       <h2 className='font-medium'>
         {getTitle()} Nível {level}
       </h2>
