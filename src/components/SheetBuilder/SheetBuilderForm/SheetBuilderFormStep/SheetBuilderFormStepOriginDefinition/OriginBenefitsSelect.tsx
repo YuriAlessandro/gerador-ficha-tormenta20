@@ -12,32 +12,28 @@ export type OriginBenefitOption = Pick<
   'name' | 'type'
 >;
 
+type OriginBenefitOptionType = OriginBenefitOption['type'];
+
 type Props = {
   benefits: OriginBenefits;
   setBenefits(benefits: OriginBenefitOption[]): void;
 };
 
 const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
-  const options: Option<OriginBenefitOption>[] = [];
-
-  benefits.generalPowers.forEach((power) => {
-    options.push({
+  const options: Option<OriginBenefitOption>[] = [
+    ...benefits.generalPowers.map((power) => ({
       label: Translator.getPowerTranslation(power),
-      value: { type: 'generalPowers', name: power },
-    });
-  });
-
-  benefits.skills.forEach((skill) => {
-    options.push({
+      value: { type: 'generalPowers' as OriginBenefitOptionType, name: power },
+    })),
+    ...benefits.skills.map((skill) => ({
       label: Translator.getSkillTranslation(skill),
-      value: { type: 'skills', name: skill },
-    });
-  });
-
-  options.push({
-    label: Translator.getPowerTranslation(benefits.originPower),
-    value: { type: 'originPower', name: benefits.originPower },
-  });
+      value: { type: 'skills' as OriginBenefitOptionType, name: skill },
+    })),
+    {
+      label: Translator.getPowerTranslation(benefits.originPower),
+      value: { type: 'originPower', name: benefits.originPower },
+    },
+  ];
 
   return (
     <div>
