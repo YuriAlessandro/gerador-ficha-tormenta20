@@ -25,7 +25,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
     }
   }, [resultRef]);
 
-  const skillsTotals: SkillsTotals | any = {};
+  const skillsTotals = {} as SkillsTotals;
 
   sheet.completeSkills?.forEach((sk) => {
     const skTotal =
@@ -34,7 +34,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
       (sk.others ?? 0) +
       (sk.training ?? 0);
 
-    skillsTotals[sk.name as any] = skTotal;
+    skillsTotals[sk.name as keyof SkillsTotals] = skTotal;
   });
 
   let bagEquipments;
