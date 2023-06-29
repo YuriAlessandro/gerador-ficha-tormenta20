@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/redux-async
     docker:
-      - image: circleci/node:18.16.1
+      - image: cimg/node:18.16.1
     steps:
       - checkout
       - restore_cache:
