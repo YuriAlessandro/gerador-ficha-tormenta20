@@ -30,41 +30,44 @@ export const sheetBuilderSliceSheetPreview = createSlice({
 
 export const { updatePreview } = sheetBuilderSliceSheetPreview.actions;
 
+const selectSheetPreview = (state: RootState) =>
+  state.sheetBuilder.sheet.preview;
+
 export const selectPreviewAttributes = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.attributes;
+  selectSheetPreview(state).attributes;
 export const selectPreviewDisplacement = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.displacement;
+  selectSheetPreview(state).displacement;
 export const selectPreviewBuildSteps = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.buildSteps;
+  selectSheetPreview(state).buildSteps;
 export const selectPreviewMaxLifePoints = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.lifePoints.max;
+  selectSheetPreview(state).lifePoints.max;
 export const selectPreviewMaxManaPoints = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.manaPoints.max;
+  selectSheetPreview(state).manaPoints.max;
 export const selectPreviewDefense = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.defense;
+  selectSheetPreview(state).defense;
 export const selectPreviewRaceName = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.race?.name;
+  selectSheetPreview(state).race?.name;
 export const selectPreviewRoleName = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.role?.name;
+  selectSheetPreview(state).role?.name;
 export const selectPreviewOriginName = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.origin?.name;
+  selectSheetPreview(state).origin?.name;
 export const selectPreviewLevel = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.level;
+  selectSheetPreview(state).level;
 export const selectPreviewProficiencies = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.proficiencies;
+  selectSheetPreview(state).proficiencies;
 export const selectPreviewSkills = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.skills;
+  selectSheetPreview(state).skills;
 export const selectPreviewRaceAbilities = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.race?.abilities;
+  selectSheetPreview(state).race?.abilities;
 export const selectPreviewRoleAbilities = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.role?.abilities;
+  selectSheetPreview(state).role?.abilities;
 export const selectPreviewSpells = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.spells;
+  selectSheetPreview(state).spells;
 export const selectPreviewGeneralPowers = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.generalPowers;
+  selectSheetPreview(state).generalPowers;
 export const selectPreviewOriginPowers = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.originPowers;
+  selectSheetPreview(state).originPowers;
 export const selectPreviewInventory = (state: RootState) =>
-  state.sheetBuilder.sheet.preview.equipments;
+  selectSheetPreview(state).equipments;
 
 export default sheetBuilderSliceSheetPreview;
