@@ -18,7 +18,7 @@ const SheetPreviewAbilities = () => {
         <h3 className='font-semibold mb-6'>Habilidades de Raça</h3>
         <SheetPreviewList
           emptyText='Nenhuma habilidade de raça.'
-          isEmpty={!raceAbilities || raceAbilities.length === 0}
+          isEmpty={!raceAbilities?.length}
           list={
             <ul className='flex flex-col gap-6'>
               {raceAbilities?.map((ability) => (
