@@ -1,5 +1,6 @@
 import React from 'react';
 import { Attribute, Translator } from 't20-sheet-builder';
+import { generateClassNames } from '../../../common/ClassNames';
 
 type Props = {
   attribute: string;
@@ -7,25 +8,14 @@ type Props = {
   modifier?: number;
 };
 
-const getClassNames = (modifier?: number) => {
-  const isIncremented = modifier && modifier > 0;
-  const isDecremented = modifier && modifier < 0;
-  const incrementedClassName = 'bg-green-100 text-slate-800';
-  const decrementedClassName = 'bg-red-100 text-slate-800';
-
-  if (isIncremented) {
-    return incrementedClassName;
-  }
-
-  if (isDecremented) {
-    return decrementedClassName;
-  }
-
-  return '';
-};
-
 const AttributePreviewItem = ({ attribute, value, modifier }: Props) => {
-  const customClassName = getClassNames(modifier);
+  const isIncremented = Boolean(modifier && modifier > 0);
+  const isDecremented = Boolean(modifier && modifier < 0);
+  const classes = {
+    'bg-green-100 text-slate-800': isIncremented,
+    'bg-red-100 text-slate-800': isDecremented,
+  };
+  const customClassName = generateClassNames(classes);
   const modifierWithSign = modifier && modifier > 0 ? `+${modifier}` : modifier;
   return (
     <li
