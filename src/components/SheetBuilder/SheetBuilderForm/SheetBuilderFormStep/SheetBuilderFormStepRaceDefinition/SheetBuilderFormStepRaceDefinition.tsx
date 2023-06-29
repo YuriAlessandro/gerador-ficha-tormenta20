@@ -69,7 +69,7 @@ const SheetBuilderFormStepRaceDefinition = () => {
       setAttributeModifiers(RaceClass.attributeModifiers);
     }
   };
-  const RaceComponent = race ? raceComponents[race] : null;
+  const RaceComponent = raceComponents[race] ?? null;
   return (
     <section className='py-6 '>
       <RacesSelect changeRace={changeRace} />

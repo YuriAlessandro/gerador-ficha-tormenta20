@@ -1,11 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 
+export type AlertType = 'error' | 'success';
+
+export interface AlertMessage {
+  message: string;
+  type: AlertType;
+}
+
 export type SheetBuilderFormState = {
-  alert?: {
-    message: string;
-    type: 'error' | 'success';
-  };
+  alert?: AlertMessage;
 };
 
 const initialState: SheetBuilderFormState = {
