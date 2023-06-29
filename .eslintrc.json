@@ -24,7 +24,6 @@
   "rules": {
     "no-shadow": "off",
     "no-param-reassign": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-shadow": ["error"],
     "react/require-default-props": "off",
     "import/extensions": [
