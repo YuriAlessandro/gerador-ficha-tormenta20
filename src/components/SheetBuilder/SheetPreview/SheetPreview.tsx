@@ -10,6 +10,16 @@ import SheetPreviewTab from './SheetPreviewTab';
 import SheetPreviewPowers from './SheetPreviewPowers';
 import SheetPreviewInventory from './SheetPreviewInventory';
 
+const tabs = [
+  { label: 'Básico', index: '1', Component: SheetPreviewStats },
+  { label: 'Perícias', index: '2', Component: SheetPreviewSkills },
+  { label: 'Habilidades', index: '3', Component: SheetPreviewAbilities },
+  { label: 'Poderes', index: '4', Component: SheetPreviewPowers },
+  { label: 'Magias', index: '5', Component: SheetPreviewSpells },
+  { label: 'Inventário', index: '6', Component: SheetPreviewInventory },
+  { label: 'Passo a passo', index: '7', Component: SheetPreviewBuildSteps },
+];
+
 const SheetPreview = () => {
   const [tab, setTab] = React.useState('1');
 
@@ -21,50 +31,18 @@ const SheetPreview = () => {
     <TabContext value={tab}>
       <div className='flex flex-col justify-center items-center py-2'>
         <Tabs className='flex-1'>
-          <Tab onClick={() => onChangeTab('1')} label='Básico' />
-          <Tab onClick={() => onChangeTab('2')} label='Perícias' />
-          <Tab onClick={() => onChangeTab('3')} label='Habilidades' />
-          <Tab onClick={() => onChangeTab('4')} label='Poderes' />
-          <Tab onClick={() => onChangeTab('5')} label='Magias' />
-          <Tab onClick={() => onChangeTab('6')} label='Inventário' />
-          <Tab onClick={() => onChangeTab('7')} label='Passo a passo' />
+          {tabs.map(({ index, label }) => (
+            <Tab onClick={() => onChangeTab(index)} label={label} />
+          ))}
         </Tabs>
         <div className='container mx-auto'>
-          <TabPanel value='1'>
-            <SheetPreviewTab>
-              <SheetPreviewStats />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='2'>
-            <SheetPreviewTab>
-              <SheetPreviewSkills />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='3'>
-            <SheetPreviewTab>
-              <SheetPreviewAbilities />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='4'>
-            <SheetPreviewTab>
-              <SheetPreviewPowers />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='5'>
-            <SheetPreviewTab>
-              <SheetPreviewSpells />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='6'>
-            <SheetPreviewTab>
-              <SheetPreviewInventory />
-            </SheetPreviewTab>
-          </TabPanel>
-          <TabPanel value='7'>
-            <SheetPreviewTab>
-              <SheetPreviewBuildSteps />
-            </SheetPreviewTab>
-          </TabPanel>
+          {tabs.map(({ index, Component }) => (
+            <TabPanel key={index} value={index}>
+              <SheetPreviewTab>
+                <Component />
+              </SheetPreviewTab>
+            </TabPanel>
+          ))}
         </div>
       </div>
     </TabContext>
