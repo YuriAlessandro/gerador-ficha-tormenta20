@@ -101,7 +101,7 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
 const RacesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [races, setRaces] = useState<Race[]>(RACAS);
-  const { params } = useRouteMatch();
+  const { params } = useRouteMatch<{ selectedRace?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
@@ -128,7 +128,7 @@ const RacesTable: React.FC = () => {
   };
 
   useEffect(() => {
-    const { selectedRace } = params as any;
+    const { selectedRace } = params;
     if (selectedRace) {
       setValue(selectedRace);
       filter(selectedRace);
