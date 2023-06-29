@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* General CSS */
 @import url('https://fonts.googleapis.com/css2?family=Alegreya+Sans&family=Alegreya+Sans+SC:ital,wght@1,300&display=swap');
 

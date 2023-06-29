@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "./jest.config.js", "jest.d.ts"]
+  "include": ["src", "./jest.config.js", "jest.d.ts", "tailwind.config.js"]
 }
