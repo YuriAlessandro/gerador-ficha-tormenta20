@@ -30,21 +30,30 @@ import {
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
 import { updatePreview } from './sheetBuilderSliceSheetPreview';
-import { SheetBuilderStateRace } from './types';
+import {
+  SheetBuilderStateRace,
+  SheetBuilderStateRaceDwarf,
+  SheetBuilderStateRaceHuman,
+} from './types';
+
+const makeHuman = (serializedRace: SheetBuilderStateRaceHuman) => {
+  const choices = serializedRace.versatileChoices.map((choice) =>
+    VersatileChoiceFactory.make(choice.type, choice.name)
+  );
+  return new Human(serializedRace.selectedAttributes, choices) as Race;
+};
+
+const makeDwarf = (_serializedRace: SheetBuilderStateRaceDwarf) => new Dwarf();
 
 function makeRace(serializedRace: SheetBuilderStateRace): RaceInterface {
-  if (serializedRace.name === RaceName.human) {
-    const choices = serializedRace.versatileChoices.map((choice) =>
-      VersatileChoiceFactory.make(choice.type, choice.name)
-    );
-    return new Human(serializedRace.selectedAttributes, choices) as Race;
+  switch (serializedRace.name) {
+    case RaceName.human:
+      return makeHuman(serializedRace);
+    case RaceName.dwarf:
+      return makeDwarf(serializedRace);
+    default:
+      throw new Error(`UNKNOWN_RACE`);
   }
-
-  if (serializedRace.name === RaceName.dwarf) {
-    return new Dwarf();
-  }
-
-  throw new Error(`UNKNOWN_RACE`);
 }
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
