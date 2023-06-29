@@ -182,7 +182,7 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
 const ClassesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [classes, setClasses] = useState<ClassDescription[]>(CLASSES);
-  const { params } = useRouteMatch();
+  const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
@@ -216,7 +216,7 @@ const ClassesTable: React.FC = () => {
   };
 
   useEffect(() => {
-    const { selectedClass } = params as any;
+    const { selectedClass } = params;
     if (selectedClass) {
       setValue(selectedClass);
       filter(selectedClass);
