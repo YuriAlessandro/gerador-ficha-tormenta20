@@ -15,51 +15,68 @@ import SheetBuilderFormStepOriginDefinition from './SheetBuilderFormStep/SheetBu
 import SheetBuilderFormStepRaceDefinition from './SheetBuilderFormStep/SheetBuilderFormStepRaceDefinition/SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRoleDefinition from './SheetBuilderFormStep/SheetBuilderFormStepRoleDefinition/SheetBuilderFormStepRoleDefinition';
 
+const tabs = [
+  {
+    id: '1',
+    label: '1 - Atributos Iniciais',
+    Component: SheetBuilderFormStepAttributesDefinition,
+  },
+  { id: '2', label: '2 - Raça', Component: SheetBuilderFormStepRaceDefinition },
+  {
+    id: '3',
+    label: '3 - Classe',
+    Component: SheetBuilderFormStepRoleDefinition,
+  },
+  {
+    id: '4',
+    label: '4 - Origem',
+    Component: SheetBuilderFormStepOriginDefinition,
+  },
+  {
+    id: '5',
+    label: '5 - Perícias de inteligência',
+    Component: SheetBuilderFormStepIntelligenceSkillsTraining,
+  },
+  {
+    id: '6',
+    label: '6 - Equipamento',
+    Component: SheetBuilderFormStepEquipmentDefinition,
+  },
+];
+
+const selectedTabStyle = {
+  backgroundColor: '#d13235',
+  color: '#fff',
+  opacity: 1,
+};
+
 const SheetBuilderForm = () => {
-  const [tab, setTab] = React.useState('1');
+  const [showingTab, setShowingTab] = React.useState('1');
   const alert = useSelector(selectFormAlert);
   const dispatch = useDispatch();
   const onChangeTab = (index: string) => {
-    setTab(index);
+    setShowingTab(index);
     dispatch(resetFormAlert());
   };
   return (
     <div className='py-2'>
-      <TabContext value={tab}>
+      <TabContext value={showingTab}>
         <TabList>
-          <Tab
-            onClick={() => onChangeTab('1')}
-            label='1 - Atributos Iniciais'
-          />
-          <Tab onClick={() => onChangeTab('2')} label='2 - Raça' />
-          <Tab onClick={() => onChangeTab('3')} label='3 - Classe' />
-          <Tab onClick={() => onChangeTab('4')} label='4 - Origem' />
-          <Tab
-            onClick={() => onChangeTab('5')}
-            label='5 - Perícias de inteligência'
-          />
-          <Tab onClick={() => onChangeTab('6')} label='6 - Equipamento' />
+          {tabs.map(({ id, label }) => (
+            <Tab
+              key={id}
+              style={showingTab === id ? selectedTabStyle : {}}
+              onClick={() => onChangeTab(id)}
+              label={`${label}`}
+            />
+          ))}
         </TabList>
-
         <section className='container mx-auto pt-5'>
-          <div className={`${tab !== '1' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepAttributesDefinition />
-          </div>
-          <div className={`${tab !== '2' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepRaceDefinition />
-          </div>
-          <div className={`${tab !== '3' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepRoleDefinition />
-          </div>
-          <div className={`${tab !== '4' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepOriginDefinition />
-          </div>
-          <div className={`${tab !== '5' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepIntelligenceSkillsTraining />
-          </div>
-          <div className={`${tab !== '6' ? 'hidden' : ''}`}>
-            <SheetBuilderFormStepEquipmentDefinition />
-          </div>
+          {tabs.map(({ Component, id }) => (
+            <div key={id} className={`${id !== showingTab ? 'hidden' : ''}`}>
+              <Component />
+            </div>
+          ))}
         </section>
         <div className='container mx-auto'>
           {alert?.type === 'error' && (
