@@ -35,15 +35,16 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   >();
   const [secondVersatileOptionType, setSecondVersatileOptionType] =
     React.useState<VersatileChoiceType>();
-  const [attributeCheckboxes, setAttributeCheckboxes] =
-    React.useState<AttributeCheckboxes>({
-      charisma: false,
-      constitution: false,
-      dexterity: false,
-      intelligence: false,
-      strength: false,
-      wisdom: false,
-    });
+  const [attributeCheckboxes, setAttributeCheckboxes] = React.useState<
+    Readonly<AttributeCheckboxes>
+  >({
+    charisma: false,
+    constitution: false,
+    dexterity: false,
+    intelligence: false,
+    strength: false,
+    wisdom: false,
+  });
 
   const selectedAttributes = Object.entries(attributeCheckboxes)
     .filter(([_attribute, checked]) => checked)
