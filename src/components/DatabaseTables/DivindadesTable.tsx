@@ -97,7 +97,7 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
 const DivindadesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [divindades, setDivindades] = useState<Divindade[]>(DIVINDADES);
-  const { params } = useRouteMatch();
+  const { params } = useRouteMatch<{ selectedGod?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
@@ -116,7 +116,7 @@ const DivindadesTable: React.FC = () => {
   };
 
   useEffect(() => {
-    const { selectedGod } = params as any;
+    const { selectedGod } = params;
     if (selectedGod) {
       setValue(selectedGod);
       filter(selectedGod);
