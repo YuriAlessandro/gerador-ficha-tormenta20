@@ -1,11 +1,11 @@
-import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { Tab } from '@mui/material';
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   resetFormAlert,
   selectFormAlert,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
+import { TabContext, TabList } from '@material-ui/lab';
+import { Tab } from '@mui/material';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import SheetBuilderFormAlertError from './SheetBuilderFormAlertError';
 import SheetBuilderFormAlertSuccess from './SheetBuilderFormAlertSuccess';
 import SheetBuilderFormStepAttributesDefinition from './SheetBuilderFormStep/SheetBuilderFormStepAttributesDefinition/SheetBuilderFormStepAttributesDefinition';

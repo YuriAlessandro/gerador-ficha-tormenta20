@@ -4,9 +4,9 @@ import {
   ArcanistSerializer,
 } from 't20-sheet-builder';
 import { Role } from 't20-sheet-builder/build/domain/entities/Role/Role';
-import { ConfirmFunction } from '../../../useSheetBuilderSubmit';
+import { ConfirmFunction } from '@/components/SheetBuilder/SheetBuilderForm/useSheetBuilderSubmit';
+import { submitRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import { useArcanistFormContext } from './SheetBuilderFormRoleDefinitionArcanistContext';
-import { submitRole } from '../../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 
 export const useConfirmArcanist = (confirmRole: ConfirmFunction<Role>) => {
   const context = useArcanistFormContext();

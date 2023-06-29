@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { RoleName, SkillName, Warrior } from 't20-sheet-builder';
-import ConfirmButton from '../../../ConfirmButton';
+import { submitRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { updateItemByIndex } from '@/components/SheetBuilder/common/Immutable';
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { RoleComponentProps } from '../SheetBuilderFormStepRoleDefinition';
 import SkillGroupSelect from '../SkillGroupSelect';
-import { submitRole } from '../../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import { updateItemByIndex } from '../../../../common/Immutable';
 
 const SheetBuilderFormRoleDefinitionWarrior: React.FC<RoleComponentProps> = ({
   confirmRole,

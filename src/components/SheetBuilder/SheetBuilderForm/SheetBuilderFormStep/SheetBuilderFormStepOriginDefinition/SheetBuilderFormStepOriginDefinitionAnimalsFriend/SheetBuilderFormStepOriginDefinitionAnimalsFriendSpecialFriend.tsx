@@ -1,7 +1,7 @@
 import React from 'react';
 import { SkillName } from 't20-sheet-builder';
+import { skillsOptions } from '@/components/SheetBuilder/common/Options';
 import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
-import { skillsOptions } from '../../../../common/Options';
 
 type Props = {
   selectSkill: (skill?: SkillName) => void;

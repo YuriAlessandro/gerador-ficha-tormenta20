@@ -1,6 +1,6 @@
 import { SpellCircle, Spells, Translator } from 't20-sheet-builder';
 import React from 'react';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 
 const SheetBuilderFormRoleDefinitionArcanistMage = () => {

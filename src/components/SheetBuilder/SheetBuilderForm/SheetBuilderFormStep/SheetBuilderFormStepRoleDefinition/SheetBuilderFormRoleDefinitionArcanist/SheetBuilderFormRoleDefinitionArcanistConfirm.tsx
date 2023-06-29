@@ -1,7 +1,7 @@
 import React from 'react';
 import { Role } from 't20-sheet-builder/build/domain/entities/Role/Role';
-import ConfirmButton from '../../../ConfirmButton';
-import { ConfirmFunction } from '../../../useSheetBuilderSubmit';
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
+import { ConfirmFunction } from '@/components/SheetBuilder/SheetBuilderForm/useSheetBuilderSubmit';
 import { useConfirmArcanist } from './useConfirmArcanist';
 
 type Props = {

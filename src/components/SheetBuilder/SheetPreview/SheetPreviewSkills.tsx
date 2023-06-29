@@ -1,11 +1,11 @@
 import { useSelector } from 'react-redux';
 import { SkillName, Translator } from 't20-sheet-builder';
 import React from 'react';
-import SheetPreviewItem from './SheetPreviewValueItem';
 import {
   selectPreviewAttributes,
   selectPreviewSkills,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import SheetPreviewItem from './SheetPreviewValueItem';
 
 const SheetPreviewSkills = () => {
   const skills = useSelector(selectPreviewSkills);

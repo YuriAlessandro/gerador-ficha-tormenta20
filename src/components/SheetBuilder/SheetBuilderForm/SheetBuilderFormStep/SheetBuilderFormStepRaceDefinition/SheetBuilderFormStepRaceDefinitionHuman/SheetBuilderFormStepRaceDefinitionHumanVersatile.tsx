@@ -4,9 +4,12 @@ import {
   SkillName,
   VersatileChoiceType,
 } from 't20-sheet-builder';
-import { Option } from '../../../../common/Option';
-import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
-import { generalPowerOptions, skillsOptions } from '../../../../common/Options';
+import { Option } from '@/components/SheetBuilder/common/Option';
+import {
+  generalPowerOptions,
+  skillsOptions,
+} from '@/components/SheetBuilder/common/Options';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 
 const secondVersatilOptionTypeOptions: Option<VersatileChoiceType>[] = [
   { label: 'Poder', value: 'power' },

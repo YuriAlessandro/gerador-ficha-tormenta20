@@ -4,7 +4,7 @@ import {
   ArcanistPathWizardFocuses,
   Translator,
 } from 't20-sheet-builder';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 
 const SheetBuilderFormRoleDefinitionArcanistWizard = () => {

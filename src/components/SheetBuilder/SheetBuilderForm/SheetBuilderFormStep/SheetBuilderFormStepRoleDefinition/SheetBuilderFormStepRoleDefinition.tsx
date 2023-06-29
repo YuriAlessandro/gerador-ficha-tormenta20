@@ -1,6 +1,9 @@
 import React from 'react';
 import { RoleName } from 't20-sheet-builder';
 import { Role } from 't20-sheet-builder/build/domain/entities/Role/Role';
+import { useAppDispatch } from '@/store/hooks';
+import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
+import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -8,9 +11,6 @@ import {
 import RoleSelect from './RoleSelect';
 import SheetBuilderFormRoleDefinitionArcanist from './SheetBuilderFormRoleDefinitionArcanist/SheetBuilderFormRoleDefinitionArcanist';
 import SheetBuilderFormRoleDefinitionWarrior from './SheetBuilderFormRoleDefinitionWarrior/SheetBuilderFormRoleDefinitionWarrior';
-import { useAppDispatch } from '../../../../../store/hooks';
-import { resetFormAlert } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { resetRole } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 
 export type RoleComponentProps = {
   confirmRole: ConfirmFunction<Role>;

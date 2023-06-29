@@ -4,7 +4,7 @@ import { Translator } from 't20-sheet-builder';
 import {
   selectPreviewGeneralPowers,
   selectPreviewOriginPowers,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import SheetPreviewAbility from './SheetPreviewAbility';
 import SheetPreviewList from './SheetPreviewList';
 

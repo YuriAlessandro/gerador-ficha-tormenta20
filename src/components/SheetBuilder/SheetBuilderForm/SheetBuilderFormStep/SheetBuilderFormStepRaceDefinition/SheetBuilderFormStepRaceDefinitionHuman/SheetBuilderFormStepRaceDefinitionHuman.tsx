@@ -11,13 +11,13 @@ import {
   VersatileChoiceFactory,
   VersatileChoiceType,
 } from 't20-sheet-builder';
-import { submitRace } from '../../../../../../store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import {
   SheetBuilderStateRace,
   SheetBuilderStateRaceHumanVersatileChoice,
-} from '../../../../../../store/slices/sheetBuilder/types';
-import { SheetBuilderFormError } from '../../../../common/SheetBuilderFormError';
-import ConfirmButton from '../../../ConfirmButton';
+} from '@/store/slices/sheetBuilder/types';
+import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
 import SheetBuilderFormStepRaceDefinitionHumanVersatile from './SheetBuilderFormStepRaceDefinitionHumanVersatile';

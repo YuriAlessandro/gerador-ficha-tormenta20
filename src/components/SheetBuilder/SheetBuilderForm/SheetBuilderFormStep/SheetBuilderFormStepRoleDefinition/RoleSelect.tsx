@@ -1,7 +1,7 @@
 import React from 'react';
 import { RoleName, Translator } from 't20-sheet-builder';
+import { Option } from '@/components/SheetBuilder/common/Option';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
-import { Option } from '../../../common/Option';
 
 type Props = {
   setRole(role?: RoleName): void;

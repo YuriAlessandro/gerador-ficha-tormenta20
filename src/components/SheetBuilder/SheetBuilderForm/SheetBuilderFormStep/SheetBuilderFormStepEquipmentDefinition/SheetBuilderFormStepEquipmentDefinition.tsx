@@ -7,14 +7,14 @@ import {
   SimpleWeaponName,
   Translator,
 } from 't20-sheet-builder';
-import ConfirmButton from '../../ConfirmButton';
-import SimpleWeaponSelect from './SimpleWeaponSelect';
-import MartialWeaponSelect from './MartialWeaponSelect';
 import {
   selectPreviewProficiencies,
   selectPreviewRoleName,
-} from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { submitInitialEquipment } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import ConfirmButton from '../../ConfirmButton';
+import SimpleWeaponSelect from './SimpleWeaponSelect';
+import MartialWeaponSelect from './MartialWeaponSelect';
 
 const defaultEquipment = [
   EquipmentName.backpack,

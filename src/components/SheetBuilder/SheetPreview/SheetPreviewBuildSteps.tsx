@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import React from 'react';
-import { selectPreviewBuildSteps } from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { selectPreviewBuildSteps } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 
 const SheetPreviewBuildSteps = () => {
   const buildSteps = useSelector(selectPreviewBuildSteps);

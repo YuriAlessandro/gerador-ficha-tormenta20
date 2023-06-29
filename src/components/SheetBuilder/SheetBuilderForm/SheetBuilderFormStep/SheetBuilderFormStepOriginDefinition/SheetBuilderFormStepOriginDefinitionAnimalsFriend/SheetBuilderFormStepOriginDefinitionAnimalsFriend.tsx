@@ -1,6 +1,6 @@
 import { OriginPowerName } from 't20-sheet-builder';
 import React from 'react';
-import ConfirmButton from '../../../ConfirmButton';
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { OriginComponentType } from '../SheetBuilderFormStepOriginDefinition';
 import AnimalEquipmentSelect from './AnimalEquipmentSelect';
 import SheetBuilderFormStepOriginDefinitionAnimalsFriendSpecialFriend from './SheetBuilderFormStepOriginDefinitionAnimalsFriendSpecialFriend';

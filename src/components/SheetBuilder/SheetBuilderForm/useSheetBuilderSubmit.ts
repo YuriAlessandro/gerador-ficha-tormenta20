@@ -1,8 +1,8 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { useCallback } from 'react';
 import { SheetBuilderError } from 't20-sheet-builder';
-import { useAppDispatch } from '../../../store/hooks';
-import { setFormError } from '../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
+import { useAppDispatch } from '@/store/hooks';
+import { setFormError } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
 import { SheetBuilderFormError } from '../common/SheetBuilderFormError';
 
 export type ConfirmFunction<Type> = <

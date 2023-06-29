@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
 import React from 'react';
-import { selectPreviewInventory } from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { selectPreviewInventory } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 
 const SheetPreviewInventory = () => {
   const equipments = useSelector(selectPreviewInventory);

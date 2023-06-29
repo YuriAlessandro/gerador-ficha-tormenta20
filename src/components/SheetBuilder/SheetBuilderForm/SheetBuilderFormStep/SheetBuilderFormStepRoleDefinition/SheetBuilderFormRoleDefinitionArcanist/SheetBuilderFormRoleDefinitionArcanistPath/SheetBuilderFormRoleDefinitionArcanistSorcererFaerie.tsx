@@ -6,9 +6,9 @@ import {
   Translator,
 } from 't20-sheet-builder';
 import React from 'react';
+import { Option } from '@/components/SheetBuilder/common/Option';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
-import { Option } from '../../../../../common/Option';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
 
 const spellOptions: Option<SpellName>[] = Spells.getAll()
   .filter(

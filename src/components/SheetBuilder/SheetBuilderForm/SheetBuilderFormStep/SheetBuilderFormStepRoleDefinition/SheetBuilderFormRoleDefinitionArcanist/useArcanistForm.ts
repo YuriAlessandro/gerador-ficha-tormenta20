@@ -10,7 +10,7 @@ import {
   SkillName,
   SpellName,
 } from 't20-sheet-builder';
-import { updateItemByIndex } from '../../../../common/Immutable';
+import { updateItemByIndex } from '@/components/SheetBuilder/common/Immutable';
 
 export const useArcanistForm = () => {
   const skillGroupsLength = Arcanist.selectSkillGroups.length;

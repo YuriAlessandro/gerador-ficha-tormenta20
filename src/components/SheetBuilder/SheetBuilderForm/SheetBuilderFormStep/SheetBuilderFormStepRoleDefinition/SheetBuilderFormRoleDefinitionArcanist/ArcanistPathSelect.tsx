@@ -1,7 +1,7 @@
 import { ArcanistPathName, Translator } from 't20-sheet-builder';
 import React from 'react';
-import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
-import { Option } from '../../../../common/Option';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { Option } from '@/components/SheetBuilder/common/Option';
 
 type Props = {
   setPath(path?: ArcanistPathName): void;

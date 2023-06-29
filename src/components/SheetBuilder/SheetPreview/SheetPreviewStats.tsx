@@ -10,7 +10,7 @@ import {
   selectPreviewProficiencies,
   selectPreviewRaceName,
   selectPreviewRoleName,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import SheetPreviewAttributes from './SheetPreviewAttributes';
 import SheetPreviewDefense from './SheetPreviewDefense';
 import SheetPreviewPoints from './SheetPreviewPoints';

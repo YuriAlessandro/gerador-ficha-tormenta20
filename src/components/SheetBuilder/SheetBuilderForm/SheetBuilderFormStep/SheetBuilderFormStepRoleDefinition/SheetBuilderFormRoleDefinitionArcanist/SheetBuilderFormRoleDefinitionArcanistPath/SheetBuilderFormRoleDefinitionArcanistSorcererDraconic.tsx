@@ -4,12 +4,12 @@ import {
   Translator,
 } from 't20-sheet-builder';
 import React from 'react';
+import { Option } from '@/components/SheetBuilder/common/Option';
+import { useAppSelector } from '@/store/hooks';
+import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { addSign } from '@/components/SheetBuilder/common/StringHelper';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
-import { Option } from '../../../../../common/Option';
-import { useAppSelector } from '../../../../../../../store/hooks';
-import { selectAttribute } from '../../../../../../../store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
-import { addSign } from '../../../../../common/StringHelper';
 
 const damageOptions: Option<ArcanistLineageDraconicDamageType>[] = [
   {

@@ -1,7 +1,7 @@
 import { RaceName } from 't20-sheet-builder';
 import React from 'react';
+import { Option } from '@/components/SheetBuilder/common/Option';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
-import { Option } from '../../../common/Option';
 
 type Props = {
   changeRace: (race?: RaceName) => void;

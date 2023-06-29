@@ -5,10 +5,10 @@ import {
   Translator,
 } from 't20-sheet-builder';
 import React from 'react';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { attributesOptions } from '@/components/SheetBuilder/common/Options';
+import { Option } from '@/components/SheetBuilder/common/Option';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
-import { attributesOptions } from '../../../../../common/Options';
-import { Option } from '../../../../../common/Option';
 
 const tormentaPowersOptions: Option<GeneralPowerName>[] =
   TormentaPowers.getAll().map((Power) => ({

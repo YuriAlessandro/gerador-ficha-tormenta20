@@ -1,10 +1,10 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import SheetPreviewItem from './SheetPreviewValueItem';
 import {
   selectPreviewMaxLifePoints,
   selectPreviewMaxManaPoints,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import SheetPreviewItem from './SheetPreviewValueItem';
 
 const SheetPreviewPoints = () => {
   const lifePoints = useSelector(selectPreviewMaxLifePoints);

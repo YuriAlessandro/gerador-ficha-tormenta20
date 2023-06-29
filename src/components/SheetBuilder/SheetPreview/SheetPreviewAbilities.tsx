@@ -1,12 +1,12 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
-import SheetPreviewAbility from './SheetPreviewAbility';
-import SheetPreviewList from './SheetPreviewList';
 import {
   selectPreviewRaceAbilities,
   selectPreviewRoleAbilities,
-} from '../../../store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import SheetPreviewAbility from './SheetPreviewAbility';
+import SheetPreviewList from './SheetPreviewList';
 
 const SheetPreviewAbilities = () => {
   const raceAbilities = useSelector(selectPreviewRaceAbilities);

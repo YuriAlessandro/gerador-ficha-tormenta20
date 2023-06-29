@@ -4,8 +4,8 @@ import {
   EquipmentName,
   Translator,
 } from 't20-sheet-builder';
-import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
-import { Option } from '../../../../common/Option';
+import { Option } from '@/components/SheetBuilder/common/Option';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 
 type Props = {
   selectAnimal: (animal?: AnimalsFriendEquipments) => void;

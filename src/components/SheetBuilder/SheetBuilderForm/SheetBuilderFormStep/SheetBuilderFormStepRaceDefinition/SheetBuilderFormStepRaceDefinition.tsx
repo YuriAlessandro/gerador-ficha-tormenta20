@@ -6,6 +6,10 @@ import {
   Races,
   Race,
 } from 't20-sheet-builder';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
+import { selectAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -14,10 +18,6 @@ import { AttributePreview } from './AttributePreview';
 import RacesSelect from './RacesSelect';
 import SheetBuilderFormStepRaceDefinitionDwarf from './SheetBuilderFormStepRaceDefinitionDwarf/SheetBuilderFormStepRaceDefinitionDwarf';
 import SheetBuilderFormStepRaceDefinitionHuman from './SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
-import { useAppDispatch, useAppSelector } from '../../../../../store/hooks';
-import { resetFormAlert } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { selectAttributes } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { resetRace } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 
 export type RaceComponentProps = {
   attributesPreview: AttributePreview[];

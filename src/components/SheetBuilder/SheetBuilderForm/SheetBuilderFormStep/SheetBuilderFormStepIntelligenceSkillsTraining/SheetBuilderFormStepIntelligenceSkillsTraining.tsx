@@ -1,8 +1,8 @@
 import React from 'react';
 import { SkillName, Translator } from 't20-sheet-builder';
+import { useAppSelector } from '@/store/hooks';
+import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
-import { useAppSelector } from '../../../../../store/hooks';
-import { selectAttribute } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 
 const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
   const intelligence = useAppSelector(selectAttribute('intelligence'));

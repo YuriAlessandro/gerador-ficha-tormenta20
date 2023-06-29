@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArcanistLineageType } from 't20-sheet-builder';
-import SheetBuilderFormSelect from '../../../../SheetBuilderFormSelect';
+import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import SheetBuilderFormRoleDefinitionArcanistSorcererDraconic from './SheetBuilderFormRoleDefinitionArcanistSorcererDraconic';
 import SheetBuilderFormRoleDefinitionArcanistSorcererFaerie from './SheetBuilderFormRoleDefinitionArcanistSorcererFaerie';
 import SheetBuilderFormRoleDefinitionArcanistSorcererRed from './SheetBuilderFormRoleDefinitionArcanistSorcererRed';

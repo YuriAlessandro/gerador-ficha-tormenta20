@@ -1,12 +1,12 @@
 import React from 'react';
 import { Attribute, Translator } from 't20-sheet-builder';
-import AttributeInputButton from './AttributeInputButton';
 import {
   selectAttribute,
   decrementAttribute,
   incrementAttribute,
-} from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { useAppDispatch, useAppSelector } from '../../../../../store/hooks';
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import AttributeInputButton from './AttributeInputButton';
 
 type Props = {
   attribute: Attribute;

@@ -4,9 +4,9 @@ import {
   SerializedOriginBenefitsAcolyte,
 } from 't20-sheet-builder';
 import React from 'react';
-import ConfirmButton from '../../../ConfirmButton';
+import { submitOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { OriginComponentType } from '../SheetBuilderFormStepOriginDefinition';
-import { submitOrigin } from '../../../../../../store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
 
 const SheetBuilderFormStepOriginDefinitionAcolyte: OriginComponentType = ({
   benefitsSelect,
