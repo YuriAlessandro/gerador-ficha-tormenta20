@@ -5,7 +5,7 @@ type Props = {
   togglePreview: () => void;
 };
 
-const Header = ({ togglePreview, isShowingPreview }: Props) => {
+const SheetBuilderHeader = ({ togglePreview, isShowingPreview }: Props) => {
   const buttonText = isShowingPreview ? 'Voltar a construir' : 'Ver ficha';
 
   return (
@@ -30,4 +30,4 @@ const Header = ({ togglePreview, isShowingPreview }: Props) => {
   );
 };
 
-export default Header;
+export default SheetBuilderHeader;
