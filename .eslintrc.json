@@ -23,7 +23,9 @@
   "plugins": ["react", "prettier", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "no-shadow": "off",
+    "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],
+    "react/require-default-props": "off",
     "import/extensions": [
       "error",
       "ignorePackages",

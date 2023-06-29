@@ -5,6 +5,7 @@ import { formatGroupLabel } from 'react-select/src/builtins';
 import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
 import CreatableSelect from 'react-select/creatable';
+import { useHistory } from 'react-router';
 import RACAS from '../../data/racas';
 import CLASSES from '../../data/classes';
 import SelectOptions from '../../interfaces/SelectedOptions';
@@ -45,6 +46,7 @@ const saveSheetOnHistoric = (sheet: CharacterSheet) => {
 };
 
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
+  const history = useHistory();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -304,11 +306,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             Gerar Ficha
           </Button>
 
-          <Button
-            variant='contained'
-            onClick={onClickShowHistoric}
-            style={{ marginLeft: '10px' }}
-          >
+          <Button variant='contained' onClick={onClickShowHistoric}>
             Ver histórico
           </Button>
         </div>
