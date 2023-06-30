@@ -45,7 +45,6 @@
     "build": "vite build",
     "test": "vitest run",
     "testWatch": "vitest",
-    "eject": "vite eject",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
