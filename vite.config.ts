@@ -11,6 +11,9 @@ export default defineConfig({
   build: {
     outDir: 'build',
   },
+  resolve: {
+    alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+  },
   plugins: [
     react(),
     checker({
