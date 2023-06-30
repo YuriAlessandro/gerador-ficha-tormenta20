@@ -32,7 +32,7 @@ const SheetPreview = () => {
       <div className='flex flex-col justify-center items-center py-2'>
         <Tabs className='flex-1'>
           {tabs.map(({ index, label }) => (
-            <Tab onClick={() => onChangeTab(index)} label={label} />
+            <Tab key={index} onClick={() => onChangeTab(index)} label={label} />
           ))}
         </Tabs>
         <div className='container mx-auto'>

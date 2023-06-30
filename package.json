@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@craco/craco": "^7.1.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.8.1",
     "@material-ui/core": "^4.12.4",
@@ -17,7 +16,7 @@
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.8.1",
     "@types/jest": "^26.0.15",
-    "@types/node": "^12.0.0",
+    "@types/node": "^18.0.0",
     "@types/prop-types": "^15.7.3",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
@@ -30,7 +29,6 @@
     "react-redux": "^8.1.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^5",
     "react-select": "^4.2.1",
     "react-speech-recognition": "^3.9.1",
     "react-to-print": "^2.12.3",
@@ -43,11 +41,10 @@
     "web-vitals": "^1.1.0"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test --watchAll=false",
-    "testWatch": "craco test",
-    "eject": "craco eject",
+    "start": "vite",
+    "build": "vite build",
+    "test": "vitest run",
+    "testWatch": "vitest",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
@@ -77,6 +74,8 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "4.0.1",
+    "@vitejs/plugin-react": "^4.0.1",
+    "autoprefixer": "^10.4.14",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.21.0",
     "eslint-config-airbnb": "^18.2.1",
@@ -88,8 +87,15 @@
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "gh-pages": "^3.1.0",
+    "jsdom": "^22.1.0",
+    "postcss": "^8.4.24",
     "prettier": "^2.5.1",
-    "tailwindcss": "^3.3.2"
+    "tailwindcss": "^3.3.2",
+    "vite": "^4.3.9",
+    "vite-plugin-checker": "^0.6.1",
+    "vite-plugin-handlebars": "^1.6.0",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "^0.32.2"
   },
   "jest": {
     "moduleNameMapper": {

@@ -7,7 +7,7 @@ import * as ReactGAConfig from './reactGA.config';
 
 describe('Testa a tela principal', () => {
   ReactGAConfig.setup(true);
-  xtest('se o componente é renderizado', () => {
+  test('se o componente é renderizado', () => {
     const parent = document.createElement('div');
     const { container } = render(
       <HashRouter basename='/gerador-ficha-tormenta20/#'>

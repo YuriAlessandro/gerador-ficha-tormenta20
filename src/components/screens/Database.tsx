@@ -25,7 +25,6 @@ const DatabaseMenuItem: React.FC<{
   title: string;
   icon: React.ReactElement;
   disabled?: boolean;
-  subItem?: boolean;
 }> = ({ selected, onClick, title, icon, disabled }) => {
   const isMobile = useMediaQuery('(max-width: 720px)');
   return (

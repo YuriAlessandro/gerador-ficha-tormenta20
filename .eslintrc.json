@@ -23,6 +23,8 @@
   "plugins": ["react", "prettier", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "no-shadow": "off",
+    "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],
     "react/require-default-props": "off",
@@ -37,6 +39,7 @@
       }
     ],
     "import/no-cycle": "off",
+    "react/jsx-no-bind": "off",
     "react/prop-types": "off",
     "react/jsx-filename-extension": "off",
     "prettier/prettier": ["error"],
