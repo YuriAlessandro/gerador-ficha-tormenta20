@@ -21,8 +21,5 @@ export default defineConfig({
       },
     }),
     viteTsconfigPaths(),
-    handlebars({
-      partialDirectory: resolve(__dirname, 'src/partials'),
-    }) as Plugin,
   ],
 });
