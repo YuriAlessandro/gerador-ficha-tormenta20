@@ -37,7 +37,6 @@ const SheetBuilderFormStepRaceDefinition = () => {
   >({});
   const { confirm } = useSheetBuilderConfirm<Race>();
   const dispatch = useAppDispatch();
-
   const attributes = useAppSelector(selectAttributes);
 
   const attributesPreview = useMemo(

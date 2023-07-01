@@ -1,10 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import viteTsconfigPaths from 'vite-tsconfig-paths';
-import handlebars from 'vite-plugin-handlebars';
-import { resolve } from 'path';
+import path from 'path';
+import { defineConfig } from 'vite';
 import checker from 'vite-plugin-checker';
+import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // https://vitejs.dev/config/
 export default defineConfig({

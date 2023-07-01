@@ -22,7 +22,7 @@ const SheetPreviewDefense = ({ defense, attributes }: Props) => (
         )}`}
         value={attributes[defense.attribute]}
       />
-      {defense.fixedModifiers.modifiers.map((modifier, index) => (
+      {defense.fixedModifiers.modifiers.map((modifier) => (
         <React.Fragment key={`${modifier.source}-${modifier.type}`}>
           <span>+</span>
           <SheetPreviewItem

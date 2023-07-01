@@ -1,17 +1,16 @@
+import attributes from '../../__mocks__/attributes';
+import { inventor } from '../../__mocks__/classes/inventor';
 import INVENTOR from '../../data/classes/inventor';
-import { getOriginBenefits, ORIGINS } from '../../data/origins';
+import { ORIGINS } from '../../data/origins';
+import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
+import RACAS from '../../data/racas';
+import HUMANO from '../../data/races/humano';
+import Skill from '../../interfaces/Skills';
 import {
   getAttributesSkills,
   getSkillsAndPowersByClassAndOrigin,
 } from '../general';
-import attributes from '../../__mocks__/attributes';
 import { getRandomItemFromArray } from '../randomUtils';
-import Skill from '../../interfaces/Skills';
-import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
-import { OriginPower } from '../../interfaces/Poderes';
-import { inventor } from '../../__mocks__/classes/inventor';
-import HUMANO from '../../data/races/humano';
-import RACAS from '../../data/racas';
 
 describe('Teste geração de perícias e poderes para Goblin Inventor Assistente de Laboratório', () => {
   Array(5)

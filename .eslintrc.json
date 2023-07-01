@@ -25,6 +25,7 @@
     "no-shadow": "off",
     "import/no-extraneous-dependencies": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],
     "react/require-default-props": "off",

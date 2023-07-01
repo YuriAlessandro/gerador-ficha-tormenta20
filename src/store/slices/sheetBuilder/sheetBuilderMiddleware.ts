@@ -1,20 +1,15 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import SheetBuilder, {
   BuildingSheet,
-  Dwarf,
-  Human,
   LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
   OutOfGameContext,
-  Race,
-  RaceInterface,
-  RaceName,
+  RaceFactory,
   RoleFactory,
   SheetBuilderError,
   SheetSerializer,
   SimpleWeaponFactory,
-  VersatileChoiceFactory,
 } from 't20-sheet-builder';
 import { AppStartListening } from '../..';
 import { takeLatest } from '../../sagas';
@@ -30,31 +25,6 @@ import {
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
 import { updatePreview } from './sheetBuilderSliceSheetPreview';
-import {
-  SheetBuilderStateRace,
-  SheetBuilderStateRaceDwarf,
-  SheetBuilderStateRaceHuman,
-} from './types';
-
-const makeHuman = (serializedRace: SheetBuilderStateRaceHuman) => {
-  const choices = serializedRace.versatileChoices.map((choice) =>
-    VersatileChoiceFactory.make(choice.type, choice.name)
-  );
-  return new Human(serializedRace.selectedAttributes, choices) as Race;
-};
-
-const makeDwarf = (_serializedRace: SheetBuilderStateRaceDwarf) => new Dwarf();
-
-function makeRace(serializedRace: SheetBuilderStateRace): RaceInterface {
-  switch (serializedRace.name) {
-    case RaceName.human:
-      return makeHuman(serializedRace);
-    case RaceName.dwarf:
-      return makeDwarf(serializedRace);
-    default:
-      throw new Error(`UNKNOWN_RACE`);
-  }
-}
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -98,7 +68,7 @@ startListening({
       sheetBuilder.setInitialAttributes(initialAttributes);
 
       if (serializedRace) {
-        const race = makeRace(serializedRace);
+        const race = RaceFactory.makeFromSerialized(serializedRace);
         sheetBuilder.chooseRace(race);
       }
 
