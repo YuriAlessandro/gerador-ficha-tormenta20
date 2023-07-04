@@ -10,10 +10,9 @@ const SheetBuilderFormStepRaceDefinitionDwarf: React.FC<RaceComponentProps> = ({
   attributesPreview,
 }) => {
   const makeDwarf = () => new Dwarf();
-  const createSubmitAction = (dwarf: Dwarf) =>
+  const createSubmitAction = () =>
     submitRace({
       name: RaceName.dwarf,
-      attributeModifiers: dwarf.attributeModifiers,
     });
 
   const confirmDwarf = () => {

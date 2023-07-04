@@ -1,4 +1,4 @@
-import React, { ComponentProps, PropsWithChildren } from 'react';
+import React, { PropsWithChildren } from 'react';
 
 type Props = {
   onClick: () => void;

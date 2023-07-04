@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedRace } from 't20-sheet-builder';
-import { SheetBuilderStateRace } from './types';
 
 export interface SheetBuilderRaceDefinitionState {
   race?: SerializedRace;
@@ -17,7 +16,7 @@ export const sheetBuilderSliceRaceDefinition = createSlice({
     resetRace: (state) => {
       state.race = undefined;
     },
-    submitRace: (state, action: PayloadAction<SheetBuilderStateRace>) => {
+    submitRace: (state, action: PayloadAction<SerializedRace>) => {
       state.race = action.payload;
     },
   },

@@ -16,6 +16,10 @@ const raceOptions: Record<RaceName, Option<RaceName>> = {
     label: 'Humano',
     value: RaceName.human,
   },
+  dahllan: {
+    label: 'Dahllan',
+    value: RaceName.dahllan,
+  },
 };
 
 const RacesSelect = ({ changeRace: setRace }: Props) => (

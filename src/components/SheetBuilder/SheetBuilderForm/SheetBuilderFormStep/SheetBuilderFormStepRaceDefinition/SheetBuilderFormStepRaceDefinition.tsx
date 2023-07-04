@@ -1,21 +1,22 @@
-import React, { useMemo } from 'react';
-import {
-  Attribute,
-  Attributes,
-  RaceName,
-  Races,
-  Race,
-} from 't20-sheet-builder';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
 import { selectAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import React, { useMemo } from 'react';
+import {
+  Attribute,
+  Attributes,
+  Race,
+  RaceName,
+  Races,
+} from 't20-sheet-builder';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
 } from '../../useSheetBuilderSubmit';
 import { AttributePreview } from './AttributePreview';
 import RacesSelect from './RacesSelect';
+import SheetBuilderFormStepRaceDefinitionDahllan from './SheetBuilderFormStepRaceDefinitionDahllan/SheetBuilderFormStepRaceDefinitionDahllan';
 import SheetBuilderFormStepRaceDefinitionDwarf from './SheetBuilderFormStepRaceDefinitionDwarf/SheetBuilderFormStepRaceDefinitionDwarf';
 import SheetBuilderFormStepRaceDefinitionHuman from './SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
 
@@ -28,6 +29,7 @@ export type RaceComponentProps = {
 const raceComponents: Record<RaceName, React.FC<RaceComponentProps>> = {
   [RaceName.dwarf]: SheetBuilderFormStepRaceDefinitionDwarf,
   [RaceName.human]: SheetBuilderFormStepRaceDefinitionHuman,
+  [RaceName.dahllan]: SheetBuilderFormStepRaceDefinitionDahllan,
 };
 
 const SheetBuilderFormStepRaceDefinition = () => {

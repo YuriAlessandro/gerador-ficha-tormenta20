@@ -1,3 +1,6 @@
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
+import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import { PayloadAction } from '@reduxjs/toolkit';
 import React, { useCallback } from 'react';
 import {
@@ -7,17 +10,12 @@ import {
   Human,
   Race,
   RaceName,
+  SerializedRace,
+  SerializedVersatileChoice,
   SkillName,
   VersatileChoiceFactory,
   VersatileChoiceType,
 } from 't20-sheet-builder';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import {
-  SheetBuilderStateRace,
-  SheetBuilderStateRaceHumanVersatileChoice,
-} from '@/store/slices/sheetBuilder/types';
-import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
-import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
 import SheetBuilderFormStepRaceDefinitionHumanVersatile from './SheetBuilderFormStepRaceDefinitionHumanVersatile';
@@ -95,8 +93,8 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
     return new Human(selectedAttributes, [firstOption, secondOption]) as Race;
   };
 
-  const createSubmitAction = (h: Race) => {
-    const human = h as Human;
+  const createSubmitAction = (race: Race) => {
+    const human = race as Human;
     const choices = human.versatileChoices.map((choice) => ({
       type: choice.type,
       name: choice.name,
@@ -104,8 +102,7 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
     return submitRace({
       name: RaceName.human,
       selectedAttributes,
-      versatileChoices: choices as SheetBuilderStateRaceHumanVersatileChoice[],
-      attributeModifiers: human.attributeModifiers,
+      versatileChoices: choices as SerializedVersatileChoice[],
     });
   };
 
@@ -123,11 +120,10 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
       />
       <ConfirmButton
         confirm={() =>
-          confirmRace<
-            Race,
-            SheetBuilderStateRace,
-            PayloadAction<SheetBuilderStateRace>
-          >(makeHuman, createSubmitAction)
+          confirmRace<Race, SerializedRace, PayloadAction<SerializedRace>>(
+            makeHuman,
+            createSubmitAction
+          )
         }
       />
     </div>
