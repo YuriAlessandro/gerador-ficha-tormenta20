@@ -821,7 +821,7 @@ const CavernaDoSaber: React.FC = () => {
               água, fogo, etc), na <Db>DB #181</Db>.
             </p>
             <Divider />
-            <Title>A história de Arton</Title>
+            <Title id='historia-de-arton'>A história de Arton</Title>
             <p>
               A <Db>DB #159</Db> possui a linha do tempo completa de Arton,
               comentada por sábios e goblins.
