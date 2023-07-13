@@ -309,7 +309,7 @@ function App(): JSX.Element {
                 https://jamboeditora.com.br/
               </a>
             </p>
-            <p>Este é um projeto de fãs e não possui fins lucrativos</p>
+            <p>Este é um projeto de fãs e não possui fins lucrativos.</p>
           </div>
         </footer>
       </div>
