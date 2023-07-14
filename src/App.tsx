@@ -253,10 +253,10 @@ function App(): JSX.Element {
                       label='Changelog'
                       onClick={() => onClickTab(6, 'changelog')}
                     />
-                    <Tab
+                    {/* <Tab
                       label='Construir ficha manualmente'
                       onClick={() => onClickTab(7, 'sheet-builder')}
-                    />
+                    /> */}
                   </Tabs>
                   <FormGroup sx={{ ml: ['15px', 0, 0] }}>
                     <FormControlLabel
