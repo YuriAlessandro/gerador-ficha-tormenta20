@@ -16,7 +16,6 @@ import {
 } from '../../useSheetBuilderSubmit';
 import { AttributePreview } from './AttributePreview';
 import RacesSelect from './RacesSelect';
-import SheetBuilderFormStepRaceDefinitionDahllan from './SheetBuilderFormStepRaceDefinitionDahllan/SheetBuilderFormStepRaceDefinitionDahllan';
 import SheetBuilderFormStepRaceDefinitionDwarf from './SheetBuilderFormStepRaceDefinitionDwarf/SheetBuilderFormStepRaceDefinitionDwarf';
 import SheetBuilderFormStepRaceDefinitionHuman from './SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
 
@@ -29,7 +28,6 @@ export type RaceComponentProps = {
 const raceComponents: Record<RaceName, React.FC<RaceComponentProps>> = {
   [RaceName.dwarf]: SheetBuilderFormStepRaceDefinitionDwarf,
   [RaceName.human]: SheetBuilderFormStepRaceDefinitionHuman,
-  [RaceName.dahllan]: SheetBuilderFormStepRaceDefinitionDahllan,
 };
 
 const SheetBuilderFormStepRaceDefinition = () => {
