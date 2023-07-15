@@ -1,12 +1,12 @@
-import React from 'react';
-import Button from '@mui/material/Button';
-import Select from 'react-select';
-import { formatGroupLabel } from 'react-select/src/builtins';
-import Checkbox from '@mui/material/Checkbox';
 import { FormControlLabel } from '@mui/material';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import React from 'react';
+import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
-import RACAS from '../../data/racas';
+import { formatGroupLabel } from 'react-select/src/builtins';
 import CLASSES from '../../data/classes';
+import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Result from '../Result';
 
@@ -14,13 +14,13 @@ import generateRandomSheet from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
-import getSelectTheme from '../../functions/style';
-import roles from '../../data/roles';
-import { HistoricI } from '../../interfaces/Historic';
-import Historic from './Historic';
 import { ORIGINS } from '../../data/origins';
+import roles from '../../data/roles';
+import getSelectTheme from '../../functions/style';
 import { allDivindadeNames } from '../../interfaces/Divindade';
+import { HistoricI } from '../../interfaces/Historic';
 import SimpleResult from '../SimpleResult';
+import Historic from './Historic';
 
 type SelectedOption = { value: string; label: string };
 
@@ -304,11 +304,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             Gerar Ficha
           </Button>
 
-          <Button
-            variant='contained'
-            onClick={onClickShowHistoric}
-            style={{ marginLeft: '10px' }}
-          >
+          <Button variant='contained' onClick={onClickShowHistoric}>
             Ver histórico
           </Button>
         </div>

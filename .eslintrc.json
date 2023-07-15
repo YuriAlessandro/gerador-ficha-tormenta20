@@ -23,7 +23,12 @@
   "plugins": ["react", "prettier", "@typescript-eslint/eslint-plugin"],
   "rules": {
     "no-shadow": "off",
+    "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],
+    "react/require-default-props": "off",
     "import/extensions": [
       "error",
       "ignorePackages",
@@ -35,6 +40,7 @@
       }
     ],
     "import/no-cycle": "off",
+    "react/jsx-no-bind": "off",
     "react/prop-types": "off",
     "react/jsx-filename-extension": "off",
     "prettier/prettier": ["error"],
@@ -43,5 +49,10 @@
     "no-use-before-define": "off",
     "@typescript-eslint/no-use-before-define": ["error"],
     "react/static-property-placement":"off"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
+    }
   }
 }

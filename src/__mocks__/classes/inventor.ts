@@ -88,14 +88,12 @@ export function inventor(race: Race): CharacterSheet {
       abilities: [
         {
           name: 'Engenhosidade',
-          text:
-            'Quando faz um teste de perícia, você pode gastar 2 PM para receber um bônus igual ao seu modificador de Inteligência no teste. Você não pode usar esta habilidade em testes de ataque.',
+          text: 'Quando faz um teste de perícia, você pode gastar 2 PM para receber um bônus igual ao seu modificador de Inteligência no teste. Você não pode usar esta habilidade em testes de ataque.',
           nivel: 1,
         },
         {
           name: 'Protótipo',
-          text:
-            'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
+          text: 'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
           nivel: 1,
         },
       ],

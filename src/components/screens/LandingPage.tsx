@@ -1,16 +1,14 @@
-import { Box, Card, Button, Stack } from '@mui/material';
-import React from 'react';
-import { Link } from 'react-router-dom';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import LinkIcon from '@mui/icons-material/Link';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import StorageIcon from '@mui/icons-material/Storage';
-import LinkIcon from '@mui/icons-material/Link';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-
+import { Box, Button, Card, Stack } from '@mui/material';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import ficha from '../../assets/images/ficha.png';
 
 const LandingPage: React.FC<{
-  isDarkMode: boolean;
   onClickButton: (tab: number, link: string) => void;
 }> = ({ onClickButton }) => {
   const onOpenLink = (link: string) => {
@@ -154,6 +152,13 @@ const LandingPage: React.FC<{
             }
           >
             Calculadora ND
+          </Button>
+          <Button
+            variant='contained'
+            startIcon={<PersonAddIcon />}
+            onClick={() => onClickButton(1, 'sheet-builder')}
+          >
+            Construir ficha manualmente
           </Button>
         </Stack>
       </Card>

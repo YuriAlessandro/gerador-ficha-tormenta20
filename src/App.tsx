@@ -16,6 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import MenuIcon from '@mui/icons-material/Menu';
 
+import { Provider } from 'react-redux';
 import Sidebar from './components/Sidebar';
 import MainScreen from './components/screens/MainScreen';
 import Changelog from './components/screens/Changelog';
@@ -24,6 +25,8 @@ import SuperiorItems from './components/screens/SuperiorItems';
 import LandingPage from './components/screens/LandingPage';
 import Database from './components/screens/Database';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
+import SheetBuilderPage from './components/screens/SheetBuilderPage';
+import store from './store';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 const lightTheme = {
@@ -126,6 +129,7 @@ function App(): JSX.Element {
       database: 4,
       'caverna-do-saber': 5,
       changelog: 6,
+      'sheet-builder': 7,
     } as const;
 
     const currentPath = (Object.keys(pathnamesTabValues).find((path) =>
@@ -180,123 +184,143 @@ function App(): JSX.Element {
 
   return (
     <ThemeProvider theme={theme}>
-      <div
-        className='App'
-        data-testid='app-component'
-        style={isDarkTheme ? darkTheme : lightTheme}
-      >
-        <div className='mainApp'>
-          <header className='App-header'>
-            <Sidebar
-              visible={sidebarVisibility}
-              onCloseSidebar={onCloseSidebar}
-              isDarkTheme={isDarkTheme}
-              onChangeTheme={onChangeTheme}
-            />
-            <AppBar position='static'>
-              <Toolbar>
-                <IconButton
-                  onClick={onClickMenu}
-                  edge='start'
-                  color='inherit'
-                  aria-label='menu'
-                >
-                  <MenuIcon />
-                </IconButton>
-                <Typography
-                  sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
-                  variant='h6'
-                  onClick={() => onClickTab(-1, '')}
-                >
-                  <p>Fichas de Nimb</p>
-                </Typography>
-                <Tabs
-                  value={tabValue}
-                  onChange={handleTabChange}
-                  aria-label='Menu superior'
-                  sx={{ display: 'flex', flexGrow: 1 }}
-                  variant='scrollable'
-                  scrollButtons
-                  className='topTabs'
-                >
-                  <Tab
-                    label='Fichas'
-                    onClick={() => onClickTab(0, 'ficha-aleatoria')}
-                  />
-                  <Tab
-                    label='Recompensas'
-                    onClick={() => onClickTab(1, 'recompensas')}
-                  />
-                  <Tab
-                    label='Itens Superiores'
-                    onClick={() => onClickTab(2, 'itens-superiores')}
-                  />
-                  <Tab
-                    label='Itens Mágicos'
-                    disabled
-                    onClick={() => onClickTab(3, 'itens-magicos')}
-                  />
-                  <Tab
-                    label='Database'
-                    onClick={() => onClickTab(4, 'database/raças')}
-                  />
-                  <Tab
-                    label='Caverna do Saber'
-                    onClick={() => onClickTab(5, 'caverna-do-saber')}
-                  />
-                  <Tab
-                    label='Changelog'
-                    onClick={() => onClickTab(6, 'changelog')}
-                  />
-                </Tabs>
-                <FormGroup sx={{ ml: ['15px', 0, 0] }}>
-                  <FormControlLabel
-                    labelPlacement='end'
-                    control={
-                      <SwitchMUI
-                        checked={isDarkTheme}
-                        onChange={onChangeTheme}
-                        color='default'
-                        value='dark'
-                      />
-                    }
-                    label='Tema Escuro'
-                  />
-                </FormGroup>
-              </Toolbar>
-            </AppBar>
-          </header>
-          <div className='mainArea'>
-            <Switch>
-              <Route path='/changelog'>
-                <Changelog />
-              </Route>
-              <Route path='/recompensas'>
-                <Rewards isDarkMode={isDarkTheme} />
-              </Route>
-              <Route path='/itens-superiores'>
-                <SuperiorItems isDarkMode={isDarkTheme} />
-              </Route>
-              <Route path='/ficha-aleatoria'>
-                <MainScreen isDarkMode={isDarkTheme} />
-              </Route>
-              <Route path='/database'>
-                <Database isDarkMode={isDarkTheme} />
-              </Route>
-              <Route path='/caverna-do-saber'>
-                <CavernaDoSaber />
-              </Route>
-              {/* <Route path='/ficha-criatura'>
+      <Provider store={store}>
+        <div
+          className='App'
+          data-testid='app-component'
+          style={isDarkTheme ? darkTheme : lightTheme}
+        >
+          <div className='mainApp'>
+            <header className='App-header'>
+              <Sidebar
+                visible={sidebarVisibility}
+                onCloseSidebar={onCloseSidebar}
+                isDarkTheme={isDarkTheme}
+                onChangeTheme={onChangeTheme}
+              />
+              <AppBar position='static'>
+                <Toolbar>
+                  <IconButton
+                    onClick={onClickMenu}
+                    edge='start'
+                    color='inherit'
+                    aria-label='menu'
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography
+                    sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
+                    variant='h6'
+                    onClick={() => onClickTab(-1, '')}
+                  >
+                    <p>Fichas de Nimb</p>
+                  </Typography>
+                  <Tabs
+                    value={tabValue}
+                    onChange={handleTabChange}
+                    aria-label='Menu superior'
+                    sx={{ display: 'flex', flexGrow: 1 }}
+                    variant='scrollable'
+                    scrollButtons
+                    className='topTabs'
+                  >
+                    <Tab
+                      label='Fichas'
+                      onClick={() => onClickTab(0, 'ficha-aleatoria')}
+                    />
+                    <Tab
+                      label='Recompensas'
+                      onClick={() => onClickTab(1, 'recompensas')}
+                    />
+                    <Tab
+                      label='Itens Superiores'
+                      onClick={() => onClickTab(2, 'itens-superiores')}
+                    />
+                    <Tab
+                      label='Itens Mágicos'
+                      disabled
+                      onClick={() => onClickTab(3, 'itens-magicos')}
+                    />
+                    <Tab
+                      label='Database'
+                      onClick={() => onClickTab(4, 'database/raças')}
+                    />
+                    <Tab
+                      label='Caverna do Saber'
+                      onClick={() => onClickTab(5, 'caverna-do-saber')}
+                    />
+                    <Tab
+                      label='Changelog'
+                      onClick={() => onClickTab(6, 'changelog')}
+                    />
+                    <Tab
+                      label='Construir ficha manualmente'
+                      onClick={() => onClickTab(7, 'sheet-builder')}
+                    />
+                  </Tabs>
+                  <FormGroup sx={{ ml: ['15px', 0, 0] }}>
+                    <FormControlLabel
+                      labelPlacement='end'
+                      control={
+                        <SwitchMUI
+                          checked={isDarkTheme}
+                          onChange={onChangeTheme}
+                          color='default'
+                          value='dark'
+                        />
+                      }
+                      label='Tema Escuro'
+                    />
+                  </FormGroup>
+                </Toolbar>
+              </AppBar>
+            </header>
+            <div className='mainArea'>
+              <Switch>
+                <Route path='/changelog'>
+                  <Changelog />
+                </Route>
+                <Route path='/recompensas'>
+                  <Rewards isDarkMode={isDarkTheme} />
+                </Route>
+                <Route path='/itens-superiores'>
+                  <SuperiorItems isDarkMode={isDarkTheme} />
+                </Route>
+                <Route path='/ficha-aleatoria'>
+                  <MainScreen isDarkMode={isDarkTheme} />
+                </Route>
+                <Route path='/database'>
+                  <Database isDarkMode={isDarkTheme} />
+                </Route>
+                <Route path='/caverna-do-saber'>
+                  <CavernaDoSaber />
+                </Route>
+                <Route path='/sheet-builder'>
+                  <SheetBuilderPage />
+                </Route>
+                {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />
               </Route> */}
-              <Route>
-                <LandingPage
-                  isDarkMode={isDarkTheme}
-                  onClickButton={onClickTab}
-                />
-              </Route>
-            </Switch>
+                <Route>
+                  <LandingPage onClickButton={onClickTab} />
+                </Route>
+              </Switch>
+            </div>
           </div>
+          <footer id='bottom'>
+            <div>
+              <p>
+                Tormenta 20 é um produto da Jambô Editora e seus respectivos
+                criadores, todos os direitos reservados.
+              </p>
+              <p>
+                <a href='https://jamboeditora.com.br/' target='blank'>
+                  https://jamboeditora.com.br/
+                </a>
+              </p>
+              <p>Este é um projeto de fãs e não possui fins lucrativos</p>
+            </div>
+          </footer>
         </div>
         <footer id='bottom'>
           <div>
@@ -312,7 +336,7 @@ function App(): JSX.Element {
             <p>Este é um projeto de fãs e não possui fins lucrativos.</p>
           </div>
         </footer>
-      </div>
+      </Provider>
     </ThemeProvider>
   );
 }
