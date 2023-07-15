@@ -322,20 +322,6 @@ function App(): JSX.Element {
             </div>
           </footer>
         </div>
-        <footer id='bottom'>
-          <div>
-            <p>
-              Tormenta 20 é um produto da Jambô Editora e seus respectivos
-              criadores, todos os direitos reservados.
-            </p>
-            <p>
-              <a href='https://jamboeditora.com.br/' target='blank'>
-                https://jamboeditora.com.br/
-              </a>
-            </p>
-            <p>Este é um projeto de fãs e não possui fins lucrativos.</p>
-          </div>
-        </footer>
       </Provider>
     </ThemeProvider>
   );
