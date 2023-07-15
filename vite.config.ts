@@ -13,6 +13,7 @@ export default defineConfig({
   resolve: {
     alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
   },
+  base: '/gerador-ficha-tormenta20',
   plugins: [
     react(),
     checker({
