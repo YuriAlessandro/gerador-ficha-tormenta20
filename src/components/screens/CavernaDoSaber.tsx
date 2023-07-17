@@ -378,6 +378,17 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tiro em Linha</li>
               <li>Último Sangue</li>
             </ul>
+            <SubTitle id='guerreiro'>Guerreiro</SubTitle>
+            <p>
+              Novas opções para o <strong>Golpe Pessoal</strong> do guerreiro
+              foram detalhadas na <Db>DB #159</Db>:
+            </p>
+            <ul>
+              <li>Anunciado (–1 PM)</li>
+              <li>Desconcertante (–1 PM)</li>
+              <li>Desgastante (–1 PM)</li>
+              <li>Paralisante (–1 PM)</li>
+            </ul>
             <SubTitle id='ladino'>Ladino</SubTitle>
             <p>
               Todos os seguintes poderes de ladino foram adicionados na{' '}
