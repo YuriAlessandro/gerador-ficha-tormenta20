@@ -235,21 +235,9 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     margin: 20px 0;
   `,n=Zo.h2`
     font-family: 'Tfont';
-    font-size: 1.5em;
-    margin-top: 0.83em;
-    margin-bottom: 0.83em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
     color: ${e.palette.primary.main};
   `,o=Zo.h3`
     font-family: 'Tfont';
-    font-size: 1.17em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
     color: ${e.palette.primary.light};
   `,i=Zo.strong`
     color: ${e.palette.primary.main};
