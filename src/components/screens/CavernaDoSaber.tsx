@@ -150,23 +150,11 @@ const CavernaDoSaber: React.FC = () => {
 
   const Title = styled.h2`
     font-family: 'Tfont';
-    font-size: 1.5em;
-    margin-top: 0.83em;
-    margin-bottom: 0.83em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
     color: ${theme.palette.primary.main};
   `;
 
   const SubTitle = styled.h3`
     font-family: 'Tfont';
-    font-size: 1.17em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    font-weight: bold;
     color: ${theme.palette.primary.light};
   `;
 
