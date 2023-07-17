@@ -533,7 +533,7 @@ const CavernaDoSaber: React.FC = () => {
             <Divider />
             <Title id='desvantagens'>Desvantagens</Title>
             <p>
-              As desvantagens são apresentadas na <Db>DB #152</Db>:
+              As desvantagens são apresentadas na <Db>DB #156</Db>:
             </p>
             <ul>
               <li>Amaldiçoado</li>
