@@ -1,31 +1,39 @@
 import React from 'react';
 import { Attribute, Translator } from 't20-sheet-builder';
+import { Chip } from '@mui/material';
 import { generateClassNames } from '../../../common/ClassNames';
 
 type Props = {
   attribute: string;
   value: number;
   modifier?: number;
+  toggle?: () => void;
 };
 
-const AttributePreviewItem = ({ attribute, value, modifier }: Props) => {
+const AttributePreviewItem = ({
+  attribute,
+  value,
+  modifier,
+  toggle,
+}: Props) => {
   const isIncremented = Boolean(modifier && modifier > 0);
   const isDecremented = Boolean(modifier && modifier < 0);
   const classes = {
-    'bg-green-100 text-slate-800': isIncremented,
-    'bg-red-100 text-slate-800': isDecremented,
+    success: isIncremented,
+    error: isDecremented,
+    default: !isIncremented && !isDecremented,
   };
-  const customClassName = generateClassNames(classes);
+  const customColor = generateClassNames(classes);
   const modifierWithSign = modifier && modifier > 0 ? `+${modifier}` : modifier;
   return (
-    <li
+    <Chip
+      color={customColor as any}
       key={attribute}
-      className={`border border-white rounded-2xl 
-      px-5 py-1 ${customClassName}`}
-    >
-      {Translator.getAttributeTranslation(attribute as Attribute)}: {value}{' '}
-      {modifier && <span>({modifierWithSign})</span>}
-    </li>
+      onClick={toggle}
+      label={`${Translator.getAttributeTranslation(
+        attribute as Attribute
+      )}: ${value} ${modifier ? `(${modifierWithSign})` : ''}`}
+    />
   );
 };
 

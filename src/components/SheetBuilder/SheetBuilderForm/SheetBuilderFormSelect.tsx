@@ -34,6 +34,8 @@ const SheetBuilderFormSelect = <
     isSearchable={isSearcheable ?? false}
     onChange={(newValue) => onChange(newValue as V)}
     styles={selectStyles}
+    menuPortalTarget={document.body}
+    menuPosition='fixed'
   />
 );
 

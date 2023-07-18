@@ -53,7 +53,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     <div>
       <div className='mb-6'>
         {role ? (
-          <div className='flex flex-col items-center'>
+          <div className='flex flex-col'>
             <SimpleWeaponSelect
               setSelected={(selected) => setSelectedSimpleWeapon(selected)}
             />
@@ -72,7 +72,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
           </div>
         )}
       </div>
-      <div className='mb-6 flex justify-center'>
+      <div className='mb-6 flex'>
         <div className='bg-white p-5 rounded-md'>
           <h3 className='mb-3 text-rose-600 font-bold'>Equipamento Padrão</h3>
           <ul className='text-slate-950'>

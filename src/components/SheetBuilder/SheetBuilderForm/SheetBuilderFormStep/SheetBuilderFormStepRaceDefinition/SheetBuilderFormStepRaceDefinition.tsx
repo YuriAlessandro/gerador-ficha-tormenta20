@@ -72,7 +72,7 @@ const SheetBuilderFormStepRaceDefinition = () => {
   };
   const RaceComponent = race ? raceComponents[race] : null;
   return (
-    <section className='py-6 '>
+    <section className='py-6'>
       <RacesSelect changeRace={changeRace} />
       {RaceComponent && (
         <RaceComponent

@@ -6,6 +6,9 @@ import {
   incrementAttribute,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { TextField } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import AttributeInputButton from './AttributeInputButton';
 
 type Props = {
@@ -22,23 +25,21 @@ const AttributeInput = ({ attribute }: Props) => {
       </label>
       <div className='flex flex-row'>
         <AttributeInputButton
-          side='left'
           onClick={() => dispatch(decrementAttribute(attribute))}
         >
-          -
+          <RemoveIcon />
         </AttributeInputButton>
-        <input
+        <TextField
           disabled
           type='number'
           value={attributeValue}
           id={`${attribute}-input`}
-          className='text-slate-900 w-8 text-center bg-white'
+          sx={{ width: '80px' }}
         />
         <AttributeInputButton
-          side='right'
           onClick={() => dispatch(incrementAttribute(attribute))}
         >
-          +
+          <AddIcon />
         </AttributeInputButton>
       </div>
     </div>

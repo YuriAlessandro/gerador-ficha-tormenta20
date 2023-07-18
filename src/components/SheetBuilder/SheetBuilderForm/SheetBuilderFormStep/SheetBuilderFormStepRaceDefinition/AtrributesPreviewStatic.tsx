@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Stack } from '@mui/material';
 import { AttributePreview } from './AttributePreview';
 import AttributePreviewItem from './AttributePreviewItem';
 
@@ -7,9 +8,9 @@ type Props = {
 };
 
 const AtrributesPreviewStatic = ({ attributesPreview }: Props) => (
-  <div className='mb-6'>
+  <Box>
     <h3 className='mb-3'>Atributos</h3>
-    <ul className='flex gap-2 justify-center flex-wrap'>
+    <Stack direction='row' spacing={2} justifyContent='center'>
       {attributesPreview.map(({ attribute, modifier, value }) => (
         <AttributePreviewItem
           key={attribute}
@@ -18,8 +19,8 @@ const AtrributesPreviewStatic = ({ attributesPreview }: Props) => (
           modifier={modifier}
         />
       ))}
-    </ul>
-  </div>
+    </Stack>
+  </Box>
 );
 
 export default AtrributesPreviewStatic;

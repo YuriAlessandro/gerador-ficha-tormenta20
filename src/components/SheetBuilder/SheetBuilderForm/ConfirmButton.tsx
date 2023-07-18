@@ -1,22 +1,14 @@
 import React from 'react';
+import { Button } from '@mui/material';
 
 type Props = {
   confirm(): void;
 };
 
 const ConfirmButton = ({ confirm }: Props) => (
-  <button
-    onClick={confirm}
-    type='button'
-    className='
-          bg-white px-8 py-3 mb-3 rounded-2xl 
-          text-slate-900 font-bold 
-          transition-colors
-          hover:opacity-95
-          active:scale-105'
-  >
-    Confirmar
-  </button>
+  <Button onClick={confirm} variant='contained' color='primary'>
+    Atualizar
+  </Button>
 );
 
 export default ConfirmButton;

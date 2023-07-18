@@ -107,7 +107,7 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   };
 
   return (
-    <div className='flex flex-col'>
+    <div>
       <SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes
         attributesPreview={attributesPreview}
         toggleAttribute={toggleAttribute}

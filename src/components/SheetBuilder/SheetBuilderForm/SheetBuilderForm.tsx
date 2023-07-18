@@ -2,11 +2,9 @@ import {
   resetFormAlert,
   selectFormAlert,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { Box, IconButton } from '@mui/material';
+import { Alert, Snackbar, useTheme } from '@mui/material';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import HistoryToggleOffIcon from '@mui/icons-material/HistoryToggleOff';
@@ -14,8 +12,7 @@ import ConstructionIcon from '@mui/icons-material/Construction';
 import CasinoIcon from '@mui/icons-material/Casino';
 import FaceIcon from '@mui/icons-material/Face';
 import { Timeline } from '@mui/lab';
-import SheetBuilderFormAlertError from './SheetBuilderFormAlertError';
-import SheetBuilderFormAlertSuccess from './SheetBuilderFormAlertSuccess';
+import styled from '@emotion/styled';
 import SheetBuilderFormStepAttributesDefinition from './SheetBuilderFormStep/SheetBuilderFormStepAttributesDefinition/SheetBuilderFormStepAttributesDefinition';
 import SheetBuilderFormStepEquipmentDefinition from './SheetBuilderFormStep/SheetBuilderFormStepEquipmentDefinition/SheetBuilderFormStepEquipmentDefinition';
 import SheetBuilderFormStepIntelligenceSkillsTraining from './SheetBuilderFormStep/SheetBuilderFormStepIntelligenceSkillsTraining/SheetBuilderFormStepIntelligenceSkillsTraining';
@@ -52,7 +49,7 @@ const steps = [
   },
   {
     id: 5,
-    label: 'Perícias de inteligência',
+    label: 'Perícias de Int',
     Component: SheetBuilderFormStepIntelligenceSkillsTraining,
     Icon: <AddBoxIcon />,
   },
@@ -72,45 +69,38 @@ const SheetBuilderForm = () => {
     setShowingTab(index + 1);
     dispatch(resetFormAlert());
   };
+
+  const vertical = 'bottom';
+  const horizontal = 'center';
+
+  const theme = useTheme();
+
+  const Label = styled.h4`
+    font-family: 'Tfont';
+    color: ${theme.palette.primary.main};
+  `;
   return (
-    <div className='py-2'>
-      <div className='container mx-auto'>
-        {alert?.type === 'error' && (
-          <SheetBuilderFormAlertError message={alert.message} />
-        )}
-        {alert?.type === 'success' && (
-          <SheetBuilderFormAlertSuccess message={alert.message} />
-        )}
-      </div>
+    <div>
+      <Snackbar
+        open={Boolean(alert)}
+        autoHideDuration={6000}
+        anchorOrigin={{ vertical, horizontal }}
+      >
+        <Alert severity={alert?.type}>{alert?.message}</Alert>
+      </Snackbar>
       <Timeline position='right'>
         <div>
           {steps.map(({ Component, id, label, Icon }) => (
-            <TimelineStep icon={Icon}>
-              {id === showingTab && (
-                <>
-                  {id !== 1 && (
-                    <Box sx={{ textAlign: 'center', pb: 1 }}>
-                      <IconButton
-                        title='Voltar'
-                        onClick={() => onChangeStep(id - 2)}
-                      >
-                        <KeyboardArrowUpIcon />
-                      </IconButton>
-                    </Box>
-                  )}
-                  <Component />
-                  <Box sx={{ textAlign: 'center', pb: 1 }}>
-                    <IconButton
-                      title='Continuar'
-                      onClick={() => onChangeStep(id)}
-                    >
-                      <KeyboardArrowDownIcon />
-                    </IconButton>
-                  </Box>
-                </>
-              )}
+            <TimelineStep
+              label={id !== showingTab ? '' : label}
+              icon={Icon}
+              id={id}
+              onChangeStep={onChangeStep}
+              showingTab={showingTab}
+            >
+              {id === showingTab && <Component />}
 
-              {id !== showingTab && <p>{label}</p>}
+              {id !== showingTab && <Label>{label}</Label>}
             </TimelineStep>
           ))}
         </div>
