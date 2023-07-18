@@ -10,7 +10,7 @@ ReactGAConfig.setup();
 
 ReactDOM.render(
   <React.StrictMode>
-    <HashRouter basename='/gerador-ficha-tormenta20/#'>
+    <HashRouter basename='/#'>
       <App />
     </HashRouter>
   </React.StrictMode>,

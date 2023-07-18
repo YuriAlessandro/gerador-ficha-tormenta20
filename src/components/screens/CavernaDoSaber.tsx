@@ -207,7 +207,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #169 até #191</strong>
+                <strong>Revistas analisadas: DB #156 até #192.</strong>
               </small>
             </p>
             <p>
@@ -247,6 +247,17 @@ const CavernaDoSaber: React.FC = () => {
               <li>Perspicaz</li>
               <li>Prudente</li>
               <li>Racional</li>
+            </ul>
+            <Divider />
+            <Title id='traços-do-personagem'>Traços do personagem</Title>
+            <p>
+              Traços do personagens são aspectos interpretativos do personagem,
+              definidos com boas regras na <Db>DB #158</Db>.
+            </p>
+            <ul>
+              <li>Traços Racionais (Inteligência)</li>
+              <li>Traços Emocionais (Sabedoria)</li>
+              <li>Traços Sociais (Carisma)</li>
             </ul>
             <Divider />
             {/* Raças */}
@@ -324,6 +335,47 @@ const CavernaDoSaber: React.FC = () => {
               <li>Bravura Indômita</li>
               <li>Pego no Chapéu</li>
               <li>Vou, Vejo e Disparo</li>
+            </ul>
+            <SubTitle id='cacador'>Caçador</SubTitle>
+            <p>
+              Todos os seguintes poderes de caçador foram adicionados na{' '}
+              <Db>DB #192</Db>:
+            </p>
+            <ul>
+              <li>Armadilha Alquímica</li>
+              <li>Armadilha Oportunista</li>
+              <li>Avanço do Predador</li>
+              <li>Carnificina</li>
+              <li>Corte Arterial</li>
+              <li>Defesa Hostil</li>
+              <li>Disparo Distrator</li>
+              <li>Disparo Retentor</li>
+              <li>Elo com a Natureza Maior</li>
+              <li>Encurralar Presa</li>
+              <li>Explorador Marcial</li>
+              <li>Flecheiro</li>
+              <li>Improvisar Munição</li>
+              <li>Lâminas Guardiãs</li>
+              <li>Lanceiro</li>
+              <li>Matador de Gigantes</li>
+              <li>Olhar Vigilante</li>
+              <li>Predador Solidário</li>
+              <li>Mãos de Curandeiro</li>
+              <li>Sede de Sangue</li>
+              <li>Sempre Alerta</li>
+              <li>Tiro em Linha</li>
+              <li>Último Sangue</li>
+            </ul>
+            <SubTitle id='guerreiro'>Guerreiro</SubTitle>
+            <p>
+              Novas opções para o <strong>Golpe Pessoal</strong> do guerreiro
+              foram detalhadas na <Db>DB #159</Db>:
+            </p>
+            <ul>
+              <li>Anunciado (–1 PM)</li>
+              <li>Desconcertante (–1 PM)</li>
+              <li>Desgastante (–1 PM)</li>
+              <li>Paralisante (–1 PM)</li>
             </ul>
             <SubTitle id='ladino'>Ladino</SubTitle>
             <p>
@@ -479,6 +531,40 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tigre Branco Devora o Céu</li>
             </ul>
             <Divider />
+            <Title id='desvantagens'>Desvantagens</Title>
+            <p>
+              As desvantagens são apresentadas na <Db>DB #156</Db>:
+            </p>
+            <ul>
+              <li>Amaldiçoado</li>
+              <li>Assombrado</li>
+              <li>Cabeça Quente</li>
+              <li>Caolho</li>
+              <li>Chato</li>
+              <li>Código de Conduta</li>
+              <li>Combalido</li>
+              <li>Covarde</li>
+              <li>Distraído</li>
+              <li>Duro de Ouvido</li>
+              <li>Expurgo de Allihanna</li>
+              <li>Expurgo de Wynna</li>
+              <li>Filho(a) de Nimb</li>
+              <li>Fracote</li>
+              <li>Franzino</li>
+              <li>Hedonista</li>
+              <li>Impulsivo</li>
+              <li>Inculto</li>
+              <li>Indefeso</li>
+              <li>Ingênuo</li>
+              <li>Maneta</li>
+              <li>Matugo</li>
+              <li>Melancólico</li>
+              <li>Míope</li>
+              <li>Vagaroso</li>
+              <li>Temeroso</li>
+              <li>Tolo</li>
+            </ul>
+            <Divider />
             {/* Distinções */}
             <Title id='distincoes'>Distinções</Title>
             <p>
@@ -620,6 +706,52 @@ const CavernaDoSaber: React.FC = () => {
               <li>Símbolo Sagrado Primordial</li>
               <li>Tridente Sibilante</li>
             </ul>
+            <SubTitle id='exotericos'>Exótericos</SubTitle>
+            <p>
+              A <Db>DB #163</Db> faz a introdução dos itens exótericos - a
+              maioria já foi adicionado ao JdA, mas vou deixar listado aqui os
+              que estão apenas na revista:
+            </p>
+            <ul>
+              <li>Catalisadores de Magia</li>
+              <ul>
+                <li>Elo de Ferro</li>
+                <li>Frasco de Amônia</li>
+                <li>Pena de Thyatis (flor)</li>
+              </ul>
+              <li>Amplificadores Arcanos</li>
+              <ul>
+                <li>Ampulheta de Areia da Perdição</li>
+                <li>Anel de Adamante</li>
+                <li>Bastão de Mitral</li>
+              </ul>
+              <li>Itens Litúrgicos</li>
+              <ul>
+                <li>Cálice Sagrado</li>
+                <li>Carrilhão Consagrado</li>
+                <li>Estola Clerical</li>
+                <li>Ostensório Santificado</li>
+                <li>Sacrário Portátil</li>
+                <li>Turíbulo Ungido</li>
+                <li>Vela Eclesiástica</li>
+                <li>Véu Ritualístico</li>
+              </ul>
+            </ul>
+            <SubTitle id='municoes'>Munições</SubTitle>
+            <p>
+              Novas melhorias para munições foram apresentadas na{' '}
+              <Db>DB #192</Db>:
+            </p>
+            <ul>
+              <li>Agulha</li>
+              <li>Assobiadora</li>
+              <li>Cauda-de-Andorinha</li>
+              <li>Crescente de Lena</li>
+              <li>Fósforo</li>
+              <li>Incendiária</li>
+              <li>Punhal</li>
+              <li>Rombuda</li>
+            </ul>
             <SubTitle id='instrumentos'>Instrumentos</SubTitle>
             <p>
               Na <Db>DB #179</Db> uma ampliação nas regras de instrumentos
@@ -678,6 +810,11 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               A <Db>DB #170</Db> discute como criar capangas
             </p>
+            <SubTitle id='mercenarios'>Companhia de Mercenários</SubTitle>
+            <p>
+              A <Db>DB #157</Db> apresenta uma lista de inimigos mercenários, em
+              vários NDs diferentes.
+            </p>
             <Divider />
             {/* Aliados */}
             <Title id='aliados'>Aliados</Title>
@@ -693,6 +830,12 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Aliados do tipo gênio (de vários elementos como luz, trevas, ar,
               água, fogo, etc), na <Db>DB #181</Db>.
+            </p>
+            <Divider />
+            <Title id='historia-de-arton'>A história de Arton</Title>
+            <p>
+              A <Db>DB #159</Db> possui a linha do tempo completa de Arton,
+              comentada por sábios e goblins.
             </p>
             <Divider />
             {/* Outros */}
