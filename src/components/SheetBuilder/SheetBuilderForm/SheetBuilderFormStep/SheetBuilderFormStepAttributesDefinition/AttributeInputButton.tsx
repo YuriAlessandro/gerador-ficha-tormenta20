@@ -9,7 +9,13 @@ const AttributeInputButton = ({
   onClick,
   children,
 }: PropsWithChildren<Props>) => (
-  <Button size='small' variant='outlined' onClick={onClick}>
+  <Button
+    sx={{ maxHeight: '30px' }}
+    size='small'
+    variant='outlined'
+    onClick={onClick}
+    fullWidth
+  >
     {children}
   </Button>
 );

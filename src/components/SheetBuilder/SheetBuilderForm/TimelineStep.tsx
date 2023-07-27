@@ -8,11 +8,9 @@ import {
   TimelineOppositeContent,
 } from '@mui/lab';
 import { Box, Card, IconButton, useTheme } from '@mui/material';
-import styled from '@emotion/styled';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-
-import sectionBg from '../../../assets/images/sectionBg.png';
+import BookTitle from '../common/BookTitle';
 
 const TimelineStep: React.FC<{
   id: number;
@@ -32,16 +30,6 @@ const TimelineStep: React.FC<{
   showingTab,
 }) => {
   const theme = useTheme();
-
-  const Title = styled.h1`
-    text-align: center;
-    font-family: 'Tfont';
-    color: white;
-    background-image: url(${sectionBg});
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: contain;
-  `;
 
   return (
     <TimelineItem>
@@ -70,7 +58,7 @@ const TimelineStep: React.FC<{
               </IconButton>
             </Box>
           )}
-          <Title>{label}</Title>
+          <BookTitle>{label}</BookTitle>
           {children}
           {id !== 6 && id === showingTab && (
             <Box sx={{ textAlign: 'center', pb: 1 }}>

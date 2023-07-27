@@ -6,10 +6,13 @@ import {
   incrementAttribute,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import styled from '@emotion/styled';
+import { useTheme } from '@mui/material';
 import AttributeInputButton from './AttributeInputButton';
+
+import border from '../../../../../assets/images/fndBorder.svg';
 
 type Props = {
   attribute: Attribute;
@@ -17,25 +20,43 @@ type Props = {
 
 const AttributeInput = ({ attribute }: Props) => {
   const dispatch = useAppDispatch();
+  const theme = useTheme();
   const attributeValue = useAppSelector(selectAttribute(attribute));
+
+  const AttributeLabel = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    width: 120px;
+    height: 120px;
+    text-align: center;
+    color: ${theme.palette.primary.main};
+    background-image: url(${border});
+    background-size: fill;
+    background-repeat: no-repeat;
+    background-position: center;
+    font-size: 3rem;
+    font-family: 'Tfont';
+  `;
+
   return (
     <div className='flex flex-col items-center mb-6'>
-      <label className='text-sm mb-2' htmlFor={`${attribute}-input`}>
-        {Translator.getAttributeTranslation(attribute)}
-      </label>
-      <div className='flex flex-row'>
+      <h3 className='mb-2'>{Translator.getAttributeTranslation(attribute)}</h3>
+      <div className='flex flex-col items-center'>
         <AttributeInputButton
           onClick={() => dispatch(decrementAttribute(attribute))}
         >
           <RemoveIcon />
         </AttributeInputButton>
-        <TextField
+        {/* <TextField
           disabled
           type='number'
           value={attributeValue}
           id={`${attribute}-input`}
           sx={{ width: '80px' }}
-        />
+        /> */}
+        <AttributeLabel>{attributeValue}</AttributeLabel>
         <AttributeInputButton
           onClick={() => dispatch(incrementAttribute(attribute))}
         >

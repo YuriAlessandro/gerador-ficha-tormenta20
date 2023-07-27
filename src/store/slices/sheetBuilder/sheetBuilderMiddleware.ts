@@ -24,7 +24,11 @@ import {
 } from './sheetBuilderSliceInitialAttributes';
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
-import { updatePreview } from './sheetBuilderSliceSheetPreview';
+import {
+  Attacks,
+  updateAttacks,
+  updatePreview,
+} from './sheetBuilderSliceSheetPreview';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -44,7 +48,8 @@ startListening({
         updatePreview,
         setFormError,
         resetFormAlert,
-        setFormSuccess
+        setFormSuccess,
+        updateAttacks
       )(action);
     return shouldTrigger;
   },
@@ -95,6 +100,18 @@ startListening({
           armor: new LeatherArmor(),
           money: serializedInitialEquipment.money,
         });
+      }
+
+      if (serializedRace && serializedRole && serializedOrigin) {
+        const attacks: Attacks[] = [];
+        sheet.getAttacks().forEach((attack, name) => {
+          attacks.push({
+            name,
+            details: attack.serialize(sheet, new OutOfGameContext()),
+          });
+        });
+
+        api.dispatch(updateAttacks(attacks));
       }
 
       api.dispatch(updatePreview(serializer.serialize(sheet)));

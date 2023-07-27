@@ -2,7 +2,7 @@ import {
   resetFormAlert,
   selectFormAlert,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { Alert, Snackbar, useTheme } from '@mui/material';
+import { Alert, Box, Snackbar, useTheme } from '@mui/material';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
@@ -98,9 +98,12 @@ const SheetBuilderForm = () => {
               onChangeStep={onChangeStep}
               showingTab={showingTab}
             >
-              {id === showingTab && <Component />}
-
-              {id !== showingTab && <Label>{label}</Label>}
+              <Box sx={{ display: id === showingTab ? 'block' : 'none' }}>
+                <Component />
+              </Box>
+              <Box sx={{ display: id !== showingTab ? 'block' : 'none' }}>
+                <Label>{label}</Label>
+              </Box>
             </TimelineStep>
           ))}
         </div>

@@ -20,6 +20,7 @@ type Props = {
 };
 
 const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
+  console.log(benefits);
   const options: Option<OriginBenefitOption>[] = [
     ...benefits.generalPowers.map((power) => ({
       label: Translator.getPowerTranslation(power),

@@ -1,23 +1,16 @@
-import {
-  AppBar,
-  Box,
-  Button,
-  Card,
-  Container,
-  Tab,
-  Tabs,
-  useTheme,
-} from '@mui/material';
+import { Box, Fab, useTheme } from '@mui/material';
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 
 const SheetBuilderPage: React.FC = () => {
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState(0);
   const theme = useTheme();
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (newValue: number) => {
     setValue(newValue);
   };
 
@@ -26,42 +19,41 @@ const SheetBuilderPage: React.FC = () => {
     color: ${theme.palette.primary.main};
   `;
 
+  const FabDiv = styled.div`
+    margin: 0px;
+    top: auto;
+    right: 20px;
+    bottom: 20px;
+    left: auto;
+    position: fixed;
+    z-index: 10;
+  `;
+
   return (
-    <div>
+    <div style={{ maxWidth: '1920px', margin: '0 auto' }}>
+      <FabDiv>
+        {value === 0 && (
+          <Fab color='primary' variant='extended' onClick={() => setValue(1)}>
+            <EditIcon sx={{ mr: 1 }} />
+            Editar Ficha
+          </Fab>
+        )}
+        {value === 1 && (
+          <Fab color='primary' variant='extended' onClick={() => setValue(0)}>
+            <VisibilityIcon sx={{ mr: 1 }} />
+            Visualizar Ficha
+          </Fab>
+        )}
+      </FabDiv>
       <Box sx={{ p: 5 }}>
-        <Title>Criar nova ficha</Title>
-        <AppBar position='static' sx={{ alignContent: 'center' }}>
-          <Tabs value={value} onChange={handleChange} variant='fullWidth'>
-            <Tab label='Ficha' id='tab1' />
-            <Tab label='Editar' id='tab2' />
-          </Tabs>
-        </AppBar>
+        <Title>Gerenciar Ficha</Title>
       </Box>
-      {value === 0 && <SheetPreview />}
-      {value === 1 && (
-        <div>
-          <SheetBuilderForm />
-          <Container>
-            <Card
-              sx={{
-                width: '50%',
-                display: 'flex',
-                justifyContent: 'center',
-                p: 3,
-                mb: 2,
-              }}
-            >
-              <Button
-                variant='contained'
-                color='primary'
-                onClick={() => setValue(0)}
-              >
-                Visualizar Ficha
-              </Button>
-            </Card>
-          </Container>
-        </div>
-      )}
+      <Box sx={{ display: value === 0 ? 'block' : 'none' }}>
+        <SheetPreview handleChange={handleChange} />
+      </Box>
+      <Box sx={{ display: value === 1 ? 'block' : 'none' }}>
+        <SheetBuilderForm />
+      </Box>
     </div>
   );
 };

@@ -19,6 +19,8 @@ import RacesSelect from './RacesSelect';
 import SheetBuilderFormStepRaceDefinitionDahllan from './SheetBuilderFormStepRaceDefinitionDahllan/SheetBuilderFormStepRaceDefinitionDahllan';
 import SheetBuilderFormStepRaceDefinitionDwarf from './SheetBuilderFormStepRaceDefinitionDwarf/SheetBuilderFormStepRaceDefinitionDwarf';
 import SheetBuilderFormStepRaceDefinitionHuman from './SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
+import SheetBuildFormStepRaceDefinitionElf from './SheetBuildFormStepRaceDefinitionElf/SheetBuildFormStepRaceDefinitionElf';
+import SheetBuildFormStepRaceDefinitionGoblin from './SheetBuildFormStepRaceDefinitionGoblin/SheetBuildFormStepRaceDefinitionGoblin';
 
 export type RaceComponentProps = {
   attributesPreview: AttributePreview[];
@@ -30,6 +32,8 @@ const raceComponents: Record<RaceName, React.FC<RaceComponentProps>> = {
   [RaceName.dwarf]: SheetBuilderFormStepRaceDefinitionDwarf,
   [RaceName.human]: SheetBuilderFormStepRaceDefinitionHuman,
   [RaceName.dahllan]: SheetBuilderFormStepRaceDefinitionDahllan,
+  [RaceName.elf]: SheetBuildFormStepRaceDefinitionElf,
+  [RaceName.goblin]: SheetBuildFormStepRaceDefinitionGoblin,
 };
 
 const SheetBuilderFormStepRaceDefinition = () => {

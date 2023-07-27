@@ -1,5 +1,5 @@
-import { RaceName } from 't20-sheet-builder';
 import React from 'react';
+import { RaceName } from 't20-sheet-builder';
 import { Option } from '@/components/SheetBuilder/common/Option';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
@@ -19,6 +19,14 @@ const raceOptions: Record<RaceName, Option<RaceName>> = {
   dahllan: {
     label: 'Dahllan',
     value: RaceName.dahllan,
+  },
+  elf: {
+    label: 'Elfo',
+    value: RaceName.elf,
+  },
+  goblin: {
+    label: 'Goblin',
+    value: RaceName.goblin,
   },
 };
 

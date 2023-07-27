@@ -5,52 +5,83 @@ import {
   selectPreviewGeneralPowers,
   selectPreviewOriginPowers,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import SheetPreviewAbility from './SheetPreviewAbility';
-import SheetPreviewList from './SheetPreviewList';
+import { Box, Stack, useTheme } from '@mui/material';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import styled from '@emotion/styled';
+import BookTitle from '../common/BookTitle';
 
 const SheetPreviewPowers = () => {
+  const theme = useTheme();
   const generalPowers = useSelector(selectPreviewGeneralPowers);
   const originPowers = useSelector(selectPreviewOriginPowers);
 
+  const Title = styled.h3`
+    font-family: 'Tfont';
+    color: ${theme.palette.primary.main};
+  `;
+
+  const Name = styled.span`
+    color: ${theme.palette.primary.main};
+  `;
+
   return (
-    <div className='flex flex-col md:flex-row gap-4 md:gap-12'>
-      <div className='flex-1'>
-        <h3 className='font-semibold mb-6'>Poderes gerais</h3>
-        <SheetPreviewList
-          emptyText='Nenhum poder geral.'
-          isEmpty={generalPowers.length === 0}
-          list={
-            <ul className='flex flex-col gap-6'>
-              {generalPowers.map((power) => (
-                <SheetPreviewAbility
-                  ability={power}
-                  translatedName={Translator.getPowerTranslation(power.name)}
-                  key={power.name}
-                />
-              ))}
-            </ul>
-          }
-        />
-      </div>
-      <div className='flex-1'>
-        <h3 className='font-semibold mb-6'>Poderes de Origem</h3>
-        <SheetPreviewList
-          emptyText='Nenhum poder de origem.'
-          isEmpty={originPowers.length === 0}
-          list={
-            <ul className='flex flex-col gap-6'>
-              {originPowers.map((power) => (
-                <SheetPreviewAbility
-                  ability={power}
-                  translatedName={Translator.getPowerTranslation(power.name)}
-                  key={power.name}
-                />
-              ))}
-            </ul>
-          }
-        />
-      </div>
-    </div>
+    <>
+      <BookTitle>Poderes</BookTitle>
+      {generalPowers.length === 0 && originPowers.length === 0 && (
+        <p>Nenhum poder.</p>
+      )}
+      <Stack spacing={2}>
+        {generalPowers.length !== 0 && (
+          <Box>
+            <Title>Poderes Gerais</Title>
+            {generalPowers.map((power) => (
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls='panel1a-content'
+                  id='panel1a-header'
+                >
+                  <Name>{Translator.getPowerTranslation(power.name)}</Name>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {power.effects.map((effect) => (
+                    <p key={effect.description} className='text-sm mb-1'>
+                      {effect.description}
+                    </p>
+                  ))}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+        {originPowers.length !== 0 && (
+          <Box>
+            <Title>Poderes de Origem</Title>
+            {originPowers.map((power) => (
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  aria-controls='panel1a-content'
+                  id='panel1a-header'
+                >
+                  <Name>{Translator.getPowerTranslation(power.name)}</Name>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {power.effects.map((effect) => (
+                    <p key={effect.description} className='text-sm mb-1'>
+                      {effect.description}
+                    </p>
+                  ))}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+      </Stack>
+    </>
   );
 };
 

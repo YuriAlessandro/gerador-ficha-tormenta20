@@ -1,26 +1,21 @@
 import { useSelector } from 'react-redux';
 import React from 'react';
 import { selectPreviewSpells } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import SheetPreviewList from './SheetPreviewList';
+import { Box } from '@mui/material';
 import SheetPreviewSpell from './SheetPreviewSpell';
+import BookTitle from '../common/BookTitle';
 
 const SheetPreviewSpells = () => {
   const spells = useSelector(selectPreviewSpells);
 
   return (
-    <div>
-      <SheetPreviewList
-        emptyText='Nenhuma magia.'
-        isEmpty={spells.length === 0}
-        list={
-          <ul className='flex flex-col justify-center gap-3'>
-            {spells.map((spell) => (
-              <SheetPreviewSpell key={spell.name} spell={spell} />
-            ))}
-          </ul>
-        }
-      />
-    </div>
+    <Box>
+      <BookTitle>Magias</BookTitle>
+      {spells.length === 0 && <p>Nenhuma magia.</p>}
+      {spells.map((spell) => (
+        <SheetPreviewSpell key={spell.name} spell={spell} />
+      ))}
+    </Box>
   );
 };
 

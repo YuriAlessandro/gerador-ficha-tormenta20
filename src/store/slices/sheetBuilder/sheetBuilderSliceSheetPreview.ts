@@ -1,14 +1,26 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   BuildingSheet,
+  EquipmentName,
   OutOfGameContext,
+  SerializedAttack,
+  SerializedModifier,
   SerializedSheetInterface,
   SheetSerializer,
 } from 't20-sheet-builder';
 import { RootState } from '../..';
 
+export interface Attacks {
+  name: EquipmentName;
+  details: {
+    attack: SerializedAttack;
+    modifiers: SerializedModifier[];
+  };
+}
+
 export interface SheetBuilderSheetPreviewState {
   preview: SerializedSheetInterface;
+  attacks?: Attacks[];
 }
 
 const sheet = new BuildingSheet();
@@ -25,13 +37,19 @@ export const sheetBuilderSliceSheetPreview = createSlice({
     updatePreview(state, action: PayloadAction<SerializedSheetInterface>) {
       state.preview = action.payload;
     },
+    updateAttacks(state, action: PayloadAction<Attacks[]>) {
+      state.attacks = action.payload;
+    },
   },
 });
 
-export const { updatePreview } = sheetBuilderSliceSheetPreview.actions;
+export const { updatePreview, updateAttacks } =
+  sheetBuilderSliceSheetPreview.actions;
 
 const selectSheetPreview = (state: RootState) =>
   state.sheetBuilder.sheet.preview;
+export const selectSheetAttacks = (state: RootState) =>
+  state.sheetBuilder.sheet.attacks;
 
 export const selectPreviewAttributes = (state: RootState) =>
   selectSheetPreview(state).attributes;
