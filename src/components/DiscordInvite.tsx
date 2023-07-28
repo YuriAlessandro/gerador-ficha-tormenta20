@@ -40,7 +40,11 @@ const DiscordInvite = () => {
           </p>
           <p>
             Link:{' '}
-            <a href='discord.gg/VczZEjv7sX' target='_blank'>
+            <a
+              href='https://discord.gg/VczZEjv7sX'
+              rel='noreferrer'
+              target='_blank'
+            >
               discord.gg/VczZEjv7sX
             </a>
           </p>
