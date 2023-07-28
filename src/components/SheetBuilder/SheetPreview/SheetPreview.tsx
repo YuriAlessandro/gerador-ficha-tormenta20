@@ -11,10 +11,16 @@ import {
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 
 import SheetViewer from '@/components/SheetViewer';
+import {
+  selectPreviewImage,
+  selectPreviewName,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 
 const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
   handleChange,
 }) => {
+  const name = useSelector(selectPreviewName);
+  const image = useSelector(selectPreviewImage);
   const raceName = useSelector(selectPreviewRaceName);
   const roleName = useSelector(selectPreviewRoleName);
   const originName = useSelector(selectPreviewOriginName);
@@ -43,6 +49,8 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
       displacement={displacement}
       level={level}
       title={getTitle()}
+      name={name}
+      image={image}
     />
   );
 };

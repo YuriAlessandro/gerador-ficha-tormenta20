@@ -28,6 +28,8 @@ interface Props {
   title: string;
   level: number;
   displacement: number;
+  name: string;
+  image: string;
 }
 
 const SheetViewer: React.FC<Props> = ({
@@ -36,6 +38,8 @@ const SheetViewer: React.FC<Props> = ({
   title,
   level,
   displacement,
+  name,
+  image,
 }) => {
   const theme = useTheme();
   const isScreen = useMediaQuery('(min-width: 720px)');
@@ -67,12 +71,16 @@ const SheetViewer: React.FC<Props> = ({
                     width: '150px',
                     height: '200px',
                     backgroundColor: 'lightgray',
+                    backgroundImage: `url(${image})`,
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'contain',
                     border: `2px solid ${theme.palette.primary.main}`,
                     cursor: 'pointer',
                   }}
                 />
                 <Stack direction='column'>
-                  <LabelDisplay text='NOME_PERSONAGEM' size='large' />
+                  <LabelDisplay text={name} size='large' />
                   <Box sx={{ mt: 1 }}>
                     <LabelDisplay text={title} size='medium' />
                     <Stack direction='row' spacing={1} alignItems='center'>

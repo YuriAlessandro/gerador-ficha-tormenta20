@@ -16,6 +16,7 @@ import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceSte
 import ConfirmButton from '../../ConfirmButton';
 import SimpleWeaponSelect from './SimpleWeaponSelect';
 import MartialWeaponSelect from './MartialWeaponSelect';
+import DefensiveWeaponSelect from './DefenseEquipmentSelect';
 
 const defaultEquipment = [
   EquipmentName.backpack,
@@ -28,8 +29,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     useState<SimpleWeaponName>();
   const [selectedMartialWeapon, setSelectedMartialWeapon] =
     useState<MartialWeaponName>();
-  // const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
-  const [selectedArmor] = useState<EquipmentName>();
+  const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
 
   const dispatch = useDispatch();
   const role = useSelector(selectPreviewRoleName);
@@ -56,6 +56,14 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
 
   const hasMartialWeaponProficiency = proficiencies.find(
     (proficiency) => Proficiency.martial === proficiency
+  );
+
+  const hasLightArmorProficiency = proficiencies.find(
+    (proficiency) => Proficiency.lightArmor === proficiency
+  );
+
+  const hasHeavyArmorProficiency = proficiencies.find(
+    (proficiency) => Proficiency.heavyArmor === proficiency
   );
 
   return (
@@ -87,6 +95,27 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
                 }}
               />
             )}
+            <DefensiveWeaponSelect
+              setSelected={(selected) => {
+                dispatch(
+                  setOptionReady({
+                    key: 'isEquipmentReady',
+                    value: 'pending',
+                  })
+                );
+                setSelectedArmor(selected);
+              }}
+              hasLightArmorProficiency={
+                hasLightArmorProficiency
+                  ? hasLightArmorProficiency.length > 0
+                  : false
+              }
+              hasHeavyArmorProficiency={
+                hasHeavyArmorProficiency
+                  ? hasHeavyArmorProficiency.length > 0
+                  : false
+              }
+            />
             <ConfirmButton confirm={confirm} />
           </div>
         ) : (

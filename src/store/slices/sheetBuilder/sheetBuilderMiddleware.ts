@@ -1,7 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import SheetBuilder, {
   BuildingSheet,
-  Devotion,
+  // Devotion,
   LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
@@ -66,7 +66,7 @@ startListening({
         race: { race: serializedRace },
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
-        devotion,
+        // devotion,
         initialEquipment: serializedInitialEquipment,
         intelligenceSkills,
       } = api.getState().sheetBuilder;
@@ -96,9 +96,9 @@ startListening({
         sheetBuilder.trainIntelligenceSkills(intelligenceSkills.skills);
       }
 
-      if (devotion) {
-        sheetBuilder.addDevotion(devotion.deity as Devotion);
-      }
+      // if (devotion) {
+      //   sheetBuilder.addDevotion(devotion.deity as Devotion);
+      // }
 
       if (serializedInitialEquipment.simpleWeapon) {
         sheetBuilder.addInitialEquipment({
