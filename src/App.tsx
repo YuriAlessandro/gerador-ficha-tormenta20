@@ -27,6 +27,7 @@ import Database from './components/screens/Database';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
 import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import store from './store';
+import DiscordInvite from './components/DiscordInvite';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 const lightTheme = {
@@ -275,6 +276,7 @@ function App(): JSX.Element {
                 </Toolbar>
               </AppBar>
             </header>
+            <DiscordInvite />
             <div className='mainArea'>
               <Switch>
                 <Route path='/changelog'>
