@@ -1,8 +1,9 @@
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React from 'react';
 import { Goblin, RaceName } from 't20-sheet-builder';
 import ConfirmButton from '../../../ConfirmButton';
-import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
+import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 
 const SheetBuildFormStepRaceDefinitionGoblin: React.FC<RaceComponentProps> = ({
   confirmRace,
@@ -14,9 +15,8 @@ const SheetBuildFormStepRaceDefinitionGoblin: React.FC<RaceComponentProps> = ({
       name: RaceName.goblin,
     });
 
-  const confirmDwarf = () => {
-    confirmRace(makeDwarf, createSubmitAction);
-  };
+  const confirmDwarf = () =>
+    confirmRace(makeDwarf, createSubmitAction, 'isRaceReady');
 
   return (
     <div>

@@ -37,7 +37,7 @@
     "react-transition-group": "^4.4.2",
     "redux": "^4.2.1",
     "regenerator-runtime": "^0.13.9",
-    "t20-sheet-builder": "^1.8.0",
+    "t20-sheet-builder": "^1.9.3",
     "typescript": "^4.1.2",
     "uuid": "^8.3.2",
     "web-vitals": "^1.1.0"

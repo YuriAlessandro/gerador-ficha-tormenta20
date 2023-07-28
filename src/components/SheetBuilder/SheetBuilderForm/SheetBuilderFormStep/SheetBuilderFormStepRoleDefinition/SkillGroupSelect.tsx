@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { SelectSkillGroup, SkillName, Translator } from 't20-sheet-builder';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 type Props = {
@@ -19,12 +20,13 @@ const SkillGroupSelect = ({
     value: skill,
     label: Translator.getSkillTranslation(skill),
   }));
-
+  const dispatch = useDispatch();
   const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
 
   const [selectedAmount, setSelectedAmount] = useState(0);
 
   const onChangeSkill = (newValues: any) => {
+    dispatch(setOptionReady({ key: 'isRoleReady', value: 'pending' }));
     setSelectedAmount(newValues.length);
 
     if (newValues.length === 1) {

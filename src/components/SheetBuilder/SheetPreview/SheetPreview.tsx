@@ -7,6 +7,7 @@ import {
   selectPreviewRaceName,
   selectPreviewRoleName,
   selectPreviewDisplacement,
+  // selectPreviewDevotion,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 
 import SheetViewer from '@/components/SheetViewer';
@@ -19,6 +20,7 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
   const originName = useSelector(selectPreviewOriginName);
   const level = useSelector(selectPreviewLevel);
   const displacement = useSelector(selectPreviewDisplacement);
+  // const devotion = useSelector(selectPreviewDevotion);
 
   const getTitle = () => {
     const translatedRaceName =

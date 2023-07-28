@@ -91,6 +91,11 @@ const SheetViewer: React.FC<Props> = ({
                       </Button>
                     </Stack>
                     <LabelDisplay
+                      title='Divindade'
+                      text='DEVOTION_NAME'
+                      size='small'
+                    />
+                    <LabelDisplay
                       title='Deslocamento'
                       text={`${displacement}m`}
                       size='small'

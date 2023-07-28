@@ -1,9 +1,9 @@
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React from 'react';
 import { Elf, RaceName } from 't20-sheet-builder';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import ConfirmButton from '../../../ConfirmButton';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
+import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 
 const SheetBuildFormStepRaceDefinitionElf: React.FC<RaceComponentProps> = ({
   confirmRace,
@@ -16,7 +16,7 @@ const SheetBuildFormStepRaceDefinitionElf: React.FC<RaceComponentProps> = ({
     });
 
   const confirmDwarf = () => {
-    confirmRace(makeDwarf, createSubmitAction);
+    confirmRace(makeDwarf, createSubmitAction, 'isRaceReady');
   };
 
   return (

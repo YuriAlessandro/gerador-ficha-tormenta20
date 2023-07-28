@@ -12,6 +12,7 @@ import {
   selectPreviewRoleName,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import ConfirmButton from '../../ConfirmButton';
 import SimpleWeaponSelect from './SimpleWeaponSelect';
 import MartialWeaponSelect from './MartialWeaponSelect';
@@ -37,6 +38,12 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
   const confirm = () => {
     if (!selectedSimpleWeapon) return;
     dispatch(
+      setOptionReady({
+        key: 'isEquipmentReady',
+        value: 'confirmed',
+      })
+    );
+    dispatch(
       submitInitialEquipment({
         simpleWeapon: { name: selectedSimpleWeapon },
         martialWeapon: selectedMartialWeapon
@@ -55,13 +62,29 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     <div>
       <div className='mb-6'>
         {role ? (
-          <div className='flex flex-col'>
+          <div>
             <SimpleWeaponSelect
-              setSelected={(selected) => setSelectedSimpleWeapon(selected)}
+              setSelected={(selected) => {
+                dispatch(
+                  setOptionReady({
+                    key: 'isEquipmentReady',
+                    value: 'pending',
+                  })
+                );
+                setSelectedSimpleWeapon(selected);
+              }}
             />
             {hasMartialWeaponProficiency && (
               <MartialWeaponSelect
-                setSelected={(selected) => setSelectedMartialWeapon(selected)}
+                setSelected={(selected) => {
+                  dispatch(
+                    setOptionReady({
+                      key: 'isEquipmentReady',
+                      value: 'pending',
+                    })
+                  );
+                  setSelectedMartialWeapon(selected);
+                }}
               />
             )}
             <ConfirmButton confirm={confirm} />

@@ -40,16 +40,14 @@ const SheetPreviewAtacks = () => {
     criticalMultiplier: number
   ) => {
     // For now, lets use only fight. But in the future we need to indity if it is a ranged attack and use shoot instead
-    const fightSkill = Object.entries(skills).find(
-      ([skill, _]) => skill === 'fight'
-    );
+    const fightSkill = skills.fight;
 
     const forceAttribute = Object.entries(attributes).find(
       ([attribute, _]) => attribute === 'strength'
     );
 
     if (fightSkill && forceAttribute) {
-      const bonus = fightSkill[1].total;
+      const bonus = fightSkill.total;
       // Damage bonus for melee attacks is the same as the force attribute
       const damageBonus = forceAttribute[1];
       const rollAttack = rollDice(1, 20);

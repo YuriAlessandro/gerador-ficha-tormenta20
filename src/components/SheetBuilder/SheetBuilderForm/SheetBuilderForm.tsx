@@ -11,6 +11,8 @@ import HistoryToggleOffIcon from '@mui/icons-material/HistoryToggleOff';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import CasinoIcon from '@mui/icons-material/Casino';
 import FaceIcon from '@mui/icons-material/Face';
+import ChurchIcon from '@mui/icons-material/Church';
+import AccessibilityNewRoundedIcon from '@mui/icons-material/AccessibilityNewRounded';
 import { Timeline } from '@mui/lab';
 import styled from '@emotion/styled';
 import SheetBuilderFormStepAttributesDefinition from './SheetBuilderFormStep/SheetBuilderFormStepAttributesDefinition/SheetBuilderFormStepAttributesDefinition';
@@ -21,6 +23,8 @@ import SheetBuilderFormStepRaceDefinition from './SheetBuilderFormStep/SheetBuil
 import SheetBuilderFormStepRoleDefinition from './SheetBuilderFormStep/SheetBuilderFormStepRoleDefinition/SheetBuilderFormStepRoleDefinition';
 
 import TimelineStep from './TimelineStep';
+import SheetBuilderFormStepDevotionDefinition from './SheetBuilderFormStep/SheetBuilderFormStepDevotionDefinition/SheetBuilderFormStepDevotionDefinition';
+import SheetBuilderFinalTouches from './SheetBuilderFormStep/SheetBuilderFinalTouches/SheetBuilderFinalTouches';
 
 const steps = [
   {
@@ -28,40 +32,62 @@ const steps = [
     label: 'Atributos Iniciais',
     Component: SheetBuilderFormStepAttributesDefinition,
     Icon: <CasinoIcon />,
+    stepConfirmedKey: 'isAttrReady',
   },
   {
     id: 2,
     label: 'Raça',
     Component: SheetBuilderFormStepRaceDefinition,
     Icon: <FaceIcon />,
+    stepConfirmedKey: 'isRaceReady',
   },
   {
     id: 3,
     label: 'Classe',
     Component: SheetBuilderFormStepRoleDefinition,
     Icon: <ConstructionIcon />,
+    stepConfirmedKey: 'isRoleReady',
   },
   {
     id: 4,
     label: 'Origem',
     Component: SheetBuilderFormStepOriginDefinition,
     Icon: <HistoryToggleOffIcon />,
+    stepConfirmedKey: 'isOriginReady',
   },
   {
     id: 5,
-    label: 'Perícias de Int',
-    Component: SheetBuilderFormStepIntelligenceSkillsTraining,
-    Icon: <AddBoxIcon />,
+    label: 'Divindade',
+    Component: SheetBuilderFormStepDevotionDefinition,
+    Icon: <ChurchIcon />,
+    stepConfirmedKey: 'isDevotionReady',
   },
   {
     id: 6,
+    label: 'Perícias de Int',
+    Component: SheetBuilderFormStepIntelligenceSkillsTraining,
+    Icon: <AddBoxIcon />,
+    stepConfirmedKey: 'isIntelligenceSkillsReady',
+  },
+  {
+    id: 7,
     label: 'Equipamento',
     Component: SheetBuilderFormStepEquipmentDefinition,
     Icon: <ShoppingBagIcon />,
+    stepConfirmedKey: 'isEquipmentReady',
   },
-];
+  {
+    id: 8,
+    label: 'Toques finais',
+    Component: SheetBuilderFinalTouches,
+    Icon: <AccessibilityNewRoundedIcon />,
+    stepConfirmedKey: 'isFinalTouchesReady',
+  },
+] as const;
 
-const SheetBuilderForm = () => {
+const SheetBuilderForm: React.FC<{ onFinishBuild: () => void }> = ({
+  onFinishBuild,
+}) => {
   const [showingTab, setShowingTab] = React.useState(1);
   const alert = useSelector(selectFormAlert);
   const dispatch = useDispatch();
@@ -91,7 +117,7 @@ const SheetBuilderForm = () => {
       </Snackbar>
       <Timeline position='right'>
         <div>
-          {steps.map(({ Component, id, label, Icon }) => (
+          {steps.map(({ Component, id, label, Icon, stepConfirmedKey }) => (
             <TimelineStep
               key={id}
               label={id !== showingTab ? '' : label}
@@ -99,9 +125,10 @@ const SheetBuilderForm = () => {
               id={id}
               onChangeStep={onChangeStep}
               showingTab={showingTab}
+              stepConfirmedKey={stepConfirmedKey}
             >
               <Box sx={{ display: id === showingTab ? 'block' : 'none' }}>
-                <Component />
+                <Component onFinishBuild={onFinishBuild} />
               </Box>
               <Box sx={{ display: id !== showingTab ? 'block' : 'none' }}>
                 <Label>{label}</Label>

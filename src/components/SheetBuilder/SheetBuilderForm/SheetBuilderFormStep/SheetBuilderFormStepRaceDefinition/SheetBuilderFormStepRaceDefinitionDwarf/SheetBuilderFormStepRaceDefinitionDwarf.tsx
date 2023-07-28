@@ -16,7 +16,7 @@ const SheetBuilderFormStepRaceDefinitionDwarf: React.FC<RaceComponentProps> = ({
     });
 
   const confirmDwarf = () => {
-    confirmRace(makeDwarf, createSubmitAction);
+    confirmRace(makeDwarf, createSubmitAction, 'isRaceReady');
   };
 
   return (

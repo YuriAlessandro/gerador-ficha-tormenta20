@@ -10,6 +10,7 @@ import {
   RaceName,
   Races,
 } from 't20-sheet-builder';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -66,6 +67,7 @@ const SheetBuilderFormStepRaceDefinition = () => {
   };
 
   const changeRace = (selectedRace?: RaceName) => {
+    dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
     setRace(selectedRace);
     resetState();
 

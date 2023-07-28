@@ -70,7 +70,15 @@ const SheetBuilderPage: React.FC = () => {
         <Box sx={{ p: 5 }}>
           <Title>Editar Ficha</Title>
         </Box>
-        <SheetBuilderForm />
+        <SheetBuilderForm
+          onFinishBuild={() => {
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth',
+            });
+            setValue(0);
+          }}
+        />
       </Box>
     </>
   );

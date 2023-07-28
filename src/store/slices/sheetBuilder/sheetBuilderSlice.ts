@@ -6,6 +6,9 @@ import { sheetBuilderSliceSheetPreview } from './sheetBuilderSliceSheetPreview';
 import { sheetBuilderSliceForm } from './sheetBuilderSliceForm';
 import { sheetBuilderSliceOriginDefinition } from './sheetBuilderSliceOriginDefinition';
 import { sheetBuilderSliceInitialEquipment } from './sheetBuilderSliceInitialEquipment';
+import { sheetBuilderSliceStepConfirmed } from './sheetBuilderSliceStepConfirmed';
+import { sheetBuilderSliceintelligenceSkills } from './sheetBuilderSliceIntelligenceSkills';
+import { sheetBuilderSliceDevotionDefinition } from './sheetBuilderSliceDevotionDefinition';
 
 export const sheetBuilderReducer = combineReducers({
   initialAttributes: sheetBuilderSliceInitialAttributes.reducer,
@@ -15,4 +18,7 @@ export const sheetBuilderReducer = combineReducers({
   initialEquipment: sheetBuilderSliceInitialEquipment.reducer,
   sheet: sheetBuilderSliceSheetPreview.reducer,
   form: sheetBuilderSliceForm.reducer,
+  devotion: sheetBuilderSliceDevotionDefinition.reducer,
+  stepConfirmed: sheetBuilderSliceStepConfirmed.reducer,
+  intelligenceSkills: sheetBuilderSliceintelligenceSkills.reducer,
 });

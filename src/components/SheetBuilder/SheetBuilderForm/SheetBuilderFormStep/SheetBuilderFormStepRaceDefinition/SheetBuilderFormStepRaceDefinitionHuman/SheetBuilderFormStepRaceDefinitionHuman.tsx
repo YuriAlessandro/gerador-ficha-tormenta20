@@ -16,6 +16,8 @@ import {
   VersatileChoiceFactory,
   VersatileChoiceType,
 } from 't20-sheet-builder';
+import { useDispatch } from 'react-redux';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
 import SheetBuilderFormStepRaceDefinitionHumanVersatile from './SheetBuilderFormStepRaceDefinitionHumanVersatile';
@@ -26,6 +28,7 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   setAttributeModifiers,
   confirmRace,
 }) => {
+  const dispatch = useDispatch();
   const [firstVersatileOption, setFirstVersatileOption] =
     React.useState<SkillName>();
   const [secondVersatileOption, setSecondVersatileOption] = React.useState<
@@ -50,6 +53,7 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
 
   const toggleAttribute = useCallback(
     (attribute: Attribute) => {
+      dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
       const updated = {
         ...attributeCheckboxes,
         [attribute]: !attributeCheckboxes[attribute],
@@ -119,12 +123,14 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
         setSecondVersatileOptionType={setSecondVersatileOptionType}
       />
       <ConfirmButton
-        confirm={() =>
+        confirm={() => {
+          dispatch(setOptionReady({ key: 'isRaceReady', value: 'confirmed' }));
           confirmRace<Race, SerializedRace, PayloadAction<SerializedRace>>(
             makeHuman,
-            createSubmitAction
-          )
-        }
+            createSubmitAction,
+            'isRaceReady'
+          );
+        }}
       />
     </div>
   );

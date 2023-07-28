@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import styled from '@emotion/styled';
 import { useTheme } from '@mui/material';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import AttributeInputButton from './AttributeInputButton';
 
 import border from '../../../../../assets/images/fndBorder.svg';
@@ -40,13 +41,21 @@ const AttributeInput = ({ attribute }: Props) => {
     font-family: 'Tfont';
   `;
 
+  const onClickDecrement = () => {
+    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
+    dispatch(decrementAttribute(attribute));
+  };
+
+  const onClickIncrement = () => {
+    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
+    dispatch(incrementAttribute(attribute));
+  };
+
   return (
     <div className='flex flex-col items-center mb-6'>
       <h3 className='mb-2'>{Translator.getAttributeTranslation(attribute)}</h3>
       <div className='flex flex-col items-center'>
-        <AttributeInputButton
-          onClick={() => dispatch(decrementAttribute(attribute))}
-        >
+        <AttributeInputButton onClick={onClickDecrement}>
           <RemoveIcon />
         </AttributeInputButton>
         {/* <TextField
@@ -57,9 +66,7 @@ const AttributeInput = ({ attribute }: Props) => {
           sx={{ width: '80px' }}
         /> */}
         <AttributeLabel>{attributeValue}</AttributeLabel>
-        <AttributeInputButton
-          onClick={() => dispatch(incrementAttribute(attribute))}
-        >
+        <AttributeInputButton onClick={onClickIncrement}>
           <AddIcon />
         </AttributeInputButton>
       </div>

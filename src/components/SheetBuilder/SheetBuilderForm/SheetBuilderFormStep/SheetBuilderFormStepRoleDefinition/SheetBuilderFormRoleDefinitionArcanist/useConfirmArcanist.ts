@@ -28,7 +28,7 @@ export const useConfirmArcanist = (confirmRole: ConfirmFunction<Role>) => {
   };
 
   const confirmArcanist = () => {
-    confirmRole(makeArcanist, createSubmitAction);
+    confirmRole(makeArcanist, createSubmitAction, 'isRoleReady');
   };
 
   return {

@@ -1,9 +1,9 @@
+import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React from 'react';
 import { Dahllan, RaceName } from 't20-sheet-builder';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
-import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
+import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 
 const SheetBuilderFormStepRaceDefinitionDahllan: React.FC<
   RaceComponentProps
@@ -15,7 +15,7 @@ const SheetBuilderFormStepRaceDefinitionDahllan: React.FC<
     });
 
   const confirmDahllan = () => {
-    confirmRace(makeDahllan, createSubmitAction);
+    confirmRace(makeDahllan, createSubmitAction, 'isRaceReady');
   };
 
   return (

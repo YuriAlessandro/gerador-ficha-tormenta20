@@ -1,6 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import SheetBuilder, {
   BuildingSheet,
+  Devotion,
   LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
@@ -29,6 +30,7 @@ import {
   updateAttacks,
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
+import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -49,7 +51,8 @@ startListening({
         setFormError,
         resetFormAlert,
         setFormSuccess,
-        updateAttacks
+        updateAttacks,
+        setOptionReady
       )(action);
     return shouldTrigger;
   },
@@ -63,7 +66,9 @@ startListening({
         race: { race: serializedRace },
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
+        devotion,
         initialEquipment: serializedInitialEquipment,
+        intelligenceSkills,
       } = api.getState().sheetBuilder;
 
       const sheet = new BuildingSheet();
@@ -85,6 +90,14 @@ startListening({
       if (serializedOrigin) {
         const origin = OriginFactory.makeFromSerialized(serializedOrigin);
         sheetBuilder.chooseOrigin(origin);
+      }
+
+      if (intelligenceSkills.skills.length > 0) {
+        sheetBuilder.trainIntelligenceSkills(intelligenceSkills.skills);
+      }
+
+      if (devotion) {
+        sheetBuilder.addDevotion(devotion.deity as Devotion);
       }
 
       if (serializedInitialEquipment.simpleWeapon) {

@@ -137,7 +137,7 @@ const AttackRollResult = forwardRef<HTMLDivElement, Props>(
                 </Box>
               </Stack>
               <Typography variant='body2'>
-                Rolagem de <strong>{props.message}</strong>
+                Ataque com <strong>{props.message}</strong>
               </Typography>
             </Stack>
           </CardActions>

@@ -1,11 +1,14 @@
 import { SpellCircle, Spells, Translator } from 't20-sheet-builder';
 import React from 'react';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import { useDispatch } from 'react-redux';
 import { useArcanistFormContext } from './SheetBuilderFormRoleDefinitionArcanistContext';
 
 const SheetBuilderFormRoleDefinitionArcanistInitialSpells = () => {
   const { setInitialSpells } = useArcanistFormContext();
   const [spellsAmount, setSpellsAmount] = React.useState(0);
+  const dispatch = useDispatch();
 
   return (
     <div>
@@ -19,6 +22,7 @@ const SheetBuilderFormRoleDefinitionArcanistInitialSpells = () => {
           }))}
         isMulti
         onChange={(options) => {
+          dispatch(setOptionReady({ key: 'isRoleReady', value: 'pending' }));
           setSpellsAmount(options.length);
           setInitialSpells(options.map(({ value }) => value));
         }}

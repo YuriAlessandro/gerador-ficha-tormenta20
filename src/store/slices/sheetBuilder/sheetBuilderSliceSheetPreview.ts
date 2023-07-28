@@ -85,7 +85,13 @@ export const selectPreviewGeneralPowers = (state: RootState) =>
   selectSheetPreview(state).generalPowers;
 export const selectPreviewOriginPowers = (state: RootState) =>
   selectSheetPreview(state).originPowers;
+export const selectPreviewGrantedPowers = (state: RootState) =>
+  selectSheetPreview(state).grantedPowers;
+export const selectPreviewGrantedPowersCount = (state: RootState) =>
+  selectSheetPreview(state).grantedPowersCount;
 export const selectPreviewInventory = (state: RootState) =>
   selectSheetPreview(state).equipments;
+export const selectPreviewDevotion = (state: RootState) =>
+  selectSheetPreview(state).devotion;
 
 export default sheetBuilderSliceSheetPreview;
