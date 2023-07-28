@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Attribute, Translator } from 't20-sheet-builder';
 import { Chip } from '@mui/material';

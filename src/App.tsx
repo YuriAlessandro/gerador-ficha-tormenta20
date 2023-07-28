@@ -28,7 +28,28 @@ import Database from './components/screens/Database';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
 import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import store from './store';
+import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
+import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 // import CreatureSheet from './components/screens/CreatureSheet';
+
+declare module 'notistack' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface VariantOverrides {
+    diceRoll: {
+      bonus: number;
+      rollResult: number;
+    };
+    attackRoll: {
+      rollResult: number;
+      bonus: number;
+      damage: number;
+      damageBonus: number;
+      dice: number;
+      diceQtd: number;
+      criticalThreat: number;
+    };
+  }
+}
 
 const lightTheme = {
   backgroundColor: '#f3f2f1',
@@ -191,6 +212,10 @@ function App(): JSX.Element {
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'center',
+        }}
+        Components={{
+          diceRoll: DiceRollResult,
+          attackRoll: AttackRollResult,
         }}
       >
         <Provider store={store}>

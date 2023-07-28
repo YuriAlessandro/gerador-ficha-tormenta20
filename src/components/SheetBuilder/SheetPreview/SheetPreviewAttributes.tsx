@@ -6,16 +6,15 @@ import styled from '@emotion/styled';
 import { useSnackbar } from 'notistack';
 import { rollDice } from '@/functions/randomUtils';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
-import { addSign, addSignForRoll } from '../common/StringHelper';
+import { addSign } from '../common/StringHelper';
 import FancyBox from '../common/FancyBox';
-import DiceRollerActions from '../common/DiceRollerActions';
 
 type Props = {
   attributes: Attributes;
 };
 
 const SheetPreviewAttributes = ({ attributes }: Props) => {
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
   const Title = styled.span`
     font-family: 'Tfont';
@@ -30,28 +29,16 @@ const SheetPreviewAttributes = ({ attributes }: Props) => {
 
   const onClickAttr = (attr: string, bonus: number) => {
     const rollResult = rollDice(1, 20);
-    const total = rollResult + bonus;
-
-    const action = (snackbarId: number) => (
-      <DiceRollerActions
-        snackbarId={snackbarId}
-        closeSnackbar={closeSnackbar}
-      />
-    );
-
-    let variant: 'default' | 'success' | 'error' = 'default';
-    if (rollResult === 20) variant = 'success';
-    if (rollResult === 1) variant = 'error';
 
     const audio = new Audio(diceSound);
     audio.play();
-    enqueueSnackbar(
-      `Rolagem de ${attr}: ${total} = ${rollResult}${addSignForRoll(bonus)}`,
-      {
-        action,
-        variant,
-      }
-    );
+
+    enqueueSnackbar(`${attr}`, {
+      variant: 'diceRoll',
+      persist: true,
+      bonus,
+      rollResult,
+    });
   };
 
   return (
@@ -61,7 +48,10 @@ const SheetPreviewAttributes = ({ attributes }: Props) => {
           attribute as Attribute
         );
         return (
-          <FancyBox onClick={() => onClickAttr(label, value)}>
+          <FancyBox
+            key={attribute as Attribute}
+            onClick={() => onClickAttr(label, value)}
+          >
             <NumberDisplay>{addSign(value)}</NumberDisplay>
             <Title>{label}</Title>
           </FancyBox>

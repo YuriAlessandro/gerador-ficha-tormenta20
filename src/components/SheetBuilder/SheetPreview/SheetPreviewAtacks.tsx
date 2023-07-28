@@ -18,15 +18,13 @@ import { rollDice } from '@/functions/randomUtils';
 import { useSnackbar } from 'notistack';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import BookTitle from '../common/BookTitle';
-import { addSignForRoll } from '../common/StringHelper';
-import DiceRollerActions from '../common/DiceRollerActions';
 
 const SheetPreviewAtacks = () => {
   const attacks = useSelector(selectSheetAttacks);
   const skills = useSelector(selectPreviewSkills);
   const attributes = useSelector(selectPreviewAttributes);
 
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
   const getAttackDamage = (attack: SerializedAttack) =>
     `${attack.damage.diceQuantity}d${attack.damage.diceSides}`;
@@ -34,7 +32,13 @@ const SheetPreviewAtacks = () => {
   const getAttackCritical = (attack: SerializedAttack) =>
     `${attack.critical.threat}/x${attack.critical.multiplier}`;
 
-  const onRollAttack = (attack: string, diceQtd: number, dice: number) => {
+  const onRollAttack = (
+    attack: string,
+    diceQtd: number,
+    dice: number,
+    criticalThreat: number,
+    criticalMultiplier: number
+  ) => {
     // For now, lets use only fight. But in the future we need to indity if it is a ranged attack and use shoot instead
     const fightSkill = Object.entries(skills).find(
       ([skill, _]) => skill === 'fight'
@@ -49,32 +53,24 @@ const SheetPreviewAtacks = () => {
       // Damage bonus for melee attacks is the same as the force attribute
       const damageBonus = forceAttribute[1];
       const rollAttack = rollDice(1, 20);
-      const rollDamage = rollDice(diceQtd, dice);
-      const total = rollAttack + bonus;
-      const totalDamage = rollDamage + damageBonus;
 
-      const action = (snackbarId: number) => (
-        <DiceRollerActions
-          snackbarId={snackbarId}
-          closeSnackbar={closeSnackbar}
-        />
-      );
+      const actualQtd =
+        rollAttack >= criticalThreat ? criticalMultiplier * diceQtd : 1;
 
-      let variant: 'default' | 'success' | 'error' = 'default';
-      if (rollAttack === 20) variant = 'success';
-      if (rollAttack === 1) variant = 'error';
+      const rollDamage = rollDice(actualQtd, dice);
 
       const audio = new Audio(diceSound);
       audio.play();
-      enqueueSnackbar(
-        `Ataque de ${attack}: ${total} = ${rollAttack}${addSignForRoll(
-          bonus
-        )}. Dano: ${totalDamage} = ${rollDamage}${addSignForRoll(damageBonus)}`,
-        {
-          action,
-          variant,
-        }
-      );
+      enqueueSnackbar(`${attack}`, {
+        variant: 'attackRoll',
+        damage: rollDamage,
+        damageBonus,
+        rollResult: rollAttack,
+        bonus,
+        diceQtd: actualQtd,
+        dice,
+        criticalThreat,
+      });
     }
   };
 
@@ -87,9 +83,15 @@ const SheetPreviewAtacks = () => {
           <Table size='small'>
             <TableHead sx={{ fontWeight: 'bold' }}>
               <TableRow>
-                <TableCell>Ataque</TableCell>
-                <TableCell align='right'>Dano</TableCell>
-                <TableCell align='right'>Crítico</TableCell>
+                <TableCell>
+                  <strong>Ataque</strong>
+                </TableCell>
+                <TableCell align='right'>
+                  <strong>Dano</strong>
+                </TableCell>
+                <TableCell align='right'>
+                  <strong>Crítico</strong>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -106,7 +108,9 @@ const SheetPreviewAtacks = () => {
                       onRollAttack(
                         atkName,
                         attack.details.attack.damage.diceQuantity,
-                        attack.details.attack.damage.diceSides
+                        attack.details.attack.damage.diceSides,
+                        attack.details.attack.critical.threat,
+                        attack.details.attack.critical.multiplier
                       )
                     }
                   >

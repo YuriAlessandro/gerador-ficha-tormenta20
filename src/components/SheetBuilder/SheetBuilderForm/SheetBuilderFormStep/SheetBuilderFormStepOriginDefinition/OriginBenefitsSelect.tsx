@@ -4,6 +4,9 @@ import {
   SerializedOriginBenefits,
   Translator,
 } from 't20-sheet-builder';
+import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
+import { useSelector } from 'react-redux';
+import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 import { Option } from '../../../common/Option';
 
@@ -20,7 +23,8 @@ type Props = {
 };
 
 const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
-  console.log(benefits);
+  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+
   const options: Option<OriginBenefitOption>[] = [
     ...benefits.generalPowers.map((power) => ({
       label: Translator.getPowerTranslation(power),
@@ -48,6 +52,7 @@ const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
         className='mb-3'
         placeholder='Escolha entre perícias e poderes'
         id='origin-benefits-select'
+        isOptionDisabled={(option) => skills.includes(option.value.name)}
       />
     </div>
   );

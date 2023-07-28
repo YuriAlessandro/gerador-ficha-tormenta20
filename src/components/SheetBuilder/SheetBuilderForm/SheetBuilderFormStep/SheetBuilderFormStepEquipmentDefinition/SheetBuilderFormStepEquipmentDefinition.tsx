@@ -27,7 +27,8 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     useState<SimpleWeaponName>();
   const [selectedMartialWeapon, setSelectedMartialWeapon] =
     useState<MartialWeaponName>();
-  const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
+  // const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
+  const [selectedArmor] = useState<EquipmentName>();
 
   const dispatch = useDispatch();
   const role = useSelector(selectPreviewRoleName);
@@ -45,6 +46,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
       })
     );
   };
+
   const hasMartialWeaponProficiency = proficiencies.find(
     (proficiency) => Proficiency.martial === proficiency
   );

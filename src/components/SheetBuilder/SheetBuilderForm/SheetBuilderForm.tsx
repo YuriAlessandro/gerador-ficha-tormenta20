@@ -65,6 +65,7 @@ const SheetBuilderForm = () => {
   const [showingTab, setShowingTab] = React.useState(1);
   const alert = useSelector(selectFormAlert);
   const dispatch = useDispatch();
+
   const onChangeStep = (index: number) => {
     setShowingTab(index + 1);
     dispatch(resetFormAlert());
@@ -80,7 +81,7 @@ const SheetBuilderForm = () => {
     color: ${theme.palette.primary.main};
   `;
   return (
-    <div>
+    <Box>
       <Snackbar
         open={Boolean(alert)}
         autoHideDuration={6000}
@@ -92,6 +93,7 @@ const SheetBuilderForm = () => {
         <div>
           {steps.map(({ Component, id, label, Icon }) => (
             <TimelineStep
+              key={id}
               label={id !== showingTab ? '' : label}
               icon={Icon}
               id={id}
@@ -108,7 +110,7 @@ const SheetBuilderForm = () => {
           ))}
         </div>
       </Timeline>
-    </div>
+    </Box>
   );
 };
 

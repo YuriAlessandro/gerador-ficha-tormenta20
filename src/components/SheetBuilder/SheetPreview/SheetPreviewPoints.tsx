@@ -23,7 +23,7 @@ const SheetPreviewPoints = () => {
     justify-content: center;
     text-align: center;
     width: 50%;
-    &:first-child {
+    &:first-of-type {
       border-right: 1px solid ${theme.palette.primary.main};
       padding-right: 10px;
     }

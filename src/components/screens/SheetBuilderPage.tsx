@@ -3,12 +3,15 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import bgImage from '@/assets/images/fantasybg.png';
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 
 const SheetBuilderPage: React.FC = () => {
   const [value, setValue] = useState(0);
   const theme = useTheme();
+
+  const isDarkTheme = theme.palette.mode === 'dark';
 
   const handleChange = (newValue: number) => {
     setValue(newValue);
@@ -29,8 +32,20 @@ const SheetBuilderPage: React.FC = () => {
     z-index: 10;
   `;
 
+  const BackgroundBox = styled(Box)`
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0) 20%,
+        ${isDarkTheme ? '#212121' : '#f3f2f1'}
+      ),
+      url(${bgImage});
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  `;
+
   return (
-    <div style={{ maxWidth: '1920px', margin: '0 auto' }}>
+    <>
       <FabDiv>
         {value === 0 && (
           <Fab color='primary' variant='extended' onClick={() => setValue(1)}>
@@ -45,16 +60,19 @@ const SheetBuilderPage: React.FC = () => {
           </Fab>
         )}
       </FabDiv>
-      <Box sx={{ p: 5 }}>
-        <Title>Gerenciar Ficha</Title>
-      </Box>
-      <Box sx={{ display: value === 0 ? 'block' : 'none' }}>
+      <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
+        <Box sx={{ p: 5 }}>
+          <Title>Visualizar Ficha</Title>
+        </Box>
         <SheetPreview handleChange={handleChange} />
-      </Box>
+      </BackgroundBox>
       <Box sx={{ display: value === 1 ? 'block' : 'none' }}>
+        <Box sx={{ p: 5 }}>
+          <Title>Editar Ficha</Title>
+        </Box>
         <SheetBuilderForm />
       </Box>
-    </div>
+    </>
   );
 };
 export default SheetBuilderPage;

@@ -12,7 +12,6 @@ export const useConfirmArcanist = (confirmRole: ConfirmFunction<Role>) => {
   const context = useArcanistFormContext();
 
   const makeArcanist = (): Arcanist => {
-    console.log('context', context);
     if (!context.path) throw new Error('MISSING_ARCANIST_PATH');
     const arcanist = ArcanistFactory.makeFromParams({
       ...context,

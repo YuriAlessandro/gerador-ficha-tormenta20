@@ -51,7 +51,7 @@ const SheetViewer: React.FC<Props> = ({
       <Box sx={{ display: 'flex', flexDirection: isScreen ? 'row' : 'column' }}>
         {/* LADO ESQUERDO (MAYBE 60%) */}
         <Box sx={{ width: isScreen ? '60%' : '100%', pr: 5 }}>
-          {/* PARTE DE CIMA: Nome, Raça, Origem, Classe, Nível, Divindade */}
+          {/* PARTE DE CIMA: Nome, Raça, Origem, Classe, Nível, Divindade, PM, PM e Defesa */}
           <Card sx={{ p: 3, pb: 10, mb: 2 }}>
             <Stack
               direction={isScreen ? 'row' : 'column'}
@@ -119,14 +119,14 @@ const SheetViewer: React.FC<Props> = ({
             </Stack>
           </Card>
 
-          {/* Atributos, PV e Mana */}
+          {/* Atributos */}
           <Box sx={{ mt: '-90px' }}>
             <SheetPreviewStats />
           </Box>
 
           <Stack direction='column' spacing={2}>
             {/* Ataques, Poderes, Magias e Notas */}
-            <Card sx={{ minHeight: '1010px' }}>
+            <Card sx={{ minHeight: '510px' }}>
               <TabContext value={value}>
                 <TabList
                   onChange={onChangeTab}
@@ -156,7 +156,6 @@ const SheetViewer: React.FC<Props> = ({
           </Stack>
         </Box>
         {/* LADO DIREITO (MAYBE 40%) */}
-
         {/* Perícias */}
         <Card>
           <SheetPreviewSkills />

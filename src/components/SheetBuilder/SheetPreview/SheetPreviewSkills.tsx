@@ -18,12 +18,10 @@ import { useSnackbar } from 'notistack';
 import { rollDice } from '@/functions/randomUtils';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import BookTitle from '../common/BookTitle';
-import DiceRollerActions from '../common/DiceRollerActions';
-import { addSignForRoll } from '../common/StringHelper';
 
 const SheetPreviewSkills = () => {
   const theme = useTheme();
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
   const skills = useSelector(selectPreviewSkills);
   const attributes = useSelector(selectPreviewAttributes);
 
@@ -37,15 +35,14 @@ const SheetPreviewSkills = () => {
   `;
 
   const CellFgText = styled.span`
-    position: absolute;
     z-index: 1;
   `;
   const CellBgText = styled.span`
+    margin: 8px 0 0 5px;
     color: #c4c4c4;
     position: absolute;
     font-size: 10px;
     font-align: center;
-    margin: 5px 0 0 10px;
   `;
 
   const fmtSkillName = (skillName: string) =>
@@ -54,35 +51,28 @@ const SheetPreviewSkills = () => {
 
   const onClickSkill = (skill: string, bonus: number) => {
     const rollResult = rollDice(1, 20);
-    const total = rollResult + bonus;
-
-    const action = (snackbarId: number) => (
-      <DiceRollerActions
-        snackbarId={snackbarId}
-        closeSnackbar={closeSnackbar}
-      />
-    );
-
-    let variant: 'default' | 'success' | 'error' = 'default';
-    if (rollResult === 20) variant = 'success';
-    if (rollResult === 1) variant = 'error';
 
     const audio = new Audio(diceSound);
     audio.play();
-    enqueueSnackbar(
-      `Rolagem de ${skill}: ${total} = ${rollResult}${addSignForRoll(bonus)}`,
-      {
-        action,
-        variant,
-      }
-    );
+    enqueueSnackbar(`${skill}`, {
+      variant: 'diceRoll',
+      persist: true,
+      bonus,
+      rollResult,
+    });
   };
+
+  const StyledTableRow = styled(TableRow)(() => ({
+    '&:nth-of-type(odd)': {
+      backgroundColor: theme.palette.action.hover,
+    },
+  }));
 
   return (
     <Box>
       <BookTitle>Perícias</BookTitle>
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+        <Table sx={{ minWidth: 650 }} aria-label='Perícias' size='small'>
           <TableHead>
             <TableRow>
               <TableCell>
@@ -126,7 +116,7 @@ const SheetPreviewSkills = () => {
                   skill.attribute
                 );
                 return (
-                  <TableRow key={skillName}>
+                  <StyledTableRow key={skillName}>
                     <DefaultTbCell component='th' scope='row'>
                       {skillNameTranslation}
                     </DefaultTbCell>
@@ -151,7 +141,7 @@ const SheetPreviewSkills = () => {
                     <DefaultTbCell align='center'>
                       {skill.fixedModifiers.total}
                     </DefaultTbCell>
-                  </TableRow>
+                  </StyledTableRow>
                 );
               })}
           </TableBody>

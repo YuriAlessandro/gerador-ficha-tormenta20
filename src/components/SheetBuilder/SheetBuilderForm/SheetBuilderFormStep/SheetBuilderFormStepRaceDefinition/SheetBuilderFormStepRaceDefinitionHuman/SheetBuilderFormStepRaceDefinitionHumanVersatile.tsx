@@ -10,6 +10,9 @@ import {
   skillsOptions,
 } from '@/components/SheetBuilder/common/Options';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { useSelector } from 'react-redux';
+import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 
 const secondVersatilOptionTypeOptions: Option<VersatileChoiceType>[] = [
   { label: 'Poder', value: 'power' },
@@ -28,47 +31,52 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
   setFirstVersatileOption,
   setSecondVersatileOption,
   setSecondVersatileOptionType,
-}: Props) => (
-  <div className='mb-6'>
-    <h3 className='mb-3'>Versátil</h3>
-    <div>
-      <SheetBuilderFormSelect
-        placeholder='1 - Escolha uma perícia'
-        className='mb-3'
-        options={skillsOptions}
-        onChange={(option) => setFirstVersatileOption(option?.value)}
-        id='first-versatile-option-select'
-      />
-      <SheetBuilderFormSelect
-        options={secondVersatilOptionTypeOptions}
-        onChange={(option) => {
-          setSecondVersatileOptionType(option?.value);
-          setSecondVersatileOption(undefined);
-        }}
-        className='mb-3'
-        placeholder='2 - Escolha perícia ou poder'
-        id='second-versatile-option-type-select'
-      />
-      {secondVersatileOptionType === 'power' && (
+}: Props) => {
+  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+
+  return (
+    <div className='mb-6'>
+      <h3 className='mb-3'>Versátil</h3>
+      <div>
         <SheetBuilderFormSelect
-          options={generalPowerOptions}
-          placeholder='2 - Escolha um poder'
-          onChange={(option) => setSecondVersatileOption(option.value)}
-          isSearcheable
-          id='second-versatile-option-power-select'
-        />
-      )}
-      {secondVersatileOptionType === 'skill' && (
-        <SheetBuilderFormSelect
+          placeholder='1 - Escolha uma perícia'
+          className='mb-3'
           options={skillsOptions}
-          placeholder='2 - Escolha uma perícia'
-          onChange={(option) => setSecondVersatileOption(option?.value)}
-          isSearcheable
-          id='second-versatile-option-skill-select'
+          onChange={(option) => setFirstVersatileOption(option?.value)}
+          id='first-versatile-option-select'
         />
-      )}
+        <SheetBuilderFormSelect
+          options={secondVersatilOptionTypeOptions}
+          onChange={(option) => {
+            setSecondVersatileOptionType(option?.value);
+            setSecondVersatileOption(undefined);
+          }}
+          className='mb-3'
+          placeholder='2 - Escolha perícia ou poder'
+          id='second-versatile-option-type-select'
+        />
+        {secondVersatileOptionType === 'power' && (
+          <SheetBuilderFormSelect
+            options={generalPowerOptions}
+            placeholder='2 - Escolha um poder'
+            onChange={(option) => setSecondVersatileOption(option.value)}
+            isSearcheable
+            id='second-versatile-option-power-select'
+          />
+        )}
+        {secondVersatileOptionType === 'skill' && (
+          <SheetBuilderFormSelect
+            options={skillsOptions}
+            placeholder='2 - Escolha uma perícia'
+            onChange={(option) => setSecondVersatileOption(option?.value)}
+            isSearcheable
+            id='second-versatile-option-skill-select'
+            isOptionDisabled={(option) => skills.includes(option.value)}
+          />
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default React.memo(SheetBuilderFormStepRaceDefinitionHumanVersatile);

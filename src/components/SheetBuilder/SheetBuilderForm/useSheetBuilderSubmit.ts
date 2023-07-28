@@ -30,6 +30,7 @@ export const useSheetBuilderConfirm = <Type>() => {
         ) {
           dispatch(setFormError(err.message));
         } else {
+          // eslint-disable-next-line no-console
           console.error(err);
           dispatch(setFormError('UNKNOWN_ERROR'));
         }
