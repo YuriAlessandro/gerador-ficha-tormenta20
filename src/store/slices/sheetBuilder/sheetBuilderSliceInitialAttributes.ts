@@ -23,10 +23,19 @@ export const sheetBuilderSliceInitialAttributes = createSlice({
     decrementAttribute: (state, action: PayloadAction<Attribute>) => {
       state[action.payload] -= 1;
     },
+    setAttribute: (
+      state,
+      action: PayloadAction<{
+        attribute: Attribute;
+        value: number;
+      }>
+    ) => {
+      state[action.payload.attribute] = action.payload.value;
+    },
   },
 });
 
-export const { incrementAttribute, decrementAttribute } =
+export const { incrementAttribute, decrementAttribute, setAttribute } =
   sheetBuilderSliceInitialAttributes.actions;
 
 export const selectAttributes = (state: RootState) =>

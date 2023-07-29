@@ -8,6 +8,7 @@ import SheetBuilder, {
   OutOfGameContext,
   RaceFactory,
   RoleFactory,
+  SerializedSheetInterface,
   SheetBuilderError,
   SheetSerializer,
   SimpleWeaponFactory,
@@ -33,6 +34,53 @@ import {
 import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
+
+const ls = window.localStorage;
+
+export interface SavedSheet {
+  id: number;
+  sheet: SerializedSheetInterface;
+  date: Date;
+  name: string;
+  image: string;
+}
+
+const getSheetId = () => 1;
+
+const saveSheet = (
+  newSheet: SerializedSheetInterface,
+  sheetId: number,
+  name: string,
+  image: string
+) => {
+  const lsSheets = ls.getItem('savedSheets');
+  const sheets: SavedSheet[] = lsSheets ? JSON.parse(lsSheets) : [];
+  const date = new Date();
+
+  const sheetIndex = sheets.findIndex((sheet) => sheet.id === sheetId);
+
+  if (sheetIndex !== -1) {
+    // Sheet already exists, update it
+    sheets[sheetIndex + 1] = {
+      id: sheetId,
+      sheet: newSheet,
+      date,
+      name,
+      image,
+    };
+  } else {
+    // Sheet does not exists, save it
+    sheets.push({
+      id: sheetId,
+      sheet: newSheet,
+      date,
+      name,
+      image,
+    });
+  }
+
+  ls.setItem('savedSheets', JSON.stringify(sheets));
+};
 
 const startListening =
   sheetBuilderMiddleware.startListening as AppStartListening;
@@ -61,12 +109,15 @@ startListening({
       api.dispatch(resetFormAlert());
       await takeLatest(api);
 
+      const sheetId = getSheetId();
+
       const {
         initialAttributes,
         race: { race: serializedRace },
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
         // devotion,
+        details,
         initialEquipment: serializedInitialEquipment,
         intelligenceSkills,
       } = api.getState().sheetBuilder;
@@ -127,7 +178,9 @@ startListening({
         api.dispatch(updateAttacks(attacks));
       }
 
-      api.dispatch(updatePreview(serializer.serialize(sheet)));
+      const serializedSheet = serializer.serialize(sheet);
+      api.dispatch(updatePreview(serializedSheet));
+      saveSheet(serializedSheet, sheetId, details.name, details.url);
 
       const shouldDispatchSuccess = !isAnyOf(
         incrementAttribute,

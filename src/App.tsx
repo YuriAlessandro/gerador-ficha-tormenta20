@@ -30,6 +30,7 @@ import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import store from './store';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
+import SheetList from './components/screens/SheetList';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
@@ -328,6 +329,9 @@ function App(): JSX.Element {
                   </Route>
                   <Route path='/caverna-do-saber'>
                     <CavernaDoSaber />
+                  </Route>
+                  <Route path='/sheets'>
+                    <SheetList />
                   </Route>
                   <Route path='/sheet-builder'>
                     <SheetBuilderPage />

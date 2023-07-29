@@ -13,7 +13,7 @@ import { useTheme } from '@mui/material';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import AttributeInputButton from './AttributeInputButton';
 
-import border from '../../../../../assets/images/fndBorder.svg';
+import border from '../../../../../assets/images/attrBox.svg';
 
 type Props = {
   attribute: Attribute;
@@ -23,6 +23,16 @@ const AttributeInput = ({ attribute }: Props) => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const attributeValue = useAppSelector(selectAttribute(attribute));
+
+  const onClickDecrement = () => {
+    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
+    dispatch(decrementAttribute(attribute));
+  };
+
+  const onClickIncrement = () => {
+    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
+    dispatch(incrementAttribute(attribute));
+  };
 
   const AttributeLabel = styled.div`
     display: flex;
@@ -41,16 +51,6 @@ const AttributeInput = ({ attribute }: Props) => {
     font-family: 'Tfont';
   `;
 
-  const onClickDecrement = () => {
-    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
-    dispatch(decrementAttribute(attribute));
-  };
-
-  const onClickIncrement = () => {
-    dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
-    dispatch(incrementAttribute(attribute));
-  };
-
   return (
     <div className='flex flex-col items-center mb-6'>
       <h3 className='mb-2'>{Translator.getAttributeTranslation(attribute)}</h3>
@@ -58,13 +58,6 @@ const AttributeInput = ({ attribute }: Props) => {
         <AttributeInputButton onClick={onClickDecrement}>
           <RemoveIcon />
         </AttributeInputButton>
-        {/* <TextField
-          disabled
-          type='number'
-          value={attributeValue}
-          id={`${attribute}-input`}
-          sx={{ width: '80px' }}
-        /> */}
         <AttributeLabel>{attributeValue}</AttributeLabel>
         <AttributeInputButton onClick={onClickIncrement}>
           <AddIcon />
