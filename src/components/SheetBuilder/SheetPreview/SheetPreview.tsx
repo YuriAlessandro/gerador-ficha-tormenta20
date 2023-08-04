@@ -7,7 +7,7 @@ import {
   selectPreviewRaceName,
   selectPreviewRoleName,
   selectPreviewDisplacement,
-  // selectPreviewDevotion,
+  selectPreviewDevotion,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 
 import SheetViewer from '@/components/SheetViewer';
@@ -26,7 +26,7 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
   const originName = useSelector(selectPreviewOriginName);
   const level = useSelector(selectPreviewLevel);
   const displacement = useSelector(selectPreviewDisplacement);
-  // const devotion = useSelector(selectPreviewDevotion);
+  const devotion = useSelector(selectPreviewDevotion);
 
   const getTitle = () => {
     const translatedRaceName =
@@ -42,6 +42,10 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
     return raceText && roleText ? `${raceText} ${roleText}, ${originText}` : '';
   };
 
+  const devotionName = devotion.devotion
+    ? Translator.getTranslation(devotion.devotion?.deity.name)
+    : '';
+
   return (
     <SheetViewer
       allowEdition
@@ -51,6 +55,7 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
       title={getTitle()}
       name={name}
       image={image}
+      devotion={devotionName}
     />
   );
 };

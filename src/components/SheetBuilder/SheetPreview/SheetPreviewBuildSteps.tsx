@@ -29,6 +29,9 @@ const SheetPreviewBuildSteps: React.FC<{
       onClose={handleClose}
     >
       <Stack spacing={2} p={2}>
+        {buildSteps.length === 0 && (
+          <p>Você ainda não adicionou detalhes a esta ficha.</p>
+        )}
         {buildSteps.map((step, index) => {
           const [title, ...text] = step.action.description.split(':');
 

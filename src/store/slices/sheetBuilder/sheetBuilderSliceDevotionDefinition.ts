@@ -2,11 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Devotion } from 't20-sheet-builder';
 
 export interface SheetBuilderDevotionDefinitionState {
-  deity?: Devotion;
+  devotion?: Devotion;
 }
 
 const initialState: SheetBuilderDevotionDefinitionState = {
-  deity: undefined,
+  devotion: undefined,
 };
 
 export const sheetBuilderSliceDevotionDefinition = createSlice({
@@ -14,15 +14,10 @@ export const sheetBuilderSliceDevotionDefinition = createSlice({
   initialState,
   reducers: {
     resetRace: (state) => {
-      state.deity = undefined;
+      state.devotion = undefined;
     },
-    submitDevotion: (
-      state,
-      action: PayloadAction<{
-        deity: Devotion;
-      }>
-    ) => {
-      state.deity = action.payload.deity;
+    submitDevotion: (state, action: PayloadAction<Devotion>) => {
+      state.devotion = action.payload;
     },
   },
 });

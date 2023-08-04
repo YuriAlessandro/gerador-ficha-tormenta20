@@ -2,8 +2,6 @@ import {
   Box,
   Button,
   Card,
-  IconButton,
-  Paper,
   Stack,
   Tab,
   useMediaQuery,
@@ -34,6 +32,7 @@ interface Props {
   displacement: number;
   name: string;
   image: string;
+  devotion: string;
 }
 
 const SheetViewer: React.FC<Props> = ({
@@ -44,6 +43,7 @@ const SheetViewer: React.FC<Props> = ({
   displacement,
   name,
   image,
+  devotion,
 }) => {
   const theme = useTheme();
   const isScreen = useMediaQuery('(min-width: 720px)');
@@ -129,7 +129,7 @@ const SheetViewer: React.FC<Props> = ({
                         </Stack>
                         <LabelDisplay
                           title='Divindade'
-                          text='DEVOTION_NAME'
+                          text={devotion}
                           size='small'
                         />
                         <LabelDisplay

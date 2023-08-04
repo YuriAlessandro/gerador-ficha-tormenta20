@@ -19,20 +19,20 @@ import { useSheetBuilderConfirm } from '../../useSheetBuilderSubmit';
 const SheetBuilderFormStepDevotionDefinition = () => {
   const { confirm } = useSheetBuilderConfirm<Devotion>();
 
-  const [devotion, setDevotion] = useState<DeityName>();
+  const [selectedDevotion, setDevotion] = useState<DeityName>();
   const [selectedGrantedPowers, setGrantedPowers] = useState<GrantedPower[]>(
     []
   );
 
-  const makeDevotion = () =>
-    new Devotion(Deities.get(devotion as DeityName), selectedGrantedPowers);
-  const createSubmitAction = () =>
-    submitDevotion({
-      deity: new Devotion(
-        Deities.get(devotion as DeityName),
-        selectedGrantedPowers
-      ),
-    });
+  const makeDevotion = () => {
+    const devotion = new Devotion(
+      Deities.get(selectedDevotion as DeityName),
+      []
+    );
+    return devotion;
+  };
+  const createSubmitAction = (devotion: Devotion) => submitDevotion(devotion);
+
   const onSetGrantedPowers = (grantedPowers: GrantedPowerName[]) => {
     setGrantedPowers(grantedPowers.map(() => new EmptyMind()));
   };
@@ -41,11 +41,13 @@ const SheetBuilderFormStepDevotionDefinition = () => {
     confirm(makeDevotion, createSubmitAction, 'isDevotionReady');
   };
 
-  const grantedPowersOptions = devotion
-    ? Deities.get(devotion).grantedPowers.map((power: GrantedPowerName) => ({
-        label: Translator.getPowerTranslation(power),
-        value: power,
-      }))
+  const grantedPowersOptions = selectedDevotion
+    ? Deities.get(selectedDevotion).grantedPowers.map(
+        (power: GrantedPowerName) => ({
+          label: Translator.getPowerTranslation(power),
+          value: power,
+        })
+      )
     : [];
 
   const grantedPowersCount = useSelector(selectPreviewGrantedPowersCount);
