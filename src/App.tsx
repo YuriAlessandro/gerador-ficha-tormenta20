@@ -1,36 +1,35 @@
 import React, { useEffect } from 'react';
-import { Switch, Route, useHistory } from 'react-router-dom';
+import { Route, Switch, useHistory } from 'react-router-dom';
 
 import {
+  Box,
   FormControlLabel,
   FormGroup,
+  Stack,
   Switch as SwitchMUI,
+  useMediaQuery,
 } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import MenuIcon from '@mui/icons-material/Menu';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 
-import { Provider } from 'react-redux';
 import { SnackbarProvider } from 'notistack';
-import Sidebar from './components/Sidebar';
-import MainScreen from './components/screens/MainScreen';
-import Changelog from './components/screens/Changelog';
-import Rewards from './components/screens/Rewards';
-import SuperiorItems from './components/screens/SuperiorItems';
-import LandingPage from './components/screens/LandingPage';
-import Database from './components/screens/Database';
-import CavernaDoSaber from './components/screens/CavernaDoSaber';
-import SheetBuilderPage from './components/screens/SheetBuilderPage';
-import store from './store';
-import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
+import { Provider } from 'react-redux';
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
+import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
+import Sidebar from './components/Sidebar';
+import CavernaDoSaber from './components/screens/CavernaDoSaber';
+import Changelog from './components/screens/Changelog';
+import Database from './components/screens/Database';
+import LandingPage from './components/screens/LandingPage';
+import MainScreen from './components/screens/MainScreen';
+import Rewards from './components/screens/Rewards';
+import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import SheetList from './components/screens/SheetList';
+import SuperiorItems from './components/screens/SuperiorItems';
+import store from './store';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
@@ -65,9 +64,10 @@ function App(): JSX.Element {
   const ls = localStorage;
   const history = useHistory();
 
+  const isMb = useMediaQuery('(max-width:600px)');
+
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const [isDarkTheme, setIsDarkTheme] = React.useState(false);
-  const [tabValue, setTabValue] = React.useState(-1);
 
   const theme = createTheme({
     palette: {
@@ -143,39 +143,8 @@ function App(): JSX.Element {
     },
   });
 
-  const handleChangeTabValue = (pathname: string) => {
-    const pathnamesTabValues = {
-      none: -1,
-      'ficha-aleatoria': 0,
-      recompensas: 1,
-      'itens-superiores': 2,
-      'itens-magicos': 3,
-      database: 4,
-      'caverna-do-saber': 5,
-      changelog: 6,
-      'sheet-builder': 7,
-    } as const;
-
-    const currentPath = (Object.keys(pathnamesTabValues).find((path) =>
-      pathname?.includes(path)
-    ) || 'none') as string;
-    const currentTabValue =
-      pathnamesTabValues[currentPath as keyof typeof pathnamesTabValues];
-    setTabValue(currentTabValue);
-  };
-
-  history.listen((location) => {
-    const { pathname } = location;
-    handleChangeTabValue(pathname);
-  });
-
-  useEffect(() => {
-    const pathname = window.location.href.split('#')[1];
-    handleChangeTabValue(pathname);
-  }, []);
-
   const onClickMenu = () => {
-    setSidebarVisibility(true);
+    setSidebarVisibility(!sidebarVisibility);
   };
 
   const onCloseSidebar = () => {
@@ -197,12 +166,7 @@ function App(): JSX.Element {
     setIsDarkTheme(darkMod);
   }, []);
 
-  const handleTabChange = (_event: unknown, newValue: number) => {
-    setTabValue(newValue);
-  };
-
-  const onClickTab = (tab: number, link: string) => {
-    setTabValue(tab);
+  const onClickToLink = (link: string) => {
     history.push(`/${link}`);
   };
 
@@ -233,84 +197,62 @@ function App(): JSX.Element {
                   isDarkTheme={isDarkTheme}
                   onChangeTheme={onChangeTheme}
                 />
-                <AppBar position='static'>
-                  <Toolbar>
-                    <IconButton
-                      onClick={onClickMenu}
-                      edge='start'
-                      color='inherit'
-                      aria-label='menu'
+                <Stack
+                  alignItems='center'
+                  sx={{ width: '100%', position: 'absolute' }}
+                >
+                  <Box
+                    sx={{
+                      width: isMb ? '90%' : '50%',
+                      m: 2,
+                      p: 2,
+                      backgroundColor: '#d13235',
+                      borderRadius: '0.75rem',
+                      color: '#FFFFFF',
+                      zIndex: 2,
+                    }}
+                  >
+                    <Stack
+                      width='100%'
+                      direction='row'
+                      justifyContent='space-between'
+                      alignItems='center'
                     >
-                      <MenuIcon />
-                    </IconButton>
-                    <Typography
-                      sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
-                      variant='h6'
-                      onClick={() => onClickTab(-1, '')}
-                    >
-                      <p>Fichas de Nimb</p>
-                    </Typography>
-                    <Tabs
-                      value={tabValue}
-                      onChange={handleTabChange}
-                      aria-label='Menu superior'
-                      sx={{ display: 'flex', flexGrow: 1 }}
-                      variant='scrollable'
-                      scrollButtons
-                      className='topTabs'
-                    >
-                      <Tab
-                        label='Fichas'
-                        onClick={() => onClickTab(0, 'ficha-aleatoria')}
-                      />
-                      <Tab
-                        label='Recompensas'
-                        onClick={() => onClickTab(1, 'recompensas')}
-                      />
-                      <Tab
-                        label='Itens Superiores'
-                        onClick={() => onClickTab(2, 'itens-superiores')}
-                      />
-                      <Tab
-                        label='Itens Mágicos'
-                        disabled
-                        onClick={() => onClickTab(3, 'itens-magicos')}
-                      />
-                      <Tab
-                        label='Database'
-                        onClick={() => onClickTab(4, 'database/raças')}
-                      />
-                      <Tab
-                        label='Caverna do Saber'
-                        onClick={() => onClickTab(5, 'caverna-do-saber')}
-                      />
-                      <Tab
-                        label='Changelog'
-                        onClick={() => onClickTab(6, 'changelog')}
-                      />
-                      <Tab
-                        label='Construir ficha manualmente'
-                        onClick={() => onClickTab(7, 'sheet-builder')}
-                      />
-                    </Tabs>
-                    <FormGroup sx={{ ml: ['15px', 0, 0] }}>
-                      <FormControlLabel
-                        labelPlacement='end'
-                        control={
-                          <SwitchMUI
-                            checked={isDarkTheme}
-                            onChange={onChangeTheme}
-                            color='default'
-                            value='dark'
-                          />
-                        }
-                        label='Tema Escuro'
-                      />
-                    </FormGroup>
-                  </Toolbar>
-                </AppBar>
+                      <IconButton
+                        onClick={onClickMenu}
+                        edge='start'
+                        color='inherit'
+                        aria-label='menu'
+                      >
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography
+                        sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
+                        variant='h6'
+                        onClick={() => onClickToLink('')}
+                      >
+                        Fichas de Nimb
+                      </Typography>
+
+                      <FormGroup sx={{ ml: ['15px', 0, 0] }}>
+                        <FormControlLabel
+                          labelPlacement='end'
+                          control={
+                            <SwitchMUI
+                              checked={isDarkTheme}
+                              onChange={onChangeTheme}
+                              color='default'
+                              value='dark'
+                            />
+                          }
+                          label='Tema Escuro'
+                        />
+                      </FormGroup>
+                    </Stack>
+                  </Box>
+                </Stack>
               </header>
-              <div className='mainArea'>
+              <Box className='mainArea' sx={{ mt: 15 }}>
                 <Switch>
                   <Route path='/changelog'>
                     <Changelog />
@@ -340,10 +282,10 @@ function App(): JSX.Element {
                 <CreatureSheet isDarkMode={isDarkTheme} />
               </Route> */}
                   <Route>
-                    <LandingPage onClickButton={onClickTab} />
+                    <LandingPage onClickButton={onClickToLink} />
                   </Route>
                 </Switch>
-              </div>
+              </Box>
             </div>
             <footer id='bottom'>
               <div>

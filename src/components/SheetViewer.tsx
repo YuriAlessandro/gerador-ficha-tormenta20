@@ -68,9 +68,7 @@ const SheetViewer: React.FC<Props> = ({
         handleClose={() => setShowSteps(false)}
       />
       <Box sx={{ p: 2 }}>
-        <Box
-          sx={{ display: 'flex', flexDirection: isScreen ? 'row' : 'column' }}
-        >
+        <Stack direction={isScreen ? 'row' : 'column'} spacing={2}>
           {/* LADO ESQUERDO (MAYBE 60%) */}
           <Box sx={{ width: isScreen ? '60%' : '100%', pr: 5 }}>
             {/* PARTE DE CIMA: Nome, Raça, Origem, Classe, Nível, Divindade, PM, PM e Defesa */}
@@ -89,6 +87,7 @@ const SheetViewer: React.FC<Props> = ({
                 <Stack
                   direction={isScreen ? 'row' : 'column'}
                   justifyContent='space-between'
+                  spacing={2}
                 >
                   <Stack
                     direction={isScreen ? 'row' : 'column'}
@@ -203,7 +202,7 @@ const SheetViewer: React.FC<Props> = ({
           <Card>
             <SheetPreviewSkills />
           </Card>
-        </Box>
+        </Stack>
       </Box>
     </>
   );

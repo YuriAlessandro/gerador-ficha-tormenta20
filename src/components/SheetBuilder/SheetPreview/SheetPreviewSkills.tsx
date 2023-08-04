@@ -5,7 +5,7 @@ import {
   selectPreviewAttributes,
   selectPreviewSkills,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { Box, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 import styled from '@emotion/styled';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -21,6 +21,7 @@ import BookTitle from '../common/BookTitle';
 
 const SheetPreviewSkills = () => {
   const theme = useTheme();
+  const isScreen = useMediaQuery('(min-width: 720px)');
   const { enqueueSnackbar } = useSnackbar();
   const skills = useSelector(selectPreviewSkills);
   const attributes = useSelector(selectPreviewAttributes);
@@ -131,9 +132,11 @@ const SheetPreviewSkills = () => {
                     <DefaultTbCell align='center'>0</DefaultTbCell>
                     <DefaultTbCell align='center'>
                       <CellFgText>{attributes[skill.attribute]}</CellFgText>
-                      <CellBgText>
-                        {fmtSkillName(attributeTranslation)}
-                      </CellBgText>
+                      {isScreen && (
+                        <CellBgText>
+                          {fmtSkillName(attributeTranslation)}
+                        </CellBgText>
+                      )}
                     </DefaultTbCell>
                     <DefaultTbCell align='center'>
                       {skill.trainingPoints}
