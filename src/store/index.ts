@@ -1,5 +1,14 @@
 import { TypedStartListening, configureStore } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
+} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddleware';
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
@@ -21,7 +30,11 @@ const store = configureStore({
     sheetStorage: persistedReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().prepend(sheetBuilderMiddleware.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }).prepend(sheetBuilderMiddleware.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

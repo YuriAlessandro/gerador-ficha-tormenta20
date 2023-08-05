@@ -11,6 +11,14 @@ import SheetBuilder, {
   SheetSerializer,
   SimpleWeaponFactory,
 } from 't20-sheet-builder';
+import {
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from 'redux-persist';
 import { AppStartListening } from '../..';
 import { takeLatest } from '../../sagas';
 import {
@@ -43,6 +51,16 @@ startListening({
     if (typeof action.type !== 'string') {
       return false;
     }
+
+    const reduxPersistActions: string[] = [
+      FLUSH,
+      REHYDRATE,
+      PAUSE,
+      PERSIST,
+      PURGE,
+      REGISTER,
+    ];
+
     const shouldTrigger =
       isSheetBuilderAction(action.type) &&
       !isAnyOf(
@@ -52,7 +70,8 @@ startListening({
         setFormSuccess,
         updateAttacks,
         setOptionReady
-      )(action);
+      )(action) &&
+      !reduxPersistActions.includes(action.type);
     return shouldTrigger;
   },
   effect: async (action, api) => {
@@ -65,7 +84,7 @@ startListening({
         race: { race: serializedRace },
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
-        // devotion: { devotion: serializedDevotion },
+        devotion: { devotion },
         // details,
         initialEquipment: serializedInitialEquipment,
         intelligenceSkills,
@@ -96,9 +115,9 @@ startListening({
         sheetBuilder.trainIntelligenceSkills(intelligenceSkills.skills);
       }
 
-      // if (serializedDevotion) {
-      //   sheetBuilder.addDevotion(serializedDevotion);
-      // }
+      if (devotion) {
+        sheetBuilder.addDevotion(devotion);
+      }
 
       if (serializedInitialEquipment.simpleWeapon) {
         sheetBuilder.addInitialEquipment({
