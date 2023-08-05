@@ -112,7 +112,8 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
               label: Translator.getAttributeTranslation(attribute),
             }));
             return (
-              <Paper sx={{ width: '100px', textAlign: 'center' }}>
+              // eslint-disable-next-line react/no-array-index-key
+              <Paper key={idx} sx={{ width: '100px', textAlign: 'center' }}>
                 <h3>{roll}</h3>
                 <SheetBuilderFormSelect
                   id={`${attr}`}
@@ -132,7 +133,7 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
           {attributes.map((attribute) => {
             const attributeValue = useAppSelector(selectAttribute(attribute));
             return (
-              <Stack alignItems='center'>
+              <Stack key={attribute} alignItems='center'>
                 <h3>{Translator.getAttributeTranslation(attribute)}</h3>
                 <AttributeLabel key={attribute}>
                   {addSign(attributeValue)}

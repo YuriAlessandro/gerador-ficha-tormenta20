@@ -1,6 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import SheetBuilder, {
   BuildingSheet,
+  Devotion,
   LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
@@ -10,6 +11,7 @@ import SheetBuilder, {
   SheetBuilderError,
   SheetSerializer,
   SimpleWeaponFactory,
+  GrantedPowerFactory,
 } from 't20-sheet-builder';
 import {
   FLUSH,
@@ -84,7 +86,7 @@ startListening({
         race: { race: serializedRace },
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
-        devotion: { devotion },
+        devotion: { devotion: serializedDevotion },
         // details,
         initialEquipment: serializedInitialEquipment,
         intelligenceSkills,
@@ -115,8 +117,13 @@ startListening({
         sheetBuilder.trainIntelligenceSkills(intelligenceSkills.skills);
       }
 
-      if (devotion) {
-        sheetBuilder.addDevotion(devotion);
+      if (serializedDevotion) {
+        const powers = serializedDevotion.choosedPowers.map((power) =>
+          GrantedPowerFactory.make(power)
+        );
+        sheetBuilder.addDevotion(
+          new Devotion(serializedDevotion.deity, powers)
+        );
       }
 
       if (serializedInitialEquipment.simpleWeapon) {

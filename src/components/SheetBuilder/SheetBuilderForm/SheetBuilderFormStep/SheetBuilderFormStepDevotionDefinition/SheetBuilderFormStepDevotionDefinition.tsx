@@ -31,7 +31,8 @@ const SheetBuilderFormStepDevotionDefinition = () => {
     );
     return devotion;
   };
-  const createSubmitAction = (devotion: Devotion) => submitDevotion(devotion);
+  const createSubmitAction = (devotion: Devotion) =>
+    submitDevotion(devotion.serialize());
 
   const onSetGrantedPowers = (grantedPowers: GrantedPowerName[]) => {
     setGrantedPowers(grantedPowers.map(() => new EmptyMind()));

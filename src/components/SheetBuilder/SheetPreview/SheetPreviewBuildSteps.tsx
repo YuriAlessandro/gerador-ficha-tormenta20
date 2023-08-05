@@ -36,7 +36,11 @@ const SheetPreviewBuildSteps: React.FC<{
           const [title, ...text] = step.action.description.split(':');
 
           return (
-            <Paper sx={{ p: 2 }} elevation={2}>
+            <Paper
+              key={`${step.action.type}-${step.action.description}`}
+              sx={{ p: 2 }}
+              elevation={2}
+            >
               <span className='font-medium text-rose-600'>
                 {index + 1} - {title}:{' '}
               </span>
