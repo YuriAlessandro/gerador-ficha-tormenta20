@@ -168,6 +168,8 @@ function App(): JSX.Element {
   }, []);
 
   const onClickToLink = (link: string) => {
+    // Smooth scroll page to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     history.push(`/${link}`);
   };
 
