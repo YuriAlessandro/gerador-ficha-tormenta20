@@ -207,7 +207,13 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #192.</strong>
+                <strong>Revistas analisadas: DB #156 até #193.</strong>
+              </small>
+            </p>
+            <p>
+              <small>
+                Das revistas DB #145 até a DB #155, conteúdos foram adicionados
+                pela comunidade, mas elas não estão totalmente compiladas.
               </small>
             </p>
             <p>
@@ -258,6 +264,43 @@ const CavernaDoSaber: React.FC = () => {
               <li>Traços Racionais (Inteligência)</li>
               <li>Traços Emocionais (Sabedoria)</li>
               <li>Traços Sociais (Carisma)</li>
+            </ul>
+            <Divider />
+            <Title id='indole'>Índole</Title>
+            <p>
+              Sistema de pontos especiais que podem ser usados para aprimorar
+              testes mal-sucedidos, recuperar pontos de mana e até mesmo evitar
+              a morte disponível na <Db>DB #193</Db>.
+            </p>
+            <ul>
+              <li>
+                <strong>Akzath</strong>, dos povos goblinoides de Lamnor.
+              </li>
+              <li>
+                <strong>Bravura</strong>, o norte para a maior parte dos
+                aventureiros de Arton, em especial os que vivem no Reinado e nas
+                terras vizinhas.
+              </li>
+              <li>
+                <strong>Honra</strong>, valorizada na terra dos samurais de
+                Lin-Wu, o Império de Jade.
+              </li>
+              <li>
+                <strong>Instinto</strong>, a índole da distante Moreania, onde
+                os povos descendem milagrosamente da natureza.
+              </li>
+              <li>
+                <strong>Lamento</strong>, a melancolia de muitos elfos da antiga
+                Lenórienn.
+              </li>
+              <li>
+                <strong>Liberdade</strong>, a índole de todos aqueles que
+                tiveram seus gritos calados por tanto tempo no Império de Tauron
+                — e em qualquer outro lugar.
+              </li>
+              <li>
+                <strong>Teimosia</strong>, dos persistentes anões de Doherimm.
+              </li>
             </ul>
             <Divider />
             {/* Raças */}
@@ -801,10 +844,30 @@ const CavernaDoSaber: React.FC = () => {
             <Divider />
             {/* Ameaças */}
             <Title id='ameacas'>Ameaças</Title>
+            <p>
+              Algumas das ameaças adicionadas nas revistas. Tenha em mente que
+              muitas delas podem estar incluídas oficialmente e modificadas no{' '}
+              <strong>Ameaças de Arton</strong>, um suplemento da Jambô com
+              centenas de novas ameaças.
+            </p>
+            <SubTitle id='aberracoes-da-tormenta'>
+              Aberrações da Tormenta
+            </SubTitle>
+            <p>
+              Lista de aberrações da Tormenta adicionada na <Db>DB #193</Db>:
+            </p>
+            <ul>
+              <li>Anomalocaris</li>
+              <li>Falcão Fatídico</li>
+              <li>Glop Sangrento</li>
+              <li>Incubador</li>
+              <li>Lursh-lyin</li>
+              <li>Trilobita</li>
+              <li>Nautilon</li>
+            </ul>
             <SubTitle id='aslothia'>De Aslothia</SubTitle>
             <p>
-              Novas ameaças de Aslothia na <Db>DB #179</Db> (isso já vai deve
-              estar incluído no Ameaças de Artons).
+              Novas ameaças de Aslothia na <Db>DB #179</Db>.
             </p>
             <SubTitle id='capangas'>Capagangas e Lacaios</SubTitle>
             <p>
@@ -840,6 +903,11 @@ const CavernaDoSaber: React.FC = () => {
             <Divider />
             {/* Outros */}
             <Title id='outros'>Outros</Title>
+            <SubTitle id='culinaria'>Culinária</SubTitle>
+            <p>
+              Regras de culinária, pratos especiais e um poder novo:
+              &apos;Comilão&apos;, na <Db>DB #145</Db>
+            </p>
             <SubTitle id='perigos-complexos'>Perigos Complexos</SubTitle>
             <p>
               Como criar perigos complexos, <Db>DB #169</Db>.
@@ -854,6 +922,15 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               A <Db>DB #174</Db> traz regras mais rígidas para o mestre
               conseguir controlar os jogadores. Boa leitura.
+            </p>
+            <SubTitle id='idade'>Idades variadas para personagens</SubTitle>
+            <p>
+              Regras para personagens de idades variadas nas <Db>DB #153</Db> e{' '}
+              <Db>DB #154</Db>
+            </p>
+            <SubTitle id='aposentadoria'>Aposentadoria</SubTitle>
+            <p>
+              Regras de Aposentadoria para personagens, <Db>DB #161</Db>
             </p>
           </StyledPaper>
         </div>
