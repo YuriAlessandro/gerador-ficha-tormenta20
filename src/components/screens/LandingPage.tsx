@@ -5,6 +5,7 @@ import builder from '@/assets/images/options/builder.png';
 import treasure from '@/assets/images/options/treasure.png';
 import items from '@/assets/images/options/items.png';
 import books from '@/assets/images/options/books.png';
+import magical from '@/assets/images/options/magical.png';
 import database from '@/assets/images/options/database.png';
 import {
   Box,
@@ -53,14 +54,14 @@ const LandingPage: React.FC<{
         }}
       />
 
-      <Container sx={{ position: 'relative' }}>
+      <Container sx={{ position: 'relative', mb: 2 }}>
         <Box
           sx={{
             textAlign: 'center',
             mb: 5,
             fontFamily: 'Tfont',
-            color: '#d13235',
-            WebkitTextStroke: '0.5px black',
+            color: '#FFFFFF',
+            textShadow: '2px 2px black',
           }}
         >
           <h1>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</h1>
@@ -114,6 +115,13 @@ const LandingPage: React.FC<{
                     image={items}
                     onClick={() => onClickButton('itens-superiores')}
                   />
+                  <LandingOption
+                    title='Criar item mágico'
+                    text='Em desenvolvimento.'
+                    image={magical}
+                    disabled
+                    onClick={() => onClickButton('itens-superiores')}
+                  />
                 </Stack>
               </CardContent>
             </Card>
@@ -131,13 +139,13 @@ const LandingPage: React.FC<{
                     title='Caverna do Saber'
                     text='Compilado com conteúdos de Tormenta 20 na revista Dragão Brasil.'
                     image={books}
-                    onClick={() => onClickButton('recompensas')}
+                    onClick={() => onClickButton('caverna-do-saber')}
                   />
                   <LandingOption
                     title='Database'
                     text='Diretamente do livro, um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
                     image={database}
-                    onClick={() => onClickButton('itens-superiores')}
+                    onClick={() => onClickButton('database/raças')}
                   />
                 </Stack>
               </CardContent>

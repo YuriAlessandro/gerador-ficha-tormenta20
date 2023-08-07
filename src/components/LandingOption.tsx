@@ -7,23 +7,36 @@ interface Props {
   text: string;
   onClick: () => void;
   image?: string;
+  disabled?: boolean;
 }
 
-const LandingOption: React.FC<Props> = ({ title, text, onClick, image }) => {
+const LandingOption: React.FC<Props> = ({
+  title,
+  text,
+  onClick,
+  image,
+  disabled,
+}) => {
   const theme = useTheme();
 
   const Option = styled(Paper)`
     padding: 0.7rem;
-    cursor: pointer;
+    cursor: ${disabled ? 'not-allowed' : 'pointer'};
+    color: ${disabled ? '#696969' : 'auto'};
   `;
 
-  const Title = styled.h4`
-    color: ${theme.palette.primary.main};
+  const Title = styled.h2`
+    color: ${disabled ? '#696969' : theme.palette.primary.main};
     font-family: 'Tfont';
   `;
 
   return (
-    <Option elevation={4} onClick={onClick}>
+    <Option
+      elevation={4}
+      onClick={() => {
+        if (!disabled) onClick();
+      }}
+    >
       <Stack direction='row' justifyContent='space-between'>
         <Box>
           <Title>{title}</Title>
