@@ -40,6 +40,7 @@ import {
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
 import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
+import { setSheet } from '../sheetStorage/sheetStorage';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -71,7 +72,8 @@ startListening({
         resetFormAlert,
         setFormSuccess,
         updateAttacks,
-        setOptionReady
+        setOptionReady,
+        setSheet
       )(action) &&
       !reduxPersistActions.includes(action.type);
     return shouldTrigger;
@@ -87,7 +89,7 @@ startListening({
         role: { role: serializedRole },
         origin: { origin: serializedOrigin },
         devotion: { devotion: serializedDevotion },
-        // details,
+        details,
         initialEquipment: serializedInitialEquipment,
         intelligenceSkills,
       } = api.getState().sheetBuilder;
@@ -155,6 +157,16 @@ startListening({
 
       const serializedSheet = serializer.serialize(sheet);
       api.dispatch(updatePreview(serializedSheet));
+
+      api.dispatch(
+        setSheet({
+          id: api.getState().sheetStorage.activeSheetId,
+          date: new Date().getTime(),
+          sheet: serializedSheet,
+          name: details.name,
+          image: details.url,
+        })
+      );
 
       const shouldDispatchSuccess = !isAnyOf(
         incrementAttribute,

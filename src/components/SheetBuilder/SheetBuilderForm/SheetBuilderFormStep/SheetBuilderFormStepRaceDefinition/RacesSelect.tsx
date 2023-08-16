@@ -28,6 +28,14 @@ const raceOptions: Record<RaceName, Option<RaceName>> = {
     label: 'Goblin',
     value: RaceName.goblin,
   },
+  minotaur: {
+    label: 'Minotauro',
+    value: RaceName.minotaur,
+  },
+  lefeu: {
+    label: 'Lefeu',
+    value: RaceName.lefeu,
+  },
 };
 
 const RacesSelect = ({ changeRace: setRace }: Props) => (

@@ -8,7 +8,11 @@ import {
   GrantedPowerName,
   Translator,
 } from 't20-sheet-builder';
-import { selectPreviewGrantedPowersCount } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import {
+  selectPreviewGrantedPowersCount,
+  selectPreviewRaceName,
+  selectPreviewRoleName,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { useSelector } from 'react-redux';
 import { submitDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
 import DevotionSelect from './DevotionSelect';
@@ -19,6 +23,9 @@ import { useSheetBuilderConfirm } from '../../useSheetBuilderSubmit';
 const SheetBuilderFormStepDevotionDefinition = () => {
   const { confirm } = useSheetBuilderConfirm<Devotion>();
 
+  const raceName = useSelector(selectPreviewRaceName);
+  const roleName = useSelector(selectPreviewRoleName);
+
   const [selectedDevotion, setDevotion] = useState<DeityName>();
   const [selectedGrantedPowers, setGrantedPowers] = useState<GrantedPower[]>(
     []
@@ -27,7 +34,7 @@ const SheetBuilderFormStepDevotionDefinition = () => {
   const makeDevotion = () => {
     const devotion = new Devotion(
       Deities.get(selectedDevotion as DeityName),
-      []
+      selectedGrantedPowers
     );
     return devotion;
   };
@@ -55,16 +62,21 @@ const SheetBuilderFormStepDevotionDefinition = () => {
 
   return (
     <div>
-      <DevotionSelect setDevotion={setDevotion} />
-      {grantedPowersOptions.length > 0 && (
-        <GrantedPowerSelect
-          grantedPowersOptions={grantedPowersOptions}
-          grantedPowersCount={grantedPowersCount}
-          setGrantedPowers={onSetGrantedPowers}
-        />
-      )}
+      {(!raceName || !roleName) && <p>Selecione raça e classe primeiro.</p>}
+      {raceName && roleName && (
+        <>
+          <DevotionSelect setDevotion={setDevotion} />
+          {grantedPowersOptions.length > 0 && (
+            <GrantedPowerSelect
+              grantedPowersOptions={grantedPowersOptions}
+              grantedPowersCount={grantedPowersCount}
+              setGrantedPowers={onSetGrantedPowers}
+            />
+          )}
 
-      <ConfirmButton confirm={onSaveDevotion} />
+          <ConfirmButton confirm={onSaveDevotion} />
+        </>
+      )}
     </div>
   );
 };

@@ -9,14 +9,14 @@ const SheetBuildFormStepRaceDefinitionElf: React.FC<RaceComponentProps> = ({
   confirmRace,
   attributesPreview,
 }) => {
-  const makeDwarf = () => new Elf();
+  const makeElf = () => new Elf();
   const createSubmitAction = () =>
     submitRace({
       name: RaceName.elf,
     });
 
-  const confirmDwarf = () => {
-    confirmRace(makeDwarf, createSubmitAction, 'isRaceReady');
+  const confirmElf = () => {
+    confirmRace(makeElf, createSubmitAction, 'isRaceReady');
   };
 
   return (
@@ -27,7 +27,7 @@ const SheetBuildFormStepRaceDefinitionElf: React.FC<RaceComponentProps> = ({
         eternas, parecem superiores aos humanos em tudo.
       </p>
       <AttributesPreviewStatic attributesPreview={attributesPreview} />
-      <ConfirmButton confirm={confirmDwarf} />
+      <ConfirmButton confirm={confirmElf} />
     </div>
   );
 };
