@@ -37,16 +37,16 @@ import {
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import {
   resetRole,
-  submitRole,
+  // submitRole,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import {
   resetOrigin,
-  submitOrigin,
+  // submitOrigin,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
 import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
 import {
   resetDevotion,
-  submitDevotion,
+  // submitDevotion,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
 import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
 import {

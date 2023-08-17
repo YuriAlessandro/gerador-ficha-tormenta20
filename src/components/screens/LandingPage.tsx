@@ -13,6 +13,7 @@ import {
   CardContent,
   CardMedia,
   Container,
+  Divider,
   Grid,
   Stack,
   useTheme,
@@ -127,6 +128,7 @@ const LandingPage: React.FC<{
               <CardMedia sx={{ height: 140 }} image={ficha} title='Fichas' />
               <CardContent>
                 <Stack spacing={2}>
+                  <Divider>Versão JdA</Divider>
                   <LandingOption
                     title='Meus personagens'
                     text='Fichas criadas por você. Use e gerencie suas fichas.'
@@ -139,6 +141,7 @@ const LandingPage: React.FC<{
                     image={builder}
                     onClick={onClickNewSheet}
                   />
+                  <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Ficha aleatória'
                     text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
@@ -158,6 +161,7 @@ const LandingPage: React.FC<{
               />
               <CardContent>
                 <Stack spacing={2}>
+                  <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Rolador de recompensas'
                     text='Gere as recompensas da sua mesa de forma muito rápida.'
@@ -190,12 +194,14 @@ const LandingPage: React.FC<{
               />
               <CardContent>
                 <Stack spacing={2}>
+                  <Divider>Dragão Brasil</Divider>
                   <LandingOption
                     title='Caverna do Saber'
                     text='Compilado com conteúdos de Tormenta 20 na revista Dragão Brasil.'
                     image={books}
                     onClick={() => onClickButton('caverna-do-saber')}
                   />
+                  <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Database'
                     text='Diretamente do livro, um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
@@ -215,6 +221,7 @@ const LandingPage: React.FC<{
               />
               <CardContent>
                 <Stack spacing={2}>
+                  <Divider>Projetos da Comunidade</Divider>
                   <LandingOption
                     title='Grimório T20'
                     text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'

@@ -1,5 +1,5 @@
 import { rollDice } from '@/functions/randomUtils';
-import { Box, Button, Paper, Select, Stack, useTheme } from '@mui/material';
+import { Box, Button, Paper, Stack, useTheme } from '@mui/material';
 import React from 'react';
 // import { SheetBuilderFormStepAttributesDefinitionProvider } from './SheetBuilderFormStepAttributesDefinitionContext';
 import styled from '@emotion/styled';

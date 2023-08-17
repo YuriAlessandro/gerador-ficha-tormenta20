@@ -30,12 +30,14 @@ const SheetBuilderFormStepDevotionDefinition = () => {
   const [selectedGrantedPowers, setGrantedPowers] = useState<GrantedPower[]>(
     []
   );
+  const [notAllowed, setNotAllowed] = useState('');
 
   const makeDevotion = () => {
     const devotion = new Devotion(
       Deities.get(selectedDevotion as DeityName),
       selectedGrantedPowers
     );
+
     return devotion;
   };
   const createSubmitAction = (devotion: Devotion) =>
@@ -65,7 +67,10 @@ const SheetBuilderFormStepDevotionDefinition = () => {
       {(!raceName || !roleName) && <p>Selecione raça e classe primeiro.</p>}
       {raceName && roleName && (
         <>
-          <DevotionSelect setDevotion={setDevotion} />
+          <DevotionSelect
+            setDevotion={setDevotion}
+            setNotAllowed={setNotAllowed}
+          />
           {grantedPowersOptions.length > 0 && (
             <GrantedPowerSelect
               grantedPowersOptions={grantedPowersOptions}
@@ -74,7 +79,11 @@ const SheetBuilderFormStepDevotionDefinition = () => {
             />
           )}
 
-          <ConfirmButton confirm={onSaveDevotion} />
+          <ConfirmButton
+            confirm={onSaveDevotion}
+            disabled={notAllowed !== ''}
+            label={notAllowed !== '' ? notAllowed : 'Atualizar'}
+          />
         </>
       )}
     </div>

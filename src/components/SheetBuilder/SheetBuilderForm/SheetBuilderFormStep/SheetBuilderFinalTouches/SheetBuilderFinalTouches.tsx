@@ -7,7 +7,7 @@ import {
   setDetails,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import { Autocomplete, Button, Stack, TextField } from '@mui/material';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { nameSuggestions } from './nameSuggestions';
 
@@ -22,18 +22,6 @@ const SheetBuilderFinalTouches: React.FC<{ onFinishBuild: () => void }> = ({
   const dispatch = useDispatch();
 
   const raceName = useSelector(selectPreviewRaceName);
-
-  // useEffect(() => {
-  //   dispatch(
-  //     setOptionReady({ key: 'isFinalTouchesReady', value: 'confirmed' })
-  //   );
-  //   dispatch(
-  //     setDetails({
-  //       name,
-  //       url: image,
-  //     })
-  //   );
-  // }, [name, image]);
 
   const onChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setOptionReady({ key: 'isFinalTouchesReady', value: 'pending' }));

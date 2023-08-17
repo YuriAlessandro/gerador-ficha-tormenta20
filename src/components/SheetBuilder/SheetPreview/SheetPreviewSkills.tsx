@@ -1,8 +1,9 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { SkillName, Translator } from 't20-sheet-builder';
+import { SerializedSheetSkill, SkillName, Translator } from 't20-sheet-builder';
 import {
   selectPreviewAttributes,
+  selectPreviewResistances,
   selectPreviewSkills,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
@@ -18,12 +19,28 @@ import { useSnackbar } from 'notistack';
 import { rollDice } from '@/functions/randomUtils';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import BookTitle from '../common/BookTitle';
+import SheetPreviewResistances, {
+  ResistedSkill,
+} from './SheetPreviewResistances';
+
+const resistanceSkills: SkillName[] = [
+  SkillName.fortitude,
+  SkillName.reflexes,
+  SkillName.will,
+];
 
 const SheetPreviewSkills = () => {
   const theme = useTheme();
+
+  const [openResistances, setOpenResistances] = React.useState(false);
+  const [rolledResistance, setRolledResistance] = React.useState<
+    ResistedSkill | undefined
+  >();
+
   const isScreen = useMediaQuery('(min-width: 720px)');
   const { enqueueSnackbar } = useSnackbar();
   const skills = useSelector(selectPreviewSkills);
+  const resistances = useSelector(selectPreviewResistances);
   const attributes = useSelector(selectPreviewAttributes);
 
   const DefaultTbCell = styled(TableCell)`
@@ -50,12 +67,26 @@ const SheetPreviewSkills = () => {
     // Return first 3 letters in capital case inside parentheses
     `(${skillName.substring(0, 3).toUpperCase()})`;
 
-  const onClickSkill = (skill: string, bonus: number) => {
+  const onClickSkill = (
+    skill: SerializedSheetSkill,
+    skillName: SkillName,
+    bonus: number
+  ) => {
     const rollResult = rollDice(1, 20);
+
+    const translatedSkillName = Translator.getSkillTranslation(skillName);
+    if (resistances && resistanceSkills.includes(skillName)) {
+      setRolledResistance({
+        name: skillName,
+        skill,
+      });
+      setOpenResistances(true);
+      return;
+    }
 
     const audio = new Audio(diceSound);
     audio.play();
-    enqueueSnackbar(`${skill}`, {
+    enqueueSnackbar(`${translatedSkillName}`, {
       variant: 'diceRoll',
       persist: true,
       bonus,
@@ -72,6 +103,13 @@ const SheetPreviewSkills = () => {
   return (
     <Box>
       <BookTitle>Perícias</BookTitle>
+      {rolledResistance && (
+        <SheetPreviewResistances
+          open={openResistances}
+          onClose={() => setOpenResistances(false)}
+          resistance={rolledResistance}
+        />
+      )}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label='Perícias' size='small'>
           <TableHead>
@@ -124,7 +162,7 @@ const SheetPreviewSkills = () => {
                     <TableCellSkillTotal
                       align='center'
                       onClick={() =>
-                        onClickSkill(skillNameTranslation, skill.total)
+                        onClickSkill(skill, key as SkillName, skill.total)
                       }
                     >
                       {skill.total}

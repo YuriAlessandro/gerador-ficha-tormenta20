@@ -5,7 +5,6 @@ import {
   Attributes,
   Lefeu,
   Race,
-  RaceName,
   SkillName,
 } from 't20-sheet-builder';
 import { useDispatch } from 'react-redux';

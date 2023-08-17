@@ -4,7 +4,7 @@ import {
   EquipmentName,
   OutOfGameContext,
   SerializedAttack,
-  SerializedModifier,
+  SerializedSheetContextualModifiersList,
   SerializedSheetInterface,
   SheetSerializer,
 } from 't20-sheet-builder';
@@ -14,7 +14,7 @@ export interface Attacks {
   name: EquipmentName;
   details: {
     attack: SerializedAttack;
-    modifiers: SerializedModifier[];
+    modifiers: SerializedSheetContextualModifiersList;
   };
 }
 
@@ -96,5 +96,7 @@ export const selectPreviewInventory = (state: RootState) =>
   selectSheetPreview(state).equipments;
 export const selectPreviewDevotion = (state: RootState) =>
   selectSheetPreview(state).devotion;
+export const selectPreviewResistances = (state: RootState) =>
+  selectSheetPreview(state).resistencies;
 
 export default sheetBuilderSliceSheetPreview;
