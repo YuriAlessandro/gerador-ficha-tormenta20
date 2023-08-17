@@ -24,6 +24,7 @@ import SheetBuildFormStepRaceDefinitionElf from './SheetBuildFormStepRaceDefinit
 import SheetBuildFormStepRaceDefinitionGoblin from './SheetBuildFormStepRaceDefinitionGoblin/SheetBuildFormStepRaceDefinitionGoblin';
 import SheetBuildFormStepRaceDefinitionMinotaur from './SheetBuildFormStepRaceDefinitionMinotaur/SheetBuildFormStepRaceDefinitionMinotaur';
 import SheetBuildFormStepRaceDefinitionLefeu from './SheetBuildFormStepRaceDefinitionLefeu/SheetBuildFormStepRaceDefinitionLefeu';
+import SheetBuildFormStepRaceDefinitionQareen from './SheetBuildFormStepRaceDefinitionQareen/SheetBuildFormStepRaceDefinitionQareen';
 
 export type RaceComponentProps = {
   attributesPreview: AttributePreview[];
@@ -39,6 +40,7 @@ const raceComponents: Record<RaceName, React.FC<RaceComponentProps>> = {
   [RaceName.goblin]: SheetBuildFormStepRaceDefinitionGoblin,
   [RaceName.minotaur]: SheetBuildFormStepRaceDefinitionMinotaur,
   [RaceName.lefeu]: SheetBuildFormStepRaceDefinitionLefeu,
+  [RaceName.qareen]: SheetBuildFormStepRaceDefinitionQareen,
 };
 
 const SheetBuilderFormStepRaceDefinition = () => {

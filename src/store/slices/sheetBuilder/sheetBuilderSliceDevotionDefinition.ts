@@ -13,7 +13,7 @@ export const sheetBuilderSliceDevotionDefinition = createSlice({
   name: 'sheetBuilder/devotion',
   initialState,
   reducers: {
-    resetRace: (state) => {
+    resetDevotion: (state) => {
       state.devotion = undefined;
     },
     submitDevotion: (state, action: PayloadAction<SerializedDevotion>) => {
@@ -22,7 +22,7 @@ export const sheetBuilderSliceDevotionDefinition = createSlice({
   },
 });
 
-export const { resetRace, submitDevotion } =
+export const { resetDevotion, submitDevotion } =
   sheetBuilderSliceDevotionDefinition.actions;
 
 export default sheetBuilderSliceDevotionDefinition;

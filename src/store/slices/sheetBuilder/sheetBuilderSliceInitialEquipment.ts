@@ -31,10 +31,16 @@ export const sheetBuilderSliceInitialEquipment = createSlice({
       state.martialWeapon = action.payload.martialWeapon;
       state.armor = action.payload.armor;
     },
+    resetEquipment: (state) => {
+      state.armor = undefined;
+      state.simpleWeapon = undefined;
+      state.martialWeapon = undefined;
+      state.money = 24;
+    },
   },
 });
 
-export const { submitInitialEquipment } =
+export const { submitInitialEquipment, resetEquipment } =
   sheetBuilderSliceInitialEquipment.actions;
 
 export default sheetBuilderSliceInitialEquipment;

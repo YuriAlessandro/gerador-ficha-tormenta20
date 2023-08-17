@@ -29,6 +29,16 @@ export const sheetBuilderSliceStepConfirmed = createSlice({
   name: 'sheetBuilder/stepConfirmed',
   initialState,
   reducers: {
+    resetOptionsReady: (state) => {
+      state.isAttrReady = initialState.isAttrReady;
+      state.isRaceReady = initialState.isRaceReady;
+      state.isRoleReady = initialState.isRoleReady;
+      state.isOriginReady = initialState.isOriginReady;
+      state.isDevotionReady = initialState.isDevotionReady;
+      state.isIntelligenceSkillsReady = initialState.isIntelligenceSkillsReady;
+      state.isEquipmentReady = initialState.isEquipmentReady;
+      state.isFinalTouchesReady = initialState.isFinalTouchesReady;
+    },
     setOptionReady: (
       state,
       action: PayloadAction<{
@@ -45,6 +55,7 @@ export const selectStepConfirmed =
   (key: keyof SheetBuilderStepConfirmedState) => (state: RootState) =>
     state.sheetBuilder.stepConfirmed[key];
 
-export const { setOptionReady } = sheetBuilderSliceStepConfirmed.actions;
+export const { setOptionReady, resetOptionsReady } =
+  sheetBuilderSliceStepConfirmed.actions;
 
 export default sheetBuilderSliceStepConfirmed;

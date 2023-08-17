@@ -17,6 +17,9 @@ export const sheetBuilderSliceintelligenceSkills = createSlice({
   name: 'sheetBuilder/intelligenceSkills',
   initialState,
   reducers: {
+    resetInteligenceSkills: (state) => {
+      state.skills = [];
+    },
     submitintelligenceSkills: (
       state,
       action: SubmitintelligenceSkillsAction
@@ -26,7 +29,7 @@ export const sheetBuilderSliceintelligenceSkills = createSlice({
   },
 });
 
-export const { submitintelligenceSkills } =
+export const { submitintelligenceSkills, resetInteligenceSkills } =
   sheetBuilderSliceintelligenceSkills.actions;
 
 export default sheetBuilderSliceintelligenceSkills;

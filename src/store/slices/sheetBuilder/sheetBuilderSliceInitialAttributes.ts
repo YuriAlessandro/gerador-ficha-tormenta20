@@ -32,11 +32,23 @@ export const sheetBuilderSliceInitialAttributes = createSlice({
     ) => {
       state[action.payload.attribute] = action.payload.value;
     },
+    resetAttributes: (state) => {
+      state.strength = initialState.strength;
+      state.dexterity = initialState.dexterity;
+      state.constitution = initialState.constitution;
+      state.intelligence = initialState.intelligence;
+      state.wisdom = initialState.wisdom;
+      state.charisma = initialState.charisma;
+    },
   },
 });
 
-export const { incrementAttribute, decrementAttribute, setAttribute } =
-  sheetBuilderSliceInitialAttributes.actions;
+export const {
+  incrementAttribute,
+  decrementAttribute,
+  setAttribute,
+  resetAttributes,
+} = sheetBuilderSliceInitialAttributes.actions;
 
 export const selectAttributes = (state: RootState) =>
   state.sheetBuilder.initialAttributes;

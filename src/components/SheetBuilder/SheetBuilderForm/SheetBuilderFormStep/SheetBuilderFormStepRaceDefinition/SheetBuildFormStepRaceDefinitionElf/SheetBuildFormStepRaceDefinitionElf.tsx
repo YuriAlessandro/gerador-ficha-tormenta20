@@ -1,6 +1,6 @@
 import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React from 'react';
-import { Elf, RaceName } from 't20-sheet-builder';
+import { Elf, Race, SerializedRace } from 't20-sheet-builder';
 import ConfirmButton from '../../../ConfirmButton';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
@@ -10,10 +10,10 @@ const SheetBuildFormStepRaceDefinitionElf: React.FC<RaceComponentProps> = ({
   attributesPreview,
 }) => {
   const makeElf = () => new Elf();
-  const createSubmitAction = () =>
-    submitRace({
-      name: RaceName.elf,
-    });
+  const createSubmitAction = (race: Race) => {
+    const elf = race as Elf;
+    return submitRace(elf.serialize() as SerializedRace);
+  };
 
   const confirmElf = () => {
     confirmRace(makeElf, createSubmitAction, 'isRaceReady');

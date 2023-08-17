@@ -1,39 +1,62 @@
 import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React, { useCallback } from 'react';
-import { Attribute, Attributes, Lefeu, RaceName } from 't20-sheet-builder';
+import {
+  Attribute,
+  Attributes,
+  Lefeu,
+  Race,
+  RaceName,
+  SkillName,
+} from 't20-sheet-builder';
 import { useDispatch } from 'react-redux';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
 import ConfirmButton from '../../../ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionLefeuAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionLefeuAttributeCheckboxes';
 import { AttributeCheckboxes } from '../SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
+import SheetBuilderFormStepRaceDefinitionLefeuDeformities from './SheetBuilderFormStepRaceDefinitionLefeuDeformities';
 
 const SheetBuildFormStepRaceDefinitionLefeu: React.FC<RaceComponentProps> = ({
   confirmRace,
   attributesPreview,
   setAttributeModifiers,
 }) => {
-  const dispatch = useDispatch();
-  const makeLefeu = () => new Lefeu();
-  const createSubmitAction = () =>
-    submitRace({
-      name: RaceName.lefeu,
-    });
-
-  const confirmMinotaur = () => {
-    confirmRace(makeLefeu, createSubmitAction, 'isRaceReady');
-  };
-
   const [attributeCheckboxes, setAttributeCheckboxes] = React.useState<
     Readonly<AttributeCheckboxes>
   >({
-    charisma: true,
+    charisma: false,
     constitution: false,
     dexterity: false,
     intelligence: false,
     strength: false,
     wisdom: false,
   });
+  const [deformities, setDeformities] = React.useState<SkillName[]>([]);
+
+  const selectedAttributes = Object.entries(attributeCheckboxes)
+    .filter(([_attribute, checked]) => checked)
+    .map(([attribute]) => attribute as Attribute);
+
+  const dispatch = useDispatch();
+  const makeLefeu = () => {
+    if (!deformities) {
+      throw new SheetBuilderFormError('MISSING_DEFORMITIES_OPTION');
+    }
+
+    const lefeu = new Lefeu(selectedAttributes);
+    lefeu.addDeformities(deformities);
+
+    return lefeu;
+  };
+  const createSubmitAction = (race: Race) => {
+    const lefeu = race as Lefeu;
+    return submitRace(lefeu.serialize());
+  };
+
+  const confirmLefeu = () => {
+    confirmRace(makeLefeu, createSubmitAction, 'isRaceReady');
+  };
 
   const toggleAttribute = useCallback(
     (attribute: Attribute) => {
@@ -66,7 +89,11 @@ const SheetBuildFormStepRaceDefinitionLefeu: React.FC<RaceComponentProps> = ({
         attributesPreview={attributesPreview}
         toggleAttribute={toggleAttribute}
       />
-      <ConfirmButton confirm={confirmMinotaur} />
+      <SheetBuilderFormStepRaceDefinitionLefeuDeformities
+        setDeformitiesOption={setDeformities}
+        deformities={deformities}
+      />
+      <ConfirmButton confirm={confirmLefeu} />
     </div>
   );
 };

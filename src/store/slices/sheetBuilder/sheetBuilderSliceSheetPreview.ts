@@ -34,6 +34,9 @@ export const sheetBuilderSliceSheetPreview = createSlice({
   name: 'sheetBuilder/preview',
   initialState,
   reducers: {
+    resetSheet(state) {
+      state.preview = serializer.serialize(sheet);
+    },
     updatePreview(state, action: PayloadAction<SerializedSheetInterface>) {
       state.preview = action.payload;
     },
@@ -43,7 +46,7 @@ export const sheetBuilderSliceSheetPreview = createSlice({
   },
 });
 
-export const { updatePreview, updateAttacks } =
+export const { updatePreview, updateAttacks, resetSheet } =
   sheetBuilderSliceSheetPreview.actions;
 
 const selectSheetPreview = (state: RootState) =>

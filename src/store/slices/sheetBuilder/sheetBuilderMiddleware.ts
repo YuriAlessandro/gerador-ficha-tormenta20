@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import SheetBuilder, {
   BuildingSheet,
@@ -40,7 +41,7 @@ import {
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
 import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
-import { setSheet } from '../sheetStorage/sheetStorage';
+import { setActiveSheet, setSheet } from '../sheetStorage/sheetStorage';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -73,7 +74,8 @@ startListening({
         setFormSuccess,
         updateAttacks,
         setOptionReady,
-        setSheet
+        setSheet,
+        setActiveSheet
       )(action) &&
       !reduxPersistActions.includes(action.type);
     return shouldTrigger;
@@ -181,6 +183,8 @@ startListening({
     } catch (err) {
       if (err instanceof SheetBuilderError) {
         api.dispatch(setFormError(err.message));
+      } else {
+        console.error(err);
       }
     }
   },

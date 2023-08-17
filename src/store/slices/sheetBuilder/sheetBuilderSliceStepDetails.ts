@@ -25,6 +25,10 @@ export const sheetBuilderSliceDetails = createSlice({
       state.name = action.payload.name;
       state.url = action.payload.url;
     },
+    resetDetails: (state) => {
+      state.name = '';
+      state.url = '';
+    },
   },
 });
 
@@ -34,6 +38,6 @@ export const selectPreviewName = (state: RootState) =>
 export const selectPreviewImage = (state: RootState) =>
   state.sheetBuilder.details.url;
 
-export const { setDetails } = sheetBuilderSliceDetails.actions;
+export const { setDetails, resetDetails } = sheetBuilderSliceDetails.actions;
 
 export default sheetBuilderSliceDetails;

@@ -18,6 +18,27 @@ import {
   useTheme,
 } from '@mui/material';
 import React from 'react';
+import { v4 as uuid } from 'uuid';
+import { useDispatch } from 'react-redux';
+import {
+  BuildingSheet,
+  OutOfGameContext,
+  SheetSerializer,
+} from 't20-sheet-builder';
+import {
+  setActiveSheet,
+  setSheet,
+} from '@/store/slices/sheetStorage/sheetStorage';
+import { resetAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
+import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
+import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
+import { resetDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
+import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import { useHistory } from 'react-router';
 import ferramentas from '../../assets/images/ferramentas.jpg';
 import ficha from '../../assets/images/ficha2.jpg';
 import library from '../../assets/images/library.jpg';
@@ -27,11 +48,45 @@ import LandingOption from '../LandingOption';
 const LandingPage: React.FC<{
   onClickButton: (link: string) => void;
 }> = ({ onClickButton }) => {
+  const dispatch = useDispatch();
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
+  const history = useHistory();
 
   const onOpenLink = (link: string) => {
     window.open(link);
+  };
+
+  const onClickNewSheet = () => {
+    const id = uuid();
+
+    const sheet = new BuildingSheet();
+    const serializer = new SheetSerializer(new OutOfGameContext());
+
+    dispatch(
+      setSheet({
+        id,
+        sheet: serializer.serialize(sheet),
+        name: '',
+        date: new Date().getTime(),
+        image: '',
+      })
+    );
+
+    // Set current state o sheet to initial state
+    dispatch(resetAttributes());
+    dispatch(resetRace());
+    dispatch(resetRole());
+    dispatch(resetOrigin());
+    dispatch(resetEquipment());
+    dispatch(resetDevotion());
+    dispatch(resetInteligenceSkills());
+    dispatch(resetDetails());
+    dispatch(resetOptionsReady());
+
+    dispatch(setActiveSheet(id));
+
+    history.push(`/sheet-builder/${id}`);
   };
 
   return (
@@ -80,9 +135,9 @@ const LandingPage: React.FC<{
                   />
                   <LandingOption
                     title='Nova ficha'
-                    text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
+                    text='Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
                     image={builder}
-                    onClick={() => onClickButton('sheet-builder')}
+                    onClick={onClickNewSheet}
                   />
                   <LandingOption
                     title='Ficha aleatória'

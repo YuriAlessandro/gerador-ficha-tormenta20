@@ -8,13 +8,13 @@ type Props = {
 };
 
 const raceOptions: Record<RaceName, Option<RaceName>> = {
-  dwarf: {
-    label: 'Anão',
-    value: RaceName.dwarf,
-  },
   human: {
     label: 'Humano',
     value: RaceName.human,
+  },
+  dwarf: {
+    label: 'Anão',
+    value: RaceName.dwarf,
   },
   dahllan: {
     label: 'Dahllan',
@@ -28,13 +28,17 @@ const raceOptions: Record<RaceName, Option<RaceName>> = {
     label: 'Goblin',
     value: RaceName.goblin,
   },
+  lefeu: {
+    label: 'Lefeu',
+    value: RaceName.lefeu,
+  },
   minotaur: {
     label: 'Minotauro',
     value: RaceName.minotaur,
   },
-  lefeu: {
-    label: 'Lefeu',
-    value: RaceName.lefeu,
+  qareen: {
+    label: 'Qaaren',
+    value: RaceName.qareen,
   },
 };
 

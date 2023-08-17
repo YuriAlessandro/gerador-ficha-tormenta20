@@ -99,15 +99,7 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
 
   const createSubmitAction = (race: Race) => {
     const human = race as Human;
-    const choices = human.versatileChoices.map((choice) => ({
-      type: choice.type,
-      name: choice.name,
-    }));
-    return submitRace({
-      name: RaceName.human,
-      selectedAttributes,
-      versatileChoices: choices as SerializedVersatileChoice[],
-    });
+    return submitRace(human.serialize());
   };
 
   return (

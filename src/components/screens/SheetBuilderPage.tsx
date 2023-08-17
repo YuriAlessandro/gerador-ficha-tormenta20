@@ -1,9 +1,10 @@
-import { Box, Fab, useTheme } from '@mui/material';
+import { Box, Breadcrumbs, Fab, Typography, useTheme } from '@mui/material';
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import bgImage from '@/assets/images/fantasybg.png';
+import { Link } from 'react-router-dom';
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 
@@ -61,6 +62,13 @@ const SheetBuilderPage: React.FC = () => {
         )}
       </FabDiv>
       <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
+        <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
+          <Link to='/sheets' color='inherit' href='/sheets'>
+            Meus Personagens
+          </Link>
+          <Typography color='text.primary'>Gerenciar Personagem</Typography>
+        </Breadcrumbs>
+
         <Box sx={{ p: 5 }}>
           <Title>Visualizar Ficha</Title>
         </Box>
