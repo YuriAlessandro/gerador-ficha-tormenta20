@@ -1,59 +1,71 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   BuildingSheet,
-  EquipmentName,
-  OutOfGameContext,
-  SerializedAttack,
-  SerializedSheetContextualModifiersList,
+  SerializedCharacter,
   SerializedSheetInterface,
-  SheetSerializer,
 } from 't20-sheet-builder';
 import { RootState } from '../..';
 
-export interface Attacks {
-  name: EquipmentName;
-  details: {
-    attack: SerializedAttack;
-    modifiers: SerializedSheetContextualModifiersList;
-  };
-}
+export type SheetBuilderSheetPreviewState = SerializedCharacter;
 
-export interface SheetBuilderSheetPreviewState {
-  preview: SerializedSheetInterface;
-  attacks?: Attacks[];
-}
+const initialSheet = new BuildingSheet();
 
-const sheet = new BuildingSheet();
-const serializer = new SheetSerializer(new OutOfGameContext());
+const createInitialModifier = () => ({
+  maxTotal: 0,
+  modifiers: [],
+  total: 0,
+});
 
-const initialState: SheetBuilderSheetPreviewState = {
-  preview: serializer.serialize(sheet),
-};
+const createInitialModifiersList = () => ({
+  contextual: createInitialModifier(),
+  fixed: createInitialModifier(),
+  perLevel: {
+    ...createInitialModifier(),
+    totalPerLevel: 0,
+  },
+});
+
+const createInitialState = () => ({
+  sheet: initialSheet.serialize(),
+  attacks: [],
+  maxWieldedItems: 2,
+  modifiers: {
+    armorPenalty: createInitialModifiersList(),
+    attack: createInitialModifiersList(),
+    damage: createInitialModifiersList(),
+    defense: createInitialModifiersList(),
+  },
+  fightStyle: undefined,
+});
+
+const initialState: SheetBuilderSheetPreviewState = createInitialState();
 
 export const sheetBuilderSliceSheetPreview = createSlice({
   name: 'sheetBuilder/preview',
   initialState,
   reducers: {
-    resetSheet(state) {
-      state.preview = serializer.serialize(sheet);
+    resetSheet() {
+      return createInitialState();
     },
     updatePreview(state, action: PayloadAction<SerializedSheetInterface>) {
-      state.preview = action.payload;
+      state.sheet = action.payload;
     },
-    updateAttacks(state, action: PayloadAction<Attacks[]>) {
-      state.attacks = action.payload;
+    updateCharacter(state, action: PayloadAction<SerializedCharacter>) {
+      return {
+        ...action.payload,
+      };
     },
   },
 });
 
-export const { updatePreview, updateAttacks, resetSheet } =
+export const { updatePreview, updateCharacter, resetSheet } =
   sheetBuilderSliceSheetPreview.actions;
 
-const selectSheetPreview = (state: RootState) =>
-  state.sheetBuilder.sheet.preview;
+export const selectCharacter = (state: RootState) => state.sheetBuilder.sheet;
+export const selectSheetPreview = (state: RootState) =>
+  state.sheetBuilder.sheet.sheet;
 export const selectSheetAttacks = (state: RootState) =>
-  state.sheetBuilder.sheet.attacks;
-
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].attacks;
 export const selectPreviewAttributes = (state: RootState) =>
   selectSheetPreview(state).attributes;
 export const selectPreviewDisplacement = (state: RootState) =>
@@ -77,7 +89,7 @@ export const selectPreviewLevel = (state: RootState) =>
 export const selectPreviewProficiencies = (state: RootState) =>
   selectSheetPreview(state).proficiencies;
 export const selectPreviewSkills = (state: RootState) =>
-  selectSheetPreview(state).skills;
+  selectSheetPreview(state).skills.skills;
 export const selectPreviewRaceAbilities = (state: RootState) =>
   selectSheetPreview(state).race?.abilities;
 export const selectPreviewRoleAbilities = (state: RootState) =>

@@ -18,7 +18,7 @@ import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSlice
 import { resetDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import {
   setActiveSheet,
-  setSheet,
+  storeSheet,
 } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -59,7 +59,7 @@ const LandingPage: React.FC<{
 
     const sheet = new BuildingSheet();
     dispatch(
-      setSheet({
+      storeSheet({
         id,
         sheet: sheet.serialize(new OutOfGameContext()),
         name: '',

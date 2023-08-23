@@ -4,7 +4,7 @@ import {
   removeSheet,
   selectStoredSheets,
   setActiveSheet,
-  setSheet,
+  storeSheet,
 } from '@/store/slices/sheetStorage/sheetStorage';
 import { v4 as uuid } from 'uuid';
 import {
@@ -73,7 +73,7 @@ const SheetList = () => {
     const serializer = new SheetSerializer(new OutOfGameContext());
 
     dispatch(
-      setSheet({
+      storeSheet({
         id,
         sheet: serializer.serialize(sheet),
         name: '',
@@ -104,7 +104,7 @@ const SheetList = () => {
     // const serializer = new SheetSerializer(new OutOfGameContext());
 
     dispatch(
-      setSheet({
+      storeSheet({
         id,
         sheet: savedSheet,
         name: sheet.name,

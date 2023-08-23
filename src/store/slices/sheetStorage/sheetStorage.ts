@@ -1,14 +1,14 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SerializedSheetInterface } from 't20-sheet-builder';
+import { RequiredBy } from 'notistack';
+import { SerializedCharacter } from 't20-sheet-builder';
 
-export interface SavedSheet {
+export type SavedSheet = {
   id: string;
-  sheet: SerializedSheetInterface;
   date: number;
   name: string;
   image: string;
-}
+} & RequiredBy<Partial<SerializedCharacter>, 'sheet'>;
 
 export interface SheetStorageDefinition {
   sheets: Record<string, SavedSheet>;
@@ -24,7 +24,10 @@ export const sheetStorageSlice = createSlice({
   name: 'sheetBuilder/storage',
   initialState,
   reducers: {
-    setSheet: (state, action: PayloadAction<SavedSheet>) => {
+    storeCharacter: (state, action: PayloadAction<SavedSheet>) => {
+      state.sheets[action.payload.id] = action.payload;
+    },
+    storeSheet: (state, action: PayloadAction<SavedSheet>) => {
       state.sheets[action.payload.id] = action.payload;
     },
     setActiveSheet: (state, action: PayloadAction<string>) => {
@@ -40,7 +43,7 @@ export const sheetStorageSlice = createSlice({
 export const selectStoredSheets = (state: RootState) =>
   state.sheetStorage.sheets;
 
-export const { setSheet, setActiveSheet, removeSheet } =
+export const { storeSheet, storeCharacter, setActiveSheet, removeSheet } =
   sheetStorageSlice.actions;
 
 export default sheetStorageSlice;

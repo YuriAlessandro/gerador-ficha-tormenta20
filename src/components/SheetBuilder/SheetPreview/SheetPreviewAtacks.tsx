@@ -1,28 +1,32 @@
+import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import React from 'react';
-import { useSelector } from 'react-redux';
 import {
-  selectPreviewAttributes,
-  selectPreviewSkills,
+  selectCharacter,
   selectSheetAttacks,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { Box } from '@mui/material';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { SerializedAttack, Translator } from 't20-sheet-builder';
-import { rollDice } from '@/functions/randomUtils';
 import { useSnackbar } from 'notistack';
-import diceSound from '@/assets/sounds/dice-rolling.mp3';
+import { useSelector } from 'react-redux';
+import {
+  Character,
+  EquipmentName,
+  PreviewContext,
+  SerializedAttack,
+  TranslatableName,
+  Translator,
+} from 't20-sheet-builder';
 import BookTitle from '../common/BookTitle';
 
 const SheetPreviewAtacks = () => {
-  const attacks = useSelector(selectSheetAttacks);
-  const skills = useSelector(selectPreviewSkills);
-  const attributes = useSelector(selectPreviewAttributes);
+  const attacksPreview = useSelector(selectSheetAttacks);
+  const characterPreview = useSelector(selectCharacter);
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -32,51 +36,35 @@ const SheetPreviewAtacks = () => {
   const getAttackCritical = (attack: SerializedAttack) =>
     `${attack.critical.threat}/x${attack.critical.multiplier}`;
 
-  const onRollAttack = (
-    attack: string,
-    diceQtd: number,
-    dice: number,
-    criticalThreat: number,
-    criticalMultiplier: number
-  ) => {
-    // For now, lets use only fight. But in the future we need to indity if it is a ranged attack and use shoot instead
-    const fightSkill = skills.fight;
+  const onRollAttack = (attackName: TranslatableName) => {
+    const character = Character.makeFromSerialized(characterPreview);
+    const context = new PreviewContext(character);
+    const attacks = context.getAttacks();
+    const attack = attacks.get(attackName as EquipmentName);
 
-    const forceAttribute = Object.entries(attributes).find(
-      ([attribute, _]) => attribute === 'strength'
-    );
+    if (!attack) return;
 
-    if (fightSkill && forceAttribute) {
-      const bonus = fightSkill.total;
-      // Damage bonus for melee attacks is the same as the force attribute
-      const damageBonus = forceAttribute[1];
-      const rollAttack = rollDice(1, 20);
+    const { damage, test } = context.roll(attack);
 
-      const actualQtd =
-        rollAttack >= criticalThreat ? criticalMultiplier * diceQtd : 1;
-
-      const rollDamage = rollDice(actualQtd, dice);
-
-      const audio = new Audio(diceSound);
-      audio.play();
-      enqueueSnackbar(`${attack}`, {
-        variant: 'attackRoll',
-        damage: rollDamage,
-        damageBonus,
-        rollResult: rollAttack,
-        bonus,
-        diceQtd: actualQtd,
-        dice,
-        criticalThreat,
-      });
-    }
+    const audio = new Audio(diceSound);
+    audio.play();
+    enqueueSnackbar(`${attackName}`, {
+      variant: 'attackRoll',
+      damage: damage.total,
+      damageBonus: 0, // todo
+      rollResult: test.total,
+      bonus: context.getAttackTestModifiersTotal(attack),
+      diceQtd: attack.attack.damage.diceQuantity,
+      dice: attack.attack.damage.diceSides,
+      criticalThreat: attack.attack.critical.threat,
+    });
   };
 
   return (
     <Box>
       <BookTitle>Ataques</BookTitle>
-      {!attacks && <p>Nenhum ataque.</p>}
-      {attacks && (
+      {!attacksPreview && <p>Nenhum ataque.</p>}
+      {attacksPreview && (
         <TableContainer component={Paper}>
           <Table size='small'>
             <TableHead sx={{ fontWeight: 'bold' }}>
@@ -93,8 +81,8 @@ const SheetPreviewAtacks = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {attacks.map((attack) => {
-                const atkName = Translator.getEquipmentTranslation(attack.name);
+              {attacksPreview.map(({ attack }) => {
+                const translatedName = Translator.getTranslation(attack.name);
                 return (
                   <TableRow
                     key={attack.name}
@@ -102,24 +90,16 @@ const SheetPreviewAtacks = () => {
                       '&:last-child td, &:last-child th': { border: 0 },
                       cursor: 'pointer',
                     }}
-                    onClick={() =>
-                      onRollAttack(
-                        atkName,
-                        attack.details.attack.damage.diceQuantity,
-                        attack.details.attack.damage.diceSides,
-                        attack.details.attack.critical.threat,
-                        attack.details.attack.critical.multiplier
-                      )
-                    }
+                    onClick={() => onRollAttack(attack.name)}
                   >
                     <TableCell component='th' scope='row'>
-                      {atkName}
+                      {translatedName}
                     </TableCell>
                     <TableCell align='right'>
-                      {getAttackDamage(attack.details.attack)}
+                      {getAttackDamage(attack)}
                     </TableCell>
                     <TableCell align='right'>
-                      {getAttackCritical(attack.details.attack)}
+                      {getAttackCritical(attack)}
                     </TableCell>
                   </TableRow>
                 );

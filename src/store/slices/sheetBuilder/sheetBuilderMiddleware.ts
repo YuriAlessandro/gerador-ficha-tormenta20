@@ -17,15 +17,19 @@ import SheetBuilder, {
   MartialWeaponFactory,
   OriginFactory,
   OutOfGameContext,
+  PreviewContext,
   RaceFactory,
   RoleFactory,
   SheetBuilderError,
-  SheetPreviewContext,
   SimpleWeaponFactory,
 } from 't20-sheet-builder';
 import { AppStartListening } from '../..';
 import { takeLatest } from '../../sagas';
-import { setActiveSheet, setSheet } from '../sheetStorage/sheetStorage';
+import {
+  setActiveSheet,
+  storeCharacter,
+  storeSheet,
+} from '../sheetStorage/sheetStorage';
 import {
   resetFormAlert,
   setFormError,
@@ -38,8 +42,7 @@ import {
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
 import {
-  Attacks,
-  updateAttacks,
+  updateCharacter,
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
 import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
@@ -73,10 +76,11 @@ startListening({
         setFormError,
         resetFormAlert,
         setFormSuccess,
-        updateAttacks,
         setOptionReady,
-        setSheet,
-        setActiveSheet
+        setActiveSheet,
+        updateCharacter,
+        storeSheet,
+        storeCharacter
       )(action) &&
       !reduxPersistActions.includes(action.type);
     return shouldTrigger;
@@ -84,6 +88,7 @@ startListening({
   effect: async (action, api) => {
     try {
       api.dispatch(resetFormAlert());
+      console.log(action.type);
       await takeLatest(api);
 
       const {
@@ -145,36 +150,37 @@ startListening({
         });
       }
 
-      if (serializedRace && serializedRole && serializedOrigin) {
-        const attacks: Attacks[] = [];
-        sheet.getAttacks().forEach((attack, name) => {
-          attacks.push({
-            name,
-            details: attack.serialize(sheet, new OutOfGameContext()),
-          });
-        });
+      const canBuildCharacter =
+        serializedRace && serializedRole && serializedOrigin;
 
-        api.dispatch(updateAttacks(attacks));
+      const updatedStore = {
+        id: api.getState().sheetStorage.activeSheetId,
+        date: new Date().getTime(),
+        name: details.name,
+        image: details.url,
+      };
+
+      if (canBuildCharacter) {
+        const character = new Character(sheetBuilder.build());
+        const context = new PreviewContext(character);
+        const serializedCharacter = character.serialize(context);
+        api.dispatch(updateCharacter(serializedCharacter));
+        api.dispatch(
+          storeCharacter({
+            ...updatedStore,
+            ...serializedCharacter,
+          })
+        );
+      } else {
+        const serializedSheet = sheet.serialize(new OutOfGameContext());
+        api.dispatch(updatePreview(serializedSheet));
+        api.dispatch(
+          storeSheet({
+            ...updatedStore,
+            sheet: serializedSheet,
+          })
+        );
       }
-
-      const serializedSheet =
-        serializedRace && serializedRole && serializedOrigin
-          ? sheet.serialize(
-              new SheetPreviewContext(new Character(sheetBuilder.build()))
-            )
-          : sheet.serialize(new OutOfGameContext());
-
-      api.dispatch(updatePreview(serializedSheet));
-
-      api.dispatch(
-        setSheet({
-          id: api.getState().sheetStorage.activeSheetId,
-          date: new Date().getTime(),
-          sheet: serializedSheet,
-          name: details.name,
-          image: details.url,
-        })
-      );
 
       const shouldDispatchSuccess = !isAnyOf(
         incrementAttribute,
