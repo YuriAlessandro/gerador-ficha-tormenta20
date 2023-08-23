@@ -1,12 +1,25 @@
 import background from '@/assets/images/fantasybg.png';
-import random from '@/assets/images/options/random.png';
-import characters from '@/assets/images/options/characters.png';
-import builder from '@/assets/images/options/builder.png';
-import treasure from '@/assets/images/options/treasure.png';
-import items from '@/assets/images/options/items.png';
 import books from '@/assets/images/options/books.png';
-import magical from '@/assets/images/options/magical.png';
+import builder from '@/assets/images/options/builder.png';
+import characters from '@/assets/images/options/characters.png';
 import database from '@/assets/images/options/database.png';
+import items from '@/assets/images/options/items.png';
+import magical from '@/assets/images/options/magical.png';
+import random from '@/assets/images/options/random.png';
+import treasure from '@/assets/images/options/treasure.png';
+import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
+import { resetAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
+import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
+import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import { resetDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
+import {
+  setActiveSheet,
+  setSheet,
+} from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
   Card,
@@ -19,27 +32,10 @@ import {
   useTheme,
 } from '@mui/material';
 import React from 'react';
-import { v4 as uuid } from 'uuid';
 import { useDispatch } from 'react-redux';
-import {
-  BuildingSheet,
-  OutOfGameContext,
-  SheetSerializer,
-} from 't20-sheet-builder';
-import {
-  setActiveSheet,
-  setSheet,
-} from '@/store/slices/sheetStorage/sheetStorage';
-import { resetAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
-import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
-import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
-import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
-import { resetDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
-import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useHistory } from 'react-router';
+import { BuildingSheet, OutOfGameContext } from 't20-sheet-builder';
+import { v4 as uuid } from 'uuid';
 import ferramentas from '../../assets/images/ferramentas.jpg';
 import ficha from '../../assets/images/ficha2.jpg';
 import library from '../../assets/images/library.jpg';
@@ -62,12 +58,10 @@ const LandingPage: React.FC<{
     const id = uuid();
 
     const sheet = new BuildingSheet();
-    const serializer = new SheetSerializer(new OutOfGameContext());
-
     dispatch(
       setSheet({
         id,
-        sheet: serializer.serialize(sheet),
+        sheet: sheet.serialize(new OutOfGameContext()),
         name: '',
         date: new Date().getTime(),
         image: '',

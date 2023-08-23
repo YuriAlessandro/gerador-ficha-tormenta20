@@ -1,8 +1,18 @@
 /* eslint-disable no-console */
 import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+} from 'redux-persist';
 import SheetBuilder, {
   BuildingSheet,
+  Character,
   Devotion,
+  GrantedPowerFactory,
   LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
@@ -10,20 +20,12 @@ import SheetBuilder, {
   RaceFactory,
   RoleFactory,
   SheetBuilderError,
-  SheetSerializer,
+  SheetPreviewContext,
   SimpleWeaponFactory,
-  GrantedPowerFactory,
 } from 't20-sheet-builder';
-import {
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist';
 import { AppStartListening } from '../..';
 import { takeLatest } from '../../sagas';
+import { setActiveSheet, setSheet } from '../sheetStorage/sheetStorage';
 import {
   resetFormAlert,
   setFormError,
@@ -41,7 +43,6 @@ import {
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
 import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
-import { setActiveSheet, setSheet } from '../sheetStorage/sheetStorage';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -98,7 +99,6 @@ startListening({
 
       const sheet = new BuildingSheet();
       const sheetBuilder = new SheetBuilder(sheet);
-      const serializer = new SheetSerializer(new OutOfGameContext());
 
       sheetBuilder.setInitialAttributes(initialAttributes);
 
@@ -157,7 +157,13 @@ startListening({
         api.dispatch(updateAttacks(attacks));
       }
 
-      const serializedSheet = serializer.serialize(sheet);
+      const serializedSheet =
+        serializedRace && serializedRole && serializedOrigin
+          ? sheet.serialize(
+              new SheetPreviewContext(new Character(sheetBuilder.build()))
+            )
+          : sheet.serialize(new OutOfGameContext());
+
       api.dispatch(updatePreview(serializedSheet));
 
       api.dispatch(
