@@ -18,6 +18,7 @@ import Typography from '@mui/material/Typography';
 import { SnackbarProvider } from 'notistack';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
 import Sidebar from './components/Sidebar';
@@ -41,13 +42,8 @@ declare module 'notistack' {
       rollResult: number;
     };
     attackRoll: {
-      rollResult: number;
-      bonus: number;
-      damage: number;
-      damageBonus: number;
-      dice: number;
-      diceQtd: number;
-      criticalThreat: number;
+      attackResult: AttackResult;
+      attack: CharacterAttack;
     };
   }
 }

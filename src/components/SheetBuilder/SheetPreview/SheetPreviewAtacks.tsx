@@ -44,19 +44,13 @@ const SheetPreviewAtacks = () => {
 
     if (!attack) return;
 
-    const { damage, test } = context.roll(attack);
-
+    const attackResult = context.roll(attack);
     const audio = new Audio(diceSound);
     audio.play();
     enqueueSnackbar(`${attackName}`, {
       variant: 'attackRoll',
-      damage: damage.total,
-      damageBonus: 0, // todo
-      rollResult: test.total,
-      bonus: context.getAttackTestModifiersTotal(attack),
-      diceQtd: attack.attack.damage.diceQuantity,
-      dice: attack.attack.damage.diceSides,
-      criticalThreat: attack.attack.critical.threat,
+      attackResult,
+      attack,
     });
   };
 

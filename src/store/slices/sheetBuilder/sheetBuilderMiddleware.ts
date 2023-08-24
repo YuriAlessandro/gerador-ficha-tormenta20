@@ -164,7 +164,6 @@ startListening({
         const character = new Character(sheetBuilder.build());
         const context = new PreviewContext(character);
         const serializedCharacter = character.serialize(context);
-        api.dispatch(updateCharacter(serializedCharacter));
         api.dispatch(
           storeCharacter({
             ...updatedStore,

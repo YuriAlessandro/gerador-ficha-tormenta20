@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { useSnackbar, CustomContentProps, SnackbarContent } from 'notistack';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Card,
@@ -9,46 +9,26 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { CustomContentProps, SnackbarContent, useSnackbar } from 'notistack';
 
 import diceIcon from '@/assets/images/dice.svg';
+import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import { addSignForRoll } from './StringHelper';
 
 interface Props extends CustomContentProps {
-  rollResult: number;
-  bonus: number;
-  damage: number;
-  damageBonus: number;
-  dice: number;
-  diceQtd: number;
-  criticalThreat: number;
+  attackResult: AttackResult;
+  attack: CharacterAttack;
 }
 
 const AttackRollResult = forwardRef<HTMLDivElement, Props>(
-  (
-    {
-      id,
-      rollResult,
-      bonus,
-      damage,
-      damageBonus,
-      diceQtd,
-      dice,
-      criticalThreat,
-      ...props
-    },
-    ref
-  ) => {
+  ({ id, attackResult, attack, ...props }, ref) => {
     const theme = useTheme();
     const { closeSnackbar } = useSnackbar();
-
-    const total = rollResult + bonus;
-    const totalDamage = damage + damageBonus;
+    const { damage, isCritical, test, isFumble } = attackResult;
 
     let backgroundColor = '#313131';
-    if (rollResult >= criticalThreat)
-      backgroundColor = theme.palette.success.main;
-    if (rollResult === 1) backgroundColor = theme.palette.error.main;
+    if (isCritical) backgroundColor = theme.palette.success.main;
+    if (isFumble) backgroundColor = theme.palette.error.main;
 
     return (
       <SnackbarContent ref={ref} style={{ display: 'flex' }}>
@@ -88,13 +68,15 @@ const AttackRollResult = forwardRef<HTMLDivElement, Props>(
                   >
                     <Stack alignItems='center'>
                       <Typography fontSize={10}>Ataque</Typography>
-                      <Typography fontSize={20}>{total}</Typography>
-                      {bonus !== 0 && (
+                      <Typography fontSize={20}>{test.total}</Typography>
+                      {test.modifiersTotal !== 0 && (
                         <Stack justifyContent='center' alignItems='center'>
                           <Stack direction='row'>
-                            <Typography fontSize={10}>{rollResult}</Typography>
                             <Typography fontSize={10}>
-                              {addSignForRoll(bonus as number)}
+                              {test.rollResult.total}
+                            </Typography>
+                            <Typography fontSize={10}>
+                              {addSignForRoll(test.modifiersTotal)}
                             </Typography>
                           </Stack>
                         </Stack>
@@ -114,15 +96,18 @@ const AttackRollResult = forwardRef<HTMLDivElement, Props>(
                   >
                     <Stack alignItems='center'>
                       <Typography fontSize={10}>
-                        Dano ({diceQtd}d{dice})
+                        Dano ({attack.attack.damage.diceQuantity}d
+                        {attack.attack.damage.diceSides})
                       </Typography>
-                      <Typography fontSize={20}>{totalDamage}</Typography>
-                      {bonus !== 0 && (
+                      <Typography fontSize={20}>{damage.total}</Typography>
+                      {damage.modifiersTotal !== 0 && (
                         <Stack justifyContent='center' alignItems='center'>
                           <Stack direction='row'>
-                            <Typography fontSize={10}>{damage}</Typography>
                             <Typography fontSize={10}>
-                              {addSignForRoll(damageBonus as number)}
+                              {damage.rollResult.total}
+                            </Typography>
+                            <Typography fontSize={10}>
+                              {addSignForRoll(damage.modifiersTotal as number)}
                             </Typography>
                           </Stack>
                         </Stack>
