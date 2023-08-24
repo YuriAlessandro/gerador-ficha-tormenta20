@@ -49,6 +49,8 @@ const SheetList = () => {
         initialAttributesMethod: 'dice',
       })
     );
+
+    // Maybe only set active if also going to the sheet builder
     dispatch(setActiveSheet(id));
 
     // SHOULD I STAY OR SHULD I GO?

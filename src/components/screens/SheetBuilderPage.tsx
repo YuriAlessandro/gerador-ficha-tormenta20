@@ -1,16 +1,24 @@
 import { Box, Breadcrumbs, Fab, Typography, useTheme } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import bgImage from '@/assets/images/fantasybg.png';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
+import { setActiveSheet } from '../../store/slices/sheetStorage/sheetStorage';
 
 const SheetBuilderPage: React.FC = () => {
   const [value, setValue] = useState(0);
   const theme = useTheme();
+  const { id } = useParams<{ id: string }>();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setActiveSheet(id));
+  }, [id]);
 
   const isDarkTheme = theme.palette.mode === 'dark';
 

@@ -58,6 +58,7 @@ const LandingPage: React.FC<{
         initialAttributesMethod: 'dice',
       })
     );
+
     dispatch(setActiveSheet(id));
 
     history.push(`/sheet-builder/${id}`);

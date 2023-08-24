@@ -275,7 +275,7 @@ function App(): JSX.Element {
                     <Route path='/sheets'>
                       <SheetList />
                     </Route>
-                    <Route path='/sheet-builder'>
+                    <Route path='/sheet-builder/:id'>
                       <SheetBuilderPage />
                     </Route>
                     {/* <Route path='/ficha-criatura'>
