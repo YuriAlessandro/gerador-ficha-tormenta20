@@ -40,11 +40,22 @@ export const sheetStorageSlice = createSlice({
       state.activeSheetId = '';
       delete state.sheets[action.payload];
     },
+    updateSheetDate: (
+      state,
+      action: PayloadAction<{ id: string; date: number }>
+    ) => {
+      state.sheets[action.payload.id].date = action.payload.date;
+    },
   },
 });
 
-export const { storeSheet, storeCharacter, setActiveSheet, removeSheet } =
-  sheetStorageSlice.actions;
+export const {
+  storeSheet,
+  storeCharacter,
+  setActiveSheet,
+  removeSheet,
+  updateSheetDate,
+} = sheetStorageSlice.actions;
 
 export const selectStoredSheets = (state: RootState) =>
   state.sheetStorage.sheets;

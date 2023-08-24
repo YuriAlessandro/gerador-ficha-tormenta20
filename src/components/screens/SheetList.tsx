@@ -1,29 +1,16 @@
 import React from 'react';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
-import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
-import {
-  resetAttributes,
-  setAttributes,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
-import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
-import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
-import {
-  resetRace,
-  submitRace,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { setAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import {
-  resetDetails,
-  setDetails,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
+import { setDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import {
   SavedSheet,
   removeSheet,
   selectStoredSheets,
   setActiveSheet,
   storeSheet,
+  updateSheetDate,
 } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -40,9 +27,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import {
   BuildingSheet,
-  OutOfGameContext,
   SerializedSheetInterface,
-  SheetSerializer,
   Translator,
 } from 't20-sheet-builder';
 import { v4 as uuid } from 'uuid';
@@ -60,13 +45,11 @@ const SheetList = () => {
     const id = uuid();
 
     const sheet = new BuildingSheet();
-    const serializer = new SheetSerializer(new OutOfGameContext());
-
     // TODO: refactor all dispatchs to one action "createNewSheet"
     dispatch(
       storeSheet({
         id,
-        sheet: serializer.serialize(sheet),
+        sheet: sheet.serialize(),
         name: '',
         date: new Date().getTime(),
         image: '',
@@ -74,50 +57,15 @@ const SheetList = () => {
       })
     );
 
-    // Set current state o sheet to initial state
-    dispatch(resetAttributes());
-    dispatch(resetRace());
-    dispatch(resetRole());
-    dispatch(resetOrigin());
-    dispatch(resetEquipment());
-    dispatch(resetDevotion());
-    dispatch(resetInteligenceSkills());
-    dispatch(resetDetails());
-    dispatch(resetOptionsReady());
-
     dispatch(setActiveSheet(id));
 
-    // history.push(`/sheet-builder/${id}`);
+    history.push(`/sheet-builder/${id}`);
   };
 
   const onClickEditSheet = (sheet: SavedSheet) => {
-    const { id, sheet: savedSheet, initialAttributesMethod } = sheet;
+    const { id, sheet: savedSheet } = sheet;
 
-    // const serializer = new SheetSerializer(new OutOfGameContext());
-
-    dispatch(
-      storeSheet({
-        id,
-        sheet: savedSheet,
-        name: sheet.name,
-        date: new Date().getTime(),
-        image: sheet.image,
-        initialAttributesMethod,
-      })
-    );
-
-    // Set current state o sheet to initial state
-    dispatch(setAttributes(savedSheet.attributes));
-
-    if (savedSheet.race) dispatch(submitRace(savedSheet.race));
-    // if (savedSheet.role) dispatch(submitRole(savedSheet.role));
-    // if (savedSheet.origin) dispatch(submitOrigin(savedSheet.origin));
-    // if (savedSheet.devotion) dispatch(submitDevotion(savedSheet.devotion));
-    // TODO: Inteligence Skills
-    // TODO: Initial Equipment
-
-    dispatch(setDetails({ name: sheet.name, url: sheet.image }));
-
+    dispatch(updateSheetDate({ id, date: Date.now() }));
     dispatch(resetOptionsReady());
     dispatch(setActiveSheet(id));
 

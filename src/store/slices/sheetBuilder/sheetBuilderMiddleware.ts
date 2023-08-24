@@ -29,6 +29,7 @@ import {
   setActiveSheet,
   storeCharacter,
   storeSheet,
+  updateSheetDate,
 } from '../sheetStorage/sheetStorage';
 import {
   resetFormAlert,
@@ -38,6 +39,7 @@ import {
 import {
   decrementAttribute,
   incrementAttribute,
+  setAttributes,
 } from './sheetBuilderSliceInitialAttributes';
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
@@ -45,7 +47,8 @@ import {
   updateCharacter,
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
-import { setOptionReady } from './sheetBuilderSliceStepConfirmed';
+import { resetOptionsReady, setOptionReady } from './sheetBuilderSliceStepConfirmed';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -80,12 +83,16 @@ startListening({
         setActiveSheet,
         updateCharacter,
         storeSheet,
-        storeCharacter
+        storeCharacter,
+        setActiveSheetToBuilder,
+        updateSheetDate,
+        resetOptionsReady
       )(action) &&
       !reduxPersistActions.includes(action.type);
     return shouldTrigger;
   },
   effect: async (action, api) => {
+    console.log('Sheet Builder Middleware', action.type);
     try {
       api.dispatch(resetFormAlert());
       console.log(action.type);

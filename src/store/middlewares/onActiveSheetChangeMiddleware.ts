@@ -1,5 +1,10 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
 import { AppStartListening } from '..';
+import {
+  setAttributes,
+  setMethod,
+} from '../slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { setActiveSheetToBuilder } from '../slices/sheetBuilder/sheetBuilderActions';
 
 export const onActiveSheetChangeMiddleware = createListenerMiddleware();
 
@@ -12,10 +17,17 @@ startListening({
       return false;
     }
 
-    const shouldTrigger = action.type.includes('setActiveSheet');
+    const shouldTrigger = action.type === 'sheetBuilder/storage/setActiveSheet';
     return shouldTrigger;
   },
   effect: async (action, api) => {
-    console.log(action.type, 'trig tirg');
+    console.log(action.type, 'Active Sheet Change', action.payload);
+
+    const state = api.getState();
+    const { dispatch } = api;
+    const activeSheet =
+      state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
+
+    dispatch(setActiveSheetToBuilder({ sheet: activeSheet }));
   },
 });

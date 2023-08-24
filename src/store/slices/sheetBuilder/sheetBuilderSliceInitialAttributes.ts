@@ -1,7 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Attribute, Attributes } from 't20-sheet-builder';
 import { RootState } from '../..';
-import { AttributesDefinitionType } from '../sheetStorage/sheetStorage';
+import {
+  AttributesDefinitionType,
+  setActiveSheet,
+} from '../sheetStorage/sheetStorage';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderInitialAttributesState = {
   attributes: Attributes;
@@ -49,6 +53,12 @@ export const sheetBuilderSliceInitialAttributes = createSlice({
       const initialState = createInitialState();
       state.attributes = initialState.attributes;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+      state.attributes = action.payload.sheet.sheet.initialAttributes;
+      state.method = action.payload.sheet.initialAttributesMethod;
+    });
   },
 });
 
