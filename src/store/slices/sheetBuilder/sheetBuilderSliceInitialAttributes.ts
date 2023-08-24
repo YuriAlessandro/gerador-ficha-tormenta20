@@ -4,18 +4,18 @@ import { RootState } from '../..';
 
 export type SheetBuilderInitialAttributesState = Attributes;
 
-const initialState: SheetBuilderInitialAttributesState = {
+const createInitialState = (): SheetBuilderInitialAttributesState => ({
   strength: 0,
   dexterity: 0,
   constitution: 0,
   intelligence: 0,
   wisdom: 0,
   charisma: 0,
-};
+});
 
 export const sheetBuilderSliceInitialAttributes = createSlice({
   name: 'sheetBuilder/initialAttributes',
-  initialState,
+  initialState: createInitialState(),
   reducers: {
     incrementAttribute: (state, action: PayloadAction<Attribute>) => {
       state[action.payload] += 1;
@@ -33,6 +33,7 @@ export const sheetBuilderSliceInitialAttributes = createSlice({
       state[action.payload.attribute] = action.payload.value;
     },
     resetAttributes: (state) => {
+      const initialState = createInitialState();
       state.strength = initialState.strength;
       state.dexterity = initialState.dexterity;
       state.constitution = initialState.constitution;
