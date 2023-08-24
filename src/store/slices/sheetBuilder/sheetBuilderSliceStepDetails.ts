@@ -1,14 +1,15 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export interface SheetBuilderDetailsState {
   name: string;
-  url: string;
+  image: string;
 }
 
 const initialState: SheetBuilderDetailsState = {
   name: '',
-  url: '',
+  image: '',
 };
 
 export const sheetBuilderSliceDetails = createSlice({
@@ -19,16 +20,22 @@ export const sheetBuilderSliceDetails = createSlice({
       state,
       action: PayloadAction<{
         name: string;
-        url: string;
+        image: string;
       }>
     ) => {
       state.name = action.payload.name;
-      state.url = action.payload.url;
+      state.image = action.payload.image;
     },
     resetDetails: (state) => {
       state.name = '';
-      state.url = '';
+      state.image = '';
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+      state.name = action.payload.sheet.name;
+      state.image = action.payload.sheet.image;
+    });
   },
 });
 

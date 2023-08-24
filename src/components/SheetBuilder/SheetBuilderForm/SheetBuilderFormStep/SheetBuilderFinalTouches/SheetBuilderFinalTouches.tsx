@@ -48,7 +48,7 @@ const SheetBuilderFinalTouches: React.FC<{ onFinishBuild: () => void }> = ({
     dispatch(
       setDetails({
         name,
-        url: image,
+        image,
       })
     );
   };

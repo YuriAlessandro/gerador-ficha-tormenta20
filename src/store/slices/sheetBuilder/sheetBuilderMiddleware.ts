@@ -160,7 +160,7 @@ startListening({
         id: api.getState().sheetStorage.activeSheetId,
         date: new Date().getTime(),
         name: details.name,
-        image: details.url,
+        image: details.image,
         initialAttributesMethod: initialAttributes.method,
       };
 
