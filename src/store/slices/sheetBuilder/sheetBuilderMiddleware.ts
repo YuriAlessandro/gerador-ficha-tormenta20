@@ -43,10 +43,6 @@ import {
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
 import {
-  updateCharacter,
-  updatePreview,
-} from './sheetBuilderSliceSheetPreview';
-import {
   resetOptionsReady,
   setOptionReady,
 } from './sheetBuilderSliceStepConfirmed';
@@ -77,13 +73,11 @@ startListening({
     const shouldTrigger =
       isSheetBuilderAction(action.type) &&
       !isAnyOf(
-        updatePreview,
         setFormError,
         resetFormAlert,
         setFormSuccess,
         setOptionReady,
         setActiveSheet,
-        updateCharacter,
         storeSheet,
         storeCharacter,
         setActiveSheetToBuilder,

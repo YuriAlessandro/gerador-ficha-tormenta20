@@ -1,65 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-  BuildingSheet,
-  SerializedCharacter,
-  SerializedSheetInterface,
-} from 't20-sheet-builder';
 import { RootState } from '../..';
-
-export type SheetBuilderSheetPreviewState = SerializedCharacter;
-
-const initialSheet = new BuildingSheet();
-
-const createInitialModifier = () => ({
-  maxTotal: 0,
-  modifiers: [],
-  total: 0,
-});
-
-const createInitialModifiersList = () => ({
-  contextual: createInitialModifier(),
-  fixed: createInitialModifier(),
-  perLevel: {
-    ...createInitialModifier(),
-    totalPerLevel: 0,
-  },
-});
-
-const createInitialState = () => ({
-  sheet: initialSheet.serialize(),
-  attacks: [],
-  maxWieldedItems: 2,
-  modifiers: {
-    armorPenalty: createInitialModifiersList(),
-    attack: createInitialModifiersList(),
-    damage: createInitialModifiersList(),
-    defense: createInitialModifiersList(),
-  },
-  fightStyle: undefined,
-});
-
-const initialState: SheetBuilderSheetPreviewState = createInitialState();
-
-export const sheetBuilderSliceSheetPreview = createSlice({
-  name: 'sheetBuilder/preview',
-  initialState,
-  reducers: {
-    resetSheet() {
-      return createInitialState();
-    },
-    updatePreview(state, action: PayloadAction<SerializedSheetInterface>) {
-      state.sheet = action.payload;
-    },
-    updateCharacter(state, action: PayloadAction<SerializedCharacter>) {
-      return {
-        ...action.payload,
-      };
-    },
-  },
-});
-
-export const { updatePreview, updateCharacter, resetSheet } =
-  sheetBuilderSliceSheetPreview.actions;
 
 export const selectCharacter = (state: RootState) =>
   state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
@@ -111,5 +50,3 @@ export const selectPreviewDevotion = (state: RootState) =>
   selectSheetPreview(state).devotion;
 export const selectPreviewResistances = (state: RootState) =>
   selectSheetPreview(state).resistencies;
-
-export default sheetBuilderSliceSheetPreview;
