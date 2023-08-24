@@ -27,7 +27,6 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
   const level = useSelector(selectPreviewLevel);
   const displacement = useSelector(selectPreviewDisplacement);
   const devotion = useSelector(selectPreviewDevotion);
-  console.log('preview', name, 'aaa');
   const getTitle = () => {
     const translatedRaceName =
       raceName && Translator.getRaceTranslation(raceName);
