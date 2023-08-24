@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { SkillName } from 't20-sheet-builder';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderIntelligenceSkillsState = {
   skills: SkillName[];
@@ -26,6 +27,11 @@ export const sheetBuilderSliceintelligenceSkills = createSlice({
     ) => {
       state.skills = action.payload.skills;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+      state.skills = action.payload.sheet.sheet.skills.intelligenceSkills;
+    });
   },
 });
 
