@@ -1,6 +1,5 @@
 import React from 'react';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
-import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
   SavedSheet,
   removeSheet,
