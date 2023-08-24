@@ -39,7 +39,6 @@ import {
 import {
   decrementAttribute,
   incrementAttribute,
-  setAttributes,
 } from './sheetBuilderSliceInitialAttributes';
 import { resetRace } from './sheetBuilderSliceRaceDefinition';
 import { resetRole } from './sheetBuilderSliceRoleDefinition';
@@ -47,7 +46,10 @@ import {
   updateCharacter,
   updatePreview,
 } from './sheetBuilderSliceSheetPreview';
-import { resetOptionsReady, setOptionReady } from './sheetBuilderSliceStepConfirmed';
+import {
+  resetOptionsReady,
+  setOptionReady,
+} from './sheetBuilderSliceStepConfirmed';
 import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();

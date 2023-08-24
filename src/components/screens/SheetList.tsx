@@ -1,16 +1,12 @@
 import React from 'react';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
-import { setAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import { setDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import {
   SavedSheet,
   removeSheet,
   selectStoredSheets,
   setActiveSheet,
   storeSheet,
-  updateSheetDate,
 } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -62,13 +58,8 @@ const SheetList = () => {
     history.push(`/sheet-builder/${id}`);
   };
 
-  const onClickEditSheet = (sheet: SavedSheet) => {
-    const { id, sheet: savedSheet } = sheet;
-
-    dispatch(updateSheetDate({ id, date: Date.now() }));
-    dispatch(resetOptionsReady());
+  const onClickEditSheet = ({ id }: SavedSheet) => {
     dispatch(setActiveSheet(id));
-
     history.push(`/sheet-builder/${id}`);
   };
 

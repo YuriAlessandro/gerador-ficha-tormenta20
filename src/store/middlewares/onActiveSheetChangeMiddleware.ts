@@ -1,9 +1,5 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
 import { AppStartListening } from '..';
-import {
-  setAttributes,
-  setMethod,
-} from '../slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { setActiveSheetToBuilder } from '../slices/sheetBuilder/sheetBuilderActions';
 
 export const onActiveSheetChangeMiddleware = createListenerMiddleware();
@@ -21,8 +17,6 @@ startListening({
     return shouldTrigger;
   },
   effect: async (action, api) => {
-    console.log(action.type, 'Active Sheet Change', action.payload);
-
     const state = api.getState();
     const { dispatch } = api;
     const activeSheet =

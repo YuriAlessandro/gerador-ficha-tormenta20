@@ -1,5 +1,6 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 type ReadyTypes = 'confirmed' | 'pending' | 'idle';
 
@@ -14,7 +15,7 @@ export interface SheetBuilderStepConfirmedState {
   isFinalTouchesReady: ReadyTypes;
 }
 
-const initialState: SheetBuilderStepConfirmedState = {
+const createInitialState = (): SheetBuilderStepConfirmedState => ({
   isAttrReady: 'idle',
   isRaceReady: 'idle',
   isRoleReady: 'idle',
@@ -23,21 +24,15 @@ const initialState: SheetBuilderStepConfirmedState = {
   isIntelligenceSkillsReady: 'idle',
   isEquipmentReady: 'idle',
   isFinalTouchesReady: 'idle',
-};
+});
 
 export const sheetBuilderSliceStepConfirmed = createSlice({
   name: 'sheetBuilder/stepConfirmed',
-  initialState,
+  initialState: createInitialState(),
   reducers: {
-    resetOptionsReady: (state) => {
-      state.isAttrReady = initialState.isAttrReady;
-      state.isRaceReady = initialState.isRaceReady;
-      state.isRoleReady = initialState.isRoleReady;
-      state.isOriginReady = initialState.isOriginReady;
-      state.isDevotionReady = initialState.isDevotionReady;
-      state.isIntelligenceSkillsReady = initialState.isIntelligenceSkillsReady;
-      state.isEquipmentReady = initialState.isEquipmentReady;
-      state.isFinalTouchesReady = initialState.isFinalTouchesReady;
+    resetOptionsReady: (_state) => {
+      const initialState = createInitialState();
+      return initialState;
     },
     setOptionReady: (
       state,
@@ -48,6 +43,12 @@ export const sheetBuilderSliceStepConfirmed = createSlice({
     ) => {
       state[action.payload.key] = action.payload.value;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setActiveSheetToBuilder, (_state, _action) => {
+      const initialState = createInitialState();
+      return initialState;
+    });
   },
 });
 

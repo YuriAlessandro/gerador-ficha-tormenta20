@@ -1,10 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Attribute, Attributes } from 't20-sheet-builder';
 import { RootState } from '../..';
-import {
-  AttributesDefinitionType,
-  setActiveSheet,
-} from '../sheetStorage/sheetStorage';
+import { AttributesDefinitionType } from '../sheetStorage/sheetStorage';
 import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderInitialAttributesState = {
