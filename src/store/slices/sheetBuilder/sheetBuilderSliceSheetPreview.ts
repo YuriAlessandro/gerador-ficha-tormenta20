@@ -61,9 +61,10 @@ export const sheetBuilderSliceSheetPreview = createSlice({
 export const { updatePreview, updateCharacter, resetSheet } =
   sheetBuilderSliceSheetPreview.actions;
 
-export const selectCharacter = (state: RootState) => state.sheetBuilder.sheet;
+export const selectCharacter = (state: RootState) =>
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
 export const selectSheetPreview = (state: RootState) =>
-  state.sheetBuilder.sheet.sheet;
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].sheet;
 export const selectSheetAttacks = (state: RootState) =>
   state.sheetStorage.sheets[state.sheetStorage.activeSheetId].attacks;
 export const selectPreviewAttributes = (state: RootState) =>

@@ -173,7 +173,6 @@ startListening({
         );
       } else {
         const serializedSheet = sheet.serialize(new OutOfGameContext());
-        api.dispatch(updatePreview(serializedSheet));
         api.dispatch(
           storeSheet({
             ...updatedStore,

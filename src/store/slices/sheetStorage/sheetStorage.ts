@@ -1,6 +1,5 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RequiredBy } from 'notistack';
 import { SerializedCharacter } from 't20-sheet-builder';
 
 export type SavedSheet = {
@@ -8,7 +7,8 @@ export type SavedSheet = {
   date: number;
   name: string;
   image: string;
-} & RequiredBy<Partial<SerializedCharacter>, 'sheet'>;
+  sheet: SerializedCharacter['sheet'];
+} & Partial<SerializedCharacter>;
 
 export interface SheetStorageDefinition {
   sheets: Record<string, SavedSheet>;

@@ -54,7 +54,6 @@ import {
   setDetails,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import { updatePreview } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 
 const SheetList = () => {
@@ -72,6 +71,7 @@ const SheetList = () => {
     const sheet = new BuildingSheet();
     const serializer = new SheetSerializer(new OutOfGameContext());
 
+    // TODO: refactor all dispatchs to one action "createNewSheet"
     dispatch(
       storeSheet({
         id,
@@ -151,7 +151,6 @@ const SheetList = () => {
       })
     );
 
-    dispatch(updatePreview(savedSheet));
     if (savedSheet.race) dispatch(submitRace(savedSheet.race));
     // if (savedSheet.role) dispatch(submitRole(savedSheet.role));
     // if (savedSheet.origin) dispatch(submitOrigin(savedSheet.origin));
