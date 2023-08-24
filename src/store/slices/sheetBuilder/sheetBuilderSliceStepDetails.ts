@@ -33,10 +33,10 @@ export const sheetBuilderSliceDetails = createSlice({
 });
 
 export const selectPreviewName = (state: RootState) =>
-  state.sheetBuilder.details.name;
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].name;
 
 export const selectPreviewImage = (state: RootState) =>
-  state.sheetBuilder.details.url;
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].image;
 
 export const { setDetails, resetDetails } = sheetBuilderSliceDetails.actions;
 

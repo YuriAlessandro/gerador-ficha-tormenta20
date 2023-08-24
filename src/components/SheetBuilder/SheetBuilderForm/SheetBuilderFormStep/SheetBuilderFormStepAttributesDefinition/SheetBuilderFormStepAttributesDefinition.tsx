@@ -1,4 +1,7 @@
-import { resetAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import {
+  resetAttributes,
+  setMethod,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
   FormControl,
@@ -8,23 +11,25 @@ import {
   RadioGroup,
   Stack,
 } from '@mui/material';
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  AttributesDefinitionType,
+  selectActiveSheetInitialAttributesMethod,
+} from '../../../../../store/slices/sheetStorage/sheetStorage';
 import SheetBuilderFormStepAttributesDefinitionDice from './SheetBuilderFormStepAttributesDefinitionDice';
 import SheetBuilderFormStepAttributesDefinitionFree from './SheetBuilderFormStepAttributesDefinitionFree';
 import SheetBuilderFormStepAttributesDefinitionPoints from './SheetBuilderFormStepAttributesDefinitionPoints';
 
-type AttributesDefinitionType = 'dice' | 'points' | 'free';
-
 const SheetBuilderFormStepAttributesDefinition = () => {
-  const [type, setType] = useState<AttributesDefinitionType>('dice');
+  const type = useSelector(selectActiveSheetInitialAttributesMethod);
   const dispatch = useDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(resetAttributes());
     dispatch(setOptionReady({ key: 'isAttrReady', value: 'pending' }));
     const { value } = event.target as HTMLInputElement;
-    setType(value as AttributesDefinitionType);
+    dispatch(setMethod(value as AttributesDefinitionType));
   };
 
   return (

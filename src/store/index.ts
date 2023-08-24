@@ -13,6 +13,7 @@ import storage from 'redux-persist/lib/storage';
 import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddleware';
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
+import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
   key: 'sheetStorage',
@@ -34,7 +35,9 @@ const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).prepend(sheetBuilderMiddleware.middleware),
+    })
+      .prepend(sheetBuilderMiddleware.middleware)
+      .prepend(onActiveSheetChangeMiddleware.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -65,6 +65,7 @@ const LandingPage: React.FC<{
         name: '',
         date: new Date().getTime(),
         image: '',
+        initialAttributesMethod: 'dice',
       })
     );
 

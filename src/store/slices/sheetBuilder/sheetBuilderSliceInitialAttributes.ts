@@ -1,27 +1,40 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Attribute, Attributes } from 't20-sheet-builder';
 import { RootState } from '../..';
+import { AttributesDefinitionType } from '../sheetStorage/sheetStorage';
 
-export type SheetBuilderInitialAttributesState = Attributes;
+export type SheetBuilderInitialAttributesState = {
+  attributes: Attributes;
+  method: AttributesDefinitionType;
+};
 
 const createInitialState = (): SheetBuilderInitialAttributesState => ({
-  strength: 0,
-  dexterity: 0,
-  constitution: 0,
-  intelligence: 0,
-  wisdom: 0,
-  charisma: 0,
+  attributes: {
+    strength: 0,
+    dexterity: 0,
+    constitution: 0,
+    intelligence: 0,
+    wisdom: 0,
+    charisma: 0,
+  },
+  method: 'dice',
 });
 
 export const sheetBuilderSliceInitialAttributes = createSlice({
   name: 'sheetBuilder/initialAttributes',
   initialState: createInitialState(),
   reducers: {
+    setAttributes: (state, action: PayloadAction<Attributes>) => {
+      state.attributes = action.payload;
+    },
     incrementAttribute: (state, action: PayloadAction<Attribute>) => {
-      state[action.payload] += 1;
+      state.attributes[action.payload] += 1;
     },
     decrementAttribute: (state, action: PayloadAction<Attribute>) => {
-      state[action.payload] -= 1;
+      state.attributes[action.payload] -= 1;
+    },
+    setMethod: (state, action: PayloadAction<AttributesDefinitionType>) => {
+      state.method = action.payload;
     },
     setAttribute: (
       state,
@@ -30,16 +43,11 @@ export const sheetBuilderSliceInitialAttributes = createSlice({
         value: number;
       }>
     ) => {
-      state[action.payload.attribute] = action.payload.value;
+      state.attributes[action.payload.attribute] = action.payload.value;
     },
     resetAttributes: (state) => {
       const initialState = createInitialState();
-      state.strength = initialState.strength;
-      state.dexterity = initialState.dexterity;
-      state.constitution = initialState.constitution;
-      state.intelligence = initialState.intelligence;
-      state.wisdom = initialState.wisdom;
-      state.charisma = initialState.charisma;
+      state.attributes = initialState.attributes;
     },
   },
 });
@@ -49,11 +57,15 @@ export const {
   decrementAttribute,
   setAttribute,
   resetAttributes,
+  setAttributes,
+  setMethod,
 } = sheetBuilderSliceInitialAttributes.actions;
 
 export const selectAttributes = (state: RootState) =>
-  state.sheetBuilder.initialAttributes;
+  state.sheetBuilder.initialAttributes.attributes;
 export const selectAttribute = (attribute: Attribute) => (state: RootState) =>
-  state.sheetBuilder.initialAttributes[attribute];
+  state.sheetBuilder.initialAttributes.attributes[attribute];
+export const selectInitialAttributesMethod = (state: RootState) =>
+  state.sheetBuilder.initialAttributes.method;
 
 export default sheetBuilderSliceInitialAttributes;

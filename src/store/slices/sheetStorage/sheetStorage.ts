@@ -2,11 +2,14 @@ import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedCharacter } from 't20-sheet-builder';
 
+export type AttributesDefinitionType = 'dice' | 'points' | 'free';
+
 export type SavedSheet = {
   id: string;
   date: number;
   name: string;
   image: string;
+  initialAttributesMethod: AttributesDefinitionType;
   sheet: SerializedCharacter['sheet'];
 } & Partial<SerializedCharacter>;
 
@@ -40,10 +43,21 @@ export const sheetStorageSlice = createSlice({
   },
 });
 
+export const { storeSheet, storeCharacter, setActiveSheet, removeSheet } =
+  sheetStorageSlice.actions;
+
 export const selectStoredSheets = (state: RootState) =>
   state.sheetStorage.sheets;
 
-export const { storeSheet, storeCharacter, setActiveSheet, removeSheet } =
-  sheetStorageSlice.actions;
+export const selectStoredSheet = (id: string) => (state: RootState) =>
+  state.sheetStorage.sheets[id];
+
+export const selectActiveSheet = (state: RootState) =>
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
+
+export const selectActiveSheetInitialAttributesMethod = (state: RootState) => {
+  const activeSheet = selectActiveSheet(state);
+  return activeSheet.initialAttributesMethod;
+};
 
 export default sheetStorageSlice;

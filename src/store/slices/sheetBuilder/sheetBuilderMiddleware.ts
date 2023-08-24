@@ -105,7 +105,7 @@ startListening({
       const sheet = new BuildingSheet();
       const sheetBuilder = new SheetBuilder(sheet);
 
-      sheetBuilder.setInitialAttributes(initialAttributes);
+      sheetBuilder.setInitialAttributes(initialAttributes.attributes);
 
       if (serializedRace) {
         const race = RaceFactory.makeFromSerialized(serializedRace);
@@ -158,6 +158,7 @@ startListening({
         date: new Date().getTime(),
         name: details.name,
         image: details.url,
+        initialAttributesMethod: initialAttributes.method,
       };
 
       if (canBuildCharacter) {
@@ -193,9 +194,12 @@ startListening({
     } catch (err) {
       if (err instanceof SheetBuilderError) {
         api.dispatch(setFormError(err.message));
-      } else {
-        console.error(err);
       }
+
+      // takeLatest cancels the task when a new action is dispatched
+      // this should be ignored
+      if ((err as Error).name === 'TaskAbortError') return;
+      console.error(err);
     }
   },
 });

@@ -1,4 +1,23 @@
 import React from 'react';
+import tormenta20 from '@/assets/images/tormenta20.jpg';
+import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
+import {
+  resetAttributes,
+  setAttributes,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
+import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
+import {
+  resetRace,
+  submitRace,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import {
+  resetDetails,
+  setDetails,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import {
   SavedSheet,
   removeSheet,
@@ -6,7 +25,6 @@ import {
   setActiveSheet,
   storeSheet,
 } from '@/store/slices/sheetStorage/sheetStorage';
-import { v4 as uuid } from 'uuid';
 import {
   Box,
   Button,
@@ -19,6 +37,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router';
 import {
   BuildingSheet,
   OutOfGameContext,
@@ -26,35 +45,7 @@ import {
   SheetSerializer,
   Translator,
 } from 't20-sheet-builder';
-import { useHistory } from 'react-router';
-import {
-  resetAttributes,
-  setAttribute,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import {
-  resetRace,
-  submitRace,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import {
-  resetRole,
-  // submitRole,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import {
-  resetOrigin,
-  // submitOrigin,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
-import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
-import {
-  resetDevotion,
-  // submitDevotion,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
-import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
-import {
-  resetDetails,
-  setDetails,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
-import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import tormenta20 from '@/assets/images/tormenta20.jpg';
+import { v4 as uuid } from 'uuid';
 
 const SheetList = () => {
   const dispatch = useDispatch();
@@ -79,6 +70,7 @@ const SheetList = () => {
         name: '',
         date: new Date().getTime(),
         image: '',
+        initialAttributesMethod: 'dice',
       })
     );
 
@@ -99,7 +91,7 @@ const SheetList = () => {
   };
 
   const onClickEditSheet = (sheet: SavedSheet) => {
-    const { id, sheet: savedSheet } = sheet;
+    const { id, sheet: savedSheet, initialAttributesMethod } = sheet;
 
     // const serializer = new SheetSerializer(new OutOfGameContext());
 
@@ -110,46 +102,12 @@ const SheetList = () => {
         name: sheet.name,
         date: new Date().getTime(),
         image: sheet.image,
+        initialAttributesMethod,
       })
     );
 
     // Set current state o sheet to initial state
-    dispatch(
-      setAttribute({
-        attribute: 'charisma',
-        value: savedSheet.attributes.charisma,
-      })
-    );
-    dispatch(
-      setAttribute({
-        attribute: 'constitution',
-        value: savedSheet.attributes.constitution,
-      })
-    );
-    dispatch(
-      setAttribute({
-        attribute: 'dexterity',
-        value: savedSheet.attributes.dexterity,
-      })
-    );
-    dispatch(
-      setAttribute({
-        attribute: 'intelligence',
-        value: savedSheet.attributes.intelligence,
-      })
-    );
-    dispatch(
-      setAttribute({
-        attribute: 'strength',
-        value: savedSheet.attributes.strength,
-      })
-    );
-    dispatch(
-      setAttribute({
-        attribute: 'wisdom',
-        value: savedSheet.attributes.wisdom,
-      })
-    );
+    dispatch(setAttributes(savedSheet.attributes));
 
     if (savedSheet.race) dispatch(submitRace(savedSheet.race));
     // if (savedSheet.role) dispatch(submitRole(savedSheet.role));
