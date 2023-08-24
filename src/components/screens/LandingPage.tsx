@@ -56,30 +56,17 @@ const LandingPage: React.FC<{
 
   const onClickNewSheet = () => {
     const id = uuid();
-
     const sheet = new BuildingSheet();
     dispatch(
       storeSheet({
         id,
-        sheet: sheet.serialize(new OutOfGameContext()),
-        name: '',
+        sheet: sheet.serialize(),
         date: new Date().getTime(),
+        name: '',
         image: '',
         initialAttributesMethod: 'dice',
       })
     );
-
-    // Set current state o sheet to initial state
-    dispatch(resetAttributes());
-    dispatch(resetRace());
-    dispatch(resetRole());
-    dispatch(resetOrigin());
-    dispatch(resetEquipment());
-    dispatch(resetDevotion());
-    dispatch(resetInteligenceSkills());
-    dispatch(resetDetails());
-    dispatch(resetOptionsReady());
-
     dispatch(setActiveSheet(id));
 
     history.push(`/sheet-builder/${id}`);

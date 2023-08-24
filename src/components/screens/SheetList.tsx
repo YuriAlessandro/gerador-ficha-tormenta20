@@ -38,23 +38,21 @@ const SheetList = () => {
 
   const onClickNewSheet = () => {
     const id = uuid();
-
     const sheet = new BuildingSheet();
-    // TODO: refactor all dispatchs to one action "createNewSheet"
     dispatch(
       storeSheet({
         id,
         sheet: sheet.serialize(),
-        name: '',
         date: new Date().getTime(),
+        name: '',
         image: '',
         initialAttributesMethod: 'dice',
       })
     );
-
     dispatch(setActiveSheet(id));
 
-    history.push(`/sheet-builder/${id}`);
+    // SHOULD I STAY OR SHULD I GO?
+    // history.push(`/sheet-builder/${id}`);
   };
 
   const onClickEditSheet = ({ id }: SavedSheet) => {
