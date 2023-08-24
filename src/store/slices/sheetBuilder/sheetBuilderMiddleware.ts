@@ -26,6 +26,7 @@ import SheetBuilder, {
 import { AppStartListening } from '../..';
 import { takeLatest } from '../../sagas';
 import {
+  SavedSheet,
   setActiveSheet,
   storeCharacter,
   storeSheet,
@@ -37,6 +38,7 @@ import {
   setFormSuccess,
 } from './sheetBuilderSliceForm';
 import {
+  changeMethod,
   decrementAttribute,
   incrementAttribute,
 } from './sheetBuilderSliceInitialAttributes';
@@ -46,7 +48,7 @@ import {
   resetOptionsReady,
   setOptionReady,
 } from './sheetBuilderSliceStepConfirmed';
-import { setActiveSheetToBuilder } from './sheetBuilderActions';
+import { syncSheetBuilder } from './sheetBuilderActions';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -80,9 +82,10 @@ startListening({
         setActiveSheet,
         storeSheet,
         storeCharacter,
-        setActiveSheetToBuilder,
+        syncSheetBuilder,
         updateSheetDate,
-        resetOptionsReady
+        resetOptionsReady,
+        changeMethod
       )(action) &&
       !reduxPersistActions.includes(action.type);
     return shouldTrigger;
@@ -156,12 +159,17 @@ startListening({
       const canBuildCharacter =
         serializedRace && serializedRole && serializedOrigin;
 
-      const updatedStore = {
+      const updatedStore: Omit<SavedSheet, 'sheet'> = {
         id: api.getState().sheetStorage.activeSheetId,
         date: new Date().getTime(),
         name: details.name,
         image: details.image,
-        initialAttributesMethod: initialAttributes.method,
+        form: {
+          initialAttributes: {
+            method: initialAttributes.method,
+            remainingPoints: initialAttributes.remainingPoints,
+          },
+        },
       };
 
       if (canBuildCharacter) {

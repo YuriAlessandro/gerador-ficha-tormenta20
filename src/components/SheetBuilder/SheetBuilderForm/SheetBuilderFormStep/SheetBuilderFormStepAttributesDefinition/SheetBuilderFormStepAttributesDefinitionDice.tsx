@@ -2,19 +2,19 @@ import { rollDice } from '@/functions/randomUtils';
 import { Box, Button, Paper, Stack, useTheme } from '@mui/material';
 import React from 'react';
 // import { SheetBuilderFormStepAttributesDefinitionProvider } from './SheetBuilderFormStepAttributesDefinitionContext';
-import styled from '@emotion/styled';
-import {
-  selectAttribute,
-  setAttribute,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { Attribute, Attributes, Translator } from 't20-sheet-builder';
+import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import { Option } from '@/components/SheetBuilder/common/Option';
 import { addSign } from '@/components/SheetBuilder/common/StringHelper';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  selectInitialAttributes,
+  setAttribute,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import diceSound from '@/assets/sounds/dice-rolling.mp3';
-import { attributes } from '../../../common/Attributes';
+import styled from '@emotion/styled';
+import { Attribute, Attributes, Translator } from 't20-sheet-builder';
 import border from '../../../../../assets/images/attrBox.svg';
+import { attributes } from '../../../common/Attributes';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 const SheetBuilderFormStepAttributesDefinitionDice = () => {
@@ -24,6 +24,7 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
   >([]);
 
   const dispatch = useAppDispatch();
+  const storedAttributes = useAppSelector(selectInitialAttributes);
 
   const generateRolls = () => {
     const audio = new Audio(diceSound);
@@ -131,7 +132,7 @@ const SheetBuilderFormStepAttributesDefinitionDice = () => {
         </Stack>
         <Stack direction='row' spacing={2}>
           {attributes.map((attribute) => {
-            const attributeValue = useAppSelector(selectAttribute(attribute));
+            const attributeValue = storedAttributes[attribute];
             return (
               <Stack key={attribute} alignItems='center'>
                 <h3>{Translator.getAttributeTranslation(attribute)}</h3>

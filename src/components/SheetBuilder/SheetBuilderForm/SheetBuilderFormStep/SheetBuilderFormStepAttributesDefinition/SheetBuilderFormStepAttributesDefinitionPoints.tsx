@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { Box, Stack, useTheme } from '@mui/material';
-import styled from '@emotion/styled';
-import {
-  decrementAttribute,
-  incrementAttribute,
-  selectAttribute,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { Attribute, Translator } from 't20-sheet-builder';
+import React from 'react';
 import { addSign } from '@/components/SheetBuilder/common/StringHelper';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  buyAttribute,
+  selectAttribute,
+  selectInitialAttributesRemainingPoints,
+  sellAttribute,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import RemoveIcon from '@mui/icons-material/Remove';
+import styled from '@emotion/styled';
 import AddIcon from '@mui/icons-material/Add';
-import { attributes } from '../../../common/Attributes';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { Box, Stack, useTheme } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { Attribute, Translator } from 't20-sheet-builder';
 import border from '../../../../../assets/images/attrBox.svg';
+import { attributes } from '../../../common/Attributes';
 import AttributeInputButton from './AttributeInputButton';
 
 const SheetBuilderFormStepAttributesDefinitionPoints = () => {
   const theme = useTheme();
-  const [points, setPoints] = useState(10);
-
+  const points = useSelector(selectInitialAttributesRemainingPoints) ?? 10;
   const dispatch = useAppDispatch();
 
   const AttributeLabel = styled.div`
@@ -48,38 +49,43 @@ const SheetBuilderFormStepAttributesDefinitionPoints = () => {
     return 0;
   };
 
+  const calcPointsOnSell = (currentValue: number) => {
+    if (currentValue - 1 === 0) return points + 1;
+    if (currentValue - 1 === -1) return points + 1;
+
+    const cost = getCostBasedOnValue(currentValue);
+    const futurePoints = points + cost;
+    return futurePoints;
+  };
+
   const onClickDecrement = (attr: Attribute, currentValue: number) => {
     if (currentValue <= -2) return;
-
-    if (currentValue - 1 === 0) setPoints(points + 1);
-    else if (currentValue - 1 === -1) setPoints(points + 1);
-    else {
-      const cost = getCostBasedOnValue(currentValue);
-      const futurePoints = points + cost;
-      if (futurePoints < 0) return;
-      setPoints(futurePoints);
-    }
+    const futurePoints = calcPointsOnSell(currentValue);
+    if (futurePoints < 0) return;
 
     dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
-    dispatch(decrementAttribute(attr));
+    dispatch(sellAttribute({ attribute: attr, remainingPoints: futurePoints }));
+  };
+
+  const calcPointsOnBuy = (currentValue: number) => {
+    if (currentValue === -1) {
+      return points - 1;
+    }
+    if (currentValue === 0) {
+      return points - 1;
+    }
+    const cost = getCostBasedOnValue(currentValue + 1);
+    const futurePoints = points - cost;
+    return futurePoints;
   };
 
   const onClickIncrement = (attr: Attribute, currentValue: number) => {
     if (currentValue >= 5 || points <= 0) return;
-
-    if (currentValue === -1) {
-      setPoints(points - 1);
-    } else if (currentValue === 0) {
-      setPoints(points - 1);
-    } else {
-      const cost = getCostBasedOnValue(currentValue + 1);
-      const futurePoints = points - cost;
-      if (futurePoints < 0) return;
-      setPoints(futurePoints);
-    }
+    const futurePoints = calcPointsOnBuy(currentValue);
+    if (futurePoints < 0) return;
 
     dispatch(setOptionReady({ key: 'isAttrReady', value: 'confirmed' }));
-    dispatch(incrementAttribute(attr));
+    dispatch(buyAttribute({ attribute: attr, remainingPoints: futurePoints }));
   };
 
   return (
@@ -93,7 +99,7 @@ const SheetBuilderFormStepAttributesDefinitionPoints = () => {
           {attributes.map((attribute) => {
             const attributeValue = useAppSelector(selectAttribute(attribute));
             return (
-              <Stack>
+              <Stack key={attribute}>
                 <h3>{Translator.getAttributeTranslation(attribute)}</h3>
                 <AttributeInputButton
                   onClick={() => onClickDecrement(attribute, attributeValue)}

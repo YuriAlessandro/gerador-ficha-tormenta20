@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedDevotion } from 't20-sheet-builder';
-import { setActiveSheetToBuilder } from './sheetBuilderActions';
+import { syncSheetBuilder } from './sheetBuilderActions';
 
 export interface SheetBuilderDevotionDefinitionState {
   devotion?: SerializedDevotion;
@@ -22,7 +22,7 @@ export const sheetBuilderSliceDevotionDefinition = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+    builder.addCase(syncSheetBuilder, (state, action) => {
       state.devotion = action.payload.sheet.sheet.devotion.devotion;
     });
   },

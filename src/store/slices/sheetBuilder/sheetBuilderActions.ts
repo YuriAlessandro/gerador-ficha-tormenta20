@@ -5,7 +5,6 @@ export type SetActiveSheetToBuilderPayload = {
   sheet: SavedSheet;
 };
 
-export const setActiveSheetToBuilder =
-  createAction<SetActiveSheetToBuilderPayload>(
-    'sheetBuilder/setActiveSheetToBuilder'
-  );
+export const syncSheetBuilder = createAction<SetActiveSheetToBuilderPayload>(
+  'sheetBuilder/syncSheetBuilder'
+);

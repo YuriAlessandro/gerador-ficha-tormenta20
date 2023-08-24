@@ -1,6 +1,9 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SerializedCharacter } from 't20-sheet-builder';
+import {
+  SerializedCharacter,
+  SerializedSheetInterface,
+} from 't20-sheet-builder';
 
 export type AttributesDefinitionType = 'dice' | 'points' | 'free';
 
@@ -9,7 +12,12 @@ export type SavedSheet = {
   date: number;
   name: string;
   image: string;
-  initialAttributesMethod: AttributesDefinitionType;
+  form: {
+    initialAttributes: {
+      method: AttributesDefinitionType;
+      remainingPoints?: number;
+    };
+  };
   sheet: SerializedCharacter['sheet'];
 } & Partial<SerializedCharacter>;
 
@@ -27,6 +35,23 @@ export const sheetStorageSlice = createSlice({
   name: 'sheetBuilder/storage',
   initialState,
   reducers: {
+    createNewSheet: (
+      state,
+      action: PayloadAction<{ id: string; sheet: SerializedSheetInterface }>
+    ) => {
+      state.sheets[action.payload.id] = {
+        id: action.payload.id,
+        sheet: action.payload.sheet,
+        date: new Date().getTime(),
+        name: '',
+        image: '',
+        form: {
+          initialAttributes: {
+            method: 'dice',
+          },
+        },
+      };
+    },
     storeCharacter: (state, action: PayloadAction<SavedSheet>) => {
       state.sheets[action.payload.id] = action.payload;
     },
@@ -56,6 +81,7 @@ export const {
   setActiveSheet,
   removeSheet,
   updateSheetDate,
+  createNewSheet,
 } = sheetStorageSlice.actions;
 
 export const selectStoredSheets = (state: RootState) =>
@@ -64,12 +90,10 @@ export const selectStoredSheets = (state: RootState) =>
 export const selectStoredSheet = (id: string) => (state: RootState) =>
   state.sheetStorage.sheets[id];
 
+export const selectActiveSheetId = (state: RootState) =>
+  state.sheetStorage.activeSheetId;
+
 export const selectActiveSheet = (state: RootState) =>
   state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
-
-export const selectActiveSheetInitialAttributesMethod = (state: RootState) => {
-  const activeSheet = selectActiveSheet(state);
-  return activeSheet.initialAttributesMethod;
-};
 
 export default sheetStorageSlice;

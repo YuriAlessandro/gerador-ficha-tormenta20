@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedRole } from 't20-sheet-builder';
-import { setActiveSheetToBuilder } from './sheetBuilderActions';
+import { syncSheetBuilder } from './sheetBuilderActions';
 import { RootState } from '../..';
 
 export interface SheetBuilderRoleDefinitionState {
@@ -23,7 +23,7 @@ export const sheetBuilderSliceRoleDefinition = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+    builder.addCase(syncSheetBuilder, (state, action) => {
       state.role = action.payload.sheet.sheet.role;
     });
   },

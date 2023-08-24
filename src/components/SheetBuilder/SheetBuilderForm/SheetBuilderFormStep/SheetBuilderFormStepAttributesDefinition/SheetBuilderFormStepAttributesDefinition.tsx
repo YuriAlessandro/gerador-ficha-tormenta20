@@ -1,6 +1,6 @@
 import {
-  resetAttributes,
-  setMethod,
+  changeMethod,
+  selectInitialAttributesMethod,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
@@ -13,23 +13,18 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  AttributesDefinitionType,
-  selectActiveSheetInitialAttributesMethod,
-} from '../../../../../store/slices/sheetStorage/sheetStorage';
+import { AttributesDefinitionType } from '../../../../../store/slices/sheetStorage/sheetStorage';
 import SheetBuilderFormStepAttributesDefinitionDice from './SheetBuilderFormStepAttributesDefinitionDice';
 import SheetBuilderFormStepAttributesDefinitionFree from './SheetBuilderFormStepAttributesDefinitionFree';
 import SheetBuilderFormStepAttributesDefinitionPoints from './SheetBuilderFormStepAttributesDefinitionPoints';
 
 const SheetBuilderFormStepAttributesDefinition = () => {
-  const type = useSelector(selectActiveSheetInitialAttributesMethod);
+  const storedType = useSelector(selectInitialAttributesMethod);
   const dispatch = useDispatch();
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(resetAttributes());
     dispatch(setOptionReady({ key: 'isAttrReady', value: 'pending' }));
-    const { value } = event.target as HTMLInputElement;
-    dispatch(setMethod(value as AttributesDefinitionType));
+    dispatch(changeMethod(event.target.value as AttributesDefinitionType));
   };
 
   return (
@@ -39,7 +34,7 @@ const SheetBuilderFormStepAttributesDefinition = () => {
         <RadioGroup
           row
           name='row-radio-buttons-group'
-          value={type}
+          value={storedType}
           onChange={handleChange}
         >
           <FormControlLabel
@@ -55,9 +50,15 @@ const SheetBuilderFormStepAttributesDefinition = () => {
           />
         </RadioGroup>
       </FormControl>
-      {type === 'dice' && <SheetBuilderFormStepAttributesDefinitionDice />}
-      {type === 'points' && <SheetBuilderFormStepAttributesDefinitionPoints />}
-      {type === 'free' && <SheetBuilderFormStepAttributesDefinitionFree />}
+      {storedType === 'dice' && (
+        <SheetBuilderFormStepAttributesDefinitionDice />
+      )}
+      {storedType === 'points' && (
+        <SheetBuilderFormStepAttributesDefinitionPoints />
+      )}
+      {storedType === 'free' && (
+        <SheetBuilderFormStepAttributesDefinitionFree />
+      )}
     </Stack>
   );
 };

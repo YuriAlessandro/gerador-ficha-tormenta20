@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { selectAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { selectInitialAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import React, { useMemo } from 'react';
 import {
@@ -50,7 +50,7 @@ const SheetBuilderFormStepRaceDefinition = () => {
   >({});
   const { confirm } = useSheetBuilderConfirm<Race>();
   const dispatch = useAppDispatch();
-  const attributes = useAppSelector(selectAttributes);
+  const attributes = useAppSelector(selectInitialAttributes);
 
   const attributesPreview = useMemo(
     () =>

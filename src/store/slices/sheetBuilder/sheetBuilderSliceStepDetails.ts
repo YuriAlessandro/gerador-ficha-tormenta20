@@ -1,6 +1,6 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { setActiveSheetToBuilder } from './sheetBuilderActions';
+import { syncSheetBuilder } from './sheetBuilderActions';
 
 export interface SheetBuilderDetailsState {
   name: string;
@@ -32,7 +32,7 @@ export const sheetBuilderSliceDetails = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+    builder.addCase(syncSheetBuilder, (state, action) => {
       state.name = action.payload.sheet.name;
       state.image = action.payload.sheet.image;
     });

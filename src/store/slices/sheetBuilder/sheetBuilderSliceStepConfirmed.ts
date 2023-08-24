@@ -1,6 +1,6 @@
 import { RootState } from '@/store';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { setActiveSheetToBuilder } from './sheetBuilderActions';
+import { syncSheetBuilder } from './sheetBuilderActions';
 
 type ReadyTypes = 'confirmed' | 'pending' | 'idle';
 
@@ -45,7 +45,7 @@ export const sheetBuilderSliceStepConfirmed = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(setActiveSheetToBuilder, (_state, _action) => {
+    builder.addCase(syncSheetBuilder, (_state, _action) => {
       const initialState = createInitialState();
       return initialState;
     });

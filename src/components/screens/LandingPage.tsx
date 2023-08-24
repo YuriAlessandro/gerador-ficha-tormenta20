@@ -7,10 +7,7 @@ import items from '@/assets/images/options/items.png';
 import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
 import treasure from '@/assets/images/options/treasure.png';
-import {
-  setActiveSheet,
-  storeSheet,
-} from '@/store/slices/sheetStorage/sheetStorage';
+import { createNewSheet } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
   Card,
@@ -48,19 +45,7 @@ const LandingPage: React.FC<{
   const onClickNewSheet = () => {
     const id = uuid();
     const sheet = new BuildingSheet();
-    dispatch(
-      storeSheet({
-        id,
-        sheet: sheet.serialize(),
-        date: new Date().getTime(),
-        name: '',
-        image: '',
-        initialAttributesMethod: 'dice',
-      })
-    );
-
-    dispatch(setActiveSheet(id));
-
+    dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
     history.push(`/sheet-builder/${id}`);
   };
 

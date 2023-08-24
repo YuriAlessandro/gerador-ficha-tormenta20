@@ -2,10 +2,9 @@ import React from 'react';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import {
   SavedSheet,
+  createNewSheet,
   removeSheet,
   selectStoredSheets,
-  setActiveSheet,
-  storeSheet,
 } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -39,26 +38,12 @@ const SheetList = () => {
   const onClickNewSheet = () => {
     const id = uuid();
     const sheet = new BuildingSheet();
-    dispatch(
-      storeSheet({
-        id,
-        sheet: sheet.serialize(),
-        date: new Date().getTime(),
-        name: '',
-        image: '',
-        initialAttributesMethod: 'dice',
-      })
-    );
-
-    // Maybe only set active if also going to the sheet builder
-    dispatch(setActiveSheet(id));
-
+    dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
     // SHOULD I STAY OR SHULD I GO?
     // history.push(`/sheet-builder/${id}`);
   };
 
   const onClickEditSheet = ({ id }: SavedSheet) => {
-    dispatch(setActiveSheet(id));
     history.push(`/sheet-builder/${id}`);
   };
 

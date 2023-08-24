@@ -1,6 +1,6 @@
 import { createListenerMiddleware } from '@reduxjs/toolkit';
 import { AppStartListening } from '..';
-import { setActiveSheetToBuilder } from '../slices/sheetBuilder/sheetBuilderActions';
+import { syncSheetBuilder } from '../slices/sheetBuilder/sheetBuilderActions';
 
 export const onActiveSheetChangeMiddleware = createListenerMiddleware();
 
@@ -22,6 +22,6 @@ startListening({
     const activeSheet =
       state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
 
-    dispatch(setActiveSheetToBuilder({ sheet: activeSheet }));
+    dispatch(syncSheetBuilder({ sheet: activeSheet }));
   },
 });
