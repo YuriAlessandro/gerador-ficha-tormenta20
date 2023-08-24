@@ -7,15 +7,6 @@ import items from '@/assets/images/options/items.png';
 import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
 import treasure from '@/assets/images/options/treasure.png';
-import { resetDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
-import { resetAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { resetEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
-import { resetInteligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
-import { resetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
-import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import { resetOptionsReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import { resetDetails } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
 import {
   setActiveSheet,
   storeSheet,
@@ -34,7 +25,7 @@ import {
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router';
-import { BuildingSheet, OutOfGameContext } from 't20-sheet-builder';
+import { BuildingSheet } from 't20-sheet-builder';
 import { v4 as uuid } from 'uuid';
 import ferramentas from '../../assets/images/ferramentas.jpg';
 import ficha from '../../assets/images/ficha2.jpg';
