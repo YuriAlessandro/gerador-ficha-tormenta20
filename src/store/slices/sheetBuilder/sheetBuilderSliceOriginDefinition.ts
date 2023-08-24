@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SheetBuilderStateOrigin } from './types';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export interface SheetBuilderOriginDefinitionState {
   origin?: SheetBuilderStateOrigin;
@@ -19,6 +20,11 @@ export const sheetBuilderSliceOriginDefinition = createSlice({
     submitOrigin: (state, action: PayloadAction<SheetBuilderStateOrigin>) => {
       state.origin = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+      state.origin = action.payload.sheet.sheet.origin;
+    });
   },
 });
 

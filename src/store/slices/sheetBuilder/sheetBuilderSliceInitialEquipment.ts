@@ -4,6 +4,7 @@ import {
   SerializedSheetEquipment,
   SimpleWeaponName,
 } from 't20-sheet-builder';
+import { setActiveSheetToBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderInitialEquipmentState = {
   simpleWeapon?: SerializedSheetEquipment<SimpleWeaponName>;
@@ -37,6 +38,15 @@ export const sheetBuilderSliceInitialEquipment = createSlice({
       state.martialWeapon = undefined;
       state.money = 24;
     },
+  },
+  extraReducers(builder) {
+    builder.addCase(setActiveSheetToBuilder, (state, action) => {
+      const { initialEquipment } = action.payload.sheet.sheet;
+      state.simpleWeapon = initialEquipment?.simpleWeapon;
+      state.martialWeapon = initialEquipment?.martialWeapon;
+      state.armor = initialEquipment?.armor;
+      state.money = initialEquipment?.money ?? 24;
+    });
   },
 });
 

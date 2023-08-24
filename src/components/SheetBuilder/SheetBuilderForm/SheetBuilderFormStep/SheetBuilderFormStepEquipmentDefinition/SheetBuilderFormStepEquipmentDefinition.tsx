@@ -7,16 +7,14 @@ import {
   SimpleWeaponName,
   Translator,
 } from 't20-sheet-builder';
-import {
-  selectPreviewProficiencies,
-  selectPreviewRoleName,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import ConfirmButton from '../../ConfirmButton';
 import SimpleWeaponSelect from './SimpleWeaponSelect';
 import MartialWeaponSelect from './MartialWeaponSelect';
 import DefensiveWeaponSelect from './DefenseEquipmentSelect';
+import { selectBuilderRole } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 
 const defaultEquipment = [
   EquipmentName.backpack,
@@ -32,7 +30,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
   const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
 
   const dispatch = useDispatch();
-  const role = useSelector(selectPreviewRoleName);
+  const role = useSelector(selectBuilderRole);
   const proficiencies = useSelector(selectPreviewProficiencies);
 
   const confirm = () => {
