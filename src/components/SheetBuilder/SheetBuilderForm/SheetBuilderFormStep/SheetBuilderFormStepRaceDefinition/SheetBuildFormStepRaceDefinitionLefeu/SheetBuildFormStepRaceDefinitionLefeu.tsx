@@ -1,13 +1,17 @@
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import React, { useCallback } from 'react';
+import {
+  selectSheetBuilderRace,
+  submitRace,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import React, { useCallback, useEffect } from 'react';
 import {
   Attribute,
   Attributes,
   Lefeu,
   Race,
+  SerializedLefeu,
   SkillName,
 } from 't20-sheet-builder';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
 import ConfirmButton from '../../../ConfirmButton';
@@ -31,7 +35,30 @@ const SheetBuildFormStepRaceDefinitionLefeu: React.FC<RaceComponentProps> = ({
     strength: false,
     wisdom: false,
   });
-  const [deformities, setDeformities] = React.useState<SkillName[]>([]);
+  const {
+    deformityChoices: storedChoices,
+    selectedAttributes: storedAttributes,
+  } = useSelector(selectSheetBuilderRace) as SerializedLefeu;
+  const [deformities, setDeformities] = React.useState<SkillName[]>(
+    storedChoices.map((choice) => choice.name as SkillName)
+  );
+
+  useEffect(() => {
+    if (storedChoices) {
+      setDeformities(storedChoices.map((choice) => choice.name as SkillName));
+    }
+  }, [storedChoices]);
+
+  useEffect(() => {
+    if (storedAttributes) {
+      setAttributeCheckboxes(
+        storedAttributes.reduce((acc, attribute) => {
+          acc[attribute] = true;
+          return acc;
+        }, {} as AttributeCheckboxes)
+      );
+    }
+  }, [storedAttributes]);
 
   const selectedAttributes = Object.entries(attributeCheckboxes)
     .filter(([_attribute, checked]) => checked)

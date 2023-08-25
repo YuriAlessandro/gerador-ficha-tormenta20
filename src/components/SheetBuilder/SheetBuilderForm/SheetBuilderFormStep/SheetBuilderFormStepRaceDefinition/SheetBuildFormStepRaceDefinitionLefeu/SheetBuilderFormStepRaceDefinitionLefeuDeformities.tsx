@@ -1,11 +1,11 @@
-import React from 'react';
-import { SkillName } from 't20-sheet-builder';
-import { skillsOptions } from '@/components/SheetBuilder/common/Options';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { skillsOptions } from '@/components/SheetBuilder/common/Options';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
+import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { SkillName } from 't20-sheet-builder';
 
 type Props = {
   setDeformitiesOption(options: SkillName[]): void;
@@ -27,6 +27,9 @@ const SheetBuilderFormStepRaceDefinitionLefeuDeformities = ({
           placeholder='Escolha duas perícias'
           className='mb-3'
           options={skillsOptions}
+          value={skillsOptions.filter((option) =>
+            deformities?.includes(option.value)
+          )}
           onChange={(options) => {
             dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
             setDeformitiesOption(options?.map((option) => option.value));

@@ -1,8 +1,13 @@
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
 import { selectInitialAttributes } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { resetRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import React, { useMemo } from 'react';
+import {
+  resetRace,
+  selectSheetBuilderRace,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import React, { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Attribute,
   Attributes,
@@ -10,21 +15,20 @@ import {
   RaceName,
   Races,
 } from 't20-sheet-builder';
-import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
 } from '../../useSheetBuilderSubmit';
 import { AttributePreview } from './AttributePreview';
 import RacesSelect from './RacesSelect';
+import SheetBuildFormStepRaceDefinitionElf from './SheetBuildFormStepRaceDefinitionElf/SheetBuildFormStepRaceDefinitionElf';
+import SheetBuildFormStepRaceDefinitionGoblin from './SheetBuildFormStepRaceDefinitionGoblin/SheetBuildFormStepRaceDefinitionGoblin';
+import SheetBuildFormStepRaceDefinitionLefeu from './SheetBuildFormStepRaceDefinitionLefeu/SheetBuildFormStepRaceDefinitionLefeu';
+import SheetBuildFormStepRaceDefinitionMinotaur from './SheetBuildFormStepRaceDefinitionMinotaur/SheetBuildFormStepRaceDefinitionMinotaur';
+import SheetBuildFormStepRaceDefinitionQareen from './SheetBuildFormStepRaceDefinitionQareen/SheetBuildFormStepRaceDefinitionQareen';
 import SheetBuilderFormStepRaceDefinitionDahllan from './SheetBuilderFormStepRaceDefinitionDahllan/SheetBuilderFormStepRaceDefinitionDahllan';
 import SheetBuilderFormStepRaceDefinitionDwarf from './SheetBuilderFormStepRaceDefinitionDwarf/SheetBuilderFormStepRaceDefinitionDwarf';
 import SheetBuilderFormStepRaceDefinitionHuman from './SheetBuilderFormStepRaceDefinitionHuman/SheetBuilderFormStepRaceDefinitionHuman';
-import SheetBuildFormStepRaceDefinitionElf from './SheetBuildFormStepRaceDefinitionElf/SheetBuildFormStepRaceDefinitionElf';
-import SheetBuildFormStepRaceDefinitionGoblin from './SheetBuildFormStepRaceDefinitionGoblin/SheetBuildFormStepRaceDefinitionGoblin';
-import SheetBuildFormStepRaceDefinitionMinotaur from './SheetBuildFormStepRaceDefinitionMinotaur/SheetBuildFormStepRaceDefinitionMinotaur';
-import SheetBuildFormStepRaceDefinitionLefeu from './SheetBuildFormStepRaceDefinitionLefeu/SheetBuildFormStepRaceDefinitionLefeu';
-import SheetBuildFormStepRaceDefinitionQareen from './SheetBuildFormStepRaceDefinitionQareen/SheetBuildFormStepRaceDefinitionQareen';
 
 export type RaceComponentProps = {
   attributesPreview: AttributePreview[];
@@ -44,10 +48,22 @@ const raceComponents: Record<RaceName, React.FC<RaceComponentProps>> = {
 };
 
 const SheetBuilderFormStepRaceDefinition = () => {
-  const [race, setRace] = React.useState<RaceName>();
+  const submittedRace = useSelector(selectSheetBuilderRace);
+  const [selectedRace, setSelectedRace] = React.useState<RaceName | undefined>(
+    submittedRace?.name
+  );
+
   const [attributeModifiers, setAttributeModifiers] = React.useState<
     Partial<Attributes>
-  >({});
+  >(submittedRace?.attributeModifiers ?? {});
+
+  useEffect(() => {
+    if (submittedRace) {
+      setSelectedRace(submittedRace.name);
+      setAttributeModifiers(submittedRace.attributeModifiers);
+    }
+  }, [submittedRace]);
+
   const { confirm } = useSheetBuilderConfirm<Race>();
   const dispatch = useAppDispatch();
   const attributes = useAppSelector(selectInitialAttributes);
@@ -72,17 +88,18 @@ const SheetBuilderFormStepRaceDefinition = () => {
     setAttributeModifiers({});
   };
 
-  const changeRace = (selectedRace?: RaceName) => {
+  const changeRace = (race?: RaceName) => {
     dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
-    setRace(selectedRace);
+    setSelectedRace(race);
     resetState();
 
-    if (selectedRace) {
-      const RaceClass = Races.getByName(selectedRace);
+    if (race) {
+      const RaceClass = Races.getByName(race);
       setAttributeModifiers(RaceClass.attributeModifiers);
     }
   };
-  const RaceComponent = race ? raceComponents[race] : null;
+
+  const RaceComponent = selectedRace ? raceComponents[selectedRace] : null;
   return (
     <section className='py-6'>
       <RacesSelect changeRace={changeRace} />

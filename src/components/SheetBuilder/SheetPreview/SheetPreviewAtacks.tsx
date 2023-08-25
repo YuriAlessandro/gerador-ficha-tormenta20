@@ -41,10 +41,8 @@ const SheetPreviewAtacks = () => {
     const context = new PreviewContext(character);
     const attacks = character.getAttacks(context);
     const attack = attacks.get(attackName as EquipmentName);
-
     if (!attack) return;
-
-    const attackResult = character.attack(attack, context);
+    const attackResult = character.attack(attack);
     const audio = new Audio(diceSound);
     audio.play();
     enqueueSnackbar(`${attackName}`, {

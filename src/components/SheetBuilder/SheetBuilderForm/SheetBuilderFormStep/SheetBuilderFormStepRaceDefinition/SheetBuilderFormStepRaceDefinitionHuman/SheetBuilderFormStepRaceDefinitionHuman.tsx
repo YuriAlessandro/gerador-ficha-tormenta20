@@ -1,20 +1,24 @@
 import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import {
+  selectSheetBuilderRace,
+  submitRace,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import { PayloadAction } from '@reduxjs/toolkit';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Attribute,
   Attributes,
   GeneralPowerName,
   Human,
   Race,
+  SerializedHuman,
   SerializedRace,
   SkillName,
   VersatileChoiceFactory,
   VersatileChoiceType,
 } from 't20-sheet-builder';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 import SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes from './SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes';
@@ -26,14 +30,21 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   setAttributeModifiers,
   confirmRace,
 }) => {
+  const { versatileChoices } = useSelector(
+    selectSheetBuilderRace
+  ) as SerializedHuman;
+
+  const [storedFirstOption, storedSecondOption] = versatileChoices;
+
   const dispatch = useDispatch();
-  const [firstVersatileOption, setFirstVersatileOption] =
-    React.useState<SkillName>();
+  const [firstVersatileOption, setFirstVersatileOption] = React.useState<
+    SkillName | undefined
+  >(storedFirstOption.name as SkillName);
   const [secondVersatileOption, setSecondVersatileOption] = React.useState<
-    GeneralPowerName | SkillName
-  >();
+    GeneralPowerName | SkillName | undefined
+  >(storedSecondOption.name);
   const [secondVersatileOptionType, setSecondVersatileOptionType] =
-    React.useState<VersatileChoiceType>();
+    React.useState<VersatileChoiceType | undefined>(storedSecondOption.type);
   const [attributeCheckboxes, setAttributeCheckboxes] = React.useState<
     Readonly<AttributeCheckboxes>
   >({
@@ -44,6 +55,24 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
     strength: false,
     wisdom: false,
   });
+
+  useEffect(() => {
+    if (storedFirstOption) {
+      setFirstVersatileOption(storedFirstOption.name as SkillName);
+    }
+  }, [storedFirstOption.name]);
+
+  useEffect(() => {
+    if (storedSecondOption) {
+      setSecondVersatileOption(storedSecondOption.name);
+    }
+  }, [storedSecondOption.name]);
+
+  useEffect(() => {
+    if (storedSecondOption) {
+      setSecondVersatileOptionType(storedSecondOption.type);
+    }
+  }, [storedSecondOption.type]);
 
   const selectedAttributes = Object.entries(attributeCheckboxes)
     .filter(([_attribute, checked]) => checked)
@@ -107,6 +136,8 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
         toggleAttribute={toggleAttribute}
       />
       <SheetBuilderFormStepRaceDefinitionHumanVersatile
+        firstVersatileOption={firstVersatileOption}
+        secondVersatileOption={secondVersatileOption}
         secondVersatileOptionType={secondVersatileOptionType}
         setFirstVersatileOption={setFirstVersatileOption}
         setSecondVersatileOption={setSecondVersatileOption}

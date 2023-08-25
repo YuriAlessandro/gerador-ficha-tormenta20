@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedRace } from 't20-sheet-builder';
 import { syncSheetBuilder } from './sheetBuilderActions';
+import { RootState } from '../..';
 
 export interface SheetBuilderRaceDefinitionState {
   race?: SerializedRace;
@@ -30,5 +31,8 @@ export const sheetBuilderSliceRaceDefinition = createSlice({
 
 export const { resetRace, submitRace } =
   sheetBuilderSliceRaceDefinition.actions;
+
+export const selectSheetBuilderRace = (state: RootState) =>
+  state.sheetBuilder.race.race;
 
 export default sheetBuilderSliceRaceDefinition;

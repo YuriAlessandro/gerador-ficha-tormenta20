@@ -16,6 +16,7 @@ type Props<T, IsMulti extends boolean = false, V = Value<T, IsMulti>> = {
   isMulti?: IsMulti;
   id: string;
   defaultValue?: V;
+  value?: V;
   isClearable?: boolean;
   onChange: (option: V) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

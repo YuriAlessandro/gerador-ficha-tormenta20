@@ -21,6 +21,8 @@ const secondVersatilOptionTypeOptions: Option<VersatileChoiceType>[] = [
 ];
 
 type Props = {
+  firstVersatileOption?: SkillName;
+  secondVersatileOption?: SkillName | GeneralPowerName;
   secondVersatileOptionType?: VersatileChoiceType;
   setFirstVersatileOption(option?: SkillName): void;
   setSecondVersatileOption(option?: SkillName | GeneralPowerName): void;
@@ -32,6 +34,8 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
   setFirstVersatileOption,
   setSecondVersatileOption,
   setSecondVersatileOptionType,
+  firstVersatileOption,
+  secondVersatileOption,
 }: Props) => {
   const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
   const dispatch = useDispatch();
@@ -43,6 +47,9 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
           placeholder='1 - Escolha uma perícia'
           className='mb-3'
           options={skillsOptions}
+          value={skillsOptions.find(
+            (option) => option.value === firstVersatileOption
+          )}
           onChange={(option) => {
             dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
             setFirstVersatileOption(option?.value);
@@ -56,6 +63,9 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
             setSecondVersatileOptionType(option?.value);
             setSecondVersatileOption(undefined);
           }}
+          value={secondVersatilOptionTypeOptions.find(
+            (option) => option.value === secondVersatileOptionType
+          )}
           className='mb-3'
           placeholder='2 - Escolha perícia ou poder'
           id='second-versatile-option-type-select'
@@ -64,6 +74,9 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
           <SheetBuilderFormSelect
             options={generalPowerOptions}
             placeholder='2 - Escolha um poder'
+            value={generalPowerOptions.find(
+              (option) => option.value === secondVersatileOption
+            )}
             onChange={(option) => {
               dispatch(
                 setOptionReady({ key: 'isRaceReady', value: 'pending' })
@@ -78,6 +91,9 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
           <SheetBuilderFormSelect
             options={skillsOptions}
             placeholder='2 - Escolha uma perícia'
+            value={skillsOptions.find(
+              (option) => option.value === secondVersatileOption
+            )}
             onChange={(option) => {
               dispatch(
                 setOptionReady({ key: 'isRaceReady', value: 'pending' })
