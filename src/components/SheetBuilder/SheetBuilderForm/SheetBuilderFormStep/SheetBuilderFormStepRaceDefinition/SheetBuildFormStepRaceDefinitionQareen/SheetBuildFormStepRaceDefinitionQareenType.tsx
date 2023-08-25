@@ -5,11 +5,13 @@ import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceSte
 import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
 
 interface IProps {
+  type: QareenType;
   setType: (type: QareenType) => void;
 }
 
 const SheetBuildFormStepRaceDefinitionQareenType: React.FC<IProps> = ({
   setType,
+  type,
 }) => {
   const dispatch = useDispatch();
 
@@ -48,6 +50,7 @@ const SheetBuildFormStepRaceDefinitionQareenType: React.FC<IProps> = ({
           placeholder='Escolha uma magia'
           className='mb-3'
           options={options}
+          value={options.find((option) => option.value === type)}
           onChange={(option) => {
             dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));
             setType(option.value as QareenType);

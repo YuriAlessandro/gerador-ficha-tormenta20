@@ -7,10 +7,12 @@ import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
 
 interface IProps {
   setSpell: (spell: SpellName) => void;
+  spell: SpellName;
 }
 
 const SheetBuildFormStepRaceDefinitionQareenSpell: React.FC<IProps> = ({
   setSpell,
+  spell,
 }) => {
   const dispatch = useDispatch();
   return (
@@ -20,6 +22,7 @@ const SheetBuildFormStepRaceDefinitionQareenSpell: React.FC<IProps> = ({
         <SheetBuilderFormSelect
           placeholder='Escolha uma magia'
           className='mb-3'
+          value={spellsOptions.find((option) => option.value === spell)}
           options={spellsOptions}
           onChange={(option) => {
             dispatch(setOptionReady({ key: 'isRaceReady', value: 'pending' }));

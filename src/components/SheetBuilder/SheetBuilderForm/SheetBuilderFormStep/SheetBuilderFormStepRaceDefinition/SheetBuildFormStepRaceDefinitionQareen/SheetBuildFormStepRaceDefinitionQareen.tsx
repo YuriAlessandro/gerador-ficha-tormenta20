@@ -1,13 +1,18 @@
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
-import React from 'react';
+import {
+  selectSheetBuilderRace,
+  submitRace,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import React, { useEffect } from 'react';
 import {
   Qareen,
   QareenType,
   Race,
+  SerializedQareen,
   SerializedRace,
   SpellName,
 } from 't20-sheet-builder';
 import { SheetBuilderFormError } from '@/components/SheetBuilder/common/SheetBuilderFormError';
+import { useSelector } from 'react-redux';
 import ConfirmButton from '../../../ConfirmButton';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
@@ -18,8 +23,22 @@ const SheetBuildFormStepRaceDefinitionQareen: React.FC<RaceComponentProps> = ({
   confirmRace,
   attributesPreview,
 }) => {
-  const [qareenType, setQareenType] = React.useState<QareenType>('air');
-  const [spell, setSpell] = React.useState<SpellName | ''>('');
+  const { mysticTattooSpell: storedSpell, qareenType: storedType } =
+    useSelector(selectSheetBuilderRace) as SerializedQareen;
+  const [qareenType, setQareenType] = React.useState<QareenType>(storedType);
+  const [spell, setSpell] = React.useState<SpellName>(storedSpell);
+
+  useEffect(() => {
+    if (storedType) {
+      setQareenType(storedType);
+    }
+  }, [storedType]);
+
+  useEffect(() => {
+    if (storedSpell) {
+      setSpell(storedSpell);
+    }
+  }, [storedSpell]);
 
   const makeQareen = () => {
     if (!spell) throw new SheetBuilderFormError('MISSING_QAREEN_SPELL');
@@ -41,8 +60,14 @@ const SheetBuildFormStepRaceDefinitionQareen: React.FC<RaceComponentProps> = ({
         prestativos, sempre ansiosos por ajudar.
       </p>
       <AttributesPreviewStatic attributesPreview={attributesPreview} />
-      <SheetBuildFormStepRaceDefinitionQareenType setType={setQareenType} />
-      <SheetBuildFormStepRaceDefinitionQareenSpell setSpell={setSpell} />
+      <SheetBuildFormStepRaceDefinitionQareenType
+        setType={setQareenType}
+        type={qareenType}
+      />
+      <SheetBuildFormStepRaceDefinitionQareenSpell
+        setSpell={setSpell}
+        spell={spell}
+      />
       <ConfirmButton confirm={confirmQareen} />
     </div>
   );
