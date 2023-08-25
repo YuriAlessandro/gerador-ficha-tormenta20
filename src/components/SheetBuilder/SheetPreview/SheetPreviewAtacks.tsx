@@ -39,12 +39,12 @@ const SheetPreviewAtacks = () => {
   const onRollAttack = (attackName: TranslatableName) => {
     const character = Character.makeFromSerialized(characterPreview);
     const context = new PreviewContext(character);
-    const attacks = context.getAttacks();
+    const attacks = character.getAttacks(context);
     const attack = attacks.get(attackName as EquipmentName);
 
     if (!attack) return;
 
-    const attackResult = context.roll(attack);
+    const attackResult = character.attack(attack, context);
     const audio = new Audio(diceSound);
     audio.play();
     enqueueSnackbar(`${attackName}`, {
