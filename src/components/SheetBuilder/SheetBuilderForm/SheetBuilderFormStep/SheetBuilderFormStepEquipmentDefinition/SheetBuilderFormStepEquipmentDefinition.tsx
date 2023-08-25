@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
+import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  ArmorName,
   EquipmentName,
   MartialWeaponName,
   Proficiency,
   SimpleWeaponName,
   Translator,
 } from 't20-sheet-builder';
-import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
-import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import ConfirmButton from '../../ConfirmButton';
-import SimpleWeaponSelect from './SimpleWeaponSelect';
-import MartialWeaponSelect from './MartialWeaponSelect';
-import DefensiveWeaponSelect from './DefenseEquipmentSelect';
 import { selectBuilderRole } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import ConfirmButton from '../../ConfirmButton';
+import DefensiveWeaponSelect from './DefenseEquipmentSelect';
+import MartialWeaponSelect from './MartialWeaponSelect';
+import SimpleWeaponSelect from './SimpleWeaponSelect';
 
 const defaultEquipment = [
   EquipmentName.backpack,
@@ -27,7 +28,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     useState<SimpleWeaponName>();
   const [selectedMartialWeapon, setSelectedMartialWeapon] =
     useState<MartialWeaponName>();
-  const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
+  const [selectedArmor, setSelectedArmor] = useState<ArmorName>();
 
   const dispatch = useDispatch();
   const role = useSelector(selectBuilderRole);

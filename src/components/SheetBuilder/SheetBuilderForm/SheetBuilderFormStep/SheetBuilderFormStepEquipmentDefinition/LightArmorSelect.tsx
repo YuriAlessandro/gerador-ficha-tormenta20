@@ -1,9 +1,9 @@
 import React from 'react';
-import { EquipmentName, LightArmors, Translator } from 't20-sheet-builder';
+import { ArmorName, LightArmors, Translator } from 't20-sheet-builder';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 type Props = {
-  setSelected: (selected?: EquipmentName) => void;
+  setSelected: (selected?: ArmorName) => void;
 };
 
 const LightArmorSelect = ({ setSelected }: Props) => {

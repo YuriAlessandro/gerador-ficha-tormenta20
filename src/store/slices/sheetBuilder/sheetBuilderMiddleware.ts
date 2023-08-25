@@ -9,11 +9,11 @@ import {
   REHYDRATE,
 } from 'redux-persist';
 import SheetBuilder, {
+  ArmorFactory,
   BuildingSheet,
   Character,
   Devotion,
   GrantedPowerFactory,
-  LeatherArmor,
   MartialWeaponFactory,
   OriginFactory,
   OutOfGameContext,
@@ -32,6 +32,7 @@ import {
   storeSheet,
   updateSheetDate,
 } from '../sheetStorage/sheetStorage';
+import { syncSheetBuilder } from './sheetBuilderActions';
 import {
   resetFormAlert,
   setFormError,
@@ -48,7 +49,6 @@ import {
   resetOptionsReady,
   setOptionReady,
 } from './sheetBuilderSliceStepConfirmed';
-import { syncSheetBuilder } from './sheetBuilderActions';
 
 export const sheetBuilderMiddleware = createListenerMiddleware();
 
@@ -151,7 +151,9 @@ startListening({
                 serializedInitialEquipment.martialWeapon
               )
             : undefined,
-          armor: new LeatherArmor(),
+          armor: serializedInitialEquipment.armor
+            ? ArmorFactory.make(serializedInitialEquipment.armor.name)
+            : undefined,
           money: serializedInitialEquipment.money,
         });
       }

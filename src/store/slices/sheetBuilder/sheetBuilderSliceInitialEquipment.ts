@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import {
+  ArmorName,
   MartialWeaponName,
   SerializedSheetEquipment,
   SimpleWeaponName,
@@ -9,14 +10,14 @@ import { syncSheetBuilder } from './sheetBuilderActions';
 export type SheetBuilderInitialEquipmentState = {
   simpleWeapon?: SerializedSheetEquipment<SimpleWeaponName>;
   martialWeapon?: SerializedSheetEquipment<MartialWeaponName>;
-  armor?: SerializedSheetEquipment;
+  armor?: SerializedSheetEquipment<ArmorName>;
   money: number;
 };
 
 export type SubmitInitialEquipmentAction = PayloadAction<{
   simpleWeapon: SerializedSheetEquipment<SimpleWeaponName>;
   martialWeapon?: SerializedSheetEquipment<MartialWeaponName>;
-  armor?: SerializedSheetEquipment;
+  armor?: SerializedSheetEquipment<ArmorName>;
 }>;
 
 const initialState: SheetBuilderInitialEquipmentState = {

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { EquipmentName } from 't20-sheet-builder';
 import { Box, FormControlLabel, Radio, RadioGroup } from '@mui/material';
-import LightArmorSelect from './LightArmorSelect';
+import React, { useState } from 'react';
+import { ArmorName } from 't20-sheet-builder';
 import HeavyArmorSelect from './HeavyArmorSelect';
+import LightArmorSelect from './LightArmorSelect';
 
 type Props = {
-  setSelected: (selected?: EquipmentName) => void;
+  setSelected: (selected?: ArmorName) => void;
   hasLightArmorProficiency: boolean;
   hasHeavyArmorProficiency: boolean;
 };
