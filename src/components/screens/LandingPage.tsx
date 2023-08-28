@@ -87,25 +87,27 @@ const LandingPage: React.FC<{
               <CardMedia sx={{ height: 140 }} image={ficha} title='Fichas' />
               <CardContent>
                 <Stack spacing={2}>
-                  <Divider>Versão JdA</Divider>
-                  <LandingOption
-                    title='Meus personagens'
-                    text='Fichas criadas por você. Use e gerencie suas fichas.'
-                    image={characters}
-                    onClick={() => onClickButton('sheets')}
-                  />
-                  <LandingOption
-                    title='Nova ficha'
-                    text='Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
-                    image={builder}
-                    onClick={onClickNewSheet}
-                  />
                   <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Ficha aleatória'
                     text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
                     image={random}
                     onClick={() => onClickButton('ficha-aleatoria')}
+                  />
+                  <Divider>Versão JdA</Divider>
+                  <LandingOption
+                    title='Meus personagens'
+                    text='[EM BREVE] Fichas criadas por você. Use e gerencie suas fichas.'
+                    image={characters}
+                    onClick={() => onClickButton('sheets')}
+                    disabled
+                  />
+                  <LandingOption
+                    title='Nova ficha'
+                    text='[EM BREVE] Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
+                    image={builder}
+                    onClick={onClickNewSheet}
+                    disabled
                   />
                 </Stack>
               </CardContent>

@@ -75,9 +75,6 @@ const Headings: React.FC<HInterface> = ({ headings }) => (
       {headings.map((heading) => (
         <>
           <ListItemButton>
-            {/* <ListItemIcon>
-              <ChevronRight />
-            </ListItemIcon> */}
             <ListItemText
               primary={heading.title}
               onClick={(e) => {
@@ -207,7 +204,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #193.</strong>
+                <strong>Revistas analisadas: DB #156 até #194.</strong>
               </small>
             </p>
             <p>
@@ -636,6 +633,12 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <ul>
               <li>Mestre da Fúria Fria</li>
+            </ul>
+            <p>
+              Mais uma distinção foi adicionada na <Db>DB #194</Db>:
+            </p>
+            <ul>
+              <li>Cavaleiro da Redenção</li>
             </ul>
             <Divider />
             {/* Equipamentos */}
