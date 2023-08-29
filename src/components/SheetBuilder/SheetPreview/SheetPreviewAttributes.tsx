@@ -34,7 +34,7 @@ const SheetPreviewAttributes = ({ attributes }: Props) => {
     audio.play();
 
     enqueueSnackbar(`${attr}`, {
-      variant: 'diceRoll',
+      variant: 'attributeRoll',
       persist: true,
       bonus,
       rollResult,

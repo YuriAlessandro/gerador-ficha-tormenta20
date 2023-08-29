@@ -7,7 +7,7 @@ import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
 
 interface IProps {
   setSpell: (spell: SpellName) => void;
-  spell: SpellName;
+  spell?: SpellName;
 }
 
 const SheetBuildFormStepRaceDefinitionQareenSpell: React.FC<IProps> = ({

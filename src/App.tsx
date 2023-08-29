@@ -19,6 +19,7 @@ import { SnackbarProvider } from 'notistack';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AttackResult, CharacterAttack } from 't20-sheet-builder';
+import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
 import Sidebar from './components/Sidebar';
@@ -32,18 +33,22 @@ import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
 import store, { persistor } from './store';
+import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface VariantOverrides {
     diceRoll: {
-      bonus: number;
-      rollResult: number;
+      roll: SkillRollResult;
     };
     attackRoll: {
       attackResult: AttackResult;
       attack: CharacterAttack;
+    };
+    attributeRoll: {
+      rollResult: number;
+      bonus: number;
     };
   }
 }
@@ -180,6 +185,7 @@ function App(): JSX.Element {
         Components={{
           diceRoll: DiceRollResult,
           attackRoll: AttackRollResult,
+          attributeRoll: AttributeRollResult,
         }}
       >
         <Provider store={store}>

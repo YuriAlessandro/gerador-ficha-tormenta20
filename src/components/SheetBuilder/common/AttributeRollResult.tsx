@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import CloseIcon from '@mui/icons-material/Close';
+import { useSnackbar, CustomContentProps, SnackbarContent } from 'notistack';
 import {
   Box,
   Card,
@@ -9,32 +9,25 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { CustomContentProps, SnackbarContent, useSnackbar } from 'notistack';
+import CloseIcon from '@mui/icons-material/Close';
 
 import diceIcon from '@/assets/images/dice.svg';
-import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
 import { addSignForRoll } from './StringHelper';
 
 interface Props extends CustomContentProps {
   rollResult: number;
   bonus: number;
-  roll: SkillRollResult;
 }
 
-const DiceRollResult = forwardRef<HTMLDivElement, Props>(
-  ({ id, roll, ...props }, ref) => {
+const AttributeRollResult = forwardRef<HTMLDivElement, Props>(
+  ({ id, rollResult, bonus, ...props }, ref) => {
     const theme = useTheme();
     const { closeSnackbar } = useSnackbar();
 
+    const total = rollResult + bonus;
     let backgroundColor = '#313131';
-    if (roll.isCritical) backgroundColor = theme.palette.success.main;
-    if (roll.isFumble) backgroundColor = theme.palette.error.main;
-
-    const totalBonus =
-      roll.modifiersTotal +
-      roll.attributeModifier +
-      roll.trainingPoints +
-      roll.levelPoints;
+    if (rollResult === 20) backgroundColor = theme.palette.success.main;
+    if (rollResult === 1) backgroundColor = theme.palette.error.main;
 
     return (
       <SnackbarContent ref={ref}>
@@ -73,15 +66,13 @@ const DiceRollResult = forwardRef<HTMLDivElement, Props>(
                     }}
                   >
                     <Stack alignItems='center'>
-                      <Typography fontSize={20}>{roll.total}</Typography>
-                      {totalBonus !== 0 && (
+                      <Typography fontSize={20}>{total}</Typography>
+                      {bonus !== 0 && (
                         <Stack justifyContent='center' alignItems='center'>
                           <Stack direction='row'>
+                            <Typography fontSize={10}>{rollResult}</Typography>
                             <Typography fontSize={10}>
-                              {roll.roll.total}
-                            </Typography>
-                            <Typography fontSize={10}>
-                              {addSignForRoll(totalBonus)}
+                              {addSignForRoll(bonus as number)}
                             </Typography>
                           </Stack>
                         </Stack>
@@ -106,4 +97,4 @@ const DiceRollResult = forwardRef<HTMLDivElement, Props>(
   }
 );
 
-export default DiceRollResult;
+export default AttributeRollResult;

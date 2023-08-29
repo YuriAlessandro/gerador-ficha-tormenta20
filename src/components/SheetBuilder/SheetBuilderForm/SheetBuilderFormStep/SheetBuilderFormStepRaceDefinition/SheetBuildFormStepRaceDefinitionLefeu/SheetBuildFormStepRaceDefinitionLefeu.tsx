@@ -35,10 +35,17 @@ const SheetBuildFormStepRaceDefinitionLefeu: React.FC<RaceComponentProps> = ({
     strength: false,
     wisdom: false,
   });
+  const selectedLefeu = useSelector(selectSheetBuilderRace) as
+    | SerializedLefeu
+    | undefined;
+
   const {
     deformityChoices: storedChoices,
     selectedAttributes: storedAttributes,
-  } = useSelector(selectSheetBuilderRace) as SerializedLefeu;
+  } = selectedLefeu ?? {
+    deformityChoices: [] as SerializedLefeu['deformityChoices'],
+    selectedAttributes: [] as Attribute[],
+  };
   const [deformities, setDeformities] = React.useState<SkillName[]>(
     storedChoices.map((choice) => choice.name as SkillName)
   );

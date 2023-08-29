@@ -1,23 +1,29 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { SerializedSheetSkill, SkillName, Translator } from 't20-sheet-builder';
+import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import {
+  selectCharacter,
   selectPreviewAttributes,
   selectPreviewResistances,
   selectPreviewSkills,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { Box, useMediaQuery, useTheme } from '@mui/material';
 import styled from '@emotion/styled';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
 import { useSnackbar } from 'notistack';
-import { rollDice } from '@/functions/randomUtils';
-import diceSound from '@/assets/sounds/dice-rolling.mp3';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import {
+  Character,
+  PreviewContext,
+  SerializedSheetSkill,
+  SkillName,
+  Translator,
+} from 't20-sheet-builder';
 import BookTitle from '../common/BookTitle';
 import SheetPreviewResistances, {
   ResistedSkill,
@@ -42,6 +48,7 @@ const SheetPreviewSkills = () => {
   const skills = useSelector(selectPreviewSkills);
   const resistances = useSelector(selectPreviewResistances);
   const attributes = useSelector(selectPreviewAttributes);
+  const characterPreview = useSelector(selectCharacter);
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
@@ -67,13 +74,11 @@ const SheetPreviewSkills = () => {
     // Return first 3 letters in capital case inside parentheses
     `(${skillName.substring(0, 3).toUpperCase()})`;
 
-  const onClickSkill = (
-    skill: SerializedSheetSkill,
-    skillName: SkillName,
-    bonus: number
-  ) => {
-    const rollResult = rollDice(1, 20);
-
+  const onClickSkill = (skill: SerializedSheetSkill, skillName: SkillName) => {
+    const character = Character.makeFromSerialized(characterPreview);
+    const context = new PreviewContext(character);
+    const characterSkill = character.getSkills(context)[skillName];
+    const roll = characterSkill.roll();
     const translatedSkillName = Translator.getSkillTranslation(skillName);
     if (resistances && resistanceSkills.includes(skillName)) {
       setRolledResistance({
@@ -89,8 +94,7 @@ const SheetPreviewSkills = () => {
     enqueueSnackbar(`${translatedSkillName}`, {
       variant: 'diceRoll',
       persist: true,
-      bonus,
-      rollResult,
+      roll,
     });
   };
 
@@ -161,9 +165,7 @@ const SheetPreviewSkills = () => {
                     </DefaultTbCell>
                     <TableCellSkillTotal
                       align='center'
-                      onClick={() =>
-                        onClickSkill(skill, key as SkillName, skill.total)
-                      }
+                      onClick={() => onClickSkill(skill, key as SkillName)}
                     >
                       {skill.total}
                     </TableCellSkillTotal>

@@ -30,21 +30,23 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
   setAttributeModifiers,
   confirmRace,
 }) => {
-  const { versatileChoices } = useSelector(
-    selectSheetBuilderRace
-  ) as SerializedHuman;
+  const selectedHuman = useSelector(selectSheetBuilderRace) as
+    | SerializedHuman
+    | undefined;
 
-  const [storedFirstOption, storedSecondOption] = versatileChoices;
+  const [storedFirstOption, storedSecondOption] = selectedHuman
+    ? selectedHuman.versatileChoices
+    : [undefined, undefined];
 
   const dispatch = useDispatch();
   const [firstVersatileOption, setFirstVersatileOption] = React.useState<
     SkillName | undefined
-  >(storedFirstOption.name as SkillName);
+  >(storedFirstOption?.name as SkillName);
   const [secondVersatileOption, setSecondVersatileOption] = React.useState<
     GeneralPowerName | SkillName | undefined
-  >(storedSecondOption.name);
+  >(storedSecondOption?.name);
   const [secondVersatileOptionType, setSecondVersatileOptionType] =
-    React.useState<VersatileChoiceType | undefined>(storedSecondOption.type);
+    React.useState<VersatileChoiceType | undefined>(storedSecondOption?.type);
   const [attributeCheckboxes, setAttributeCheckboxes] = React.useState<
     Readonly<AttributeCheckboxes>
   >({
@@ -60,19 +62,19 @@ const SheetBuilderFormStepRaceDefinitionHuman: React.FC<RaceComponentProps> = ({
     if (storedFirstOption) {
       setFirstVersatileOption(storedFirstOption.name as SkillName);
     }
-  }, [storedFirstOption.name]);
+  }, [storedFirstOption?.name]);
 
   useEffect(() => {
     if (storedSecondOption) {
       setSecondVersatileOption(storedSecondOption.name);
     }
-  }, [storedSecondOption.name]);
+  }, [storedSecondOption?.name]);
 
   useEffect(() => {
     if (storedSecondOption) {
       setSecondVersatileOptionType(storedSecondOption.type);
     }
-  }, [storedSecondOption.type]);
+  }, [storedSecondOption?.type]);
 
   const selectedAttributes = Object.entries(attributeCheckboxes)
     .filter(([_attribute, checked]) => checked)

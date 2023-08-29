@@ -23,10 +23,19 @@ const SheetBuildFormStepRaceDefinitionQareen: React.FC<RaceComponentProps> = ({
   confirmRace,
   attributesPreview,
 }) => {
+  const selectedQareen = useSelector(selectSheetBuilderRace) as
+    | SerializedQareen
+    | undefined;
+
   const { mysticTattooSpell: storedSpell, qareenType: storedType } =
-    useSelector(selectSheetBuilderRace) as SerializedQareen;
-  const [qareenType, setQareenType] = React.useState<QareenType>(storedType);
-  const [spell, setSpell] = React.useState<SpellName>(storedSpell);
+    selectedQareen ?? {
+      mysticTattooSpell: undefined,
+      qareenType: undefined,
+    };
+  const [qareenType, setQareenType] = React.useState<QareenType | undefined>(
+    storedType
+  );
+  const [spell, setSpell] = React.useState<SpellName | undefined>(storedSpell);
 
   useEffect(() => {
     if (storedType) {
@@ -42,6 +51,7 @@ const SheetBuildFormStepRaceDefinitionQareen: React.FC<RaceComponentProps> = ({
 
   const makeQareen = () => {
     if (!spell) throw new SheetBuilderFormError('MISSING_QAREEN_SPELL');
+    if (!qareenType) throw new SheetBuilderFormError('MISSING_QAREEN_TYPE');
     return new Qareen(qareenType, spell);
   };
   const createSubmitAction = (race: Race) => {

@@ -9,9 +9,18 @@ import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
 import { Button, Paper, Stack } from '@mui/material';
 import { useSelector } from 'react-redux';
-import { selectPreviewResistances } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { SerializedSheetSkill, SkillName, Translator } from 't20-sheet-builder';
-import { rollDice } from '@/functions/randomUtils';
+import {
+  selectCharacter,
+  selectPreviewResistances,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import {
+  Character,
+  FixedModifier,
+  PreviewContext,
+  SerializedSheetSkill,
+  SkillName,
+  Translator,
+} from 't20-sheet-builder';
 import { useSnackbar } from 'notistack';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import styled from '@emotion/styled';
@@ -36,20 +45,21 @@ const SheetPreviewResistances: React.FC<{
   resistance: ResistedSkill;
 }> = ({ open, onClose, resistance }) => {
   const { enqueueSnackbar } = useSnackbar();
-
+  const characterPreview = useSelector(selectCharacter);
   const resistances = useSelector(selectPreviewResistances);
   const skillName = Translator.getSkillTranslation(resistance.name);
+  const character = Character.makeFromSerialized(characterPreview);
+  const context = new PreviewContext(character);
 
   const onClickSkill = (bonus: number) => {
-    const rollResult = rollDice(1, 20);
-
+    const roll = character.getSkills(context)[resistance.name].roll();
+    roll.modifiers.fixed.add(new FixedModifier('default', bonus));
     const audio = new Audio(diceSound);
     audio.play();
     enqueueSnackbar(`${skillName}`, {
       variant: 'diceRoll',
       persist: true,
-      bonus,
-      rollResult,
+      roll,
     });
 
     onClose();

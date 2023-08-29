@@ -5,7 +5,7 @@ import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceSte
 import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
 
 interface IProps {
-  type: QareenType;
+  type?: QareenType;
   setType: (type: QareenType) => void;
 }
 
