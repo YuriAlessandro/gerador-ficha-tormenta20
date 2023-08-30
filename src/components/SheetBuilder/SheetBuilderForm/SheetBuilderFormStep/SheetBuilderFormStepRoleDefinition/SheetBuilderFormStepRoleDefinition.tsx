@@ -1,7 +1,11 @@
 import { useAppDispatch } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import React from 'react';
+import {
+  resetRole,
+  selectBuilderRole,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { Role, RoleName } from 't20-sheet-builder';
 import {
   ConfirmFunction,
@@ -33,10 +37,19 @@ const roleComponents: Record<RoleName, React.FC<RoleComponentProps>> = {
 };
 
 const SheetBuilderFormStepRoleDefinition = () => {
+  const submittedRole = useSelector(selectBuilderRole);
   const { confirm } = useSheetBuilderConfirm<Role>();
   const dispatch = useAppDispatch();
-  const [role, setRole] = React.useState<RoleName>();
+  const [role, setRole] = React.useState<RoleName | undefined>(
+    submittedRole?.name
+  );
   const RoleComponent = role ? roleComponents[role] : null;
+
+  useEffect(() => {
+    if (submittedRole) {
+      setRole(submittedRole.name);
+    }
+  }, [submittedRole]);
 
   const selectRole = (selected: RoleName) => {
     dispatch(resetFormAlert());

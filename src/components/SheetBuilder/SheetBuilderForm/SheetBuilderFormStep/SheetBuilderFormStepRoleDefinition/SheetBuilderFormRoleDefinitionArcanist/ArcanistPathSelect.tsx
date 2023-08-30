@@ -5,6 +5,7 @@ import { Option } from '@/components/SheetBuilder/common/Option';
 
 type Props = {
   setPath(path?: ArcanistPathName): void;
+  path: ArcanistPathName | undefined;
 };
 
 const pathsOptions: Option<ArcanistPathName>[] = Object.values(
@@ -14,14 +15,18 @@ const pathsOptions: Option<ArcanistPathName>[] = Object.values(
   value: path,
 }));
 
-const ArcanistPathSelect = ({ setPath }: Props) => (
-  <SheetBuilderFormSelect
-    options={pathsOptions}
-    onChange={(option) => setPath(option?.value)}
-    className='mb-3'
-    placeholder='Escolha um caminho'
-    id='arcanist-path-select'
-  />
-);
+const ArcanistPathSelect = ({ setPath, path }: Props) => {
+  const selectedPath = pathsOptions.find((option) => option.value === path);
+  return (
+    <SheetBuilderFormSelect
+      options={pathsOptions}
+      value={selectedPath}
+      onChange={(option) => setPath(option?.value)}
+      className='mb-3'
+      placeholder='Escolha um caminho'
+      id='arcanist-path-select'
+    />
+  );
+};
 
 export default ArcanistPathSelect;
