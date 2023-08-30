@@ -1,28 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/jsx-props-no-spreading */
 import { useSelector } from 'react-redux';
 import React from 'react';
 import { selectPreviewBuildSteps } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { Dialog, Paper, Slide, Stack } from '@mui/material';
+import { TransitionProps } from 'react-transition-group/Transition';
 
-const SheetPreviewBuildSteps = () => {
+const Transition = React.forwardRef(
+  (
+    props: TransitionProps & {
+      children: React.ReactElement<any, any>;
+    },
+    ref: React.Ref<unknown>
+  ) => <Slide direction='up' ref={ref} {...props} />
+);
+
+const SheetPreviewBuildSteps: React.FC<{
+  open: boolean;
+  handleClose: () => void;
+}> = ({ open, handleClose }) => {
   const buildSteps = useSelector(selectPreviewBuildSteps);
 
   return (
-    <ol className='flex flex-col'>
-      {buildSteps.map((step, index) => {
-        const [title, ...text] = step.action.description.split(':');
+    <Dialog
+      open={open}
+      TransitionComponent={Transition}
+      keepMounted
+      onClose={handleClose}
+    >
+      <Stack spacing={2} p={2}>
+        {buildSteps.length === 0 && (
+          <p>Você ainda não adicionou detalhes a esta ficha.</p>
+        )}
+        {buildSteps.map((step, index) => {
+          const [title, ...text] = step.action.description.split(':');
 
-        return (
-          <li
-            key={step.action.description}
-            className='mb-2 p-3 opacity-95 rounded-2xl bg-stone-50 text-stone-950'
-          >
-            <span className='font-medium text-rose-600'>
-              {index + 1} - {title}:{' '}
-            </span>
-            {text.join('')}
-          </li>
-        );
-      })}
-    </ol>
+          return (
+            <Paper
+              key={`${step.action.type}-${step.action.description}`}
+              sx={{ p: 2 }}
+              elevation={2}
+            >
+              <span className='font-medium text-rose-600'>
+                {index + 1} - {title}:{' '}
+              </span>
+              {text.join('')}
+            </Paper>
+          );
+        })}
+      </Stack>
+    </Dialog>
   );
 };
 

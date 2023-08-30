@@ -51,7 +51,7 @@ export const useAnimalsFriendForm = (
   const createSubmitAction = (animalsFriend: AnimalsFriend) =>
     submitOrigin(animalsFriend.serialize());
   const confirmAnimalsFriend = () => {
-    confirmOrigin(makeAnimalsFriend, createSubmitAction);
+    confirmOrigin(makeAnimalsFriend, createSubmitAction, 'isOriginReady');
   };
 
   return {

@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
+import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  ArmorName,
   EquipmentName,
   MartialWeaponName,
   Proficiency,
   SimpleWeaponName,
   Translator,
 } from 't20-sheet-builder';
-import {
-  selectPreviewProficiencies,
-  selectPreviewRoleName,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { selectBuilderRole } from '../../../../../store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import ConfirmButton from '../../ConfirmButton';
-import SimpleWeaponSelect from './SimpleWeaponSelect';
+import DefensiveWeaponSelect from './DefenseEquipmentSelect';
 import MartialWeaponSelect from './MartialWeaponSelect';
+import SimpleWeaponSelect from './SimpleWeaponSelect';
 
 const defaultEquipment = [
   EquipmentName.backpack,
@@ -27,14 +28,20 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     useState<SimpleWeaponName>();
   const [selectedMartialWeapon, setSelectedMartialWeapon] =
     useState<MartialWeaponName>();
-  const [selectedArmor, setSelectedArmor] = useState<EquipmentName>();
+  const [selectedArmor, setSelectedArmor] = useState<ArmorName>();
 
   const dispatch = useDispatch();
-  const role = useSelector(selectPreviewRoleName);
+  const role = useSelector(selectBuilderRole);
   const proficiencies = useSelector(selectPreviewProficiencies);
 
   const confirm = () => {
     if (!selectedSimpleWeapon) return;
+    dispatch(
+      setOptionReady({
+        key: 'isEquipmentReady',
+        value: 'confirmed',
+      })
+    );
     dispatch(
       submitInitialEquipment({
         simpleWeapon: { name: selectedSimpleWeapon },
@@ -45,23 +52,69 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
       })
     );
   };
+
   const hasMartialWeaponProficiency = proficiencies.find(
     (proficiency) => Proficiency.martial === proficiency
+  );
+
+  const hasLightArmorProficiency = proficiencies.find(
+    (proficiency) => Proficiency.lightArmor === proficiency
+  );
+
+  const hasHeavyArmorProficiency = proficiencies.find(
+    (proficiency) => Proficiency.heavyArmor === proficiency
   );
 
   return (
     <div>
       <div className='mb-6'>
         {role ? (
-          <div className='flex flex-col items-center'>
+          <div>
             <SimpleWeaponSelect
-              setSelected={(selected) => setSelectedSimpleWeapon(selected)}
+              setSelected={(selected) => {
+                dispatch(
+                  setOptionReady({
+                    key: 'isEquipmentReady',
+                    value: 'pending',
+                  })
+                );
+                setSelectedSimpleWeapon(selected);
+              }}
             />
             {hasMartialWeaponProficiency && (
               <MartialWeaponSelect
-                setSelected={(selected) => setSelectedMartialWeapon(selected)}
+                setSelected={(selected) => {
+                  dispatch(
+                    setOptionReady({
+                      key: 'isEquipmentReady',
+                      value: 'pending',
+                    })
+                  );
+                  setSelectedMartialWeapon(selected);
+                }}
               />
             )}
+            <DefensiveWeaponSelect
+              setSelected={(selected) => {
+                dispatch(
+                  setOptionReady({
+                    key: 'isEquipmentReady',
+                    value: 'pending',
+                  })
+                );
+                setSelectedArmor(selected);
+              }}
+              hasLightArmorProficiency={
+                hasLightArmorProficiency
+                  ? hasLightArmorProficiency.length > 0
+                  : false
+              }
+              hasHeavyArmorProficiency={
+                hasHeavyArmorProficiency
+                  ? hasHeavyArmorProficiency.length > 0
+                  : false
+              }
+            />
             <ConfirmButton confirm={confirm} />
           </div>
         ) : (
@@ -72,7 +125,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
           </div>
         )}
       </div>
-      <div className='mb-6 flex justify-center'>
+      <div className='mb-6 flex'>
         <div className='bg-white p-5 rounded-md'>
           <h3 className='mb-3 text-rose-600 font-bold'>Equipamento Padrão</h3>
           <ul className='text-slate-950'>

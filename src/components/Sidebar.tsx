@@ -115,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         color: isDarkTheme ? '#fff' : 'black',
       }}
     >
-      <StyledPaper sx={{ overflowY: 'auto' }}>
+      <StyledPaper sx={{ overflowY: 'auto', zIndex: 3 }}>
         <div className='sidebarHeader'>
           <Link
             href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'

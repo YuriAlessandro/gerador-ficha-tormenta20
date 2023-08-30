@@ -1,5 +1,7 @@
 import React from 'react';
 import { OriginName, Translator } from 't20-sheet-builder';
+import { useDispatch } from 'react-redux';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 import { Option } from '../../../common/Option';
 
@@ -14,14 +16,20 @@ const originOptions: Option<OriginName>[] = Object.values(OriginName).map(
   })
 );
 
-const OriginSelect = ({ setOrigin }: Props) => (
-  <SheetBuilderFormSelect
-    options={originOptions}
-    onChange={(option) => setOrigin(option?.value)}
-    className='mb-3'
-    id='origin-select'
-    placeholder='Escolha uma origem'
-  />
-);
+const OriginSelect = ({ setOrigin }: Props) => {
+  const dispatch = useDispatch();
+  return (
+    <SheetBuilderFormSelect
+      options={originOptions}
+      onChange={(option) => {
+        dispatch(setOptionReady({ key: 'isOriginReady', value: 'pending' }));
+        setOrigin(option?.value);
+      }}
+      className='mb-3'
+      id='origin-select'
+      placeholder='Escolha uma origem'
+    />
+  );
+};
 
 export default OriginSelect;

@@ -2,24 +2,25 @@ import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
 import React from 'react';
 import { selectPreviewInventory } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { Chip, Stack } from '@mui/material';
+import BookTitle from '../common/BookTitle';
 
 const SheetPreviewInventory = () => {
   const equipments = useSelector(selectPreviewInventory);
 
   return (
-    <div>
-      <h3 className='mb-5 font-bold'>Equipamentos</h3>
-      <ul className='flex flex-wrap gap-4 justify-center'>
+    <>
+      <BookTitle>Equipamentos</BookTitle>
+      {equipments.length === 0 && <p>Nenhum equipamento.</p>}
+      <Stack direction='row' flexWrap='wrap' spacing={2}>
         {equipments.map((equipment) => (
-          <li
-            className='py-2 px-4 bg-white rounded-2xl text-slate-950 text-sm'
+          <Chip
             key={equipment.name}
-          >
-            {Translator.getEquipmentTranslation(equipment.name)}
-          </li>
+            label={Translator.getEquipmentTranslation(equipment.name)}
+          />
         ))}
-      </ul>
-    </div>
+      </Stack>
+    </>
   );
 };
 

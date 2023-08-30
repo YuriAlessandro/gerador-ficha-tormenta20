@@ -1,21 +1,21 @@
-import React from 'react';
-import { Dahllan, RaceName } from 't20-sheet-builder';
-import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
-import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
+import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
+import React from 'react';
+import { Dahllan, Race, SerializedRace } from 't20-sheet-builder';
 import AttributesPreviewStatic from '../AtrributesPreviewStatic';
+import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
 
 const SheetBuilderFormStepRaceDefinitionDahllan: React.FC<
   RaceComponentProps
 > = ({ confirmRace, attributesPreview }) => {
   const makeDahllan = () => new Dahllan();
-  const createSubmitAction = () =>
-    submitRace({
-      name: RaceName.dahllan,
-    });
+  const createSubmitAction = (race: Race) => {
+    const dahllan = race as Dahllan;
+    return submitRace(dahllan.serialize() as SerializedRace);
+  };
 
   const confirmDahllan = () => {
-    confirmRace(makeDahllan, createSubmitAction);
+    confirmRace(makeDahllan, createSubmitAction, 'isRaceReady');
   };
 
   return (

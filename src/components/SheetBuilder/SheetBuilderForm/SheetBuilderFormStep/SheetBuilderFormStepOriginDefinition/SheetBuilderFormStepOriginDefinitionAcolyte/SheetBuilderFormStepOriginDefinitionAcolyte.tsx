@@ -28,7 +28,7 @@ const SheetBuilderFormStepOriginDefinitionAcolyte: OriginComponentType = ({
     submitOrigin(acolyte.serialize());
 
   const confirmAcolyte = () => {
-    confirmOrigin(makeAcolyte, createSubmitAction);
+    confirmOrigin(makeAcolyte, createSubmitAction, 'isOriginReady');
   };
 
   return (

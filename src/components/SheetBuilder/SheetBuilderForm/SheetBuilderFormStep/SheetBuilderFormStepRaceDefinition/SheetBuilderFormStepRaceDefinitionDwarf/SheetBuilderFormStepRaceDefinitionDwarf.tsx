@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dwarf, RaceName } from 't20-sheet-builder';
+import { Dwarf, Race, SerializedRace } from 't20-sheet-builder';
 import { submitRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
 import { RaceComponentProps } from '../SheetBuilderFormStepRaceDefinition';
@@ -10,13 +10,13 @@ const SheetBuilderFormStepRaceDefinitionDwarf: React.FC<RaceComponentProps> = ({
   attributesPreview,
 }) => {
   const makeDwarf = () => new Dwarf();
-  const createSubmitAction = () =>
-    submitRace({
-      name: RaceName.dwarf,
-    });
+  const createSubmitAction = (race: Race) => {
+    const dwarf = race as Dwarf;
+    return submitRace(dwarf.serialize() as SerializedRace);
+  };
 
   const confirmDwarf = () => {
-    confirmRace(makeDwarf, createSubmitAction);
+    confirmRace(makeDwarf, createSubmitAction, 'isRaceReady');
   };
 
   return (

@@ -1,9 +1,8 @@
-import React from 'react';
-import { RoleName } from 't20-sheet-builder';
-import { Role } from 't20-sheet-builder/build/domain/entities/Role/Role';
 import { useAppDispatch } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
 import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import React from 'react';
+import { Role, RoleName } from 't20-sheet-builder';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -19,6 +18,18 @@ export type RoleComponentProps = {
 const roleComponents: Record<RoleName, React.FC<RoleComponentProps>> = {
   arcanist: SheetBuilderFormRoleDefinitionArcanist,
   warrior: SheetBuilderFormRoleDefinitionWarrior,
+  barbarian: SheetBuilderFormRoleDefinitionWarrior,
+  bard: SheetBuilderFormRoleDefinitionArcanist,
+  buccaneer: SheetBuilderFormRoleDefinitionWarrior,
+  cleric: SheetBuilderFormRoleDefinitionArcanist,
+  druid: SheetBuilderFormRoleDefinitionArcanist,
+  fighter: SheetBuilderFormRoleDefinitionWarrior,
+  inventor: SheetBuilderFormRoleDefinitionArcanist,
+  knight: SheetBuilderFormRoleDefinitionWarrior,
+  noble: SheetBuilderFormRoleDefinitionArcanist,
+  paladin: SheetBuilderFormRoleDefinitionWarrior,
+  ranger: SheetBuilderFormRoleDefinitionWarrior,
+  rogue: SheetBuilderFormRoleDefinitionWarrior,
 };
 
 const SheetBuilderFormStepRoleDefinition = () => {

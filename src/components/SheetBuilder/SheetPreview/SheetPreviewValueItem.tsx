@@ -1,4 +1,6 @@
 import React from 'react';
+import { Box, Stack } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 
 type Props = {
   label: string;
@@ -6,17 +8,20 @@ type Props = {
 };
 
 const SheetPreviewItem = ({ label, value }: Props) => (
-  <div className='flex flex-col'>
-    <label htmlFor={`${label}-preview-item`} className='text-sm mb-2'>
-      {label}
-    </label>
-    <div
-      className='border border-white rounded-2xl font-bold px-5 py-1'
-      id={`${label}-preview-item`}
+  <Stack direction='row' alignItems='center'>
+    <Box sx={{ mr: 1, fontSize: '35px' }}>
+      <AddIcon />
+    </Box>
+    <Stack
+      alignItems='center'
+      sx={{ textAlign: 'center' }}
+      justifyContent='center'
+      height='100px'
     >
-      {value}
-    </div>
-  </div>
+      <Box>{value}</Box>
+      <Box sx={{ borderTop: '1px solid black', fontSize: '10px' }}>{label}</Box>
+    </Stack>
+  </Stack>
 );
 
 export default SheetPreviewItem;

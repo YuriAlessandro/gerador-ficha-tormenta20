@@ -1,38 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-  BuildingSheet,
-  OutOfGameContext,
-  SerializedSheetInterface,
-  SheetSerializer,
-} from 't20-sheet-builder';
 import { RootState } from '../..';
 
-export interface SheetBuilderSheetPreviewState {
-  preview: SerializedSheetInterface;
-}
-
-const sheet = new BuildingSheet();
-const serializer = new SheetSerializer(new OutOfGameContext());
-
-const initialState: SheetBuilderSheetPreviewState = {
-  preview: serializer.serialize(sheet),
-};
-
-export const sheetBuilderSliceSheetPreview = createSlice({
-  name: 'sheetBuilder/preview',
-  initialState,
-  reducers: {
-    updatePreview(state, action: PayloadAction<SerializedSheetInterface>) {
-      state.preview = action.payload;
-    },
-  },
-});
-
-export const { updatePreview } = sheetBuilderSliceSheetPreview.actions;
-
-const selectSheetPreview = (state: RootState) =>
-  state.sheetBuilder.sheet.preview;
-
+export const selectCharacter = (state: RootState) =>
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId];
+export const selectSheetPreview = (state: RootState) =>
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].sheet;
+export const selectSheetAttacks = (state: RootState) =>
+  state.sheetStorage.sheets[state.sheetStorage.activeSheetId].attacks;
 export const selectPreviewAttributes = (state: RootState) =>
   selectSheetPreview(state).attributes;
 export const selectPreviewDisplacement = (state: RootState) =>
@@ -56,7 +29,7 @@ export const selectPreviewLevel = (state: RootState) =>
 export const selectPreviewProficiencies = (state: RootState) =>
   selectSheetPreview(state).proficiencies;
 export const selectPreviewSkills = (state: RootState) =>
-  selectSheetPreview(state).skills;
+  selectSheetPreview(state).skills.skills;
 export const selectPreviewRaceAbilities = (state: RootState) =>
   selectSheetPreview(state).race?.abilities;
 export const selectPreviewRoleAbilities = (state: RootState) =>
@@ -67,7 +40,13 @@ export const selectPreviewGeneralPowers = (state: RootState) =>
   selectSheetPreview(state).generalPowers;
 export const selectPreviewOriginPowers = (state: RootState) =>
   selectSheetPreview(state).originPowers;
+export const selectPreviewGrantedPowers = (state: RootState) =>
+  selectSheetPreview(state).grantedPowers;
+export const selectPreviewGrantedPowersCount = (state: RootState) =>
+  selectSheetPreview(state).grantedPowersCount;
 export const selectPreviewInventory = (state: RootState) =>
   selectSheetPreview(state).equipments;
-
-export default sheetBuilderSliceSheetPreview;
+export const selectPreviewDevotion = (state: RootState) =>
+  selectSheetPreview(state).devotion;
+export const selectPreviewResistances = (state: RootState) =>
+  selectSheetPreview(state).resistencies;

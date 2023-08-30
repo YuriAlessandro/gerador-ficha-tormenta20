@@ -1,21 +1,23 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import {
+  ArmorName,
   MartialWeaponName,
   SerializedSheetEquipment,
   SimpleWeaponName,
 } from 't20-sheet-builder';
+import { syncSheetBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderInitialEquipmentState = {
   simpleWeapon?: SerializedSheetEquipment<SimpleWeaponName>;
   martialWeapon?: SerializedSheetEquipment<MartialWeaponName>;
-  armor?: SerializedSheetEquipment;
+  armor?: SerializedSheetEquipment<ArmorName>;
   money: number;
 };
 
 export type SubmitInitialEquipmentAction = PayloadAction<{
   simpleWeapon: SerializedSheetEquipment<SimpleWeaponName>;
   martialWeapon?: SerializedSheetEquipment<MartialWeaponName>;
-  armor?: SerializedSheetEquipment;
+  armor?: SerializedSheetEquipment<ArmorName>;
 }>;
 
 const initialState: SheetBuilderInitialEquipmentState = {
@@ -31,10 +33,25 @@ export const sheetBuilderSliceInitialEquipment = createSlice({
       state.martialWeapon = action.payload.martialWeapon;
       state.armor = action.payload.armor;
     },
+    resetEquipment: (state) => {
+      state.armor = undefined;
+      state.simpleWeapon = undefined;
+      state.martialWeapon = undefined;
+      state.money = 24;
+    },
+  },
+  extraReducers(builder) {
+    builder.addCase(syncSheetBuilder, (state, action) => {
+      const { initialEquipment } = action.payload.sheet.sheet;
+      state.simpleWeapon = initialEquipment?.simpleWeapon;
+      state.martialWeapon = initialEquipment?.martialWeapon;
+      state.armor = initialEquipment?.armor;
+      state.money = initialEquipment?.money ?? 24;
+    });
   },
 });
 
-export const { submitInitialEquipment } =
+export const { submitInitialEquipment, resetEquipment } =
   sheetBuilderSliceInitialEquipment.actions;
 
 export default sheetBuilderSliceInitialEquipment;

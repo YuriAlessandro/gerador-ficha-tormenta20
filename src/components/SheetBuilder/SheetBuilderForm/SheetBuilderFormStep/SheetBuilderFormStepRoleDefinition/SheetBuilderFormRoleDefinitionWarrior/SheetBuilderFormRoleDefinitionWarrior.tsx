@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { RoleName, SkillName, Warrior } from 't20-sheet-builder';
-import { submitRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import { updateItemByIndex } from '@/components/SheetBuilder/common/Immutable';
 import ConfirmButton from '@/components/SheetBuilder/SheetBuilderForm/ConfirmButton';
+import { updateItemByIndex } from '@/components/SheetBuilder/common/Immutable';
+import { submitRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import React, { useState } from 'react';
+import { SkillName, Warrior } from 't20-sheet-builder';
 import { RoleComponentProps } from '../SheetBuilderFormStepRoleDefinition';
 import SkillGroupSelect from '../SkillGroupSelect';
 
@@ -19,12 +19,9 @@ const SheetBuilderFormRoleDefinitionWarrior: React.FC<RoleComponentProps> = ({
   >(initialSelectedSkillsByGroup);
   const makeWarrior = () => new Warrior(selectedSkillsByGroup.flat());
   const createSubmitAction = (warrior: Warrior) =>
-    submitRole({
-      chosenSkills: warrior.chosenSkills,
-      name: RoleName.warrior,
-    });
+    submitRole(warrior.serialize());
   const confirmWarrior = () => {
-    confirmRole(makeWarrior, createSubmitAction);
+    confirmRole(makeWarrior, createSubmitAction, 'isRoleReady');
   };
 
   const setGroupSelectedSkills = (

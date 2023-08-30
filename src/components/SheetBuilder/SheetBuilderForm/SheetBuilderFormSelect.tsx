@@ -16,8 +16,11 @@ type Props<T, IsMulti extends boolean = false, V = Value<T, IsMulti>> = {
   isMulti?: IsMulti;
   id: string;
   defaultValue?: V;
+  value?: V;
   isClearable?: boolean;
   onChange: (option: V) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  isOptionDisabled?: (option?: any) => boolean;
 };
 
 const SheetBuilderFormSelect = <
@@ -27,6 +30,7 @@ const SheetBuilderFormSelect = <
 >({
   onChange,
   isSearcheable,
+  isOptionDisabled,
   ...props
 }: Props<T, IsMulti>) => (
   <Select
@@ -34,6 +38,8 @@ const SheetBuilderFormSelect = <
     isSearchable={isSearcheable ?? false}
     onChange={(newValue) => onChange(newValue as V)}
     styles={selectStyles}
+    menuPortalTarget={document.body}
+    isOptionDisabled={isOptionDisabled}
   />
 );
 

@@ -1,6 +1,6 @@
 import { Attribute } from 't20-sheet-builder';
 import React from 'react';
-import AttributeCheckbox from '../AttributeCheckbox';
+import { Stack } from '@mui/material';
 import { AttributePreview } from '../AttributePreview';
 import AttributePreviewItem from '../AttributePreviewItem';
 
@@ -15,21 +15,17 @@ const SheetBuilderFormStepRaceDefinitionHumanAttributeCheckboxes = ({
 }: Props) => (
   <div className=''>
     <h3 className='mb-3'>+1 em três atributos diferentes</h3>
-    <ul className='flex flex-row flex-wrap gap-2 justify-center mb-6'>
+    <Stack direction='row' spacing={2} justifyContent='center'>
       {attributesPreview.map(({ attribute, value, modifier }) => (
-        <AttributeCheckbox
+        <AttributePreviewItem
           key={attribute}
+          attribute={attribute as Attribute}
+          value={value}
+          modifier={modifier}
           toggle={() => toggleAttribute(attribute as Attribute)}
-          attributePreviewItem={
-            <AttributePreviewItem
-              attribute={attribute as Attribute}
-              value={value}
-              modifier={modifier}
-            />
-          }
         />
       ))}
-    </ul>
+    </Stack>
   </div>
 );
 
