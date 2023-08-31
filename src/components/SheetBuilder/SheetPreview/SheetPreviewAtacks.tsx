@@ -17,7 +17,6 @@ import { useSelector } from 'react-redux';
 import {
   Character,
   EquipmentName,
-  PreviewContext,
   SerializedAttack,
   TranslatableName,
   Translator,
@@ -38,8 +37,7 @@ const SheetPreviewAtacks = () => {
 
   const onRollAttack = (attackName: TranslatableName) => {
     const character = Character.makeFromSerialized(characterPreview);
-    const context = new PreviewContext(character);
-    const attacks = character.getAttacks(context);
+    const attacks = character.getAttacks();
     const attack = attacks.get(attackName as EquipmentName);
     if (!attack) return;
     const attackResult = character.attack(attack);

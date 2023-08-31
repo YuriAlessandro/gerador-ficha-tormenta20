@@ -16,7 +16,6 @@ import {
 import {
   Character,
   FixedModifier,
-  PreviewContext,
   SerializedSheetSkill,
   SkillName,
   Translator,
@@ -49,10 +48,9 @@ const SheetPreviewResistances: React.FC<{
   const resistances = useSelector(selectPreviewResistances);
   const skillName = Translator.getSkillTranslation(resistance.name);
   const character = Character.makeFromSerialized(characterPreview);
-  const context = new PreviewContext(character);
 
   const onClickSkill = (bonus: number) => {
-    const roll = character.getSkills(context)[resistance.name].roll();
+    const roll = character.getSkills()[resistance.name].roll();
     roll.modifiers.fixed.add(new FixedModifier('default', bonus));
     const audio = new Audio(diceSound);
     audio.play();
