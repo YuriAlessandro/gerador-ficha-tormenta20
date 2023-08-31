@@ -12,9 +12,14 @@ import { Option } from '../../../common/Option';
 interface Props {
   setDevotion: (devotion?: DeityName) => void;
   setNotAllowed: (reason: string) => void;
+  selectedDevotion?: DeityName;
 }
 
-const DevotionSelect: React.FC<Props> = ({ setDevotion, setNotAllowed }) => {
+const DevotionSelect: React.FC<Props> = ({
+  setDevotion,
+  setNotAllowed,
+  selectedDevotion,
+}) => {
   const dispatch = useDispatch();
 
   const raceName = useSelector(selectPreviewRaceName);
@@ -63,6 +68,9 @@ const DevotionSelect: React.FC<Props> = ({ setDevotion, setNotAllowed }) => {
   return (
     <SheetBuilderFormSelect
       options={devotionOptions}
+      value={devotionOptions.find(
+        (option) => option.value === selectedDevotion
+      )}
       onChange={onChangeDevotion}
       className='mb-3'
       id='devotion-select'

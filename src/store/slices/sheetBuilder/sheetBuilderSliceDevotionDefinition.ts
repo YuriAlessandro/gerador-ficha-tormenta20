@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SerializedDevotion } from 't20-sheet-builder';
+import { RootState } from '@/store';
 import { syncSheetBuilder } from './sheetBuilderActions';
 
 export interface SheetBuilderDevotionDefinitionState {
@@ -30,5 +31,8 @@ export const sheetBuilderSliceDevotionDefinition = createSlice({
 
 export const { resetDevotion, submitDevotion } =
   sheetBuilderSliceDevotionDefinition.actions;
+
+export const getStoredDevotion = (state: RootState) =>
+  state.sheetBuilder.devotion;
 
 export default sheetBuilderSliceDevotionDefinition;
