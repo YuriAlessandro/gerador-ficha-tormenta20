@@ -12,9 +12,9 @@ import { useAppSelector } from '@/store/hooks';
 import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import { addSign } from '@/components/SheetBuilder/common/StringHelper';
-import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 import { selectBuilderRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import { useSelector } from 'react-redux';
+import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 
 const damageOptions: Option<ArcanistLineageDraconicDamageType>[] = [
   {

@@ -7,6 +7,7 @@ import { Option } from '../../../common/Option';
 
 type Props = {
   setOrigin: (origin?: OriginName) => void;
+  origin: OriginName | undefined;
 };
 
 const originOptions: Option<OriginName>[] = Object.values(OriginName).map(
@@ -16,11 +17,17 @@ const originOptions: Option<OriginName>[] = Object.values(OriginName).map(
   })
 );
 
-const OriginSelect = ({ setOrigin }: Props) => {
+const OriginSelect = ({ setOrigin, origin }: Props) => {
   const dispatch = useDispatch();
+
+  const selectedOrigin = originOptions.find(
+    (option) => option.value === origin
+  );
+
   return (
     <SheetBuilderFormSelect
       options={originOptions}
+      value={selectedOrigin}
       onChange={(option) => {
         dispatch(setOptionReady({ key: 'isOriginReady', value: 'pending' }));
         setOrigin(option?.value);

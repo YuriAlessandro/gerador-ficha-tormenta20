@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
-import { selectBuilderRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 
 type Props = {
   skillGroup: SelectSkillGroup;

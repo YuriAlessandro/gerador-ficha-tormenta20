@@ -5,6 +5,7 @@ import SheetBuilderFormSelect from '../../../SheetBuilderFormSelect';
 
 type Props = {
   selectSkill: (skill?: SkillName) => void;
+  selectedSpecialFriendSkill: SkillName | undefined;
 };
 
 const options = skillsOptions.filter(
@@ -13,11 +14,14 @@ const options = skillsOptions.filter(
 
 const SheetBuilderFormStepOriginDefinitionAnimalsFriendSpecialFriend: React.FC<
   Props
-> = ({ selectSkill }) => (
+> = ({ selectSkill, selectedSpecialFriendSkill }) => (
   <div>
     <p className='mb-2'>Seu amigo especial fornece +2 em uma perícia</p>
     <SheetBuilderFormSelect
       options={options}
+      value={options.find(
+        (option) => option.value === selectedSpecialFriendSkill
+      )}
       onChange={(option) => selectSkill(option?.value)}
       id='special-friend-skills'
       placeholder='Escolha uma perícia'
