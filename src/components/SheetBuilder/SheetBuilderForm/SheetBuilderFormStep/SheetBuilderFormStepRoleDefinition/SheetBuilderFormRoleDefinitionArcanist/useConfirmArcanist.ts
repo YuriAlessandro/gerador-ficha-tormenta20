@@ -11,7 +11,7 @@ export const useConfirmArcanist = (confirmRole: ConfirmFunction<Role>) => {
     if (!context.path) throw new Error('MISSING_ARCANIST_PATH');
     const arcanist = ArcanistFactory.makeFromParams({
       ...context,
-      chosenSkills: context.skillsByGroup.flat(),
+      chosenSkills: context.skillsByGroup,
       path: context.path,
     });
     return arcanist;
