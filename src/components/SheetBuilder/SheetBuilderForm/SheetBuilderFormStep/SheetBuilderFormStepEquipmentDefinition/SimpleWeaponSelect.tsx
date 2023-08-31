@@ -4,6 +4,7 @@ import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 type Props = {
   setSelected: (selected?: SimpleWeaponName) => void;
+  selectedSimpleWeapon?: SimpleWeaponName;
 };
 
 const simpleWeapons = SimpleWeapons.getAll().map((Weapon) => ({
@@ -11,11 +12,14 @@ const simpleWeapons = SimpleWeapons.getAll().map((Weapon) => ({
   value: Weapon.equipmentName,
 }));
 
-const SimpleWeaponSelect = ({ setSelected }: Props) => (
+const SimpleWeaponSelect = ({ setSelected, selectedSimpleWeapon }: Props) => (
   <div>
     <h3>Escolha uma arma simples</h3>
     <SheetBuilderFormSelect
       options={simpleWeapons}
+      value={simpleWeapons.find(
+        (option) => option.value === selectedSimpleWeapon
+      )}
       onChange={(option) => setSelected(option?.value)}
       className='mb-3'
       id='simple-weapon-select'

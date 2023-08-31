@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { submitInitialEquipment } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import React, { useEffect, useState } from 'react';
+import {
+  getSheetEquipments,
+  submitInitialEquipment,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
 import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,6 +27,8 @@ const defaultEquipment = [
 ];
 
 const SheetBuilderFormStepEquipmentDefinition = () => {
+  const storedEquipment = useSelector(getSheetEquipments);
+
   const [selectedSimpleWeapon, setSelectedSimpleWeapon] =
     useState<SimpleWeaponName>();
   const [selectedMartialWeapon, setSelectedMartialWeapon] =
@@ -53,6 +58,15 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     );
   };
 
+  useEffect(() => {
+    // console.log(storedEquipment);
+    if (storedEquipment) {
+      setSelectedSimpleWeapon(storedEquipment.simpleWeapon?.name);
+      setSelectedMartialWeapon(storedEquipment.martialWeapon?.name);
+      setSelectedArmor(storedEquipment.armor?.name);
+    }
+  }, [storedEquipment]);
+
   const hasMartialWeaponProficiency = proficiencies.find(
     (proficiency) => Proficiency.martial === proficiency
   );
@@ -71,6 +85,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
         {role ? (
           <div>
             <SimpleWeaponSelect
+              selectedSimpleWeapon={selectedSimpleWeapon}
               setSelected={(selected) => {
                 dispatch(
                   setOptionReady({
@@ -83,6 +98,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
             />
             {hasMartialWeaponProficiency && (
               <MartialWeaponSelect
+                selectedMartialWeapon={selectedMartialWeapon}
                 setSelected={(selected) => {
                   dispatch(
                     setOptionReady({
@@ -95,6 +111,7 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
               />
             )}
             <DefensiveWeaponSelect
+              selectedArmor={selectedArmor}
               setSelected={(selected) => {
                 dispatch(
                   setOptionReady({
