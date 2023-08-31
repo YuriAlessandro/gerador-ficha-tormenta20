@@ -17,7 +17,7 @@ const SheetBuilderFormRoleDefinitionWarrior: React.FC<RoleComponentProps> = ({
   const [selectedSkillsByGroup, setSelectedSkillsByGroup] = useState<
     SkillName[][]
   >(initialSelectedSkillsByGroup);
-  const makeWarrior = () => new Warrior(selectedSkillsByGroup.flat());
+  const makeWarrior = () => new Warrior(selectedSkillsByGroup);
   const createSubmitAction = (warrior: Warrior) =>
     submitRole(warrior.serialize());
   const confirmWarrior = () => {
