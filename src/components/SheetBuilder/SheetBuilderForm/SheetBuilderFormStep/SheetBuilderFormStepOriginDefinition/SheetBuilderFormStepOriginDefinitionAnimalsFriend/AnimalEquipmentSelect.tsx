@@ -9,6 +9,7 @@ import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/S
 
 type Props = {
   selectAnimal: (animal?: AnimalsFriendEquipments) => void;
+  selectedAnimal: AnimalsFriendEquipments | undefined;
 };
 
 const options: Option<AnimalsFriendEquipments>[] = [
@@ -30,9 +31,10 @@ const options: Option<AnimalsFriendEquipments>[] = [
   },
 ];
 
-const AnimalEquipmentSelect = ({ selectAnimal }: Props) => (
+const AnimalEquipmentSelect = ({ selectedAnimal, selectAnimal }: Props) => (
   <SheetBuilderFormSelect
     options={options}
+    value={options.find((option) => option.value === selectedAnimal)}
     id='animals-friend-equipment'
     placeholder='Escolha um animal'
     onChange={(option) => selectAnimal(option?.value)}

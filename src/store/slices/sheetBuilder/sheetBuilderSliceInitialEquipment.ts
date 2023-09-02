@@ -5,6 +5,7 @@ import {
   SerializedSheetEquipment,
   SimpleWeaponName,
 } from 't20-sheet-builder';
+import { RootState } from '@/store';
 import { syncSheetBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderInitialEquipmentState = {
@@ -53,5 +54,8 @@ export const sheetBuilderSliceInitialEquipment = createSlice({
 
 export const { submitInitialEquipment, resetEquipment } =
   sheetBuilderSliceInitialEquipment.actions;
+
+export const getSheetEquipments = (state: RootState) =>
+  state.sheetBuilder.initialEquipment;
 
 export default sheetBuilderSliceInitialEquipment;

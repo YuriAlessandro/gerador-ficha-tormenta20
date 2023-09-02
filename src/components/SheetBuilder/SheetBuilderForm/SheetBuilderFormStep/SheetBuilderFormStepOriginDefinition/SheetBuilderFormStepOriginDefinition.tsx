@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   GeneralPowerName,
   Origin,
@@ -7,6 +7,8 @@ import {
   Origins,
   SkillName,
 } from 't20-sheet-builder';
+import { useSelector } from 'react-redux';
+import { selectSheetOrigin } from '@/store/slices/sheetBuilder/sheetBuilderSliceOriginDefinition';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -33,6 +35,7 @@ const originComponents: Record<OriginName, OriginComponentType> = {
 };
 
 const SheetBuilderFormStepOriginDefinition = () => {
+  const storedOrigin = useSelector(selectSheetOrigin);
   const { confirm } = useSheetBuilderConfirm<Origin>();
   const [origin, setOrigin] = React.useState<OriginName>();
   const [selectedBenefits, setSelectedBenefits] = React.useState<
@@ -50,9 +53,22 @@ const SheetBuilderFormStepOriginDefinition = () => {
       }
     : null;
 
+  useEffect(() => {
+    if (storedOrigin) {
+      const currentStoredBenefits = storedOrigin.origin?.chosenBenefits.map(
+        (benefit) => ({
+          name: benefit.name,
+          type: benefit.type,
+        })
+      );
+      setOrigin(storedOrigin.origin?.name);
+      if (currentStoredBenefits) setSelectedBenefits(currentStoredBenefits);
+    }
+  }, [storedOrigin]);
+
   return (
     <div>
-      <OriginSelect setOrigin={setOrigin} />
+      <OriginSelect setOrigin={setOrigin} origin={origin} />
       {originEquipments && <OriginEquipments equipments={originEquipments} />}
       {OriginComponent && originBenefits && (
         <OriginComponent
@@ -62,6 +78,7 @@ const SheetBuilderFormStepOriginDefinition = () => {
             <OriginBenefitsSelect
               benefits={originBenefits}
               setBenefits={setSelectedBenefits}
+              selectedBenefits={selectedBenefits}
             />
           }
         />

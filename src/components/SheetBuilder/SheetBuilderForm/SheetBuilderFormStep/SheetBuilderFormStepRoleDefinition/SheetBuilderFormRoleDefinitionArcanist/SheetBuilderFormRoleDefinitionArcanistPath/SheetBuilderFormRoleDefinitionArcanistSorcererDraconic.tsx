@@ -1,14 +1,19 @@
 import {
   ArcanistLineageDraconicDamageType,
   DamageType,
+  SerializedArcanist,
+  SerializedArcanistLineageDraconic,
+  SerializedArcanistSorcerer,
   Translator,
 } from 't20-sheet-builder';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Option } from '@/components/SheetBuilder/common/Option';
 import { useAppSelector } from '@/store/hooks';
 import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
 import { addSign } from '@/components/SheetBuilder/common/StringHelper';
+import { selectBuilderRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { useSelector } from 'react-redux';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 
 const damageOptions: Option<ArcanistLineageDraconicDamageType>[] = [
@@ -30,8 +35,29 @@ const damageOptions: Option<ArcanistLineageDraconicDamageType>[] = [
   },
 ];
 const SheetBuilderFormRoleDefinitionArcanistSorcererDraconic = () => {
+  const {
+    sorcererLineageDraconicDamageType,
+    setSorcererLineageDraconicDamageType,
+  } = useArcanistFormContext();
+  const storedArcanist = useSelector(selectBuilderRole) as
+    | SerializedArcanist<
+        SerializedArcanistSorcerer<SerializedArcanistLineageDraconic>
+      >
+    | undefined;
+
+  useEffect(() => {
+    if (storedArcanist) {
+      setSorcererLineageDraconicDamageType(
+        storedArcanist.path.lineage.damageType
+      );
+    }
+  }, [storedArcanist]);
+
   const charisma = useAppSelector(selectAttribute('charisma'));
-  const { setSorcererLineageDraconicDamageType } = useArcanistFormContext();
+
+  const selectedValue = damageOptions.find(
+    (option) => option.value === sorcererLineageDraconicDamageType
+  );
   return (
     <div className='mb-3'>
       <ul className='mb-3'>
@@ -46,6 +72,7 @@ const SheetBuilderFormRoleDefinitionArcanistSorcererDraconic = () => {
         id='arcanist-sorcerer-draconic-damage-type'
         options={damageOptions}
         placeholder='Escolha um tipo de dano'
+        value={selectedValue}
         onChange={(option) =>
           setSorcererLineageDraconicDamageType(option?.value)
         }

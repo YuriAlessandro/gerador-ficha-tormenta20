@@ -21,9 +21,14 @@ type OriginBenefitOptionType = OriginBenefitOption['type'];
 type Props = {
   benefits: OriginBenefits;
   setBenefits(benefits: OriginBenefitOption[]): void;
+  selectedBenefits: OriginBenefitOption[];
 };
 
-const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
+const OriginBenefitsSelect = ({
+  benefits,
+  setBenefits,
+  selectedBenefits,
+}: Props) => {
   const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
   const dispatch = useDispatch();
 
@@ -42,12 +47,17 @@ const OriginBenefitsSelect = ({ benefits, setBenefits }: Props) => {
     },
   ];
 
+  const selectedValues = options.filter((option) =>
+    selectedBenefits.find((benefit) => benefit.name === option.value.name)
+  );
+
   return (
     <div>
       <p className='mb-2'>Escolha dois benefícios</p>
       <SheetBuilderFormSelect
         options={options}
         isMulti
+        value={selectedValues}
         onChange={(selected) => {
           dispatch(setOptionReady({ key: 'isOriginReady', value: 'pending' }));
           setBenefits(selected.map((option) => option.value));

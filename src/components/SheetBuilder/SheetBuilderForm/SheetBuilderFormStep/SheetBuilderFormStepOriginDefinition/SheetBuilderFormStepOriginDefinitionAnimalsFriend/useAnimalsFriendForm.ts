@@ -55,6 +55,8 @@ export const useAnimalsFriendForm = (
   };
 
   return {
+    selectedAnimal,
+    selectedSpecialFriendSkill,
     setSelectedAnimal,
     setSelectedSpecialFriendSkill,
     confirmAnimalsFriend,

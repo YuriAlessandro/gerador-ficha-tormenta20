@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SkillName, Translator } from 't20-sheet-builder';
 import { useAppSelector } from '@/store/hooks';
 import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
@@ -6,11 +6,15 @@ import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceSte
 import { useDispatch, useSelector } from 'react-redux';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import { submitintelligenceSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
+import {
+  getIntelligenceSkills,
+  submitintelligenceSkills,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
 import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 import ConfirmButton from '../../ConfirmButton';
 
 const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
+  const storedIntelligenceSkills = useSelector(getIntelligenceSkills);
   const intelligence = useAppSelector(selectAttribute('intelligence'));
   const [selectedSkills, setSelectedSkills] = React.useState<SkillName[]>([]);
   const options = Object.values(SkillName).map((skillName) => ({
@@ -19,6 +23,10 @@ const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
   }));
   const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (storedIntelligenceSkills) setSelectedSkills(storedIntelligenceSkills);
+  }, [storedIntelligenceSkills]);
 
   const onConfirm = () => {
     dispatch(
@@ -49,6 +57,9 @@ const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
               isMulti
               isSearcheable
               options={options}
+              value={options.filter((option) =>
+                selectedSkills.includes(option.value)
+              )}
               onChange={(selected) => {
                 dispatch(
                   setOptionReady({
