@@ -4,7 +4,6 @@ import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import Link from '@mui/material/Link';
 import { withRouter, useHistory } from 'react-router-dom';
-// import { makeStyles } from '@mui/material/styles';
 import { RouteComponentProps } from 'react-router';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Paper from '@mui/material/Paper';

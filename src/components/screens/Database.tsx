@@ -94,7 +94,7 @@ const Database: React.FC<IProps> = () => {
             bottom: 10,
             gap: 8,
             flexWrap: isMobile ? 'wrap' : 'nowrap',
-            zIndex: 10
+            zIndex: 2,
           }}
         >
           <DatabaseMenuItem
