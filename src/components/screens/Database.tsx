@@ -37,10 +37,12 @@ const DatabaseMenuItem: React.FC<{
         justifyContent: 'center',
         alignItems: 'center',
         fontSize: isMobile ? 14 : 20,
-        width: isMobile ? 100 : 150,
+        width: isMobile ? 'calc(33% - 5px)' : 150,
+        height: isMobile ? 64 : 'auto',
         cursor: 'pointer',
         background: selected ? '#d13235' : 'white',
         color: selected ? 'white' : '#d13235',
+        marginLeft: isMobile ? 0 : 0,
       }}
       onClick={onClick}
       disabled={disabled}
@@ -81,15 +83,18 @@ const Database: React.FC<IProps> = () => {
         spacing={2}
         justifyContent='start'
         alignItems='start'
-        sx={{ mt: 2, mb: 2 }}
+        sx={{ mt: 0, mb: 2 }}
       >
-        <Stack
-          direction={isMobile ? 'row' : 'column'}
-          spacing={2}
-          justifyContent='center'
-          alignItems='start'
-          sx={{
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: isMobile ? 'row' : 'column',
+            position: 'sticky',
+            top: 10,
+            bottom: 10,
+            gap: 8,
             flexWrap: isMobile ? 'wrap' : 'nowrap',
+            zIndex: 10
           }}
         >
           <DatabaseMenuItem
@@ -128,7 +133,7 @@ const Database: React.FC<IProps> = () => {
             title='Magias'
             icon={<AutoFixHighIcon />}
           />
-        </Stack>
+        </div>
 
         <Switch>
           <Route exact path={path}>
