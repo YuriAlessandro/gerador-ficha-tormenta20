@@ -34,7 +34,7 @@ import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
-import logo from './assets/images/tormenta-logo-eye.png';
+// import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -209,22 +209,21 @@ function App(): JSX.Element {
                   >
                     <Box
                       sx={{
-                        width: '100%',
-                        m: 0,
+                        width: isMb ? '90%' : '50%',
+                        m: 2,
                         p: 2,
                         backgroundColor: '#d13235',
-                        borderRadius: '0',
+                        borderRadius: '0.75rem',
                         color: '#FFFFFF',
                         zIndex: 2,
-                        boxSizing: 'border-box',
                       }}
                     >
                       <Stack
                         width='100%'
                         direction='row'
-                        justifyContent='flex-start'
+                        justifyContent='space-between'
                         alignItems='center'
-                      > 
+                      >
                         <IconButton
                           onClick={onClickMenu}
                           edge='start'
@@ -233,7 +232,6 @@ function App(): JSX.Element {
                         >
                           <MenuIcon />
                         </IconButton>
-                        <img src={String(logo)} alt='Logo' className='logo' />
                         <Typography
                           sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
                           variant='h6'
@@ -242,12 +240,7 @@ function App(): JSX.Element {
                           Fichas de Nimb
                         </Typography>
 
-                        <FormGroup
-                          sx={{
-                            display: isMb ? 'none' : 'flex',
-                            marginLeft: 'auto',
-                          }}
-                        >
+                        <FormGroup sx={{ ml: ['15px', 0, 0] }}>
                           <FormControlLabel
                             labelPlacement='end'
                             control={
