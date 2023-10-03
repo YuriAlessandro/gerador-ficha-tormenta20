@@ -376,6 +376,21 @@ const CavernaDoSaber: React.FC = () => {
               <li>Pego no Chapéu</li>
               <li>Vou, Vejo e Disparo</li>
             </ul>
+            <p>
+              Mais poderes de bucaneiro foram adicionados na <Db>DB #195</Db>:
+            </p>
+            <ul>
+              <li>Ardil Afiado</li>
+              <li>Bravata Heróica</li>
+              <li>Caneca Cheia</li>
+              <li>Defesa Desconcertante</li>
+              <li>Main Gauche</li>
+              <li>Passo das Ondas</li>
+              <li>Pirquette</li>
+              <li>Remise</li>
+              <li>Todos por Um</li>
+              <li>Um por Todos</li>
+            </ul>
             <SubTitle id='cacador'>Caçador</SubTitle>
             <p>
               Todos os seguintes poderes de caçador foram adicionados na{' '}
@@ -479,6 +494,22 @@ const CavernaDoSaber: React.FC = () => {
               <li>Terceira Mão: Espada Curta</li>
               <li>Terceira Mão: Lança</li>
               <li>Toque Cegante</li>
+            </ul>
+            <SubTitle id='nobre'>Nobre</SubTitle>
+            <p>
+              Os seguintes poderes de nobre foram adicionados na{' '}
+              <Db>DB #195</Db>:
+            </p>
+            <ul>
+              <li>Antecipar Ataque</li>
+              <li>Apontar Fraqueza</li>
+              <li>Aproveitar Brecha</li>
+              <li>Comitiva</li>
+              <li>Em Formação</li>
+              <li>Liderar o Ataque</li>
+              <li>Ordens Marciais</li>
+              <li>Palavras Rápidas</li>
+              <li>Siga o Líder</li>
             </ul>
             <Divider />
             {/* Poderes Gerais */}

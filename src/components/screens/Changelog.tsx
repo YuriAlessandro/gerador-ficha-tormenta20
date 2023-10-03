@@ -23,6 +23,17 @@ const Changelog: React.FC = () => (
 
     <h2>Versão 2.0</h2>
 
+    <h3>2.6.1</h3>
+    <ul>
+      <li>
+        Melhorias na navegação desktop e mobile do Database. Obrigado{' '}
+        <a href='https://github.com/fabioars' target='_blank' rel='noreferrer'>
+          @fabioars
+        </a>
+        .
+      </li>
+    </ul>
+
     <h3>2.6.0</h3>
     <ul>
       <li>
