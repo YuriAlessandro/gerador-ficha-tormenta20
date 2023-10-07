@@ -19,7 +19,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import {
   Character,
-  PreviewContext,
   SerializedSheetSkill,
   SkillName,
   Translator,
@@ -76,8 +75,7 @@ const SheetPreviewSkills = () => {
 
   const onClickSkill = (skill: SerializedSheetSkill, skillName: SkillName) => {
     const character = Character.makeFromSerialized(characterPreview);
-    const context = new PreviewContext(character);
-    const characterSkill = character.getSkills(context)[skillName];
+    const characterSkill = character.getSkills()[skillName];
     const roll = characterSkill.roll();
     const translatedSkillName = Translator.getSkillTranslation(skillName);
     if (resistances && resistanceSkills.includes(skillName)) {
