@@ -71,7 +71,6 @@ export const FOUNDRY_SKILLS = {
   [Skill.OFICIO_JOALHEIRO]: 'ofi',
   [Skill.OFICIO_PINTOR]: 'ofi',
   [Skill.OFICIO_PESCADOR]: 'ofi',
-  [Skill.OFICIO_PESCADOR]: 'ofi',
   [Skill.OFICIO_MINERADOR]: 'ofi',
   [Skill.LADINAGEM]: 'lad',
   [Skill.LUTA]: 'lut',
