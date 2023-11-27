@@ -34,6 +34,7 @@ import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
+import DiscordInvite from './components/DiscordInvite';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
 declare module 'notistack' {
@@ -195,6 +196,7 @@ function App(): JSX.Element {
               data-testid='app-component'
               style={isDarkTheme ? darkTheme : lightTheme}
             >
+              <DiscordInvite />
               <div className='mainApp'>
                 <header className='App-header'>
                   <Sidebar

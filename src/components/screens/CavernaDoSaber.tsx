@@ -204,7 +204,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #194.</strong>
+                <strong>Revistas analisadas: DB #156 até #195.</strong>
               </small>
             </p>
             <p>
@@ -671,6 +671,10 @@ const CavernaDoSaber: React.FC = () => {
             <ul>
               <li>Cavaleiro da Redenção</li>
             </ul>
+            <p>
+              A distinção <strong>Lobo Lunar</strong> e mais algumas regras
+              sobre licantropia foram adicionadas na <Db>DB #196</Db>.
+            </p>
             <Divider />
             {/* Equipamentos */}
             <Title id='equipamentos'>Equipamentos</Title>
@@ -834,6 +838,19 @@ const CavernaDoSaber: React.FC = () => {
               Na <Db>DB #179</Db> uma ampliação nas regras de instrumentos
               musicais, além de mostrar algumas melhorias para eles.
             </p>
+            <SubTitle id='almadiçoados'>Itens amaldiçoados</SubTitle>
+            <p>
+              A <Db>DB #196</Db> adicionou uma série de itens amaldiçoados, com
+              detalhamento das regras para utilizá-los:
+            </p>
+            <ul>
+              <li>Cetro da Permuta Funesta</li>
+              <li>Coroa de Milghazan</li>
+              <li>Lâmina do Sono Eterno</li>
+              <li>Maça de Geltor</li>
+              <li>Medalhão dos Povos</li>
+              <li>O Incrível Mapa de Alastar</li>
+            </ul>
             <Divider />
             {/* Magias */}
             <Title id='magias'>Magias</Title>
