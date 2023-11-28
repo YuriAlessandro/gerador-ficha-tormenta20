@@ -39,7 +39,7 @@ const SheetList = () => {
     const id = uuid();
     const sheet = new BuildingSheet();
     dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
-    history.push(`/sheet-builder/${id}`);
+    history.push(`/sheet-builder/${id}/new`);
   };
 
   const onClickEditSheet = ({ id }: SavedSheet) => {
