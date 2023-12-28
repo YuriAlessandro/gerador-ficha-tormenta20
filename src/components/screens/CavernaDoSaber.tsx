@@ -204,7 +204,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #195.</strong>
+                <strong>Revistas analisadas: DB #156 até #198.</strong>
               </small>
             </p>
             <p>
@@ -348,6 +348,24 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Novos poderes que podem ser escolhidos por classes específicas.
             </p>
+            <SubTitle id='barbaro'>Barbáro</SubTitle>
+            <p>
+              Todos os seguintes poderes de barbáro foram adicionados na{' '}
+              <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Brado Amplo</li>
+              <li>Brado Assombroso</li>
+              <li>Brado Revigorante</li>
+              <li>Brado Vitorioso</li>
+              <li>Fúria Rodopiante</li>
+              <li>Instinto Feral</li>
+              <li>Instinto Furioso</li>
+              <li>Instinto Indomável</li>
+              <li>Instinto Sábio</li>
+              <li>Instinto Robusto</li>
+              <li>Sem Piedade</li>
+            </ul>
             <SubTitle id='bardo'>Bardo</SubTitle>
             <p>
               Todos os seguintes poderes de bardo foram adicionados na{' '}
@@ -431,6 +449,22 @@ const CavernaDoSaber: React.FC = () => {
               <li>Desconcertante (–1 PM)</li>
               <li>Desgastante (–1 PM)</li>
               <li>Paralisante (–1 PM)</li>
+            </ul>
+            <SubTitle id='inventor'>Inventor</SubTitle>
+            <p>
+              Novos poderes de inventor foram adicionados na <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Autômato Alquímico</li>
+              <li>Catalisador Composto</li>
+              <li>Catalisador Químico</li>
+              <li>Compartimento de Carga</li>
+              <li>Estilista</li>
+              <li>Explicação Científica</li>
+              <li>Explorar Fraqueza</li>
+              <li>Luthier</li>
+              <li>Saraivada</li>
+              <li>Traje de Batalha</li>
             </ul>
             <SubTitle id='ladino'>Ladino</SubTitle>
             <p>
@@ -929,6 +963,18 @@ const CavernaDoSaber: React.FC = () => {
               A <Db>DB #157</Db> apresenta uma lista de inimigos mercenários, em
               vários NDs diferentes.
             </p>
+            <SubTitle id='viloes'>Vilões</SubTitle>
+            <p>
+              Vilões desprezíveis para dificultar a vida dos seus jogadores em
+              Tormenta20, adicionados na <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Karmen Roth</li>
+              <li>Mesmerizador</li>
+              <li>Lady Isoldine, Baronesa Sangrenta</li>
+              <li>Rovert Naidr, Taverneiro Traiçoeiro</li>
+              <li>Doutora Stella e Ellyn, a Criatura</li>
+            </ul>
             <Divider />
             {/* Aliados */}
             <Title id='aliados'>Aliados</Title>
