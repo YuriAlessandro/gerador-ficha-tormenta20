@@ -204,7 +204,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #198.</strong>
+                <strong>Revistas analisadas: DB #156 até #199.</strong>
               </small>
             </p>
             <p>
@@ -304,8 +304,8 @@ const CavernaDoSaber: React.FC = () => {
             <Title id='racas'>Raças</Title>
             <p>
               Aqui estarão listadas novas raças que foram sugeridas nas revistas
-              - até o momento, raças adicionadas no Ameaças de Arton não estarão
-              inclusas.
+              - raças adicionadas no Ameaças de Arton não estarão inclusas nessa
+              lista.
             </p>
             <SubTitle id='golem-reformulado'>Golem (Reformulado)</SubTitle>
             <p>
@@ -336,11 +336,26 @@ const CavernaDoSaber: React.FC = () => {
               Aqui estarão listadas novas classes que foram sugeridas nas
               revistas.
             </p>
+            <SubTitle id='miragem'>Miragem</SubTitle>
+            <p>
+              Uma classe lutadora, de guerreiros da areia do deserto de
+              Halak-Tûr, com golpes envolvendo danças e uso do terreno a favor
+              do jogador. Disponivel na <Db>DB #199</Db>.
+            </p>
             <SubTitle id='mistico'>Místico</SubTitle>
             <p>
               Uma classe conjuradora, meio inspirada pelos dobradores de Avatar,
               permite que você manipule os elementos em forma de magias e
               habilidades. Disponível na <Db>DB #191</Db>.
+            </p>
+            <p>
+              A <Db>DB #199</Db> trouxe o místico de volta, com algumas
+              atualizações.
+            </p>
+            <SubTitle id='samurai'>Samurai</SubTitle>
+            <p>
+              Diretamente do Império de Tamu-ra, a classe Samurai foi
+              introduzida na <Db>DB #199</Db>.
             </p>
             <Divider />
             {/* Habilidades/Poderes de Classes */}
@@ -885,6 +900,13 @@ const CavernaDoSaber: React.FC = () => {
               <li>Medalhão dos Povos</li>
               <li>O Incrível Mapa de Alastar</li>
             </ul>
+            <SubTitle id='recompensas'>Tabela de Recompensas Extras</SubTitle>
+            <p>
+              A <Db>DB #199</Db> adicionou mais opções de itens mundanos para
+              serem sorteados como recompensas de aventuras. A tabela inclui um
+              valor médio e uma lista de itens como exemplos - como joias,
+              louças, móveis, mapas, etc.
+            </p>
             <Divider />
             {/* Magias */}
             <Title id='magias'>Magias</Title>
