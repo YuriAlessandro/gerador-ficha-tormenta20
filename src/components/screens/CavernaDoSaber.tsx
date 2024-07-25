@@ -191,6 +191,17 @@ const CavernaDoSaber: React.FC = () => {
               publicadas oficialmente.
             </p>
             <p>
+              <small>
+                Com o lançamento de diversos suplementos, muitos dos conteúdos
+                apresentados em fase de testes na revista foram adicionados
+                oficialmente ao sistema através de livros como{' '}
+                <strong>Ameaças de Arton</strong>. Sempre que possível, um
+                conteúdo já adicionado oficialmente aos suplementos estará
+                marcado com este símbolo: 📖. Dessa forma você sabe que existe
+                uma versão atualizada e oficial deste conteúdo.
+              </small>
+            </p>
+            <p>
               Para ler o conteúdo, você precisará ser assinante da revista
               Dragão Brasil. Você pode fazer isso legalmente apoiando o projeto{' '}
               <a
@@ -204,13 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #199.</strong>
-              </small>
-            </p>
-            <p>
-              <small>
-                Das revistas DB #145 até a DB #155, conteúdos foram adicionados
-                pela comunidade, mas elas não estão totalmente compiladas.
+                <strong>Revistas analisadas: DB #156 até #204.</strong>
               </small>
             </p>
             <p>
@@ -307,27 +312,39 @@ const CavernaDoSaber: React.FC = () => {
               - raças adicionadas no Ameaças de Arton não estarão inclusas nessa
               lista.
             </p>
-            <SubTitle id='golem-reformulado'>Golem (Reformulado)</SubTitle>
+            <SubTitle id='golem-reformulado'>Golem (Reformulado) 📖</SubTitle>
             <p>
               Não é propriamente uma raça nova, mas a <Db>DB #180</Db> apresenta
               uma reformulação para a raça Golem, que muda bastante a forma como
               a raça funciona. Vale a pena conferir.
             </p>
-            <SubTitle id='kally'>Kallyanach</SubTitle>
+            <p>
+              📖 Golem Desperto é uma nova raça disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db>.
+            </p>
+            <SubTitle id='kally'>Kallyanach 📖</SubTitle>
             <p>
               Uma espécie de meio-dragão, provavelmente estará incluso e melhor
               descrito do Ameaças de Arton. Disponível na <Db>DB #181</Db>.
             </p>
-            <SubTitle id='moreau'>Moreau</SubTitle>
+            <p>
+              📖 Essa raça está disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db>.
+            </p>
+            <SubTitle id='moreau'>Moreau 📖</SubTitle>
             <p>
               A raça dos Moreau foi adicionada na <Db>DB #172</Db>. É muito
               provável que esse conteúdo esteja disponível no Ameaças de Arton
               (talvez repaginado, ou não).
             </p>
-            <SubTitle id='povo-trovao'>Povo-Trovão</SubTitle>
+            <SubTitle id='povo-trovao'>Povo-Trovão 📖</SubTitle>
             <p>
               Uma raça oriunda dos dinossauros (também referida como
               povo-dinossauro). Disponível na <Db>DB #174</Db>.
+            </p>
+            <p>
+              📖 Essa raça está disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db> com o nome <strong>Ceratops</strong>.
             </p>
             <Divider />
             {/* Classes */}
@@ -336,6 +353,16 @@ const CavernaDoSaber: React.FC = () => {
               Aqui estarão listadas novas classes que foram sugeridas nas
               revistas.
             </p>
+            <SubTitle id='druida'>Druída</SubTitle>
+            <p>
+              A <Db>DB #204</Db> apresentou novas possibilidades para a classe
+              de Druída, com a possibilidade de druídas de outras divindades:
+            </p>
+            <ul>
+              <li>Druida de Aharadak</li>
+              <li>Druida de Tenebra</li>
+              <li>Druida de Arton</li>
+            </ul>
             <SubTitle id='miragem'>Miragem</SubTitle>
             <p>
               Uma classe lutadora, de guerreiros da areia do deserto de
@@ -355,7 +382,8 @@ const CavernaDoSaber: React.FC = () => {
             <SubTitle id='samurai'>Samurai</SubTitle>
             <p>
               Diretamente do Império de Tamu-ra, a classe Samurai foi
-              introduzida na <Db>DB #199</Db>.
+              introduzida na <Db>DB #199</Db>. A <Db>DB #201</Db> apresenta
+              novos poderes de Samurai.
             </p>
             <Divider />
             {/* Habilidades/Poderes de Classes */}
@@ -453,6 +481,32 @@ const CavernaDoSaber: React.FC = () => {
               <li>Sempre Alerta</li>
               <li>Tiro em Linha</li>
               <li>Último Sangue</li>
+            </ul>
+            <SubTitle id='druida-2'>Druída</SubTitle>
+            <p>
+              Novos poderes de Druída foram apresentados na <Db>DB #204</Db>:
+            </p>
+            <ul>
+              <li>Arma Tradicional</li>
+              <li>Auspício da Lua Cheia</li>
+              <li>Auspício da Lua Crescente</li>
+              <li>Auspício da Lua Minguante</li>
+              <li>Auspício da Lua Nova</li>
+              <li>Companheiro Aberrante</li>
+              <li>Companheiro Elemental</li>
+              <li>Confluência Elemental</li>
+              <li>Ermos Rubros</li>
+              <li>Forma Aberrante</li>
+              <li>Forma Elemental</li>
+              <ul>
+                <li>Forma Aquosa</li>
+                <li>Forma Eólica</li>
+                <li>Forma Ígnea</li>
+                <li>Forma Rochosa</li>
+              </ul>
+              <li>Poder Tumular</li>
+              <li>Proteção Fúngica</li>
+              <li>Transformação Repugnante</li>
             </ul>
             <SubTitle id='guerreiro'>Guerreiro</SubTitle>
             <p>
@@ -560,6 +614,11 @@ const CavernaDoSaber: React.FC = () => {
               <li>Palavras Rápidas</li>
               <li>Siga o Líder</li>
             </ul>
+            <SubTitle id='samurai'>Samurai</SubTitle>
+            <p>
+              Os seguintes poderes de Samurai fora adicionados na{' '}
+              <Db>DB #201</Db>:
+            </p>
             <Divider />
             {/* Poderes Gerais */}
             <Title id='poderes-gerais'>Poderes Gerais</Title>
@@ -688,13 +747,38 @@ const CavernaDoSaber: React.FC = () => {
             {/* Distinções */}
             <Title id='distincoes'>Distinções</Title>
             <p>
+              Distinções já sofreram diversas iterações ao longo da revista e em
+              breve estarão oficialmente disponíveis como suplemento através da
+              campanha{' '}
+              <a
+                href='https://www.catarse.me/tormenta25'
+                target='_blank'
+                rel='noreferrer'
+              >
+                Tormenta 25
+              </a>
+              . Quando os livros forem oficialmente lançados,{' '}
+              <strong>TODAS</strong> as distinções oficialmente adicionadas
+              neles serão sinalizadas nesse índice.
+            </p>
+            <p>
+              A revista <Db>DB #202</Db> reapresenta as dintinções com regras
+              atualizadas.
+            </p>
+            <p>
               As distinções forem introduzidas na <Db>DB #181</Db>:
             </p>
             <ul>
               <li>Aeronauta Goblin</li>
-              <li>Arqueiro Arcano</li>
-              <li>Cavaleiro do Corvo</li>
-              <li>Gigante Furioso</li>
+              <li>
+                Arqueiro Arcano (revisitado na revista <Db>DB #202</Db>).
+              </li>
+              <li>
+                Cavaleiro do Corvo (revisitado na revista <Db>DB #202</Db>).
+              </li>
+              <li>
+                Gigante Furioso (revisitado na revista <Db>DB #203</Db>)
+              </li>
             </ul>
             <p>
               Mais uma distinção foi adicionada na <Db>DB #186</Db>:
@@ -724,6 +808,30 @@ const CavernaDoSaber: React.FC = () => {
               A distinção <strong>Lobo Lunar</strong> e mais algumas regras
               sobre licantropia foram adicionadas na <Db>DB #196</Db>.
             </p>
+            <p>
+              Uma nova distinção foi adicionada na <Db>DB #201</Db>:
+            </p>
+            <ul>
+              <li>Caçador de Dragões</li>
+            </ul>
+            <p>
+              A <Db>DB #202</Db> revisita as Distinções e apresenta regras
+              atualizadas.
+            </p>
+            <p>
+              Novas Distinções foram apresentadas na <Db>DB #203</Db>:
+            </p>
+            <ul>
+              <li>Chapéu-Preto</li>
+              <li>Gigante Furioso</li>
+            </ul>
+            <p>
+              Novas Distinções foram adicionadas na <Db>DB #204</Db>:
+            </p>
+            <ul>
+              <li>Médico de Salistik</li>
+              <li>Guardião da Realidade</li>
+            </ul>
             <Divider />
             {/* Equipamentos */}
             <Title id='equipamentos'>Equipamentos</Title>
@@ -985,6 +1093,23 @@ const CavernaDoSaber: React.FC = () => {
               A <Db>DB #157</Db> apresenta uma lista de inimigos mercenários, em
               vários NDs diferentes.
             </p>
+            <SubTitle id='dragoes'>Dragões</SubTitle>
+            <p>
+              A <Db>DB #201</Db> apresentou alguns dragões da cultura pop como
+              ameaças disponíveis.
+            </p>
+            <ul>
+              <li>Banguela (Como Treinar o Seu Dragão)</li>
+              <li>Dragão Branco de Olhos Azuis (Yu-Gi-Oh!)</li>
+              <li>Dragonite (Pokémon)</li>
+              <li>Falkor (A História Sem Fim)</li>
+              <li>Haku (A Viagem de Chihiro)</li>
+              <li>Harle (Chrono Cross)</li>
+              <li>Jaguadarte (Alice no País dos Espelhos)</li>
+              <li>Lockheed (X-Men)</li>
+              <li>Shou Lao (Punho de Ferro)</li>
+              <li>Spyro (Spyro The Dragon)</li>
+            </ul>
             <SubTitle id='viloes'>Vilões</SubTitle>
             <p>
               Vilões desprezíveis para dificultar a vida dos seus jogadores em
@@ -996,6 +1121,13 @@ const CavernaDoSaber: React.FC = () => {
               <li>Lady Isoldine, Baronesa Sangrenta</li>
               <li>Rovert Naidr, Taverneiro Traiçoeiro</li>
               <li>Doutora Stella e Ellyn, a Criatura</li>
+            </ul>
+            <p>
+              Ozai, o Senhor do Fogo da série Avatar a Lenda de Aang foi
+              adicionado na <Db>DB #201</Db>.
+            </p>
+            <ul>
+              <li>Ozai, o Senhor do Fogo</li>
             </ul>
             <Divider />
             {/* Aliados */}
