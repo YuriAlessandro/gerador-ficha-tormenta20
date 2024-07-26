@@ -5,11 +5,9 @@ import { DEFAULT_SKILLS, FoundryCharSkill, FOUNDRY_SKILLS } from './skills';
 
 interface FoundryCharAttribute {
   value: number;
-  raca: number;
   bonus: number;
-  temp: number;
-  mod: number;
-  penalidade: number;
+  base: number;
+  racial: number;
 }
 
 const foundrySizes: Record<string, string> = {
@@ -26,7 +24,8 @@ export interface FoundryJSON {
   data: {
     tamanho: string;
     attributes: {
-      raca: string;
+      treino: number;
+      conjuracao: string;
       pv: {
         value: number;
         min: number;
@@ -55,20 +54,28 @@ export interface FoundryJSON {
         walk: number;
         hover: boolean;
       };
-      info: string;
-      cd: number;
-      hp: number;
-      classe: string;
+      defesa: {
+        base: number;
+        value: number;
+        outros: number;
+        atributo: string;
+        bonus: [];
+        penalidade: number;
+        condi: number;
+      };
+      sentidos: {
+        value: [];
+        custom: string;
+      };
+    };
+    detalhes: {
+      biography: {
+        value: string;
+        public: string;
+      };
+      raca: string;
       divindade: string;
       origem: string;
-      senses: {
-        darkvision: number;
-        blindsight: number;
-        tremorsense: number;
-        truesight: number;
-        units: string;
-        special: string;
-      };
     };
     rd: {
       value: number;
@@ -76,16 +83,6 @@ export interface FoundryJSON {
       temp: number;
       bonus: number;
       penalidade: number;
-    };
-    defesa: {
-      value: number;
-      outro: number;
-      bonus: string;
-      penalidade: number;
-      final: number;
-      des: boolean;
-      pda: number;
-      temp: number | null;
     };
     atributos: {
       for: FoundryCharAttribute;
@@ -97,22 +94,18 @@ export interface FoundryJSON {
     };
     pericias: Record<string, FoundryCharSkill>;
   };
-}
-
-function getOriginAndDevotionString(sheet: CharacterSheet) {
-  if (sheet.origin && sheet.devoto) {
-    return `${sheet.origin.name} devoto de ${sheet.devoto.divindade.name}`;
-  }
-
-  if (sheet.origin) {
-    return sheet.origin.name;
-  }
-
-  if (sheet.devoto) {
-    return `Devoto de ${sheet.devoto.divindade.name}`;
-  }
-
-  return '';
+  items: [
+    {
+      name: string;
+      type: string;
+      system: {
+        inicial: boolean;
+        niveis: number;
+        pvPorNivel: number;
+        pmPorNivel: number;
+      };
+    }
+  ];
 }
 
 function setOficio(acc: Record<string, FoundryCharSkill>, skill: Skill) {
@@ -156,25 +149,25 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
       tamanho: foundrySizes[sheet.size.name],
       pericias: getSkills(sheet),
       attributes: {
-        raca: sheet.raca.name,
+        treino: 0,
         pv: {
-          value: sheet.classe.pv,
+          value: sheet.pv,
           min: -500,
           max: sheet.classe.pv,
           temp: 0,
         },
         pm: {
-          value: sheet.classe.pm,
+          value: sheet.pm,
           min: 0,
           max: sheet.classe.pm,
           temp: 0,
         },
         nivel: {
-          value: 1,
+          value: 0,
           xp: {
             value: 0,
             min: 0,
-            proximo: 1000,
+            proximo: 0,
           },
         },
         movement: {
@@ -185,20 +178,33 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
           walk: sheet.displacement,
           hover: false,
         },
-        info: getOriginAndDevotionString(sheet),
-        cd: 0,
-        hp: 0,
-        classe: sheet.classe.name,
+        defesa: {
+          base: 10,
+          value: sheet.defesa,
+          outros: 0,
+          atributo: 'des',
+          bonus: [],
+          penalidade: 0,
+          condi: 0,
+        },
+        sentidos: {
+          value: [],
+          custom: '',
+        },
+        conjuracao: sheet.classe.spellPath
+          ? `${sheet.atributos[sheet.classe.spellPath.keyAttribute].name
+              .substring(0, 3)
+              .toLocaleLowerCase()}`
+          : '',
+      },
+      detalhes: {
+        biography: {
+          value: '',
+          public: '',
+        },
+        raca: sheet.raca.name,
         divindade: sheet.devoto?.divindade?.name || '',
         origem: sheet.origin?.name || '',
-        senses: {
-          darkvision: 0,
-          blindsight: 0,
-          tremorsense: 0,
-          truesight: 0,
-          units: 'm',
-          special: '',
-        },
       },
       rd: {
         value: 0,
@@ -207,66 +213,56 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
         bonus: 0,
         penalidade: 0,
       },
-      defesa: {
-        value: 10,
-        outro: 0,
-        bonus: '',
-        penalidade: 0,
-        final: 0,
-        des: true,
-        pda: 0,
-        temp: null,
-      },
       atributos: {
         for: {
-          value: sheet.atributos.Força.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Força.mod,
+          racial: 0,
         },
         des: {
-          value: sheet.atributos.Destreza.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Destreza.mod,
+          racial: 0,
         },
         con: {
-          value: sheet.atributos.Constituição.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Constituição.mod,
+          racial: 0,
         },
         int: {
-          value: sheet.atributos.Inteligência.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Inteligência.mod,
+          racial: 0,
         },
         sab: {
-          value: sheet.atributos.Sabedoria.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Sabedoria.mod,
+          racial: 0,
         },
         car: {
-          value: sheet.atributos.Carisma.value,
-          raca: 0,
+          value: 0,
           bonus: 0,
-          temp: 0,
-          mod: 0,
-          penalidade: 0,
+          base: sheet.atributos.Carisma.mod,
+          racial: 0,
         },
       },
     },
+    items: [
+      {
+        name: sheet.classe.name,
+        type: 'classe',
+        system: {
+          inicial: true,
+          niveis: sheet.nivel,
+          pvPorNivel: sheet.classe.addpv,
+          pmPorNivel: sheet.classe.addpm,
+        },
+      },
+    ],
   };
 }
