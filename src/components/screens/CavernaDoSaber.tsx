@@ -215,7 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #204.</strong>
+                <strong>Revistas analisadas: DB #156 até #205.</strong>
               </small>
             </p>
             <p>
@@ -757,80 +757,62 @@ const CavernaDoSaber: React.FC = () => {
               >
                 Tormenta 25
               </a>
-              . Quando os livros forem oficialmente lançados,{' '}
-              <strong>TODAS</strong> as distinções oficialmente adicionadas
-              neles serão sinalizadas nesse índice.
+              . Quando os livros forem oficialmente lançados, as distinções
+              oficialmente adicionadas neles serão sinalizadas nesse índice.
             </p>
             <p>
-              A revista <Db>DB #202</Db> reapresenta as dintinções com regras
-              atualizadas.
-            </p>
-            <p>
-              As distinções forem introduzidas na <Db>DB #181</Db>:
+              As distinções foram introduzidas na <Db>DB #181</Db>. A revista{' '}
+              <Db>DB #202</Db> fala novamente sobre as regras de distinção, de
+              forma atualizada. Novas distinções foram adicionadas ao longo de
+              várias revistas e estão indicadas abaixo.
             </p>
             <ul>
-              <li>Aeronauta Goblin</li>
               <li>
-                Arqueiro Arcano (revisitado na revista <Db>DB #202</Db>).
+                Aeronauta Goblin (apresentado em <Db>DB #181</Db>)
               </li>
               <li>
-                Cavaleiro do Corvo (revisitado na revista <Db>DB #202</Db>).
+                Arqueiro Arcano (revisitado em <Db>DB #202</Db>)
               </li>
               <li>
-                Gigante Furioso (revisitado na revista <Db>DB #203</Db>)
+                Caçador de Dragões (apresentado em <Db>DB #201</Db>)
               </li>
-            </ul>
-            <p>
-              Mais uma distinção foi adicionada na <Db>DB #186</Db>:
-            </p>
-            <ul>
-              <li>Cavaleiro Silvestre</li>
-            </ul>
-            <p>
-              Mais uma foi adicionada na <Db>DB #187</Db>:
-            </p>
-            <ul>
-              <li>Irmão Inseparável</li>
-            </ul>
-            <p>
-              Mais uma na <Db>DB #188</Db>:
-            </p>
-            <ul>
-              <li>Mestre da Fúria Fria</li>
-            </ul>
-            <p>
-              Mais uma distinção foi adicionada na <Db>DB #194</Db>:
-            </p>
-            <ul>
-              <li>Cavaleiro da Redenção</li>
-            </ul>
-            <p>
-              A distinção <strong>Lobo Lunar</strong> e mais algumas regras
-              sobre licantropia foram adicionadas na <Db>DB #196</Db>.
-            </p>
-            <p>
-              Uma nova distinção foi adicionada na <Db>DB #201</Db>:
-            </p>
-            <ul>
-              <li>Caçador de Dragões</li>
-            </ul>
-            <p>
-              A <Db>DB #202</Db> revisita as Distinções e apresenta regras
-              atualizadas.
-            </p>
-            <p>
-              Novas Distinções foram apresentadas na <Db>DB #203</Db>:
-            </p>
-            <ul>
-              <li>Chapéu-Preto</li>
-              <li>Gigante Furioso</li>
-            </ul>
-            <p>
-              Novas Distinções foram adicionadas na <Db>DB #204</Db>:
-            </p>
-            <ul>
-              <li>Médico de Salistik</li>
-              <li>Guardião da Realidade</li>
+              <li>
+                Cavaleiro da Redenção (apresentado em <Db>DB #194</Db>)
+              </li>
+              <li>
+                Cavaleiro Silvestre (apresentado em <Db>DB #186</Db>)
+              </li>
+              <li>
+                Cavaleiro do Corvo (revisitado em <Db>DB #202</Db>)
+              </li>
+              <li>
+                Chapéu-Preto (apresentado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Gigante Furioso (revisitado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Guardião da Realidade (apresentado em <Db>DB #204</Db>)
+              </li>
+              <li>
+                Irmão Inseparável (apresentado em <Db>DB #187</Db>)
+              </li>
+              <li>
+                Lobo Lunar (apresentado em <Db>DB #196</Db> com regras de{' '}
+                <strong>Licantropo</strong>)
+              </li>
+              <li>
+                Mago de Batalha (apresentado em <Db>DB #205</Db>)
+              </li>
+              <li>
+                Médico de Salistik (apresentado em <Db>DB #204</Db>)
+              </li>
+              <li>
+                Mestre da Fúria Fria (apresentado em <Db>DB #188</Db>)
+              </li>
+              <li>
+                Xerife de Azgher (apresentado em <Db>DB #205</Db>)
+              </li>
             </ul>
             <Divider />
             {/* Equipamentos */}
