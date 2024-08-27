@@ -215,7 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #205.</strong>
+                <strong>Revistas analisadas: DB #156 até #206.</strong>
               </small>
             </p>
             <p>
@@ -710,38 +710,72 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tigre Branco Devora o Céu</li>
             </ul>
             <Divider />
-            <Title id='desvantagens'>Desvantagens</Title>
+            <Title id='desvantagens'>Complicações (desvantagens)</Title>
             <p>
-              As desvantagens são apresentadas na <Db>DB #156</Db>:
+              As complicações (antigas desvantagens) são apresentadas na{' '}
+              <Db>DB #156</Db>. A <Db>DB #206</Db> trás uma lista de
+              complicações, um termo que substitui o anterior. Essa lista está
+              considerando a versão mais recente da <Db>DB #206</Db>.
             </p>
             <ul>
+              <li>Apetitoso</li>
               <li>Amaldiçoado</li>
               <li>Assombrado</li>
               <li>Cabeça Quente</li>
               <li>Caolho</li>
               <li>Chato</li>
-              <li>Código de Conduta</li>
+              <li>Citadino</li>
+              <li>Código de Conduta (apenas na #156)</li>
               <li>Combalido</li>
               <li>Covarde</li>
+              <li>Cria de Nimb</li>
+              <li>Crise de Fé</li>
               <li>Distraído</li>
-              <li>Duro de Ouvido</li>
-              <li>Expurgo de Allihanna</li>
+              <li>Duro de Ouvido (apenas na #156)</li>
+              <li>Expurgo de Allihanna (apenas na #156)</li>
               <li>Expurgo de Wynna</li>
-              <li>Filho(a) de Nimb</li>
               <li>Fracote</li>
-              <li>Franzino</li>
+              <li>Franzino (apenas na #156)</li>
               <li>Hedonista</li>
+              <li>Ímpio</li>
               <li>Impulsivo</li>
               <li>Inculto</li>
               <li>Indefeso</li>
-              <li>Ingênuo</li>
+              <li>Indolente</li>
+              <li>Inocente</li>
+              <li>Ingênuo (apenas na #156)</li>
               <li>Maneta</li>
+              <li>Marcado pelo Passado</li>
               <li>Matugo</li>
-              <li>Melancólico</li>
+              <li>Melancólico (apenas na #156)</li>
               <li>Míope</li>
+              <li>Mouco</li>
+              <li>Paranoico</li>
+              <li>Temeroso</li>
+              <li>Tolo</li>
               <li>Vagaroso</li>
               <li>Temeroso</li>
               <li>Tolo</li>
+            </ul>
+            <p>
+              Além disso a <Db>DB #206</Db> apresentou{' '}
+              <strong>Complicações de Classe</strong>:
+            </p>
+            <ul>
+              <li>Arcanista de Rotina (Arcanista)</li>
+              <li>Totem Gigante (Bárbaro)</li>
+              <li>Falastrão (Bardo)</li>
+              <li>Coragem Líquida (Bucaneiro)</li>
+              <li>Limitado a [Criatura] (Caçador)</li>
+              <li>Superprotetor (Cavaleiro)</li>
+              <li>Preparação Litúrgica (Clérigo)</li>
+              <li>Tosco (Druida)</li>
+              <li>Precavido (Guerreiro)</li>
+              <li>Trabalhador Ocupado (Inventor)</li>
+              <li>Honra de Ladrão (Ladino)</li>
+              <li>Firula (Lutador)</li>
+              <li>Filantropo (Nobre)</li>
+              <li>Certinho (Paladino)</li>
             </ul>
             <Divider />
             {/* Distinções */}
@@ -809,6 +843,12 @@ const CavernaDoSaber: React.FC = () => {
               </li>
               <li>
                 Mestre da Fúria Fria (apresentado em <Db>DB #188</Db>)
+              </li>
+              <li>
+                Menestrel Maldito (apresentado em <Db>DB #206</Db>)
+              </li>
+              <li>
+                Presa de Coral (apresentado em <Db>DB #206</Db>)
               </li>
               <li>
                 Xerife de Azgher (apresentado em <Db>DB #205</Db>)
