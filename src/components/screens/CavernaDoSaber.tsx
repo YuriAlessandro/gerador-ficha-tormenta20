@@ -391,7 +391,7 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Novos poderes que podem ser escolhidos por classes específicas.
             </p>
-            <SubTitle id='barbaro'>Barbáro</SubTitle>
+            <SubTitle id='poderes-barbaro'>Barbáro</SubTitle>
             <p>
               Todos os seguintes poderes de barbáro foram adicionados na{' '}
               <Db>DB #198</Db>:
@@ -409,7 +409,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Instinto Robusto</li>
               <li>Sem Piedade</li>
             </ul>
-            <SubTitle id='bardo'>Bardo</SubTitle>
+            <SubTitle id='poderes-bardo'>Bardo</SubTitle>
             <p>
               Todos os seguintes poderes de bardo foram adicionados na{' '}
               <Db>DB #179</Db>:
@@ -426,7 +426,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Performance: Vivace</li>
               <li>Performance: Virtuoso</li>
             </ul>
-            <SubTitle id='bucaneiro'>Bucaneiro</SubTitle>
+            <SubTitle id='poderes-bucaneiro'>Bucaneiro</SubTitle>
             <p>
               Todos os seguintes poderes de bucaneiro foram adicionados na{' '}
               <Db>DB #189</Db>:
@@ -452,7 +452,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Todos por Um</li>
               <li>Um por Todos</li>
             </ul>
-            <SubTitle id='cacador'>Caçador</SubTitle>
+            <SubTitle id='poderes-cacador'>Caçador</SubTitle>
             <p>
               Todos os seguintes poderes de caçador foram adicionados na{' '}
               <Db>DB #192</Db>:
@@ -482,7 +482,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tiro em Linha</li>
               <li>Último Sangue</li>
             </ul>
-            <SubTitle id='druida-2'>Druída</SubTitle>
+            <SubTitle id='poderes-druida'>Druída</SubTitle>
             <p>
               Novos poderes de Druída foram apresentados na <Db>DB #204</Db>:
             </p>
@@ -508,7 +508,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Proteção Fúngica</li>
               <li>Transformação Repugnante</li>
             </ul>
-            <SubTitle id='guerreiro'>Guerreiro</SubTitle>
+            <SubTitle id='poderes-guerreiro'>Guerreiro</SubTitle>
             <p>
               Novas opções para o <strong>Golpe Pessoal</strong> do guerreiro
               foram detalhadas na <Db>DB #159</Db>:
@@ -519,7 +519,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Desgastante (–1 PM)</li>
               <li>Paralisante (–1 PM)</li>
             </ul>
-            <SubTitle id='inventor'>Inventor</SubTitle>
+            <SubTitle id='poderes-inventor'>Inventor</SubTitle>
             <p>
               Novos poderes de inventor foram adicionados na <Db>DB #198</Db>:
             </p>
@@ -535,7 +535,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Saraivada</li>
               <li>Traje de Batalha</li>
             </ul>
-            <SubTitle id='ladino'>Ladino</SubTitle>
+            <SubTitle id='poderes-ladino'>Ladino</SubTitle>
             <p>
               Todos os seguintes poderes de ladino foram adicionados na{' '}
               <Db>DB #185</Db>:
@@ -571,7 +571,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Matar ou Morrer</li>
               <li>Situação de Barril</li>
             </ul>
-            <SubTitle id='lutador'>Lutador</SubTitle>
+            <SubTitle id='poderes-lutador'>Lutador</SubTitle>
             <p>
               Todos os seguintes poderes de lutador foram adicionados na{' '}
               <Db>DB #190</Db>:
@@ -598,7 +598,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Terceira Mão: Lança</li>
               <li>Toque Cegante</li>
             </ul>
-            <SubTitle id='nobre'>Nobre</SubTitle>
+            <SubTitle id='poderes-nobre'>Nobre</SubTitle>
             <p>
               Os seguintes poderes de nobre foram adicionados na{' '}
               <Db>DB #195</Db>:
@@ -614,11 +614,55 @@ const CavernaDoSaber: React.FC = () => {
               <li>Palavras Rápidas</li>
               <li>Siga o Líder</li>
             </ul>
-            <SubTitle id='samurai'>Samurai</SubTitle>
+            <SubTitle id='poderes-samurai'>Samurai</SubTitle>
             <p>
               Os seguintes poderes de Samurai fora adicionados na{' '}
               <Db>DB #201</Db>:
             </p>
+            <ul>
+              <li>Acima do Bem e do Mal</li>
+              <li>Ancestral Dançarino</li>
+              <li>Aspecto Assustador</li>
+              <li>Aspecto Dourado</li>
+              <li>Aspecto Opulento</li>
+              <li>Avalanche Súbita</li>
+              <li>Cortar Magia</li>
+              <li>Corte do Vácuo</li>
+              <li>Cortador de Cavalos</li>
+              <li>Dança dos Elementos</li>
+              <li>Dor Infinita</li>
+              <li>Engenhosidade Alquímica</li>
+              <li>Escudo Ancestral</li>
+              <li>Essência Fluida</li>
+              <li>Essência Gélida</li>
+              <li>Essência Invencível</li>
+              <li>Essência Lefeu</li>
+              <li>Essência Marinha</li>
+              <li>Essência Prateada</li>
+              <li>Essência Monstruosa</li>
+              <li>Essência Rubi</li>
+              <li>Essência Virente</li>
+              <li>Fulgor Púrpura</li>
+              <li>Golpe Fantasma</li>
+              <li>Instinto Destruidor</li>
+              <li>Lâmina Invertida</li>
+              <li>Lâmina Sedenta</li>
+              <li>Mistério Nebuloso</li>
+              <li>Nada Além de Um Assassino</li>
+              <li>Paradoxo Absoluto</li>
+              <li>Paradoxo da Celeridade</li>
+              <li>Paradoxo da Extinção</li>
+              <li>Paradoxo da Extremidade</li>
+              <li>Paradoxo do Gume</li>
+              <li>Paradoxo da Magia</li>
+              <li>Paradoxo Viperino</li>
+              <li>Perfeição Marcial</li>
+              <li>Tiro Perfeito</li>
+              <li>Trovão Incessante</li>
+              <li>Roda Fluvial</li>
+              <li>Venha Cá</li>
+              <li>Voo da Andorinha</li>
+            </ul>
             <Divider />
             {/* Poderes Gerais */}
             <Title id='poderes-gerais'>Poderes Gerais</Title>
