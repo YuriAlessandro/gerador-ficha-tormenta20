@@ -36,8 +36,8 @@ const LandingPage: React.FC<{
 }> = ({ onClickButton }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
-  const history = useHistory();
   const isDarkTheme = theme.palette.mode === 'dark';
+  const history = useHistory();
 
   const onOpenLink = (link: string) => {
     window.open(link);
@@ -108,6 +108,7 @@ const LandingPage: React.FC<{
                     text='[EM BREVE] Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
                     image={builder}
                     onClick={onClickNewSheet}
+                    disabled
                   />
                 </Stack>
               </CardContent>
