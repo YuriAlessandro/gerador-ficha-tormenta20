@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router';
 import { BuildingSheet } from 't20-sheet-builder';
 import { v4 as uuid } from 'uuid';
 import ferramentas from '../../assets/images/ferramentas.jpg';
@@ -35,6 +36,7 @@ const LandingPage: React.FC<{
 }> = ({ onClickButton }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const history = useHistory();
   const isDarkTheme = theme.palette.mode === 'dark';
 
   const onOpenLink = (link: string) => {
@@ -45,7 +47,7 @@ const LandingPage: React.FC<{
     const id = uuid();
     const sheet = new BuildingSheet();
     dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
-    window.location.href = `/sheet-builder/${id}`;
+    history.push(`/sheet-builder/${id}`);
   };
 
   return (
