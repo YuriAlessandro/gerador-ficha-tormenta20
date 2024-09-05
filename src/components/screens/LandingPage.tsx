@@ -6,8 +6,8 @@ import database from '@/assets/images/options/database.png';
 import items from '@/assets/images/options/items.png';
 import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
-import treasure from '@/assets/images/options/treasure.png';
 import treasureMap from '@/assets/images/options/treasure-map.png';
+import treasure from '@/assets/images/options/treasure.png';
 import { createNewSheet } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { useHistory } from 'react-router';
 import { BuildingSheet } from 't20-sheet-builder';
 import { v4 as uuid } from 'uuid';
 import ferramentas from '../../assets/images/ferramentas.jpg';
@@ -37,7 +36,6 @@ const LandingPage: React.FC<{
   const dispatch = useDispatch();
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
-  const history = useHistory();
 
   const onOpenLink = (link: string) => {
     window.open(link);
@@ -47,7 +45,7 @@ const LandingPage: React.FC<{
     const id = uuid();
     const sheet = new BuildingSheet();
     dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
-    history.push(`/sheet-builder/${id}`);
+    window.location.href = `/sheet-builder/${id}`;
   };
 
   return (
@@ -108,7 +106,6 @@ const LandingPage: React.FC<{
                     text='[EM BREVE] Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
                     image={builder}
                     onClick={onClickNewSheet}
-                    disabled
                   />
                 </Stack>
               </CardContent>
