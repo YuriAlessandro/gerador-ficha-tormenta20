@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import {
   selectPreviewAttributes,
@@ -12,13 +13,14 @@ import FancyBox from '../common/FancyBox';
 
 const SheetPreviewDefense = () => {
   const [open, setOpen] = useState(false);
+  const params = useParams<{ id: string }>();
 
   const onClick = () => {
     setOpen(!open);
   };
 
-  const attributes = useSelector(selectPreviewAttributes);
-  const defense = useSelector(selectPreviewDefense);
+  const attributes = useSelector(selectPreviewAttributes(params.id));
+  const defense = useSelector(selectPreviewDefense(params.id));
 
   const theme = useTheme();
 

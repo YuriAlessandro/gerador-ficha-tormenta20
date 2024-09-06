@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router';
 import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import {
   selectCharacter,
@@ -24,8 +25,9 @@ import {
 import BookTitle from '../common/BookTitle';
 
 const SheetPreviewAtacks = () => {
-  const attacksPreview = useSelector(selectSheetAttacks);
-  const characterPreview = useSelector(selectCharacter);
+  const params = useParams<{ id: string }>();
+  const attacksPreview = useSelector(selectSheetAttacks(params.id));
+  const characterPreview = useSelector(selectCharacter(params.id));
 
   const { enqueueSnackbar } = useSnackbar();
 

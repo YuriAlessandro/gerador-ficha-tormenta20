@@ -16,6 +16,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import { useSnackbar } from 'notistack';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router';
 import {
   Character,
   FixedModifier,
@@ -44,8 +45,9 @@ const SheetPreviewResistances: React.FC<{
   resistance: ResistedSkill;
 }> = ({ open, onClose, resistance }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const characterPreview = useSelector(selectCharacter);
-  const resistances = useSelector(selectPreviewResistances);
+  const params = useParams<{ id: string }>();
+  const characterPreview = useSelector(selectCharacter(params.id));
+  const resistances = useSelector(selectPreviewResistances(params.id));
   const skillName = Translator.getSkillTranslation(resistance.name);
   const character = Character.makeFromSerialized(characterPreview);
   const onClickSkill = (bonus: number) => {

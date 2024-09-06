@@ -9,12 +9,14 @@ import styled from '@emotion/styled';
 
 import bigBox from '@/assets/images/bigBox.svg';
 import bigBoxDark from '@/assets/images/bigBoxDark.svg';
+import { useParams } from 'react-router';
 
 const SheetPreviewPoints = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const lifePoints = useSelector(selectPreviewMaxLifePoints);
-  const manaPoints = useSelector(selectPreviewMaxManaPoints);
+  const params = useParams<{ id: string }>();
+  const lifePoints = useSelector(selectPreviewMaxLifePoints(params.id));
+  const manaPoints = useSelector(selectPreviewMaxManaPoints(params.id));
 
   const TextBox = styled.div`
     display: flex;

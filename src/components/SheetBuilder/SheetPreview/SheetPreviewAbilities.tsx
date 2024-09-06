@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
 import {
@@ -9,8 +10,9 @@ import SheetPreviewAbility from './SheetPreviewAbility';
 import SheetPreviewList from './SheetPreviewList';
 
 const SheetPreviewAbilities = () => {
-  const raceAbilities = useSelector(selectPreviewRaceAbilities);
-  const roleAbilities = useSelector(selectPreviewRoleAbilities);
+  const params = useParams<{ id: string }>();
+  const raceAbilities = useSelector(selectPreviewRaceAbilities(params.id));
+  const roleAbilities = useSelector(selectPreviewRoleAbilities(params.id));
 
   return (
     <div className='flex flex-col md:flex-row gap-4 md:gap-12'>

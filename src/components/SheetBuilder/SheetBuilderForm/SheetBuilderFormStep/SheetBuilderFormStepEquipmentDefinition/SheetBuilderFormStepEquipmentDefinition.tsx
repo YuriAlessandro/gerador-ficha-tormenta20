@@ -3,6 +3,7 @@ import {
   getSheetEquipments,
   submitInitialEquipment,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialEquipment';
+import { useParams } from 'react-router';
 import { selectPreviewProficiencies } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,9 +36,10 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     useState<MartialWeaponName>();
   const [selectedArmor, setSelectedArmor] = useState<ArmorName>();
 
+  const params = useParams<{ id: string }>();
   const dispatch = useDispatch();
   const role = useSelector(selectBuilderRole);
-  const proficiencies = useSelector(selectPreviewProficiencies);
+  const proficiencies = useSelector(selectPreviewProficiencies(params.id));
 
   const confirm = () => {
     if (!selectedSimpleWeapon) return;

@@ -1,13 +1,14 @@
-import React from 'react';
-import { Deities, DeityName, Devotion, Translator } from 't20-sheet-builder';
-import { useDispatch, useSelector } from 'react-redux';
-import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
   selectPreviewRaceName,
   selectPreviewRoleName,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
-import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router';
+import { Deities, DeityName, Devotion, Translator } from 't20-sheet-builder';
 import { Option } from '../../../common/Option';
+import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 interface Props {
   setDevotion: (devotion?: DeityName) => void;
@@ -22,8 +23,9 @@ const DevotionSelect: React.FC<Props> = ({
 }) => {
   const dispatch = useDispatch();
 
-  const raceName = useSelector(selectPreviewRaceName);
-  const roleName = useSelector(selectPreviewRoleName);
+  const params = useParams<{ id: string }>();
+  const roleName = useSelector(selectPreviewRoleName(params.id));
+  const raceName = useSelector(selectPreviewRaceName(params.id));
 
   const devotionOptions: Option<DeityName>[] = Object.values(DeityName)
     .filter((name) => name === DeityName.linwuh)

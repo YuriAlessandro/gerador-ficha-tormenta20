@@ -1,4 +1,5 @@
 import React from 'react';
+import { useParams } from 'react-router';
 import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
 import {
@@ -15,8 +16,9 @@ import BookTitle from '../common/BookTitle';
 
 const SheetPreviewPowers = () => {
   const theme = useTheme();
-  const generalPowers = useSelector(selectPreviewGeneralPowers);
-  const originPowers = useSelector(selectPreviewOriginPowers);
+  const params = useParams<{ id: string }>();
+  const generalPowers = useSelector(selectPreviewGeneralPowers(params.id));
+  const originPowers = useSelector(selectPreviewOriginPowers(params.id));
 
   const Title = styled.h3`
     font-family: 'Tfont';

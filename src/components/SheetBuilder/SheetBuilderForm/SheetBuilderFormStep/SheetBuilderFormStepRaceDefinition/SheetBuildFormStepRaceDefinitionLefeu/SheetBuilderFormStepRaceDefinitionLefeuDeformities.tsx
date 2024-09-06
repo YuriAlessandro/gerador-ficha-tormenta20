@@ -5,6 +5,7 @@ import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSli
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router';
 import { SkillName } from 't20-sheet-builder';
 
 type Props = {
@@ -16,7 +17,10 @@ const SheetBuilderFormStepRaceDefinitionLefeuDeformities = ({
   setDeformitiesOption,
   deformities,
 }: Props) => {
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const params = useParams<{ id: string }>();
+  const skills = getSkills(
+    Object.entries(useSelector(selectPreviewSkills(params.id)))
+  );
   const dispatch = useDispatch();
   return (
     <div className='mb-6'>

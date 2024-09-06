@@ -15,18 +15,20 @@ import {
   selectPreviewImage,
   selectPreviewName,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepDetails';
+import { useParams } from 'react-router';
 
 const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
   handleChange,
 }) => {
-  const name = useSelector(selectPreviewName);
-  const image = useSelector(selectPreviewImage);
-  const raceName = useSelector(selectPreviewRaceName);
-  const roleName = useSelector(selectPreviewRoleName);
-  const originName = useSelector(selectPreviewOriginName);
-  const level = useSelector(selectPreviewLevel);
-  const displacement = useSelector(selectPreviewDisplacement);
-  const devotion = useSelector(selectPreviewDevotion);
+  const params = useParams<{ id: string }>();
+  const name = useSelector(selectPreviewName(params.id));
+  const image = useSelector(selectPreviewImage(params.id));
+  const raceName = useSelector(selectPreviewRaceName(params.id));
+  const roleName = useSelector(selectPreviewRoleName(params.id));
+  const originName = useSelector(selectPreviewOriginName(params.id));
+  const level = useSelector(selectPreviewLevel(params.id));
+  const displacement = useSelector(selectPreviewDisplacement(params.id));
+  const devotion = useSelector(selectPreviewDevotion(params.id));
   const getTitle = () => {
     const translatedRaceName =
       raceName && Translator.getRaceTranslation(raceName);

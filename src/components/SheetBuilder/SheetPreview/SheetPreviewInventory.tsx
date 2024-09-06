@@ -1,12 +1,14 @@
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { Translator } from 't20-sheet-builder';
-import React from 'react';
+import { useParams } from 'react-router';
 import { selectPreviewInventory } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { Chip, Stack } from '@mui/material';
 import BookTitle from '../common/BookTitle';
 
 const SheetPreviewInventory = () => {
-  const equipments = useSelector(selectPreviewInventory);
+  const params = useParams<{ id: string }>();
+  const equipments = useSelector(selectPreviewInventory(params.id));
 
   return (
     <>

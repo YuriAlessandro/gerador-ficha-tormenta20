@@ -1,27 +1,35 @@
-import React, { useEffect } from 'react';
-import { SkillName, Translator } from 't20-sheet-builder';
-import { useAppSelector } from '@/store/hooks';
-import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
-import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
-import { useDispatch, useSelector } from 'react-redux';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
-import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { useAppSelector } from '@/store/hooks';
 import {
   getIntelligenceSkills,
   submitintelligenceSkills,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceIntelligenceSkills';
-import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
+import {
+  selectPreviewAttribute,
+  selectPreviewSkills,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router';
+import { SkillName, Translator } from 't20-sheet-builder';
 import ConfirmButton from '../../ConfirmButton';
+import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
   const storedIntelligenceSkills = useSelector(getIntelligenceSkills);
-  const intelligence = useAppSelector(selectAttribute('intelligence'));
+  const params = useParams<{ id: string }>();
+  const intelligence = useAppSelector(
+    selectPreviewAttribute(params.id, 'intelligence')
+  );
   const [selectedSkills, setSelectedSkills] = React.useState<SkillName[]>([]);
   const options = Object.values(SkillName).map((skillName) => ({
     label: Translator.getSkillTranslation(skillName),
     value: skillName,
   }));
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const skills = getSkills(
+    Object.entries(useSelector(selectPreviewSkills(params.id)))
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {

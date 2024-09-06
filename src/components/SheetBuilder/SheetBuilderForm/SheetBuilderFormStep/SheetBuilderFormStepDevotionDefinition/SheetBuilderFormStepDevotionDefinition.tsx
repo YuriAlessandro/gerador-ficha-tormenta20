@@ -7,6 +7,7 @@ import {
   GrantedPowerName,
   Translator,
 } from 't20-sheet-builder';
+import { useParams } from 'react-router';
 import {
   selectPreviewGrantedPowersCount,
   selectPreviewRaceName,
@@ -25,9 +26,9 @@ import { useSheetBuilderConfirm } from '../../useSheetBuilderSubmit';
 const SheetBuilderFormStepDevotionDefinition = () => {
   const storedDevotion = useSelector(getStoredDevotion);
   const { confirm } = useSheetBuilderConfirm<Devotion>();
-
-  const raceName = useSelector(selectPreviewRaceName);
-  const roleName = useSelector(selectPreviewRoleName);
+  const params = useParams<{ id: string }>();
+  const raceName = useSelector(selectPreviewRaceName(params.id));
+  const roleName = useSelector(selectPreviewRoleName(params.id));
 
   const [selectedDevotion, setDevotion] = useState<DeityName>();
   const [selectedGrantedPowers, setGrantedPowers] = useState<
@@ -70,7 +71,9 @@ const SheetBuilderFormStepDevotionDefinition = () => {
       )
     : [];
 
-  const grantedPowersCount = useSelector(selectPreviewGrantedPowersCount);
+  const grantedPowersCount = useSelector(
+    selectPreviewGrantedPowersCount(params.id)
+  );
 
   return (
     <div>

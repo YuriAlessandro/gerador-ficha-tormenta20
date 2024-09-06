@@ -17,6 +17,7 @@ import TableRow from '@mui/material/TableRow';
 import { useSnackbar } from 'notistack';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router';
 import {
   Character,
   SerializedSheetSkill,
@@ -44,10 +45,11 @@ const SheetPreviewSkills = () => {
 
   const isScreen = useMediaQuery('(min-width: 720px)');
   const { enqueueSnackbar } = useSnackbar();
-  const skills = useSelector(selectPreviewSkills);
-  const resistances = useSelector(selectPreviewResistances);
-  const attributes = useSelector(selectPreviewAttributes);
-  const characterPreview = useSelector(selectCharacter);
+  const params = useParams<{ id: string }>();
+  const skills = useSelector(selectPreviewSkills(params.id));
+  const resistances = useSelector(selectPreviewResistances(params.id));
+  const attributes = useSelector(selectPreviewAttributes(params.id));
+  const characterPreview = useSelector(selectCharacter(params.id));
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
