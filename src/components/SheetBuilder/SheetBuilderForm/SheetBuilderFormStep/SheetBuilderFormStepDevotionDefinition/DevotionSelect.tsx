@@ -48,15 +48,11 @@ const DevotionSelect: React.FC<Props> = ({
           ? devotion.deity.allowedToDevote.roles.includes(roleName)
           : true;
 
-      if (!isRaceAllowedToDevote) {
+      if (!isRaceAllowedToDevote && !isRoleAllowedToDevote) {
         setNotAllowed(
-          `A raça selecionada (${raceName}) não permite essa devoção.`
-        );
-        return;
-      }
-      if (!isRoleAllowedToDevote) {
-        setNotAllowed(
-          `A classe selecionada (${roleName}) não permite essa devoção.`
+          `Essa divindade não aceita devotos da combinação ${Translator.getRaceTranslation(
+            raceName
+          )} e ${Translator.getRoleTranslation(roleName)}`
         );
         return;
       }
