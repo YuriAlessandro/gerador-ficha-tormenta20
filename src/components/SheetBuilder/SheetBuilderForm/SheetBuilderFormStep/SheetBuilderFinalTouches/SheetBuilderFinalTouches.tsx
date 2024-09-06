@@ -1,4 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
+import { useParams } from 'react-router';
 import { selectPreviewRaceName } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import {
@@ -14,14 +15,15 @@ import { nameSuggestions } from './nameSuggestions';
 const SheetBuilderFinalTouches: React.FC<{ onFinishBuild: () => void }> = ({
   onFinishBuild,
 }) => {
-  const savedName = useSelector(selectPreviewName);
-  const savedImage = useSelector(selectPreviewImage);
+  const { id } = useParams<{ id: string }>();
+  const savedName = useSelector(selectPreviewName(id));
+  const savedImage = useSelector(selectPreviewImage(id));
 
   const [name, setName] = React.useState(savedName);
   const [image, setImage] = React.useState(savedImage);
   const dispatch = useDispatch();
 
-  const raceName = useSelector(selectPreviewRaceName);
+  const raceName = useSelector(selectPreviewRaceName(id));
 
   const onChangeName = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setOptionReady({ key: 'isFinalTouchesReady', value: 'pending' }));

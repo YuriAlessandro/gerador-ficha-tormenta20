@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
+import { useParams } from 'react-router';
 import { SelectSkillGroup, SkillName, Translator } from 't20-sheet-builder';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +24,10 @@ const SkillGroupSelect = ({
     label: Translator.getSkillTranslation(skill),
   }));
   const dispatch = useDispatch();
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const params = useParams<{ id: string }>();
+  const skills = getSkills(
+    Object.entries(useSelector(selectPreviewSkills(params.id)))
+  );
 
   const onChangeSkill = (newValues: any) => {
     dispatch(setOptionReady({ key: 'isRoleReady', value: 'pending' }));

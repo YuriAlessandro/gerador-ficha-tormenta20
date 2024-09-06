@@ -1,12 +1,14 @@
 import { useSelector } from 'react-redux';
 import React from 'react';
+import { useParams } from 'react-router';
 import { selectPreviewSpells } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { Box } from '@mui/material';
 import SheetPreviewSpell from './SheetPreviewSpell';
 import BookTitle from '../common/BookTitle';
 
 const SheetPreviewSpells = () => {
-  const spells = useSelector(selectPreviewSpells);
+  const params = useParams<{ id: string }>();
+  const spells = useSelector(selectPreviewSpells(params.id));
 
   return (
     <Box>

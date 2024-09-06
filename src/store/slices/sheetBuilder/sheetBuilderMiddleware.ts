@@ -17,7 +17,6 @@ import SheetBuilder, {
   MartialWeaponFactory,
   OriginFactory,
   OutOfGameContext,
-  PreviewContext,
   RaceFactory,
   RoleFactory,
   SheetBuilderError,
@@ -175,9 +174,7 @@ startListening({
       };
 
       if (canBuildCharacter) {
-        const buildedSheet = sheetBuilder.build();
-        const context = new PreviewContext(buildedSheet);
-        const character = new Character(buildedSheet, context);
+        const character = new Character(sheetBuilder.build());
         const serializedCharacter = character.serialize();
         api.dispatch(
           storeCharacter({

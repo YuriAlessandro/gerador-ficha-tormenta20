@@ -5,6 +5,7 @@ import React from 'react';
 import { selectPreviewBuildSteps } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { Dialog, Paper, Slide, Stack } from '@mui/material';
 import { TransitionProps } from 'react-transition-group/Transition';
+import { useParams } from 'react-router';
 
 const Transition = React.forwardRef(
   (
@@ -19,7 +20,8 @@ const SheetPreviewBuildSteps: React.FC<{
   open: boolean;
   handleClose: () => void;
 }> = ({ open, handleClose }) => {
-  const buildSteps = useSelector(selectPreviewBuildSteps);
+  const params = useParams<{ id: string }>();
+  const buildSteps = useSelector(selectPreviewBuildSteps(params.id));
 
   return (
     <Dialog

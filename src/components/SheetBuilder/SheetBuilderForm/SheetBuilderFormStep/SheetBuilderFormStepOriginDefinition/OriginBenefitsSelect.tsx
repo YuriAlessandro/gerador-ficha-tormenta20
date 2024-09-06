@@ -4,6 +4,7 @@ import {
   SerializedOriginBenefits,
   Translator,
 } from 't20-sheet-builder';
+import { useParams } from 'react-router';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
@@ -29,7 +30,10 @@ const OriginBenefitsSelect = ({
   setBenefits,
   selectedBenefits,
 }: Props) => {
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const params = useParams<{ id: string }>();
+  const skills = getSkills(
+    Object.entries(useSelector(selectPreviewSkills(params.id)))
+  );
   const dispatch = useDispatch();
 
   const options: Option<OriginBenefitOption>[] = [
