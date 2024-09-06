@@ -1,3 +1,4 @@
+import { Attribute } from 't20-sheet-builder';
 import { RootState } from '../..';
 
 export const selectCharacter = (state: RootState) =>
@@ -8,6 +9,9 @@ export const selectSheetAttacks = (state: RootState) =>
   state.sheetStorage.sheets[state.sheetStorage.activeSheetId].attacks;
 export const selectPreviewAttributes = (state: RootState) =>
   selectSheetPreview(state).attributes;
+export const selectPreviewAttribute =
+  (attribute: Attribute) => (state: RootState) =>
+    selectSheetPreview(state).attributes[attribute];
 export const selectPreviewDisplacement = (state: RootState) =>
   selectSheetPreview(state).displacement;
 export const selectPreviewBuildSteps = (state: RootState) =>
