@@ -1,5 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { SkillName } from 't20-sheet-builder';
+import { RootState } from '@/store';
 import { syncSheetBuilder } from './sheetBuilderActions';
 
 export type SheetBuilderIntelligenceSkillsState = {
@@ -37,5 +38,8 @@ export const sheetBuilderSliceintelligenceSkills = createSlice({
 
 export const { submitintelligenceSkills, resetInteligenceSkills } =
   sheetBuilderSliceintelligenceSkills.actions;
+
+export const getIntelligenceSkills = (state: RootState) =>
+  state.sheetBuilder.intelligenceSkills.skills;
 
 export default sheetBuilderSliceintelligenceSkills;

@@ -4,9 +4,10 @@ import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 
 type Props = {
   setSelected: (selected?: ArmorName) => void;
+  selectedArmor?: ArmorName;
 };
 
-const LightArmorSelect = ({ setSelected }: Props) => {
+const LightArmorSelect = ({ setSelected, selectedArmor }: Props) => {
   const defensiveArmors = LightArmors.getAll()
     .sort()
     .map((Armor) => ({
@@ -18,6 +19,7 @@ const LightArmorSelect = ({ setSelected }: Props) => {
       <h3>Escolha uma armadura leve</h3>
       <SheetBuilderFormSelect
         options={defensiveArmors}
+        value={defensiveArmors.find((option) => option.value === selectedArmor)}
         onChange={(option) => setSelected(option?.value)}
         className='mb-3'
         id='martial-weapon-select'

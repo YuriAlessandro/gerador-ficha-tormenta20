@@ -17,6 +17,7 @@ const SheetBuilderPage: React.FC = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (window.location.href.includes('new')) setValue(1);
     dispatch(setActiveSheet(id));
   }, [id]);
 
@@ -69,14 +70,15 @@ const SheetBuilderPage: React.FC = () => {
           </Fab>
         )}
       </FabDiv>
-      <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
-          <Link to='/sheets' color='inherit' href='/sheets'>
-            Meus Personagens
-          </Link>
-          <Typography color='text.primary'>Gerenciar Personagem</Typography>
-        </Breadcrumbs>
 
+      <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
+        <Link to='/sheets' color='inherit' href='/sheets'>
+          Meus Personagens
+        </Link>
+        <Typography color='text.primary'>Gerenciar Personagem</Typography>
+      </Breadcrumbs>
+
+      <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
         <Box sx={{ p: 5 }}>
           <Title>Visualizar Ficha</Title>
         </Box>

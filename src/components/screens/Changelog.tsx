@@ -5,7 +5,7 @@ const Changelog: React.FC = () => (
   <div style={{ padding: '0 30px' }}>
     <h1>Changelog</h1>
     <p>
-      Segue a lista de mudanças no projeto. Última atualização em 30/08/2023.
+      Segue a lista de mudanças no projeto. Última atualização em 26/07/2024.
     </p>
 
     <p>
@@ -22,6 +22,42 @@ const Changelog: React.FC = () => (
     </p>
 
     <h2>Versão 2.0</h2>
+
+    <h3>2.6.2</h3>
+    <ul>
+      <li>
+        <a href='mapadearton.fichasdenimb.com.br'>Mapa de Arton</a> foi
+        atualizado:
+      </li>
+      <ul>
+        <li>Adicionado mapas de Doherimm, Lamnor, Tamu-ra e Moreania.</li>
+        <li>Novas localizações e descrições.</li>
+        <li>Marcação de reinados.</li>
+        <li>
+          Corrigido a opção de medir distâncias, que estava completamente
+          errada.
+        </li>
+      </ul>
+      <li>
+        A opção de exportar ficha para o Foundry foi atualizada para levar em
+        conta a versão mais recente do sistema.
+      </li>
+      <ul>
+        <li>Agora classe e nível estão sendo exportados para a ficha.</li>
+      </ul>
+      <li>Novas atualizaçãos na Caverna do Saber.</li>
+    </ul>
+
+    <h3>2.6.1</h3>
+    <ul>
+      <li>
+        Melhorias na navegação desktop e mobile do Database. Obrigado{' '}
+        <a href='https://github.com/fabioars' target='_blank' rel='noreferrer'>
+          @fabioars
+        </a>
+        .
+      </li>
+    </ul>
 
     <h3>2.6.0</h3>
     <ul>

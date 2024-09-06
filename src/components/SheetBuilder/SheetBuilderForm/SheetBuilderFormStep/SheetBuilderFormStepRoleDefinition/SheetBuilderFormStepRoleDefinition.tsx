@@ -1,8 +1,12 @@
 import { useAppDispatch } from '@/store/hooks';
 import { resetFormAlert } from '@/store/slices/sheetBuilder/sheetBuilderSliceForm';
-import { resetRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
-import React from 'react';
-import { Role, RoleName } from 't20-sheet-builder';
+import {
+  resetRole,
+  selectBuilderRole,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Role, RoleName, SerializedRole } from 't20-sheet-builder';
 import {
   ConfirmFunction,
   useSheetBuilderConfirm,
@@ -13,6 +17,7 @@ import SheetBuilderFormRoleDefinitionWarrior from './SheetBuilderFormRoleDefinit
 
 export type RoleComponentProps = {
   confirmRole: ConfirmFunction<Role>;
+  storedRole?: SerializedRole;
 };
 
 const roleComponents: Record<RoleName, React.FC<RoleComponentProps>> = {
@@ -33,10 +38,19 @@ const roleComponents: Record<RoleName, React.FC<RoleComponentProps>> = {
 };
 
 const SheetBuilderFormStepRoleDefinition = () => {
+  const storedRole = useSelector(selectBuilderRole) as SerializedRole;
   const { confirm } = useSheetBuilderConfirm<Role>();
   const dispatch = useAppDispatch();
-  const [role, setRole] = React.useState<RoleName>();
+  const [role, setRole] = React.useState<RoleName | undefined>(
+    storedRole?.name
+  );
   const RoleComponent = role ? roleComponents[role] : null;
+
+  useEffect(() => {
+    if (storedRole) {
+      setRole(storedRole.name);
+    }
+  }, [storedRole]);
 
   const selectRole = (selected: RoleName) => {
     dispatch(resetFormAlert());
@@ -47,7 +61,9 @@ const SheetBuilderFormStepRoleDefinition = () => {
   return (
     <div>
       <RoleSelect setRole={selectRole} />
-      {RoleComponent && <RoleComponent confirmRole={confirm} />}
+      {RoleComponent && (
+        <RoleComponent confirmRole={confirm} storedRole={storedRole} />
+      )}
     </div>
   );
 };

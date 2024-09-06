@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React from 'react';
 import { SelectSkillGroup, SkillName, Translator } from 't20-sheet-builder';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,11 +10,13 @@ import SheetBuilderFormSelect from '../../SheetBuilderFormSelect';
 type Props = {
   skillGroup: SelectSkillGroup;
   setGroupSelectedSkills: (skills: SkillName[]) => void;
+  selectedSkills: SkillName[];
 };
 
 const SkillGroupSelect = ({
   skillGroup,
   setGroupSelectedSkills: setSelectedSkills,
+  selectedSkills,
 }: Props) => {
   const options = skillGroup.skills.map((skill) => ({
     value: skill,
@@ -23,11 +25,8 @@ const SkillGroupSelect = ({
   const dispatch = useDispatch();
   const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
 
-  const [selectedAmount, setSelectedAmount] = useState(0);
-
   const onChangeSkill = (newValues: any) => {
     dispatch(setOptionReady({ key: 'isRoleReady', value: 'pending' }));
-    setSelectedAmount(newValues.length);
 
     if (newValues.length === 1) {
       setSelectedSkills([newValues[0].value]);
@@ -44,20 +43,24 @@ const SkillGroupSelect = ({
     <div>
       <p>
         Escolha {skillGroup.amount}{' '}
-        {skillGroup.amount > 1 ? 'perícias' : 'perícia'} ({selectedAmount}/
-        {skillGroup.amount})
+        {skillGroup.amount > 1 ? 'perícias' : 'perícia'} (
+        {selectedSkills.length}/{skillGroup.amount})
       </p>
       <SheetBuilderFormSelect
         isMulti
         onChange={onChangeSkill}
         options={options}
+        value={options.filter((option) =>
+          selectedSkills.includes(option.value)
+        )}
         placeholder={`Opções: ${skillGroup.skills
           .map((skill) => Translator.getSkillTranslation(skill))
           .join(', ')}`}
         className='mb-3'
         id='skill-group-select'
         isOptionDisabled={(option) =>
-          selectedAmount >= skillGroup.amount || skills.includes(option.value)
+          selectedSkills.length >= skillGroup.amount ||
+          skills.includes(option.value)
         }
       />
     </div>

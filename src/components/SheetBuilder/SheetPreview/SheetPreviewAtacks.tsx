@@ -1,5 +1,5 @@
-import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import React from 'react';
+import diceSound from '@/assets/sounds/dice-rolling.mp3';
 import {
   selectCharacter,
   selectSheetAttacks,

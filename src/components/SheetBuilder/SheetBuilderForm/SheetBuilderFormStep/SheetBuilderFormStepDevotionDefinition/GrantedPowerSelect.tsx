@@ -9,12 +9,14 @@ interface Props {
   grantedPowersOptions: Option<GrantedPowerName>[];
   grantedPowersCount: number;
   setGrantedPowers: (grantedPowers: GrantedPowerName[]) => void;
+  selectedGrantedPowers: GrantedPowerName[];
 }
 
 const GrantedPowerSelect: React.FC<Props> = ({
   grantedPowersOptions,
   grantedPowersCount,
   setGrantedPowers,
+  selectedGrantedPowers,
 }) => {
   const dispatch = useDispatch();
   return (
@@ -27,6 +29,9 @@ const GrantedPowerSelect: React.FC<Props> = ({
       <SheetBuilderFormSelect
         isMulti
         options={grantedPowersOptions}
+        value={grantedPowersOptions.filter((option) =>
+          selectedGrantedPowers.includes(option.value)
+        )}
         onChange={(options) => {
           dispatch(
             setOptionReady({ key: 'isDevotionReady', value: 'pending' })

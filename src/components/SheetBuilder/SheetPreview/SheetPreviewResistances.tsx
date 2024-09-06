@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
+import diceSound from '@/assets/sounds/dice-rolling.mp3';
+import {
+  selectCharacter,
+  selectPreviewResistances,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
+import styled from '@emotion/styled';
+import { Button, Paper, Stack } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import { TransitionProps } from '@mui/material/transitions';
-import { Button, Paper, Stack } from '@mui/material';
+import { useSnackbar } from 'notistack';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectCharacter,
-  selectPreviewResistances,
-} from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import {
   Character,
   FixedModifier,
@@ -20,9 +23,6 @@ import {
   SkillName,
   Translator,
 } from 't20-sheet-builder';
-import { useSnackbar } from 'notistack';
-import diceSound from '@/assets/sounds/dice-rolling.mp3';
-import styled from '@emotion/styled';
 
 export interface ResistedSkill {
   name: SkillName;
@@ -48,7 +48,6 @@ const SheetPreviewResistances: React.FC<{
   const resistances = useSelector(selectPreviewResistances);
   const skillName = Translator.getSkillTranslation(resistance.name);
   const character = Character.makeFromSerialized(characterPreview);
-
   const onClickSkill = (bonus: number) => {
     const roll = character.getSkills()[resistance.name].roll();
     roll.modifiers.fixed.add(new FixedModifier('default', bonus));

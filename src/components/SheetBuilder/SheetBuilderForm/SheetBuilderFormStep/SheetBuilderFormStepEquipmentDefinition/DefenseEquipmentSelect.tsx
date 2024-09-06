@@ -1,6 +1,6 @@
 import { Box, FormControlLabel, Radio, RadioGroup } from '@mui/material';
-import React, { useState } from 'react';
-import { ArmorName } from 't20-sheet-builder';
+import React, { useEffect, useState } from 'react';
+import { ArmorName, HeavyArmors } from 't20-sheet-builder';
 import HeavyArmorSelect from './HeavyArmorSelect';
 import LightArmorSelect from './LightArmorSelect';
 
@@ -8,9 +8,11 @@ type Props = {
   setSelected: (selected?: ArmorName) => void;
   hasLightArmorProficiency: boolean;
   hasHeavyArmorProficiency: boolean;
+  selectedArmor?: ArmorName;
 };
 
 const DefensiveWeaponSelect = ({
+  selectedArmor,
   setSelected,
   hasLightArmorProficiency,
   hasHeavyArmorProficiency,
@@ -24,19 +26,38 @@ const DefensiveWeaponSelect = ({
     if (value === 'light' || value === 'heavy') setSelectedArmorType(value);
   };
 
+  useEffect(() => {
+    if (selectedArmor) {
+      // Test if this armor is heavy
+      if (
+        HeavyArmors.getAll().find(
+          (armor) => armor.equipmentName === selectedArmor
+        )
+      ) {
+        setSelectedArmorType('heavy');
+      }
+    }
+  }, [selectedArmor]);
+
   return (
     <div>
       <h3>Escolha uma armadura</h3>
       {hasLightArmorProficiency && !hasHeavyArmorProficiency && (
         <Box>
           <p>Você possui proficiência apenas para armaduras leves.</p>
-          <LightArmorSelect setSelected={setSelected} />
+          <LightArmorSelect
+            selectedArmor={selectedArmor}
+            setSelected={setSelected}
+          />
         </Box>
       )}
       {!hasLightArmorProficiency && hasHeavyArmorProficiency && (
         <Box>
           <p>Você possui proficiência apenas para armaduras pesadas.</p>
-          <HeavyArmorSelect setSelected={setSelected} />
+          <HeavyArmorSelect
+            selectedArmor={selectedArmor}
+            setSelected={setSelected}
+          />
         </Box>
       )}
       {hasLightArmorProficiency && hasHeavyArmorProficiency && (
@@ -61,10 +82,16 @@ const DefensiveWeaponSelect = ({
           </RadioGroup>
 
           {selectedArmorType === 'light' && (
-            <LightArmorSelect setSelected={setSelected} />
+            <LightArmorSelect
+              selectedArmor={selectedArmor}
+              setSelected={setSelected}
+            />
           )}
           {selectedArmorType === 'heavy' && (
-            <HeavyArmorSelect setSelected={setSelected} />
+            <HeavyArmorSelect
+              selectedArmor={selectedArmor}
+              setSelected={setSelected}
+            />
           )}
         </Box>
       )}

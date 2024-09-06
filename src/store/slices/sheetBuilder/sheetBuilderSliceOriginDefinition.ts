@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '@/store';
 import { SheetBuilderStateOrigin } from './types';
 import { syncSheetBuilder } from './sheetBuilderActions';
 
@@ -30,5 +31,8 @@ export const sheetBuilderSliceOriginDefinition = createSlice({
 
 export const { submitOrigin, resetOrigin } =
   sheetBuilderSliceOriginDefinition.actions;
+
+export const selectSheetOrigin = (state: RootState) =>
+  state.sheetBuilder.origin;
 
 export default sheetBuilderSliceOriginDefinition;

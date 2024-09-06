@@ -2373,22 +2373,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
     ],
   },
-  [spellsCircle2Names.dissiparMagia]: {
-    spellCircle: spellsCircles.c2,
-    nome: 'Dissipar Magia',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Abjur',
-    aprimoramentos: [
-      {
-        addPm: 12,
-        text: 'muda a área para esfera com 9m de raio. Em vez do normal, cria um efeito de disjunção. Todas as magias na área são automaticamente dissipadas e todos os itens mágicos na área, exceto aqueles que você estiver carregando, viram itens mundanos (com direito a um teste de resistência para evitar esse efeito). Requer 5º círculo.',
-      },
-    ],
-  },
   [spellsCircle2Names.vestimentaDaFe]: {
     spellCircle: spellsCircles.c2,
     nome: 'Vestimenta da Fé',
@@ -4426,22 +4410,6 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
       },
     ],
   },
-  [spellsCircle5Names.invulnerabilidade]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Invulnerabilidade',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Abjur',
-    aprimoramentos: [
-      {
-        addPm: 5,
-        text: 'muda o alcance para curto e o alvo para 1 criatura.',
-      },
-    ],
-  },
   [spellsCircle5Names.alterarDestino]: {
     spellCircle: spellsCircles.c5,
     nome: 'Alterar Destino',
@@ -4451,42 +4419,6 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     duracao: 'Instantânea',
     resistencia: '',
     school: 'Adiv',
-  },
-  [spellsCircle5Names.projetarCosciencia]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Projetar Consciência',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Adiv',
-    aprimoramentos: [
-      {
-        addPm: 10,
-        text: 'além do normal, sua projeção é capaz de lançar magias que não precisem de componentes materiais e tenham duração diferente de sustentada. Sua forma fantasmagórica funciona como na magia Forma Etérea, sendo afetada por magias de abjuração e essência, mas as magias que ela lança podem afetar criaturas corpóreas.',
-      },
-    ],
-  },
-  [spellsCircle5Names.buracoNegro]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Buraco Negro',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Conv',
-    aprimoramentos: [
-      {
-        addPm: 5,
-        text: 'muda o efeito para que você não seja afetado.',
-      },
-      {
-        addPm: 10,
-        text: 'muda o efeito para que criaturas escolhidas dentro do alcance não sejam afetadas.',
-      },
-    ],
   },
   [spellsCircle5Names.chuvaDeMeteoros]: {
     spellCircle: spellsCircles.c5,
@@ -4543,16 +4475,6 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
         text: 'aumenta o número de alvos em +1.',
       },
     ],
-  },
-  [spellsCircle5Names.palavraPrimordial]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Palavra Primordial',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Encan',
   },
   [spellsCircle5Names.possessao]: {
     spellCircle: spellsCircles.c5,
@@ -4657,46 +4579,6 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
       {
         addPm: 10,
         text: 'muda o alvo para criaturas escolhidas na área.',
-      },
-    ],
-  },
-  [spellsCircle5Names.roubarAAlma]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Roubar a Alma',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Necro',
-    aprimoramentos: [
-      {
-        addPm: 5,
-        text: 'o objeto que abriga a alma detém os mesmos PM totais que o alvo. Se estiver empunhando o objeto, você pode usar esses PM para lançar magias no lugar dos seus. O objeto recupera PM por dia como se o personagem estivesse em descanso normal.',
-      },
-      {
-        addPm: 10,
-        text: 'como uma reação ao lançar esta magia, você possui o corpo sem alma do alvo, como na magia Possessão (mesmo que não conheça a magia).',
-      },
-    ],
-  },
-  [spellsCircle5Names.toqueDaMorte]: {
-    spellCircle: spellsCircles.c5,
-    nome: 'Toque da Morte',
-    execucao: '',
-    alcance: '',
-    alvo: '',
-    duracao: '',
-    resistencia: '',
-    school: 'Necro',
-    aprimoramentos: [
-      {
-        addPm: 2,
-        text: 'muda o alcance para curto. Em vez de tocar no alvo, você dispara um raio púrpura da ponta de seu dedo indicador.',
-      },
-      {
-        addPm: 10,
-        text: 'muda o alcance para curto e o alvo para inimigos no alcance. Em vez de tocar no alvo, você dispara raios púrpuras da ponta de seus dedos.',
       },
     ],
   },

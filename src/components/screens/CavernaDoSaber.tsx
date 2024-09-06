@@ -191,6 +191,17 @@ const CavernaDoSaber: React.FC = () => {
               publicadas oficialmente.
             </p>
             <p>
+              <small>
+                Com o lançamento de diversos suplementos, muitos dos conteúdos
+                apresentados em fase de testes na revista foram adicionados
+                oficialmente ao sistema através de livros como{' '}
+                <strong>Ameaças de Arton</strong>. Sempre que possível, um
+                conteúdo já adicionado oficialmente aos suplementos estará
+                marcado com este símbolo: 📖. Dessa forma você sabe que existe
+                uma versão atualizada e oficial deste conteúdo.
+              </small>
+            </p>
+            <p>
               Para ler o conteúdo, você precisará ser assinante da revista
               Dragão Brasil. Você pode fazer isso legalmente apoiando o projeto{' '}
               <a
@@ -204,13 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #194.</strong>
-              </small>
-            </p>
-            <p>
-              <small>
-                Das revistas DB #145 até a DB #155, conteúdos foram adicionados
-                pela comunidade, mas elas não estão totalmente compiladas.
+                <strong>Revistas analisadas: DB #156 até #206.</strong>
               </small>
             </p>
             <p>
@@ -304,30 +309,42 @@ const CavernaDoSaber: React.FC = () => {
             <Title id='racas'>Raças</Title>
             <p>
               Aqui estarão listadas novas raças que foram sugeridas nas revistas
-              - até o momento, raças adicionadas no Ameaças de Arton não estarão
-              inclusas.
+              - raças adicionadas no Ameaças de Arton não estarão inclusas nessa
+              lista.
             </p>
-            <SubTitle id='golem-reformulado'>Golem (Reformulado)</SubTitle>
+            <SubTitle id='golem-reformulado'>Golem (Reformulado) 📖</SubTitle>
             <p>
               Não é propriamente uma raça nova, mas a <Db>DB #180</Db> apresenta
               uma reformulação para a raça Golem, que muda bastante a forma como
               a raça funciona. Vale a pena conferir.
             </p>
-            <SubTitle id='kally'>Kallyanach</SubTitle>
+            <p>
+              📖 Golem Desperto é uma nova raça disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db>.
+            </p>
+            <SubTitle id='kally'>Kallyanach 📖</SubTitle>
             <p>
               Uma espécie de meio-dragão, provavelmente estará incluso e melhor
               descrito do Ameaças de Arton. Disponível na <Db>DB #181</Db>.
             </p>
-            <SubTitle id='moreau'>Moreau</SubTitle>
+            <p>
+              📖 Essa raça está disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db>.
+            </p>
+            <SubTitle id='moreau'>Moreau 📖</SubTitle>
             <p>
               A raça dos Moreau foi adicionada na <Db>DB #172</Db>. É muito
               provável que esse conteúdo esteja disponível no Ameaças de Arton
               (talvez repaginado, ou não).
             </p>
-            <SubTitle id='povo-trovao'>Povo-Trovão</SubTitle>
+            <SubTitle id='povo-trovao'>Povo-Trovão 📖</SubTitle>
             <p>
               Uma raça oriunda dos dinossauros (também referida como
               povo-dinossauro). Disponível na <Db>DB #174</Db>.
+            </p>
+            <p>
+              📖 Essa raça está disponível no suplemento{' '}
+              <Db>Ameaças de Arton</Db> com o nome <strong>Ceratops</strong>.
             </p>
             <Divider />
             {/* Classes */}
@@ -336,11 +353,37 @@ const CavernaDoSaber: React.FC = () => {
               Aqui estarão listadas novas classes que foram sugeridas nas
               revistas.
             </p>
+            <SubTitle id='druida'>Druída</SubTitle>
+            <p>
+              A <Db>DB #204</Db> apresentou novas possibilidades para a classe
+              de Druída, com a possibilidade de druídas de outras divindades:
+            </p>
+            <ul>
+              <li>Druida de Aharadak</li>
+              <li>Druida de Tenebra</li>
+              <li>Druida de Arton</li>
+            </ul>
+            <SubTitle id='miragem'>Miragem</SubTitle>
+            <p>
+              Uma classe lutadora, de guerreiros da areia do deserto de
+              Halak-Tûr, com golpes envolvendo danças e uso do terreno a favor
+              do jogador. Disponivel na <Db>DB #199</Db>.
+            </p>
             <SubTitle id='mistico'>Místico</SubTitle>
             <p>
               Uma classe conjuradora, meio inspirada pelos dobradores de Avatar,
               permite que você manipule os elementos em forma de magias e
               habilidades. Disponível na <Db>DB #191</Db>.
+            </p>
+            <p>
+              A <Db>DB #199</Db> trouxe o místico de volta, com algumas
+              atualizações.
+            </p>
+            <SubTitle id='samurai'>Samurai</SubTitle>
+            <p>
+              Diretamente do Império de Tamu-ra, a classe Samurai foi
+              introduzida na <Db>DB #199</Db>. A <Db>DB #201</Db> apresenta
+              novos poderes de Samurai.
             </p>
             <Divider />
             {/* Habilidades/Poderes de Classes */}
@@ -348,7 +391,25 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Novos poderes que podem ser escolhidos por classes específicas.
             </p>
-            <SubTitle id='bardo'>Bardo</SubTitle>
+            <SubTitle id='poderes-barbaro'>Barbáro</SubTitle>
+            <p>
+              Todos os seguintes poderes de barbáro foram adicionados na{' '}
+              <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Brado Amplo</li>
+              <li>Brado Assombroso</li>
+              <li>Brado Revigorante</li>
+              <li>Brado Vitorioso</li>
+              <li>Fúria Rodopiante</li>
+              <li>Instinto Feral</li>
+              <li>Instinto Furioso</li>
+              <li>Instinto Indomável</li>
+              <li>Instinto Sábio</li>
+              <li>Instinto Robusto</li>
+              <li>Sem Piedade</li>
+            </ul>
+            <SubTitle id='poderes-bardo'>Bardo</SubTitle>
             <p>
               Todos os seguintes poderes de bardo foram adicionados na{' '}
               <Db>DB #179</Db>:
@@ -365,7 +426,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Performance: Vivace</li>
               <li>Performance: Virtuoso</li>
             </ul>
-            <SubTitle id='bucaneiro'>Bucaneiro</SubTitle>
+            <SubTitle id='poderes-bucaneiro'>Bucaneiro</SubTitle>
             <p>
               Todos os seguintes poderes de bucaneiro foram adicionados na{' '}
               <Db>DB #189</Db>:
@@ -376,7 +437,22 @@ const CavernaDoSaber: React.FC = () => {
               <li>Pego no Chapéu</li>
               <li>Vou, Vejo e Disparo</li>
             </ul>
-            <SubTitle id='cacador'>Caçador</SubTitle>
+            <p>
+              Mais poderes de bucaneiro foram adicionados na <Db>DB #195</Db>:
+            </p>
+            <ul>
+              <li>Ardil Afiado</li>
+              <li>Bravata Heróica</li>
+              <li>Caneca Cheia</li>
+              <li>Defesa Desconcertante</li>
+              <li>Main Gauche</li>
+              <li>Passo das Ondas</li>
+              <li>Pirquette</li>
+              <li>Remise</li>
+              <li>Todos por Um</li>
+              <li>Um por Todos</li>
+            </ul>
+            <SubTitle id='poderes-cacador'>Caçador</SubTitle>
             <p>
               Todos os seguintes poderes de caçador foram adicionados na{' '}
               <Db>DB #192</Db>:
@@ -406,7 +482,33 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tiro em Linha</li>
               <li>Último Sangue</li>
             </ul>
-            <SubTitle id='guerreiro'>Guerreiro</SubTitle>
+            <SubTitle id='poderes-druida'>Druída</SubTitle>
+            <p>
+              Novos poderes de Druída foram apresentados na <Db>DB #204</Db>:
+            </p>
+            <ul>
+              <li>Arma Tradicional</li>
+              <li>Auspício da Lua Cheia</li>
+              <li>Auspício da Lua Crescente</li>
+              <li>Auspício da Lua Minguante</li>
+              <li>Auspício da Lua Nova</li>
+              <li>Companheiro Aberrante</li>
+              <li>Companheiro Elemental</li>
+              <li>Confluência Elemental</li>
+              <li>Ermos Rubros</li>
+              <li>Forma Aberrante</li>
+              <li>Forma Elemental</li>
+              <ul>
+                <li>Forma Aquosa</li>
+                <li>Forma Eólica</li>
+                <li>Forma Ígnea</li>
+                <li>Forma Rochosa</li>
+              </ul>
+              <li>Poder Tumular</li>
+              <li>Proteção Fúngica</li>
+              <li>Transformação Repugnante</li>
+            </ul>
+            <SubTitle id='poderes-guerreiro'>Guerreiro</SubTitle>
             <p>
               Novas opções para o <strong>Golpe Pessoal</strong> do guerreiro
               foram detalhadas na <Db>DB #159</Db>:
@@ -417,7 +519,23 @@ const CavernaDoSaber: React.FC = () => {
               <li>Desgastante (–1 PM)</li>
               <li>Paralisante (–1 PM)</li>
             </ul>
-            <SubTitle id='ladino'>Ladino</SubTitle>
+            <SubTitle id='poderes-inventor'>Inventor</SubTitle>
+            <p>
+              Novos poderes de inventor foram adicionados na <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Autômato Alquímico</li>
+              <li>Catalisador Composto</li>
+              <li>Catalisador Químico</li>
+              <li>Compartimento de Carga</li>
+              <li>Estilista</li>
+              <li>Explicação Científica</li>
+              <li>Explorar Fraqueza</li>
+              <li>Luthier</li>
+              <li>Saraivada</li>
+              <li>Traje de Batalha</li>
+            </ul>
+            <SubTitle id='poderes-ladino'>Ladino</SubTitle>
             <p>
               Todos os seguintes poderes de ladino foram adicionados na{' '}
               <Db>DB #185</Db>:
@@ -453,7 +571,7 @@ const CavernaDoSaber: React.FC = () => {
               <li>Matar ou Morrer</li>
               <li>Situação de Barril</li>
             </ul>
-            <SubTitle id='lutador'>Lutador</SubTitle>
+            <SubTitle id='poderes-lutador'>Lutador</SubTitle>
             <p>
               Todos os seguintes poderes de lutador foram adicionados na{' '}
               <Db>DB #190</Db>:
@@ -479,6 +597,71 @@ const CavernaDoSaber: React.FC = () => {
               <li>Terceira Mão: Espada Curta</li>
               <li>Terceira Mão: Lança</li>
               <li>Toque Cegante</li>
+            </ul>
+            <SubTitle id='poderes-nobre'>Nobre</SubTitle>
+            <p>
+              Os seguintes poderes de nobre foram adicionados na{' '}
+              <Db>DB #195</Db>:
+            </p>
+            <ul>
+              <li>Antecipar Ataque</li>
+              <li>Apontar Fraqueza</li>
+              <li>Aproveitar Brecha</li>
+              <li>Comitiva</li>
+              <li>Em Formação</li>
+              <li>Liderar o Ataque</li>
+              <li>Ordens Marciais</li>
+              <li>Palavras Rápidas</li>
+              <li>Siga o Líder</li>
+            </ul>
+            <SubTitle id='poderes-samurai'>Samurai</SubTitle>
+            <p>
+              Os seguintes poderes de Samurai fora adicionados na{' '}
+              <Db>DB #201</Db>:
+            </p>
+            <ul>
+              <li>Acima do Bem e do Mal</li>
+              <li>Ancestral Dançarino</li>
+              <li>Aspecto Assustador</li>
+              <li>Aspecto Dourado</li>
+              <li>Aspecto Opulento</li>
+              <li>Avalanche Súbita</li>
+              <li>Cortar Magia</li>
+              <li>Corte do Vácuo</li>
+              <li>Cortador de Cavalos</li>
+              <li>Dança dos Elementos</li>
+              <li>Dor Infinita</li>
+              <li>Engenhosidade Alquímica</li>
+              <li>Escudo Ancestral</li>
+              <li>Essência Fluida</li>
+              <li>Essência Gélida</li>
+              <li>Essência Invencível</li>
+              <li>Essência Lefeu</li>
+              <li>Essência Marinha</li>
+              <li>Essência Prateada</li>
+              <li>Essência Monstruosa</li>
+              <li>Essência Rubi</li>
+              <li>Essência Virente</li>
+              <li>Fulgor Púrpura</li>
+              <li>Golpe Fantasma</li>
+              <li>Instinto Destruidor</li>
+              <li>Lâmina Invertida</li>
+              <li>Lâmina Sedenta</li>
+              <li>Mistério Nebuloso</li>
+              <li>Nada Além de Um Assassino</li>
+              <li>Paradoxo Absoluto</li>
+              <li>Paradoxo da Celeridade</li>
+              <li>Paradoxo da Extinção</li>
+              <li>Paradoxo da Extremidade</li>
+              <li>Paradoxo do Gume</li>
+              <li>Paradoxo da Magia</li>
+              <li>Paradoxo Viperino</li>
+              <li>Perfeição Marcial</li>
+              <li>Tiro Perfeito</li>
+              <li>Trovão Incessante</li>
+              <li>Roda Fluvial</li>
+              <li>Venha Cá</li>
+              <li>Voo da Andorinha</li>
             </ul>
             <Divider />
             {/* Poderes Gerais */}
@@ -571,74 +754,149 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tigre Branco Devora o Céu</li>
             </ul>
             <Divider />
-            <Title id='desvantagens'>Desvantagens</Title>
+            <Title id='desvantagens'>Complicações (desvantagens)</Title>
             <p>
-              As desvantagens são apresentadas na <Db>DB #156</Db>:
+              As complicações (antigas desvantagens) são apresentadas na{' '}
+              <Db>DB #156</Db>. A <Db>DB #206</Db> trás uma lista de
+              complicações, um termo que substitui o anterior. Essa lista está
+              considerando a versão mais recente da <Db>DB #206</Db>.
             </p>
             <ul>
+              <li>Apetitoso</li>
               <li>Amaldiçoado</li>
               <li>Assombrado</li>
               <li>Cabeça Quente</li>
               <li>Caolho</li>
               <li>Chato</li>
-              <li>Código de Conduta</li>
+              <li>Citadino</li>
+              <li>Código de Conduta (apenas na #156)</li>
               <li>Combalido</li>
               <li>Covarde</li>
+              <li>Cria de Nimb</li>
+              <li>Crise de Fé</li>
               <li>Distraído</li>
-              <li>Duro de Ouvido</li>
-              <li>Expurgo de Allihanna</li>
+              <li>Duro de Ouvido (apenas na #156)</li>
+              <li>Expurgo de Allihanna (apenas na #156)</li>
               <li>Expurgo de Wynna</li>
-              <li>Filho(a) de Nimb</li>
               <li>Fracote</li>
-              <li>Franzino</li>
+              <li>Franzino (apenas na #156)</li>
               <li>Hedonista</li>
+              <li>Ímpio</li>
               <li>Impulsivo</li>
               <li>Inculto</li>
               <li>Indefeso</li>
-              <li>Ingênuo</li>
+              <li>Indolente</li>
+              <li>Inocente</li>
+              <li>Ingênuo (apenas na #156)</li>
               <li>Maneta</li>
+              <li>Marcado pelo Passado</li>
               <li>Matugo</li>
-              <li>Melancólico</li>
+              <li>Melancólico (apenas na #156)</li>
               <li>Míope</li>
+              <li>Mouco</li>
+              <li>Paranoico</li>
+              <li>Temeroso</li>
+              <li>Tolo</li>
               <li>Vagaroso</li>
               <li>Temeroso</li>
               <li>Tolo</li>
+            </ul>
+            <p>
+              Além disso a <Db>DB #206</Db> apresentou{' '}
+              <strong>Complicações de Classe</strong>:
+            </p>
+            <ul>
+              <li>Arcanista de Rotina (Arcanista)</li>
+              <li>Totem Gigante (Bárbaro)</li>
+              <li>Falastrão (Bardo)</li>
+              <li>Coragem Líquida (Bucaneiro)</li>
+              <li>Limitado a [Criatura] (Caçador)</li>
+              <li>Superprotetor (Cavaleiro)</li>
+              <li>Preparação Litúrgica (Clérigo)</li>
+              <li>Tosco (Druida)</li>
+              <li>Precavido (Guerreiro)</li>
+              <li>Trabalhador Ocupado (Inventor)</li>
+              <li>Honra de Ladrão (Ladino)</li>
+              <li>Firula (Lutador)</li>
+              <li>Filantropo (Nobre)</li>
+              <li>Certinho (Paladino)</li>
             </ul>
             <Divider />
             {/* Distinções */}
             <Title id='distincoes'>Distinções</Title>
             <p>
-              As distinções forem introduzidas na <Db>DB #181</Db>:
+              Distinções já sofreram diversas iterações ao longo da revista e em
+              breve estarão oficialmente disponíveis como suplemento através da
+              campanha{' '}
+              <a
+                href='https://www.catarse.me/tormenta25'
+                target='_blank'
+                rel='noreferrer'
+              >
+                Tormenta 25
+              </a>
+              . Quando os livros forem oficialmente lançados, as distinções
+              oficialmente adicionadas neles serão sinalizadas nesse índice.
             </p>
-            <ul>
-              <li>Aeronauta Goblin</li>
-              <li>Arqueiro Arcano</li>
-              <li>Cavaleiro do Corvo</li>
-              <li>Gigante Furioso</li>
-            </ul>
             <p>
-              Mais uma distinção foi adicionada na <Db>DB #186</Db>:
+              As distinções foram introduzidas na <Db>DB #181</Db>. A revista{' '}
+              <Db>DB #202</Db> fala novamente sobre as regras de distinção, de
+              forma atualizada. Novas distinções foram adicionadas ao longo de
+              várias revistas e estão indicadas abaixo.
             </p>
             <ul>
-              <li>Cavaleiro Silvestre</li>
-            </ul>
-            <p>
-              Mais uma foi adicionada na <Db>DB #187</Db>:
-            </p>
-            <ul>
-              <li>Irmão Inseparável</li>
-            </ul>
-            <p>
-              Mais uma na <Db>DB #188</Db>:
-            </p>
-            <ul>
-              <li>Mestre da Fúria Fria</li>
-            </ul>
-            <p>
-              Mais uma distinção foi adicionada na <Db>DB #194</Db>:
-            </p>
-            <ul>
-              <li>Cavaleiro da Redenção</li>
+              <li>
+                Aeronauta Goblin (apresentado em <Db>DB #181</Db>)
+              </li>
+              <li>
+                Arqueiro Arcano (revisitado em <Db>DB #202</Db>)
+              </li>
+              <li>
+                Caçador de Dragões (apresentado em <Db>DB #201</Db>)
+              </li>
+              <li>
+                Cavaleiro da Redenção (apresentado em <Db>DB #194</Db>)
+              </li>
+              <li>
+                Cavaleiro Silvestre (apresentado em <Db>DB #186</Db>)
+              </li>
+              <li>
+                Cavaleiro do Corvo (revisitado em <Db>DB #202</Db>)
+              </li>
+              <li>
+                Chapéu-Preto (apresentado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Gigante Furioso (revisitado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Guardião da Realidade (apresentado em <Db>DB #204</Db>)
+              </li>
+              <li>
+                Irmão Inseparável (apresentado em <Db>DB #187</Db>)
+              </li>
+              <li>
+                Lobo Lunar (apresentado em <Db>DB #196</Db> com regras de{' '}
+                <strong>Licantropo</strong>)
+              </li>
+              <li>
+                Mago de Batalha (apresentado em <Db>DB #205</Db>)
+              </li>
+              <li>
+                Médico de Salistik (apresentado em <Db>DB #204</Db>)
+              </li>
+              <li>
+                Mestre da Fúria Fria (apresentado em <Db>DB #188</Db>)
+              </li>
+              <li>
+                Menestrel Maldito (apresentado em <Db>DB #206</Db>)
+              </li>
+              <li>
+                Presa de Coral (apresentado em <Db>DB #206</Db>)
+              </li>
+              <li>
+                Xerife de Azgher (apresentado em <Db>DB #205</Db>)
+              </li>
             </ul>
             <Divider />
             {/* Equipamentos */}
@@ -803,6 +1061,26 @@ const CavernaDoSaber: React.FC = () => {
               Na <Db>DB #179</Db> uma ampliação nas regras de instrumentos
               musicais, além de mostrar algumas melhorias para eles.
             </p>
+            <SubTitle id='almadiçoados'>Itens amaldiçoados</SubTitle>
+            <p>
+              A <Db>DB #196</Db> adicionou uma série de itens amaldiçoados, com
+              detalhamento das regras para utilizá-los:
+            </p>
+            <ul>
+              <li>Cetro da Permuta Funesta</li>
+              <li>Coroa de Milghazan</li>
+              <li>Lâmina do Sono Eterno</li>
+              <li>Maça de Geltor</li>
+              <li>Medalhão dos Povos</li>
+              <li>O Incrível Mapa de Alastar</li>
+            </ul>
+            <SubTitle id='recompensas'>Tabela de Recompensas Extras</SubTitle>
+            <p>
+              A <Db>DB #199</Db> adicionou mais opções de itens mundanos para
+              serem sorteados como recompensas de aventuras. A tabela inclui um
+              valor médio e uma lista de itens como exemplos - como joias,
+              louças, móveis, mapas, etc.
+            </p>
             <Divider />
             {/* Magias */}
             <Title id='magias'>Magias</Title>
@@ -881,6 +1159,42 @@ const CavernaDoSaber: React.FC = () => {
               A <Db>DB #157</Db> apresenta uma lista de inimigos mercenários, em
               vários NDs diferentes.
             </p>
+            <SubTitle id='dragoes'>Dragões</SubTitle>
+            <p>
+              A <Db>DB #201</Db> apresentou alguns dragões da cultura pop como
+              ameaças disponíveis.
+            </p>
+            <ul>
+              <li>Banguela (Como Treinar o Seu Dragão)</li>
+              <li>Dragão Branco de Olhos Azuis (Yu-Gi-Oh!)</li>
+              <li>Dragonite (Pokémon)</li>
+              <li>Falkor (A História Sem Fim)</li>
+              <li>Haku (A Viagem de Chihiro)</li>
+              <li>Harle (Chrono Cross)</li>
+              <li>Jaguadarte (Alice no País dos Espelhos)</li>
+              <li>Lockheed (X-Men)</li>
+              <li>Shou Lao (Punho de Ferro)</li>
+              <li>Spyro (Spyro The Dragon)</li>
+            </ul>
+            <SubTitle id='viloes'>Vilões</SubTitle>
+            <p>
+              Vilões desprezíveis para dificultar a vida dos seus jogadores em
+              Tormenta20, adicionados na <Db>DB #198</Db>:
+            </p>
+            <ul>
+              <li>Karmen Roth</li>
+              <li>Mesmerizador</li>
+              <li>Lady Isoldine, Baronesa Sangrenta</li>
+              <li>Rovert Naidr, Taverneiro Traiçoeiro</li>
+              <li>Doutora Stella e Ellyn, a Criatura</li>
+            </ul>
+            <p>
+              Ozai, o Senhor do Fogo da série Avatar a Lenda de Aang foi
+              adicionado na <Db>DB #201</Db>.
+            </p>
+            <ul>
+              <li>Ozai, o Senhor do Fogo</li>
+            </ul>
             <Divider />
             {/* Aliados */}
             <Title id='aliados'>Aliados</Title>

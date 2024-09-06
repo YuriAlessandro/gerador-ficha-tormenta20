@@ -1,5 +1,7 @@
-import React from 'react';
-import { ArcanistPathName } from 't20-sheet-builder';
+import React, { useEffect } from 'react';
+import { ArcanistPathName, SerializedArcanist } from 't20-sheet-builder';
+import { selectBuilderRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
+import { useSelector } from 'react-redux';
 import ArcanistPathSelect from '../ArcanistPathSelect';
 import SheetBuilderFormRoleDefinitionArcanistMage from './SheetBuilderFormRoleDefinitionArcanistMage';
 import SheetBuilderFormRoleDefinitionArcanistSorcerer from './SheetBuilderFormRoleDefinitionArcanistSorcerer';
@@ -16,10 +18,19 @@ const SheetBuilderFormRoleDefinitionArcanistPath = () => {
   const { path, selectPath } = useArcanistFormContext();
 
   const PathComponent = path ? pathComponents[path] : null;
+
+  const storedArcanist = useSelector(selectBuilderRole) as
+    | SerializedArcanist
+    | undefined;
+
+  useEffect(() => {
+    if (storedArcanist) selectPath(storedArcanist.path.name);
+  }, [storedArcanist]);
+
   return (
     <div>
       <h3>Caminho do arcanista</h3>
-      <ArcanistPathSelect setPath={selectPath} />
+      <ArcanistPathSelect setPath={selectPath} path={path} />
       {PathComponent && <PathComponent />}
     </div>
   );

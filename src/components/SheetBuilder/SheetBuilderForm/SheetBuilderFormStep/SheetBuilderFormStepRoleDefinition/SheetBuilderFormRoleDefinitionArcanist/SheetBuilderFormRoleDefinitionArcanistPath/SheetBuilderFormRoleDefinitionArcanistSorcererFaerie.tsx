@@ -1,13 +1,18 @@
 import {
+  SerializedArcanist,
+  SerializedArcanistLineageFaerie,
+  SerializedArcanistSorcerer,
   SpellCircle,
   SpellName,
   SpellSchool,
   Spells,
   Translator,
 } from 't20-sheet-builder';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Option } from '@/components/SheetBuilder/common/Option';
 import SheetBuilderFormSelect from '@/components/SheetBuilder/SheetBuilderForm/SheetBuilderFormSelect';
+import { useSelector } from 'react-redux';
+import { selectBuilderRole } from '@/store/slices/sheetBuilder/sheetBuilderSliceRoleDefinition';
 import { useArcanistFormContext } from '../SheetBuilderFormRoleDefinitionArcanistContext';
 
 const spellOptions: Option<SpellName>[] = Spells.getAll()
@@ -23,7 +28,28 @@ const spellOptions: Option<SpellName>[] = Spells.getAll()
   }));
 
 const SheetBuilderFormRoleDefinitionArcanistSorcererFaerie = () => {
-  const { setSorcererLineageFaerieExtraSpell } = useArcanistFormContext();
+  const storedArcanist = useSelector(selectBuilderRole) as
+    | SerializedArcanist<
+        SerializedArcanistSorcerer<SerializedArcanistLineageFaerie>
+      >
+    | undefined;
+  const {
+    sorcererLineageFaerieExtraSpell,
+    setSorcererLineageFaerieExtraSpell,
+  } = useArcanistFormContext();
+
+  useEffect(() => {
+    if (storedArcanist) {
+      setSorcererLineageFaerieExtraSpell(
+        storedArcanist.path.lineage.extraSpell
+      );
+    }
+  }, [storedArcanist]);
+
+  const selectedValue = spellOptions.find(
+    (option) => option.value === sorcererLineageFaerieExtraSpell
+  );
+
   return (
     <div className='mb-3'>
       <p>Você se torna treinado em enganação</p>
@@ -35,6 +61,7 @@ const SheetBuilderFormRoleDefinitionArcanistSorcererFaerie = () => {
         id='arcanist-sorcerer-faerie-extra-spell'
         options={spellOptions}
         placeholder='Escolha a magia'
+        value={selectedValue}
         onChange={(option) => setSorcererLineageFaerieExtraSpell(option?.value)}
       />
     </div>

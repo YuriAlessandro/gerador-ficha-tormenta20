@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Deities,
   DeityName,
   Devotion,
-  EmptyMind,
-  GrantedPower,
+  GrantedPowerFactory,
   GrantedPowerName,
   Translator,
 } from 't20-sheet-builder';
@@ -14,28 +13,39 @@ import {
   selectPreviewRoleName,
 } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { useSelector } from 'react-redux';
-import { submitDevotion } from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
+import {
+  getStoredDevotion,
+  submitDevotion,
+} from '@/store/slices/sheetBuilder/sheetBuilderSliceDevotionDefinition';
 import DevotionSelect from './DevotionSelect';
 import GrantedPowerSelect from './GrantedPowerSelect';
 import ConfirmButton from '../../ConfirmButton';
 import { useSheetBuilderConfirm } from '../../useSheetBuilderSubmit';
 
 const SheetBuilderFormStepDevotionDefinition = () => {
+  const storedDevotion = useSelector(getStoredDevotion);
   const { confirm } = useSheetBuilderConfirm<Devotion>();
 
   const raceName = useSelector(selectPreviewRaceName);
   const roleName = useSelector(selectPreviewRoleName);
 
   const [selectedDevotion, setDevotion] = useState<DeityName>();
-  const [selectedGrantedPowers, setGrantedPowers] = useState<GrantedPower[]>(
-    []
-  );
+  const [selectedGrantedPowers, setGrantedPowers] = useState<
+    GrantedPowerName[]
+  >([]);
   const [notAllowed, setNotAllowed] = useState('');
+
+  useEffect(() => {
+    if (storedDevotion && storedDevotion.devotion) {
+      setDevotion(storedDevotion.devotion?.deity.name);
+      setGrantedPowers(storedDevotion.devotion.choosedPowers);
+    }
+  }, [storedDevotion]);
 
   const makeDevotion = () => {
     const devotion = new Devotion(
       Deities.get(selectedDevotion as DeityName),
-      selectedGrantedPowers
+      selectedGrantedPowers.map((power) => GrantedPowerFactory.make(power))
     );
 
     return devotion;
@@ -44,7 +54,7 @@ const SheetBuilderFormStepDevotionDefinition = () => {
     submitDevotion(devotion.serialize());
 
   const onSetGrantedPowers = (grantedPowers: GrantedPowerName[]) => {
-    setGrantedPowers(grantedPowers.map(() => new EmptyMind()));
+    setGrantedPowers(grantedPowers);
   };
 
   const onSaveDevotion = () => {
@@ -68,11 +78,13 @@ const SheetBuilderFormStepDevotionDefinition = () => {
       {raceName && roleName && (
         <>
           <DevotionSelect
+            selectedDevotion={selectedDevotion}
             setDevotion={setDevotion}
             setNotAllowed={setNotAllowed}
           />
           {grantedPowersOptions.length > 0 && (
             <GrantedPowerSelect
+              selectedGrantedPowers={selectedGrantedPowers}
               grantedPowersOptions={grantedPowersOptions}
               grantedPowersCount={grantedPowersCount}
               setGrantedPowers={onSetGrantedPowers}

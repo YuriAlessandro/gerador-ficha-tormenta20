@@ -7,6 +7,7 @@ import items from '@/assets/images/options/items.png';
 import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
 import treasure from '@/assets/images/options/treasure.png';
+import treasureMap from '@/assets/images/options/treasure-map.png';
 import { createNewSheet } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,
@@ -122,6 +123,15 @@ const LandingPage: React.FC<{
               />
               <CardContent>
                 <Stack spacing={2}>
+                  <Divider>Utilitários</Divider>
+                  <LandingOption
+                    title='Mapa de Arton'
+                    text='Um mapa interativo de Arton, com pins de cidades, pontos de interesse e mais.'
+                    image={treasureMap}
+                    onClick={() =>
+                      onOpenLink('https://mapadearton.fichasdenimb.com.br/')
+                    }
+                  />
                   <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Rolador de recompensas'

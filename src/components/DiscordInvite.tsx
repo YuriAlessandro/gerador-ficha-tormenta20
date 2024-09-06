@@ -11,7 +11,7 @@ import React from 'react';
 const ls = window.localStorage;
 
 const DiscordInvite = () => {
-  const doNotShow = ls.getItem('doNotShowDiscordInvite') === 'true';
+  const doNotShow = ls.getItem('doNotShowAvisoDiscordHackeado') === 'true';
   const [open, setOpen] = React.useState(!doNotShow);
 
   const handleClose = () => {
@@ -19,7 +19,7 @@ const DiscordInvite = () => {
   };
 
   const doNotShowAnymore = () => {
-    ls.setItem('doNotShowDiscordInvite', 'true');
+    ls.setItem('doNotShowAvisoDiscordHackeado', 'true');
     setOpen(false);
   };
 
@@ -30,23 +30,27 @@ const DiscordInvite = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Nosso novo Discord</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>O que está rolando</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            Estamos com um novo servidor no Discord que será usado para discutir
-            o projeto, tirar dúvidas, receber feedbacks, e principalmente para
-            mostrar e testar novas funcionalidades antes de lançá-las.
+            O nosso (recém-criado) servidor no Discord infelizmente foi hackeado
+            e apagado. Continuamos trabalhando em nosso tempo livre no novo
+            construtor e focados em continuar atualizando o índice da DB Brasil
+            com o Caverna do Saber.
           </p>
           <p>
-            Link:{' '}
+            Recentemente, também começamos um novo projeto, o Mapa de Arton:
             <a
-              href='https://discord.gg/VczZEjv7sX'
+              href='https://mapadearton.fichasdenimb.com.br/'
               rel='noreferrer'
               target='_blank'
             >
-              discord.gg/VczZEjv7sX
+              https://mapadearton.fichasdenimb.com.br/
             </a>
+          </p>
+          <p>
+            Iremos atualizar esse mapa aos poucos com mais features e conteúdo.
           </p>
         </DialogContentText>
       </DialogContent>
