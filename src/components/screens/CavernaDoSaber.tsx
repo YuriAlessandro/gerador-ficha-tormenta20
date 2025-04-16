@@ -215,7 +215,7 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <p>
               <small>
-                <strong>Revistas analisadas: DB #156 até #206.</strong>
+                <strong>Revistas analisadas: DB #156 até #212.</strong>
               </small>
             </p>
             <p>
@@ -367,7 +367,11 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Uma classe lutadora, de guerreiros da areia do deserto de
               Halak-Tûr, com golpes envolvendo danças e uso do terreno a favor
-              do jogador. Disponivel na <Db>DB #199</Db>.
+              do jogador. Inicialmente disponivel na <Db>DB #199</Db>.
+            </p>
+            <p>
+              Na <Db>DB #211</Db> o Miragem foi colocado como uma classe
+              variante de Caçador, com algumas diferenças.
             </p>
             <SubTitle id='mistico'>Místico</SubTitle>
             <p>
@@ -391,6 +395,16 @@ const CavernaDoSaber: React.FC = () => {
             <p>
               Novos poderes que podem ser escolhidos por classes específicas.
             </p>
+            <SubTitle id='poderes-arcanista'>Arcanista</SubTitle>
+            <p>
+              Todos os seguintes poderes de arcanista foram adicionados na{' '}
+              <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Encanto Feérico</li>
+              <li>Familiar Elemental</li>
+              <li>Herança Erudita</li>
+            </ul>
             <SubTitle id='poderes-barbaro'>Barbáro</SubTitle>
             <p>
               Todos os seguintes poderes de barbáro foram adicionados na{' '}
@@ -409,6 +423,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Instinto Robusto</li>
               <li>Sem Piedade</li>
             </ul>
+            <p>
+              Novos poderes de barbáro foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Fúria do Gigante</li>
+              <li>Fúria Primordial</li>
+              <li>Fúria Trog</li>
+            </ul>
             <SubTitle id='poderes-bardo'>Bardo</SubTitle>
             <p>
               Todos os seguintes poderes de bardo foram adicionados na{' '}
@@ -425,6 +447,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Performance: Prestissimo</li>
               <li>Performance: Vivace</li>
               <li>Performance: Virtuoso</li>
+            </ul>
+            <p>
+              Novos poderes de bardo foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Canto da Sereia</li>
+              <li>Esgrima Élfica</li>
+              <li>Fascínio Rubro</li>
             </ul>
             <SubTitle id='poderes-bucaneiro'>Bucaneiro</SubTitle>
             <p>
@@ -451,6 +481,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Remise</li>
               <li>Todos por Um</li>
               <li>Um por Todos</li>
+            </ul>
+            <p>
+              Novos poderes de bucaneiro foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Amigo do Passado</li>
+              <li>Pirata Oceânico</li>
+              <li>Salmoura</li>
             </ul>
             <SubTitle id='poderes-cacador'>Caçador</SubTitle>
             <p>
@@ -482,6 +520,46 @@ const CavernaDoSaber: React.FC = () => {
               <li>Tiro em Linha</li>
               <li>Último Sangue</li>
             </ul>
+            <p>
+              Novos poderes de Caçador foram adicionados na <Db>DB #211</Db>:
+            </p>
+            <ul>
+              <li>Arsenal do Deserto</li>
+              <li>Escaramuça Distante</li>
+              <li>Passo Duplo</li>
+              <li>Passos Precisos</li>
+              <li>Tesouros da Natureza</li>
+            </ul>
+            <p>
+              Novos poderes de Caçador foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Emboscada Oportuna</li>
+              <li>Faro de Caçador</li>
+            </ul>
+            <SubTitle id='poderes-cavaleiro'>Cavaleiro</SubTitle>
+            <p>
+              Novos poderes de cavaleiro foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Cavaleiro de Mim Mesmo</li>
+              <li>Desafio Divino</li>
+              <li>Ginete de Javali</li>
+            </ul>
+            <SubTitle id='poderes-clerigo'>Clérigo</SubTitle>
+            <p>
+              Um novo poder de Clérigo foi adicionado na <Db>DB #209</Db>:
+            </p>
+            <ul>
+              <li>Autoridade Eclesiástica</li>
+            </ul>
+            <p>
+              Novos poderes de clérigo foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Devoção Finntroll</li>
+              <li>Exaltação do Rejeitado</li>
+            </ul>
             <SubTitle id='poderes-druida'>Druída</SubTitle>
             <p>
               Novos poderes de Druída foram apresentados na <Db>DB #204</Db>:
@@ -508,6 +586,21 @@ const CavernaDoSaber: React.FC = () => {
               <li>Proteção Fúngica</li>
               <li>Transformação Repugnante</li>
             </ul>
+            <p>
+              Novos poderes de Druída foram apresentados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Anatomia Natural</li>
+              <li>Coragem dos Pampas</li>
+              <li>Sangue Ofídico</li>
+            </ul>
+            <SubTitle id='frade'>Frade</SubTitle>
+            <p>
+              Um novo poder de Frade foi adicionado na <Db>DB #209</Db>:
+            </p>
+            <ul>
+              <li>Autoridade Eclesiástica</li>
+            </ul>
             <SubTitle id='poderes-guerreiro'>Guerreiro</SubTitle>
             <p>
               Novas opções para o <strong>Golpe Pessoal</strong> do guerreiro
@@ -518,6 +611,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Desconcertante (–1 PM)</li>
               <li>Desgastante (–1 PM)</li>
               <li>Paralisante (–1 PM)</li>
+            </ul>
+            <p>
+              Novos poderes de guerreiro foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Estilo Clássico</li>
+              <li>Duro Como Aço</li>
+              <li>Herdeiro dos Gigantes</li>
             </ul>
             <SubTitle id='poderes-inventor'>Inventor</SubTitle>
             <p>
@@ -534,6 +635,13 @@ const CavernaDoSaber: React.FC = () => {
               <li>Luthier</li>
               <li>Saraivada</li>
               <li>Traje de Batalha</li>
+            </ul>
+            <p>
+              Novos poderes de inventor foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Armadura de Suporte</li>
+              <li>Síntese Goblin</li>
             </ul>
             <SubTitle id='poderes-ladino'>Ladino</SubTitle>
             <p>
@@ -571,6 +679,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Matar ou Morrer</li>
               <li>Situação de Barril</li>
             </ul>
+            <p>
+              Novos poderes de ladino foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Furtividade Murídea</li>
+              <li>Papinho</li>
+              <li>Táticas Hobgoblin</li>
+            </ul>
             <SubTitle id='poderes-lutador'>Lutador</SubTitle>
             <p>
               Todos os seguintes poderes de lutador foram adicionados na{' '}
@@ -598,6 +714,14 @@ const CavernaDoSaber: React.FC = () => {
               <li>Terceira Mão: Lança</li>
               <li>Toque Cegante</li>
             </ul>
+            <p>
+              Novos poderes de lutador foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Cascos Caprinos</li>
+              <li>Pele Grudenta</li>
+              <li>Sangue Humano</li>
+            </ul>
             <SubTitle id='poderes-nobre'>Nobre</SubTitle>
             <p>
               Os seguintes poderes de nobre foram adicionados na{' '}
@@ -613,6 +737,23 @@ const CavernaDoSaber: React.FC = () => {
               <li>Ordens Marciais</li>
               <li>Palavras Rápidas</li>
               <li>Siga o Líder</li>
+            </ul>
+            <p>
+              Novos poderes de nobre foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Abundância dos Pequeninos</li>
+              <li>Inspirar Medo</li>
+              <li>Mestra dos Sussurros</li>
+            </ul>
+            <SubTitle id='poderes-paladino'>Paladino</SubTitle>
+            <p>
+              Novos poderes de paladino foram adicionados na <Db>DB #212</Db>:
+            </p>
+            <ul>
+              <li>Aura de Arrependimento</li>
+              <li>Devoção de Muitos</li>
+              <li>Protetor</li>
             </ul>
             <SubTitle id='poderes-samurai'>Samurai</SubTitle>
             <p>
@@ -865,6 +1006,9 @@ const CavernaDoSaber: React.FC = () => {
               </li>
               <li>
                 Chapéu-Preto (apresentado em <Db>DB #203</Db>)
+              </li>
+              <li>
+                Furioso Cinzento (apresentado em <Db>DB #208</Db>)
               </li>
               <li>
                 Gigante Furioso (revisitado em <Db>DB #203</Db>)
@@ -1146,6 +1290,15 @@ const CavernaDoSaber: React.FC = () => {
               <li>Trilobita</li>
               <li>Nautilon</li>
             </ul>
+            <SubTitle id='aliens'>Aliens</SubTitle>
+            <p>
+              Alguns aliens estão disponíveis na <Db>DB #210</Db>.
+            </p>
+            <ul>
+              <li>Abraçador</li>
+              <li>Estoura-peitos</li>
+              <li>Zangão</li>
+            </ul>
             <SubTitle id='aslothia'>De Aslothia</SubTitle>
             <p>
               Novas ameaças de Aslothia na <Db>DB #179</Db>.
@@ -1176,6 +1329,29 @@ const CavernaDoSaber: React.FC = () => {
               <li>Shou Lao (Punho de Ferro)</li>
               <li>Spyro (Spyro The Dragon)</li>
             </ul>
+            <p>
+              A <Db>DB #207</Db> apresentou os dragões da série{' '}
+              <strong>
+                <i>Casa do Dragão</i>
+              </strong>
+              .
+            </p>
+            <ul>
+              <li>Arrax</li>
+              <li>Asaprata</li>
+              <li>Bailalua</li>
+              <li>Caraxes</li>
+              <li>Dreamfyre</li>
+              <li>Fumaresia</li>
+              <li>Meleys</li>
+              <li>Tessarion</li>
+              <li>Tyraxes</li>
+              <li>Sunfyre</li>
+              <li>Syrax</li>
+              <li>Vermithor</li>
+              <li>Vhagar</li>
+              <li>Vermax (jovem)</li>
+            </ul>
             <SubTitle id='viloes'>Vilões</SubTitle>
             <p>
               Vilões desprezíveis para dificultar a vida dos seus jogadores em
@@ -1194,6 +1370,12 @@ const CavernaDoSaber: React.FC = () => {
             </p>
             <ul>
               <li>Ozai, o Senhor do Fogo</li>
+            </ul>
+            <p>
+              Nosferatu, o vampiro, foi adicionado na <Db>DB #211</Db>.
+            </p>
+            <ul>
+              <li>Nosferatu</li>
             </ul>
             <Divider />
             {/* Aliados */}
@@ -1228,6 +1410,10 @@ const CavernaDoSaber: React.FC = () => {
             <SubTitle id='perigos-complexos'>Perigos Complexos</SubTitle>
             <p>
               Como criar perigos complexos, <Db>DB #169</Db>.
+            </p>
+            <p>
+              A revista <Db>DB #207</Db> apresenta mais um texto com formas de
+              criar seus próprios perigos complexos.
             </p>
             <SubTitle id='engenhocas'>Engenhocas</SubTitle>
             <p>

@@ -11,7 +11,7 @@ import React from 'react';
 const ls = window.localStorage;
 
 const DiscordInvite = () => {
-  const doNotShow = ls.getItem('doNotShowAvisoDiscordHackeado') === 'true';
+  const doNotShow = ls.getItem('doNotShow25Plans') === 'true';
   const [open, setOpen] = React.useState(!doNotShow);
 
   const handleClose = () => {
@@ -19,7 +19,7 @@ const DiscordInvite = () => {
   };
 
   const doNotShowAnymore = () => {
-    ls.setItem('doNotShowAvisoDiscordHackeado', 'true');
+    ls.setItem('doNotShow25Plans', 'true');
     setOpen(false);
   };
 
@@ -30,27 +30,26 @@ const DiscordInvite = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>O que está rolando</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>O que está rolando?</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            O nosso (recém-criado) servidor no Discord infelizmente foi hackeado
-            e apagado. Continuamos trabalhando em nosso tempo livre no novo
-            construtor e focados em continuar atualizando o índice da DB Brasil
-            com o Caverna do Saber.
+            O projeto não está sendo atualizado recentemente. Essa é a verdade.
+            Durante todo o ano de 2024, atualizamos apenas o mapa e a Caverna do
+            Saber - de tempo em tempo. Os planos atuais são apenas atualizar o
+            gerador para a versão mais recente do jogo, e manter o mapa e a
+            Caverna do Saber.
           </p>
           <p>
-            Recentemente, também começamos um novo projeto, o Mapa de Arton:
+            Se você deseja ajudar esses projetos de alguma maneira, acesse esse
+            link:
             <a
-              href='https://mapadearton.fichasdenimb.com.br/'
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
               rel='noreferrer'
               target='_blank'
             >
-              https://mapadearton.fichasdenimb.com.br/
+              https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions
             </a>
-          </p>
-          <p>
-            Iremos atualizar esse mapa aos poucos com mais features e conteúdo.
           </p>
         </DialogContentText>
       </DialogContent>
