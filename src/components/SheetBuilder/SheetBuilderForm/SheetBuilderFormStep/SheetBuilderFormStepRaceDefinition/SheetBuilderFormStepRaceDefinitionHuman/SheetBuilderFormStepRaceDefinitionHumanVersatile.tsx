@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectPreviewSkills } from '@/store/slices/sheetBuilder/sheetBuilderSliceSheetPreview';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
+import { useParams } from 'react-router';
 
 const secondVersatilOptionTypeOptions: Option<VersatileChoiceType>[] = [
   { label: 'Poder', value: 'power' },
@@ -37,7 +38,10 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
   firstVersatileOption,
   secondVersatileOption,
 }: Props) => {
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const params = useParams<{ id: string }>();
+  const skills = getSkills(
+    Object.entries(useSelector(selectPreviewSkills(params.id)))
+  );
   const dispatch = useDispatch();
   return (
     <div className='mb-6'>

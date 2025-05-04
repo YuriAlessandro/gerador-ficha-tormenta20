@@ -6,8 +6,8 @@ import database from '@/assets/images/options/database.png';
 import items from '@/assets/images/options/items.png';
 import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
-import treasure from '@/assets/images/options/treasure.png';
 import treasureMap from '@/assets/images/options/treasure-map.png';
+import treasure from '@/assets/images/options/treasure.png';
 import { createNewSheet } from '@/store/slices/sheetStorage/sheetStorage';
 import {
   Box,

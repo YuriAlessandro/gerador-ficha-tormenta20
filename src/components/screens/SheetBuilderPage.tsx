@@ -4,9 +4,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Box, Breadcrumbs, Fab, Typography, useTheme } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
-import { setActiveSheet } from '../../store/slices/sheetStorage/sheetStorage';
+import {
+  selectActiveSheetId,
+  setActiveSheet,
+} from '../../store/slices/sheetStorage/sheetStorage';
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 
@@ -15,6 +18,7 @@ const SheetBuilderPage: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
+  const activeSheetId = useSelector(selectActiveSheetId);
 
   useEffect(() => {
     if (window.location.href.includes('new')) setValue(1);
@@ -56,48 +60,60 @@ const SheetBuilderPage: React.FC = () => {
 
   return (
     <>
-      <FabDiv>
-        {value === 0 && (
-          <Fab color='primary' variant='extended' onClick={() => setValue(1)}>
-            <EditIcon sx={{ mr: 1 }} />
-            Editar Ficha
-          </Fab>
-        )}
-        {value === 1 && (
-          <Fab color='primary' variant='extended' onClick={() => setValue(0)}>
-            <VisibilityIcon sx={{ mr: 1 }} />
-            Visualizar Ficha
-          </Fab>
-        )}
-      </FabDiv>
+      {activeSheetId.length > 0 && (
+        <>
+          <FabDiv>
+            {value === 0 && (
+              <Fab
+                color='primary'
+                variant='extended'
+                onClick={() => setValue(1)}
+              >
+                <EditIcon sx={{ mr: 1 }} />
+                Editar Ficha
+              </Fab>
+            )}
+            {value === 1 && (
+              <Fab
+                color='primary'
+                variant='extended'
+                onClick={() => setValue(0)}
+              >
+                <VisibilityIcon sx={{ mr: 1 }} />
+                Visualizar Ficha
+              </Fab>
+            )}
+          </FabDiv>
 
-      <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
-        <Link to='/sheets' color='inherit' href='/sheets'>
-          Meus Personagens
-        </Link>
-        <Typography color='text.primary'>Gerenciar Personagem</Typography>
-      </Breadcrumbs>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
+            <Link to='/sheets' color='inherit' href='/sheets'>
+              Meus Personagens
+            </Link>
+            <Typography color='text.primary'>Gerenciar Personagem</Typography>
+          </Breadcrumbs>
 
-      <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
-        <Box sx={{ p: 5 }}>
-          <Title>Visualizar Ficha</Title>
-        </Box>
-        <SheetPreview handleChange={handleChange} />
-      </BackgroundBox>
-      <Box sx={{ display: value === 1 ? 'block' : 'none' }}>
-        <Box sx={{ p: 5 }}>
-          <Title>Editar Ficha</Title>
-        </Box>
-        <SheetBuilderForm
-          onFinishBuild={() => {
-            window.scrollTo({
-              top: 0,
-              behavior: 'smooth',
-            });
-            setValue(0);
-          }}
-        />
-      </Box>
+          <BackgroundBox sx={{ display: value === 0 ? 'block' : 'none' }}>
+            <Box sx={{ p: 5 }}>
+              <Title>Visualizar Ficha</Title>
+            </Box>
+            <SheetPreview handleChange={handleChange} />
+          </BackgroundBox>
+          <Box sx={{ display: value === 1 ? 'block' : 'none' }}>
+            <Box sx={{ p: 5 }}>
+              <Title>Editar Ficha</Title>
+            </Box>
+            <SheetBuilderForm
+              onFinishBuild={() => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: 'smooth',
+                });
+                setValue(0);
+              }}
+            />
+          </Box>
+        </>
+      )}
     </>
   );
 };
