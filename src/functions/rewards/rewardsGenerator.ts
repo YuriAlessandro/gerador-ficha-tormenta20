@@ -40,13 +40,12 @@ export interface RewardGenerated {
   itemApplied?: string;
 }
 
-export function rewardGenerator(nd: LEVELS, isHalf: boolean): RewardGenerated {
+export function rewardGenerator(nd: LEVELS): RewardGenerated {
   const moneyValue = rollDice(1, 100);
   const itemValue = rollDice(1, 100);
 
   const moneyReward = moneyRewards[nd];
   const itemsReward = itemsRewards[nd];
-  const halfRoll = rollDice(1, 2);
 
   const money = moneyReward.find(
     (r) => moneyValue >= r.min && moneyValue <= r.max
@@ -59,27 +58,32 @@ export function rewardGenerator(nd: LEVELS, isHalf: boolean): RewardGenerated {
   return {
     itemRoll: itemValue,
     moneyRoll: moneyValue,
-    money: isHalf && halfRoll === 2 ? undefined : money,
-    item: isHalf && halfRoll === 1 ? undefined : item,
+    money,
+    item,
   };
 }
 
-export function applyMoneyReward(
-  money: MoneyReward,
-  isDouble?: boolean
-): string {
+export function applyMoneyReward(money: MoneyReward, isHalf?: boolean): string {
   if (money.reward) {
     const rewardType = money.reward.money;
     const diceRoll = rollDice(money.reward.qty, money.reward.dice);
 
-    let value = money.reward.som
+    const value = money.reward.som
       ? diceRoll + money.reward.som
       : diceRoll * money.reward.mult;
 
-    if (isDouble) value *= 2;
-
     let wealth: Rych | undefined;
-    const wealthRoll = rollDice(1, 100);
+    let wealthRoll = rollDice(1, 100);
+
+    if (money.reward.applyRollBonus) {
+      // Recebe +20% na rolagem de riqueza (máximo 100%)
+      const bonus = Math.floor((wealthRoll * 20) / 100);
+      if (wealthRoll + bonus > 100) {
+        wealthRoll = 100;
+      } else {
+        wealthRoll += bonus;
+      }
+    }
 
     if (rewardType === MONEY_TYPE.RIQUEZA_MENOR) {
       wealth = minorRych.find(
@@ -99,10 +103,8 @@ export function applyMoneyReward(
       let str = '';
 
       for (let i = 0; i < value; i += 1) {
-        let wealthValue =
+        const wealthValue =
           rollDice(wealth.value.qtd, wealth.value.dice) * wealth.value.mult;
-
-        if (isDouble) wealthValue *= 2;
 
         const wealthItem = getRandomItemFromArray(wealth.items);
         str = str.concat(
@@ -115,7 +117,9 @@ export function applyMoneyReward(
       return `(${diceRoll}) ${str}`;
     }
 
-    return `(${diceRoll}) ${value} ${rewardType}`;
+    const finalValue = isHalf ? value / 2 : value;
+
+    return `(${diceRoll}) ${finalValue} ${rewardType}`;
   }
 
   return '--';
@@ -272,12 +276,28 @@ const getWeaponOrArmor = (diceRoll: number, mods: number) => {
   return '';
 };
 
-const getPotionItem = (qty: number, dice: number, som: number) => {
+const getPotionItem = (
+  qty: number,
+  dice: number,
+  som: number,
+  applyRollBonus?: boolean
+) => {
   const qtd = rollDice(qty, dice) + som;
   let rst = '';
 
   for (let i = 0; i < qtd; i += 1) {
-    const potionRoll = rollDice(1, 100);
+    let potionRoll = rollDice(1, 100);
+
+    if (applyRollBonus) {
+      // Recebe +20% na rolagem de riqueza (máximo 100%)
+      const bonus = Math.floor((potionRoll * 20) / 100);
+      if (potionRoll + bonus > 100) {
+        potionRoll = 100;
+      } else {
+        potionRoll += bonus;
+      }
+    }
+
     const rolledPotion = potions.find(
       (p) => potionRoll >= p.min && potionRoll <= p.max
     );
@@ -426,9 +446,15 @@ export function applyItemReward(item: ItemReward, isDouble?: boolean): string {
         rtn += getPotionItem(
           item.reward.qty,
           item.reward.dice,
-          item.reward.som
+          item.reward.som,
+          item.reward.applyRollBonus
         );
-      rtn += getPotionItem(item.reward.qty, item.reward.dice, 0);
+      rtn += getPotionItem(
+        item.reward.qty,
+        item.reward.dice,
+        0,
+        item.reward.applyRollBonus
+      );
     }
     if (item.reward?.type === ITEM_TYPE.MAGICO_MENOR) {
       /* Para itens mágicos, role 1d6. Em um resultado 1 ou 2, é encontrado uma arma.

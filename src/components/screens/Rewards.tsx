@@ -1,4 +1,4 @@
-import { Button, styled } from '@mui/material';
+import { Button, Stack, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
 
@@ -48,16 +48,21 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
   const [rewardMult, setSrewardMult] = useState<'Padrão' | 'Metade' | 'Dobro'>(
     'Padrão'
   );
+  // const [useSupItens, setUseSupItens] = useState<boolean>(false);
 
   const onClickGenerate = () => {
     const newItems: RewardGenerated[] = [];
     const isDouble = rewardMult === 'Dobro';
     const isHalf = rewardMult === 'Metade';
 
-    for (let index = 0; index < numberOfItems; index += 1) {
-      const newItem = rewardGenerator(nd, isHalf);
+    let itemsToRoll = numberOfItems;
+
+    if (isDouble) itemsToRoll *= 2;
+
+    for (let index = 0; index < itemsToRoll; index += 1) {
+      const newItem = rewardGenerator(nd);
       if (newItem.money)
-        newItem.moneyApplied = applyMoneyReward(newItem.money, isDouble);
+        newItem.moneyApplied = applyMoneyReward(newItem.money, isHalf);
       if (newItem.item)
         newItem.itemApplied = applyItemReward(newItem.item, isDouble);
       newItems.push(newItem);
@@ -132,9 +137,13 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
                 <TableRow>
                   <StyledTableCell />
                   <StyledTableCell />
-                  <StyledTableCell>{item.moneyApplied}</StyledTableCell>
+                  <StyledTableCell>
+                    {item?.money?.reward?.applyRollBonus ? '+% ' : ''}
+                    {item.moneyApplied}
+                  </StyledTableCell>
                   <StyledTableCell />
                   <StyledTableCell style={{ whiteSpace: 'pre-wrap' }}>
+                    {item?.item?.reward?.applyRollBonus ? '+% ' : ''}
                     {item.itemApplied}
                   </StyledTableCell>
                 </TableRow>
@@ -160,14 +169,22 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
 
   return (
     <div id='main-screen' style={{ margin: '30px 30px 30px 25px' }}>
-      <div className='rewardsFilter'>
+      <Stack
+        spacing={2}
+        direction='row'
+        flexWrap='wrap'
+        alignItems='center'
+        justifyContent='center'
+        sx={{ marginBottom: '20px' }}
+        rowGap={2}
+      >
         <TextField
           id='filled-number'
           label='Quantidade'
           type='number'
           variant='outlined'
           onChange={onChangeQtd}
-          style={{ marginRight: '10px' }}
+          sx={{ maxWidth: '100px' }}
           size='small'
           value={numberOfItems}
         />
@@ -185,70 +202,86 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           })}
         />
 
-        <div>
-          <FormControlLabel
-            value='top'
-            control={
-              <Radio
-                checked={rewardMult === 'Padrão'}
-                onChange={handleRewardMultChange}
-                value='Padrão'
-                name='radio-button-demo'
-                color='default'
-              />
-            }
-            label='Padrão'
-            labelPlacement='end'
-          />
+        {/* <Divider orientation='vertical' flexItem />
 
-          <FormControlLabel
-            value='top'
-            control={
-              <Radio
-                checked={rewardMult === 'Metade'}
-                onChange={handleRewardMultChange}
-                value='Metade'
-                name='radio-button-demo'
-                color='default'
-              />
-            }
-            label='Metade'
-            labelPlacement='end'
-          />
+        <FormControlLabel
+          value='top'
+          control={
+            <Checkbox
+              checked={useSupItens}
+              onChange={() => setUseSupItens(!useSupItens)}
+            />
+          }
+          label='Utilizar itens de suplementos'
+          labelPlacement='end'
+        />
 
-          <FormControlLabel
-            value='top'
-            control={
-              <Radio
-                checked={rewardMult === 'Dobro'}
-                onChange={handleRewardMultChange}
-                value='Dobro'
-                name='radio-button-demo'
-                color='default'
-              />
-            }
-            label='Dobro'
-            labelPlacement='end'
-          />
-        </div>
+        <Divider orientation='vertical' flexItem /> */}
+
+        <FormControlLabel
+          value='top'
+          control={
+            <Radio
+              checked={rewardMult === 'Padrão'}
+              onChange={handleRewardMultChange}
+              value='Padrão'
+              name='radio-button-demo'
+              color='default'
+            />
+          }
+          label='Padrão'
+          labelPlacement='end'
+        />
+
+        <FormControlLabel
+          value='top'
+          control={
+            <Radio
+              checked={rewardMult === 'Metade'}
+              onChange={handleRewardMultChange}
+              value='Metade'
+              name='radio-button-demo'
+              color='default'
+            />
+          }
+          label='Metade'
+          labelPlacement='end'
+        />
+
+        <FormControlLabel
+          value='top'
+          control={
+            <Radio
+              checked={rewardMult === 'Dobro'}
+              onChange={handleRewardMultChange}
+              value='Dobro'
+              name='radio-button-demo'
+              color='default'
+            />
+          }
+          label='Dobro'
+          labelPlacement='end'
+        />
 
         <Button onClick={onClickGenerate} type='button' variant='contained'>
           Gerar Recompensa
         </Button>
-      </div>
+      </Stack>
 
       <p>
         <ul>
           <li>
-            <strong>Metade</strong>: Será gerado dinheiro ou item, nunca os dois
-            ao mesmo tempo. O valor será o original rolado.
+            <strong>Metade</strong>: A criatura tem poucos tesouros; quaisquer
+            resultados rolados para dinheiro é dividido pela metade.
           </li>
           <li>
-            <strong>Dobro</strong>: Será rolado normalmente, o dinheiro será
-            dobrado e um item adicional será gerado.
+            <strong>Dobro</strong>: Será rolado normalmente, duas vezes para
+            para dinheiro e duas vezes para itens.
           </li>
         </ul>
       </p>
+
+      {items && ResultDiv}
 
       <h3>Como gerar o tesouro corretamente?</h3>
 
@@ -274,8 +307,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
         dobrar. Assim, dois inimigos de ND 5 formam um combate de ND 7, quatro
         inimigos de ND 8 formam um combate de ND 12 e assim por diante.
       </p>
-      {items && ResultDiv}
-      <p>
+      {/* <p>
         Os valores entre parênteses dizem respeito a ordem de rolagem dos dados.
         <ul>
           <li>
@@ -302,7 +334,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
             específico).
           </li>
         </ul>
-      </p>
+      </p> */}
     </div>
   );
 };

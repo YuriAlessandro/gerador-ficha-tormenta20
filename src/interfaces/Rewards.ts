@@ -54,6 +54,7 @@ export interface MoneyReward {
     money: MONEY_TYPE;
     mult: number;
     som?: number;
+    applyRollBonus?: boolean;
   };
 }
 
@@ -66,6 +67,7 @@ export interface ItemReward {
     type: ITEM_TYPE;
     som?: number;
     mods?: number;
+    applyRollBonus?: boolean;
   };
 }
 
