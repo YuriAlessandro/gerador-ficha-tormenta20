@@ -4,7 +4,7 @@ import builder from '@/assets/images/options/builder.png';
 import characters from '@/assets/images/options/characters.png';
 import database from '@/assets/images/options/database.png';
 import items from '@/assets/images/options/items.png';
-import magical from '@/assets/images/options/magical.png';
+// import magical from '@/assets/images/options/magical.png';
 import random from '@/assets/images/options/random.png';
 import treasure from '@/assets/images/options/treasure.png';
 import treasureMap from '@/assets/images/options/treasure-map.png';
@@ -132,7 +132,6 @@ const LandingPage: React.FC<{
                       onOpenLink('https://mapadearton.fichasdenimb.com.br/')
                     }
                   />
-                  <Divider>Versão antiga</Divider>
                   <LandingOption
                     title='Rolador de recompensas'
                     text='Gere as recompensas da sua mesa de forma muito rápida.'
@@ -145,13 +144,13 @@ const LandingPage: React.FC<{
                     image={items}
                     onClick={() => onClickButton('itens-superiores')}
                   />
-                  <LandingOption
+                  {/* <LandingOption
                     title='Criar item mágico'
                     text='Em desenvolvimento.'
                     image={magical}
                     disabled
                     onClick={() => onClickButton('itens-superiores')}
-                  />
+                  /> */}
                 </Stack>
               </CardContent>
             </Card>

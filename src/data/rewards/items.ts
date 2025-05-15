@@ -12,11 +12,11 @@ export const itemsRewards: Items = {
   S4: [
     {
       min: 1,
-      max: 55,
+      max: 50,
     },
     {
       min: 51,
-      max: 75,
+      max: 80,
       reward: {
         qty: 1,
         dice: 1,
@@ -24,7 +24,7 @@ export const itemsRewards: Items = {
       },
     },
     {
-      min: 76,
+      min: 81,
       max: 100,
       reward: {
         qty: 1,
@@ -40,7 +40,7 @@ export const itemsRewards: Items = {
     },
     {
       min: 51,
-      max: 70,
+      max: 75,
       reward: {
         qty: 1,
         dice: 1,
@@ -48,7 +48,7 @@ export const itemsRewards: Items = {
       },
     },
     {
-      min: 71,
+      min: 76,
       max: 100,
       reward: {
         qty: 1,
@@ -66,8 +66,8 @@ export const itemsRewards: Items = {
       min: 46,
       max: 70,
       reward: {
-        qty: 2,
-        dice: 6,
+        qty: 1,
+        dice: 1,
         type: ITEM_TYPE.DIVERSO,
       },
     },
@@ -75,8 +75,8 @@ export const itemsRewards: Items = {
       min: 71,
       max: 100,
       reward: {
-        qty: 2,
-        dice: 8,
+        qty: 1,
+        dice: 1,
         type: ITEM_TYPE.ARMA_ARMADURA,
       },
     },
@@ -121,6 +121,15 @@ export const itemsRewards: Items = {
     },
     {
       min: 31,
+      max: 40,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.DIVERSO,
+      },
+    },
+    {
+      min: 41,
       max: 70,
       reward: {
         qty: 1,
@@ -130,40 +139,6 @@ export const itemsRewards: Items = {
     },
     {
       min: 71,
-      max: 95,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.POCAO,
-      },
-    },
-    {
-      min: 96,
-      max: 100,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 1,
-      },
-    },
-  ],
-  F3: [
-    {
-      min: 1,
-      max: 25,
-    },
-    {
-      min: 26,
-      max: 60,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.ARMA_ARMADURA,
-      },
-    },
-    {
-      min: 61,
       max: 90,
       reward: {
         qty: 1,
@@ -182,14 +157,32 @@ export const itemsRewards: Items = {
       },
     },
   ],
-  F4: [
+  F3: [
     {
       min: 1,
       max: 25,
     },
     {
       min: 26,
-      max: 75,
+      max: 35,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.DIVERSO,
+      },
+    },
+    {
+      min: 36,
+      max: 60,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.ARMA_ARMADURA,
+      },
+    },
+    {
+      min: 61,
+      max: 85,
       reward: {
         qty: 1,
         dice: 1,
@@ -197,8 +190,8 @@ export const itemsRewards: Items = {
       },
     },
     {
-      min: 76,
-      max: 95,
+      min: 86,
+      max: 100,
       reward: {
         qty: 1,
         dice: 1,
@@ -206,24 +199,58 @@ export const itemsRewards: Items = {
         mods: 1,
       },
     },
+  ],
+  F4: [
     {
-      min: 91,
+      min: 1,
+      max: 20,
+    },
+    {
+      min: 21,
+      max: 30,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.DIVERSO,
+      },
+    },
+    {
+      min: 31,
+      max: 55,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.ARMA_ARMADURA,
+      },
+    },
+    {
+      min: 56,
+      max: 80,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.POCAO,
+        applyRollBonus: true,
+      },
+    },
+    {
+      min: 81,
       max: 100,
       reward: {
         qty: 1,
         dice: 1,
         type: ITEM_TYPE.SUPERIOR,
-        mods: 2,
+        mods: 1,
       },
     },
   ],
   F5: [
     {
       min: 1,
-      max: 25,
+      max: 20,
     },
     {
-      min: 26,
+      min: 21,
       max: 70,
       reward: {
         qty: 1,
@@ -255,19 +282,20 @@ export const itemsRewards: Items = {
   F6: [
     {
       min: 1,
-      max: 25,
+      max: 20,
     },
     {
-      min: 26,
-      max: 75,
+      min: 21,
+      max: 65,
       reward: {
         qty: 1,
         dice: 3,
         type: ITEM_TYPE.POCAO,
+        applyRollBonus: true,
       },
     },
     {
-      min: 76,
+      min: 66,
       max: 95,
       reward: {
         qty: 1,
@@ -290,11 +318,11 @@ export const itemsRewards: Items = {
   F7: [
     {
       min: 1,
-      max: 15,
+      max: 20,
     },
     {
-      min: 26,
-      max: 70,
+      min: 21,
+      max: 60,
       reward: {
         qty: 1,
         dice: 3,
@@ -302,7 +330,7 @@ export const itemsRewards: Items = {
       },
     },
     {
-      min: 71,
+      min: 61,
       max: 90,
       reward: {
         qty: 1,
@@ -325,10 +353,10 @@ export const itemsRewards: Items = {
   F8: [
     {
       min: 1,
-      max: 25,
+      max: 20,
     },
     {
-      min: 26,
+      min: 21,
       max: 75,
       reward: {
         qty: 1,
@@ -353,23 +381,34 @@ export const itemsRewards: Items = {
         qty: 1,
         dice: 1,
         type: ITEM_TYPE.SUPERIOR,
-        mods: 4,
+        mods: 3,
       },
     },
   ],
   F9: [
     {
       min: 1,
-      max: 50,
+      max: 20,
     },
     {
-      min: 51,
+      min: 21,
+      max: 70,
+      reward: {
+        qty: 1,
+        dice: 1,
+        applyRollBonus: true,
+        type: ITEM_TYPE.POCAO,
+      },
+    },
+    {
+      min: 71,
       max: 95,
       reward: {
         qty: 1,
-        dice: 4,
-        som: 1,
-        type: ITEM_TYPE.POCAO,
+        dice: 1,
+        applyRollBonus: true,
+        type: ITEM_TYPE.SUPERIOR,
+        mods: 3,
       },
     },
     {
@@ -389,33 +428,42 @@ export const itemsRewards: Items = {
     },
     {
       min: 51,
-      max: 95,
+      max: 75,
+      reward: {
+        qty: 1,
+        dice: 3,
+        som: 1,
+        type: ITEM_TYPE.POCAO,
+      },
+    },
+    {
+      min: 76,
+      max: 90,
       reward: {
         qty: 1,
         dice: 1,
         type: ITEM_TYPE.SUPERIOR,
-        mods: 2,
+        mods: 3,
       },
     },
     {
-      min: 96,
+      min: 91,
       max: 100,
       reward: {
         qty: 1,
         dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 5,
+        type: ITEM_TYPE.MAGICO_MENOR,
       },
     },
   ],
   F11: [
     {
       min: 1,
-      max: 50,
+      max: 45,
     },
     {
-      min: 51,
-      max: 85,
+      min: 46,
+      max: 70,
       reward: {
         qty: 1,
         dice: 4,
@@ -424,7 +472,17 @@ export const itemsRewards: Items = {
       },
     },
     {
-      min: 86,
+      min: 71,
+      max: 90,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.SUPERIOR,
+        mods: 3,
+      },
+    },
+    {
+      min: 91,
       max: 100,
       reward: {
         qty: 1,
@@ -436,16 +494,27 @@ export const itemsRewards: Items = {
   F12: [
     {
       min: 1,
-      max: 50,
+      max: 45,
     },
     {
-      min: 51,
-      max: 95,
+      min: 46,
+      max: 70,
+      reward: {
+        qty: 1,
+        dice: 3,
+        som: 1,
+        type: ITEM_TYPE.POCAO,
+        applyRollBonus: true,
+      },
+    },
+    {
+      min: 71,
+      max: 85,
       reward: {
         qty: 1,
         dice: 1,
         type: ITEM_TYPE.SUPERIOR,
-        mods: 3,
+        mods: 4,
       },
     },
     {
@@ -454,23 +523,34 @@ export const itemsRewards: Items = {
       reward: {
         qty: 1,
         dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 6,
+        type: ITEM_TYPE.MAGICO_MENOR,
       },
     },
   ],
   F13: [
     {
       min: 1,
-      max: 45,
+      max: 40,
     },
     {
-      min: 46,
+      min: 41,
+      max: 65,
+      reward: {
+        qty: 1,
+        dice: 4,
+        som: 1,
+        applyRollBonus: true,
+        type: ITEM_TYPE.POCAO,
+      },
+    },
+    {
+      min: 66,
       max: 95,
       reward: {
         qty: 1,
-        dice: 6,
-        type: ITEM_TYPE.POCAO,
+        dice: 1,
+        type: ITEM_TYPE.SUPERIOR,
+        mods: 4,
       },
     },
     {
@@ -486,7 +566,53 @@ export const itemsRewards: Items = {
   F14: [
     {
       min: 1,
+      max: 40,
+    },
+    {
+      min: 41,
+      max: 65,
+      reward: {
+        qty: 1,
+        dice: 4,
+        som: 1,
+        applyRollBonus: true,
+        type: ITEM_TYPE.POCAO,
+      },
+    },
+    {
+      min: 66,
+      max: 85,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.SUPERIOR,
+        mods: 4,
+      },
+    },
+    {
+      min: 86,
+      max: 100,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MEDIO,
+      },
+    },
+  ],
+  F15: [
+    {
+      min: 1,
+      max: 35,
+    },
+    {
+      min: 36,
       max: 45,
+      reward: {
+        qty: 1,
+        dice: 6,
+        som: 1,
+        type: ITEM_TYPE.POCAO,
+      },
     },
     {
       min: 46,
@@ -504,32 +630,6 @@ export const itemsRewards: Items = {
       reward: {
         qty: 1,
         dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 6,
-      },
-    },
-  ],
-  F15: [
-    {
-      min: 1,
-      max: 45,
-    },
-    {
-      min: 46,
-      max: 85,
-      reward: {
-        qty: 1,
-        dice: 6,
-        som: 1,
-        type: ITEM_TYPE.POCAO,
-      },
-    },
-    {
-      min: 86,
-      max: 100,
-      reward: {
-        qty: 1,
-        dice: 1,
         type: ITEM_TYPE.MAGICO_MEDIO,
       },
     },
@@ -537,7 +637,18 @@ export const itemsRewards: Items = {
   F16: [
     {
       min: 1,
-      max: 45,
+      max: 35,
+    },
+    {
+      min: 36,
+      max: 40,
+      reward: {
+        qty: 1,
+        dice: 6,
+        som: 1,
+        applyRollBonus: true,
+        type: ITEM_TYPE.POCAO,
+      },
     },
     {
       min: 46,
@@ -546,7 +657,7 @@ export const itemsRewards: Items = {
         qty: 1,
         dice: 1,
         type: ITEM_TYPE.SUPERIOR,
-        mods: 5,
+        mods: 4,
       },
     },
     {
@@ -562,84 +673,19 @@ export const itemsRewards: Items = {
   F17: [
     {
       min: 1,
-      max: 45,
+      max: 20,
     },
     {
-      min: 46,
-      max: 95,
+      min: 21,
+      max: 40,
       reward: {
         qty: 1,
         dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 5,
+        type: ITEM_TYPE.MAGICO_MENOR,
       },
     },
     {
-      min: 96,
-      max: 100,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.MAGICO_MAIOR,
-      },
-    },
-  ],
-  F18: [
-    {
-      min: 1,
-      max: 45,
-    },
-    {
-      min: 46,
-      max: 90,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.SUPERIOR,
-        mods: 6,
-      },
-    },
-    {
-      min: 91,
-      max: 100,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.MAGICO_MAIOR,
-      },
-    },
-  ],
-  F19: [
-    {
-      min: 1,
-      max: 45,
-    },
-    {
-      min: 46,
-      max: 85,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.MAGICO_MEDIO,
-      },
-    },
-    {
-      min: 86,
-      max: 100,
-      reward: {
-        qty: 1,
-        dice: 1,
-        type: ITEM_TYPE.MAGICO_MAIOR,
-      },
-    },
-  ],
-  F20: [
-    {
-      min: 1,
-      max: 45,
-    },
-    {
-      min: 46,
+      min: 41,
       max: 80,
       reward: {
         qty: 1,
@@ -657,132 +703,157 @@ export const itemsRewards: Items = {
       },
     },
   ],
+  F18: [
+    {
+      min: 1,
+      max: 15,
+    },
+    {
+      min: 16,
+      max: 40,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MENOR,
+      },
+    },
+    {
+      min: 41,
+      max: 70,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MEDIO,
+      },
+    },
+    {
+      min: 71,
+      max: 100,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MAIOR,
+      },
+    },
+  ],
+  F19: [
+    {
+      min: 1,
+      max: 10,
+    },
+    {
+      min: 11,
+      max: 40,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MENOR,
+      },
+    },
+    {
+      min: 41,
+      max: 60,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MEDIO,
+      },
+    },
+    {
+      min: 61,
+      max: 100,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MAIOR,
+      },
+    },
+  ],
+  F20: [
+    {
+      min: 1,
+      max: 5,
+    },
+    {
+      min: 6,
+      max: 40,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MENOR,
+      },
+    },
+    {
+      min: 41,
+      max: 50,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MEDIO,
+      },
+    },
+    {
+      min: 51,
+      max: 100,
+      reward: {
+        qty: 1,
+        dice: 1,
+        type: ITEM_TYPE.MAGICO_MAIOR,
+      },
+    },
+  ],
 };
 
 export const miscellaneousItems: ItemM[] = [
-  {
-    min: 1,
-    max: 5,
-    item: 'Ácido',
-  },
-  {
-    min: 6,
-    max: 10,
-    item: 'Água Benta',
-  },
-  {
-    min: 11,
-    max: 11,
-    item: 'Algemas',
-  },
-  {
-    min: 12,
-    max: 26,
-    item: 'Bálsamo restaurador',
-  },
-  {
-    min: 27,
-    max: 31,
-    item: 'Corda',
-  },
-  {
-    min: 32,
-    max: 32,
-    item: 'Bomba',
-  },
-  {
-    min: 33,
-    max: 47,
-    item: 'Essência de mana',
-  },
-  {
-    min: 48,
-    max: 49,
-    item: 'Espelho de metal',
-  },
-  {
-    min: 50,
-    max: 54,
-    item: 'Fogo alquímico',
-  },
-  {
-    min: 55,
-    max: 56,
-    item: 'Instrumento musical',
-  },
-  {
-    min: 57,
-    max: 58,
-    item: 'Kit de ofício',
-  },
-  {
-    min: 59,
-    max: 60,
-    item: 'Kit de disfarces',
-  },
-  {
-    min: 61,
-    max: 62,
-    item: 'Kit de ladrão',
-  },
-  {
-    min: 63,
-    max: 64,
-    item: 'Kit de medicamentos',
-  },
-  {
-    min: 65,
-    max: 69,
-    item: 'Lampião',
-  },
-  {
-    min: 70,
-    max: 74,
-    item: 'Mochila',
-  },
-  {
-    min: 75,
-    max: 79,
-    item: 'Odre',
-  },
-  {
-    min: 80,
-    max: 81,
-    item: 'Pé de Cabra',
-  },
-  {
-    min: 82,
-    max: 83,
-    item: 'Pederneira',
-  },
-  {
-    min: 84,
-    max: 88,
-    item: 'Rações de viagem',
-    effect: {
-      qtd: 1,
-      dice: 6,
-    },
-  },
-  {
-    min: 89,
-    max: 93,
-    item: 'Saco de Dormir',
-  },
-  {
-    min: 94,
-    max: 98,
-    item: 'Tochas',
-    effect: {
-      qtd: 1,
-      dice: 3,
-    },
-  },
-  {
-    min: 99,
-    max: 100,
-    item: 'Vara de Madeira',
-  },
+  { min: 1, max: 2, item: 'Ácido' },
+  { min: 3, max: 4, item: 'Água benta' },
+  { min: 5, max: 5, item: 'Alaúde élfico' },
+  { min: 6, max: 6, item: 'Algemas' },
+  { min: 7, max: 8, item: 'Baga-de-fogo' },
+  { min: 9, max: 23, item: 'Bálsamo restaurador' },
+  { min: 24, max: 24, item: 'Bandana' },
+  { min: 25, max: 25, item: 'Bandoleira de poções' },
+  { min: 26, max: 30, item: 'Bomba' },
+  { min: 31, max: 31, item: 'Botas reforçadas' },
+  { min: 32, max: 32, item: 'Camisa bufante' },
+  { min: 33, max: 33, item: 'Capa esvoaçante' },
+  { min: 34, max: 34, item: 'Capa pesada' },
+  { min: 35, max: 35, item: 'Casaco longo' },
+  { min: 36, max: 36, item: 'Chapéu arcano' },
+  { min: 37, max: 38, item: 'Coleção de livros' },
+  { min: 39, max: 40, item: 'Cosmético' },
+  { min: 41, max: 42, item: 'Dente-de-dragão' },
+  { min: 43, max: 43, item: 'Enfeite de elmo' },
+  { min: 44, max: 44, item: 'Elixir do amor' },
+  { min: 45, max: 46, item: 'Equipamento de viagem' },
+  { min: 47, max: 56, item: 'Essência de mana' },
+  { min: 57, max: 57, item: 'Estojo de disfarces' },
+  { min: 58, max: 58, item: 'Farrapos de ermitão' },
+  { min: 59, max: 59, item: 'Flauta mística' },
+  { min: 60, max: 66, item: 'Fogo alquímico' },
+  { min: 67, max: 67, item: 'Gorro de ervas' },
+  { min: 68, max: 69, item: 'Líquen lilás' },
+  { min: 70, max: 70, item: 'Luneta' },
+  { min: 71, max: 71, item: 'Luva de pelica' },
+  { min: 72, max: 73, item: 'Maleta de medicamentos' },
+  { min: 74, max: 74, item: 'Manopla' },
+  { min: 75, max: 75, item: 'Manto eclesiástico' },
+  { min: 76, max: 78, item: 'Mochila de aventureiro' },
+  { min: 79, max: 80, item: 'Musgo púrpura' },
+  { min: 81, max: 81, item: 'Organizador de pergaminhos' },
+  { min: 82, max: 83, item: 'Ossos de monstro' },
+  { min: 84, max: 85, item: 'Pó de cristal' },
+  { min: 86, max: 87, item: 'Pó de giz' },
+  { min: 88, max: 88, item: 'Pó do desaparecimento' },
+  { min: 89, max: 89, item: 'Robe de mago' },
+  { min: 90, max: 91, item: 'Saco de sal' },
+  { min: 92, max: 92, item: 'Sapatos de camurça' },
+  { min: 93, max: 94, item: 'Seixo de âmbar' },
+  { min: 95, max: 95, item: 'Sela' },
+  { min: 96, max: 96, item: 'Tabardo' },
+  { min: 97, max: 98, item: 'Terra de cemitério' },
+  { min: 99, max: 99, item: 'Veste de seda' },
+  { min: 100, max: 100, item: 'Veste da corte' },
 ];
 
 export const weapons: ItemWeapons[] = [
@@ -1022,45 +1093,40 @@ export const armors: ItemWeapons[] = [
   {
     min: 1,
     max: 5,
-    item: Armaduras.ARMADURA_ACOLCHOADA,
+    item: Armaduras.ARMADURADECOURO,
   },
   {
     min: 6,
-    max: 20,
-    item: Armaduras.ARMADURA_COMPLETA,
+    max: 10,
+    item: Armaduras.BRUNEA,
   },
   {
-    min: 21,
+    min: 11,
     max: 25,
-    item: Armaduras.ARMADURADECOURO,
+    item: Armaduras.ARMADURA_COMPLETA,
   },
   {
     min: 26,
     max: 30,
-    item: Armaduras.BRUNEA,
-  },
-  {
-    min: 31,
-    max: 35,
     item: Armaduras.COTA_DE_MALHA,
   },
   {
-    min: 36,
-    max: 50,
+    min: 31,
+    max: 45,
     item: Armaduras.COURACA,
   },
   {
-    min: 51,
-    max: 60,
+    min: 46,
+    max: 55,
     item: Armaduras.COUROBATIDO,
   },
   {
-    min: 61,
-    max: 70,
+    min: 56,
+    max: 65,
     item: Escudos.ESCUDOLEVE,
   },
   {
-    min: 71,
+    min: 66,
     max: 80,
     item: Escudos.ESCUDO_PESADO,
   },
@@ -1082,181 +1148,44 @@ export const armors: ItemWeapons[] = [
 ];
 
 export const potions: ItemM[] = [
+  { min: 1, max: 1, item: 'Abençoar Alimentos (óleo)' },
+  { min: 2, max: 3, item: 'Área Escorregadia (granada)' },
+  { min: 4, max: 6, item: 'Arma Mágica (óleo)' },
+  { min: 7, max: 7, item: 'Compreensão' },
+  { min: 8, max: 15, item: 'Curar Ferimentos (2d8+2 PV)' },
+  { min: 16, max: 18, item: 'Disfarce Ilusório' },
+  { min: 19, max: 20, item: 'Escuridão (óleo)' },
+  { min: 21, max: 22, item: 'Luz (óleo)' },
+  { min: 23, max: 24, item: 'Névoa (granada)' },
+  { min: 25, max: 26, item: 'Primor Atlético' },
+  { min: 27, max: 28, item: 'Proteção Divina' },
+  { min: 29, max: 30, item: 'Resistência a Energia' },
+  { min: 31, max: 32, item: 'Sono' },
+  { min: 33, max: 33, item: 'Suporte Ambiental' },
+  { min: 34, max: 34, item: 'Tranca Arcana (óleo)' },
+  { min: 35, max: 35, item: 'Visão Mística' },
+  { min: 36, max: 36, item: 'Vitalidade Fantasma' },
+  { min: 37, max: 38, item: 'Escudo da Fé (aprimoramento para duração cena)' },
+  { min: 39, max: 40, item: 'Alterar Tamanho' },
+  { min: 41, max: 42, item: 'Aparência Perfeita' },
+  { min: 43, max: 43, item: 'Armamento da Natureza (óleo)' },
+  { min: 44, max: 49, item: 'Bola de Fogo (granada)' },
+  { min: 50, max: 51, item: 'Camuflagem Ilusória' },
   {
-    min: 1,
-    max: 1,
-    item: 'Abençoar Alimentos (óleo)',
-  },
-  {
-    min: 2,
-    max: 3,
-    item: 'Área Escorregadia (granada)',
-  },
-  {
-    min: 4,
-    max: 6,
-    item: 'Arma Mágica (óleo)',
-  },
-  {
-    min: 7,
-    max: 7,
-    item: 'Compreensão',
-  },
-  {
-    min: 8,
-    max: 15,
-    item: 'Curar Ferimentos (2d8+2 PV)',
-  },
-  {
-    min: 16,
-    max: 18,
-    item: 'Disfarce Ilusório',
-  },
-  {
-    min: 19,
-    max: 20,
-    item: 'Enfeitiçar',
-  },
-  {
-    min: 21,
-    max: 22,
-    item: 'Escuridão (óleo)',
-  },
-  {
-    min: 23,
-    max: 24,
-    item: 'Luz (óleo)',
-  },
-  {
-    min: 25,
-    max: 26,
-    item: 'Névoa (granada)',
-  },
-  {
-    min: 27,
-    max: 28,
-    item: 'Primor Atlético',
-  },
-  {
-    min: 29,
-    max: 30,
-    item: 'Proteção Divina',
-  },
-  {
-    min: 31,
-    max: 32,
-    item: 'Resistência a Energia',
-  },
-  {
-    min: 33,
-    max: 34,
-    item: 'Sono',
-  },
-  {
-    min: 35,
-    max: 35,
-    item: 'Suporte Ambiental',
-  },
-  {
-    min: 36,
-    max: 36,
-    item: 'Tranca Arcana (óleo)',
-  },
-  {
-    min: 37,
-    max: 37,
-    item: 'Visão Mística',
-  },
-  {
-    min: 38,
-    max: 38,
-    item: 'Vitalidade Fantasma',
-  },
-  {
-    min: 39,
-    max: 41,
-    item: 'Escudo da Fé (aprimoramento para duração cena)',
-  },
-  {
-    min: 42,
-    max: 43,
-    item: 'Alterar Tamanho',
-  },
-  {
-    min: 44,
-    max: 45,
-    item: 'Aparência Perfeita',
-  },
-  {
-    min: 46,
-    max: 46,
-    item: 'Armamento da Natureza (óleo)',
-  },
-  {
-    min: 47,
-    max: 52,
-    item: 'Bola de Fogo (granada)',
-  },
-  {
-    min: 53,
+    min: 52,
     max: 53,
-    item: 'Camuflagem Ilusória',
-  },
-  {
-    min: 54,
-    max: 55,
     item: 'Concentração de Combate (aprimoramento para duração cena)',
   },
-  {
-    min: 56,
-    max: 62,
-    item: 'Curar Ferimentos (4d8+4 PV)',
-  },
-  {
-    min: 63,
-    max: 66,
-    item: 'Físico Divino',
-  },
-  {
-    min: 67,
-    max: 68,
-    item: 'Mente Divina',
-  },
-  {
-    min: 69,
-    max: 70,
-    item: 'Metamorfose',
-  },
-  {
-    min: 71,
-    max: 75,
-    item: 'Purificação',
-  },
-  {
-    min: 76,
-    max: 77,
-    item: 'Velocidade',
-  },
-  {
-    min: 78,
-    max: 79,
-    item: 'Vestimenta da Fé (óleo)',
-  },
-  {
-    min: 80,
-    max: 80,
-    item: 'Voz Divina',
-  },
-  {
-    min: 81,
-    max: 82,
-    item: 'Arma Mágica (óleo; aprimoramento para bônus +3)',
-  },
-  {
-    min: 83,
-    max: 88,
-    item: 'Curar Ferimentos (7d8+7 PV)',
-  },
+  { min: 54, max: 62, item: 'Curar Ferimentos (4d8+4 PV)' },
+  { min: 63, max: 66, item: 'Físico Divino' },
+  { min: 67, max: 68, item: 'Mente Divina' },
+  { min: 69, max: 70, item: 'Metamorfose' },
+  { min: 71, max: 75, item: 'Purificação' },
+  { min: 76, max: 77, item: 'Velocidade' },
+  { min: 78, max: 79, item: 'Vestimenta da Fé (óleo)' },
+  { min: 80, max: 80, item: 'Voz Divina' },
+  { min: 81, max: 82, item: 'Arma Mágica (óleo; aprimoramento para bônus +3)' },
+  { min: 83, max: 88, item: 'Curar Ferimentos (7d8+7 PV)' },
   {
     min: 89,
     max: 89,
@@ -1272,11 +1201,7 @@ export const potions: ItemM[] = [
     max: 96,
     item: 'Bola de Fogo (granada; aprimoramento para 10d6 de dano)',
   },
-  {
-    min: 97,
-    max: 100,
-    item: 'Curar Ferimentos (11d8+11 PV)',
-  },
+  { min: 97, max: 100, item: 'Curar Ferimentos (11d8+11 PV)' },
 ];
 
 export const weaponsEnchantments: ItemE[] = [
@@ -1290,7 +1215,7 @@ export const weaponsEnchantments: ItemE[] = [
     min: 6,
     max: 10,
     enchantment: 'Anticriatura',
-    effect: 'Bônus contra um tipo de criatura',
+    effect: 'Bônus contra tipo de criatura',
   },
   {
     min: 11,
@@ -1308,7 +1233,7 @@ export const weaponsEnchantments: ItemE[] = [
     min: 15,
     max: 16,
     enchantment: 'Caçadora',
-    effect: 'Ignora camuflagem e cobertura',
+    effect: 'Ignora camuflagem leve e total e cobertura leve',
   },
   {
     min: 17,
@@ -1328,18 +1253,8 @@ export const weaponsEnchantments: ItemE[] = [
     enchantment: 'Corrosiva',
     effect: '+1d6 de dano de ácido',
   },
-  {
-    min: 29,
-    max: 30,
-    enchantment: 'Dançarina',
-    effect: 'Ataca sozinha',
-  },
-  {
-    min: 31,
-    max: 34,
-    enchantment: 'Defensora',
-    effect: 'Defesa +2',
-  },
+  { min: 29, max: 30, enchantment: 'Dançarina', effect: 'Ataca sozinha' },
+  { min: 31, max: 34, enchantment: 'Defensora', effect: 'Defesa +2' },
   {
     min: 35,
     max: 36,
@@ -1349,59 +1264,46 @@ export const weaponsEnchantments: ItemE[] = [
   {
     min: 37,
     max: 38,
-    enchantment: 'Drenante',
-    effect: 'Crítico drena vítima',
+    enchantment: 'Dilacerante',
+    effect: '+10 de dano em acertos críticos',
   },
+  { min: 39, max: 40, enchantment: 'Drenante', effect: 'Crítico drena vítima' },
   {
-    min: 39,
-    max: 43,
+    min: 41,
+    max: 45,
     enchantment: 'Elétrica',
     effect: '+1d6 de dano de eletricidade',
   },
   {
-    min: 44,
-    max: 45,
-    enchantment: 'Energética',
+    min: 46,
+    max: 46,
+    enchantment: 'Energética*',
     effect: 'Bônus em ataque',
     double: true,
   },
+  { min: 47, max: 48, enchantment: 'Excruciante', effect: 'Causa fraqueza' },
   {
-    min: 46,
-    max: 47,
-    enchantment: 'Excruciante',
-    effect: 'Causa fraqueza',
-  },
-  {
-    min: 48,
-    max: 52,
+    min: 49,
+    max: 53,
     enchantment: 'Flamejante',
     effect: '+1d6 de dano de fogo',
   },
+  { min: 54, max: 63, enchantment: 'Formidável', effect: 'Ataque e dano +2' },
   {
-    min: 53,
-    max: 62,
-    enchantment: 'Formidável',
-    effect: 'Ataque e dano +2',
-  },
-  {
-    min: 63,
+    min: 64,
     max: 64,
-    enchantment: 'Lancinante',
+    enchantment: 'Lancinante*',
     effect: 'Causa crítico terrível',
+    double: true,
   },
   {
     min: 65,
     max: 72,
-    enchantment: 'Magnífica',
+    enchantment: 'Magnífica*',
     effect: 'Ataque e dano +4',
     double: true,
   },
-  {
-    min: 73,
-    max: 74,
-    enchantment: 'Piedosa',
-    effect: 'Dano não letal',
-  },
+  { min: 73, max: 74, enchantment: 'Piedosa', effect: 'Dano não letal' },
   {
     min: 75,
     max: 76,
@@ -1414,36 +1316,16 @@ export const weaponsEnchantments: ItemE[] = [
     enchantment: 'Sagrada',
     effect: 'Bônus contra devotos do Mal',
   },
-  {
-    min: 79,
-    max: 80,
-    enchantment: 'Sanguinária',
-    effect: 'Causa sangramento',
-  },
-  {
-    min: 81,
-    max: 82,
-    enchantment: 'Trovejante',
-    effect: 'Causa atordoamento',
-  },
+  { min: 79, max: 80, enchantment: 'Sanguinária', effect: 'Causa sangramento' },
+  { min: 81, max: 82, enchantment: 'Trovejante', effect: 'Causa atordoamento' },
   {
     min: 83,
     max: 84,
     enchantment: 'Tumular',
     effect: '+1d8 de dano de trevas',
   },
-  {
-    min: 85,
-    max: 88,
-    enchantment: 'Veloz',
-    effect: 'Fornece ataque extra',
-  },
-  {
-    min: 89,
-    max: 90,
-    enchantment: 'Venenosa',
-    effect: 'Causa envenenamento',
-  },
+  { min: 85, max: 88, enchantment: 'Veloz', effect: 'Fornece ataque extra' },
+  { min: 89, max: 90, enchantment: 'Venenosa', effect: 'Causa envenenamento' },
 ];
 
 export const enchantedWeapons: ItemM[] = [
@@ -1552,18 +1434,8 @@ export const armorEnchantments: ItemE[] = [
     enchantment: 'Abençoado',
     effect: 'Resistência contra trevas',
   },
-  {
-    min: 11,
-    max: 12,
-    enchantment: 'Acrobático',
-    effect: 'Bônus em Acrobacia',
-  },
-  {
-    min: 13,
-    max: 14,
-    enchantment: 'Alado',
-    effect: 'Deslocamento de voo 12m',
-  },
+  { min: 11, max: 12, enchantment: 'Acrobático', effect: 'Bônus em Acrobacia' },
+  { min: 13, max: 14, enchantment: 'Alado', effect: 'Deslocamento de voo 12m' },
   {
     min: 15,
     max: 16,
@@ -1583,12 +1455,7 @@ export const armorEnchantments: ItemE[] = [
     enchantment: 'Cáustica',
     effect: 'Resistência contra ácido',
   },
-  {
-    min: 23,
-    max: 32,
-    enchantment: 'Defensor',
-    effect: 'Defesa +2',
-  },
+  { min: 23, max: 32, enchantment: 'Defensor', effect: 'Defesa +2' },
   {
     min: 33,
     max: 34,
@@ -1645,30 +1512,10 @@ export const armorEnchantments: ItemE[] = [
     enchantment: 'Incandescente',
     effect: 'Resistência contra fogo',
   },
-  {
-    min: 63,
-    max: 68,
-    enchantment: 'Invulnerável',
-    effect: 'Resistência a dano',
-  },
-  {
-    min: 69,
-    max: 72,
-    enchantment: 'Opaco',
-    effect: 'Resistência a energia',
-  },
-  {
-    min: 73,
-    max: 78,
-    enchantment: 'Protetor',
-    effect: 'Resistência +2',
-  },
-  {
-    min: 79,
-    max: 80,
-    enchantment: 'Refletor',
-    effect: 'Reflete magia',
-  },
+  { min: 63, max: 68, enchantment: 'Invulnerável', effect: 'Redução de dano' },
+  { min: 69, max: 72, enchantment: 'Opaco', effect: 'Redução de energia' },
+  { min: 73, max: 78, enchantment: 'Protetor', effect: 'Resistência +2' },
+  { min: 79, max: 80, enchantment: 'Refletor', effect: 'Reflete magia' },
   {
     min: 81,
     max: 84,
@@ -1681,12 +1528,7 @@ export const armorEnchantments: ItemE[] = [
     enchantment: 'Reluzente',
     effect: 'Causa efeito de cegueira',
   },
-  {
-    min: 87,
-    max: 88,
-    enchantment: 'Sombrio',
-    effect: 'Bônus em Furtividade',
-  },
+  { min: 87, max: 88, enchantment: 'Sombrio', effect: 'Bônus em Furtividade' },
   {
     min: 89,
     max: 90,
@@ -2096,74 +1938,79 @@ export const weaponsModifications: ItemMod[] = [
   {
     min: 1,
     max: 10,
-    mod: 'Certeira',
-  },
-  {
-    min: 11,
-    max: 17,
-    mod: 'Pungente',
-    double: true,
-  },
-  {
-    min: 18,
-    max: 27,
-    mod: 'Cruel',
-  },
-  {
-    min: 28,
-    max: 35,
     mod: 'Atroz',
     double: true,
   },
   {
-    min: 36,
-    max: 40,
+    min: 11,
+    max: 13,
+    mod: 'Banhada a ouro',
+  },
+  {
+    min: 14,
+    max: 23,
+    mod: 'Certeira',
+  },
+  {
+    min: 24,
+    max: 26,
+    mod: 'Cravejada de gemas',
+  },
+  {
+    min: 27,
+    max: 36,
+    mod: 'Cruel',
+  },
+  {
+    min: 37,
+    max: 39,
+    mod: 'Discreta',
+  },
+  {
+    min: 40,
+    max: 44,
     mod: 'Equilibrada',
   },
   {
-    min: 41,
-    max: 50,
-    mod: 'Precisa',
+    min: 45,
+    max: 48,
+    mod: 'Harmonizada',
   },
   {
-    min: 51,
-    max: 60,
-    mod: 'Maciça',
-  },
-  {
-    min: 61,
-    max: 65,
-    mod: 'Mira telescópica',
-  },
-  {
-    min: 66,
-    max: 70,
+    min: 49,
+    max: 53,
     mod: 'Injeção alquímica',
   },
   {
-    min: 71,
+    min: 54,
+    max: 55,
+    mod: 'Macabra',
+  },
+  {
+    min: 56,
+    max: 65,
+    mod: 'Maciça',
+  },
+  {
+    min: 66,
     max: 75,
-    mod: 'Harmonizada',
+    mod: 'Material especial',
   },
   {
     min: 76,
     max: 80,
-    mod: 'Banhada a ouro',
+    mod: 'Mira telescópica',
   },
   {
     min: 81,
-    max: 85,
-    mod: 'Cravejada de gemas',
-  },
-  {
-    min: 86,
     max: 90,
-    mod: 'Macabra',
+    mod: 'Precisa',
   },
   {
     min: 91,
     max: 100,
-    mod: 'Material especial',
+    mod: 'Pungente',
+    double: true,
   },
 ];
 
@@ -2175,53 +2022,58 @@ export const armorsModifications: ItemMod[] = [
   },
   {
     min: 16,
-    max: 25,
-    mod: 'Sob medida',
-    double: true,
-  },
-  {
-    min: 26,
-    max: 50,
-    mod: 'Reforçada',
-  },
-  {
-    min: 51,
-    max: 60,
-    mod: 'Selada',
-  },
-  {
-    min: 61,
-    max: 65,
-    mod: 'Delicada',
-  },
-  {
-    min: 66,
-    max: 70,
-    mod: 'Polida',
-  },
-  {
-    min: 71,
-    max: 75,
-    mod: 'Espinhos',
-  },
-  {
-    min: 76,
-    max: 80,
+    max: 19,
     mod: 'Banhada a ouro',
   },
   {
-    min: 81,
-    max: 85,
+    min: 20,
+    max: 23,
     mod: 'Cravejada de gemas',
   },
   {
-    min: 86,
-    max: 90,
+    min: 24,
+    max: 28,
+    mod: 'Delicada',
+  },
+  {
+    min: 29,
+    max: 32,
+    mod: 'Discreta',
+  },
+  {
+    min: 33,
+    max: 37,
+    mod: 'Espinhos',
+  },
+  {
+    min: 38,
+    max: 40,
     mod: 'Macabra',
+  },
+  {
+    min: 41,
+    max: 50,
+    mod: 'Material especial',
+  },
+  {
+    min: 51,
+    max: 55,
+    mod: 'Polida',
+  },
+  {
+    min: 56,
+    max: 80,
+    mod: 'Reforçada',
+  },
+  {
+    min: 81,
+    max: 90,
+    mod: 'Selada',
   },
   {
     min: 91,
     max: 100,
-    mod: 'Material especial',
+    mod: 'Sob medida',
+    double: true,
   },
 ];
