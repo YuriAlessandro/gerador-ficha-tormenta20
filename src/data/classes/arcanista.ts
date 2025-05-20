@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { getRandomItemFromArray } from '../../functions/randomUtils';
+import { getNotRepeatedRandom, getRandomItemFromArray } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   ClassDescription,
@@ -10,6 +10,8 @@ import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import tormentaPowers from '../powers/tormentaPowers';
+import { addOrCheapenRandomSpells, spellsCircle1 } from '../magias/generalSpells';
 
 type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
@@ -87,6 +89,7 @@ const feiticeiroPaths: ClassAbility[] = [
     text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5',
     nivel: 1,
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      // Tipo do dano já foi escolhino no setup
       const sheetClone = _.cloneDeep(sheet);
       const pvModifier = sheetClone.pvModifier.concat({
         source: 'Linhagem Dracônica',
@@ -94,26 +97,54 @@ const feiticeiroPaths: ClassAbility[] = [
         attribute: Atributo.CARISMA,
       });
 
-      const newClasse = _.cloneDeep(sheetClone.classe);
-      const linhagemDraconica = newClasse.abilities.find((ability) => ability.name === 'Linhagem Dracônica');
-      linhagemDraconica!.text += `Tipo escolhido: ${getRandomItemFromArray(['Ácido', 'Elétrico', 'Fogo', 'Frio'])}`;
-
-
       return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         pvModifier,
-        classe: newClasse,
       });
     }
   },
   {
     name: 'Linhagem Feérica',
-    text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha. (ADICIONE VOCÊ MESMO)',
+    text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha.',
     nivel: 1,
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      // Enganação já foi dado no setup
+      const sheetClone = _.cloneDeep(sheet);
+      const validSpells = Object.values(spellsCircle1).filter((spell) => {
+        const correctSchool = spell.school === 'Encan' || spell.school === 'Ilusão';
+        // Escola correta e não repetida
+        return correctSchool && !sheet.spells.find(s => s.nome !== spell.nome);
+      });
+      
+      addOrCheapenRandomSpells(
+        sheetClone,
+        substeps,
+        validSpells,
+        'Linhagem Feérica',
+        Atributo.CARISMA
+      );
+      
+      return sheetClone;
+    }
   },
   {
     name: 'Linhagem Rubra',
     text: 'Seu sangue foi corrompido pela Tormenta. Básica: Você recebe um poder da Tormenta. Além disso, pode perder outro atributo em vez de Carisma por poderes da Tormenta. (ADICIONE VOCÊ MESMO)',
     nivel: 1,
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+      
+      const allowedPowers = Object.values(tormentaPowers);
+      const randomPower = getNotRepeatedRandom(
+        sheetClone.generalPowers,
+        'power',
+        allowedPowers
+      );
+      const generalPowers = sheetClone.generalPowers.concat(randomPower);
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        generalPowers,
+      });
+    }
   },
 ];
 
@@ -324,7 +355,19 @@ const ARCANISTA: ClassDescription = {
     modifiedClasse.spellPath = spellPaths[subtype];
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
-      modifiedClasse.abilities.push(getRandomItemFromArray(feiticeiroPaths));
+      const selectedSubType = getRandomItemFromArray(feiticeiroPaths);
+      if (selectedSubType.name === 'Linhagem Dracônica') {
+        selectedSubType.text += `Tipo escolhido: ${getRandomItemFromArray(['Ácido', 'Elétrico', 'Fogo', 'Frio'])}`;
+      } else if (selectedSubType.name === 'Linhagem Feérica') {
+        modifiedClasse.periciasbasicas.push({
+          type: 'and',
+          list: [Skill.ENGANACAO],
+        });
+      } else if (selectedSubType.name === 'Linhagem Rubra') {
+        // Nothing here
+      }
+
+      modifiedClasse.abilities.push();
       modifiedClasse.attrPriority = [Atributo.CARISMA];
     }
 

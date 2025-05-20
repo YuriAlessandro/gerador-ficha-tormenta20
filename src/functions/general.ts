@@ -1121,6 +1121,8 @@ export default function generateRandomSheet(
     classe,
     pv: summedPV,
     pm: initialPM,
+    pvModifier: [],
+    pmModifier: [],
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1203,6 +1205,30 @@ export default function generateRandomSheet(
   for (let index = 2; index <= targetLevel; index += 1) {
     charSheet = levelUp(charSheet);
   }
+
+  // Aplicar modificadores de atributos
+  const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
+    if (mod.type === 'Attribute') {
+      const attr = charSheet.atributos[mod.attribute];
+      return acc + attr.mod;
+    } else if (mod.type === 'Number') {
+      return acc + mod.value;
+    }
+    return acc;
+  }, 0);
+
+  const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
+    if (mod.type === 'Attribute') {
+      const attr = charSheet.atributos[mod.attribute];
+      return acc + attr.mod;
+    } else if (mod.type === 'Number') {
+      return acc + mod.value;
+    }
+    return acc;
+  }, 0);
+
+  charSheet.pv += pvExtra;
+  charSheet.pm += pmExtra;
 
   return charSheet;
 }
