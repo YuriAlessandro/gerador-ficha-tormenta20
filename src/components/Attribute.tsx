@@ -23,11 +23,11 @@ const Attribute: React.FC<AttributeProps> = (props) => {
       <div>
         <strong>{name.substring(0, 3).toUpperCase()}</strong>
       </div>
-      <div className='value'>{value}</div>
-      <div className='mod'>
+      <div className='value'>
         {mod > 0 ? '+' : ''}
         {mod}
       </div>
+      <div className='mod'>{value}</div>
     </div>
   );
 };
