@@ -9,13 +9,16 @@ import { Atributo } from '../data/atributos';
 
 export type StatModifier = {
   source: string;
-} & ({
-  type: 'Attribute';
-  attribute: Atributo;
-} | {
-  type : 'Number';
-  value: number;
-})
+} & (
+  | {
+      type: 'Attribute';
+      attribute: Atributo;
+    }
+  | {
+      type: 'Number';
+      value: number;
+    }
+);
 
 export default interface CharacterSheet {
   id: string;

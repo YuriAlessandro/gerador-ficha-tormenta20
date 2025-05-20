@@ -788,22 +788,40 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     tormentaPowersQtd += tormentaPowersFromSkills;
   }
 
-  let totalPenalty = 0;
-  if (tormentaPowersQtd >= 1) {
-    sheetClone.atributos.Carisma.mod -= 1;
-    totalPenalty = 1;
-  }
-  if (tormentaPowersQtd > 1) {
-    const tormentaPowersPenalty = Math.floor((tormentaPowersQtd - 1) / 2);
-    sheetClone.atributos.Carisma.mod -= tormentaPowersPenalty;
-    totalPenalty += tormentaPowersPenalty;
-  }
-
+  const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
   if (totalPenalty > 0) {
-    subSteps.push({
-      name: 'Carisma',
-      value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
-    });
+    // Caso especial pra feiticeiros da linhagem rubra, eles nunca querem perder carisma
+    if (
+      sheetClone.classe.abilities.find(
+        (ability) => ability.name === 'Linhagem Rubra'
+      )
+    ) {
+      let remainingPenalty = totalPenalty;
+      while (remainingPenalty > 0) {
+        // Ache o atributo com maior mod que não seja carisma
+        const highestAttribute = Object.values(sheetClone.atributos).reduce(
+          (prev, curr) => {
+            if (curr.name === 'Carisma') return prev;
+            if (prev.mod > curr.mod) return prev;
+            return curr;
+          }
+        );
+
+        sheetClone.atributos[highestAttribute.name].mod -= 1;
+        remainingPenalty -= 1;
+
+        subSteps.push({
+          name: highestAttribute.name,
+          value: `-1 por ${tormentaPowersQtd} poderes da Tormenta`,
+        });
+      }
+    } else {
+      sheetClone.atributos.Carisma.mod -= totalPenalty;
+      subSteps.push({
+        name: 'Carisma',
+        value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
+      });
+    }
   }
 
   if (subSteps.length) {
@@ -1206,29 +1224,62 @@ export default function generateRandomSheet(
     charSheet = levelUp(charSheet);
   }
 
-  // Aplicar modificadores de atributos
-  const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
-    if (mod.type === 'Attribute') {
-      const attr = charSheet.atributos[mod.attribute];
-      return acc + attr.mod;
-    } else if (mod.type === 'Number') {
-      return acc + mod.value;
-    }
-    return acc;
-  }, 0);
+  if (charSheet.pvModifier.length > 0) {
+    const subSteps: SubStep[] = [];
 
-  const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
-    if (mod.type === 'Attribute') {
-      const attr = charSheet.atributos[mod.attribute];
-      return acc + attr.mod;
-    } else if (mod.type === 'Number') {
-      return acc + mod.value;
-    }
-    return acc;
-  }, 0);
+    // Aplicar modificadores de atributos
+    const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
+      subSteps.push({
+        value: `${mod.source}: +${
+          mod.type === 'Attribute' ? mod.attribute : ''
+        }${mod.type === 'Number' ? mod.value : ''}`,
+      });
 
-  charSheet.pv += pvExtra;
-  charSheet.pm += pmExtra;
+      if (mod.type === 'Attribute') {
+        const attr = charSheet.atributos[mod.attribute];
+        return acc + attr.mod;
+      }
+
+      if (mod.type === 'Number') {
+        return acc + mod.value;
+      }
+      return acc;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PV extra',
+      value: subSteps,
+    });
+    charSheet.pv += pvExtra;
+  }
+
+  if (charSheet.pmModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
+      subSteps.push({
+        value: `${mod.source}: +${mod.type === 'Attribute' ? mod.attribute : ''}
+        ${mod.type === 'Number' ? mod.value : ''}`,
+      });
+
+      if (mod.type === 'Attribute') {
+        const attr = charSheet.atributos[mod.attribute];
+        return acc + attr.mod;
+      }
+      if (mod.type === 'Number') {
+        return acc + mod.value;
+      }
+      return acc;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PM extra',
+      value: subSteps,
+    });
+    charSheet.pm += pmExtra;
+  }
 
   return charSheet;
 }
