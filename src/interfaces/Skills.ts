@@ -108,6 +108,7 @@ export type CompleteSkill = {
   modAttr?: number;
   training?: number;
   others?: number;
+  countAsTormentaPower?: boolean;
 };
 
 export type SkillsTotals = {

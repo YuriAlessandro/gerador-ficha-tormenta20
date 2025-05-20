@@ -767,22 +767,41 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
-  sheetClone = (sheetClone.generalPowers || []).reduce((acc, power) => {
-    // Se for Poder da Tormenta, remover 2 de Carisma
-    if (power.type === GeneralPowerType.TORMENTA) {
-      sheetClone.atributos.Carisma.value -= 1;
-      subSteps.push({
-        name: power.name,
-        value: 'Perdeu 1 de Carisma',
-      });
-    }
-    return power.action ? power.action(acc, subSteps) : acc;
-  }, sheetClone);
-
-  // Recalcular mod de carisma
-  sheetClone.atributos.Carisma.mod = getModValue(
-    sheetClone.atributos.Carisma.value
+  sheetClone = (sheetClone.generalPowers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
+    sheetClone
   );
+
+  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
+  let tormentaPowersQtd = sheetClone.generalPowers.filter(
+    (power) => power.type === GeneralPowerType.TORMENTA
+  ).length;
+
+  const tormentaPowersFromSkills = sheetClone.completeSkills?.filter(
+    (skill) => skill.countAsTormentaPower
+  )?.length;
+
+  if (tormentaPowersFromSkills) {
+    tormentaPowersQtd += tormentaPowersFromSkills;
+  }
+
+  let totalPenalty = 0;
+  if (tormentaPowersQtd >= 1) {
+    sheetClone.atributos.Carisma.mod -= 1;
+    totalPenalty = 1;
+  }
+  if (tormentaPowersQtd > 1) {
+    const tormentaPowersPenalty = Math.floor((tormentaPowersQtd - 1) / 2);
+    sheetClone.atributos.Carisma.mod -= tormentaPowersPenalty;
+    totalPenalty += tormentaPowersPenalty;
+  }
+
+  if (totalPenalty > 0) {
+    subSteps.push({
+      name: 'Carisma',
+      value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
+    });
+  }
 
   if (subSteps.length) {
     sheetClone.steps.push({

@@ -420,10 +420,9 @@ const Result: React.FC<ResultProps> = (props) => {
               </div>
 
               <div className='powersArea'>
-                <Divider isDarkMode={isDarkMode} direction='down' />
-
                 {sheet.sentidos && (
                   <>
+                    <Divider isDarkMode={isDarkMode} direction='down' />
                     <div className='sectionTitle'>
                       <span>Sentidos</span>
                     </div>
