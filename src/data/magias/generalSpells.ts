@@ -4692,3 +4692,56 @@ export function addOrCheapenRandomSpells(
     }
   });
 }
+
+export function getSpellsOfCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return Object.values(spellsCircle1);
+  }
+  if (circle === 2) {
+    return Object.values(spellsCircle2);
+  }
+  if (circle === 3) {
+    return Object.values(spellsCircle3);
+  }
+  if (circle === 4) {
+    return Object.values(spellsCircle4);
+  }
+  if (circle === 5) {
+    return Object.values(spellsCircle5);
+  }
+  return [];
+}
+
+export function allSpellsUpToCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return Object.values(spellsCircle1);
+  }
+  if (circle === 2) {
+    return [...Object.values(spellsCircle1), ...Object.values(spellsCircle2)];
+  }
+  if (circle === 3) {
+    return [
+      ...Object.values(spellsCircle1),
+      ...Object.values(spellsCircle2),
+      ...Object.values(spellsCircle3),
+    ];
+  }
+  if (circle === 4) {
+    return [
+      ...Object.values(spellsCircle1),
+      ...Object.values(spellsCircle2),
+      ...Object.values(spellsCircle3),
+      ...Object.values(spellsCircle4),
+    ];
+  }
+  if (circle === 5) {
+    return [
+      ...Object.values(spellsCircle1),
+      ...Object.values(spellsCircle2),
+      ...Object.values(spellsCircle3),
+      ...Object.values(spellsCircle4),
+      ...Object.values(spellsCircle5),
+    ];
+  }
+  return [];
+}
