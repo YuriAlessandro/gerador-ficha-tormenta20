@@ -24,7 +24,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       </td>
       <td>
         {dano}
-        {isRange ? '' : `${modDano > 0 ? `+${modDano}` : ''}`}
+        {isRange ? '' : `${modDano >= 0 ? `+${modDano}` : `${modDano}`}`}
+        {/* {!isRange && `+${}`} */}
       </td>
       <td>{critico}</td>
       <td>{tipo}</td>

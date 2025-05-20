@@ -16,14 +16,26 @@ import {
   spellsCircle2,
 } from '../magias/generalSpells';
 import { getNotRepeatedRandomSkill } from '../pericias';
+import EQUIPAMENTOS, { Armas } from '../equipamentos';
+import PROFICIENCIAS from '../proficiencias';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AFINIDADE_COM_A_TORMENTA: {
     name: 'Afinidade com a Tormenta',
     description:
-      'Você recebe +10 em testes de resistência contra efeitos da Tormenta e de suas criaturas',
+      'Você recebe +10 em testes de resistência contra efeitos da Tormenta, de suas criaturas e de devotos de Aharadak. Além disso, seu primeiro poder da Tormenta não conta para perda de Carisma.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Aharadak' }]],
+  },
+  ALMEJAR_O_IMPOSSIVEL: {
+    name: 'Almejar o Impossível',
+    description:
+      'Quando faz um teste de perícia, um resultado de 19 ou mais no dado sempre é um sucesso, não importando o valor a ser alcançado.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [
+      [{ type: RequirementType.DEVOTO, name: 'Thwor' }],
+      [{ type: RequirementType.DEVOTO, name: 'Valkaria' }],
+    ],
   },
   ANFIBIO: {
     name: 'Anfíbio',
@@ -32,23 +44,124 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
   },
+  APOSTAR_COM_O_TRAPACEIRO: {
+    name: 'Apostar com o Trapaceiro',
+    description:
+      'Quando faz um teste de perícia, você pode gastar 1 PM para apostar com Hyninn. Você e o mestre rolam 1d20, mas o mestre mantém o resultado dele em segredo. Você então escolhe entre usar seu próprio resultado ou o resultado oculto do mestre (neste caso, ele revela o resultado).',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+  },
   ARMAS_DA_AMBICAO: {
     name: 'Armas da Ambição',
     description:
-      'Você recebe +1 em testes de ataque com armas nas quais é proficiente.',
+      'Você recebe +1 em testes de ataque e na margem de ameaça com armas nas quais é proficiente.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Valkaria' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const simpleWeapons = EQUIPAMENTOS.armasSimples.map((w) => w.nome);
+      const martialWeapons = EQUIPAMENTOS.armasMarciais.map((w) => w.nome);
+      const exoticWeapons = EQUIPAMENTOS.armasExoticas.map((w) => w.nome);
+      const fireWeapons = EQUIPAMENTOS.armasDeFogo.map((w) => w.nome);
+
+      const { proficiencias } = sheetClone.classe;
+
+      sheetClone.bag.equipments.Arma.forEach((weapon) => {
+        if (simpleWeapons.includes(weapon.nome)) {
+          // Arma simples recebe +1
+          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+
+          substeps.push({
+            name: 'Armas da Ambição',
+            value: `+1 de ataque em ${weapon.nome} (armas simples)`,
+          });
+        } else if (
+          martialWeapons.includes(weapon.nome) &&
+          proficiencias.includes(PROFICIENCIAS.MARCIAIS)
+        ) {
+          // Arma marcial recebe +1
+          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+
+          substeps.push({
+            name: 'Armas da Ambição',
+            value: `+1 de ataque em ${weapon.nome} (armas marciais)`,
+          });
+        } else if (
+          exoticWeapons.includes(weapon.nome) &&
+          proficiencias.includes(PROFICIENCIAS.EXOTICAS)
+        ) {
+          // Arma exótica recebe +1
+          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+
+          substeps.push({
+            name: 'Armas da Ambição',
+            value: `+1 de ataque em ${weapon.nome} (armas exóticas)`,
+          });
+        } else if (
+          fireWeapons.includes(weapon.nome) &&
+          proficiencias.includes(PROFICIENCIAS.FOGO)
+        ) {
+          // Arma de fogo recebe +1
+          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+
+          substeps.push({
+            name: 'Armas da Ambição',
+            value: `+1 de ataque em ${weapon.nome} (armas de fogo)`,
+          });
+        }
+      });
+
+      return sheetClone;
+    },
   },
   ARSENAL_DAS_PROFUNDEZAS: {
     name: 'Arsenal das profundezas',
     description:
-      'Você recebe +2 nas rolagens de dano com azagaias, lanças e tridentes.',
+      'Você recebe +2 nas rolagens de dano com azagaias, lanças e tridentes e seu multiplicador de crítico com essas armas aumenta em +1.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const weapons = [
+        Armas.AZAGAIA.nome,
+        Armas.LANCA.nome,
+        Armas.TRIDENTE.nome,
+      ];
+
+      sheetClone.bag.equipments.Arma.forEach((weapon) => {
+        if (weapons.includes(weapon.nome)) {
+          weapon.dano = `${weapon.dano} + 2`;
+          if (weapon.critico) {
+            switch (weapon.critico) {
+              case '2x':
+                weapon.critico = '3x';
+                break;
+              case '3x':
+                weapon.critico = '4x';
+                break;
+              case '4x':
+                weapon.critico = '5x';
+                break;
+              default:
+                weapon.critico = `${weapon.critico} + 1`;
+            }
+          }
+
+          substeps.push({
+            name: 'Arsenal das profundezas',
+            value: `+2 de dano e +1 no multiplicador de crítico em ${weapon.nome}`,
+          });
+        }
+      });
+
+      return sheetClone;
+    },
   },
   ASTUCIA_DA_SERPENTE: {
     name: 'Astúcia da Serpente',
-    description: 'Você recebe +2 em Enganação e Intuição (JÁ INCLUSO).',
+    description: 'Você recebe +2 em Enganação, Furtividade e Intuição.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
@@ -57,7 +170,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Enganação' || sk.name === 'Intuição') {
+        if (sk.name === Skill.ENGANACAO || sk.name === Skill.INTUICAO) {
           value += 2;
         }
 
@@ -77,7 +190,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   ATAQUE_PIEDOSO: {
     name: 'Ataque Piedoso',
     description:
-      ' Você pode usar armas de corpo a corpo para causar dano não letal sem sofrer a penalidade de -5 no teste de ataque',
+      'Você pode usar armas corpo a corpo para causar dano não letal sem sofrer a penalidade de –5 no teste de ataque.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [{ type: RequirementType.DEVOTO, name: 'Lena' }],
@@ -87,7 +200,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AURA_DE_MEDO: {
     name: 'Aura de Medo',
     description:
-      'Você pode gastar 2 PM para gerar uma aura de medo com alcance curto e duração até o fim da cena. Todos os inimigos que entrem na aura devem fazer um teste de Vontade (CD Car) ou ficam abalados até o fim da cena. Uma criatura que passe no teste de Vontade fica imune a esta habilidade por um dia.',
+      'Você pode gastar 2 PM para gerar uma aura de medo de 9m de raio e duração até o fim da cena. Todos os inimigos que entrem na aura devem fazer um teste de Vontade (CD Car) ou ficam abalados até o fim da cena. Uma criatura que passe no teste de Vontade fica imune a esta habilidade por um dia.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }]],
   },
@@ -101,13 +214,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AURA_RESTAURADORA: {
     name: 'Aura Restauradora',
     description:
-      'Você e seus aliados em alcance curto recuperam duas vezes mais pontos de vida por descanso.',
+      'Efeitos de cura usados por você e seus aliados em alcance curto recuperam +1 PV por dado.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lena' }]],
   },
   BENCAO_DO_MANA: {
     name: 'Bênção do Mana',
-    description: 'Você recebe +3 pontos de mana (JÁ INCLUSO).',
+    description: 'Você recebe +1 PM a cada nível ímpar.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Wynna' }]],
     action(
@@ -121,10 +234,10 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
 
       subSteps.push({
         name: 'Bênção do Mana',
-        value: '+3 de mana',
+        value: '+1 de mana para cada nível ímpar',
       });
 
-      sheetClone.pm += 3;
+      sheetClone.pm += sheetClone.nivel % 2 === 1 ? 1 : 0;
 
       return sheetClone;
     },
@@ -139,7 +252,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   CENTELHA_MAGICA: {
     name: 'Centelha Mágica',
     description:
-      'Escolha uma magia arcana ou divina de 1º círculo. Você aprende e pode lançar essa magia (JÁ INCLUSO).',
+      'Escolha uma magia arcana ou divina de 1º círculo. Você aprende e pode lançar essa magia',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [
@@ -168,10 +281,39 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       return sheetClone;
     },
   },
+  COMPREENDER_OS_ERMOS: {
+    name: 'Compreender os Ermos',
+    description:
+      'Você recebe +2 em Sobrevivência e pode usar Sabedoria para Adestramento (em vez de Carisma).',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
+    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === Skill.SOBREVIVENCIA) {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      substeps.push({
+        name: 'Compreender os Ermos',
+        value: `Somando +2 em Sobrevivência`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
+  },
   CONHECIMENTO_ENCICLOPEDICO: {
     name: 'Conhecimento Enciclopédico',
     description:
-      'Você se torna treinado em duas perícias baseadas em Inteligência a sua escolha (JÁ INCLUSO).',
+      'Você se torna treinado em duas perícias baseadas em Inteligência a sua escolha.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
     action(
@@ -210,7 +352,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   CONJURAR_ARMA: {
     name: 'Conjurar Arma',
     description:
-      'Você pode gastar 1 PM para invocar uma arma corpo a corpo ou de arremesso com a qual seja proficiente. A arma surge em sua mão, recebe um bônus de +1 em testes de ataque e rolagens de dano e dura pela cena. Você não pode criar armas de disparo, mas pode criar 20 projéteis (flechas, virotes etc.)',
+      'Você pode gastar 1 PM para invocar uma arma corpo a corpo ou de arremesso com a qual seja proficiente. A arma surge em sua mão, fornece +1 em testes de ataque e rolagens de dano, é considerada mágica e dura pela cena. Você não pode criar armas de disparo, mas pode criar 20 munições.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Arsenal' }]],
   },
@@ -220,6 +362,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você é imune a efeitos de medo, mágicos ou não. Este poder não elimina fobias raciais (como o medo de altura dos minotauros).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
+      [{ type: RequirementType.DEVOTO, name: 'Arsenal' }],
       [{ type: RequirementType.DEVOTO, name: 'Khalmyr' }],
       [{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }],
       [{ type: RequirementType.DEVOTO, name: 'Valkaria' }],
@@ -228,20 +371,21 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   CURA_GENTIL: {
     name: 'Cura Gentil',
     description:
-      'Você adiciona seu bônus de Carisma (mínimo +1) aos PV restaurados por suas magias de cura.',
+      'Você soma seu Carisma aos PV restaurados por seus efeitos mágicos de cura.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lena' }]],
   },
   CURANDEIRA_PERFEITA: {
     name: 'Curandeira Perfeita',
     description:
-      'Você sempre pode escolher 10 em testes de Cura. Além disso, pode usar essa perícia mesmo sem um kit de medicamentos. Se usar o kit, recebe +2 no teste de Cura.',
+      'Você sempre pode escolher 10 em testes de Cura. Além disso, não sofre penalidade por usar essa perícia sem uma maleta de medicamentos. Se possuir o item, recebe +2 no teste de Cura (ou +5, se ele for aprimorado).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lena' }]],
   },
   DEDO_VERDE: {
     name: 'Dedo Verde',
-    description: 'Você aprende e pode lançar Controlar Plantas (JÁ INCLUSO).',
+    description:
+      'Você aprende e pode lançar Controlar Plantas. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
     action(
@@ -270,14 +414,40 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   DESCANSO_NATURAL: {
     name: 'Descanso Natural',
     description:
-      'Para você, dormir ao relento conta como uma estalagem confortável.',
+      'Para você, dormir ao relento conta como condição de descanso confortável.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
+  },
+  DOM_DA_ESPERANCA: {
+    name: 'Dom da Esperança',
+    description:
+      'Você soma sua Sabedoria em seus PV em vez de Constituição, e se torna imune às condições alquebrado, esmorecido e frustrado.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Dom da Esperança',
+        value: `Mudou PV de Constituição para Sabedoria: ${
+          sheetClone.classe.pv
+        } + ${sheetClone.atributos.Sabedoria.mod} = ${
+          sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod
+        }`,
+      });
+
+      sheetClone.pv = sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod;
+
+      return sheetClone;
+    },
   },
   DOM_DA_IMORTALIDADE: {
     name: 'Dom da Imortalidade',
     description:
-      'Você é imortal. Sempre que morre, não importando o motivo, volta à vida após 3d6 dias. Você não perde níveis de experiência.',
+      'Você é imortal. Sempre que morre, não importando o motivo, volta à vida após 3d6 dias. Apenas paladinos podem escolher este poder. Um personagem pode ter Dom da Imortalidade ou Dom da Ressurreição, mas não ambos.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [
@@ -289,7 +459,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   DOM_DA_PROFECIA: {
     name: 'Dom da Profecia',
     description:
-      'Você pode lançar Augúrio. Você também pode gastar 2 PM para receber +2 em um teste.',
+      'Você pode lançar Augúrio. Caso aprenda novamente essa magia, seu custo diminui em –1 PM. Você também pode gastar 2 PM para receber +2 em um teste.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Thyatis' }]],
     action(
@@ -313,7 +483,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   DOM_DA_RESSUREICAO: {
     name: 'Dom da Ressurreição',
     description:
-      'Você pode gastar uma ação completa e todos os PM que possui (mínimo 1 PM) para tocar o corpo de uma criatura morta há menos de um ano e ressuscitá- la. A criatura volta à vida com 1 PV e 0 PM, e perde 2 pontos de Constituição permanentemente. Este poder só pode ser usado uma vez em cada criatura.',
+      'Você pode gastar uma ação completa e todos os PM que possui (mínimo 1 PM) para tocar o corpo de uma criatura morta há menos de um ano e ressuscitá-la. A criatura volta à vida com 1 PV e 0 PM, e perde 1 ponto de Constituição permanentemente. Este poder só pode ser usado uma vez em cada criatura. Apenas clérigos podem escolher este poder. Um personagem pode ter Dom da Imortalidade ou Dom da Ressurreição, mas não ambos.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [
@@ -325,13 +495,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   DOM_DA_VERDADE: {
     name: 'Dom da Verdade',
     description:
-      'Você pode pagar 1 PM para receber +5 em testes de Intuição até o fim da cena.',
+      'Você pode pagar 2 PM para receber +5 em testes de Intuição, e em testes de Percepção contra Enganação e Furtividade, até o fim da cena.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Khalmyr' }]],
   },
   ESCAMAS_DRACONICAS: {
     name: 'Escamas Dracônicas',
-    description: 'Você recebe +1 na Defesa (JÁ INCLUSO).',
+    description: 'Você recebe +2 na Defesa e em Fortitude.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }]],
     action(
@@ -342,38 +512,73 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
 
       subSteps.push({
         name: 'Escamas Dracônicas',
-        value: '+1 na Defesa',
+        value: '+2 na Defesa',
       });
 
-      sheetClone.defesa += 1;
+      sheetClone.defesa += 2;
 
-      return sheetClone;
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === Skill.FORTITUDE) {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      subSteps.push({
+        name: 'Escamas Dracônicas',
+        value: `Somando +2 em Fortitude`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
     },
   },
   ESCUDO_MAGICO: {
     name: 'Escudo Mágico',
     description:
-      'Quando lança uma magia, você recebe +2 na Defesa até o início do seu próximo turno.',
+      'Quando lança uma magia, você recebe um bônus na Defesa igual ao círculo da magia lançada até o início do seu próximo turno. ',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Wynna' }]],
   },
   ESPADA_JUSTICEIRA: {
     name: 'Espada Justiceira',
     description:
-      'Você pode gastar 1 PM para encantar sua espada (ou outra arma corpo a corpo de corte que esteja empunhando). Ela recebe +1 em testes de ataque e rolagens de dano até o fim da cena.',
+      'Você pode gastar 1 PM para encantar sua espada (ou outra arma corpo a corpo de corte que esteja empunhando). Ela tem seu dano aumentado em um passo até o fim da cena.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Khalmyr' }]],
   },
   ESPADA_SOLAR: {
     name: 'Espada Solar',
     description:
-      'Você pode gastar 1 PM para fazer uma arma corpo a corpo de corte que esteja empunhando causar +1d6 de dano por fogo até o fim da cena.',
+      'Você pode gastar 1 PM para fazer uma arma corpo a corpo de corte que esteja empunhando causar +1d6 de dano por fogo até o fim da cena. ',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
   },
+  EXTASE_DA_LOUCURA: {
+    name: 'Êxtase da Loucura',
+    description:
+      'Toda vez que uma ou mais criaturas falham em um teste de Vontade contra uma de suas habilidades mágicas, você recebe 1 PM temporário cumulativo. Você pode ganhar um máximo de PM temporários por cena desta forma igual a sua Sabedoria.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [
+      [{ type: RequirementType.DEVOTO, name: 'Aharadak' }],
+      [{ type: RequirementType.DEVOTO, name: 'Nimb' }],
+    ],
+  },
+  FAMILIAR_OFIDICO: {
+    name: 'Familiar Ofídico',
+    description:
+      'Você recebe um familiar cobra (veja a página 38) que não conta em seu limite de parceiros.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
+  },
   FARSA_DO_FINGIDOR: {
     name: 'Farsa do Fingidor',
-    description: 'Você aprende e pode lançar Criar Ilusão (JÁ INCLUSO).',
+    description:
+      'Você aprende e pode lançar Criar Ilusão. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
     action(
@@ -393,23 +598,37 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       return sheetClone;
     },
   },
+  FE_GUERREIRA: {
+    name: 'Fé Guerreira',
+    description:
+      'Você pode usar Sabedoria para Guerra (em vez de Inteligência). Além disso, em combate, pode gastar 2 PM para substituir um teste de perícia (exceto testes de ataque) por um teste de Guerra.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Arsenal' }]],
+  },
   FORMA_DE_MACACO: {
     name: 'Forma de Macaco',
     description:
-      'Você pode gastar uma ação completa e 2 PM para se transformar em um macaco. Você adquire tamanho Minúsculo (o que fornece +5 em Furtividade e –5 em testes de manobra) e recebe deslocamento de escalar 9m. Seu equipamento desaparece (e você perde seus benefícios) até você voltar ao normal, mas suas outras estatísticas não são alteradas. A transformação dura indefinidamente, mas termina caso você faça um ataque, lance uma magia ou sofra dano.',
+      'Você pode gastar uma ação completa e 2 PM para se transformar em um macaco. Você adquire tamanho Minúsculo (o que fornece +5 em Furtividade e –5 em testes de manobra) e recebe deslocamento de escalar 9m. Seu equipamento desaparece (e você perde seus benefícios) até você voltar ao normal, mas suas outras estatísticas não são alteradas. A transformação dura indefinidamente, mas termina caso você faça um ataque, lance uma magia ou sofra dano. ',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
+  },
+  FULGOR_SOLAR: {
+    name: 'Fulgor Solar',
+    description:
+      'Você recebe redução de frio e trevas 5. Além disso, quando é alvo de um ataque você pode gastar 1 PM para emitir um clarão solar que deixa o atacante ofuscado por uma rodada.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
   },
   FURIA_DIVINA: {
     name: 'Fúria Divina',
     description:
-      'Você pode gastar 2 PM para invocar uma fúria selvagem, tornando-se temível em combate. Você recebe +2 em testes de ataque e rolagens de dano corpo a corpo, mas não pode executar nenhuma ação que exija paciência ou concentração (como usar a perícia Furtividade ou lançar magias). A Fúria Divina termina se, ao fim da rodada, você não tiver atacado nem sido alvo de um efeito hostil.',
+      'Você pode gastar 2 PM para invocar uma fúria selvagem, tornando-se temível em combate. Até o fim da cena, você recebe +2 em testes de ataque e rolagens de dano corpo a corpo, mas não pode executar nenhuma ação que exija paciência ou concentração (como usar a perícia Furtividade ou lançar magias). Se usar este poder em conjunto com a habilidade Fúria, ela também dura uma cena (e não termina se você não atacar ou for alvo de uma ação hostil).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Thwor' }]],
   },
   GOLPISTA_DIVINO: {
     name: 'Golpista Divino',
-    description: 'Você recebe +2 em Enganação e Ladinagem.',
+    description: 'Você recebe +2 em Enganação, Jogatina e Ladinagem.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
@@ -418,7 +637,11 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Enganação' || sk.name === 'Ladinagem') {
+        if (
+          sk.name === Skill.ENGANACAO ||
+          sk.name === Skill.JOGATINA ||
+          sk.name === Skill.LADINAGEM
+        ) {
           value += 2;
         }
 
@@ -438,34 +661,35 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   HABITANTE_DO_DESERTO: {
     name: 'Habitante do Deserto',
     description:
-      'Você recebe resistência a fogo 5 e pode pagar 1 PM para criar água pura e potável suficiente para um odre (ou outro recipiente pequeno).',
+      'Você recebe redução de fogo 10 e pode pagar 1 PM para criar água pura e potável suficiente para um odre (ou outro recipiente pequeno).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
   },
   INIMIGO_DE_TENEBRA: {
     name: 'Inimigo de Tenebra',
     description:
-      'Seus ataques e habilidades causam +1d6 pontos de dano contra mortos-vivos.',
+      'Seus ataques e habilidades causam +1d6 pontos de dano contra mortos-vivos. Quando você usa um efeito que gera luz, o alcance da iluminação dobra.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
   },
   KIAI_DIVINO: {
     name: 'Kiai Divino',
     description:
-      'Quando faz um ataque corpo a corpo, você pode pagar 2 PM. Se acertar o ataque, causa dano máximo.',
+      'Uma vez por rodada, quando faz um ataque corpo a corpo, você pode pagar 3 PM. Se acertar o ataque, causa dano máximo, sem necessidade de rolar dados.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
   },
   LIBERDADE_DIVINA: {
     name: 'Liberdade Divina',
     description:
-      'Você pode gastar 2 PM e uma reação para lançar Libertação com alcance pessoal e duração de 1 rodada.',
+      'Você pode gastar 2 PM para receber imunidade a efeitos de movimento por uma rodada.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Valkaria' }]],
   },
   MANTO_DA_PENUMBRA: {
     name: 'Manto da Penumbra',
-    description: 'Você aprende e pode lançar Escuridão.',
+    description:
+      'Você aprende e pode lançar Escuridão. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tenebra' }]],
     action(
@@ -487,7 +711,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   MENTE_ANALITICA: {
     name: 'Mente Analítica',
-    description: 'Você recebe +2 em Intuição e Vontade.',
+    description: 'Você recebe +2 em Intuição, Investigação e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
@@ -496,7 +720,11 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Intuição' || sk.name === 'Vontade') {
+        if (
+          sk.name === Skill.INTUICAO ||
+          sk.name === Skill.INVESTIGACAO ||
+          sk.name === Skill.VONTADE
+        ) {
           value += 2;
         }
 
@@ -505,7 +733,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
 
       substeps.push({
         name: 'Mente Analítica',
-        value: `Somando +2 em Intuição e Vontade`,
+        value: `Somando +2 em Intuição, Investigação e Vontade`,
       });
 
       return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
@@ -515,7 +743,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   MENTE_VAZIA: {
     name: 'Mente Vazia',
-    description: 'Você recebe +2 em Iniciativa e Vontade.',
+    description: 'Você recebe +2 em Iniciativa, Percepção e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
@@ -524,7 +752,11 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Iniciativa' || sk.name === 'Vontade') {
+        if (
+          sk.name === Skill.INICIATIVA ||
+          sk.name === Skill.PERCEPCAO ||
+          sk.name === Skill.VONTADE
+        ) {
           value += 2;
         }
 
@@ -533,7 +765,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
 
       substeps.push({
         name: 'Mente Vazia',
-        value: `Somando +2 em Iniciativa e Vontade`,
+        value: `Somando +2 em Iniciativa, Percepção e Vontade.`,
       });
 
       return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
@@ -544,13 +776,14 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   MESTRE_DOS_MARES: {
     name: 'Mestre dos Mares',
     description:
-      'Você pode falar com animais aquáticos (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra criaturas aquáticas.',
+      'Você pode falar com animais aquáticos (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra criaturas aquáticas. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
   },
   OLHAR_AMEDRONTADOR: {
     name: 'Olhar Amedrontador',
-    description: 'Você aprende e pode lançar Amedrontar.',
+    description:
+      'Você aprende e pode lançar Amedrontar. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [{ type: RequirementType.DEVOTO, name: 'Megalokk' }],
@@ -575,7 +808,8 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   PALAVRAS_DE_BONDADE: {
     name: 'Palavras de Bondade',
-    description: 'Você aprende e pode lançar Enfeitiçar.',
+    description:
+      'Você aprende e pode lançar Enfeitiçar. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
     action(
@@ -598,51 +832,81 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   PERCEPCAO_TEMPORAL: {
     name: 'Percepção Temporal',
     description:
-      'Você pode gastar 3 PM para adicionar seu bônus de Sabedoria (mínimo +1, limitado por seu nível) a seus ataques, Defesa e testes de Reflexos até o fim da cena.',
+      'Você pode gastar 3 PM para somar sua Sabedoria (limitado por seu nível e não cumulativo com efeitos que somam este atributo) a seus ataques, Defesa e testes de Reflexos até o fim da cena.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Aharadak' }]],
+  },
+  PESQUISA_ABENCOADA: {
+    name: 'Pesquisa Abençoada',
+    description:
+      'Se passar uma hora pesquisando seus livros e anotações, você pode rolar novamente um teste de perícia baseada em Inteligência ou Sabedoria que tenha feito desde a última cena. Se tiver acesso a mais livros, você recebe um bônus no teste: +2 para uma coleção particular ou biblioteca pequena e +5 para a biblioteca de um templo ou universidade.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
   },
   PODER_OCULTO: {
     name: 'Poder Oculto',
     description:
-      'Você pode gastar uma ação de movimento e 2 PM para invocar a força, a rapidez ou o vigor dos loucos. Role 1d6 para receber +4 em Força (1 ou 2), Destreza (3 ou 4) ou Constituição (5 ou 6) até o fim da cena. Você pode usar este poder várias vezes, cada vez gastando uma ação de movimento e 2 PM.',
+      'Você pode gastar uma ação de movimento e 2 PM para invocar a força, a rapidez ou o vigor dos loucos. Role 1d6 para receber +2 em Força (1 ou 2), Destreza (3 ou 4) ou Constituição (5 ou 6) até o fim da cena. Você pode usar este poder várias vezes, mas bônus no mesmo atributo não são cumulativos.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Nimb' }]],
+  },
+  PRESAS_PRIMORDIAIS: {
+    name: 'Presas Primordiais',
+    description:
+      'Você pode gastar 1 PM para transformar seus dentes em presas afiadas até o fim da cena. Você recebe uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir com outra arma, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida. Se já possuir outro ataque natural de mordida, em vez disso, o dano desse ataque aumenta em dois passos.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [
+      [{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }],
+      [{ type: RequirementType.DEVOTO, name: 'Megalokk' }],
+    ],
   },
   PRESAS_VENENOSAS: {
     name: 'Presas venenosas',
     description:
-      'Você pode gastar uma ação de movimento e 1 PM para envenenar uma arma corpo a corpo que esteja empunhando. Em caso de acerto, a arma causa 1d12 pontos de dano de veneno. A arma permanece envenenada até atingir uma criatura ou até o fim da cena, o que acontecer primeiro.',
+      'Você pode gastar uma ação de movimento e 1 PM para envenenar uma arma corpo a corpo que esteja empunhando. Em caso de acerto, a arma causa perda de 1d12 pontos de vida. A arma permanece envenenada até atingir uma criatura ou até o fim da cena, o que acontecer primeiro.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
   },
-  REJEICAO_DIVINA: {
-    name: 'Rejeição Divina',
+  REPARAR_INJUSTICA: {
+    name: 'Reparar Injustiça',
     description:
-      'Você recebe +5 em testes de resistência contra magias divinas.',
+      'Uma vez por rodada, quando um oponente em alcance curto acerta um ataque em você ou em um de seus aliados, você pode gastar 2 PM para fazer este oponente repetir o ataque, escolhendo o pior entre os dois resultados.',
     type: GeneralPowerType.CONCEDIDOS,
-    requirements: [[{ type: RequirementType.DEVOTO, name: 'Aharadak' }]],
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Khalmyr' }]],
   },
   SANGUE_DE_FERRO: {
     name: 'Sangue de Ferro',
     description:
-      'Você pode pagar 2 PM para receber +2 em rolagens de dano e resistência a dano 5 até o fim da cena',
+      'Você pode pagar 3 PM para receber +2 em rolagens de dano e redução de dano 5 até o fim da cena.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Arsenal' }]],
+  },
+  REJEICAO_DIVINA: {
+    name: 'Rejeição Divina',
+    description: 'Você recebe resistência a magia divina +5.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Aharadak' }]],
   },
   SANGUE_OFIDICO: {
     name: 'Sangue Ofídico',
     description:
-      'Você recebe resistência a veneno 5 e a CD para resistir aos seus venenos aumenta em +2.',
+      'Você recebe resistência a veneno +5 e a CD para resistir aos seus venenos aumenta em +2.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
   },
   SERVOS_DO_DRAGAO: {
     name: 'Servos do Dragão',
     description:
-      'Você pode gastar uma ação completa e 2 PM para invocar 2d4+1 kobolds em espaços desocupados em alcance curto. Você pode usar uma ação de movimento para fazer os kobolds andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6–1 pontos de dano de perfuração cada). Os kobolds têm For 8, Des 14, 1 PV, não têm valor de Defesa ou testes de resistência e falham automaticamente em qualquer teste oposto. Eles desaparecem quando morrem ou no fim da cena. Os kobolds não agem sem receber uma ordem. Usos criativos para criaturas invocadas fora de combate ficam a critério do mestre.',
+      'Você pode gastar uma ação completa e 2 PM para invocar 2d4+1 kobolds capangas em espaços desocupados em alcance curto. Você pode gastar uma ação de movimento para fazer os kobolds andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6–1 pontos de dano de perfuração cada). Os kobolds têm For –1, Des 1, Defesa 12, 1 PV e falham automaticamente em qualquer teste de resistência ou oposto. Eles desaparecem quando morrem ou no fim da cena. Os kobolds não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }]],
+  },
+  SOPRO_DO_MAR: {
+    name: 'Sopro do Mar',
+    description:
+      'Você pode gastar uma ação padrão e 1 PM para soprar vento marinho em um cone de 6m. Criaturas na área sofrem 2d6 pontos de dano de frio (Reflexos CD Sab reduz à metade). Você pode aprender Sopro das Uivantes como uma magia divina. Se fizer isso, o custo dela diminui em –1 PM.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
   },
   SORTE_DOS_LOUCOS: {
     name: 'Sorte dos loucos',
@@ -653,7 +917,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   },
   TALENTO_ARTISTICO: {
     name: 'Talento Artístico',
-    description: 'Você recebe +2 em Atuação e Diplomacia.',
+    description: 'Você recebe +2 em Acrobacia, Atuação e Diplomacia.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
@@ -662,7 +926,11 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Atuação' || sk.name === 'Diplomacia') {
+        if (
+          sk.name === Skill.ATUACAO ||
+          sk.name === Skill.ACROBACIA ||
+          sk.name === Skill.DIPLOMACIA
+        ) {
           value += 2;
         }
 
@@ -671,7 +939,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
 
       substeps.push({
         name: 'Talento Artístico',
-        value: `Somando +2 em Atuação e Diplomacia`,
+        value: `Somando +2 em Acrobacia, Atuação e Diplomacia.`,
       });
 
       return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
@@ -682,7 +950,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   TEURGISTA_MISTICO: {
     name: 'Teurgista Místico',
     description:
-      'Até uma magia de cada círculo que você aprender poderá ser escolhida entre magias divinas (se você for um conjurador arcano) ou entre magias arcanas (se for um conjurador divino).',
+      'Até uma magia de cada círculo que você aprender poderá ser escolhida entre magias divinas (se você for um conjurador arcano) ou entre magias arcanas (se for um conjurador divino). Pré-requisito: habilidade de classe Magias.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [
@@ -691,9 +959,47 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       ],
     ],
   },
+  TRADICAO_DE_LIN_WU: {
+    name: 'Tradição de Lin-Wu',
+    description:
+      'Você considera a katana uma arma simples e, se for proficiente em armas marciais, recebe +1 na margem de ameaça com ela.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      subSteps.push({
+        name: 'Tradição de Lin-Wu',
+        value: 'Katana considerada arma simples.',
+      });
+
+      sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
+        (item) => {
+          if (item.nome === Armas.Katana.nome) {
+            return {
+              ...item,
+              critico: `${item.critico} - 1`,
+            };
+          }
+          return item;
+        }
+      );
+
+      subSteps.push({
+        name: 'Tradição de Lin-Wu',
+        value: 'Margem de ameaça da Katana aumentada em 1.',
+      });
+
+      return sheetClone;
+    },
+  },
   TRANSMISSAO_DA_LOUCURA: {
     name: 'Transmissão da Loucura',
-    description: 'Você pode lançar Sussurros Insanos (CD Car).',
+    description:
+      'Você pode lançar Sussurros Insanos (CD Car). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Nimb' }]],
     action(
@@ -717,14 +1023,14 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   TROPAS_DUYSHIDAKK: {
     name: 'Tropas Duyshidakk',
     description:
-      'Você pode gastar uma ação completa e 2 PM para invocar 1d4+1 goblinoides em espaços desocupados em alcance curto. Você pode usar uma ação de movimento para fazer os goblinoides andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6+1 pontos de dano de corte cada). Os goblinoides têm For 14, Des 14, 1 PV, não têm valor de Defesa ou testes de resistência e falham automaticamente em qualquer teste oposto. Eles desaparecem quando morrem ou no fim da cena. Os goblinoides não agem sem receber uma ordem. Usos criativos para criaturas invocadas fora de combate ficam a critério do mestre.',
+      'Você pode gastar uma ação completa e 2 PM para invocar 1d4+1 goblinoides capangas em espaços desocupados em alcance curto. Você pode gastar uma ação de movimento para fazer os goblinoides andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6+1 pontos de dano de corte cada). Os goblinoides têm For 1, Des 1, Defesa 15, 1 PV e falham automaticamente em qualquer teste de resistência ou oposto. Eles desaparecem quando morrem ou no fim da cena. Os goblinoides não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Thwor' }]],
   },
   URRO_DIVINO: {
     name: 'Urro Divino',
     description:
-      'Quando faz um ataque ou lança uma magia, você pode pagar 1 PM para somar seu modificador de Constituição (mínimo +1) à rolagem de dano desse ataque ou magia.',
+      'Quando faz um ataque ou lança uma magia, você pode pagar 1 PM para somar sua Constituição (mínimo +1) à rolagem de dano desse ataque ou magia.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Megalokk' }]],
   },
@@ -740,11 +1046,28 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você está sempre sob efeito de Compreensão.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      const newSpell = spellsCircle1.compreensao;
+
+      subSteps.push({
+        name: 'Voz da Civilização',
+        value: 'Ganhou Compreensão (sempre ativada).',
+      });
+
+      sheetClone.spells.push(newSpell);
+
+      return sheetClone;
+    },
   },
   VOZ_DA_NATUREZA: {
     name: 'Voz da Natureza',
     description:
-      'Você pode falar com animais (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra animais.',
+      'Você pode falar com animais (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra animais. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
     action(
@@ -767,9 +1090,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   VOZ_DOS_MONSTROS: {
     name: 'Voz dos Monstros',
     description:
-      'Você conhece os idiomas de todos os monstros inteligentes (criaturas do tipo monstro com Int 3 ou mais) e pode se comunicar livremente com monstros não inteligentes (Int 1 ou 2), como se estivesse sob efeito da magia Voz Divina.',
+      'Você conhece os idiomas de todos os monstros inteligentes e pode se comunicar livremente com monstros não inteligentes (Int –4 ou menor), como se estivesse sob efeito da magia Voz Divina.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Megalokk' }]],
+  },
+  ZUMBIFICAR: {
+    name: 'Zumbificar',
+    description:
+      'Você pode gastar uma ação completa e 3 PM para reanimar o cadáver de uma criatura Pequena ou Média adjacente por um dia. O cadáver funciona como um parceiro iniciante de um tipo a sua escolha entre combatente, fortão ou guardião. Além disso, quando sofre dano, você pode sacrificar esse parceiro; se fizer isso, você sofre apenas metade do dano, mas o cadáver é destruído.',
+    type: GeneralPowerType.CONCEDIDOS,
+    requirements: [[{ type: RequirementType.DEVOTO, name: 'Tenebra' }]],
   },
 };
 
