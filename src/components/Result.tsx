@@ -421,7 +421,7 @@ const Result: React.FC<ResultProps> = (props) => {
               </div>
 
               <div className='powersArea'>
-                {sheet.sentidos && (
+                {sheet.sentidos && sheet.sentidos.length > 0 && (
                   <>
                     <Divider isDarkMode={isDarkMode} direction='down' />
                     <div className='sectionTitle'>
