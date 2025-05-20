@@ -53,15 +53,35 @@ const HUMANO: Race = {
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
 
-        const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');
-        sheetClone.skills.push(randomSkill);
+        // Generate random number between 1 and 100
+        const randomNumber = Math.floor(Math.random() * 100) + 1;
+        // If random number is less than 50, add a skill, otherwise add a power
+        if (randomNumber < 50) {
+          const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');
+          sheetClone.skills.push(randomSkill);
 
-        substeps.push({
-          name: 'Versátil',
-          value: `Perícia treinada (${randomSkill})`,
-        });
+          substeps.push({
+            name: 'Versátil',
+            value: `Perícia treinada (${randomSkill})`,
+          });
 
-        addSkillOrPower(sheetClone, substeps);
+          addSkillOrPower(sheetClone, substeps);
+        } else {
+          const allowedPowers = getPowersAllowedByRequirements(sheetClone);
+          const randomPower = getNotRepeatedRandom(
+            sheetClone.generalPowers,
+            'power',
+            allowedPowers
+          );
+          sheetClone.generalPowers.push(randomPower);
+
+          substeps.push({
+            name: 'Versátil',
+            value: `Poder geral recebido (${randomPower.name})`,
+          });
+
+          addSkillOrPower(sheetClone, substeps);
+        }
 
         return sheetClone;
       },
