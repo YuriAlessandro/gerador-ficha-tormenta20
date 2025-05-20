@@ -19,9 +19,9 @@ const SILFIDE: Race = {
   name: 'Sílfide',
   attributes: {
     attrs: [
-      { attr: Atributo.CARISMA, mod: 4 },
-      { attr: Atributo.DESTREZA, mod: 2 },
-      { attr: Atributo.FORCA, mod: -4 },
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 1 },
+      { attr: Atributo.FORCA, mod: -2 },
     ],
   },
   size: RACE_SIZES.MINUSCULO,
@@ -42,6 +42,20 @@ const SILFIDE: Race = {
       name: 'Espírito da Natureza',
       description:
         'Você é uma criatura do tipo espírito, recebe visão na penumbra e pode falar com animais livremente.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        if (!sheetClone.sentidos?.includes('Visão na Penumbra')) {
+          sheetClone.sentidos?.push('Visão na Penumbra');
+        }
+
+        substeps.push({
+          name: 'Espírito da Natureza',
+          value: 'Recebe Visão na penumbra',
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Magia das Fadas',

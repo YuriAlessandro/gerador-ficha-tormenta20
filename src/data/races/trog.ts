@@ -16,9 +16,9 @@ const TROG: Race = {
   name: 'Trog',
   attributes: {
     attrs: [
-      { attr: Atributo.CONSTITUICAO, mod: 4 },
-      { attr: Atributo.FORCA, mod: 2 },
-      { attr: Atributo.INTELIGENCIA, mod: -2 },
+      { attr: Atributo.CONSTITUICAO, mod: 2 },
+      { attr: Atributo.FORCA, mod: 1 },
+      { attr: Atributo.INTELIGENCIA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -61,6 +61,15 @@ const TROG: Race = {
         substeps.push({
           name: 'Reptiliano',
           value: `+1 na Defesa`,
+        });
+
+        if (!sheetClone.sentidos?.includes('Visão no Escuro')) {
+          sheetClone.sentidos?.push('Visão no Escuro');
+        }
+
+        substeps.push({
+          name: 'Reptiliano',
+          value: 'Recebe Visão no escuro',
         });
 
         return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {

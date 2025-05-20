@@ -16,6 +16,7 @@ import Spells from './Spells';
 import SpellsMobile from './SpellsMobile';
 import { convertToFoundry, FoundryJSON } from '../2foundry';
 import SkillTable from './SkillTable';
+import { s } from 'vitest/dist/types-198fd1d9';
 
 function filterUnique<T>(array: T[]) {
   return array.filter((v, i, a) => a.indexOf(v) === i);

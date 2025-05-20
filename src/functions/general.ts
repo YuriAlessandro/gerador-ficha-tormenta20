@@ -1126,6 +1126,7 @@ export default function generateRandomSheet(
     steps,
     skills,
     spells: initialSpells,
+    sentidos: [],
   };
 
   // Passo 9:
