@@ -942,6 +942,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${updatedSheet.nivel}`,
+    value: subSteps,
+  });
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
   const allowedPowers = getAllowedClassPowers(updatedSheet);
@@ -983,12 +989,6 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
       value: newPower.name,
     });
   }
-
-  updatedSheet.steps.push({
-    type: 'Poderes',
-    label: `Nível ${updatedSheet.nivel}`,
-    value: subSteps,
-  });
 
   return updatedSheet;
 }

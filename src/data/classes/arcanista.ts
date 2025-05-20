@@ -16,6 +16,7 @@ import PROFICIENCIAS from '../proficiencias';
 import tormentaPowers from '../powers/tormentaPowers';
 import {
   addOrCheapenRandomSpells,
+  getSpellsOfCircle,
   spellsCircle1,
 } from '../magias/generalSpells';
 
@@ -249,6 +250,30 @@ const ARCANISTA: ClassDescription = {
       text: 'Você aprende duas magias de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
       requirements: [],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+        const currentSpellCircle =
+          sheetClone.classe.spellPath?.spellCircleAvailableAtLevel(
+            sheet.nivel
+          ) || 1;
+
+        const keyAttr = sheetClone.classe.spellPath?.keyAttribute;
+
+        const availableSpells = getSpellsOfCircle(currentSpellCircle).filter(
+          (spell) => !!sheetClone.spells.find((s) => s.nome !== spell.nome)
+        );
+
+        addOrCheapenRandomSpells(
+          sheetClone,
+          substeps,
+          availableSpells,
+          'Conhecimento Mágico',
+          keyAttr || Atributo.INTELIGENCIA,
+          2
+        );
+
+        return sheetClone;
+      },
     },
     {
       name: 'Contramágica Aprimorada',
@@ -335,8 +360,26 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Poder Mágico',
-      text: 'Você recebe +1 ponto de mana por nível de arcanista (NÃO CONTABILIZADO). Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante.',
+      text: 'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante.',
       requirements: [],
+      action: (sheet, subSteps): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+        const pm = sheetClone.pm + sheetClone.nivel;
+        const newAddPm = sheetClone.classe.addpm + 1;
+
+        subSteps.push({
+          name: 'Poder Mágico',
+          value: `PM adicionado agora: ${sheetClone.nivel}, pm total: ${pm}. Para cada próximo nível, você receberá +1 PM.`,
+        });
+
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+          pm,
+          classe: {
+            ...sheetClone.classe,
+            addpm: newAddPm,
+          },
+        });
+      },
     },
     {
       name: 'Raio Arcano',
