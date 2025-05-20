@@ -25,6 +25,7 @@ import Race, { RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
+  countTormentaPowers,
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
@@ -66,12 +67,7 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import {
-  GeneralPowerType,
-  OriginPower,
-  PowerGetter,
-  PowersGetters,
-} from '../interfaces/Poderes';
+import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
 import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
 import Skill, {
   SkillsAttrs,
@@ -776,17 +772,7 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   );
 
   // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
-  let tormentaPowersQtd = sheetClone.generalPowers.filter(
-    (power) => power.type === GeneralPowerType.TORMENTA
-  ).length;
-
-  const tormentaPowersFromSkills = sheetClone.completeSkills?.filter(
-    (skill) => skill.countAsTormentaPower
-  )?.length;
-
-  if (tormentaPowersFromSkills) {
-    tormentaPowersQtd += tormentaPowersFromSkills;
-  }
+  const tormentaPowersQtd = countTormentaPowers(sheetClone);
 
   const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
   if (totalPenalty > 0) {
