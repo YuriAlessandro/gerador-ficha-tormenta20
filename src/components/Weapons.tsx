@@ -33,7 +33,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
           <th>Crítico</th>
           <th>Tipo</th>
           <th>Alcance</th>
-          <th>Peso</th>
+          <th>Espaços</th>
         </tr>
       </thead>
       <tbody>{weaponsDiv}</tbody>

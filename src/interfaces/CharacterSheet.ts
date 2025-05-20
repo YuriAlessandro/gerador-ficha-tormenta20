@@ -29,7 +29,7 @@ export default interface CharacterSheet {
   spells: Spell[];
   displacement: number;
   size: RaceSize;
-  maxWeight: number;
+  maxSpaces: number;
   generalPowers: GeneralPower[];
   classPowers?: ClassPower[];
   steps: Step[];

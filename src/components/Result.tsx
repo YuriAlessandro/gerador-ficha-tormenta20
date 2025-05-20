@@ -16,7 +16,6 @@ import Spells from './Spells';
 import SpellsMobile from './SpellsMobile';
 import { convertToFoundry, FoundryJSON } from '../2foundry';
 import SkillTable from './SkillTable';
-import { s } from 'vitest/dist/types-198fd1d9';
 
 function filterUnique<T>(array: T[]) {
   return array.filter((v, i, a) => a.indexOf(v) === i);
@@ -46,7 +45,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     spells,
     displacement,
-    maxWeight,
+    maxSpaces,
     generalPowers = [],
     classPowers = [],
     steps,
@@ -142,7 +141,8 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
     <li key={getKey(equip.nome)}>
-      {equip.nome} {equip.peso && `- ${equip.peso}kg`}
+      {equip.nome}{' '}
+      {equip.spaces && equip.spaces > 0 && `[${equip.spaces} espaço(s)]`}
     </li>
   ));
 
@@ -414,8 +414,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 </div>
                 <div className='textToRight equipmentsValues'>
                   <span>
-                    <strong>Peso (atual/máximo):</strong>{' '}
-                    {bag.getWeight ? bag.getWeight() : bag.weight}/{maxWeight}kg
+                    <strong>Espaços (atual/limite-máximo): </strong>
+                    {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
                   </span>
                 </div>
               </div>

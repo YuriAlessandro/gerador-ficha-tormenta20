@@ -14,7 +14,7 @@ export default interface Equipment {
   nome: string;
   dano?: string;
   critico?: string;
-  peso?: number;
+  spaces?: number;
   tipo?: string;
   alcance?: string;
   group: equipGroup;

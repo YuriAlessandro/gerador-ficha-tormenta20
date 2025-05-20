@@ -29,7 +29,7 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
           <th>Armadura & Escudo</th>
           <th>Bônus de Defesa</th>
           <th>Penalidada de Armadura</th>
-          <th>Peso</th>
+          <th>Espaços</th>
         </tr>
       </thead>
       <tbody>{DefenseEquipmentsDiv}</tbody>

@@ -690,9 +690,12 @@ function calcDisplacement(
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number {
-  const maxWeight = atributos.Força.value * 3;
+  const maxSpaces =
+    atributos.Força.mod > 0
+      ? 10 + 2 * atributos.Força.mod
+      : 10 - atributos.Força.mod;
 
-  if (bag.getWeight() > maxWeight) {
+  if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
   }
 
@@ -1064,7 +1067,10 @@ export default function generateRandomSheet(
   const atributos = generateFinalAttributes(classe, race, steps);
 
   // Passo 6.1: Gerar valores dependentes de atributos
-  const maxWeight = atributos.Força.value * 3;
+  const maxSpaces =
+    atributos.Força.mod > 0
+      ? 10 + 2 * atributos.Força.mod
+      : 10 - atributos.Força.mod;
   const summedPV = initialPV + atributos.Constituição.mod;
 
   steps.push({
@@ -1110,7 +1116,7 @@ export default function generateRandomSheet(
     sexo,
     nivel: 1,
     atributos,
-    maxWeight,
+    maxSpaces,
     raca: race,
     classe,
     pv: summedPV,
