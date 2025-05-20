@@ -35,6 +35,7 @@ export default interface CharacterSheet {
   steps: Step[];
   extraArmorPenalty?: number;
   completeSkills?: CompleteSkill[];
+  sentidos?: string[];
 }
 
 export interface Step {

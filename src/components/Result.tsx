@@ -422,6 +422,23 @@ const Result: React.FC<ResultProps> = (props) => {
               <div className='powersArea'>
                 <Divider isDarkMode={isDarkMode} direction='down' />
 
+                {sheet.sentidos && (
+                  <>
+                    <div className='sectionTitle'>
+                      <span>Sentidos</span>
+                    </div>
+                    <div className='resultRow'>
+                      <ul>
+                        {sheet.sentidos.map((sentido) => (
+                          <li key={getKey(sentido)}>{sentido}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
+                <Divider isDarkMode={isDarkMode} direction='down' />
+
                 <div className='sectionTitle'>
                   <span>Habilidades e Poderes</span>
                 </div>

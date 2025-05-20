@@ -10,9 +10,9 @@ const DAHLLAN: Race = {
   name: 'Dahllan',
   attributes: {
     attrs: [
-      { attr: Atributo.SABEDORIA, mod: 4 },
-      { attr: Atributo.DESTREZA, mod: 2 },
-      { attr: Atributo.INTELIGENCIA, mod: -2 },
+      { attr: Atributo.SABEDORIA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 1 },
+      { attr: Atributo.INTELIGENCIA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -55,7 +55,7 @@ const DAHLLAN: Race = {
     {
       name: 'Empatia Selvagem',
       description:
-        'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 117). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
+        'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 118). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
     },
   ],
 };

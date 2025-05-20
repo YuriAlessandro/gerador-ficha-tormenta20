@@ -36,6 +36,23 @@ const ANAO: Race = {
       name: 'Conhecimento das Rochas',
       description:
         'Você recebe visão no escuro e +2 em testes de Percepção e Sobrevivência realizados no subterrâneo.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
+          sheetClone.sentidos = [
+            ...(sheetClone.sentidos || []),
+            'Visão no escuro',
+          ];
+        }
+
+        substeps.push({
+          name: 'Conhecimento das Rochas',
+          value: 'Você recebe visão no escuro',
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Devagar e Sempre',
@@ -45,7 +62,7 @@ const ANAO: Race = {
     {
       name: 'Tradição de Heredrimm',
       description:
-        'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas. (Não contabilizado)',
+        'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas. (Já contabilizado)',
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const cloneSheet = _.cloneDeep(sheet);
 
