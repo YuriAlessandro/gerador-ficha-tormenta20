@@ -9,9 +9,9 @@ const QAREEN: Race = {
   name: 'Qareen',
   attributes: {
     attrs: [
-      { attr: Atributo.CARISMA, mod: 4 },
-      { attr: Atributo.INTELIGENCIA, mod: 2 },
-      { attr: Atributo.SABEDORIA, mod: -2 },
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.INTELIGENCIA, mod: 1 },
+      { attr: Atributo.SABEDORIA, mod: -1 },
     ],
   },
   faithProbability: {

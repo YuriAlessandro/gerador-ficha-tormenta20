@@ -5,8 +5,8 @@ const MEDUSA: Race = {
   name: 'Medusa',
   attributes: {
     attrs: [
-      { attr: Atributo.DESTREZA, mod: 4 },
-      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.CARISMA, mod: 1 },
     ],
   },
   faithProbability: {
@@ -22,6 +22,23 @@ const MEDUSA: Race = {
       name: 'Cria de Megalokk',
       description:
         'Você é uma criatura do tipo monstro e recebe visão no escuro.',
+      action(sheet, subSteps) {
+        const sheetClone = { ...sheet };
+
+        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
+          sheetClone.sentidos = [
+            ...(sheetClone.sentidos || []),
+            'Visão no escuro',
+          ];
+        }
+
+        subSteps.push({
+          name: 'Cria de Megalokk',
+          value: 'Você recebe visão no escuro',
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Natureza Venenosa',

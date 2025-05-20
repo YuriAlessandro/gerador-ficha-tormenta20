@@ -15,7 +15,7 @@ function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
 
   if (shouldGetSkill) {
     const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
-    sheet.skills.push();
+    sheet.skills.push(randomSkill);
     substeps.push({
       name: 'Memória Póstuma',
       value: `Perícia treinada (${randomSkill})`,
@@ -58,10 +58,10 @@ const OSTEON: Race = {
   name: 'Osteon',
   attributes: {
     attrs: [
-      { attr: Atributo.CONSTITUICAO, mod: -2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
+      { attr: Atributo.CONSTITUICAO, mod: -1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
     ],
   },
   faithProbability: {
@@ -74,9 +74,15 @@ const OSTEON: Race = {
       (element) => element.name !== 'Golem' && element.name !== 'Osteon'
     );
 
+    const randomNumber = Math.random();
+    let oldRace = HUMANO;
+    if (randomNumber < 0.2) {
+      oldRace = getRandomItemFromArray(validRaces);
+    }
+
     return {
       ...race,
-      oldRace: getRandomItemFromArray(validRaces),
+      oldRace,
     };
   },
   getDisplacement(race) {

@@ -1,4 +1,5 @@
 import { cloneDeep, merge } from 'lodash';
+import Skill from '@/interfaces/Skills';
 import { getNotRepeatedRandom } from '../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
@@ -9,9 +10,9 @@ const KLIREN: Race = {
   name: 'Kliren',
   attributes: {
     attrs: [
-      { attr: Atributo.INTELIGENCIA, mod: 4 },
-      { attr: Atributo.CARISMA, mod: 2 },
-      { attr: Atributo.FORCA, mod: -2 },
+      { attr: Atributo.INTELIGENCIA, mod: 2 },
+      { attr: Atributo.CARISMA, mod: 1 },
+      { attr: Atributo.FORCA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -38,9 +39,9 @@ const KLIREN: Race = {
       },
     },
     {
-      name: 'Lógica Gnômica',
+      name: 'Engenhosidade',
       description:
-        'Quando faz um teste de atributo ou perícia, você pode gastar 2 PM para substituir o modificador de atributo utilizado por Inteligência. Por exemplo, ao fazer um teste de Atletismo você pode gastar 2 PM para usar seu modificador de Inteligência em vez do modificador de Força.Quando faz um teste de atributo ou perícia, você pode gastar 2 PM para substituir o modificador de atributo utilizado por Inteligência. Por exemplo, ao fazer um teste de Atletismo você pode gastar 2 PM para usar seu modificador de Inteligência em vez do modificador de Força.',
+        'Quando faz um teste de perícia, você pode gastar 2 PM para somar sua Inteligência no teste. Você não pode usar esta habilidade em testes de ataque. Caso receba esta habilidade novamente, seu custo é reduzido em –1 PM.',
     },
     {
       name: 'Ossos Frágeis',
@@ -59,6 +60,68 @@ const KLIREN: Race = {
           substeps.push({
             name: 'Vanguardista',
             value: 'Proficiência com armas de fogo',
+          });
+        }
+
+        const oficioSkills = [
+          Skill.OFICIO,
+          Skill.OFICIO_ARMEIRO,
+          Skill.OFICIO_ARTESANATO,
+          Skill.OFICIO_ALQUIMIA,
+          Skill.OFICIO_CULINARIA,
+          Skill.OFICIO_ALFAIATE,
+          Skill.OFICIO_ALVENARIA,
+          Skill.OFICIO_CARPINTEIRO,
+          Skill.OFICIO_JOALHEIRO,
+          Skill.OFICIO_FAZENDEIRO,
+          Skill.OFICIO_PESCADOR,
+          Skill.OFICIO_ESTALAJADEIRO,
+          Skill.OFICIO_ESCRITA,
+          Skill.OFICIO_ESCULTOR,
+          Skill.OFICIO_EGENHOQUEIRO,
+          Skill.OFICIO_PINTOR,
+          Skill.OFICIO_MINERADOR,
+        ];
+
+        // To make better sheets, let's use a skill from this type that is already on the sheet
+
+        const allowedSkills = sheetClone.skills.filter((skill) =>
+          oficioSkills.includes(skill)
+        );
+
+        let randomSkill = getNotRepeatedRandom([], 'skill', allowedSkills);
+
+        // If there is no skill of this type, let's get a new random one (just for safety)
+        if (!randomSkill)
+          randomSkill = getNotRepeatedRandom([], 'skill', oficioSkills);
+
+        sheetClone.skills.push(randomSkill);
+
+        substeps.push({
+          name: 'Vanguardista',
+          value: `+2 em ${randomSkill}`,
+        });
+
+        if (
+          !sheetClone.completeSkills?.some(
+            (skill) => skill.name === randomSkill
+          )
+        ) {
+          sheetClone.completeSkills = [
+            ...(sheetClone.completeSkills || []),
+            { name: randomSkill, others: 2 },
+          ];
+        } else {
+          sheetClone.completeSkills = Object.values(
+            sheetClone.completeSkills || {}
+          ).map((skill) => {
+            if (skill.name === randomSkill) {
+              return {
+                ...skill,
+                others: (skill.others || 0) + 2,
+              };
+            }
+            return skill;
           });
         }
 

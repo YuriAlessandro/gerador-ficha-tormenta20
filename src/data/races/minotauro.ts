@@ -16,9 +16,9 @@ const MINOTAURO: Race = {
   name: 'Minotauro',
   attributes: {
     attrs: [
-      { attr: Atributo.FORCA, mod: 4 },
-      { attr: Atributo.CONSTITUICAO, mod: 2 },
-      { attr: Atributo.SABEDORIA, mod: -2 },
+      { attr: Atributo.FORCA, mod: 2 },
+      { attr: Atributo.CONSTITUICAO, mod: 1 },
+      { attr: Atributo.SABEDORIA, mod: -1 },
     ],
   },
   faithProbability: {

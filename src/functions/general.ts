@@ -1141,7 +1141,11 @@ export default function generateRandomSheet(
     })),
   });
 
-  // Calcular valor das perícias
+  // Passo 10:
+  // Gerar poderes restantes, e aplicar habilidades, e poderes
+  charSheet = getAndApplyPowers(charSheet, powersGetters);
+
+  // Calcular valor das perícias após poderes (pois vários poderes adicionam perícias e bonificadores)
   charSheet.completeSkills = Object.values(Skill)
     .map((skill) => {
       const skillAttr = SkillsAttrs[skill];
@@ -1154,7 +1158,7 @@ export default function generateRandomSheet(
       return {
         name: skill,
         halfLevel: Math.floor(charSheet.nivel / 2),
-        training: Object.values(skills).includes(skill) ? 2 : 0,
+        training: Object.values(charSheet.skills).includes(skill) ? 2 : 0,
         modAttr: attr.mod,
         others: armorPenalty > 0 ? armorPenalty * -1 : 0,
       };
@@ -1164,10 +1168,6 @@ export default function generateRandomSheet(
         !skill.name.startsWith('Of') ||
         (skill.name.startsWith('Of') && skill.training > 0)
     );
-
-  // Passo 10:
-  // Gerar poderes restantes, e aplicar habilidades, e poderes
-  charSheet = getAndApplyPowers(charSheet, powersGetters);
 
   // Passo 11:
   // Recalcular defesa
