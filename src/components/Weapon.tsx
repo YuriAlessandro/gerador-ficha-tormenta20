@@ -10,16 +10,17 @@ interface WeaponProps {
 
 const Weapon: React.FC<WeaponProps> = (props) => {
   const { equipment, rangeBonus, fightBonus, modDano } = props;
-  const { nome, dano, critico, tipo, alcance, peso } = equipment;
+  const { nome, dano, critico, tipo, alcance, peso, atkBonus } = equipment;
 
   const isRange = alcance && alcance !== '-';
 
   const modAtk = isRange ? rangeBonus : fightBonus;
+  const atk = atkBonus ? atkBonus + modAtk : modAtk;
 
   return (
     <tr>
       <td>
-        {nome} {`${modAtk > 0 ? '+' : ''}${modAtk}`}
+        {nome} {`${atk > 0 ? '+' : ''}${atk}`}
       </td>
       <td>
         {dano}

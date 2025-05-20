@@ -133,18 +133,7 @@
 
 .attributeItem .value {
   font-size: 30px;
-}
-.attributeItem .mod {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid black;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-bottom: -15px;
-  background-color: white;
+  padding: 8px 0;
 }
 
 .attributeItem.dark {

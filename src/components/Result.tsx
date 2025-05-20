@@ -235,8 +235,8 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}${
-                attr.value ? ': ' : ''
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}: ${
+                (attr.value as number) > 0 ? '+' : '-'
               }${attr.value}`}</li>
             ))}
           </ul>

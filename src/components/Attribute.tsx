@@ -10,7 +10,7 @@ interface AttributeProps {
 }
 
 const Attribute: React.FC<AttributeProps> = (props) => {
-  const { value, mod, name, id, isDarkMode } = props;
+  const { mod, name, id, isDarkMode } = props;
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
   }
@@ -27,7 +27,7 @@ const Attribute: React.FC<AttributeProps> = (props) => {
         {mod > 0 ? '+' : ''}
         {mod}
       </div>
-      <div className='mod'>{value}</div>
+      {/* <div className='mod'>{value}</div> */}
     </div>
   );
 };

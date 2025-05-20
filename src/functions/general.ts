@@ -137,13 +137,11 @@ function getModifiedAttribute(
   atributosModificados: CharacterAttributes,
   attrDaRaca: RaceAttributeAbility
 ): CharacterAttribute {
-  const newValue =
-    atributosModificados[selectedAttrName].value + attrDaRaca.mod;
+  const newMod = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
 
   return {
     ...atributosModificados[selectedAttrName],
-    value: newValue,
-    mod: getModValue(newValue),
+    mod: newMod,
   };
 }
 
@@ -176,7 +174,7 @@ export function modifyAttributesBasedOnRace(
 
       values.push({
         name: selectedAttrName,
-        value: `${attrDaRaca.mod > 0 ? `+` : ''}${attrDaRaca.mod}`,
+        value: attrDaRaca.mod,
       });
 
       return {
@@ -250,7 +248,7 @@ function generateFinalAttributes(
     type: 'Atributos',
     value: Object.values(sortedAttributes).map((attr) => ({
       name: attr.name,
-      value: attr.value,
+      value: attr.mod,
     })),
   });
 
