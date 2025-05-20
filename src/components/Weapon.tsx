@@ -20,7 +20,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   return (
     <tr>
       <td>
-        {nome} {`${atk > 0 ? '+' : ''}${atk}`}
+        {nome} {`${atk >= 0 ? '+' : ''}${atk}`}
       </td>
       <td>
         {dano}

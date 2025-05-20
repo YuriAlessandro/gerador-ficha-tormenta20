@@ -142,7 +142,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
     <li key={getKey(equip.nome)}>
       {equip.nome}{' '}
-      {equip.spaces && equip.spaces > 0 && `[${equip.spaces} espaço(s)]`}
+      {equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''}
     </li>
   ));
 
