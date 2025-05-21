@@ -824,13 +824,17 @@ function applyPowerGetters(
   sheet: CharacterSheet,
   powersGetters: PowersGetters
 ): CharacterSheet {
-  const sheetClone = cloneDeep(sheet);
-
-  const subSteps: SubStep[] = [];
+  let sheetClone = cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
   powersGetters.Origem.forEach((addPower) => {
     addPower(sheetClone, subSteps);
   });
+
+  sheetClone = (sheetClone.origin?.powers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
+    sheetClone
+  );
 
   if (subSteps.length && sheet.origin) {
     sheetClone.steps.push({

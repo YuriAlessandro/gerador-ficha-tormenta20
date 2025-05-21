@@ -1,4 +1,8 @@
+import _ from 'lodash';
+import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
 import { OriginPower } from '../../interfaces/Poderes';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
@@ -6,13 +10,13 @@ const originPowers: Record<string, OriginPower> = {
   MEMBRO_DA_IGREJA: {
     name: 'Membro da Igreja',
     description:
-      'Você consegue hospedagem e informação em qualquer templo de sua divindade, para você e seus aliados.',
+      'Você consegue hospedagem confortável e informação em qualquer templo de sua divindade, para você e seus aliados.',
     type: ORIGIN_POWER_TYPE,
   },
   AMIGO_ESPECIAL: {
     name: 'Amigo Especial',
     description:
-      'Você recebe +5 em testes de Adestramento com animais comuns. Além disso, possui um animal de estimação que o auxilia e o acompanha em suas aventuras. Em termos de jogo, é um aliado que fornece +2 em uma perícia a sua escolha (exceto Luta ou Pontaria e aprovada pelo mestre) e não conta em seu limite de aliados.',
+      'Você recebe +5 em testes de Adestramento com animais. Além disso, possui um animal de estimação que o auxilia e o acompanha em suas aventuras. Em termos de jogo, é um parceiro que fornece +2 em uma perícia a sua escolha (exceto Luta ou Pontaria e aprovada pelo mestre) e não conta em seu limite de parceiros.',
     type: ORIGIN_POWER_TYPE,
   },
   LEMBRANCAS_GRADUAIS: {
@@ -30,20 +34,64 @@ const originPowers: Record<string, OriginPower> = {
   FRUTOS_DO_TRABALHO: {
     name: 'Frutos do Trabalho',
     description:
-      'Quando passa em um teste de Ofício para sustento, você recebe o dobro do dinheiro.',
+      'No início de cada aventura, você recebe até 5 itens gerais que possa fabricar num valor total de até T$ 50. Esse valor aumenta para T$ 100 no patamar aventureiro, T$ 300 no heroico e T$ 500 no lenda.',
     type: ORIGIN_POWER_TYPE,
   },
   DOM_ARTISTICO: {
     name: 'Dom artístico',
     description:
-      'Quando usa a perícia Atuação para fazer uma apresentação e passa no teste, você ganha o dobro de tibares.',
+      'Você recebe +2 em testes de Atuação, e recebe o dobro de tibares em apresentações.',
     type: ORIGIN_POWER_TYPE,
+    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === Skill.ATUACAO) {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      subSteps.push({
+        name: 'Dom artístico',
+        value: `Somando +2 em Atuação`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   ESSE_CHEIRO: {
     name: 'Esse Cheiro...',
     description:
-      'Você recebe +2 em Fortitude e passa automaticamente em testes de Ofício (alquimia) para identificar itens alquímicos.',
+      'Você recebe +2 em Fortitude e passa automaticamente em testes de Ofício (alquimia) para identificar itens alquímicos em alcance curto.',
     type: ORIGIN_POWER_TYPE,
+    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === Skill.FORTITUDE) {
+          value += 2;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      subSteps.push({
+        name: 'Esse Cheiro...',
+        value: `Somando +2 em Fortitude`,
+      });
+
+      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        completeSkills: newCompleteSkills,
+      });
+    },
   },
   PROVA_DE_TUDO: {
     name: 'À Prova de Tudo',
@@ -54,7 +102,7 @@ const originPowers: Record<string, OriginPower> = {
   CONFISSAO: {
     name: 'Confissão',
     description:
-      'Você pode usar Intimidação para obter informação sem custo (veja Investigação).',
+      'Você pode usar Intimidação para interrogar sem custo e em uma hora (veja Investigação).',
     type: ORIGIN_POWER_TYPE,
   },
   ALPINISTA_SOCIAL: {
@@ -66,19 +114,41 @@ const originPowers: Record<string, OriginPower> = {
   TRUQUE_DE_MAGICA: {
     name: 'Truque de Mágica',
     description:
-      'Você pode lançar Explosão de Chamas, Hipnotismo e Transmutar Objetos, mas apenas com o aprimoramento Truque. Esta não é uma habilidade mágica — os efeitos provêm de truques e prestidigitação.',
+      'Você pode lançar Explosão de Chamas, Hipnotismo e Queda Suave, mas apenas com o aprimoramento Truque. Esta não é uma habilidade mágica — os efeitos provêm de prestidigitação.',
     type: ORIGIN_POWER_TYPE,
+    action(
+      sheet: CharacterSheet,
+      subSteps: { name: string; value: string }[]
+    ): CharacterSheet {
+      const sheetClone = _.cloneDeep(sheet);
+
+      const spells = [
+        spellsCircle1.explosaoDeChamas,
+        spellsCircle1.hipnotismo,
+        spellsCircle1.quedaSuave,
+      ];
+
+      spells.forEach((spell) => {
+        sheetClone.spells.push(spell);
+        subSteps.push({
+          name: 'Truque de Mágica',
+          value: `Adicionando ${spell.nome} à sua lista de magias.`,
+        });
+      });
+
+      return sheetClone;
+    },
   },
   PUNGUISTA: {
     name: 'Punguista',
     description:
-      'Você pode fazer testes de Ladinagem para sustento, como a perícia Ofício.',
+      'Você pode fazer testes de Ladinagem para sustento (como a perícia Ofício), mas em apenas um dia. Se passar, recebe o dobro do dinheiro, mas, se falhar, pode ter problemas com a lei (a critério do mestre).',
     type: ORIGIN_POWER_TYPE,
   },
   MEDICO_DE_CAMPO: {
     name: 'Médico de Campo',
     description:
-      'Quando você faz primeiros socorros em um personagem com 0 ou menos PV, ele recupera 1d6 PV.',
+      'Você soma sua Sabedoria aos PV restaurados por suas habilidades e itens mundanos de cura.',
     type: ORIGIN_POWER_TYPE,
   },
   BUSCA_INTERIOR: {
@@ -90,7 +160,7 @@ const originPowers: Record<string, OriginPower> = {
   DESEJO_DE_LIBERDADE: {
     name: 'Desejo de Liberdade',
     description:
-      'Ninguém voltará a torná-lo um escravo! Você recebe +5 em testes contra efeitos que possam aprisioná-lo, como a manobra agarrar ou a magia Imobilizar.',
+      'Ninguém voltará a torná-lo um escravo! Você recebe +5 em testes contra a manobra agarrar e efeitos de movimento.',
     type: ORIGIN_POWER_TYPE,
   },
   PALPITE_FUNDAMENTADO: {
@@ -102,7 +172,7 @@ const originPowers: Record<string, OriginPower> = {
   AGUA_NO_FEIJAO: {
     name: 'Água no Feijão',
     description:
-      'Você gasta apenas metade da matéria-prima para testes de Ofício (cozinheiro).',
+      'Você não sofre a penalidade de –5 e não gasta matéria prima adicional para fabricar pratos para cinco pessoas.',
     type: ORIGIN_POWER_TYPE,
   },
   CULTURA_EXOTICA: {
@@ -120,7 +190,7 @@ const originPowers: Record<string, OriginPower> = {
   DETETIVE: {
     name: 'Detetive',
     description:
-      'Você pode substituir testes de Percepção e Intuição por testes de Investigação.',
+      'Você pode gastar 1 PM para substituir testes de Percepção e Intuição por testes de Investigação até o fim da cena.',
     type: ORIGIN_POWER_TYPE,
   },
   HERANCA: {
@@ -129,28 +199,28 @@ const originPowers: Record<string, OriginPower> = {
       'Você herdou um item de preço de até T$ 1.000. Você pode escolher este poder duas vezes, para um item de até T$ 2.000.',
     type: ORIGIN_POWER_TYPE,
   },
-  AMIGO_DOS_PLEBEUS: {
-    name: 'Amigo dos Plebeus',
+  CORACAO_HEROICO: {
+    name: 'Coração Heroico',
     description:
-      'Você consegue hospedagem gratuita, para você e seus aliados, em famílias ou comunidades plebeias.',
+      'Você recebe +3 pontos de mana. Quando atinge um novo patamar (no 5º, 11º e 17º níveis), recebe +3 PM.',
     type: ORIGIN_POWER_TYPE,
   },
   PASSAGEM_DE_NAVIO: {
     name: 'Passagem de Navio',
     description:
-      'Você consegue transporte marítimo para você e seus companheiros, sem custos, desde que todos paguem com trabalho (passar em pelo menos um teste de perícia adequado durante a viagem).',
+      'Você consegue transporte marítimo para você e seus aliados, sem custos, desde que todos paguem com trabalho (passar em pelo menos um teste de perícia adequado durante a viagem).',
     type: ORIGIN_POWER_TYPE,
   },
   VENDEDOR_DE_CARCACAS: {
     name: 'Vendedor de Carcaças',
     description:
-      'Você pode fazer testes de Sobrevivência para sustento, como a perícia Ofício.',
+      'Você pode extrair recursos de criaturas em um minuto, em vez de uma hora, e recebe +5 no teste.',
     type: ORIGIN_POWER_TYPE,
   },
   REDE_DE_CONTATOS: {
     name: 'Rede de Contatos',
     description:
-      'Graças à influência de sua guilda, você pode usar Diplomacia para obter informação sem custo (veja Investigação).',
+      'Graças à influência de sua guilda, você pode usar Diplomacia para interrogar sem custo e em uma hora (veja Investigação).',
     type: ORIGIN_POWER_TYPE,
   },
   NEGOCIACAO: {
@@ -162,37 +232,48 @@ const originPowers: Record<string, OriginPower> = {
   ESCAVADOR: {
     name: 'Escavador',
     description:
-      'Você se torna proficiente em picareta e não sofre penalidade em deslocamento por terreno difícil em masmorras e subterrâneos.',
+      'Você se torna proficiente em picaretas, causa +1 de dano com elas e não é afetado por terreno difícil em masmorras e subterrâneos.',
     type: ORIGIN_POWER_TYPE,
   },
   MOCHILEIRO: {
     name: 'Mochileiro',
-    description:
-      'Você não sofre a penalidade de armadura e a redução de deslocamento por transportar carga pesada.',
+    description: 'Seu limite de carga aumenta em 5 espaços.',
     type: ORIGIN_POWER_TYPE,
+    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
+      const sheetClone = _.cloneDeep(sheet);
+
+      sheetClone.maxSpaces += 5;
+
+      subSteps.push({
+        name: 'Mochileiro',
+        value: `Aumentando o limite de carga em 5 espaços`,
+      });
+
+      return sheetClone;
+    },
   },
   QUEBRA_GALHO: {
     name: 'Quebra-galho',
     description:
-      'Em cidades ou metrópoles, você pode comprar qualquer item não superior ou mágico por metade do custo normal. Esses itens não podem ser vendidos (são velhos, sujos, furtados...).',
+      'Em cidades ou metrópoles, você pode comprar qualquer item mundano não superior por metade do preço normal. Esses itens não podem ser matérias-primas e não podem ser revendidos (são velhos, sujos, furtados...).',
     type: ORIGIN_POWER_TYPE,
   },
   ESTOICO: {
     name: 'Estoico',
     description:
-      'Sua recuperação de pontos de vida e pontos de mana com descanso aumenta em uma categoria: normal em condições ruins, confortável em condições normais e assim por diante. Veja as regras de recuperação na página 106.',
+      'Sua condição de descanso é uma categoria acima do padrão pela situação (normal em condições ruins, confortável em condições normais e luxuosa em condições confortáveis ou melhores). Veja as regras de recuperação na página 106.',
     type: ORIGIN_POWER_TYPE,
   },
   ANTIGO_MESTRE: {
     name: 'Antigo Mestre',
     description:
-      'Você ainda mantém contato com o herói que costumava servir. A critério do mestre, em uma emergência, você pode receber alguma ajuda — ou então uma bela bronca por esperar que heróis poderosos resolvam o seu problema!',
+      'Você ainda mantém contato com o herói que costumava servir. Uma vez por aventura, ele surge para ajudá-lo por uma cena. Ele é um parceiro mestre de um tipo a sua escolha (definido ao obter este poder) que não conta em seu limite de aliados.',
     type: ORIGIN_POWER_TYPE,
   },
   VIDA_RUSTICA: {
     name: 'Vida Rústica',
     description:
-      'Você come coisas que fariam um avestruz vomitar e também consegue descansar nos lugares mais desconfortáveis (mesmo dormindo ao relento, sua recuperação de PV e PM nunca é inferior a seu próprio nível).',
+      'Você come coisas que fariam um avestruz vomitar (sendo imune a efeitos prejudiciais de itens ingeríveis) e também consegue descansar nos lugares mais desconfortáveis (mesmo dormindo ao relento, sua recuperação de PV e PM nunca é inferior a seu próprio nível).',
     type: ORIGIN_POWER_TYPE,
   },
   INFLUENCIA_MILITAR: {
@@ -204,13 +285,13 @@ const originPowers: Record<string, OriginPower> = {
   GOROROBA: {
     name: 'Gororoba',
     description:
-      'Você prepara comidas em uma categoria de tempo menor (uma hora para comidas de até T$ 10, um dia para comidas de até T$ 100 etc.). Você ainda pode sofrer uma penalidade de –5 no teste de Ofício para diminuir o tempo em mais uma categoria (uma hora baixa para dez minutos).',
+      'Você não sofre a penalidade de –5 para fabricar um prato especial adiconal.',
     type: ORIGIN_POWER_TYPE,
   },
   ESFORCADO: {
     name: 'Esforçado',
     description:
-      'Você não teme trabalho duro, nem prazos apertados. Você recebe um bônus de +2 em todos os testes de perícias estendidos.',
+      'Você não teme trabalho duro, nem prazos apertados. Você recebe um bônus de +2 em todos os testes de perícias estendidos (incluindo perigos complexos).',
     type: ORIGIN_POWER_TYPE,
   },
 };

@@ -51,6 +51,10 @@ export interface OriginPower {
   name: string;
   description: string;
   type: string;
+  action?: (
+    sheet: CharacterSheet,
+    subSteps: { name: string; value: string }[]
+  ) => CharacterSheet;
 }
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
