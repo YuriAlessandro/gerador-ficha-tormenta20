@@ -5,6 +5,20 @@ import Bag from './Bag';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
+import { Atributo } from '../data/atributos';
+
+export type StatModifier = {
+  source: string;
+} & (
+  | {
+      type: 'Attribute';
+      attribute: Atributo;
+    }
+  | {
+      type: 'Number';
+      value: number;
+    }
+);
 
 export default interface CharacterSheet {
   id: string;
@@ -17,6 +31,8 @@ export default interface CharacterSheet {
   skills: Skill[];
   pv: number;
   pm: number;
+  pvModifier: StatModifier[];
+  pmModifier: StatModifier[];
   defesa: number;
   bag: Bag;
   devoto?: CharacterReligion;

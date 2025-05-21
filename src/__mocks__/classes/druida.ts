@@ -225,5 +225,7 @@ export function druida(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 16,
     pm: 4,
+    pvModifier: [],
+    pmModifier: [],
   };
 }

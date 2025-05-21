@@ -247,7 +247,8 @@ const Result: React.FC<ResultProps> = (props) => {
     if (
       step.type === 'Perícias' ||
       step.type === 'Magias' ||
-      step.type === 'Equipamentos'
+      step.type === 'Equipamentos' ||
+      step.type === 'Atributos Extras'
     ) {
       return (
         <li key={getKey(step.label)}>

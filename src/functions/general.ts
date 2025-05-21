@@ -774,22 +774,40 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
   const tormentaPowersQtd = countTormentaPowers(sheetClone);
 
-  let totalPenalty = 0;
-  if (tormentaPowersQtd >= 1) {
-    sheetClone.atributos.Carisma.mod -= 1;
-    totalPenalty = 1;
-  }
-  if (tormentaPowersQtd > 1) {
-    const tormentaPowersPenalty = Math.floor((tormentaPowersQtd - 1) / 2);
-    sheetClone.atributos.Carisma.mod -= tormentaPowersPenalty;
-    totalPenalty += tormentaPowersPenalty;
-  }
-
+  const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
   if (totalPenalty > 0) {
-    subSteps.push({
-      name: 'Carisma',
-      value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
-    });
+    // Caso especial pra feiticeiros da linhagem rubra, eles nunca querem perder carisma
+    if (
+      sheetClone.classe.abilities.find(
+        (ability) => ability.name === 'Linhagem Rubra'
+      )
+    ) {
+      let remainingPenalty = totalPenalty;
+      while (remainingPenalty > 0) {
+        // Ache o atributo com maior mod que não seja carisma
+        const highestAttribute = Object.values(sheetClone.atributos).reduce(
+          (prev, curr) => {
+            if (curr.name === 'Carisma') return prev;
+            if (prev.mod > curr.mod) return prev;
+            return curr;
+          }
+        );
+
+        sheetClone.atributos[highestAttribute.name].mod -= 1;
+        remainingPenalty -= 1;
+
+        subSteps.push({
+          name: highestAttribute.name,
+          value: `-1 por ${tormentaPowersQtd} poderes da Tormenta`,
+        });
+      }
+    } else {
+      sheetClone.atributos.Carisma.mod -= totalPenalty;
+      subSteps.push({
+        name: 'Carisma',
+        value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
+      });
+    }
   }
 
   if (subSteps.length) {
@@ -910,6 +928,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${updatedSheet.nivel}`,
+    value: subSteps,
+  });
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
   const allowedPowers = getAllowedClassPowers(updatedSheet);
@@ -951,12 +975,6 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
       value: newPower.name,
     });
   }
-
-  updatedSheet.steps.push({
-    type: 'Poderes',
-    label: `Nível ${updatedSheet.nivel}`,
-    value: subSteps,
-  });
 
   return updatedSheet;
 }
@@ -1107,6 +1125,8 @@ export default function generateRandomSheet(
     classe,
     pv: summedPV,
     pm: initialPM,
+    pvModifier: [],
+    pmModifier: [],
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1188,6 +1208,63 @@ export default function generateRandomSheet(
 
   for (let index = 2; index <= targetLevel; index += 1) {
     charSheet = levelUp(charSheet);
+  }
+
+  if (charSheet.pvModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    // Aplicar modificadores de atributos
+    const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
+      subSteps.push({
+        value: `${mod.source}: +${
+          mod.type === 'Attribute' ? mod.attribute : ''
+        }${mod.type === 'Number' ? mod.value : ''}`,
+      });
+
+      if (mod.type === 'Attribute') {
+        const attr = charSheet.atributos[mod.attribute];
+        return acc + attr.mod;
+      }
+
+      if (mod.type === 'Number') {
+        return acc + mod.value;
+      }
+      return acc;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PV extra',
+      value: subSteps,
+    });
+    charSheet.pv += pvExtra;
+  }
+
+  if (charSheet.pmModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
+      subSteps.push({
+        value: `${mod.source}: +${mod.type === 'Attribute' ? mod.attribute : ''}
+        ${mod.type === 'Number' ? mod.value : ''}`,
+      });
+
+      if (mod.type === 'Attribute') {
+        const attr = charSheet.atributos[mod.attribute];
+        return acc + attr.mod;
+      }
+      if (mod.type === 'Number') {
+        return acc + mod.value;
+      }
+      return acc;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PM extra',
+      value: subSteps,
+    });
+    charSheet.pm += pmExtra;
   }
 
   return charSheet;
