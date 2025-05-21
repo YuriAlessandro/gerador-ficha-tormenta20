@@ -538,8 +538,11 @@ const combatPowers: Record<string, GeneralPower> = {
       }[]
     ): CharacterSheet {
       const sheetClone = cloneDeep(sheet);
-      // sheetClone.classe.addpv += 1;
-      sheetClone.pvModifier += 1;
+      sheetClone.pvModifier = sheetClone.pvModifier.concat({
+        source: 'Vitalidade',
+        type: 'Number',
+        value: 1,
+      });
 
       subSteps.push({
         name: 'Vitalidade',
