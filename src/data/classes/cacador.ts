@@ -200,7 +200,7 @@ const CACADOR: ClassDescription = {
       text: 'Você soma seu bônus de Sabedoria em seu total de pontos de mana e aprende e pode lançar Caminhos da Natureza (atributo-chave Sabedoria).',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
+          { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
           { type: RequirementType.NIVEL, value: 3 },
         ],
       ],
@@ -211,7 +211,7 @@ const CACADOR: ClassDescription = {
           attribute: Atributo.SABEDORIA,
         });
 
-        const { stepValue } = addOrCheapenSpell(
+        const { spells, stepValue } = addOrCheapenSpell(
           sheet,
           spellsCircle1.caminhosDaNatureza,
           Atributo.SABEDORIA
@@ -224,7 +224,10 @@ const CACADOR: ClassDescription = {
           });
         }
 
-        return sheet;
+        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheet, {
+          spells,
+          pmModifier: sheet.pmModifier,
+        });
       },
     },
     {
