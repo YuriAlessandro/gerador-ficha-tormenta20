@@ -5,6 +5,7 @@ import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
 
 const CACADOR: ClassDescription = {
   name: 'Caçador',
@@ -54,7 +55,7 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Rastreador',
-      text: 'Você recebe +2 em Sobrevivência (JÁ CONTABILIZADO). Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência.',
+      text: 'Você recebe +2 em Sobrevivência. Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência.',
       nivel: 1,
       action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
         const sheetClone = _.cloneDeep(sheet);
@@ -81,7 +82,7 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Explorador',
-      text: 'Escolha um tipo de terreno entre aquático, ártico, colina, deserto, floresta, montanha, pântano, planície, subterrâneo ou urbano. A partir do 11º nível, você também pode escolher área de Tormenta. Quando estiver no tipo de terreno escolhido, você soma seu bônus de Sabedoria (mínimo +1) na Defesa e nos testes de Acrobacia, Atletismo, Furtividade, Percepção e Sobrevivência. A cada quatro níveis, escolha outro tipo de terreno para receber o bônus ou aumente o bônus em um tipo de terreno já escolhido em +2.',
+      text: 'Escolha um tipo de terreno entre aquático, ártico, colina, deserto, floresta, montanha, pântano, planície, subterrâneo ou urbano. A partir do 11º nível, você também pode escolher área de Tormenta. Quando estiver no tipo de terreno escolhido, você soma sua Sabedoria (mínimo +1) na Defesa e nos testes de Acrobacia, Atletismo, Furtividade, Percepção e Sobrevivência. A cada quatro níveis, escolha outro tipo de terreno para receber o bônus ou aumente o bônus em um tipo de terreno já escolhido em +2.',
       nivel: 3,
     },
     {
@@ -91,7 +92,7 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Mestre Caçador',
-      text: 'No 20º nível, você pode usar a habilidade Marca da Presa como uma ação livre. Além disso, quando usa a habilidade, pode gastar +5 PM para aumentar sua margem de ameaça contra a criatura em +2. Se você reduz uma criatura contra a qual usou Marca da Presa a 0 pontos de vida, recupera 5 PM.',
+      text: 'No 20º nível, você pode usar a habilidade Marca da Presa como uma ação livre. Além disso, quando usa a habilidade, pode gastar 5 PM para aumentar sua margem de ameaça contra a criatura em +2. Se você reduz uma criatura contra a qual usou Marca da Presa a 0 pontos de vida, recupera 5 PM.',
       nivel: 20,
     },
   ],
@@ -100,7 +101,7 @@ const CACADOR: ClassDescription = {
       name: 'Ambidestria',
       text: 'Se estiver usando duas armas (e pelo menos uma delas for leve) e fizer a ação atacar, você pode fazer dois ataques, um com cada arma. Se fizer isso, sofre –2 em todos os testes de ataque até o seu próximo turno.',
       requirements: [
-        [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 }],
+        [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 }],
       ],
     },
     {
@@ -120,19 +121,41 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Armadilha: Rede',
-      text: 'Todas as criaturas na área devem fazer um teste de Reflexos (CD Sab) para não ficarem enredadas. Uma vítima pode se libertar com uma ação padrão e um teste de Acrobacia ou Atletismo (CD 25). Além disso, a área ocupada pela rede é considerada terreno difícil.',
+      text: 'Todas as criaturas na área ficam enredadas e não podem sair da área. Uma vítima pode se libertar com uma ação padrão e um teste de Força ou Acrobacia (CD 25). Além disso, a área ocupada pela rede é considerada terreno difícil. Nesta armadilha você escolhe quantas criaturas precisam estar na área para ativá-la.',
       requirements: [],
+    },
+    {
+      name: 'Armadilheiro',
+      text: ' Você soma sua Sabedoria no dano e na CD de suas armadilhas (cumulativo)',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Armadilha: Arataca' },
+          { type: RequirementType.NIVEL, value: 5 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Armadilha: Espinhos' },
+          { type: RequirementType.NIVEL, value: 5 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Armadilha: Laço' },
+          { type: RequirementType.NIVEL, value: 5 },
+        ],
+        [
+          { type: RequirementType.PODER, name: 'Armadilha: Rede' },
+          { type: RequirementType.NIVEL, value: 5 },
+        ],
+      ],
     },
     {
       name: 'Arqueiro',
       text: 'Se estiver usando uma arma de ataque à distância, você soma seu bônus de Sabedoria nas rolagens de dano (limitado pelo seu nível).',
       requirements: [
-        [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 }],
+        [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 }],
       ],
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: ' Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
     },
@@ -148,15 +171,15 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Camuflagem',
-      text: 'Você pode gastar 2 PM para usar a perícia Furtividade para se esconder mesmo sem cobertura disponível.',
+      text: 'Você pode gastar 2 PM para se esconder mesmo sem camuflagem ou cobertura disponível.',
       requirements: [[{ type: RequirementType.NIVEL, value: 6 }]],
     },
     {
       name: 'Chuva de Lâminas',
-      text: 'Quando usa Ambidestria, você pode pagar 2 PM para fazer um ataque adicional com sua arma primária.',
+      text: 'Uma vez por rodada, quando usa Ambidestria, você pode pagar 2 PM para fazer um ataque adicional com sua arma primária.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 19 },
+          { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 4 },
           { type: RequirementType.PODER, name: 'Ambidestria' },
           { type: RequirementType.NIVEL, value: 12 },
         ],
@@ -165,7 +188,12 @@ const CACADOR: ClassDescription = {
     {
       name: 'Companheiro Animal',
       text: 'Você recebe um companheiro animal. Veja o quadro na página 62.',
-      requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
+      requirements: [
+        [
+          { type: RequirementType.PERICIA, name: 'Adestramento' },
+          { type: RequirementType.ATRIBUTO, name: Atributo.CARISMA, value: 1 },
+        ],
+      ],
     },
     {
       name: 'Elo com a Natureza',
@@ -176,6 +204,28 @@ const CACADOR: ClassDescription = {
           { type: RequirementType.NIVEL, value: 3 },
         ],
       ],
+      action: (sheet, subSteps): CharacterSheet => {
+        sheet.pmModifier.push({
+          source: 'Elo com a Natureza',
+          type: 'Attribute',
+          attribute: Atributo.SABEDORIA,
+        });
+
+        const { stepValue } = addOrCheapenSpell(
+          sheet,
+          spellsCircle1.caminhosDaNatureza,
+          Atributo.SABEDORIA
+        );
+
+        if (stepValue) {
+          subSteps.push({
+            name: 'Elo com a Natureza',
+            value: stepValue,
+          });
+        }
+
+        return sheet;
+      },
     },
     {
       name: 'Emboscar',
@@ -184,7 +234,7 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Empatia Selvagem',
-      text: 'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento com animais para mudar atitude e pedir favores (veja Diplomacia, na página 117).',
+      text: 'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento com animais para mudar atitude e persuasão (veja Diplomacia, na página 118).',
       requirements: [],
     },
     {
@@ -192,7 +242,7 @@ const CACADOR: ClassDescription = {
       text: 'Quando se move 6m ou mais, você recebe +2 em Defesa e Reflexos e +1d8 nas rolagens de dano de ataques corpo a corpo e à distância em alcance curto até o início de seu próximo turno. Você não pode usar esta habilidade se estiver vestindo armadura pesada.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 },
+          { type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 },
           { type: RequirementType.NIVEL, value: 6 },
         ],
       ],
@@ -214,7 +264,7 @@ const CACADOR: ClassDescription = {
     },
     {
       name: 'Ervas Curativas',
-      text: 'Você pode gastar uma ação completa e uma quantidade de PM a sua escolha (limitado pelo seu bônus de Sabedoria) para aplicar ervas que curam ou desintoxicam em você ou num aliado adjacente. Para cada PM que gastar, cura 2d6 PV ou remove uma condição envenenado afetando o alvo.',
+      text: 'Você pode gastar uma ação completa e uma quantidade de PM a sua escolha (limitado por sua Sabedoria) para aplicar ervas que curam ou desintoxicam em você ou num aliado adjacente. Para cada PM que gastar, cura 2d6 PV ou remove uma condição envenenado afetando o alvo.',
       requirements: [],
     },
     {
@@ -225,6 +275,7 @@ const CACADOR: ClassDescription = {
     {
       name: 'Inimigo de (Criatura)',
       text: 'Escolha um tipo de criatura entre animal, construto, espírito, monstro ou morto-vivo, ou duas raças humanoides (por exemplo, orcs e gnolls, ou elfos e qareen). Quando você usa a habilidade Marca da Presa contra uma criatura do tipo ou da raça escolhida, dobra os dados de bônus no dano. O nome desta habilidade varia de acordo com o tipo de criatura escolhida (Inimigo de Monstros, Inimigo de Mortos-Vivos etc.). Você pode escolher este poder outras vezes para inimigos diferentes.',
+      canRepeat: true,
       requirements: [],
     },
     {
@@ -246,7 +297,7 @@ const CACADOR: ClassDescription = {
     OCEANO: 1,
     VALKARIA: 1,
   },
-  attrPriority: [Atributo.DESTREZA, Atributo.SABEDORIA],
+  attrPriority: [Atributo.DESTREZA, Atributo.SABEDORIA, Atributo.FORCA],
 };
 
 export default CACADOR;
