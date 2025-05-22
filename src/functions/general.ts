@@ -68,7 +68,11 @@ import {
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
 import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
-import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
+import CharacterSheet, {
+  StatModifier,
+  Step,
+  SubStep,
+} from '../interfaces/CharacterSheet';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -983,6 +987,19 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
+export function getStatModifierValue(
+  sheet: CharacterSheet,
+  modifier: StatModifier
+) {
+  if (modifier.type === 'Attribute') {
+    return sheet.atributos[modifier.attribute].mod;
+  }
+  if (modifier.type === 'Number') {
+    return modifier.value;
+  }
+  return 0;
+}
+
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
@@ -1131,6 +1148,7 @@ export default function generateRandomSheet(
     pm: initialPM,
     pvModifier: [],
     pmModifier: [],
+    skillsModifier: [],
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1219,21 +1237,13 @@ export default function generateRandomSheet(
 
     // Aplicar modificadores de atributos
     const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
+      const modifierValue = getStatModifierValue(charSheet, mod);
       subSteps.push({
-        value: `${mod.source}: +${
-          mod.type === 'Attribute' ? mod.attribute : ''
-        }${mod.type === 'Number' ? mod.value : ''}`,
+        value: `${mod.source}: +${modifierValue}${
+          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
+        }`,
       });
-
-      if (mod.type === 'Attribute') {
-        const attr = charSheet.atributos[mod.attribute];
-        return acc + attr.mod;
-      }
-
-      if (mod.type === 'Number') {
-        return acc + mod.value;
-      }
-      return acc;
+      return acc + modifierValue;
     }, 0);
 
     charSheet.steps.push({
@@ -1248,19 +1258,13 @@ export default function generateRandomSheet(
     const subSteps: SubStep[] = [];
 
     const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
+      const modifierValue = getStatModifierValue(charSheet, mod);
       subSteps.push({
-        value: `${mod.source}: +${mod.type === 'Attribute' ? mod.attribute : ''}
-        ${mod.type === 'Number' ? mod.value : ''}`,
+        value: `${mod.source}: +${modifierValue}${
+          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
+        }`,
       });
-
-      if (mod.type === 'Attribute') {
-        const attr = charSheet.atributos[mod.attribute];
-        return acc + attr.mod;
-      }
-      if (mod.type === 'Number') {
-        return acc + mod.value;
-      }
-      return acc;
+      return acc + modifierValue;
     }, 0);
 
     charSheet.steps.push({
@@ -1269,6 +1273,41 @@ export default function generateRandomSheet(
       value: subSteps,
     });
     charSheet.pm += pmExtra;
+  }
+
+  if (charSheet.skillsModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    let newCompleteSkills = _.clone(charSheet.completeSkills);
+
+    charSheet.skillsModifier.forEach(([skill, modifier]) => {
+      newCompleteSkills = charSheet.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === skill) {
+          const modifierValue = getStatModifierValue(charSheet, modifier);
+          value += modifierValue;
+
+          subSteps.push({
+            value: `${modifier.source}: +${modifierValue}${
+              modifier.type === 'Attribute' ? ` (${modifier.attribute})` : ''
+            } em ${skill}`,
+          });
+        }
+
+        return { ...sk, others: value };
+      });
+    });
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'Extras nas Perícias:',
+      value: subSteps,
+    });
+
+    charSheet = _.merge(charSheet, {
+      completeSkills: newCompleteSkills,
+    });
   }
 
   return charSheet;

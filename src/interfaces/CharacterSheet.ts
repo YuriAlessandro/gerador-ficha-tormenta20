@@ -33,6 +33,7 @@ export default interface CharacterSheet {
   pm: number;
   pvModifier: StatModifier[];
   pmModifier: StatModifier[];
+  skillsModifier: [Skill, StatModifier][];
   defesa: number;
   bag: Bag;
   devoto?: CharacterReligion;
