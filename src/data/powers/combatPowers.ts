@@ -197,36 +197,31 @@ const combatPowers: Record<string, GeneralPower> = {
     description: 'Você recebe +2 na Defesa e Reflexos.',
     type: GeneralPowerType.COMBATE,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 1 }],
     ],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      subSteps.push({
-        name: 'Esquiva',
-        value: '+2 na Defesa',
-      });
-
-      sheetClone.completeSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.REFLEXOS) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        defesa: sheetClone.defesa + 2,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Esquiva' },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: { type: 'power', name: 'Esquiva' },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   ESTILO_DE_ARMA_E_ESCUDO: {
     name: 'Estilo de Arma e Escudo',
@@ -528,7 +523,7 @@ const combatPowers: Record<string, GeneralPower> = {
     description: 'Você recebe +1 PV por nível de personagem e +2 em Fortitude.',
     type: GeneralPowerType.COMBATE,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Constituição', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Constituição', value: 1 }],
     ],
     action(
       sheet: CharacterSheet,

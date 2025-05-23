@@ -99,6 +99,10 @@ export type StatModifier =
   | {
       type: 'SpecialAttribute';
       attribute: 'spellKeyAttr';
+    }
+  | {
+      type: 'Fixed';
+      value: number;
     };
 
 export type SheetBonus = {
