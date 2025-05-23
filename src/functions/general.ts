@@ -730,6 +730,10 @@ const applyPower = (
               : `Nível ${sheetAction.source.level}:`,
           value: `+${value} em ${sheetAction.action.attribute}`,
         });
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [{ type: 'Attribute', attribute, value: newValue }],
+        });
       } else {
         subSteps.push({
           name: sheetAction.action.type,
