@@ -1,6 +1,6 @@
 import { Atributo } from '../data/atributos';
 // eslint-disable-next-line
-import CharacterSheet, { SubStep } from './CharacterSheet';
+import CharacterSheet, { SheetBonus, SheetChangeAction, SubStep } from './CharacterSheet';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -37,10 +37,8 @@ export interface GeneralPower {
   name: string;
   requirements: Requirement[][];
   allowSeveralPicks?: boolean;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetChangeAction[];
+  sheetBonuses?: SheetBonus[];
 }
 
 export type GeneralPowers = {
@@ -51,10 +49,8 @@ export interface OriginPower {
   name: string;
   description: string;
   type: string;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetChangeAction[];
+  sheetBonuses?: SheetBonus[];
 }
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
