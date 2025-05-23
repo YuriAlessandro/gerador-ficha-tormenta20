@@ -1,9 +1,5 @@
 import _ from 'lodash';
-import {
-  getNotRepeatedRandom,
-  getRandomItemFromArray,
-} from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
+import { getRandomItemFromArray } from '../../functions/randomUtils';
 import {
   ClassDescription,
   ClassAbility,
@@ -14,11 +10,7 @@ import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import tormentaPowers from '../powers/tormentaPowers';
-import {
-  addOrCheapenRandomSpells,
-  getSpellsOfCircle,
-  spellsCircle1,
-} from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
@@ -95,72 +87,57 @@ const feiticeiroPaths: ClassAbility[] = [
     name: 'Linhagem Dracônica',
     text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5',
     nivel: 1,
-    action: (sheet: CharacterSheet): CharacterSheet => {
-      // Tipo do dano já foi escolhino no setup
-      const sheetClone = _.cloneDeep(sheet);
-      const pvModifier = sheetClone.pvModifier.concat({
-        source: 'Linhagem Dracônica',
-        type: 'Attribute',
-        attribute: Atributo.CARISMA,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        pvModifier,
-      });
-    },
+    // Tipo do dano está sendo escolhido no setup
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Dracônica',
+        },
+        target: { type: 'PV' },
+        modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
+      },
+    ],
   },
   {
     name: 'Linhagem Feérica',
     text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha.',
     nivel: 1,
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      // Enganação já foi dado no setup
-      const sheetClone = _.cloneDeep(sheet);
-      const validSpells = Object.values(spellsCircle1).filter((spell) => {
-        const correctSchool =
-          spell.school === 'Encan' || spell.school === 'Ilusão';
-        // Escola correta e não repetida
-        return (
-          correctSchool && !sheet.spells.find((s) => s.nome !== spell.nome)
-        );
-      });
-
-      addOrCheapenRandomSpells(
-        sheetClone,
-        substeps,
-        validSpells,
-        'Linhagem Feérica',
-        Atributo.CARISMA,
-        1
-      );
-
-      return sheetClone;
-    },
+    // Enganação já foi dado no setup
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Feérica',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1).filter(
+            (spell) => spell.school === 'Encan' || spell.school === 'Ilusão'
+          ),
+          pick: 1,
+        },
+      },
+    ],
   },
   {
     name: 'Linhagem Rubra',
     text: 'Seu sangue foi corrompido pela Tormenta. Básica: Você recebe um poder da Tormenta. Além disso, pode perder outro atributo em vez de Carisma por poderes da Tormenta.',
     nivel: 1,
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const allowedPowers = Object.values(tormentaPowers);
-      const randomPower = getNotRepeatedRandom(
-        sheetClone.generalPowers,
-        'power',
-        allowedPowers
-      );
-      const generalPowers = sheetClone.generalPowers.concat(randomPower);
-
-      substeps.push({
-        name: 'Linhagem Rubra',
-        value: `Poder adicionado: ${randomPower.name}`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        generalPowers,
-      });
-    },
+    // Gimmick de perder Carisma está na parte de aplicar poderes da tormenta
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Rubra',
+        },
+        action: {
+          type: 'getGeneralPower',
+          availablePowers: Object.values(tormentaPowers),
+          pick: 1,
+        },
+      },
+    ],
   },
 ];
 
@@ -198,24 +175,16 @@ const ARCANISTA: ClassDescription = {
       name: 'Magias',
       text: 'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2o círculo no 5o nível, 3o círculo no 9o nível e assim por diante).',
       nivel: 1,
-      action(sheet: CharacterSheet): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        let keyAttr = Atributo.INTELIGENCIA;
-        if (sheet.classe.subname === 'Feiticeiro') {
-          keyAttr = Atributo.CARISMA;
-        }
-
-        const pmModifier = sheet.pmModifier.concat({
-          source: 'Magias',
-          type: 'Attribute',
-          attribute: keyAttr,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pmModifier,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: { type: 'PM' },
+          modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
+        },
+      ],
     },
     {
       name: 'Alta Arcana',
@@ -250,30 +219,42 @@ const ARCANISTA: ClassDescription = {
       text: 'Você aprende duas magias de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-        const currentSpellCircle =
-          sheetClone.classe.spellPath?.spellCircleAvailableAtLevel(
-            sheet.nivel
-          ) || 1;
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Conhecimento Mágico',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            pick: 2,
+          },
+        },
+      ],
+      // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      //   const sheetClone = _.cloneDeep(sheet);
+      //   const currentSpellCircle =
+      //     sheetClone.classe.spellPath?.spellCircleAvailableAtLevel(
+      //       sheet.nivel
+      //     ) || 1;
 
-        const keyAttr = sheetClone.classe.spellPath?.keyAttribute;
+      //   const keyAttr = sheetClone.classe.spellPath?.keyAttribute;
 
-        const availableSpells = getSpellsOfCircle(currentSpellCircle).filter(
-          (spell) => !!sheetClone.spells.find((s) => s.nome !== spell.nome)
-        );
+      //   const availableSpells = getSpellsOfCircle(currentSpellCircle).filter(
+      //     (spell) => !!sheetClone.spells.find((s) => s.nome !== spell.nome)
+      //   );
 
-        addOrCheapenRandomSpells(
-          sheetClone,
-          substeps,
-          availableSpells,
-          'Conhecimento Mágico',
-          keyAttr || Atributo.INTELIGENCIA,
-          2
-        );
+      //   addOrCheapenRandomSpells(
+      //     sheetClone,
+      //     substeps,
+      //     availableSpells,
+      //     'Conhecimento Mágico',
+      //     keyAttr || Atributo.INTELIGENCIA,
+      //     2
+      //   );
 
-        return sheetClone;
-      },
+      //   return sheetClone;
+      // },
     },
     {
       name: 'Contramágica Aprimorada',
@@ -362,24 +343,13 @@ const ARCANISTA: ClassDescription = {
       name: 'Poder Mágico',
       text: 'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante.',
       requirements: [],
-      action: (sheet, subSteps): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-        const pm = sheetClone.pm + sheetClone.nivel;
-        const newAddPm = sheetClone.classe.addpm + 1;
-
-        subSteps.push({
-          name: 'Poder Mágico',
-          value: `PM adicionado agora: ${sheetClone.nivel}, pm total: ${pm}. Para cada próximo nível, você receberá +1 PM.`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm,
-          classe: {
-            ...sheetClone.classe,
-            addpm: newAddPm,
-          },
-        });
-      },
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Poder Mágico' },
+          target: { type: 'PM' },
+          modifier: { type: 'LevelCalc', formula: '{level}' },
+        },
+      ],
     },
     {
       name: 'Raio Arcano',

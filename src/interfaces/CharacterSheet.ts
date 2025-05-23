@@ -17,7 +17,12 @@ export type SheetChangeSource =
       level: number;
     };
 
-export type SheetChangeAction =
+export type SheetAction = {
+  source: SheetChangeSource;
+  action: SheetActionStep;
+};
+
+export type SheetActionStep =
   | {
       type: 'ModifyAttribute';
       attribute: Atributo;
@@ -25,15 +30,25 @@ export type SheetChangeAction =
     }
   | {
       type: 'learnSkill';
-      skill: Skill; // Maybe modify this to be more flexible or to pick from random
+      availableSkills: Skill[]; // Maybe modify this to be more flexible or to pick from random
+      pick: number; // Number of skills to learn
     }
   | {
       type: 'learnSpell';
-      availableSpells: string[]; // List of available spells
+      availableSpells: Spell[]; // List of available spells
       pick: number; // Number of spells to learn
+    }
+  | {
+      type: 'learnAnySpellFromHighestCircle';
+      pick: number; // Number of spells to learn
+    }
+  | {
+      type: 'getGeneralPower';
+      availablePowers: GeneralPower[]; // List of available powers
+      pick: number; // Number of powers to learn
     };
 
-export type SheetChangeStep =
+export type SheetActionReceipt =
   | {
       type: 'Attribute';
       attribute: Atributo;
@@ -48,9 +63,9 @@ export type SheetChangeStep =
       spellNames: string[];
     };
 
-export type SheetChangeHistoryEntry = {
+export type SheetActionHistoryEntry = {
   source: SheetChangeSource;
-  changes: SheetChangeStep[];
+  changes: SheetActionReceipt[];
 };
 
 export type StatModifierTarget =
@@ -80,6 +95,10 @@ export type StatModifier =
   | {
       type: 'TormentaPowersCalc';
       formula: string;
+    }
+  | {
+      type: 'SpecialAttribute';
+      attribute: 'spellKeyAttr';
     };
 
 export type SheetBonus = {
@@ -101,7 +120,7 @@ export default interface CharacterSheet {
   pv: number;
   pm: number;
   sheetBonuses: SheetBonus[];
-  sheetChangeHistory: SheetChangeHistoryEntry[];
+  sheetActionHistory: SheetActionHistoryEntry[];
   defesa: number;
   bag: Bag;
   devoto?: CharacterReligion;

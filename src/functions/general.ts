@@ -67,8 +67,14 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
+import {
+  GeneralPower,
+  OriginPower,
+  PowerGetter,
+  PowersGetters,
+} from '../interfaces/Poderes';
 import CharacterSheet, {
+  SheetAction,
   StatModifier,
   Step,
   SubStep,
@@ -702,14 +708,54 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
+const applyPower = (
+  _sheet: CharacterSheet,
+  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses'>
+): [CharacterSheet, SubStep[]] => {
+  const sheet = _.cloneDeep(_sheet);
+  const subSteps: SubStep[] = [];
+
+  // sheet action
+  if (powerOrAbility.sheetActions) {
+    powerOrAbility.sheetActions.forEach((sheetAction) => {
+      if (sheetAction.action.type === 'ModifyAttribute') {
+        const { attribute, value } = sheetAction.action;
+        const newValue = sheet.atributos[attribute].mod + value;
+        sheet.atributos[attribute].mod = newValue;
+
+        subSteps.push({
+          name:
+            sheetAction.source.type === 'power'
+              ? `${sheetAction.source.name}:`
+              : `Nível ${sheetAction.source.level}:`,
+          value: `+${value} em ${sheetAction.action.attribute}`,
+        });
+      } else {
+        subSteps.push({
+          name: sheetAction.action.type,
+          value: `Não implementado`,
+        });
+      }
+    });
+  }
+
+  // sheet bonuses
+  if (powerOrAbility.sheetBonuses) {
+    sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
+  }
+
+  return [sheet, subSteps];
+};
+
 export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.raca.abilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -724,12 +770,14 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
 
 function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.devoto?.poderes || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
+    const [newAcc, newSubSteps] = applyPower(acc, power);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
@@ -743,16 +791,18 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
 
 function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
   const availableAbilities = sheetClone.classe.abilities.filter(
     (abilitie) => abilitie.nivel <= sheet.nivel
   );
 
-  sheetClone = (availableAbilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (availableAbilities || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
@@ -768,12 +818,13 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
 
 function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.generalPowers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.generalPowers || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
   const tormentaPowersQtd = countTormentaPowers(sheetClone);
@@ -829,16 +880,17 @@ function applyPowerGetters(
   powersGetters: PowersGetters
 ): CharacterSheet {
   let sheetClone = cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
   powersGetters.Origem.forEach((addPower) => {
     addPower(sheetClone, subSteps);
   });
 
-  sheetClone = (sheetClone.origin?.powers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.origin?.powers || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   if (subSteps.length && sheet.origin) {
     sheetClone.steps.push({
@@ -948,14 +1000,14 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
-
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
-      const nSubSteps: { name: string; value: string }[] = [];
+      const nSubSteps: SubStep[] = [];
 
       updatedSheet.classPowers.push(newPower);
 
-      const newSheet = newPower.action?.(updatedSheet, nSubSteps);
+      const [newSheet, newSubSteps] = applyPower(updatedSheet, newPower);
+      nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
 
       if (nSubSteps.length) {
@@ -975,30 +1027,150 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     }
   } else {
     // Escolha poder geral
+    const nSubSteps: SubStep[] = [];
     const newPower = getRandomItemFromArray(allowedGeneralPowers);
     updatedSheet.generalPowers.push(newPower);
 
-    subSteps.push({
-      name: `Novo poder geral`,
-      value: newPower.name,
-    });
+    const [newSheet, newSubSteps] = applyPower(updatedSheet, newPower);
+    nSubSteps.push(...newSubSteps);
+    if (newSheet) updatedSheet = newSheet;
+
+    if (nSubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novo poder Geral`,
+        value: nSubSteps,
+      });
+    } else {
+      subSteps.push({
+        name: `Novo poder Geral`,
+        value: newPower.name,
+      });
+    }
   }
 
   return updatedSheet;
 }
 
-export function getStatModifierValue(
-  sheet: CharacterSheet,
-  modifier: StatModifier
-) {
-  if (modifier.type === 'Attribute') {
-    return sheet.atributos[modifier.attribute].mod;
+const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
+  if (bonus.type === 'Attribute') {
+    return sheet.atributos[bonus.attribute].mod;
   }
-  if (modifier.type === 'Number') {
-    return modifier.value;
+  if (bonus.type === 'LevelCalc') {
+    const filledFormula = bonus.formula.replace(
+      '{level}',
+      sheet.nivel.toString()
+    );
+    // eslint-disable-next-line no-eval
+    return eval(filledFormula);
+  }
+  if (bonus.type === 'TormentaPowersCalc') {
+    // TODO
+    return 0;
+  }
+  if (bonus.type === 'SpecialAttribute') {
+    if (bonus.attribute === 'spellKeyAttr') {
+      const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
+      return sheet.atributos[attr].mod;
+    }
   }
   return 0;
-}
+};
+
+const applyStatModifiers = (_sheet: CharacterSheet) => {
+  let sheet = _.cloneDeep(_sheet);
+
+  const pvSubSteps: SubStep[] = [];
+  const pmSubSteps: SubStep[] = [];
+  const defSubSteps: SubStep[] = [];
+  const skillSubSteps: SubStep[] = [];
+
+  sheet.sheetBonuses.forEach((bonus) => {
+    const subStepName: string =
+      bonus.source.type === 'power'
+        ? `${bonus.source.name}:`
+        : `Nível ${bonus.source.level}:`;
+
+    if (bonus.target.type === 'PV') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.pv += bonusValue;
+      pvSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'PM') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.pm += bonusValue;
+      pmSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'Defense') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.defesa += bonusValue;
+      defSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'Skill') {
+      const skillName = bonus.target.name;
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+
+      skillSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em ${skillName}`,
+      });
+
+      const newCompleteSkills = sheet.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === skillName) {
+          value += bonusValue;
+        }
+
+        return { ...sk, others: value };
+      });
+
+      sheet = _.merge(sheet, {
+        completeSkills: newCompleteSkills,
+      });
+    }
+  });
+
+  if (pvSubSteps.length) {
+    sheet.steps.push({
+      label: 'Atributos Extras',
+      type: 'Bonus de PV',
+      value: pvSubSteps,
+    });
+  }
+
+  if (pmSubSteps.length) {
+    sheet.steps.push({
+      label: 'Atributos Extras',
+      type: 'Bonus de PM',
+      value: pmSubSteps,
+    });
+  }
+
+  if (defSubSteps.length) {
+    sheet.steps.push({
+      label: 'Atributos Extras',
+      type: 'Bonus de Defesa',
+      value: defSubSteps,
+    });
+  }
+
+  if (skillSubSteps.length) {
+    sheet.steps.push({
+      label: 'Atributos Extras',
+      type: 'Bonus de Perícias',
+      value: skillSubSteps,
+    });
+  }
+
+  return sheet;
+};
 
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
@@ -1146,9 +1318,8 @@ export default function generateRandomSheet(
     classe,
     pv: summedPV,
     pm: initialPM,
-    pvModifier: [],
-    pmModifier: [],
-    skillsModifier: [],
+    sheetBonuses: [], // TODO: I think this needs to be initialized already
+    sheetActionHistory: [], // TODO: THINK this one can be empty and get filled later on apply powers. Remove comment if true
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1232,83 +1403,8 @@ export default function generateRandomSheet(
     charSheet = levelUp(charSheet);
   }
 
-  if (charSheet.pvModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    // Aplicar modificadores de atributos
-    const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
-      const modifierValue = getStatModifierValue(charSheet, mod);
-      subSteps.push({
-        value: `${mod.source}: +${modifierValue}${
-          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
-        }`,
-      });
-      return acc + modifierValue;
-    }, 0);
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'PV extra',
-      value: subSteps,
-    });
-    charSheet.pv += pvExtra;
-  }
-
-  if (charSheet.pmModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
-      const modifierValue = getStatModifierValue(charSheet, mod);
-      subSteps.push({
-        value: `${mod.source}: +${modifierValue}${
-          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
-        }`,
-      });
-      return acc + modifierValue;
-    }, 0);
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'PM extra',
-      value: subSteps,
-    });
-    charSheet.pm += pmExtra;
-  }
-
-  if (charSheet.skillsModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    let newCompleteSkills = _.clone(charSheet.completeSkills);
-
-    charSheet.skillsModifier.forEach(([skill, modifier]) => {
-      newCompleteSkills = charSheet.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === skill) {
-          const modifierValue = getStatModifierValue(charSheet, modifier);
-          value += modifierValue;
-
-          subSteps.push({
-            value: `${modifier.source}: +${modifierValue}${
-              modifier.type === 'Attribute' ? ` (${modifier.attribute})` : ''
-            } em ${skill}`,
-          });
-        }
-
-        return { ...sk, others: value };
-      });
-    });
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'Extras nas Perícias:',
-      value: subSteps,
-    });
-
-    charSheet = _.merge(charSheet, {
-      completeSkills: newCompleteSkills,
-    });
-  }
+  // Passo 13: Aplicar modificadores de atributos
+  charSheet = applyStatModifiers(charSheet);
 
   return charSheet;
 }

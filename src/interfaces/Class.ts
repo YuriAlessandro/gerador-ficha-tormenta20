@@ -1,5 +1,5 @@
 import { Atributo } from '../data/atributos';
-import { SheetBonus, SheetChangeAction } from './CharacterSheet';
+import { SheetBonus, SheetAction } from './CharacterSheet';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
@@ -34,7 +34,7 @@ export interface ClassAbility {
   name: string;
   text: string;
   nivel: number;
-  sheetActions?: SheetChangeAction[];
+  sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
 }
 
@@ -42,7 +42,7 @@ export interface ClassPower {
   name: string;
   text: string;
   requirements?: Requirement[][];
-  sheetActions?: SheetChangeAction[];
+  sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
 }
