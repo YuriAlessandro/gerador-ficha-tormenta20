@@ -35,16 +35,20 @@ const CLERIGO: ClassDescription = {
       Skill.PERCEPCAO,
     ],
   },
-  proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
+  proficiencias: [
+    PROFICIENCIAS.SIMPLES,
+    PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.ESCUDOS,
+  ],
   abilities: [
     {
-      name: 'Devoto',
-      text: 'Você se torna devoto de um deus maior. Você deve obedecer às Obrigações & Restrições de seu deus, mas, em troca, ganha os Poderes Concedidos dele. Veja a lista de deuses na página 97. Como alternativa, você pode cultuar o Panteão como um todo. Não recebe nenhum Poder Concedido, mas sua única Obrigação & Restrição é não usar armas cortantes ou perfurantes (porque derramam sangue, algo que clérigos do Panteão consideram proibido). O nome desta habilidade varia de acordo com a divindade escolhida: Devoto de Azgher, Devoto de Thyatis... ou Devoto dos Deuses, se escolher cultuar o Panteão como um todo.',
+      name: 'Devoto Fiel',
+      text: 'Você se torna devoto de um deus maior. Veja as regras de devotos na página 96. Ao contrário de devotos normais, você recebe dois poderes concedidos por se tornar devoto, em vez de apenas um. Como alternativa, você pode cultuar o Panteão como um todo. Não recebe nenhum Poder Concedido, mas sua única obrigação e restrição é não usar armas cortantes ou perfurantes (porque derramam sangue, algo que clérigos do Panteão consideram proibido). Sua arma preferida é a maça e você pode canalizar energia positiva ou negativa a sua escolha (uma vez feita, essa escolha não pode ser mudada). Cultuar o Panteão conta como sua devoção.',
       nivel: 1,
     },
     {
       name: 'Magias',
-      text: 'Você pode lançar magias divinas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2º círculo no 5º nível, 3º círculo no 9º nível e assim por diante). Você começa com três magias de 1º círculo. A cada nível, aprende uma magia de qualquer círculo que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma seu bônus de Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
+      text: 'Você pode lançar magias divinas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2º círculo no 5º nível, 3º círculo no 9º nível e assim por diante). Você começa com três magias de 1º círculo. A cada nível, aprende uma magia de qualquer círculo que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = _.cloneDeep(sheet);
@@ -52,7 +56,7 @@ const CLERIGO: ClassDescription = {
         const finalPM = sheet.pm + sheet.atributos.Sabedoria.mod;
         substeps.push({
           name: 'Magias',
-          value: `+(Mod SAB) PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
+          value: `+SAB PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
         });
 
         return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
@@ -62,19 +66,19 @@ const CLERIGO: ClassDescription = {
     },
     {
       name: 'Mão da Divindade',
-      text: 'Você pode gastar uma ação completa e 15 PM para canalizar a energia de seu deus. Ao fazer isso, você lança três magias divinas quaisquer (de qualquer círculo, incluindo magias que você não conhece), como uma ação livre e sem gastar PM (mas ainda precisa pagar outros custos). Você pode aplicar aprimoramentos, mas precisa pagar por eles. Após usar esta habilidade, você fica atordoado por 1d4 rodadas. Corpos mortais não foram feitos para lidar com tanto poder.',
+      text: 'No 20º nível, você pode gastar uma ação completa e 15 PM para canalizar energia divina. Ao fazer isso, você lança três magias divinas quaisquer (de qualquer círculo, incluindo magias que você não conhece), como uma ação livre e sem gastar PM (mas ainda precisa pagar outros custos). Você pode aplicar aprimoramentos, mas precisa pagar por eles. Após usar esta habilidade, você fica atordoado por 1d4 rodadas (mesmo se for imune a esta condição). Corpos mortais não foram feitos para lidar com tanto poder.',
       nivel: 20,
     },
   ],
   powers: [
     {
       name: 'Abençoar Arma',
-      text: 'Você se torna proficiente na arma preferida de sua divindade. Se estiver empunhando essa arma, pode gastar uma ação de movimento e 3 PM para infundi-la com poder divino. Até o final da cena, a arma emite luz dourada ou púrpura (como uma tocha) e você pode usar seu modificador de Sabedoria em testes de ataque e rolagens de dano com ela (em vez do modificador padrão). Além disso, o dano da arma aumenta em um passo e ela é considerada mágica para propósitos de resistência a dano.',
+      text: 'Você se torna proficiente na arma preferida de sua divindade. Se estiver empunhando essa arma, pode gastar uma ação de movimento e 3 PM para infundi-la com poder divino. Até o final da cena, a arma é considerada mágica e emite luz dourada ou púrpura (como uma tocha). Além disso, o dano da arma aumenta em um passo e você pode usar sua Sabedoria em testes de ataque e rolagens de dano com ela, em vez do atributo padrão (não cumulativo com efeitos que somam este atributo).',
       requirements: [],
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
     },
@@ -85,7 +89,7 @@ const CLERIGO: ClassDescription = {
     },
     {
       name: 'Canalizar Energia Positiva/Negativa',
-      text: 'Você pode gastar uma ação padrão e 1 PM para liberar uma onda de energia positiva ou negativa (de acordo com sua divindade) que afeta todas as criaturas em alcance curto. Energia positiva cura 1d6 pontos de dano em criaturas vivas a sua escolha e causa 1d6 pontos de dano de luz em mortos-vivos. Energia negativa tem o efeito inverso — causa dano de trevas em criaturas vivas a sua escolha e cura mortos-vivos. Uma criatura que sofra dano tem direito a um teste de Vontade (CD Car) para reduzi-lo à metade. Para cada 2 PM extras que você gastar, a cura ou dano aumenta em +1d6 PV (ou seja, pode gastar 3 PM para curar 2d6 PV, 5 PM para curar 3d6 PV e assim por diante).',
+      text: 'Você pode gastar uma ação padrão e PM para liberar uma onda de luz (se sua divindade canaliza energia positiva) ou trevas (se canaliza energia negativa) que afeta criaturas a sua escolha em alcance curto. Para cada PM que gastar, luz cura 1d6 PV em criaturas vivas e causa 1d6 pontos de dano de luz em mortos-vivos (Vontade CD Sab reduz o dano à metade). Trevas tem o efeito inverso — causa dano de trevas a criaturas vivas e cura mortos-vivos.',
       requirements: [],
     },
     {
@@ -110,10 +114,23 @@ const CLERIGO: ClassDescription = {
       text: 'Você aprende duas magias divinas de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       requirements: [],
       canRepeat: true,
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        substeps.push({
+          name: 'Conhecimento Mágico',
+          value:
+            'Aprendeu 2 magias divinas de qualquer círculo que possa lançar.',
+        });
+
+        // TODO
+
+        return sheetClone;
+      },
     },
     {
       name: 'Expulsar/Comandar Mortos-Vivos',
-      text: 'Você pode usar uma ação padrão e 3 PM para expulsar (se sua divindade canaliza energia positiva) ou comandar (se canaliza energia negativa) todos os mortos-vivos em alcance curto. Mortos-vivos expulsos ficam apavorados por 1d6 rodadas. Mortos-vivos comandados ficam sob suas ordens; entretanto, o nível somado de mortos-vivos sob seu comando ao mesmo tempo não pode exceder o seu próprio nível +3. Dar uma ordem a mortos-vivos é uma ação de movimento. Mortos-vivos têm direito a um teste de Vontade (CD Car) para evitar qualquer destes efeitos.',
+      text: 'Você pode gastar uma ação padrão e 3 PM para expulsar (se sua divindade canaliza energia positiva) ou comandar (se canaliza energia negativa) todos os mortos-vivos em alcance curto. Mortos-vivos expulsos ficam apavorados por 1d6 rodadas. Mortos-vivos comandados não inteligentes (Int –4 ou menor) ficam sob suas ordens por um dia (até um limite de ND somados igual a seu nível +3; dar uma ordem a todos eles é uma ação de movimento) e mortos-vivos comandados inteligentes ficam fascinados por uma rodada. Mortos-vivos têm direito a um teste de Vontade (CD Sab) para evitar qualquer destes efeitos.',
       requirements: [
         [
           {
@@ -125,12 +142,12 @@ const CLERIGO: ClassDescription = {
     },
     {
       name: 'Liturgia Mágica',
-      text: 'Você pode gastar uma ação de movimento para executar uma breve liturgia de sua fé. Se fizer isso, a CD para resistir à sua próxima magia divina (desde que lançada até o final de seu próximo turno) aumenta em +2.',
+      text: 'Você pode gastar uma ação de movimento para executar uma breve liturgia de sua fé. Se fizer isso, a CD para resistir à sua próxima habilidade de clérigo (desde que usada até o final de seu próximo turno) aumenta em +2.',
       requirements: [],
     },
     {
       name: 'Magia Sagrada/Profana',
-      text: 'Quando lança uma magia divina que causa dano, você pode gastar +1 PM. Se fizer isso, muda o tipo de dano da magia para luz ou trevas (de acordo com a sua divindade).',
+      text: 'Quando lança uma magia divina que causa dano, você pode gastar +1 PM. Se fizer isso, muda o tipo de dano da magia para luz (se sua divindade canaliza energia positiva) ou trevas (se canaliza energia negativa).',
       requirements: [],
     },
     {
@@ -146,27 +163,27 @@ const CLERIGO: ClassDescription = {
     },
     {
       name: 'Missa: Bênção da Vida',
-      text: 'Você abençoa os presentes com energia positiva. Os participantes recebem pontos de vida temporários em um valor igual ao seu nível + seu bônus de Sabedoria.',
+      text: 'Os participantes recebem pontos de vida temporários em um valor igual ao seu nível + sua Sabedoria.',
       requirements: [],
     },
     {
       name: 'Missa: Chamado às Armas',
-      text: 'Sua prece fortalece o espírito de luta. Os participantes recebem +1 em testes de ataque e rolagens de dano.',
+      text: 'Os participantes recebem +1 em testes de ataque e rolagens de dano.',
       requirements: [],
     },
     {
       name: 'Missa: Elevação do Espírito',
-      text: 'Você inflama a determinação dos ouvintes. Os participantes recebem pontos de mana temporários em um valor igual ao seu bônus de Sabedoria.',
+      text: 'Os participantes recebem pontos de mana temporários em um valor igual a sua Sabedoria.',
       requirements: [],
     },
     {
       name: 'Missa: Escudo Divino',
-      text: 'Sua fé protege os ouvintes. Os participantes recebem +1 em Defesa e testes de resistência.',
+      text: 'Os participantes recebem +1 na Defesa e testes de resistência.',
       requirements: [],
     },
     {
       name: 'Missa: Superar as Limitações',
-      text: 'Você encoraja os ouvintes a superar suas próprias habilidades. Cada participante recebe +1d6 num único teste a sua escolha.',
+      text: 'Cada participante recebe +1d6 num único teste a sua escolha e pode usá-lo mesmo após rolar o dado.',
       requirements: [],
     },
     {
