@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _, { cloneDeep } from 'lodash';
+import _, { cloneDeep, isNumber } from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -536,7 +536,8 @@ function getThyatisPowers(classe: ClassDescription) {
 function getPoderesConcedidos(
   divindade: Divindade,
   todosPoderes: boolean,
-  classe: ClassDescription
+  classe: ClassDescription,
+  qtd?: number
 ) {
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
@@ -544,6 +545,11 @@ function getPoderesConcedidos(
     }
 
     return [...divindade.poderes];
+  }
+
+  if (qtd && qtd > 1) {
+    const poderesConcedidos = pickFromArray(divindade.poderes, qtd);
+    return [...poderesConcedidos];
   }
 
   return [getRandomItemFromArray(divindade.poderes)];
@@ -582,8 +588,17 @@ function getReligiosidade(
     divindade = DivindadeEnum[selectedOption as DivindadeNames];
   }
 
+  // Provavelmente uma merda de solução mas preguiça
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
-  const poderes = getPoderesConcedidos(divindade, todosPoderes, classe);
+  const qtdPoderesConcedidos = isNumber(classe.qtdPoderesConcedidos)
+    ? classe.qtdPoderesConcedidos
+    : 0;
+  const poderes = getPoderesConcedidos(
+    divindade,
+    todosPoderes,
+    classe,
+    qtdPoderesConcedidos
+  );
 
   return { divindade, poderes };
 }
