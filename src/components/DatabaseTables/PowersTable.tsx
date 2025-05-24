@@ -49,6 +49,10 @@ const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
     return <li>Treinado em {requirement.name}</li>;
   }
 
+  if (requirement.type === RequirementType.TEXT) {
+    return <li>{requirement.text}</li>;
+  }
+
   if (requirement.type === RequirementType.PODER_TORMENTA) {
     return (
       <li>{`Pelo menos ${requirement.value} ${
