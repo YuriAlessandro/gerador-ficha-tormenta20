@@ -13,22 +13,22 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   ACROBATICO: {
     name: 'Acrobático',
     description:
-      'Você pode usar seu modificador de Destreza em vez de Força em testes de Atletismo. Além disso, terreno difícil não reduz seu deslocamento nem o impede de realizar investidas.',
+      'Você pode usar sua Destreza em vez de Força em testes de Atletismo. Além disso, terreno difícil não reduz seu deslocamento nem o impede de realizar investidas.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 15 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 2 }],
     ],
   },
   AO_SABOR_DO_DESTINO: {
     name: 'Ao Sabor do Destino',
     description:
-      'Você recebe diversos benefícios, de acordo com seu nível de personagem e a tabela da página 129.',
+      'Confiando em suas próprias habilidades (ou em sua própria sorte), você abre mão de usar itens mágicos. Sua autoconfiança fornece diversos benefícios, de acordo com seu nível de personagem e a tabela da página 130.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [
         {
           type: RequirementType.NIVEL,
-          value: 5,
+          value: 6,
         },
       ],
     ],
@@ -36,19 +36,18 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   APARENCIA_INOFENSIVA: {
     name: 'Aparência Inofensiva',
     description:
-      'A primeira criatura inteligente (Int 3 ou mais) que atacar você em uma cena deve fazer um teste de Vontade (CD Car). Se falhar, perderá sua ação. Este poder só funciona uma vez por cena; independentemente de a criatura falhar ou não no teste, poderá atacá-lo nas rodadas seguintes.',
+      'A primeira criatura inteligente (Int –3 ou maior) que atacar você em uma cena deve fazer um teste de Vontade (CD Car). Se falhar, perderá sua ação. Este poder só funciona uma vez por cena; independentemente de a criatura falhar ou não no teste, poderá atacá-lo nas rodadas seguintes.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 1 }],
     ],
   },
   ATLETICO: {
     name: 'Atlético',
-    description:
-      'Você recebe +2 em Atletismo e +3m em seu deslocamento (JÁ INCLUSO).',
+    description: 'Você recebe +2 em Atletismo e +3m em seu deslocamento.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 15 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 2 }],
     ],
     action(
       sheet: CharacterSheet,
@@ -64,8 +63,24 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         value: 'Deslocamento +3',
       });
 
+      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === Skill.ATLETISMO) {
+          value += 2;
+
+          subSteps.push({
+            name: 'Atlético',
+            value: `+2 em Atletismo`,
+          });
+        }
+
+        return { ...sk, others: value };
+      });
+
       return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
         displacement: sheetClone.displacement + 3,
+        completeSkills: newCompleteSkills,
       });
     },
   },
@@ -75,7 +90,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em testes de perícias baseadas em Carisma contra criaturas que possam se sentir fisicamente atraídas por você.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 1 }],
     ],
   },
   COMANDAR: {
@@ -84,24 +99,59 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você pode gastar uma ação de movimento e 1 PM para gritar ordens para seus aliados em alcance médio. Eles recebem +1 em testes de perícia até o fim da cena.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 1 }],
     ],
+  },
+  COSTAS_LARGAS: {
+    name: 'Costas Largas',
+    description:
+      'Seu limite de carga aumenta em 5 espaços e você pode se beneficiar de um item vestido adicional.',
+    type: GeneralPowerType.DESTINO,
+    requirements: [
+      [
+        { type: RequirementType.ATRIBUTO, name: 'Constituição', value: 1 },
+        { type: RequirementType.ATRIBUTO, name: 'Força', value: 1 },
+      ],
+    ],
+    action(sheet: CharacterSheet): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        maxSpaces: sheetClone.maxSpaces + 5,
+      });
+    },
   },
   FOCO_EM_PERICIA: {
     name: 'Foco em Perícia',
     description:
-      'Escolha uma perícia. Quando faz um teste dessa perícia, você pode gastar 1 PM para rolar dois dados e usar o melhor resultado. Você pode escolher este poder outras vezes para perícias diferentes. Este poder não pode ser aplicado em Luta e Pontaria',
+      'Escolha uma perícia. Quando faz um teste dessa perícia, você pode gastar 1 PM para rolar dois dados e usar o melhor resultado. Você pode escolher este poder outras vezes para perícias diferentes. Este poder não pode ser aplicado em Luta e Pontaria (mas veja Foco em Arma).',
     type: GeneralPowerType.DESTINO,
     allowSeveralPicks: true,
     requirements: [],
   },
+  INVENTARIO_ORGANIZADO: {
+    name: 'Inventário Organizado',
+    description:
+      'Você soma sua Inteligência no limite de espaços que pode carregar. Para você, itens muito leves ou pequenos, que normalmente ocupam meio espaço, em vez disso ocupam 1/4 de espaço.',
+    type: GeneralPowerType.DESTINO,
+    requirements: [
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
+    ],
+    action(sheet: CharacterSheet): CharacterSheet {
+      const sheetClone = cloneDeep(sheet);
+
+      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        maxSpaces: sheetClone.maxSpaces + sheetClone.atributos.Inteligência.mod,
+      });
+    },
+  },
   INVESTIGADOR: {
     name: 'Investigador',
     description:
-      'Você recebe +2 em Investigação (JÁ INCLUSO) e soma seu bônus de Inteligência em Intuição (JÁ INCLUSO).',
+      'Você recebe +2 em Investigação e soma sua Inteligência em Intuição.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
     ],
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
       const sheetClone = _.cloneDeep(sheet);
@@ -111,11 +161,11 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Investigação') {
+        if (sk.name === Skill.INVESTIGACAO) {
           value += 2;
         }
 
-        if (sk.name === 'Intuição') value += bnsInt;
+        if (sk.name === Skill.INTUICAO) value += bnsInt;
 
         return { ...sk, others: value };
       });
@@ -133,7 +183,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   LOBO_SOLITARIO: {
     name: 'Lobo Solitário',
     description:
-      'Você recebe +1 em testes de perícia e Defesa se estiver sem nenhum aliado em alcance curto. Você não sofre penalidade por usar a perícia Cura em si mesmo.',
+      'Você recebe +1 em testes de perícia e Defesa se estiver sem nenhum aliado em alcance curto. Você não sofre penalidade por usar Cura em si mesmo.',
     type: GeneralPowerType.DESTINO,
     requirements: [],
   },
@@ -144,7 +194,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.DESTINO,
     requirements: [
       [
-        { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 },
+        { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
         { type: RequirementType.PERICIA, name: 'Cura' },
       ],
     ],
@@ -152,7 +202,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   PARCEIRO: {
     name: 'Parceiro',
     description:
-      'Você possui um parceiro animal ou humanoide que o acompanha em aventuras. Escolha os detalhes dele, como nome, aparência e personalidade. Em termos de jogo, é um aliado iniciante de um tipo a sua escolha (veja a página 246). O parceiro obedece às suas ordens e se arrisca para ajudá-lo. Entretanto, se for maltratado, pode parar de segui-lo (de acordo com o mestre). Se perder seu parceiro, você recebe outro no início da próxima aventura.',
+      'Você possui um parceiro animal ou humanoide que o acompanha em aventuras. Escolha os detalhes dele, como nome, aparência e personalidade. Em termos de jogo, é um parceiro iniciante de um tipo a sua escolha (veja a página 260). O parceiro obedece às suas ordens e se arrisca para ajudá-lo, mas, se for maltratado, pode parar de segui-lo (de acordo com o mestre). Se perder seu parceiro, você recebe outro no início da próxima aventura.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [
@@ -162,7 +212,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         },
         {
           type: RequirementType.NIVEL,
-          value: 6,
+          value: 5,
         },
       ],
       [
@@ -172,7 +222,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         },
         {
           type: RequirementType.NIVEL,
-          value: 6,
+          value: 5,
         },
       ],
     ],
@@ -180,7 +230,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   SENTIDOS_AGUCADOS: {
     name: 'Sentidos Aguçados',
     description:
-      'Você recebe +2 em Percepção (JÁ INCLUSO), não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem ou camuflagem total, pode rolar mais uma vez o dado da chance de falha.',
+      'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem, pode rolar mais uma vez o dado da chance de falha.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
@@ -191,7 +241,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Percepção') {
+        if (sk.name === Skill.PERCEPCAO) {
           value += 2;
         }
 
@@ -230,14 +280,15 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em testes de perícia e Defesa quando tem a torcida a seu favor. Entenda-se por “torcida” qualquer número de criaturas inteligentes em alcance médio que não esteja realizando nenhuma ação além de torcer por você.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Carisma', value: 1 }],
     ],
   },
   TREINAMENTO_EM_PERICIA: {
     name: 'Treinamento em Perícia',
     description:
-      'Você se torna treinado em uma perícia a sua escolha (JÁ INCLUSO). Você pode escolher este poder outras vezes para perícias diferentes.',
+      'Você se torna treinado em uma perícia a sua escolha. Você pode escolher este poder outras vezes para perícias diferentes.',
     type: GeneralPowerType.DESTINO,
+    allowSeveralPicks: true,
     requirements: [],
     action(
       sheet: CharacterSheet,
@@ -272,7 +323,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   VONTADE_DE_FERRO: {
     name: 'Vontade de Ferro',
     description:
-      'Você recebe +1 PM para cada dois níveis de personagem (NÃO INCLUSO) e +2 em Vontade (INCLUSO).',
+      'Você recebe +1 PM para cada dois níveis de personagem e +2 em Vontade.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 }],
@@ -280,10 +331,18 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
       const sheetClone = _.cloneDeep(sheet);
 
+      // Dois PMS para cada dois níveis de personagem
+      const newPM = Math.floor(sheetClone.nivel / 2);
+      sheetClone.pmModifier.push({
+        source: 'Vontade de Ferro',
+        type: 'Number',
+        value: newPM,
+      });
+
       const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
         let value = sk.others ?? 0;
 
-        if (sk.name === 'Vontade') {
+        if (sk.name === Skill.VONTADE) {
           value += 2;
         }
 

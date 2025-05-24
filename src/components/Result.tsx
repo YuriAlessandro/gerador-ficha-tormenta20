@@ -45,7 +45,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     spells,
     displacement,
-    maxWeight,
+    maxSpaces,
     generalPowers = [],
     classPowers = [],
     steps,
@@ -141,7 +141,8 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
     <li key={getKey(equip.nome)}>
-      {equip.nome} {equip.peso && `- ${equip.peso}kg`}
+      {equip.nome}{' '}
+      {equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''}
     </li>
   ));
 
@@ -235,8 +236,8 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}${
-                attr.value ? ': ' : ''
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}: ${
+                (attr.value as number) > 0 ? '+' : '-'
               }${attr.value}`}</li>
             ))}
           </ul>
@@ -246,7 +247,8 @@ const Result: React.FC<ResultProps> = (props) => {
     if (
       step.type === 'Perícias' ||
       step.type === 'Magias' ||
-      step.type === 'Equipamentos'
+      step.type === 'Equipamentos' ||
+      step.type === 'Atributos Extras'
     ) {
       return (
         <li key={getKey(step.label)}>
@@ -413,13 +415,29 @@ const Result: React.FC<ResultProps> = (props) => {
                 </div>
                 <div className='textToRight equipmentsValues'>
                   <span>
-                    <strong>Peso (atual/máximo):</strong>{' '}
-                    {bag.getWeight ? bag.getWeight() : bag.weight}/{maxWeight}kg
+                    <strong>Espaços (atual/limite-máximo): </strong>
+                    {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
                   </span>
                 </div>
               </div>
 
               <div className='powersArea'>
+                {sheet.sentidos && sheet.sentidos.length > 0 && (
+                  <>
+                    <Divider isDarkMode={isDarkMode} direction='down' />
+                    <div className='sectionTitle'>
+                      <span>Sentidos</span>
+                    </div>
+                    <div className='resultRow'>
+                      <ul>
+                        {sheet.sentidos.map((sentido) => (
+                          <li key={getKey(sentido)}>{sentido}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
                 <Divider isDarkMode={isDarkMode} direction='down' />
 
                 <div className='sectionTitle'>

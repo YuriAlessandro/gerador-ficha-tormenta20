@@ -106,7 +106,28 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
                 </ul>
               </p>
 
-              <p>Melhorias: EM BREVE</p>
+              <p>{spell.description}</p>
+
+              {spell.aprimoramentos && (
+                <p>
+                  <strong>Aprimoramentos:</strong>
+                  <ul>
+                    {spell.aprimoramentos.map((apr) => {
+                      if (apr.addPm === 0)
+                        return (
+                          <li>
+                            <strong>TRUQUE:</strong> {apr.text}
+                          </li>
+                        );
+                      return (
+                        <li>
+                          <strong>+{apr.addPm}:</strong> {apr.text}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </p>
+              )}
             </Box>
           </Collapse>
         </TableCell>

@@ -7,7 +7,7 @@ import Bag from '../../interfaces/Bag';
 export function inventor(race: Race): CharacterSheet {
   return {
     id: 'testid',
-    maxWeight: 33,
+    maxSpaces: 12,
     nome: 'Fulano',
     raca: race,
     sexo: 'Homem',
@@ -142,5 +142,8 @@ export function inventor(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 13,
     pm: 4,
+    pvModifier: [],
+    pmModifier: [],
+    skillsModifier: [],
   };
 }

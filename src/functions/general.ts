@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import _, { cloneDeep } from 'lodash';
+import _, { cloneDeep, isNumber } from 'lodash';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -25,6 +25,7 @@ import Race, { RaceAttributeAbility } from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
+  countTormentaPowers,
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
@@ -66,13 +67,12 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import {
-  GeneralPowerType,
-  OriginPower,
-  PowerGetter,
-  PowersGetters,
-} from '../interfaces/Poderes';
-import CharacterSheet, { Step, SubStep } from '../interfaces/CharacterSheet';
+import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
+import CharacterSheet, {
+  StatModifier,
+  Step,
+  SubStep,
+} from '../interfaces/CharacterSheet';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -137,13 +137,11 @@ function getModifiedAttribute(
   atributosModificados: CharacterAttributes,
   attrDaRaca: RaceAttributeAbility
 ): CharacterAttribute {
-  const newValue =
-    atributosModificados[selectedAttrName].value + attrDaRaca.mod;
+  const newMod = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
 
   return {
     ...atributosModificados[selectedAttrName],
-    value: newValue,
-    mod: getModValue(newValue),
+    mod: newMod,
   };
 }
 
@@ -176,7 +174,7 @@ export function modifyAttributesBasedOnRace(
 
       values.push({
         name: selectedAttrName,
-        value: `${attrDaRaca.mod > 0 ? `+` : ''}${attrDaRaca.mod}`,
+        value: attrDaRaca.mod,
       });
 
       return {
@@ -250,7 +248,7 @@ function generateFinalAttributes(
     type: 'Atributos',
     value: Object.values(sortedAttributes).map((attr) => ({
       name: attr.name,
-      value: attr.value,
+      value: attr.mod,
     })),
   });
 
@@ -538,7 +536,8 @@ function getThyatisPowers(classe: ClassDescription) {
 function getPoderesConcedidos(
   divindade: Divindade,
   todosPoderes: boolean,
-  classe: ClassDescription
+  classe: ClassDescription,
+  qtd?: number
 ) {
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
@@ -546,6 +545,11 @@ function getPoderesConcedidos(
     }
 
     return [...divindade.poderes];
+  }
+
+  if (qtd && qtd > 1) {
+    const poderesConcedidos = pickFromArray(divindade.poderes, qtd);
+    return [...poderesConcedidos];
   }
 
   return [getRandomItemFromArray(divindade.poderes)];
@@ -584,8 +588,17 @@ function getReligiosidade(
     divindade = DivindadeEnum[selectedOption as DivindadeNames];
   }
 
+  // Provavelmente uma merda de solução mas preguiça
   const todosPoderes = classe.qtdPoderesConcedidos === 'all';
-  const poderes = getPoderesConcedidos(divindade, todosPoderes, classe);
+  const qtdPoderesConcedidos = isNumber(classe.qtdPoderesConcedidos)
+    ? classe.qtdPoderesConcedidos
+    : 0;
+  const poderes = getPoderesConcedidos(
+    divindade,
+    todosPoderes,
+    classe,
+    qtdPoderesConcedidos
+  );
 
   return { divindade, poderes };
 }
@@ -692,9 +705,12 @@ function calcDisplacement(
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number {
-  const maxWeight = atributos.Força.value * 3;
+  const maxSpaces =
+    atributos.Força.mod > 0
+      ? 10 + 2 * atributos.Força.mod
+      : 10 - atributos.Força.mod;
 
-  if (bag.getWeight() > maxWeight) {
+  if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
   }
 
@@ -769,22 +785,49 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: { name: string; value: string }[] = [];
 
-  sheetClone = (sheetClone.generalPowers || []).reduce((acc, power) => {
-    // Se for Poder da Tormenta, remover 2 de Carisma
-    if (power.type === GeneralPowerType.TORMENTA) {
-      sheetClone.atributos.Carisma.value -= 1;
+  sheetClone = (sheetClone.generalPowers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
+    sheetClone
+  );
+
+  // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
+  const tormentaPowersQtd = countTormentaPowers(sheetClone);
+
+  const totalPenalty = Math.floor((tormentaPowersQtd + 1) / 2);
+  if (totalPenalty > 0) {
+    // Caso especial pra feiticeiros da linhagem rubra, eles nunca querem perder carisma
+    if (
+      sheetClone.classe.abilities.find(
+        (ability) => ability.name === 'Linhagem Rubra'
+      )
+    ) {
+      let remainingPenalty = totalPenalty;
+      while (remainingPenalty > 0) {
+        // Ache o atributo com maior mod que não seja carisma
+        const highestAttribute = Object.values(sheetClone.atributos).reduce(
+          (prev, curr) => {
+            if (curr.name === 'Carisma') return prev;
+            if (prev.mod > curr.mod) return prev;
+            return curr;
+          }
+        );
+
+        sheetClone.atributos[highestAttribute.name].mod -= 1;
+        remainingPenalty -= 1;
+
+        subSteps.push({
+          name: highestAttribute.name,
+          value: `-1 por ${tormentaPowersQtd} poderes da Tormenta`,
+        });
+      }
+    } else {
+      sheetClone.atributos.Carisma.mod -= totalPenalty;
       subSteps.push({
-        name: power.name,
-        value: 'Perdeu 1 de Carisma',
+        name: 'Carisma',
+        value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
       });
     }
-    return power.action ? power.action(acc, subSteps) : acc;
-  }, sheetClone);
-
-  // Recalcular mod de carisma
-  sheetClone.atributos.Carisma.mod = getModValue(
-    sheetClone.atributos.Carisma.value
-  );
+  }
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -800,13 +843,17 @@ function applyPowerGetters(
   sheet: CharacterSheet,
   powersGetters: PowersGetters
 ): CharacterSheet {
-  const sheetClone = cloneDeep(sheet);
-
-  const subSteps: SubStep[] = [];
+  let sheetClone = cloneDeep(sheet);
+  const subSteps: { name: string; value: string }[] = [];
 
   powersGetters.Origem.forEach((addPower) => {
     addPower(sheetClone, subSteps);
   });
+
+  sheetClone = (sheetClone.origin?.powers || []).reduce(
+    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
+    sheetClone
+  );
 
   if (subSteps.length && sheet.origin) {
     sheetClone.steps.push({
@@ -904,6 +951,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${updatedSheet.nivel}`,
+    value: subSteps,
+  });
+
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
   const allowedPowers = getAllowedClassPowers(updatedSheet);
@@ -946,13 +999,20 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
-  updatedSheet.steps.push({
-    type: 'Poderes',
-    label: `Nível ${updatedSheet.nivel}`,
-    value: subSteps,
-  });
-
   return updatedSheet;
+}
+
+export function getStatModifierValue(
+  sheet: CharacterSheet,
+  modifier: StatModifier
+) {
+  if (modifier.type === 'Attribute') {
+    return sheet.atributos[modifier.attribute].mod;
+  }
+  if (modifier.type === 'Number') {
+    return modifier.value;
+  }
+  return 0;
 }
 
 export default function generateRandomSheet(
@@ -1047,7 +1107,10 @@ export default function generateRandomSheet(
   const atributos = generateFinalAttributes(classe, race, steps);
 
   // Passo 6.1: Gerar valores dependentes de atributos
-  const maxWeight = atributos.Força.value * 3;
+  const maxSpaces =
+    atributos.Força.mod > 0
+      ? 10 + 2 * atributos.Força.mod
+      : 10 - atributos.Força.mod;
   const summedPV = initialPV + atributos.Constituição.mod;
 
   steps.push({
@@ -1093,11 +1156,14 @@ export default function generateRandomSheet(
     sexo,
     nivel: 1,
     atributos,
-    maxWeight,
+    maxSpaces,
     raca: race,
     classe,
     pv: summedPV,
     pm: initialPM,
+    pvModifier: [],
+    pmModifier: [],
+    skillsModifier: [],
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1109,6 +1175,7 @@ export default function generateRandomSheet(
     steps,
     skills,
     spells: initialSpells,
+    sentidos: [],
   };
 
   // Passo 9:
@@ -1124,7 +1191,11 @@ export default function generateRandomSheet(
     })),
   });
 
-  // Calcular valor das perícias
+  // Passo 10:
+  // Gerar poderes restantes, e aplicar habilidades, e poderes
+  charSheet = getAndApplyPowers(charSheet, powersGetters);
+
+  // Calcular valor das perícias após poderes (pois vários poderes adicionam perícias e bonificadores)
   charSheet.completeSkills = Object.values(Skill)
     .map((skill) => {
       const skillAttr = SkillsAttrs[skill];
@@ -1137,7 +1208,7 @@ export default function generateRandomSheet(
       return {
         name: skill,
         halfLevel: Math.floor(charSheet.nivel / 2),
-        training: Object.values(skills).includes(skill) ? 2 : 0,
+        training: Object.values(charSheet.skills).includes(skill) ? 2 : 0,
         modAttr: attr.mod,
         others: armorPenalty > 0 ? armorPenalty * -1 : 0,
       };
@@ -1147,10 +1218,6 @@ export default function generateRandomSheet(
         !skill.name.startsWith('Of') ||
         (skill.name.startsWith('Of') && skill.training > 0)
     );
-
-  // Passo 10:
-  // Gerar poderes restantes, e aplicar habilidades, e poderes
-  charSheet = getAndApplyPowers(charSheet, powersGetters);
 
   // Passo 11:
   // Recalcular defesa
@@ -1178,6 +1245,84 @@ export default function generateRandomSheet(
 
   for (let index = 2; index <= targetLevel; index += 1) {
     charSheet = levelUp(charSheet);
+  }
+
+  if (charSheet.pvModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    // Aplicar modificadores de atributos
+    const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
+      const modifierValue = getStatModifierValue(charSheet, mod);
+      subSteps.push({
+        value: `${mod.source}: +${modifierValue}${
+          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
+        }`,
+      });
+      return acc + modifierValue;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PV extra',
+      value: subSteps,
+    });
+    charSheet.pv += pvExtra;
+  }
+
+  if (charSheet.pmModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
+      const modifierValue = getStatModifierValue(charSheet, mod);
+      subSteps.push({
+        value: `${mod.source}: +${modifierValue}${
+          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
+        }`,
+      });
+      return acc + modifierValue;
+    }, 0);
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'PM extra',
+      value: subSteps,
+    });
+    charSheet.pm += pmExtra;
+  }
+
+  if (charSheet.skillsModifier.length > 0) {
+    const subSteps: SubStep[] = [];
+
+    let newCompleteSkills = _.clone(charSheet.completeSkills);
+
+    charSheet.skillsModifier.forEach(([skill, modifier]) => {
+      newCompleteSkills = charSheet.completeSkills?.map((sk) => {
+        let value = sk.others ?? 0;
+
+        if (sk.name === skill) {
+          const modifierValue = getStatModifierValue(charSheet, modifier);
+          value += modifierValue;
+
+          subSteps.push({
+            value: `${modifier.source}: +${modifierValue}${
+              modifier.type === 'Attribute' ? ` (${modifier.attribute})` : ''
+            } em ${skill}`,
+          });
+        }
+
+        return { ...sk, others: value };
+      });
+    });
+
+    charSheet.steps.push({
+      type: 'Atributos Extras',
+      label: 'Extras nas Perícias:',
+      value: subSteps,
+    });
+
+    charSheet = _.merge(charSheet, {
+      completeSkills: newCompleteSkills,
+    });
   }
 
   return charSheet;

@@ -1,3 +1,4 @@
+import Skill from '@/interfaces/Skills';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { RACE_SIZES } from './raceSizes/raceSizes';
@@ -6,9 +7,9 @@ const HYNNE: Race = {
   name: 'Hynne',
   attributes: {
     attrs: [
-      { attr: Atributo.DESTREZA, mod: 4 },
-      { attr: Atributo.CARISMA, mod: 2 },
-      { attr: Atributo.FORCA, mod: -2 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.CARISMA, mod: 1 },
+      { attr: Atributo.FORCA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -30,6 +31,39 @@ const HYNNE: Race = {
       name: 'Pequeno e Rechonchudo',
       description:
         'Seu tamanho é Pequeno (veja a página 106) e seu deslocamento é 6m. Você recebe +2 em Enganação e usa o modificador de Destreza para Atletismo (em vez de Força).',
+      action(sheet, subSteps) {
+        const sheetClone = { ...sheet };
+
+        sheetClone.completeSkills = sheetClone.completeSkills?.map((skill) => {
+          if (skill.name === Skill.ENGANACAO) {
+            subSteps.push({
+              name: 'Pequeno e Rechonchudo',
+              value: `+2 em Enganação`,
+            });
+
+            return {
+              ...skill,
+              others: (skill.others || 0) + 2,
+            };
+          }
+
+          if (skill.name === Skill.ATLETISMO) {
+            subSteps.push({
+              name: 'Pequeno e Rechonchudo',
+              value: `Usa Destreza em Atletismo`,
+            });
+
+            return {
+              ...skill,
+              modAttr: sheetClone.atributos?.Destreza.mod,
+            };
+          }
+
+          return skill;
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Sorte Salvadora',

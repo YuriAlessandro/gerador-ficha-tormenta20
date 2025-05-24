@@ -2,14 +2,24 @@ import _ from 'lodash';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
+import { Armas } from '../equipamentos';
+
+const DWARF_WEAPONS = [
+  Armas.MACHADO_DE_BATALHA.nome,
+  Armas.MACHADO_DE_GUERRA.nome,
+  Armas.MACHADO_ANAO.nome,
+  Armas.MACHADO_TAURICO.nome,
+  Armas.MARTELO_DE_GUERRA.nome,
+  Armas.PICARETA.nome,
+];
 
 const ANAO: Race = {
   name: 'Anão',
   attributes: {
     attrs: [
-      { attr: Atributo.CONSTITUICAO, mod: 4 },
-      { attr: Atributo.SABEDORIA, mod: 2 },
-      { attr: Atributo.DESTREZA, mod: -2 },
+      { attr: Atributo.CONSTITUICAO, mod: 2 },
+      { attr: Atributo.SABEDORIA, mod: 1 },
+      { attr: Atributo.DESTREZA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -26,6 +36,23 @@ const ANAO: Race = {
       name: 'Conhecimento das Rochas',
       description:
         'Você recebe visão no escuro e +2 em testes de Percepção e Sobrevivência realizados no subterrâneo.',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = _.cloneDeep(sheet);
+
+        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
+          sheetClone.sentidos = [
+            ...(sheetClone.sentidos || []),
+            'Visão no escuro',
+          ];
+        }
+
+        substeps.push({
+          name: 'Conhecimento das Rochas',
+          value: 'Você recebe visão no escuro',
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Devagar e Sempre',
@@ -35,7 +62,30 @@ const ANAO: Race = {
     {
       name: 'Tradição de Heredrimm',
       description:
-        'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas. (Não contabilizado)',
+        'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas. (Já contabilizado)',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const cloneSheet = _.cloneDeep(sheet);
+
+        cloneSheet.bag.equipments.Arma = cloneSheet.bag.equipments.Arma.map(
+          (equipment) => {
+            if (DWARF_WEAPONS.includes(equipment.nome)) {
+              return {
+                ...equipment,
+                tipo: 'Simples',
+                atkBonus: (equipment.atkBonus || 0) + 2,
+              };
+            }
+            return equipment;
+          }
+        );
+
+        substeps.push({
+          name: 'Tradição de Heredrimm',
+          value: `+2 em ataques com armas simples anãs`,
+        });
+
+        return cloneSheet;
+      },
     },
     {
       name: 'Duro com Pedra',

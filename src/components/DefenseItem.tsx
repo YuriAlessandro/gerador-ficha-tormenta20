@@ -7,14 +7,16 @@ interface DefenseEquipmentProps {
 
 const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
   const { equipment } = props;
-  const { nome, defenseBonus, armorPenalty, peso } = equipment;
+  const { nome, defenseBonus, armorPenalty, spaces } = equipment;
 
   return (
     <tr>
       <td>{nome}</td>
       <td>{defenseBonus}</td>
       <td>{armorPenalty > 0 ? `-${armorPenalty}` : '-'}</td>
-      <td>{peso}kg</td>
+      <td>
+        {spaces || ''} {spaces && spaces > 1 ? 'espaços' : 'espaço'}
+      </td>
     </tr>
   );
 };

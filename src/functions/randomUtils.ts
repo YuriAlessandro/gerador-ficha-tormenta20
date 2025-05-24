@@ -1,3 +1,4 @@
+import CharacterSheet from '@/interfaces/CharacterSheet';
 import generalPowers from '../data/poderes';
 import PROFICIENCIAS from '../data/proficiencias';
 import {
@@ -5,7 +6,7 @@ import {
   DivindadeNames,
   FaithProbability,
 } from '../interfaces/Divindade';
-import { GeneralPower } from '../interfaces/Poderes';
+import { GeneralPower, GeneralPowerType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 
 export function getRandomItemFromArray<ElementType>(
@@ -146,4 +147,18 @@ export function getNotRepeatedRandom<T extends notRepeatedTypes>(
     : getNotUsedFromAllowed(used, type);
 
   return getRandomItemFromArray<T>(notRepeated);
+}
+
+export function countTormentaPowers(sheet: CharacterSheet) {
+  let tormentaPowersQtd = sheet.generalPowers.filter(
+    (power) => power.type === GeneralPowerType.TORMENTA
+  ).length;
+  const tormentaPowersFromSkills = sheet.completeSkills?.filter(
+    (skill) => skill.countAsTormentaPower
+  )?.length;
+  if (tormentaPowersFromSkills) {
+    tormentaPowersQtd += tormentaPowersFromSkills;
+  }
+
+  return tormentaPowersQtd;
 }

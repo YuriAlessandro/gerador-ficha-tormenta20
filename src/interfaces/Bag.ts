@@ -6,17 +6,17 @@ const defaultEquipments: BagEquipments = {
     {
       nome: 'Mochila',
       group: 'Item Geral',
-      peso: 1,
+      spaces: 0,
     },
     {
       nome: 'Saco de dormir',
       group: 'Item Geral',
-      peso: 2.5,
+      spaces: 1,
     },
     {
       nome: 'Traje de viajante',
       group: 'Item Geral',
-      peso: 2,
+      spaces: 0,
     },
   ],
   Alimentação: [],
@@ -31,17 +31,17 @@ const defaultEquipments: BagEquipments = {
   Veículo: [],
 };
 
-function calcBagWeight(bagEquipments: BagEquipments): number {
+function calcBagSpaces(bagEquipments: BagEquipments): number {
   const equipments = Object.values(bagEquipments).flat();
 
-  let weight = 0;
+  let spaces = 0;
 
   equipments.forEach((equipment: Equipment) => {
-    const equipmentWeight = equipment.peso || 0;
-    weight += equipmentWeight;
+    const equipamentSpaces = equipment.spaces || 0;
+    spaces += equipamentSpaces;
   });
 
-  return weight;
+  return spaces;
 }
 
 function calcArmorPenalty(equipments: BagEquipments): number {
@@ -61,20 +61,20 @@ function calcArmorPenalty(equipments: BagEquipments): number {
 export default class Bag {
   public equipments: BagEquipments;
 
-  public weight: number;
+  public spaces: number;
 
   public armorPenalty: number;
 
   constructor(equipments = {}) {
     this.equipments = merge(equipments, cloneDeep(defaultEquipments));
 
-    this.weight = calcBagWeight(this.equipments);
+    this.spaces = calcBagSpaces(this.equipments);
     this.armorPenalty = calcArmorPenalty(this.equipments);
   }
 
   public setEquipments(equipments: BagEquipments): void {
     this.equipments = equipments;
-    this.weight = calcBagWeight(this.equipments);
+    this.spaces = calcBagSpaces(this.equipments);
     this.armorPenalty = calcArmorPenalty(this.equipments);
   }
 
@@ -82,8 +82,8 @@ export default class Bag {
     return this.equipments;
   }
 
-  public getWeight(): number {
-    return this.weight;
+  public getSpaces(): number {
+    return this.spaces;
   }
 
   public getArmorPenalty(): number {

@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { getNotRepeatedRandom } from '@/functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
@@ -55,7 +56,7 @@ const NOBRE: ClassDescription = {
   abilities: [
     {
       name: 'Autoconfiança',
-      text: 'Você pode somar seu bônus de Carisma em vez de Destreza na Defesa (mas continua não podendo somar um bônus de atributo na Defesa quando usa armadura pesada).',
+      text: 'Você pode usar seu Carisma em vez de Destreza na Defesa (mas continua não podendo somar um atributo na Defesa quando usa armadura pesada).',
       nivel: 1,
     },
     {
@@ -65,53 +66,97 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Orgulho',
-      text: 'Quando faz um teste de perícia, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu modificador de Carisma). Para cada PM que gastar, recebe +2 no teste.',
+      text: 'Quando faz um teste de perícia, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu Carisma). Para cada PM que gastar, recebe +2 no teste.',
       nivel: 1,
     },
     {
-      name: 'Riqueza',
-      text: 'No 2º nível, você passa a receber dinheiro de sua família, patrono ou negócios. Uma vez por aventura, você pode fazer um teste de Carisma com um bônus igual ao seu nível de nobre. Você recebe um número de Tibares de ouro igual ao resultado do teste. Por exemplo, um nobre de 5º nível com Carisma 18 (+4) que role um 13 no dado recebe 22 TO. O uso desta habilidade é condicionado a onde e quando você faz o teste, assim como a relação com sua família, patrono ou negócios. Por exemplo, um nobre viajando pelos ermos, isolado da civilização, dificilmente teria como receber dinheiro.',
+      name: 'Palavras Afiadas',
+      text: 'Você pode gastar uma ação padrão e 1 PM para fazer um teste de Diplomacia ou Intimidação oposto ao teste de Vontade de uma criatura inteligente (Int –3 ou maior) em alcance curto. Se vencer, você causa 2d6 pontos de dano psíquico não letal à criatura. Se perder, causa metade deste dano. Se a criatura for reduzida a 0 ou menos PV, em vez de cair inconsciente, ela se rende (se você usou Diplomacia) ou fica apavorada e foge de você da maneira mais eficiente possível (se usou Intimidação). A cada quatro níveis, você pode gastar +1 PM para aumentar o dano (veja a tabela da classe). Mental.',
       nivel: 2,
     },
     {
-      name: 'Gritar Ordens',
-      text: 'A partir do 3º nível, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu bônus de Carisma). Até o início de seu próximo turno, todos os seus aliados em alcance curto recebem um bônus nos testes de perícia igual à quantidade de PM que você gastou.',
+      name: 'Riqueza',
+      text: 'No 3º nível, você passa a receber dinheiro de sua família, patrono ou negócios. Uma vez por aventura, pode fazer um teste de Carisma com um bônus igual ao seu nível de nobre. Você recebe um número de Tibares de ouro igual ao resultado do teste. Assim, um nobre de 5º nível com Carisma 4 que role 13 no dado recebe 22 TO. O uso desta habilidade é condicionado a sua relação com sua família, patrono ou negócios e a onde você está. Por exemplo, um nobre viajando pelos ermos, isolado da civilização, dificilmente teria como receber dinheiro.',
       nivel: 3,
     },
     {
+      name: 'Gritar Ordens',
+      text: 'A partir do 4º nível, você pode gastar uma quantidade de PM a sua escolha (limitado pelo seu Carisma). Até o início de seu próximo turno, todos os seus aliados em alcance curto recebem um bônus nos testes de perícia igual à quantidade de PM que você gastou.',
+      nivel: 4,
+    },
+    {
+      name: 'Presença Aristocrática',
+      text: 'A partir do 5º nível, sempre que uma criatura inteligente tentar machucá-lo (causar dano com um ataque, magia ou habilidade) você pode gastar 2 PM. Se fizer isso, a criatura deve fazer um teste de Vontade (CD Car). Se falhar, não conseguirá machucá-lo e perderá a ação. Você só pode usar esta habilidade uma vez por cena contra cada criatura.',
+      nivel: 5,
+    },
+    {
       name: 'Realeza',
-      text: 'No 20º nível, sua presença impõe mais do que respeito — impõe veneração. Uma criatura que seja alvo de sua Presença Aristocrática e falhe no teste de Vontade por 10 ou mais se arrepende tanto de ter tentado machucá-lo que passa a lutar ao seu lado (e seguir suas ordens, se puder entendê-lo) pelo resto da cena. Uma criatura que seja reduzida a 0 PV por Palavras Afiadas não sofre este dano; em vez disso, passa a lutar ao seu lado pelo resto da cena.',
+      text: 'No 20º nível, a CD para resistir a sua Presença Aristocrática aumenta em +5 e uma criatura que falhe no teste de Vontade por 10 ou mais se arrepende tanto de ter tentado machucá-lo que passa a lutar ao seu lado (e seguir suas ordens, se puder entendê-lo) pelo resto da cena. Além disso, uma criatura que seja reduzida a 0 PV por Palavras Afiadas não sofre este dano; em vez disso, passa a lutar ao seu lado pelo resto da cena.',
       nivel: 20,
     },
   ],
   powers: [
     {
       name: 'Armadura Brilhante',
-      text: 'Você pode somar o modificador de Carisma na Defesa quando usa armadura pesada. Se fizer isso, não pode somar o modificador de Destreza, mesmo que outras habilidades ou efeitos permitam isso.',
+      text: 'Você pode usar seu Carisma na Defesa quando usa armadura pesada. Se fizer isso, não pode somar sua Destreza, mesmo que outras habilidades ou efeitos permitam isso.',
       requirements: [[{ type: RequirementType.NIVEL, value: 8 }]],
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
     },
     {
       name: 'Autoridade Feudal',
-      text: 'Você pode gastar 2 PM para conclamar o povo a realizar uma tarefa para você. Em termos de jogo, passa automaticamente em um teste de perícia com CD máxima igual ao seu nível +5. O tempo necessário para conclamar o povo é o tempo do uso da perícia em questão. Esta habilidade só pode ser usada em locais onde sua posição carregue alguma influência (a critério do mestre).',
+      text: 'Você pode gastar uma hora e 2 PM para conclamar o povo a ajudá-lo (qualquer pessoa sem um título de nobreza ou uma posição numa igreja reconhecida pelo seu reino). Em termos de jogo, essas pessoas contam como um parceiro iniciante de um tipo a sua escolha (aprovado pelo mestre) que lhe acompanha até o fim da aventura. Esta habilidade só pode ser usada em locais onde sua posição carregue alguma influência (a critério do mestre).',
       requirements: [[{ type: RequirementType.NIVEL, value: 6 }]],
     },
     {
       name: 'Educação Privilegiada',
-      text: 'Você se torna treinado em duas perícias de nobre a sua escolha (NÃO CONTABILIZADO).',
+      text: 'Você se torna treinado em duas perícias de nobre a sua escolha.',
       requirements: [],
+      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+        const sheetClone = _.cloneDeep(sheet);
+
+        const allowedSkills = [
+          ...NOBRE.periciasrestantes.list,
+          ...NOBRE.periciasbasicas[0].list,
+          ...NOBRE.periciasbasicas[1].list,
+        ];
+
+        for (let i = 0; i < 2; i += 1) {
+          const randomSkill = getNotRepeatedRandom(
+            sheetClone.skills,
+            'skill',
+            allowedSkills
+          );
+
+          sheetClone.completeSkills = sheetClone.completeSkills?.map((sk) => {
+            let value = sk.others ?? 0;
+
+            if (sk.name === randomSkill) {
+              value += 2;
+            }
+
+            return { ...sk, others: value };
+          });
+
+          substeps.push({
+            name: 'Educação Privilegiada',
+            value: `+2 em ${randomSkill}`,
+          });
+        }
+
+        return sheetClone;
+      },
     },
     {
       name: 'Estrategista',
-      text: 'Você pode direcionar aliados em alcance curto. Gaste uma ação padrão e 1 PM por aliado que quiser direcionar (limitado pelo seu modificador de Carisma). No próximo turno do aliado, ele ganha uma ação de movimento.',
+      text: 'Você pode direcionar aliados em alcance curto. Gaste uma ação padrão e 1 PM por aliado que quiser direcionar (limitado pelo seu Carisma). No próximo turno do aliado, ele ganha uma ação de movimento.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
+          { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 },
           { type: RequirementType.PERICIA, name: Skill.GUERRA },
           { type: RequirementType.NIVEL, value: 6 },
         ],
@@ -119,12 +164,12 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Favor',
-      text: 'Você pode usar sua influência para pedir favores a pessoas poderosas. Pedir favores gasta 5 PM e exige pelo menos uma hora de conversa e bajulação — ou mais, de acordo com o mestre. Faça um teste de Diplomacia. A CD do teste depende do que você está pedindo: 10 para algo simples (como um convite para uma festa particular), 20 para algo caro ou complicado (como uma carona de barco até Galrasia) e 30 para algo perigoso ou ilegal (como acesso aos planos militares do reino).',
+      text: 'Você pode usar sua influência para pedir favores a pessoas poderosas. Isso gasta 5 PM e uma hora de conversa e bajulação, ou mais, de acordo com o mestre, e funciona como o uso persuasão de Diplomacia (veja a página 118). Porém, você pode pedir favores ainda mais caros, difíceis ou perigosos — um convite para uma festa particular, uma carona de barco até Galrasia ou mesmo acesso aos planos militares do reino. Se você falhar, não pode pedir o mesmo favor por pelo menos uma semana.',
       requirements: [],
     },
     {
       name: 'General',
-      text: 'Quando você usa o poder Estrategista, os aliados direcionados recebem 1d4 pontos de mana temporários. Esses PM duram até o fim do turno do aliado e não podem ser usados em efeitos que concedam PM.',
+      text: 'Quando você usa o poder Estrategista, aliados direcionados recebem 1d4 PM temporários. Esses PM duram até o fim do turno do aliado e não podem ser usados em efeitos que concedam PM.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Estrategista' },
@@ -134,22 +179,17 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Grito Tirânico',
-      text: 'Quando usa a habilidade Palavras Afiadas, você pode gastar +2 PM. Se fizer isso, seus dados de dano aumentam para d8 e você atinge todos os inimigos em alcance curto.',
-      requirements: [
-        [
-          { type: RequirementType.PODER, name: 'Palavras Afiadas' },
-          { type: RequirementType.NIVEL, value: 8 },
-        ],
-      ],
+      text: 'Você pode usar Palavras Afiadas como uma ação completa, em vez de padrão. Se fizer isso, seus dados de dano aumentam para d8 e você atinge todos os inimigos em alcance curto.',
+      requirements: [[{ type: RequirementType.NIVEL, value: 8 }]],
     },
     {
       name: 'Inspirar Confiança',
-      text: 'Sua presença faz as pessoas darem o melhor de si. Você pode gastar 2 PM para fazer um aliado em alcance curto rolar novamente um teste recém realizado.',
+      text: 'Sua presença faz as pessoas darem o melhor de si. Quando um aliado em alcance curto faz um teste, você pode gastar 2 PM para fazer com que ele possa rolar esse teste novamente.',
       requirements: [],
     },
     {
       name: 'Inspirar Glória',
-      text: 'A presença de um nobre motiva as pessoas a realizarem façanhas impressionantes. Você pode gastar 5 PM para fazer um aliado em alcance curto ganhar uma ação padrão adicional no próximo turno dele. Você só pode usar esta habilidade uma vez por cena em cada aliado.',
+      text: 'A presença de um nobre motiva as pessoas a realizarem grandes façanhas. Uma vez por rodada, você pode gastar 5 PM para fazer um aliado em alcance curto ganhar uma ação padrão adicional no próximo turno dele. Você só pode usar esta habilidade uma vez por cena em cada aliado.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Inspirar Confiança' },
@@ -164,12 +204,12 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Liderar pelo Exemplo',
-      text: 'Você pode pagar 2 PM para servir de inspiração. Até o início de seu próximo turno, sempre que você passar em um teste de perícia, aliados em alcance curto que fizerem um teste da mesma perícia podem usar o resultado total do seu teste em vez de rolar o dado.',
+      text: 'Você pode gastar 2 PM para servir de inspiração. Até o início de seu próximo turno, sempre que você passar em um teste de perícia, aliados em alcance curto que fizerem um teste da mesma perícia podem usar o resultado do seu teste em vez de fazer o seu próprio.',
       requirements: [[{ type: RequirementType.NIVEL, value: 6 }]],
     },
     {
       name: 'Língua de Ouro',
-      text: 'ocê pode gastar uma ação padrão e 6 PM para gerar o efeito da magia Enfeitiçar com os aprimoramentos de sugerir ação e afetar todas as criaturas dentro do alcance (CD Car). Esta não é uma habilidade mágica e provém de sua capacidade de influenciar outras pessoas.',
+      text: 'Você pode gastar uma ação padrão e 4 PM para gerar o efeito da magia Enfeitiçar com os aprimoramentos de sugerir ação e afetar todas as criaturas dentro do alcance (CD Car). Esta não é uma habilidade mágica e provém de sua capacidade de influenciar outras pessoas.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Língua de Prata' },
@@ -188,32 +228,21 @@ const NOBRE: ClassDescription = {
       requirements: [],
     },
     {
-      name: 'Palavras Afiadas',
-      text: 'Você pode gastar uma ação padrão e 1 PM para submeter a sua vontade uma criatura inteligente (Int 3 ou mais) em alcance curto. Faça um teste de Diplomacia ou Intimidação (a sua escolha) oposto ao teste de Vontade da criatura. Se vencer, você causa 2d6 pontos de dano mental não letal à criatura. Se perder, causa metade deste dano. Para cada PM extra que você gastar quando ativar o poder, o dano aumenta em +1d6. Caso a criatura seja reduzida a 0 ou menos PV, rende-se (caso você tenha usado Diplomacia) ou fica apavorada (caso tenha usado Intimidação), em vez de cair inconsciente.',
-      requirements: [],
-    },
-    {
-      name: 'Presença Aristocrática',
-      text: 'Sempre que uma criatura inteligente (Int 3 ou mais) tentar machucá-lo (causar dano com um ataque, magia ou habilidade) você pode gastar 2 PM. Se fizer isso, a criatura deve fazer um teste de Vontade (CD Car). Se falhar, não conseguirá machucá-lo e perderá a ação. Você só pode usar esta habilidade uma vez por cena contra cada criatura.',
-      requirements: [],
-    },
-    {
       name: 'Presença Majestosa',
-      text: 'Você impõe respeito a todos. A habilidade Presença Aristocrática passa a funcionar contra criaturas com Int 1 ou mais (passa a afetar até mesmo animais, embora continue não funcionando contra criaturas sem valor de Inteligência). Além disso, você pode usá-la mais de uma vez contra uma mesma criatura na mesma cena.',
-      requirements: [
-        [
-          { type: RequirementType.PODER, name: 'Presença Aristocrática' },
-          { type: RequirementType.NIVEL, value: 16 },
-        ],
-      ],
+      text: 'Sua Presença Aristocrática passa a funcionar contra qualquer criatura com valor de Inteligência (passa a afetar até mesmo animais, embora continue não funcionando contra criaturas sem Int). Além disso, você pode usá-la mais de uma vez contra uma mesma criatura na mesma cena.',
+      requirements: [[{ type: RequirementType.NIVEL, value: 16 }]],
     },
     {
       name: 'Título',
-      text: 'Você adquire um título de nobreza. Converse com o mestre para definir os benefícios exatos de seu título. Como regra geral, você recebe 10 TO por nível de nobre no início de cada aventura (rendimentos dos impostos) ou a ajuda de um aliado veterano (um membro de sua corte).',
+      text: 'Você adquire um título de nobreza. Converse com o mestre para definir os benefícios exatos de seu título. Como regra geral, no início de cada aventura você recebe 20 TO por nível de nobre (rendimentos dos impostos) ou a ajuda de um parceiro veterano (um membro de sua corte).',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Autoridade Feudal' },
           { type: RequirementType.NIVEL, value: 10 },
+          {
+            type: RequirementType.TEXT,
+            text: 'Ter conquistado terras ou realizado um serviço para um nobre que possa se tornar seu suserano.',
+          },
         ],
       ],
     },
@@ -227,7 +256,7 @@ const NOBRE: ClassDescription = {
         const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
           let value = sk.others ?? 0;
 
-          if (sk.name === 'Diplomacia' || sk.name === 'Intimidação') {
+          if (sk.name === Skill.DIPLOMACIA || sk.name === Skill.INTIMIDACAO) {
             value += 2;
           }
 

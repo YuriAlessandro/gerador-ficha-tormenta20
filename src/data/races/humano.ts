@@ -35,9 +35,9 @@ const HUMANO: Race = {
   name: 'Humano',
   attributes: {
     attrs: [
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
     ],
   },
   faithProbability: {
@@ -55,11 +55,6 @@ const HUMANO: Race = {
 
         const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');
         sheetClone.skills.push(randomSkill);
-
-        substeps.push({
-          name: 'Versátil',
-          value: `Perícia treinada (${randomSkill})`,
-        });
 
         addSkillOrPower(sheetClone, substeps);
 

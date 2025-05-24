@@ -5,6 +5,20 @@ import Bag from './Bag';
 import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
+import { Atributo } from '../data/atributos';
+
+export type StatModifier = {
+  source: string;
+} & (
+  | {
+      type: 'Attribute';
+      attribute: Atributo;
+    }
+  | {
+      type: 'Number';
+      value: number;
+    }
+);
 
 export default interface CharacterSheet {
   id: string;
@@ -17,6 +31,9 @@ export default interface CharacterSheet {
   skills: Skill[];
   pv: number;
   pm: number;
+  pvModifier: StatModifier[];
+  pmModifier: StatModifier[];
+  skillsModifier: [Skill, StatModifier][];
   defesa: number;
   bag: Bag;
   devoto?: CharacterReligion;
@@ -29,12 +46,13 @@ export default interface CharacterSheet {
   spells: Spell[];
   displacement: number;
   size: RaceSize;
-  maxWeight: number;
+  maxSpaces: number;
   generalPowers: GeneralPower[];
   classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;
   completeSkills?: CompleteSkill[];
+  sentidos?: string[];
 }
 
 export interface Step {

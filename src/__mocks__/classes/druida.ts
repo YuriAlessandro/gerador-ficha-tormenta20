@@ -9,7 +9,7 @@ import Bag from '../../interfaces/Bag';
 export function druida(race: Race): CharacterSheet {
   return {
     id: 'testid2',
-    maxWeight: 30,
+    maxSpaces: 15,
     nome: 'Fulano',
     raca: race,
     sexo: 'Homem',
@@ -225,5 +225,8 @@ export function druida(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 16,
     pm: 4,
+    pvModifier: [],
+    pmModifier: [],
+    skillsModifier: [],
   };
 }

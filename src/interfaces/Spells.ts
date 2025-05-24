@@ -20,6 +20,7 @@ export type Spell = {
   alvo?: string;
   area?: string;
   duracao: 'Instantânea' | 'Cena' | string;
+  description: string;
   resistencia?: string;
   spellCircle: spellsCircles;
   manaExpense?: number;

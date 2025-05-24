@@ -106,6 +106,8 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
                 </ul>
               </p>
 
+              <p>{spell.description}</p>
+
               {spell.aprimoramentos && (
                 <p>
                   <strong>Aprimoramentos:</strong>

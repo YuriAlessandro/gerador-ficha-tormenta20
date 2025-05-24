@@ -7,9 +7,9 @@ const GOLEM: Race = {
   name: 'Golem',
   attributes: {
     attrs: [
-      { attr: Atributo.FORCA, mod: 4 },
-      { attr: Atributo.CONSTITUICAO, mod: 2 },
-      { attr: Atributo.CARISMA, mod: -2 },
+      { attr: Atributo.FORCA, mod: 2 },
+      { attr: Atributo.CONSTITUICAO, mod: 1 },
+      { attr: Atributo.CARISMA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -55,6 +55,28 @@ const GOLEM: Race = {
       name: 'Criatura Artificial',
       description:
         'Você é uma criatura do tipo construto. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, não recupera pontos de vida por descanso e não se beneficia de habilidades de cura e itens ingeríveis (comidas, poções etc.). Você precisa ficar inerte por oito horas por dia para recarregar sua fonte de energia. Se fizer isso, recupera PM por descanso em condições normais (golens não são afetados por condições boas ou ruins de descanso).Você é uma criatura do tipo construto. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, não recupera pontos de vida por descanso e não se beneficia de habilidades de cura e itens ingeríveis (comidas, poções etc.). Você precisa ficar inerte por oito horas por dia para recarregar sua fonte de energia. Se fizer isso, recupera PM por descanso em condições normais (golens não são afetados por condições boas ou ruins de descanso).',
+      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+        const sheetClone = cloneDeep(sheet);
+
+        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
+          sheetClone.sentidos = [
+            ...(sheetClone.sentidos || []),
+            'Visão no escuro',
+          ];
+        }
+
+        sheetClone.sentidos = [
+          ...(sheetClone.sentidos || []),
+          'Imunidade a doenças, fadiga, sangramento, sono e venenos',
+        ];
+
+        substeps.push({
+          name: 'Criatura Artificial',
+          value: 'Você recebe visão no escuro',
+        });
+
+        return sheetClone;
+      },
     },
     {
       name: 'Espírito Elemental',
