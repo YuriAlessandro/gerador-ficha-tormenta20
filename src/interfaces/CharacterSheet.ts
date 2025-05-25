@@ -46,6 +46,11 @@ export type SheetActionStep =
       type: 'getGeneralPower';
       availablePowers: GeneralPower[]; // List of available powers
       pick: number; // Number of powers to learn
+    }
+  | {
+      type: 'addProficiency';
+      availableProficiencies: string[]; // List of available proficiencies
+      pick: number; // Number of proficiencies to learn
     };
 
 export type SheetActionReceipt =

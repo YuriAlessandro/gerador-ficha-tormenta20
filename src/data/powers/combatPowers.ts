@@ -259,34 +259,6 @@ const combatPowers: Record<string, GeneralPower> = {
         },
       ],
     ],
-    action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      subSteps.push({
-        name: 'Estilo de Arma Longa',
-        value: '+2 em testes de ataque com armas alongadas',
-      });
-
-      const allowedWeapons = [
-        Armas.ALABARDA.nome,
-        Armas.LANCA_MONTADA.nome,
-        Armas.PIQUE.nome,
-      ];
-
-      sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
-        (item) => {
-          if (allowedWeapons.includes(item.nome)) {
-            return {
-              ...item,
-              atkBonus: (item.atkBonus || 0) + 2,
-            };
-          }
-          return item;
-        }
-      );
-
-      return sheetClone;
-    },
   },
   ESTILO_DE_ARREMESO: {
     name: 'Estilo de Arremesso',
@@ -431,40 +403,55 @@ const combatPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.COMBATE,
     requirements: [],
     allowSeveralPicks: true,
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Proficiência' },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: [
+            PROFICIENCIAS.MARCIAIS,
+            PROFICIENCIAS.FOGO,
+            PROFICIENCIAS.PESADAS,
+            PROFICIENCIAS.ESCUDOS,
+          ],
+          pick: 1,
+        },
+      },
+    ],
+    // action(
+    //   sheet: CharacterSheet,
+    //   subSteps: {
+    //     name: string;
+    //     value: string;
+    //   }[]
+    // ): CharacterSheet {
+    //   const sheetClone = cloneDeep(sheet);
 
-      const allowedProf = [
-        PROFICIENCIAS.MARCIAIS,
-        PROFICIENCIAS.FOGO,
-        PROFICIENCIAS.PESADAS,
-      ];
+    //   const allowedProf = [
+    //     PROFICIENCIAS.MARCIAIS,
+    //     PROFICIENCIAS.FOGO,
+    //     PROFICIENCIAS.PESADAS,
+    //   ];
 
-      if (sheet.classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
-        allowedProf.push(PROFICIENCIAS.EXOTICAS);
-      }
+    //   if (sheet.classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
+    //     allowedProf.push(PROFICIENCIAS.EXOTICAS);
+    //   }
 
-      const newProf = getNotRepeatedRandom(
-        sheetClone.classe.proficiencias,
-        'proficiencia',
-        allowedProf
-      );
+    //   const newProf = getNotRepeatedRandom(
+    //     sheetClone.classe.proficiencias,
+    //     'proficiencia',
+    //     allowedProf
+    //   );
 
-      subSteps.push({
-        name: 'Proficiência',
-        value: newProf,
-      });
+    //   subSteps.push({
+    //     name: 'Proficiência',
+    //     value: newProf,
+    //   });
 
-      sheetClone.classe.proficiencias.push(newProf);
+    //   sheetClone.classe.proficiencias.push(newProf);
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   QUEBRAR_APRIMORADO: {
     name: 'Quebrar Aprimorado',
@@ -488,28 +475,19 @@ const combatPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em Iniciativa e pode sacar ou guardar itens como uma ação livre (em vez de ação de movimento). Além disso, a ação que você gasta para recarregar armas de disparo diminui em uma categoria (ação completa para padrão, padrão para movimento, movimento para livre).',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Iniciativa' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.INICIATIVA) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Saque Rápido',
-        value: `Somando +2 em Iniciativa`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Saque Rápido' },
+        target: {
+          type: 'Skill',
+          name: Skill.INICIATIVA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   TRESPASSAR: {
     name: 'Trespassar',
@@ -525,27 +503,29 @@ const combatPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Constituição', value: 1 }],
     ],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      sheetClone.pvModifier = sheetClone.pvModifier.concat({
-        source: 'Vitalidade',
-        type: 'Number',
-        value: 1,
-      });
-
-      subSteps.push({
-        name: 'Vitalidade',
-        value: '+1 PV por nível',
-      });
-
-      return sheetClone;
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Vitalidade' },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: { type: 'power', name: 'Vitalidade' },
+        target: {
+          type: 'PV',
+        },
+        modifier: {
+          type: 'LevelCalc',
+          formula: '{level}',
+        },
+      },
+    ],
   },
 };
 export default combatPowers;

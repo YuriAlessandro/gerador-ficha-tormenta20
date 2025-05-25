@@ -749,6 +749,12 @@ const applyPower = (
           source: sheetAction.source,
           changes: [{ type: 'Attribute', attribute, value: newValue }],
         });
+      } else if (sheetAction.action.type === 'addProficiency') {
+        // Ver Proficiência em combat powers e depois remove comment
+        subSteps.push({
+          name: sheetAction.action.type,
+          value: `Não implementado`,
+        });
       } else {
         subSteps.push({
           name: sheetAction.action.type,
