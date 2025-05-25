@@ -22,6 +22,7 @@ export enum RequirementType {
   TIPO_ARCANISTA = 'TIPO_ARCANISTA',
   MAGIA = 'MAGIA',
   DEVOTO = 'DEVOTO',
+  TEXT = 'TEXT',
 }
 
 export interface Requirement {
@@ -29,6 +30,7 @@ export interface Requirement {
   name?: string | Atributo;
   value?: number;
   not?: boolean;
+  text?: string;
 }
 
 export interface GeneralPower {

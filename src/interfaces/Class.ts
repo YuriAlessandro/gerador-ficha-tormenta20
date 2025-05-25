@@ -68,7 +68,7 @@ export interface ClassDescription {
   abilities: ClassAbility[];
   powers: ClassPower[];
   probDevoto: number;
-  qtdPoderesConcedidos?: string;
+  qtdPoderesConcedidos?: string | number;
   faithProbability?: FaithProbability;
   attrPriority: Atributo[];
   spellPath?: SpellPath;
