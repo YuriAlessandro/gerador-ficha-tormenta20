@@ -86,6 +86,12 @@ export type StatModifierTarget =
     }
   | {
       type: 'Defense';
+    }
+  | {
+      type: 'Displacement';
+    }
+  | {
+      type: 'MaxSpaces';
     };
 
 export type StatModifier =

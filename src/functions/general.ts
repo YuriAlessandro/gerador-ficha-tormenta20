@@ -755,6 +755,24 @@ const applyPower = (
           name: sheetAction.action.type,
           value: `Não implementado`,
         });
+      } else if (sheetAction.action.type === 'learnSkill') {
+        // const sheetClone = cloneDeep(sheet);
+
+        // const newSkill = getNotRepeatedRandomSkill(sheetClone.skills);
+
+        // subSteps.push({
+        //   name: 'Treinamento em Perícia',
+        //   value: newSkill,
+        // });
+
+        // return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
+        //   skills: [...sheetClone.skills, newSkill],
+        // });
+
+        subSteps.push({
+          name: sheetAction.action.type,
+          value: `Não implementado`,
+        });
       } else {
         subSteps.push({
           name: sheetAction.action.type,
@@ -1109,6 +1127,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
   const pmSubSteps: SubStep[] = [];
   const defSubSteps: SubStep[] = [];
   const skillSubSteps: SubStep[] = [];
+  const displacementSubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
     const subStepName: string =
@@ -1159,6 +1178,24 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       sheet = _.merge(sheet, {
         completeSkills: newCompleteSkills,
       });
+    } else if (bonus.target.type === 'Displacement') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.displacement += bonusValue;
+
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'MaxSpaces') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.maxSpaces += bonusValue;
+
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else {
+      console.warn('bonus não implementado', bonus);
     }
   });
 
@@ -1191,6 +1228,14 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       label: 'Atributos Extras',
       type: 'Bonus de Perícias',
       value: skillSubSteps,
+    });
+  }
+
+  if (displacementSubSteps.length) {
+    sheet.steps.push({
+      label: 'Atributos Extras',
+      type: 'Bonus de Deslocamento',
+      value: displacementSubSteps,
     });
   }
 
