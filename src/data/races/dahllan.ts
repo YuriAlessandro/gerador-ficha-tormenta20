@@ -1,8 +1,6 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 export const PLANTS_FRIEND_MANA_REDUCTION = 1;
 
@@ -27,25 +25,20 @@ const DAHLLAN: Race = {
       name: 'Amiga das Plantas',
       description:
         'Você pode lançar a magia Controlar Plantas (atributo-chave Sabedoria). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
-      action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        const { spells, stepValue } = addOrCheapenSpell(
-          sheet,
-          spellsCircle1.controlarPlantas,
-          Atributo.SABEDORIA
-        );
-
-        if (stepValue) {
-          subSteps.push({
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
             name: 'Amiga das Plantas',
-            value: stepValue,
-          });
-        }
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          spells,
-        });
-      },
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle1.controlarPlantas],
+            pick: 1,
+            customAttribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Armadura de Allihanna',

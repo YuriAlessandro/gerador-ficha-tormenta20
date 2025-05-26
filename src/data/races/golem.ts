@@ -1,5 +1,3 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -28,55 +26,74 @@ const GOLEM: Race = {
       name: 'Chassi',
       description:
         'Seu corpo artificial é resistente, mas rígido. Você recebe +2 na Defesa, mas possui penalidade de armadura –2 e seu deslocamento é 6m. Você leva um dia para vestir ou remover uma armadura (pois precisa acoplar as peças dela a seu chassi).',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        const { extraArmorPenalty = 0 } = sheetClone;
-
-        const finalDefense = sheetClone.defesa + 2;
-        const finalExtraArmorPenalty = extraArmorPenalty + 2;
-
-        substeps.push({
-          name: 'Chassi',
-          value: `+2 defesa (${sheet.defesa} + 2 = ${finalDefense})`,
-        });
-
-        substeps.push({
-          name: 'Chassi',
-          value: `+2 penalidade de armadura`,
-        });
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: finalDefense,
-          extraArmorPenalty: finalExtraArmorPenalty,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Chassi',
+          },
+          target: {
+            type: 'Defense',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Chassi',
+          },
+          target: {
+            type: 'ArmorPenalty',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Chassi',
+          },
+          target: {
+            type: 'Displacement',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: -3,
+          },
+        },
+      ],
     },
     {
       name: 'Criatura Artificial',
       description:
-        'Você é uma criatura do tipo construto. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, não recupera pontos de vida por descanso e não se beneficia de habilidades de cura e itens ingeríveis (comidas, poções etc.). Você precisa ficar inerte por oito horas por dia para recarregar sua fonte de energia. Se fizer isso, recupera PM por descanso em condições normais (golens não são afetados por condições boas ou ruins de descanso).Você é uma criatura do tipo construto. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, não recupera pontos de vida por descanso e não se beneficia de habilidades de cura e itens ingeríveis (comidas, poções etc.). Você precisa ficar inerte por oito horas por dia para recarregar sua fonte de energia. Se fizer isso, recupera PM por descanso em condições normais (golens não são afetados por condições boas ou ruins de descanso).',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-
-        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
-          sheetClone.sentidos = [
-            ...(sheetClone.sentidos || []),
-            'Visão no escuro',
-          ];
-        }
-
-        sheetClone.sentidos = [
-          ...(sheetClone.sentidos || []),
-          'Imunidade a doenças, fadiga, sangramento, sono e venenos',
-        ];
-
-        substeps.push({
-          name: 'Criatura Artificial',
-          value: 'Você recebe visão no escuro',
-        });
-
-        return sheetClone;
-      },
+        'Você é uma criatura do tipo construto. Recebe visão no escuro e imunidade a doenças, fadiga, sangramento, sono e venenos. Além disso, não precisa respirar, alimentar-se ou dormir. Por fim, não recupera pontos de vida por descanso e não se beneficia de habilidades de cura e itens ingeríveis (comidas, poções etc.). Você precisa ficar inerte por oito horas por dia para recarregar sua fonte de energia. Se fizer isso, recupera PM por descanso em condições normais (golens não são afetados por condições boas ou ruins de descanso).',
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Criatura Artificial',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão no escuro',
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Criatura Artificial',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Imunidade a doenças, fadiga, sangramento, sono e venenos',
+          },
+        },
+      ],
     },
     {
       name: 'Espírito Elemental',

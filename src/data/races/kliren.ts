@@ -24,7 +24,7 @@ const KLIREN: Race = {
     {
       name: 'Híbrido',
       description:
-        'Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe).Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe).',
+        'Sua natureza multifacetada fez com que você aprendesse conhecimentos variados. Você se torna treinado em uma perícia a sua escolha (não precisa ser da sua classe).',
       action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
         const sheetClone = cloneDeep(sheet);
         const randomSkill = getNotRepeatedRandom(sheetClone.skills, 'skill');

@@ -75,6 +75,7 @@ import {
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   SheetAction,
+  SheetChangeSource,
   StatModifier,
   Step,
   SubStep,
@@ -730,6 +731,16 @@ const applyPower = (
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
 
+  const getSourceName = (source: SheetChangeSource) => {
+    if (source.type === 'power') {
+      return source.name;
+    }
+    if (source.type === 'levelUp') {
+      return `Nível ${source.level}`;
+    }
+    return '';
+  };
+
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
@@ -739,10 +750,7 @@ const applyPower = (
         sheet.atributos[attribute].mod = newValue;
 
         subSteps.push({
-          name:
-            sheetAction.source.type === 'power'
-              ? `${sheetAction.source.name}:`
-              : `Nível ${sheetAction.source.level}:`,
+          name: getSourceName(sheetAction.source),
           value: `+${value} em ${sheetAction.action.attribute}`,
         });
         sheet.sheetActionHistory.push({
@@ -773,6 +781,15 @@ const applyPower = (
           name: sheetAction.action.type,
           value: `Não implementado`,
         });
+      } else if (sheetAction.action.type === 'addSense') {
+        if (!sheet.sentidos) sheet.sentidos = [];
+        if (!sheet.sentidos.includes(sheetAction.action.sense)) {
+          sheet.sentidos.push(sheetAction.action.sense);
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Recebe o sentido ${sheetAction.action.sense}`,
+          });
+        }
       } else {
         subSteps.push({
           name: sheetAction.action.type,
@@ -1128,6 +1145,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
   const defSubSteps: SubStep[] = [];
   const skillSubSteps: SubStep[] = [];
   const displacementSubSteps: SubStep[] = [];
+  const armorPenaltySubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
     const subStepName: string =
@@ -1191,6 +1209,14 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       sheet.maxSpaces += bonusValue;
 
       displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'ArmorPenalty') {
+      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+      sheet.extraArmorPenalty += bonusValue;
+
+      armorPenaltySubSteps.push({
         name: subStepName,
         value: `${bonusValue}`,
       });

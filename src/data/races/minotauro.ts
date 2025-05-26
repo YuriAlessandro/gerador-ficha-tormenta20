@@ -51,19 +51,21 @@ const MINOTAURO: Race = {
       name: 'Couro Rígido',
       description:
         'Sua pele é dura como a de um touro. Você recebe +1 na Defesa.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        const finalDefense = sheetClone.defesa + 1;
-
-        substeps.push({
-          name: 'Couro Rígido',
-          value: `+1 defesa (${sheet.defesa} + 1 = ${finalDefense})`,
-        });
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: finalDefense,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Couro Rígido',
+          },
+          target: {
+            type: 'Defense',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Faro',

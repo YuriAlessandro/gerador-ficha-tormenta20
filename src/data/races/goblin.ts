@@ -1,5 +1,4 @@
 import Skill from '@/interfaces/Skills';
-import { cloneDeep } from 'lodash';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { RACE_SIZES } from './raceSizes/raceSizes';
@@ -31,23 +30,18 @@ const GOBLIN: Race = {
       name: 'Espelunqueiro',
       description:
         'Você recebe visão no escuro e deslocamento de escalada igual ao seu deslocamento terrestre.',
-      action(sheet, subSteps) {
-        const sheetClone = cloneDeep(sheet);
-
-        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
-          sheetClone.sentidos = [
-            ...(sheetClone.sentidos || []),
-            'Visão no escuro',
-          ];
-        }
-
-        subSteps.push({
-          name: 'Espelunqueiro',
-          value: 'Você recebe visão no escuro',
-        });
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Espelunqueiro',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão no escuro',
+          },
+        },
+      ],
     },
     {
       name: 'Peste Esguia',
@@ -58,26 +52,22 @@ const GOBLIN: Race = {
       name: 'Rato das Ruas',
       description:
         'Você recebe +2 em Fortitude e sua recuperação de PV e PM nunca é inferior ao seu nível.',
-      action(sheet, subSteps) {
-        const sheetClone = cloneDeep(sheet);
-
-        subSteps.push({
-          name: 'Rato das Ruas',
-          value: '+2 em Fortitude',
-        });
-
-        sheetClone.completeSkills = sheetClone.completeSkills?.map((skill) => {
-          if (skill.name === Skill.FORTITUDE) {
-            return {
-              ...skill,
-              others: (skill.others || 0) + 2,
-            };
-          }
-          return skill;
-        });
-
-        return sheetClone;
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Rato das Ruas',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.FORTITUDE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
   ],
 };

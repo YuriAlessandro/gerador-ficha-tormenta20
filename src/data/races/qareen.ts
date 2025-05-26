@@ -1,9 +1,6 @@
-import { cloneDeep, merge } from 'lodash';
-import { getRandomItemFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 const QAREEN: Race = {
   name: 'Qareen',
@@ -39,29 +36,20 @@ const QAREEN: Race = {
       name: 'Tatuagem mística',
       description:
         'Você pode lançar uma magia de 1º círculo a sua escolha (atributo-chave Carisma). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        const randomSpell = getRandomItemFromArray(
-          Object.values(spellsCircle1)
-        );
-
-        const { stepValue, spells } = addOrCheapenSpell(
-          sheetClone,
-          randomSpell,
-          Atributo.CARISMA
-        );
-
-        if (stepValue) {
-          substeps.push({
-            name: 'Tatuagem Mística',
-            value: stepValue,
-          });
-        }
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          spells,
-        });
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Tatuagem mística',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: Object.values(spellsCircle1),
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
   ],
 };

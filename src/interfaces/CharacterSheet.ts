@@ -38,6 +38,7 @@ export type SheetActionStep =
       type: 'learnSpell';
       availableSpells: Spell[]; // List of available spells
       pick: number; // Number of spells to learn
+      customAttribute?: Atributo; // Optional custom attribute for the spell
     }
   | {
       type: 'learnAnySpellFromHighestCircle';
@@ -101,6 +102,9 @@ export type StatModifierTarget =
     }
   | {
       type: 'MaxSpaces';
+    }
+  | {
+      type: 'ArmorPenalty';
     };
 
 export type StatModifier =
