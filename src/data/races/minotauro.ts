@@ -1,5 +1,3 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
@@ -33,19 +31,21 @@ const MINOTAURO: Race = {
       name: 'Chifres',
       description:
         'Você possui uma arma natural de chifres (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        sheetClone.bag.addEquipment({
-          Arma: [chifres],
-        });
-
-        substeps.push({
-          name: 'Nova Arma',
-          value: `Chifres pode ser usado como arma.`,
-        });
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Minotauro',
+          },
+          action: {
+            type: 'addEquipment',
+            equipment: {
+              Arma: [chifres],
+            },
+            description: 'Chifres pode ser usado como arma.',
+          },
+        },
+      ],
     },
     {
       name: 'Couro Rígido',

@@ -57,6 +57,7 @@ export type SheetActionStep =
   | {
       type: 'addEquipment';
       equipment: Partial<BagEquipments>; // Partial equipment object to add
+      description: string; // Optional description for the equipment
     }
   | {
       type: 'addSense';

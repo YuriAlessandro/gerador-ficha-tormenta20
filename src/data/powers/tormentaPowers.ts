@@ -212,6 +212,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
               },
             ],
           },
+          description: 'Mordida pode ser usado como arma.',
         },
       },
     ],

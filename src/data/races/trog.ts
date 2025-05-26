@@ -1,5 +1,3 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Equipment from '../../interfaces/Equipment';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
@@ -37,45 +35,53 @@ const TROG: Race = {
       name: 'Mordida',
       description:
         'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Quando usa a ação atacar, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        sheetClone.bag.addEquipment({
-          Arma: [mordida],
-        });
-
-        substeps.push({
-          name: 'Nova Arma',
-          value: `Mordida pode ser usado como arma.`,
-        });
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Trog',
+          },
+          action: {
+            type: 'addEquipment',
+            equipment: {
+              Arma: [mordida],
+            },
+            description: 'Mordida pode ser usado como arma.',
+          },
+        },
+      ],
     },
     {
       name: 'Reptiliano',
       description:
         'Você é uma criatura do tipo monstro e recebe visão no escuro, +1 na Defesa (JÁ INCLUSO) e, se estiver sem armadura ou roupas pesadas, +5 em Furtividade.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-
-        substeps.push({
-          name: 'Reptiliano',
-          value: `+1 na Defesa`,
-        });
-
-        if (!sheetClone.sentidos?.includes('Visão no Escuro')) {
-          sheetClone.sentidos?.push('Visão no Escuro');
-        }
-
-        substeps.push({
-          name: 'Reptiliano',
-          value: 'Recebe Visão no escuro',
-        });
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          defesa: sheetClone.defesa + 1,
-        });
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Trog',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão no Escuro',
+          },
+        },
+      ],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Trog',
+          },
+          target: {
+            type: 'Defense',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Sangue Frio',

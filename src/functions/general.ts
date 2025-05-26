@@ -790,6 +790,15 @@ const applyPower = (
             value: `Recebe o sentido ${sheetAction.action.sense}`,
           });
         }
+      } else if (sheetAction.action.type === 'addEquipment') {
+        const { equipment } = sheetAction.action;
+        if (equipment) {
+          sheet.bag.addEquipment(equipment);
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: sheetAction.action.description,
+          });
+        }
       } else {
         subSteps.push({
           name: sheetAction.action.type,
