@@ -6,6 +6,7 @@ import { Spell } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/atributos';
+import { BagEquipments } from './Equipment';
 
 export type SheetChangeSource =
   | {
@@ -51,6 +52,14 @@ export type SheetActionStep =
       type: 'addProficiency';
       availableProficiencies: string[]; // List of available proficiencies
       pick: number; // Number of proficiencies to learn
+    }
+  | {
+      type: 'addEquipment';
+      equipment: Partial<BagEquipments>; // Partial equipment object to add
+    }
+  | {
+      type: 'addSense';
+      sense: string; // string representing the sense to add
     };
 
 export type SheetActionReceipt =

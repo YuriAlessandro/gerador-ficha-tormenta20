@@ -1,16 +1,10 @@
-import _, { cloneDeep, merge } from 'lodash';
-
 import Skill from '@/interfaces/Skills';
-import { getNotRepeatedRandom } from '../../functions/randomUtils';
-
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
 import PROFICIENCIAS from '../proficiencias';
-import { Armas } from '../equipamentos';
 
 const combatPowers: Record<string, GeneralPower> = {
   ACUIDADE_COM_ARMA: {

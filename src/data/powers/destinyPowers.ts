@@ -1,13 +1,9 @@
-import _, { cloneDeep, merge } from 'lodash';
-
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
-import { getNotRepeatedRandomSkill } from '../pericias';
 import { Atributo } from '../atributos';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
