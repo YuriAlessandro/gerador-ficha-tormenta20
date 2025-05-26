@@ -1187,6 +1187,11 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       const skillName = bonus.target.name;
       const bonusValue = calculateBonusValue(sheet, bonus.modifier);
 
+      // TODO: Adicionar bonus bom pra oficios
+      if (skillName === Skill.OFICIO) {
+        console.warn('need good bonus for OFICIO skill');
+      }
+
       skillSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${skillName}`,

@@ -62,6 +62,13 @@ export type SheetActionStep =
   | {
       type: 'addSense';
       sense: string; // string representing the sense to add
+    }
+  | {
+      type: 'special';
+      specialAction:
+        | 'humanoVersatil'
+        | 'lefouDeformidade'
+        | 'osteonMemoriaPostuma';
     };
 
 export type SheetActionReceipt =
