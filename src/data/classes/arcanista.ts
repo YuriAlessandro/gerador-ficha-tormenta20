@@ -228,6 +228,7 @@ const ARCANISTA: ClassDescription = {
           action: {
             type: 'learnAnySpellFromHighestCircle',
             pick: 2,
+            allowedType: 'Arcane',
           },
         },
       ],

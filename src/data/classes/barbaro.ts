@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -49,28 +47,36 @@ const BARBARO: ClassDescription = {
       name: 'Instinto Selvagem',
       text: 'Você recebe +1 em rolagens de dano, Percepção e Reflexos. A cada seis níveis, esse bônus aumenta em +1.',
       nivel: 3,
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Percepção' || sk.name === 'Reflexos') {
-            value += 1;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Instinto Selvagem',
-          value: `+1 em Percepção e Reflexos`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Instinto Selvagem',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.PERCEPCAO,
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 6)',
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Instinto Selvagem',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.REFLEXOS,
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 6)',
+          },
+        },
+      ],
     },
     {
       name: 'Resistência a Dano',
@@ -138,18 +144,21 @@ const BARBARO: ClassDescription = {
       name: 'Fúria da Savana',
       text: 'Seu deslocamento aumenta em +3m. Quando usa Fúria, você aplica o bônus em ataque e dano também a armas de arremesso.',
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        substeps.push({
-          name: 'Fúria da Savana',
-          value: `+3 na Movimentação`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          displacement: sheetClone.displacement + 3,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Fúria da Savana',
+          },
+          target: {
+            type: 'Displacement',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 3,
+          },
+        },
+      ],
     },
     {
       name: 'Fúria Raivosa',
@@ -205,19 +214,21 @@ const BARBARO: ClassDescription = {
           { type: RequirementType.NIVEL, value: 4 },
         ],
       ],
-      action: (sheet: CharacterSheet): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-        const pmModifier = sheetClone.pmModifier || [];
-        pmModifier.push({
-          source: 'Totem Espiritual',
-          type: 'Attribute',
-          attribute: Atributo.SABEDORIA,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pmModifier,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Totem Espiritual',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Vigor Primal',

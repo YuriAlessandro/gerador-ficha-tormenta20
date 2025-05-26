@@ -43,6 +43,7 @@ export type SheetActionStep =
   | {
       type: 'learnAnySpellFromHighestCircle';
       pick: number; // Number of spells to learn
+      allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
     }
   | {
       type: 'getGeneralPower';
