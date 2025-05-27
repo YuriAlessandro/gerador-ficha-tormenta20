@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -50,19 +49,21 @@ const CLERIGO: ClassDescription = {
       name: 'Magias',
       text: 'Você pode lançar magias divinas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2º círculo no 5º nível, 3º círculo no 9º nível e assim por diante). Você começa com três magias de 1º círculo. A cada nível, aprende uma magia de qualquer círculo que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const finalPM = sheet.pm + sheet.atributos.Sabedoria.mod;
-        substeps.push({
-          name: 'Magias',
-          value: `+SAB PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm: finalPM,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Mão da Divindade',
@@ -114,19 +115,19 @@ const CLERIGO: ClassDescription = {
       text: 'Você aprende duas magias divinas de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       requirements: [],
       canRepeat: true,
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        substeps.push({
-          name: 'Conhecimento Mágico',
-          value:
-            'Aprendeu 2 magias divinas de qualquer círculo que possa lançar.',
-        });
-
-        // TODO
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Conhecimento Mágico',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Divine',
+            pick: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Expulsar/Comandar Mortos-Vivos',

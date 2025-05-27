@@ -1,11 +1,8 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
-import { addOrCheapenRandomSpells } from '../magias/generalSpells';
 import { allDivineSpellsCircle1 } from '../magias/divine';
 
 const PALADINO: ClassDescription = {
@@ -49,29 +46,21 @@ const PALADINO: ClassDescription = {
       name: 'Abençoado',
       text: 'Você soma seu Carisma no seu total de pontos de mana no 1º nível. Além disso, torna-se devoto de um deus disponível para paladinos (Azgher, Khalmyr, Lena, Lin-Wu, Marah, Tanna-Toh, Thyatis, Valkaria). Veja as regras de devotos na página 96. Ao contrário de devotos normais, você recebe dois poderes concedidos por se tornar devoto, em vez de apenas um. Como alternativa, você pode ser um paladino do bem, lutando em prol da bondade e da justiça como um todo. Não recebe nenhum Poder Concedido, mas não precisa seguir nenhuma Obrigação & Restrição (além do Código do Herói). Cultuar o bem conta como sua devoção.',
       nivel: 1,
-      action(
-        sheet: CharacterSheet,
-        subSteps: {
-          name: string;
-          value: string;
-        }[]
-      ): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-
-        const initialPm = sheetClone.pm;
-        const carMod = sheetClone.atributos.Carisma.mod;
-
-        subSteps.push({
-          name: 'Abençoado',
-          value: `Adicionar Mod. de Carisma (${carMod}) na PM do 1º nível: ${initialPm} + ${carMod} = ${
-            initialPm + carMod
-          }`,
-        });
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm: sheetClone.pm + carMod,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Abençoado',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Código de Héroi',
@@ -201,23 +190,19 @@ const PALADINO: ClassDescription = {
       text: 'Você aprende e pode lançar uma magia divina de 1º círculo a sua escolha. Seu atributo-chave para esta magia é Sabedoria. Você pode escolher este poder quantas vezes quiser.',
       requirements: [],
       canRepeat: true,
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = cloneDeep(sheet);
-        const validSpells = allDivineSpellsCircle1.filter(
-          (spell) => !sheet.spells.find((s) => s.nome !== spell.nome)
-        );
-
-        addOrCheapenRandomSpells(
-          sheetClone,
-          substeps,
-          validSpells,
-          'Orar',
-          Atributo.SABEDORIA,
-          1
-        );
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Orar',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: allDivineSpellsCircle1,
+            pick: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Virtude Paladinesca: Caridade',

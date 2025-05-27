@@ -1,6 +1,3 @@
-import _ from 'lodash';
-import { getNotRepeatedRandom } from '@/functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -116,40 +113,38 @@ const NOBRE: ClassDescription = {
       name: 'Educação Privilegiada',
       text: 'Você se torna treinado em duas perícias de nobre a sua escolha.',
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const allowedSkills = [
-          ...NOBRE.periciasrestantes.list,
-          ...NOBRE.periciasbasicas[0].list,
-          ...NOBRE.periciasbasicas[1].list,
-        ];
-
-        for (let i = 0; i < 2; i += 1) {
-          const randomSkill = getNotRepeatedRandom(
-            sheetClone.skills,
-            'skill',
-            allowedSkills
-          );
-
-          sheetClone.completeSkills = sheetClone.completeSkills?.map((sk) => {
-            let value = sk.others ?? 0;
-
-            if (sk.name === randomSkill) {
-              value += 2;
-            }
-
-            return { ...sk, others: value };
-          });
-
-          substeps.push({
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
             name: 'Educação Privilegiada',
-            value: `+2 em ${randomSkill}`,
-          });
-        }
-
-        return sheetClone;
-      },
+          },
+          action: {
+            type: 'learnSkill',
+            availableSkills: [
+              Skill.ADESTRAMENTO,
+              Skill.ATUACAO,
+              Skill.CAVALGAR,
+              Skill.CONHECIMENTO,
+              Skill.DIPLOMACIA,
+              Skill.ENGANACAO,
+              Skill.FORTITUDE,
+              Skill.GUERRA,
+              Skill.INICIATIVA,
+              Skill.INTIMIDACAO,
+              Skill.INTUICAO,
+              Skill.INVESTIGACAO,
+              Skill.JOGATINA,
+              Skill.LUTA,
+              Skill.NOBREZA,
+              Skill.OFICIO,
+              Skill.PERCEPCAO,
+              Skill.PONTARIA,
+            ],
+            pick: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Estrategista',
@@ -250,28 +245,36 @@ const NOBRE: ClassDescription = {
       name: 'Voz Poderosa',
       text: 'Você recebe +2 em Diplomacia e Intimidação. Suas habilidades de nobre com alcance curto passam para alcance médio.',
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skill.DIPLOMACIA || sk.name === Skill.INTIMIDACAO) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Voz Poderosa',
-          value: `+2 em Diplomacia e Intimidação`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Voz Poderosa',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.DIPLOMACIA,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Voz Poderosa',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.INTIMIDACAO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
   ],
   probDevoto: 0.3,

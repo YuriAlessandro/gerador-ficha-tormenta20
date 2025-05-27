@@ -74,7 +74,6 @@ import {
   PowersGetters,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
-  SheetAction,
   SheetChangeSource,
   StatModifier,
   Step,

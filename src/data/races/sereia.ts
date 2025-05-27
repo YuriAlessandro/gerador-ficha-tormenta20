@@ -1,7 +1,6 @@
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import { spellsCircle1 } from '../magias/generalSpells';
-import { Armas } from '../equipamentos';
 
 const seaSongSpells = [
   spellsCircle1.amedrontar,
@@ -12,7 +11,7 @@ const seaSongSpells = [
   spellsCircle1.sono,
 ];
 
-const goodWeapons = [Armas.TRIDENTE.nome, Armas.LANCA.nome, Armas.AZAGAIA.nome];
+// const goodWeapons = [Armas.TRIDENTE.nome, Armas.LANCA.nome, Armas.AZAGAIA.nome];
 
 const SEREIA: Race = {
   name: 'Sereia',

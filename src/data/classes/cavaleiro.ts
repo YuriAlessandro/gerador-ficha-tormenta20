@@ -116,6 +116,23 @@ const CAVALEIRO: ClassDescription = {
       name: 'Etiqueta',
       text: 'Você recebe +2 em Diplomacia ou Nobreza e pode gastar 1 PM para rolar novamente um teste recém realizado de uma dessas perícias.',
       requirements: [],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Etiqueta',
+          },
+          target: {
+            type: 'PickSkill',
+            skills: [Skill.DIPLOMACIA, Skill.NOBREZA],
+            pick: 1,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Investida Destruidora',

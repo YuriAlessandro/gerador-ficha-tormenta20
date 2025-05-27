@@ -2,7 +2,7 @@ import { ClassDescription, ClassPower } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
 import Race, { RaceSize } from './Race';
 import Bag from './Bag';
-import { Spell } from './Spells';
+import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/atributos';
@@ -44,6 +44,7 @@ export type SheetActionStep =
       type: 'learnAnySpellFromHighestCircle';
       pick: number; // Number of spells to learn
       allowedType: 'Arcane' | 'Divine' | 'Both'; // Allowed types of spells
+      schools?: SpellSchool[]; // Optional list of allowed schools
     }
   | {
       type: 'getGeneralPower';
@@ -114,6 +115,11 @@ export type StatModifierTarget =
     }
   | {
       type: 'ArmorPenalty';
+    }
+  | {
+      type: 'PickSkill';
+      skills: Skill[];
+      pick: number; // Number of skills to pick
     };
 
 export type StatModifier =

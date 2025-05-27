@@ -142,8 +142,7 @@ export function inventor(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 13,
     pm: 4,
-    pvModifier: [],
-    pmModifier: [],
-    skillsModifier: [],
+    sheetActionHistory: [],
+    sheetBonuses: [],
   };
 }
