@@ -29,6 +29,7 @@ import {
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
+  pickFromAllowed,
   pickFromArray,
   rollDice,
 } from './randomUtils';
@@ -48,6 +49,7 @@ import {
   arcaneSpellsCircle3,
   arcaneSpellsCircle4,
   arcaneSpellsCircle5,
+  getArcaneSpellsOfCircle,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
@@ -90,6 +92,16 @@ import {
   getAllowedClassPowers,
   getPowersAllowedByRequirements,
 } from './powers';
+import {
+  addOrCheapenRandomSpells,
+  getSpellsOfCircle,
+} from '../data/magias/generalSpells';
+import {
+  applyHumanoVersatil,
+  applyLefouDeformidade,
+  applyOsteonMemoriaPostuma,
+} from './powers/special';
+import { addOtherBonusToSkill } from './skills/general';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -723,7 +735,7 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
-const applyPower = (
+export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses'>
 ): [CharacterSheet, SubStep[]] => {
@@ -758,32 +770,68 @@ const applyPower = (
         });
       } else if (sheetAction.action.type === 'addProficiency') {
         // Ver Proficiência em combat powers e depois remove comment
-        subSteps.push({
-          name: sheetAction.action.type,
-          value: `Não implementado`,
+        let { availableProficiencies } = sheetAction.action;
+        if (!sheet.classe.proficiencias.includes(todasProficiencias.MARCIAIS)) {
+          availableProficiencies = availableProficiencies.filter(
+            (prof) => prof !== todasProficiencias.EXOTICAS
+          );
+        }
+
+        const pickedProficiencies = pickFromAllowed(
+          availableProficiencies,
+          sheetAction.action.pick,
+          sheet.classe.proficiencias
+        );
+
+        sheet.classe.proficiencias.push(...pickedProficiencies);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: pickedProficiencies.map((prof) => ({
+            type: 'ProficiencyAdded',
+            proficiency: prof,
+          })),
+        });
+
+        pickedProficiencies.forEach((prof) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Proficiência em ${prof}`,
+          });
         });
       } else if (sheetAction.action.type === 'learnSkill') {
-        // const sheetClone = cloneDeep(sheet);
+        const pickedSkills = pickFromAllowed(
+          sheetAction.action.availableSkills,
+          sheetAction.action.pick,
+          sheet.skills
+        );
 
-        // const newSkill = getNotRepeatedRandomSkill(sheetClone.skills);
+        sheet.skills.push(...pickedSkills);
 
-        // subSteps.push({
-        //   name: 'Treinamento em Perícia',
-        //   value: newSkill,
-        // });
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SkillsAdded',
+              skills: pickedSkills,
+            },
+          ],
+        });
 
-        // return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        //   skills: [...sheetClone.skills, newSkill],
-        // });
-
-        subSteps.push({
-          name: sheetAction.action.type,
-          value: `Não implementado`,
+        pickedSkills.forEach((skill) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprende a perícia ${skill}`,
+          });
         });
       } else if (sheetAction.action.type === 'addSense') {
         if (!sheet.sentidos) sheet.sentidos = [];
         if (!sheet.sentidos.includes(sheetAction.action.sense)) {
           sheet.sentidos.push(sheetAction.action.sense);
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            changes: [{ type: 'SenseAdded', sense: sheetAction.action.sense }],
+          });
           subSteps.push({
             name: getSourceName(sheetAction.source),
             value: `Recebe o sentido ${sheetAction.action.sense}`,
@@ -791,18 +839,119 @@ const applyPower = (
         }
       } else if (sheetAction.action.type === 'addEquipment') {
         const { equipment } = sheetAction.action;
-        if (equipment) {
-          sheet.bag.addEquipment(equipment);
+        sheet.bag.addEquipment(equipment);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [{ type: 'EquipmentAdded', equipment }],
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: sheetAction.action.description,
+        });
+      } else if (sheetAction.action.type === 'getGeneralPower') {
+        const pickedPowers = pickFromAllowed(
+          sheetAction.action.availablePowers,
+          sheetAction.action.pick,
+          sheet.generalPowers
+        );
+
+        sheet.generalPowers.push(...pickedPowers);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: pickedPowers.map((power) => ({
+            type: 'PowerAdded',
+            powerName: power.name,
+          })),
+        });
+
+        pickedPowers.forEach((power) => {
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: sheetAction.action.description,
+            value: `Recebe o poder geral ${power.name}`,
           });
-        }
-      } else {
-        subSteps.push({
-          name: sheetAction.action.type,
-          value: `Não implementado`,
         });
+      } else if (sheetAction.action.type === 'learnSpell') {
+        const learnedSpells = addOrCheapenRandomSpells(
+          sheet,
+          subSteps,
+          sheetAction.action.availableSpells,
+          getSourceName(sheetAction.source),
+          sheetAction.action.customAttribute ||
+            sheet.classe.spellPath?.keyAttribute ||
+            Atributo.INTELIGENCIA,
+          sheetAction.action.pick
+        );
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SpellsLearned',
+              spellNames: learnedSpells.map((spell) => spell.nome),
+            },
+          ],
+        });
+      } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
+        const highestCircle =
+          sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+
+        let allSpellsOfCircle: Spell[] = [];
+        if (sheetAction.action.allowedType === 'Arcane') {
+          allSpellsOfCircle = getArcaneSpellsOfCircle(highestCircle);
+        } else if (sheetAction.action.allowedType === 'Divine') {
+          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
+        } else {
+          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
+        }
+
+        const allowedSchools = sheetAction.action.schools || [];
+        const availableSpells = allSpellsOfCircle.filter((spell) => {
+          if (allowedSchools.length === 0) return true;
+          return allowedSchools.includes(spell.school);
+        });
+
+        const learnedSpells = addOrCheapenRandomSpells(
+          sheet,
+          subSteps,
+          availableSpells,
+          getSourceName(sheetAction.source),
+          sheet.classe.spellPath?.keyAttribute || Atributo.INTELIGENCIA,
+          sheetAction.action.pick
+        );
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SpellsLearned',
+              spellNames: learnedSpells.map((spell) => spell.nome),
+            },
+          ],
+        });
+      } else if (sheetAction.action.type === 'special') {
+        let currentSteps: SubStep[];
+        if (sheetAction.action.specialAction === 'humanoVersatil') {
+          currentSteps = applyHumanoVersatil(sheet);
+        } else if (sheetAction.action.specialAction === 'lefouDeformidade') {
+          currentSteps = applyLefouDeformidade(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'osteonMemoriaPostuma'
+        ) {
+          currentSteps = applyOsteonMemoriaPostuma(sheet);
+        } else {
+          throw new Error(
+            `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
+          );
+        }
+
+        subSteps.push(...currentSteps);
+      } else {
+        throw new Error(
+          `Ação de ficha desconhecida: ${JSON.stringify(sheetAction)}`
+        );
       }
     });
   }
@@ -1142,11 +1291,14 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
       return sheet.atributos[attr].mod;
     }
   }
+  if (bonus.type === 'Fixed') {
+    return bonus.value;
+  }
   return 0;
 };
 
 const applyStatModifiers = (_sheet: CharacterSheet) => {
-  let sheet = _.cloneDeep(_sheet);
+  const sheet = _.cloneDeep(_sheet);
 
   const pvSubSteps: SubStep[] = [];
   const pmSubSteps: SubStep[] = [];
@@ -1156,27 +1308,25 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
   const armorPenaltySubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
+    const bonusValue = calculateBonusValue(sheet, bonus.modifier);
     const subStepName: string =
       bonus.source.type === 'power'
         ? `${bonus.source.name}:`
         : `Nível ${bonus.source.level}:`;
 
     if (bonus.target.type === 'PV') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.pv += bonusValue;
       pvSubSteps.push({
         name: subStepName,
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'PM') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.pm += bonusValue;
       pmSubSteps.push({
         name: subStepName,
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'Defense') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.defesa += bonusValue;
       defSubSteps.push({
         name: subStepName,
@@ -1184,33 +1334,19 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       });
     } else if (bonus.target.type === 'Skill') {
       const skillName = bonus.target.name;
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
 
       // TODO: Adicionar bonus bom pra oficios
       if (skillName === Skill.OFICIO) {
         console.warn('need good bonus for OFICIO skill');
       }
 
+      addOtherBonusToSkill(sheet, skillName, bonusValue);
+
       skillSubSteps.push({
         name: subStepName,
         value: `${bonusValue} em ${skillName}`,
       });
-
-      const newCompleteSkills = sheet.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === skillName) {
-          value += bonusValue;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      sheet = _.merge(sheet, {
-        completeSkills: newCompleteSkills,
-      });
     } else if (bonus.target.type === 'Displacement') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.displacement += bonusValue;
 
       displacementSubSteps.push({
@@ -1218,7 +1354,6 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'MaxSpaces') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.maxSpaces += bonusValue;
 
       displacementSubSteps.push({
@@ -1226,12 +1361,25 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'ArmorPenalty') {
-      const bonusValue = calculateBonusValue(sheet, bonus.modifier);
       sheet.extraArmorPenalty += bonusValue;
 
       armorPenaltySubSteps.push({
         name: subStepName,
         value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'PickSkill') {
+      const pickedSkills = pickFromArray(
+        bonus.target.skills,
+        bonus.target.pick
+      );
+
+      pickedSkills.forEach((skill) => {
+        // TODO: Adicionar bonus bom pra oficios
+        if (skill === Skill.OFICIO) {
+          console.warn('need good bonus for OFICIO skill');
+        }
+
+        addOtherBonusToSkill(sheet, skill, bonusValue);
       });
     } else {
       console.warn('bonus não implementado', bonus);

@@ -407,45 +407,12 @@ const combatPowers: Record<string, GeneralPower> = {
             PROFICIENCIAS.FOGO,
             PROFICIENCIAS.PESADAS,
             PROFICIENCIAS.ESCUDOS,
+            PROFICIENCIAS.EXOTICAS,
           ],
           pick: 1,
         },
       },
     ],
-    // action(
-    //   sheet: CharacterSheet,
-    //   subSteps: {
-    //     name: string;
-    //     value: string;
-    //   }[]
-    // ): CharacterSheet {
-    //   const sheetClone = cloneDeep(sheet);
-
-    //   const allowedProf = [
-    //     PROFICIENCIAS.MARCIAIS,
-    //     PROFICIENCIAS.FOGO,
-    //     PROFICIENCIAS.PESADAS,
-    //   ];
-
-    //   if (sheet.classe.proficiencias.includes(PROFICIENCIAS.MARCIAIS)) {
-    //     allowedProf.push(PROFICIENCIAS.EXOTICAS);
-    //   }
-
-    //   const newProf = getNotRepeatedRandom(
-    //     sheetClone.classe.proficiencias,
-    //     'proficiencia',
-    //     allowedProf
-    //   );
-
-    //   subSteps.push({
-    //     name: 'Proficiência',
-    //     value: newProf,
-    //   });
-
-    //   sheetClone.classe.proficiencias.push(newProf);
-
-    //   return sheetClone;
-    // },
   },
   QUEBRAR_APRIMORADO: {
     name: 'Quebrar Aprimorado',

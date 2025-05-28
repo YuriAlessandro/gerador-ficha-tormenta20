@@ -1,32 +1,5 @@
 import Race from '../../interfaces/Race';
 
-// function addSkillOrPower(sheet: CharacterSheet, substeps: SubStep[]) {
-//   const shouldGetSkill = Math.random() > 0.5;
-
-//   if (shouldGetSkill) {
-//     const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
-//     sheet.skills.push(randomSkill);
-//     substeps.push({
-//       name: 'Versátil',
-//       value: `Perícia treinada (${randomSkill})`,
-//     });
-//   } else {
-//     const allowedPowers = getPowersAllowedByRequirements(sheet);
-//     const randomPower = getNotRepeatedRandom(
-//       sheet.generalPowers,
-//       'power',
-//       allowedPowers
-//     );
-//     sheet.generalPowers.push(randomPower);
-//     substeps.push({
-//       name: 'Versátil',
-//       value: `Poder geral recebido (${randomPower.name})`,
-//     });
-//   }
-
-//   return sheet;
-// }
-
 const HUMANO: Race = {
   name: 'Humano',
   attributes: {

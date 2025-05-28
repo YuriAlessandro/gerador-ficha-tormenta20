@@ -86,6 +86,22 @@ export type SheetActionReceipt =
   | {
       type: 'SpellsLearned';
       spellNames: string[];
+    }
+  | {
+      type: 'SenseAdded';
+      sense: string;
+    }
+  | {
+      type: 'PowerAdded';
+      powerName: string;
+    }
+  | {
+      type: 'ProficiencyAdded';
+      proficiency: string;
+    }
+  | {
+      type: 'EquipmentAdded';
+      equipment: Partial<BagEquipments>;
     };
 
 export type SheetActionHistoryEntry = {
@@ -96,7 +112,7 @@ export type SheetActionHistoryEntry = {
 export type StatModifierTarget =
   | {
       type: 'Skill';
-      name: string;
+      name: Skill;
     }
   | {
       type: 'PV';

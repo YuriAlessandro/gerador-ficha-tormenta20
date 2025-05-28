@@ -5062,7 +5062,7 @@ export function addOrCheapenRandomSpells(
   stepName: string,
   customKeyAttr: Atributo,
   qtd = 2
-): void {
+): Spell[] {
   const sheetToChange = sheet;
   const randomSpells = getRandomSpells(allowedSpells, qtd);
 
@@ -5082,6 +5082,8 @@ export function addOrCheapenRandomSpells(
       });
     }
   });
+
+  return randomSpells;
 }
 
 export function getSpellsOfCircle(circle: number): Spell[] {

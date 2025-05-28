@@ -162,3 +162,26 @@ export function countTormentaPowers(sheet: CharacterSheet) {
 
   return tormentaPowersQtd;
 }
+
+export function pickFromAllowed<
+  T extends string | { name: string } | { nome: string }
+>(options: T[], pick: number, alreadyPicked: T[] = []) {
+  const getName = (option: T) => {
+    if (typeof option === 'string') {
+      return option;
+    }
+    if (typeof option === 'object' && 'name' in option) {
+      return option.name;
+    }
+    if (typeof option === 'object' && 'nome' in option) {
+      return option.nome;
+    }
+    throw new Error('Option must have a name or nome property');
+  };
+
+  const notPicked = options.filter(
+    (option) =>
+      !alreadyPicked.find((picked) => getName(picked) === getName(option))
+  );
+  return pickFromArray(notPicked, pick);
+}
