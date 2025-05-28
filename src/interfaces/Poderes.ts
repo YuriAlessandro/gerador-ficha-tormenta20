@@ -49,7 +49,7 @@ export type GeneralPowers = {
   [key in GeneralPowerType]: GeneralPower[];
 };
 
-export interface OriginPower {
+export type OriginPower = {
   name: string;
   description: string;
   type: string;
@@ -57,7 +57,7 @@ export interface OriginPower {
     sheet: CharacterSheet,
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
-}
+};
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
 

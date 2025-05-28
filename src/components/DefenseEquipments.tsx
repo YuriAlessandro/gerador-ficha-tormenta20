@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Typography } from '@mui/material';
 import { DefenseEquipment } from '../interfaces/Equipment';
 import DefenseItem from './DefenseItem';
 
@@ -15,26 +16,10 @@ const DefenseEquipments: React.FC<DefenseEquipmentsProps> = (props) => {
         <DefenseItem key={getKey(equip.nome)} equipment={equip} />
       ))
     ) : (
-      <tr>
-        <td className='textToCenter noDefensiveItem'>
-          Nenhum equipamento defensivo
-        </td>
-      </tr>
+      <Typography>Nenhum equipamento defensivo.</Typography>
     );
 
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>Armadura & Escudo</th>
-          <th>Bônus de Defesa</th>
-          <th>Penalidada de Armadura</th>
-          <th>Espaços</th>
-        </tr>
-      </thead>
-      <tbody>{DefenseEquipmentsDiv}</tbody>
-    </table>
-  );
+  return <Box>{DefenseEquipmentsDiv}</Box>;
 };
 
 export default DefenseEquipments;

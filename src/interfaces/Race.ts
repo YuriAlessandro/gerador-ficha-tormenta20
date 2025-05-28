@@ -53,11 +53,11 @@ export interface CharacterStats {
   };
 }
 
-export interface RaceAbility {
+export type RaceAbility = {
   name: string;
   description: string;
   action?: (sheet: CharacterSheet, subSteps: SubStep[]) => CharacterSheet;
-}
+};
 
 export type RaceNames =
   | 'Humano'

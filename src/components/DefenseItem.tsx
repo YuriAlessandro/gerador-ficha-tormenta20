@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box, Typography } from '@mui/material';
 import { DefenseEquipment } from '../interfaces/Equipment';
 
 interface DefenseEquipmentProps {
@@ -7,17 +8,14 @@ interface DefenseEquipmentProps {
 
 const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
   const { equipment } = props;
-  const { nome, defenseBonus, armorPenalty, spaces } = equipment;
+  const { nome, defenseBonus, armorPenalty } = equipment;
 
   return (
-    <tr>
-      <td>{nome}</td>
-      <td>{defenseBonus}</td>
-      <td>{armorPenalty > 0 ? `-${armorPenalty}` : '-'}</td>
-      <td>
-        {spaces || ''} {spaces && spaces > 1 ? 'espaços' : 'espaço'}
-      </td>
-    </tr>
+    <Box sx={{ borderBottom: '1px solid #ccc', padding: '8px' }}>
+      <Typography fontSize={12}>
+        {nome} +{defenseBonus} (-{armorPenalty} PA)
+      </Typography>
+    </Box>
   );
 };
 

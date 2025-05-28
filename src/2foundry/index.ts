@@ -21,11 +21,17 @@ const foundrySizes: Record<string, string> = {
 export interface FoundryJSON {
   name: string;
   type: string;
-  data: {
-    tamanho: string;
+  system: {
+    atributos: {
+      for: FoundryCharAttribute;
+      des: FoundryCharAttribute;
+      con: FoundryCharAttribute;
+      int: FoundryCharAttribute;
+      sab: FoundryCharAttribute;
+      car: FoundryCharAttribute;
+    };
     attributes: {
-      treino: number;
-      conjuracao: string;
+      cd: number;
       pv: {
         value: number;
         min: number;
@@ -37,14 +43,6 @@ export interface FoundryJSON {
         min: number;
         max: number;
         temp: number;
-      };
-      nivel: {
-        value: number;
-        xp: {
-          value: number;
-          min: number;
-          proximo: number;
-        };
       };
       movement: {
         burrow: number;
@@ -59,14 +57,33 @@ export interface FoundryJSON {
         value: number;
         outros: number;
         atributo: string;
+        pda: number;
         bonus: [];
-        penalidade: number;
         condi: number;
       };
       sentidos: {
-        value: [];
+        value: string[];
         custom: string;
       };
+      conjuracao: string;
+      nivel: {
+        value: number;
+        xp: {
+          value: number;
+          min: number;
+          proximo: number;
+        };
+      };
+      carga: {
+        value: number;
+        max: number;
+        atributo: string;
+        base: number;
+        bonus: [];
+        pct: number;
+        encumbered: false;
+      };
+      treino: number;
     };
     detalhes: {
       biography: {
@@ -76,21 +93,16 @@ export interface FoundryJSON {
       raca: string;
       divindade: string;
       origem: string;
+      info: string;
     };
-    rd: {
-      value: number;
-      base: number;
-      temp: number;
-      bonus: number;
-      penalidade: number;
-    };
-    atributos: {
-      for: FoundryCharAttribute;
-      des: FoundryCharAttribute;
-      con: FoundryCharAttribute;
-      int: FoundryCharAttribute;
-      sab: FoundryCharAttribute;
-      car: FoundryCharAttribute;
+    tracos: {
+      tamanho: string;
+      profArmas: {
+        value: string[];
+      };
+      profArmaduras: {
+        value: string[];
+      };
     };
     pericias: Record<string, FoundryCharSkill>;
   };
@@ -134,7 +146,7 @@ function getSkills(sheet: CharacterSheet): Record<string, FoundryCharSkill> {
       }
 
       const skillKey = FOUNDRY_SKILLS[skill];
-      acc[skillKey].treinado = 1;
+      acc[skillKey].treino = 1;
     }
 
     return acc;
@@ -145,74 +157,7 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
   return {
     name: sheet.nome,
     type: 'character',
-    data: {
-      tamanho: foundrySizes[sheet.size.name],
-      pericias: getSkills(sheet),
-      attributes: {
-        treino: 0,
-        pv: {
-          value: sheet.pv,
-          min: -500,
-          max: sheet.classe.pv,
-          temp: 0,
-        },
-        pm: {
-          value: sheet.pm,
-          min: 0,
-          max: sheet.classe.pm,
-          temp: 0,
-        },
-        nivel: {
-          value: 0,
-          xp: {
-            value: 0,
-            min: 0,
-            proximo: 0,
-          },
-        },
-        movement: {
-          burrow: 0,
-          climb: 0,
-          fly: 0,
-          swim: 0,
-          walk: sheet.displacement,
-          hover: false,
-        },
-        defesa: {
-          base: 10,
-          value: sheet.defesa,
-          outros: 0,
-          atributo: 'des',
-          bonus: [],
-          penalidade: 0,
-          condi: 0,
-        },
-        sentidos: {
-          value: [],
-          custom: '',
-        },
-        conjuracao: sheet.classe.spellPath
-          ? `${sheet.atributos[sheet.classe.spellPath.keyAttribute].name
-              .substring(0, 3)
-              .toLocaleLowerCase()}`
-          : '',
-      },
-      detalhes: {
-        biography: {
-          value: '',
-          public: '',
-        },
-        raca: sheet.raca.name,
-        divindade: sheet.devoto?.divindade?.name || '',
-        origem: sheet.origin?.name || '',
-      },
-      rd: {
-        value: 0,
-        base: 0,
-        temp: 0,
-        bonus: 0,
-        penalidade: 0,
-      },
+    system: {
       atributos: {
         for: {
           value: 0,
@@ -251,6 +196,85 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
           racial: 0,
         },
       },
+      attributes: {
+        cd: 10,
+        pv: {
+          value: sheet.pv,
+          min: -500,
+          max: sheet.classe.pv,
+          temp: 0,
+        },
+        pm: {
+          value: sheet.pm,
+          min: 0,
+          max: sheet.classe.pm,
+          temp: 0,
+        },
+        movement: {
+          burrow: 0,
+          climb: 0,
+          fly: 0,
+          swim: 0,
+          walk: sheet.displacement,
+          hover: false,
+        },
+        defesa: {
+          base: 10,
+          value: sheet.defesa,
+          outros: 0,
+          atributo: 'des',
+          bonus: [],
+          condi: 0,
+          pda: 0,
+        },
+        sentidos: {
+          value: sheet.sentidos || [],
+          custom: '',
+        },
+        conjuracao: sheet.classe.spellPath
+          ? `${sheet.atributos[sheet.classe.spellPath.keyAttribute].name
+              .substring(0, 3)
+              .toLocaleLowerCase()}`
+          : '',
+        nivel: {
+          value: 0,
+          xp: {
+            value: 0,
+            min: 0,
+            proximo: 0,
+          },
+        },
+        carga: {
+          value: 10 + sheet.atributos.Força.mod * 2,
+          max: (10 + sheet.atributos.Força.mod * 2) * 2,
+          atributo: 'for',
+          base: 10 + sheet.atributos.Força.mod * 2,
+          bonus: [],
+          pct: 0,
+          encumbered: false,
+        },
+        treino: 0,
+      },
+      detalhes: {
+        biography: {
+          value: '',
+          public: '',
+        },
+        raca: sheet.raca.name,
+        divindade: sheet.devoto?.divindade?.name || '',
+        origem: sheet.origin?.name || '',
+        info: 'Ficha criada no Fichas de Nimb',
+      },
+      tracos: {
+        tamanho: foundrySizes[sheet.size.name],
+        profArmas: {
+          value: [],
+        },
+        profArmaduras: {
+          value: [],
+        },
+      },
+      pericias: getSkills(sheet),
     },
     items: [
       {

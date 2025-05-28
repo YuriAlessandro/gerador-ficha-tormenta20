@@ -5,10 +5,11 @@ import React from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
+import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import CLASSES from '../../data/classes';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
-import Result from '../Result';
+import Result from '../SheetResult/Result';
 
 import generateRandomSheet from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -183,6 +184,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       <Result sheet={randomSheet} isDarkMode={isDarkMode} />
     ));
 
+  function encodeFoundryJSON(json: FoundryJSON | undefined) {
+    if (json) {
+      return `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(json)
+      )}`;
+    }
+
+    return '';
+  }
+
+  const foundryJSON = randomSheet ? convertToFoundry(randomSheet) : undefined;
+
+  const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
+
   return (
     <div id='main-screen'>
       <div className='filterArea'>
@@ -309,6 +324,19 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           </Button>
         </div>
       </div>
+      {randomSheet && (
+        <div className='exportButtonsContainer'>
+          <div className='export-to-foundry'>
+            <a
+              href={encodedJSON}
+              className='exportBtn'
+              download={`${randomSheet.nome}.json`}
+            >
+              Exportar para o Foundry
+            </a>
+          </div>
+        </div>
+      )}
 
       {randomSheet && !showHistoric && sheetComponent}
 

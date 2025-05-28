@@ -30,7 +30,7 @@ export interface RemainingExpertise {
   list: Skill[];
 }
 
-export interface ClassAbility {
+export type ClassAbility = {
   name: string;
   text: string;
   nivel: number;
@@ -38,9 +38,9 @@ export interface ClassAbility {
     sheet: CharacterSheet,
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
-}
+};
 
-export interface ClassPower {
+export type ClassPower = {
   name: string;
   text: string;
   requirements?: Requirement[][];
@@ -49,7 +49,7 @@ export interface ClassPower {
     subSteps: { name: string; value: string }[]
   ) => CharacterSheet;
   canRepeat?: boolean;
-}
+};
 
 export interface SpellPath {
   initialSpells: number;
