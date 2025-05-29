@@ -44,8 +44,6 @@ const PowersDisplay: React.FC<{
     powerCount[power.name] = (powerCount[power.name] || 0) + 1;
   });
 
-  console.log('Power Count:', powerCount);
-
   const uniquePowers = [
     ...filterUnique(classPowers),
     ...filterUnique(raceAbilities),

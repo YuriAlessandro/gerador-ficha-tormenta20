@@ -43,8 +43,8 @@ const PowerDisplay: React.FC<{
             fontSize: '0.9rem',
           }}
         >
-          {count > 1 ? `${count}x ` : ''}
           {power.name}
+          {count > 1 ? ` (x${count})` : ''}
         </Typography>
         <Typography sx={{ color: 'text.secondary' }}>{type}</Typography>
       </AccordionSummary>
