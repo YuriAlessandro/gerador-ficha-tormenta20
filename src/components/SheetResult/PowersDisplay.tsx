@@ -5,6 +5,10 @@ import { Box } from '@mui/material';
 import React from 'react';
 import PowerDisplay from './PowerDisplay';
 
+function filterUnique<T>(array: T[]) {
+  return array.filter((v, i, a) => a.indexOf(v) === i);
+}
+
 const PowersDisplay: React.FC<{
   classPowers: ClassPower[];
   raceAbilities: RaceAbility[];
@@ -31,6 +35,24 @@ const PowersDisplay: React.FC<{
     ...originPowers,
     ...deityPowers,
     ...generalPowers,
+  ];
+
+  // Count how many times a power if the same name appears
+  const powerCount: Record<string, number> = {};
+
+  powers.forEach((power) => {
+    powerCount[power.name] = (powerCount[power.name] || 0) + 1;
+  });
+
+  console.log('Power Count:', powerCount);
+
+  const uniquePowers = [
+    ...filterUnique(classPowers),
+    ...filterUnique(raceAbilities),
+    ...filterUnique(classAbilities),
+    ...filterUnique(originPowers),
+    ...filterUnique(deityPowers),
+    ...filterUnique(generalPowers),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const getPowerOrigin = (
@@ -56,11 +78,12 @@ const PowersDisplay: React.FC<{
 
   return (
     <Box>
-      {powers.map((power) => (
+      {uniquePowers.map((power) => (
         <PowerDisplay
           key={power.name}
           power={power}
           type={getPowerOrigin(power)}
+          count={powerCount[power.name]}
         />
       ))}
     </Box>

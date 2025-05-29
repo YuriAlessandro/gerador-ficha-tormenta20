@@ -21,7 +21,8 @@ const generateGeneralPowerDiv = (power: RaceAbility | OriginPower) =>
 const PowerDisplay: React.FC<{
   power: ClassPower | RaceAbility | ClassAbility | OriginPower;
   type: string;
-}> = ({ power, type }) => {
+  count: number;
+}> = ({ power, type, count }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const theme = useTheme();
 
@@ -42,6 +43,7 @@ const PowerDisplay: React.FC<{
             fontSize: '0.9rem',
           }}
         >
+          {count > 1 ? `${count}x ` : ''}
           {power.name}
         </Typography>
         <Typography sx={{ color: 'text.secondary' }}>{type}</Typography>

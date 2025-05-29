@@ -27,10 +27,6 @@ import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
 
-function filterUnique<T>(array: T[]) {
-  return array.filter((v, i, a) => a.indexOf(v) === i);
-}
-
 interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
@@ -180,8 +176,8 @@ const Result: React.FC<ResultProps> = (props) => {
     ...bagEquipments.Escudo,
   ];
 
-  const uniqueGeneralPowers = filterUnique(generalPowers);
-  const uniqueClassPowers = filterUnique(classPowers);
+  // const uniqueGeneralPowers = filterUnique(generalPowers);
+  // const uniqueClassPowers = filterUnique(classPowers);
 
   const keyAttr = classe.spellPath
     ? atributos[classe.spellPath.keyAttribute]
@@ -460,11 +456,11 @@ const Result: React.FC<ResultProps> = (props) => {
                   <BookTitle>Poderes</BookTitle>
                   <PowersDisplay
                     classAbilities={classe.abilities}
-                    classPowers={uniqueClassPowers}
+                    classPowers={classPowers}
                     raceAbilities={raca.abilities}
                     originPowers={origin?.powers || []}
                     deityPowers={devoto?.poderes || []}
-                    generalPowers={uniqueGeneralPowers}
+                    generalPowers={generalPowers}
                     className={classe.name}
                     raceName={raca.name}
                   />

@@ -22,6 +22,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
+    font-size: 12px;
   `;
 
   const TableCellSkillTotal = styled(TableCell)`
