@@ -104,7 +104,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                     {skill.halfLevel ?? 0}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    <CellFgText>{skill.modAttr ?? 0}</CellFgText>
+                    <CellFgText>{attrValue ?? 0}</CellFgText>
                     <CellBgText>
                       {fmtSkillName(SkillsAttrs[skill.name])}
                     </CellBgText>
