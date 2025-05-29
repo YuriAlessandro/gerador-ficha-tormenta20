@@ -12,8 +12,8 @@ const Changelog: React.FC = () => (
 
       <p>
         Lembrando que se você <strong>encontrar algum problema</strong>, tiver
-        alguma <strong>ideia</strong> ou quiser perguntar alguma coisa, você pode
-        fazer isso na página de discussões do GitHub{' '}
+        alguma <strong>ideia</strong> ou quiser perguntar alguma coisa, você
+        pode fazer isso na página de discussões do GitHub{' '}
         <a
           href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
           target='blank'
@@ -54,7 +54,11 @@ const Changelog: React.FC = () => (
       <ul>
         <li>
           Melhorias na navegação desktop e mobile do Database. Obrigado{' '}
-          <a href='https://github.com/fabioars' target='_blank' rel='noreferrer'>
+          <a
+            href='https://github.com/fabioars'
+            target='_blank'
+            rel='noreferrer'
+          >
             @fabioars
           </a>
           .
@@ -64,8 +68,8 @@ const Changelog: React.FC = () => (
       <h3>2.6.0</h3>
       <ul>
         <li>
-          <strong>Novo layout!</strong> Demos uma melhorada na nossa página atual,
-          visando atualização futuras do projeto.
+          <strong>Novo layout!</strong> Demos uma melhorada na nossa página
+          atual, visando atualização futuras do projeto.
         </li>
         <li>Novas atualizaçãos na Caverna do Saber.</li>
       </ul>
@@ -73,8 +77,8 @@ const Changelog: React.FC = () => (
       <h3>2.5.4</h3>
       <ul>
         <li>
-          Adicionada a Caverna do Saber - indíce de informações da Revista Dragão
-          Brasil.
+          Adicionada a Caverna do Saber - indíce de informações da Revista
+          Dragão Brasil.
         </li>
       </ul>
 
@@ -93,11 +97,13 @@ const Changelog: React.FC = () => (
 
       <h3>2.5.2</h3>
       <ul>
-        <li>Adicionado todos os aprimoramentos das magias arcanas e divinas.</li>
+        <li>
+          Adicionado todos os aprimoramentos das magias arcanas e divinas.
+        </li>
         <ul>
           <li>
-            Muito obrigado a todos da comunidade que ajudaram a transcrever todos
-            os aprimoramentos
+            Muito obrigado a todos da comunidade que ajudaram a transcrever
+            todos os aprimoramentos
           </li>
         </ul>
         <li>Adicionado Origens ao Database</li>
@@ -126,15 +132,15 @@ const Changelog: React.FC = () => (
           poderes e muito mais para consultar os textos.
           <ul>
             <li>
-              Esta sendo lançado nesse momento como uma versão inicial, sujeito a
-              diversas melhorias no futuro.
+              Esta sendo lançado nesse momento como uma versão inicial, sujeito
+              a diversas melhorias no futuro.
             </li>
             <li>
               A funcionalidade de pesquisa por áudio está{' '}
               <strong>disponível apenas no navegador Chrome</strong> e
               provavelmente só irá funcionar com palavras regulares da língua
-              portuguesa (não espere que vá identificar &quot;Aharadak&quot;, por
-              exemplo).
+              portuguesa (não espere que vá identificar &quot;Aharadak&quot;,
+              por exemplo).
             </li>
             <li>
               As <strong>origens</strong> e <strong>magias</strong> ainda não
@@ -149,8 +155,9 @@ const Changelog: React.FC = () => (
         </li>
         <li>
           Dei uma <strong>melhorada básica</strong> no site todo para celulares.
-          Ainda está longe do ideal e utilizar um computador é a melhor forma, mas
-          agora dá para pelo menos navegar direitinho e vizualizar as coisas.
+          Ainda está longe do ideal e utilizar um computador é a melhor forma,
+          mas agora dá para pelo menos navegar direitinho e vizualizar as
+          coisas.
         </li>
       </ul>
 
@@ -178,8 +185,8 @@ const Changelog: React.FC = () => (
       <h3>2.4.0</h3>
       <ul>
         <li>
-          Adicionado um gerador de recompensas. Agora você pode gerar recompensas
-          para os combates da sua mesa com um único clique.
+          Adicionado um gerador de recompensas. Agora você pode gerar
+          recompensas para os combates da sua mesa com um único clique.
         </li>
       </ul>
 
@@ -198,16 +205,19 @@ const Changelog: React.FC = () => (
       <h3>2.3.0</h3>
       <ul>
         <li>
-          Agora é possível gerar fichas de <strong>qualquer nível</strong>. Basta
-          escrever o número e selecionar ele.
+          Agora é possível gerar fichas de <strong>qualquer nível</strong>.
+          Basta escrever o número e selecionar ele.
         </li>
         <ul>
           <li>
-            É possível que a geração de fichas de níveis MUITO ALTOS cause bugs. O
-            projeto não dará suporte para bugs na geração de níveis acima de 20.
+            É possível que a geração de fichas de níveis MUITO ALTOS cause bugs.
+            O projeto não dará suporte para bugs na geração de níveis acima de
+            20.
           </li>
         </ul>
-        <li>Todas as perícias agora estão disponíveis com os valores somados.</li>
+        <li>
+          Todas as perícias agora estão disponíveis com os valores somados.
+        </li>
         <ul>
           <li>
             Por causa dessa mudança, o passo-a-passo foi movido para a parte de
@@ -215,8 +225,8 @@ const Changelog: React.FC = () => (
           </li>
           <li>
             A grande maioria dos poderes e habilidades que aumentam perícias já
-            estarão somando automaticamente, na coluna <strong>Outros</strong>. Se
-            você encontrar algum poder que não está fazendo isso, nos avise.
+            estarão somando automaticamente, na coluna <strong>Outros</strong>.
+            Se você encontrar algum poder que não está fazendo isso, nos avise.
           </li>
         </ul>
         <li>
@@ -230,10 +240,10 @@ const Changelog: React.FC = () => (
           </li>
         </ul>
         <li>
-          Adicionado uma opção de <strong>Ficha Simplificada.</strong> Em resumo,
-          ela fica igual as fichas de NPCs padrões do jogo - mas com todas as
-          informações de poderes, para você poder chegar o que ainda falta ser
-          calculado automaticamente.
+          Adicionado uma opção de <strong>Ficha Simplificada.</strong> Em
+          resumo, ela fica igual as fichas de NPCs padrões do jogo - mas com
+          todas as informações de poderes, para você poder chegar o que ainda
+          falta ser calculado automaticamente.
         </li>
         <ul>
           <li>
@@ -259,8 +269,8 @@ const Changelog: React.FC = () => (
         <ul>
           <li>
             Observe que você{' '}
-            <strong>não pode selecionar uma origem para a raça Golem</strong>. Por
-            via de regra, essa raça não possui origem.
+            <strong>não pode selecionar uma origem para a raça Golem</strong>.
+            Por via de regra, essa raça não possui origem.
           </li>
           <li>
             As divindades serão filtradas de acordo com a classe selecionada.
@@ -334,15 +344,15 @@ const Changelog: React.FC = () => (
         <li>Agora é possível gerar fichas em qualquer nível.</li>
         <ul>
           <li>
-            Nessa versão, apenas magias de até 3º círculo estão sendo selecionadas
-            (mesmo que você gere uma ficha com nível alto).
+            Nessa versão, apenas magias de até 3º círculo estão sendo
+            selecionadas (mesmo que você gere uma ficha com nível alto).
           </li>
           <li>Todos os poderes de todas as classes estão adicionados.</li>
           <li>
-            Alguns poderes ainda não estão sendo aplicados ao subir de nível (como
-            por exemplo o poder <strong>Aumento de Atributo</strong> das classes.
-            Verifique sua ficha com calma para validar o que ainda precisa ser
-            feito.
+            Alguns poderes ainda não estão sendo aplicados ao subir de nível
+            (como por exemplo o poder <strong>Aumento de Atributo</strong> das
+            classes. Verifique sua ficha com calma para validar o que ainda
+            precisa ser feito.
           </li>
         </ul>
         <li>
@@ -372,16 +382,16 @@ const Changelog: React.FC = () => (
       <h3>1.1.1</h3>
       <ul>
         <li>
-          Estavam sendo selecionadas todas as habilidades, independente de nível,
-          no nível 1. Corrigimos esse problema.
+          Estavam sendo selecionadas todas as habilidades, independente de
+          nível, no nível 1. Corrigimos esse problema.
         </li>
       </ul>
 
       <h3>1.1.0</h3>
       <ul>
         <li>
-          Filtro por Role: agora conseguimos criar personagens com classes apenas
-          vinculadas à role.
+          Filtro por Role: agora conseguimos criar personagens com classes
+          apenas vinculadas à role.
           <ul>
             <li>Tank</li>
             <li>Off Tank</li>
@@ -414,8 +424,8 @@ const Changelog: React.FC = () => (
       <h3>1.0.3</h3>
       <ul>
         <li>
-          Corrigimos os poderes de Lena, que estavam definidos como os poderes de
-          Megalokk (obrigado{' '}
+          Corrigimos os poderes de Lena, que estavam definidos como os poderes
+          de Megalokk (obrigado{' '}
           <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/277'>
             @vnmontanhavn
           </a>
@@ -426,8 +436,8 @@ const Changelog: React.FC = () => (
       <h3>1.0.2</h3>
       <ul>
         <li>
-          Modificadores do atributo base não estavam sendo aplicados na PM inicial
-          na ficha. Isso foi corrigido (obrigado{' '}
+          Modificadores do atributo base não estavam sendo aplicados na PM
+          inicial na ficha. Isso foi corrigido (obrigado{' '}
           <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/224'>
             @malkavfelipe
           </a>
@@ -440,9 +450,9 @@ const Changelog: React.FC = () => (
           </ul>
         </li>
         <li>
-          Corrigimos um problema que estava possibilitando que devotos de Thyatis
-          recebessem Dom da Imortalidade ou Dom da Resurreição sem poderem. Existe
-          uma restrição de classe para esses dois poderes:
+          Corrigimos um problema que estava possibilitando que devotos de
+          Thyatis recebessem Dom da Imortalidade ou Dom da Resurreição sem
+          poderem. Existe uma restrição de classe para esses dois poderes:
           <ul>
             <li>Dom da Imortalidade só pode ser utilizado por Paladinos.</li>
             <li>Dom da Ressureição só pode ser utilizado por Clérigos.</li>
@@ -463,8 +473,8 @@ const Changelog: React.FC = () => (
           passo-a-passo (até para melhor refletir o livro).
         </li>
         <li>
-          Na mobile, algumas magias não estavam com o custo de PM aparecendo (é o
-          valor entre paranteses antes do nome da magia). Isso foi corrigido.
+          Na mobile, algumas magias não estavam com o custo de PM aparecendo (é
+          o valor entre paranteses antes do nome da magia). Isso foi corrigido.
         </li>
         <li>
           As magias <strong>Trasmissão da Loucura</strong> e{' '}
@@ -483,23 +493,23 @@ const Changelog: React.FC = () => (
           )
         </li>
         <li>
-          Todos os personagens estavam sendo sempre devotos. Essa não é a ideia do
-          Fichas de Nimb, portanto corrigimos o problema. Existe uma chance do
-          personagem ser devoto, e isso é baseado na raça e na classe, como
+          Todos os personagens estavam sendo sempre devotos. Essa não é a ideia
+          do Fichas de Nimb, portanto corrigimos o problema. Existe uma chance
+          do personagem ser devoto, e isso é baseado na raça e na classe, como
           indicamos no changelog da primeira versão.
         </li>
         <li>
           O Minotauro estava com textos de Golem no passo-a-passo. Apesar disso,
-          as habilidades estavam sendo selecionadas corretamente e os efeitos bem
-          aplicados. A informação foi corrigida no passo-a-passo (obrigado{' '}
+          as habilidades estavam sendo selecionadas corretamente e os efeitos
+          bem aplicados. A informação foi corrigida no passo-a-passo (obrigado{' '}
           <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues/214'>
             @dcatein
           </a>
           ).
         </li>
         <li>
-          As habilidades de Trog que modificavam a ficha não estavam aparecendo no
-          passo-a-passo, e adicionamos lá agora (obrigado{' '}
+          As habilidades de Trog que modificavam a ficha não estavam aparecendo
+          no passo-a-passo, e adicionamos lá agora (obrigado{' '}
           <a href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues/214#issuecomment-801424801'>
             @dcatein
           </a>
@@ -516,8 +526,8 @@ const Changelog: React.FC = () => (
           corretamente.
         </li>
         <li>
-          Habilidades de raça e classe que garantam modificações de atributo e/ou
-          novas perícias já são automaticamente consideradas.
+          Habilidades de raça e classe que garantam modificações de atributo
+          e/ou novas perícias já são automaticamente consideradas.
         </li>
         <li>
           Geração das magias inicias para Arcanista, Druida, Clérigo e Bardo.
@@ -532,8 +542,8 @@ const Changelog: React.FC = () => (
           gerar.
         </li>
         <li>
-          Gerando aleatoriamente se um personagem é devoto ou não. Caso ele seja,
-          é escolhido aleatoriamente o Deus e os poderes concedidos.
+          Gerando aleatoriamente se um personagem é devoto ou não. Caso ele
+          seja, é escolhido aleatoriamente o Deus e os poderes concedidos.
         </li>
         <li>
           Gerando origem aleatória. Os poderes de origem são escolhidos
@@ -542,15 +552,15 @@ const Changelog: React.FC = () => (
         </li>
         <li>
           Equipamento inicial, com todo os itens oriundos da origem, dinheiro
-          inicial, e as armas aleatórias com base nas proficiências do personagem
-          gerado.
+          inicial, e as armas aleatórias com base nas proficiências do
+          personagem gerado.
         </li>
       </ul>
 
       <p>
-        Leve sempre em consideração que esse é um projeto sem fins lucrativos e de
-        código aberto, portanto alterações nele são feitas por voluntários que
-        trabalham em seu tempo livre.
+        Leve sempre em consideração que esse é um projeto sem fins lucrativos e
+        de código aberto, portanto alterações nele são feitas por voluntários
+        que trabalham em seu tempo livre.
       </p>
     </div>
   </Container>
