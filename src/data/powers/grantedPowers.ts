@@ -135,14 +135,14 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           weapon.dano = `${weapon.dano} + 2`;
           if (weapon.critico) {
             switch (weapon.critico) {
-              case '2x':
-                weapon.critico = '3x';
+              case 'x2':
+                weapon.critico = 'x3';
                 break;
-              case '3x':
-                weapon.critico = '4x';
+              case 'x3':
+                weapon.critico = 'x4';
                 break;
-              case '4x':
-                weapon.critico = '5x';
+              case 'x4':
+                weapon.critico = 'x5';
                 break;
               default:
                 weapon.critico = `${weapon.critico} + 1`;

@@ -4,7 +4,6 @@ import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
-import { Armas } from '../equipamentos';
 
 const INVENTOR: ClassDescription = {
   name: 'Inventor',

@@ -63,7 +63,7 @@ export const Armas: Record<string, Equipment> = {
   FOICE: {
     nome: 'Foice',
     dano: '1d6',
-    critico: '3x',
+    critico: 'x3',
     spaces: 1,
     tipo: 'Corte',
     alcance: '-',
@@ -81,7 +81,7 @@ export const Armas: Record<string, Equipment> = {
   CLAVA: {
     nome: 'Clava',
     dano: '1d6',
-    critico: '2x',
+    critico: 'x2',
     spaces: 1,
     tipo: 'Impac.',
     alcance: '-',
@@ -90,7 +90,7 @@ export const Armas: Record<string, Equipment> = {
   LANCA: {
     nome: 'Lança',
     dano: '1d6',
-    critico: '2x',
+    critico: 'x2',
     spaces: 1,
     tipo: 'Perf.',
     alcance: 'Curto',
@@ -99,7 +99,7 @@ export const Armas: Record<string, Equipment> = {
   MACA: {
     nome: 'Maça',
     dano: '1d8',
-    critico: '2x',
+    critico: 'x2',
     spaces: 1,
     tipo: 'Impac.',
     alcance: '-',
@@ -108,7 +108,7 @@ export const Armas: Record<string, Equipment> = {
   BORDAO: {
     nome: 'Bordão',
     dano: '1d6/1d6',
-    critico: '2x',
+    critico: 'x2',
     spaces: 2,
     tipo: 'Impac.',
     alcance: '-',
@@ -117,7 +117,7 @@ export const Armas: Record<string, Equipment> = {
   PIQUE: {
     nome: 'Pique',
     dano: '1d8',
-    critico: '2x',
+    critico: 'x2',
     spaces: 2,
     tipo: 'Perf.',
     alcance: '-',
@@ -126,7 +126,7 @@ export const Armas: Record<string, Equipment> = {
   TACAPE: {
     nome: 'Tacape',
     dano: '1d10',
-    critico: '2x',
+    critico: 'x2',
     spaces: 2,
     tipo: 'Impacto',
     alcance: '-',
@@ -135,7 +135,7 @@ export const Armas: Record<string, Equipment> = {
   AZAGAIA: {
     nome: 'Azagaia',
     dano: '1d6',
-    critico: '2x',
+    critico: 'x2',
     spaces: 1,
     tipo: 'Perf.',
     alcance: 'Médio',
@@ -153,7 +153,7 @@ export const Armas: Record<string, Equipment> = {
   FUNDA: {
     nome: 'Funda',
     dano: '1d4',
-    critico: '2x',
+    critico: 'x2',
     spaces: 1,
     tipo: 'Impac.',
     alcance: 'Médio',
@@ -162,7 +162,7 @@ export const Armas: Record<string, Equipment> = {
   ARCOCURTO: {
     nome: 'Arco Curto',
     dano: '1d6',
-    critico: '3x',
+    critico: 'x3',
     spaces: 2,
     tipo: 'Perf.',
     alcance: 'Médio',
@@ -171,7 +171,7 @@ export const Armas: Record<string, Equipment> = {
   MACHADINHA: {
     nome: 'Machadinha',
     dano: '1d6',
-    critico: '3x',
+    critico: 'x3',
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
