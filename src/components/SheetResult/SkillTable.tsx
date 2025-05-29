@@ -8,14 +8,16 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { Box, useTheme } from '@mui/material';
 import styled from '@emotion/styled';
+import CharacterSheet from '@/interfaces/CharacterSheet';
 import { CompleteSkill, SkillsAttrs } from '../../interfaces/Skills';
 import BookTitle from './common/BookTitle';
 
 interface IProps {
+  sheet: CharacterSheet;
   skills?: CompleteSkill[];
 }
 
-const SkillTable: React.FC<IProps> = ({ skills }) => {
+const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   const theme = useTheme();
 
   const DefaultTbCell = styled(TableCell)`
@@ -75,9 +77,13 @@ const SkillTable: React.FC<IProps> = ({ skills }) => {
           </TableHead>
           <TableBody sx={{ border: 'none' }}>
             {skills?.map((skill) => {
+              const attrValue = skill.modAttr
+                ? sheet.atributos[skill.modAttr].mod
+                : 0;
+
               const skillTotal =
                 (skill.halfLevel ?? 0) +
-                (skill.modAttr ?? 0) +
+                (attrValue ?? 0) +
                 (skill.others ?? 0) +
                 (skill.training ?? 0);
 
