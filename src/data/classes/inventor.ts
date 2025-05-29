@@ -132,6 +132,12 @@ const INVENTOR: ClassDescription = {
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [[]],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Autômato',

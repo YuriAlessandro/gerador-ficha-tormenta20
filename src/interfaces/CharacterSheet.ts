@@ -66,6 +66,9 @@ export type SheetActionStep =
       sense: string; // string representing the sense to add
     }
   | {
+      type: 'increaseAttribute';
+    }
+  | {
       type: 'special';
       specialAction:
         | 'humanoVersatil'
@@ -102,6 +105,11 @@ export type SheetActionReceipt =
   | {
       type: 'EquipmentAdded';
       equipment: Partial<BagEquipments>;
+    }
+  | {
+      type: 'AttributeIncreasedByAumentoDeAtributo';
+      attribute: Atributo;
+      plateau: number; // Plateau number for the increase
     };
 
 export type SheetActionHistoryEntry = {
@@ -136,6 +144,11 @@ export type StatModifierTarget =
       type: 'PickSkill';
       skills: Skill[];
       pick: number; // Number of skills to pick
+    }
+  | {
+      type: 'ModifySkillAttribute';
+      skill: Skill;
+      attribute: Atributo;
     };
 
 export type StatModifier =

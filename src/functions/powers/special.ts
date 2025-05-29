@@ -13,13 +13,16 @@ import { applyPower } from '../general';
 
 export function applyHumanoVersatil(sheet: CharacterSheet): SubStep[] {
   const substeps: SubStep[] = [];
-  const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+  const randomSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
   sheet.skills.push(randomSkill);
 
   const shouldGetSkill = Math.random() > 0.5;
 
   if (shouldGetSkill) {
-    const randomSecondSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+    const randomSecondSkill = getNotRepeatedRandom(
+      sheet.skills,
+      Object.values(Skill)
+    );
     sheet.skills.push(randomSecondSkill);
     substeps.push({
       name: 'Versátil',
@@ -29,7 +32,6 @@ export function applyHumanoVersatil(sheet: CharacterSheet): SubStep[] {
     const allowedPowers = getPowersAllowedByRequirements(sheet);
     const randomPower = getNotRepeatedRandom(
       sheet.generalPowers,
-      'power',
       allowedPowers
     );
     sheet.generalPowers.push(randomPower);
@@ -62,7 +64,6 @@ export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
     const allowedPowers = Object.values(tormentaPowers);
     const randomPower = getNotRepeatedRandom(
       sheet.generalPowers,
-      'power',
       allowedPowers
     );
     sheet.generalPowers.push(randomPower);
@@ -81,7 +82,10 @@ export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
     const shouldGetSkill = Math.random() > 0.5;
 
     if (shouldGetSkill) {
-      const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+      const randomSkill = getNotRepeatedRandom(
+        sheet.skills,
+        Object.values(Skill)
+      );
       sheet.skills.push(randomSkill);
       substeps.push({
         name: 'Memória Póstuma',
@@ -91,7 +95,6 @@ export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
       const allowedPowers = getPowersAllowedByRequirements(sheet);
       const randomPower = getNotRepeatedRandom(
         sheet.generalPowers,
-        'power',
         allowedPowers
       );
       sheet.generalPowers.push(randomPower);

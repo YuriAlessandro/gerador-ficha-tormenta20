@@ -109,7 +109,11 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const periciasDiv = (
-    <SkillTable skills={periciasSorted} isDarkTheme={isDarkMode} />
+    <SkillTable
+      sheet={sheet}
+      skills={periciasSorted}
+      isDarkTheme={isDarkMode}
+    />
   );
 
   const habilidadesRacaDiv = raca.abilities.map((hab) => (
@@ -151,15 +155,21 @@ const Result: React.FC<ResultProps> = (props) => {
   const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
   const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
 
+  const fightAttrBonus = fightSkill?.modAttr
+    ? sheet.atributos[fightSkill.modAttr].mod
+    : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
-    (fightSkill?.modAttr ?? 0) +
+    fightAttrBonus +
     (fightSkill?.others ?? 0) +
     (fightSkill?.training ?? 0);
 
+  const rangeAttrBonus = rangeSkill?.modAttr
+    ? sheet.atributos[rangeSkill.modAttr].mod
+    : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
-    (rangeSkill?.modAttr ?? 0) +
+    rangeAttrBonus +
     (rangeSkill?.others ?? 0) +
     (rangeSkill?.training ?? 0);
 
@@ -255,7 +265,9 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={getKey(`${attr.name}-${attr.value}`)}>{attr.value}</li>
+              <li key={getKey(`${attr.name}-${attr.value}`)}>
+                {attr.name} {attr.value}
+              </li>
             ))}
           </ul>
         </li>

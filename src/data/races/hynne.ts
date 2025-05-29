@@ -59,6 +59,21 @@ const HYNNE: Race = {
             value: 2,
           },
         },
+        {
+          source: {
+            type: 'power',
+            name: 'Pequeno e Rechonchudo',
+          },
+          target: {
+            type: 'ModifySkillAttribute',
+            skill: Skill.ATLETISMO,
+            attribute: Atributo.DESTREZA,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 0,
+          },
+        },
       ],
     },
     {

@@ -8,13 +8,15 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material';
 import { CompleteSkill } from '../interfaces/Skills';
+import CharacterSheet from '../interfaces/CharacterSheet';
 
 interface IProps {
+  sheet: CharacterSheet;
   skills?: CompleteSkill[];
   isDarkTheme: boolean;
 }
 
-const SkillTable: React.FC<IProps> = ({ skills, isDarkTheme }) => {
+const SkillTable: React.FC<IProps> = ({ sheet, skills, isDarkTheme }) => {
   const StyledTableCell = styled(TableCell)(() => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: 'rgb(209, 50, 53)',
@@ -54,9 +56,13 @@ const SkillTable: React.FC<IProps> = ({ skills, isDarkTheme }) => {
         </TableHead>
         <TableBody>
           {skills?.map((skill) => {
+            const attributeValue = skill.modAttr
+              ? sheet.atributos[skill.modAttr].mod
+              : 0;
+
             const skillTotal =
               (skill.halfLevel ?? 0) +
-              (skill.modAttr ?? 0) +
+              attributeValue +
               (skill.others ?? 0) +
               (skill.training ?? 0);
             return (
@@ -74,10 +80,7 @@ const SkillTable: React.FC<IProps> = ({ skills, isDarkTheme }) => {
                   )}
                 </StyledTableCell>
                 <StyledTableCell id='onlyShowPrint'>
-                  {(skill.halfLevel ?? 0) +
-                    (skill.modAttr ?? 0) +
-                    (skill.others ?? 0) +
-                    (skill.training ?? 0)}
+                  {skillTotal}
                 </StyledTableCell>
                 <StyledTableCell id='notShowPrint'>
                   {skill.halfLevel ?? 0}

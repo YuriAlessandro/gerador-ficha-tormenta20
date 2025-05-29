@@ -102,6 +102,10 @@ import {
   applyOsteonMemoriaPostuma,
 } from './powers/special';
 import { addOtherBonusToSkill } from './skills/general';
+import {
+  getAttributeIncreasesInSamePlateau,
+  getCurrentPlateau,
+} from './powers/general';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -931,6 +935,40 @@ export const applyPower = (
             },
           ],
         });
+      } else if (sheetAction.action.type === 'increaseAttribute') {
+        const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+        const availableAttributes = Object.values(Atributo).filter(
+          (attr) => !usedAttributes.includes(attr)
+        );
+
+        // Pick first attributes higher on the priority list
+        const [firstPriorityAttribute] = sheet.classe.attrPriority.filter(
+          (attr) => availableAttributes.includes(attr)
+        );
+
+        let targetAttribute: Atributo;
+        if (firstPriorityAttribute) {
+          targetAttribute = firstPriorityAttribute;
+        } else {
+          // If no priority attributes available, pick any
+          targetAttribute = getRandomItemFromArray(availableAttributes);
+        }
+
+        sheet.atributos[targetAttribute].mod += 1;
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'AttributeIncreasedByAumentoDeAtributo',
+              attribute: targetAttribute,
+              plateau: getCurrentPlateau(sheet),
+            },
+          ],
+        });
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Aumenta o atributo ${targetAttribute} por +1`,
+        });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];
         if (sheetAction.action.specialAction === 'humanoVersatil') {
@@ -1306,6 +1344,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
   const skillSubSteps: SubStep[] = [];
   const displacementSubSteps: SubStep[] = [];
   const armorPenaltySubSteps: SubStep[] = [];
+  const modifySkillAttributeSubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
     const bonusValue = calculateBonusValue(sheet, bonus.modifier);
@@ -1351,14 +1390,14 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
       displacementSubSteps.push({
         name: subStepName,
-        value: `${bonusValue}`,
+        value: `${bonusValue}m`,
       });
     } else if (bonus.target.type === 'MaxSpaces') {
       sheet.maxSpaces += bonusValue;
 
       displacementSubSteps.push({
         name: subStepName,
-        value: `${bonusValue}`,
+        value: `${bonusValue} espaços de carga`,
       });
     } else if (bonus.target.type === 'ArmorPenalty') {
       sheet.extraArmorPenalty += bonusValue;
@@ -1381,6 +1420,26 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
         addOtherBonusToSkill(sheet, skill, bonusValue);
       });
+    } else if (bonus.target.type === 'ModifySkillAttribute') {
+      const { attribute } = bonus.target;
+      const skillName = bonus.target.skill;
+
+      const newCompleteSkills = sheet.completeSkills?.map((skill) => {
+        if (skill.name === skillName) {
+          return {
+            ...skill,
+            modAttr: attribute,
+          };
+        }
+        return skill;
+      });
+
+      _.merge(sheet, { completeSkills: newCompleteSkills });
+
+      modifySkillAttributeSubSteps.push({
+        name: subStepName,
+        value: `Modifica atributo de ${skillName} para ${attribute}`,
+      });
     } else {
       console.warn('bonus não implementado', bonus);
     }
@@ -1388,41 +1447,57 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
   if (pvSubSteps.length) {
     sheet.steps.push({
-      label: 'Atributos Extras',
-      type: 'Bonus de PV',
+      label: 'Bonus de PV',
+      type: 'Atributos Extras',
       value: pvSubSteps,
     });
   }
 
   if (pmSubSteps.length) {
     sheet.steps.push({
-      label: 'Atributos Extras',
-      type: 'Bonus de PM',
+      label: 'Bonus de PM',
+      type: 'Atributos Extras',
       value: pmSubSteps,
     });
   }
 
   if (defSubSteps.length) {
     sheet.steps.push({
-      label: 'Atributos Extras',
-      type: 'Bonus de Defesa',
+      label: 'Bonus de Defesa',
+      type: 'Atributos Extras',
       value: defSubSteps,
     });
   }
 
   if (skillSubSteps.length) {
     sheet.steps.push({
-      label: 'Atributos Extras',
-      type: 'Bonus de Perícias',
+      label: 'Bonus de Perícias',
+      type: 'Atributos Extras',
       value: skillSubSteps,
     });
   }
 
   if (displacementSubSteps.length) {
     sheet.steps.push({
-      label: 'Atributos Extras',
-      type: 'Bonus de Deslocamento',
+      label: 'Bonus de Deslocamento',
+      type: 'Atributos Extras',
       value: displacementSubSteps,
+    });
+  }
+
+  if (armorPenaltySubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Penalidade de Armadura',
+      type: 'Atributos Extras',
+      value: armorPenaltySubSteps,
+    });
+  }
+
+  if (modifySkillAttributeSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Modificação de Atributo de Perícia',
+      type: 'Modificação de Atributo de Perícia',
+      value: modifySkillAttributeSubSteps,
     });
   }
 
@@ -1622,7 +1697,7 @@ export default function generateRandomSheet(
         name: skill,
         halfLevel: Math.floor(charSheet.nivel / 2),
         training: Object.values(charSheet.skills).includes(skill) ? 2 : 0,
-        modAttr: attr.mod,
+        modAttr: attr.name,
         others: armorPenalty > 0 ? armorPenalty * -1 : 0,
       };
     })
