@@ -1,4 +1,4 @@
-import { FormControlLabel } from '@mui/material';
+import { Container, FormControlLabel, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
@@ -179,7 +179,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const sheetComponent =
     randomSheet &&
     (simpleSheet ? (
-      <SimpleResult isDarkMode={isDarkMode} sheet={randomSheet} />
+      <SimpleResult sheet={randomSheet} />
     ) : (
       <Result sheet={randomSheet} isDarkMode={isDarkMode} />
     ));
@@ -200,7 +200,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   return (
     <div id='main-screen'>
-      <div className='filterArea'>
+      <Container className='filterArea' maxWidth='xl'>
         <div className='filtersRow'>
           <Select
             className='filterSelect'
@@ -314,7 +314,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           />
         </div>
 
-        <div className='buttonsRow'>
+        <Stack spacing={2} direction='row' mt={2} mb={2}>
           <Button variant='contained' onClick={onClickGenerate}>
             Gerar Ficha
           </Button>
@@ -322,21 +322,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           <Button variant='contained' onClick={onClickShowHistoric}>
             Ver histórico
           </Button>
-        </div>
-      </div>
-      {randomSheet && (
-        <div className='exportButtonsContainer'>
-          <div className='export-to-foundry'>
-            <a
-              href={encodedJSON}
-              className='exportBtn'
-              download={`${randomSheet.nome}.json`}
-            >
-              Exportar para o Foundry
-            </a>
+        </Stack>
+
+        {randomSheet && (
+          <div className='exportButtonsContainer'>
+            <div className='export-to-foundry'>
+              <a
+                href={encodedJSON}
+                className='exportBtn'
+                download={`${randomSheet.nome}.json`}
+              >
+                Exportar para o Foundry
+              </a>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Container>
 
       {randomSheet && !showHistoric && sheetComponent}
 
