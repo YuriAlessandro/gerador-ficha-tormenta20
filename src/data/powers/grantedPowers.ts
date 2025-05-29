@@ -1,7 +1,3 @@
-import _, { cloneDeep, merge } from 'lodash';
-
-import { getRandomItemFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -9,15 +5,7 @@ import {
   RequirementType,
 } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
-import { Atributo } from '../atributos';
-import {
-  addOrCheapenSpell,
-  spellsCircle1,
-  spellsCircle2,
-} from '../magias/generalSpells';
-import { getNotRepeatedRandomSkill } from '../pericias';
-import EQUIPAMENTOS, { Armas } from '../equipamentos';
-import PROFICIENCIAS from '../proficiencias';
+import { spellsCircle1, spellsCircle2 } from '../magias/generalSpells';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AFINIDADE_COM_A_TORMENTA: {
@@ -57,63 +45,63 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe +1 em testes de ataque e na margem de ameaça com armas nas quais é proficiente.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Valkaria' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
+    // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+    //   const sheetClone = _.cloneDeep(sheet);
 
-      const simpleWeapons = EQUIPAMENTOS.armasSimples.map((w) => w.nome);
-      const martialWeapons = EQUIPAMENTOS.armasMarciais.map((w) => w.nome);
-      const exoticWeapons = EQUIPAMENTOS.armasExoticas.map((w) => w.nome);
-      const fireWeapons = EQUIPAMENTOS.armasDeFogo.map((w) => w.nome);
+    //   const simpleWeapons = EQUIPAMENTOS.armasSimples.map((w) => w.nome);
+    //   const martialWeapons = EQUIPAMENTOS.armasMarciais.map((w) => w.nome);
+    //   const exoticWeapons = EQUIPAMENTOS.armasExoticas.map((w) => w.nome);
+    //   const fireWeapons = EQUIPAMENTOS.armasDeFogo.map((w) => w.nome);
 
-      const { proficiencias } = sheetClone.classe;
+    //   const { proficiencias } = sheetClone.classe;
 
-      sheetClone.bag.equipments.Arma.forEach((weapon) => {
-        if (simpleWeapons.includes(weapon.nome)) {
-          // Arma simples recebe +1
-          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+    //   sheetClone.bag.equipments.Arma.forEach((weapon) => {
+    //     if (simpleWeapons.includes(weapon.nome)) {
+    //       // Arma simples recebe +1
+    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
 
-          substeps.push({
-            name: 'Armas da Ambição',
-            value: `+1 de ataque em ${weapon.nome} (armas simples)`,
-          });
-        } else if (
-          martialWeapons.includes(weapon.nome) &&
-          proficiencias.includes(PROFICIENCIAS.MARCIAIS)
-        ) {
-          // Arma marcial recebe +1
-          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+    //       substeps.push({
+    //         name: 'Armas da Ambição',
+    //         value: `+1 de ataque em ${weapon.nome} (armas simples)`,
+    //       });
+    //     } else if (
+    //       martialWeapons.includes(weapon.nome) &&
+    //       proficiencias.includes(PROFICIENCIAS.MARCIAIS)
+    //     ) {
+    //       // Arma marcial recebe +1
+    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
 
-          substeps.push({
-            name: 'Armas da Ambição',
-            value: `+1 de ataque em ${weapon.nome} (armas marciais)`,
-          });
-        } else if (
-          exoticWeapons.includes(weapon.nome) &&
-          proficiencias.includes(PROFICIENCIAS.EXOTICAS)
-        ) {
-          // Arma exótica recebe +1
-          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+    //       substeps.push({
+    //         name: 'Armas da Ambição',
+    //         value: `+1 de ataque em ${weapon.nome} (armas marciais)`,
+    //       });
+    //     } else if (
+    //       exoticWeapons.includes(weapon.nome) &&
+    //       proficiencias.includes(PROFICIENCIAS.EXOTICAS)
+    //     ) {
+    //       // Arma exótica recebe +1
+    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
 
-          substeps.push({
-            name: 'Armas da Ambição',
-            value: `+1 de ataque em ${weapon.nome} (armas exóticas)`,
-          });
-        } else if (
-          fireWeapons.includes(weapon.nome) &&
-          proficiencias.includes(PROFICIENCIAS.FOGO)
-        ) {
-          // Arma de fogo recebe +1
-          weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
+    //       substeps.push({
+    //         name: 'Armas da Ambição',
+    //         value: `+1 de ataque em ${weapon.nome} (armas exóticas)`,
+    //       });
+    //     } else if (
+    //       fireWeapons.includes(weapon.nome) &&
+    //       proficiencias.includes(PROFICIENCIAS.FOGO)
+    //     ) {
+    //       // Arma de fogo recebe +1
+    //       weapon.atkBonus = (weapon.atkBonus ?? 0) + 1;
 
-          substeps.push({
-            name: 'Armas da Ambição',
-            value: `+1 de ataque em ${weapon.nome} (armas de fogo)`,
-          });
-        }
-      });
+    //       substeps.push({
+    //         name: 'Armas da Ambição',
+    //         value: `+1 de ataque em ${weapon.nome} (armas de fogo)`,
+    //       });
+    //     }
+    //   });
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   ARSENAL_DAS_PROFUNDEZAS: {
     name: 'Arsenal das profundezas',
@@ -121,71 +109,93 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe +2 nas rolagens de dano com azagaias, lanças e tridentes e seu multiplicador de crítico com essas armas aumenta em +1.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
+    // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+    //   const sheetClone = _.cloneDeep(sheet);
 
-      const weapons = [
-        Armas.AZAGAIA.nome,
-        Armas.LANCA.nome,
-        Armas.TRIDENTE.nome,
-      ];
+    //   const weapons = [
+    //     Armas.AZAGAIA.nome,
+    //     Armas.LANCA.nome,
+    //     Armas.TRIDENTE.nome,
+    //   ];
 
-      sheetClone.bag.equipments.Arma.forEach((weapon) => {
-        if (weapons.includes(weapon.nome)) {
-          weapon.dano = `${weapon.dano} + 2`;
-          if (weapon.critico) {
-            switch (weapon.critico) {
-              case 'x2':
-                weapon.critico = 'x3';
-                break;
-              case 'x3':
-                weapon.critico = 'x4';
-                break;
-              case 'x4':
-                weapon.critico = 'x5';
-                break;
-              default:
-                weapon.critico = `${weapon.critico} + 1`;
-            }
-          }
+    //   sheetClone.bag.equipments.Arma.forEach((weapon) => {
+    //     if (weapons.includes(weapon.nome)) {
+    //       weapon.dano = `${weapon.dano} + 2`;
+    //       if (weapon.critico) {
+    //         switch (weapon.critico) {
+    //           case '2x':
+    //             weapon.critico = '3x';
+    //             break;
+    //           case '3x':
+    //             weapon.critico = '4x';
+    //             break;
+    //           case '4x':
+    //             weapon.critico = '5x';
+    //             break;
+    //           default:
+    //             weapon.critico = `${weapon.critico} + 1`;
+    //         }
+    //       }
 
-          substeps.push({
-            name: 'Arsenal das profundezas',
-            value: `+2 de dano e +1 no multiplicador de crítico em ${weapon.nome}`,
-          });
-        }
-      });
+    //       substeps.push({
+    //         name: 'Arsenal das profundezas',
+    //         value: `+2 de dano e +1 no multiplicador de crítico em ${weapon.nome}`,
+    //       });
+    //     }
+    //   });
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   ASTUCIA_DA_SERPENTE: {
     name: 'Astúcia da Serpente',
     description: 'Você recebe +2 em Enganação, Furtividade e Intuição.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.ENGANACAO || sk.name === Skill.INTUICAO) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Astúcia da Serpente',
-        value: `Somando +2 em Enganação e Intuição`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Astúcia da Serpente',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ENGANACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Astúcia da Serpente',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FURTIVIDADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Astúcia da Serpente',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INTUICAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   ATAQUE_PIEDOSO: {
     name: 'Ataque Piedoso',
@@ -223,24 +233,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +1 PM a cada nível ímpar.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Wynna' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      subSteps.push({
-        name: 'Bênção do Mana',
-        value: '+1 de mana para cada nível ímpar',
-      });
-
-      sheetClone.pm += sheetClone.nivel % 2 === 1 ? 1 : 0;
-
-      return sheetClone;
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Bênção do Mana' },
+        target: { type: 'PM' },
+        modifier: { type: 'LevelCalc', formula: 'Math.floor(({level} + 1)/2)' },
+      },
+    ],
   },
   CARICIA_SOMBRIA: {
     name: 'Carícia Sombria',
@@ -260,26 +259,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         { type: RequirementType.DEVOTO, name: 'Wynna' },
       ],
     ],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const newSpell = getRandomItemFromArray(Object.values(spellsCircle1));
-
-      subSteps.push({
-        name: 'Centelha Mágica',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Centelha Mágica' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1),
+          pick: 1,
+        },
+      },
+    ],
   },
   COMPREENDER_OS_ERMOS: {
     name: 'Compreender os Ermos',
@@ -287,28 +276,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe +2 em Sobrevivência e pode usar Sabedoria para Adestramento (em vez de Carisma).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.SOBREVIVENCIA) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Compreender os Ermos',
-        value: `Somando +2 em Sobrevivência`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Compreender os Ermos' },
+        target: { type: 'Skill', name: Skill.SOBREVIVENCIA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   CONHECIMENTO_ENCICLOPEDICO: {
     name: 'Conhecimento Enciclopédico',
@@ -316,38 +290,23 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você se torna treinado em duas perícias baseadas em Inteligência a sua escolha.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const allowedSkills = [
-        Skill.CONHECIMENTO,
-        Skill.GUERRA,
-        Skill.INVESTIGACAO,
-        Skill.MISTICISMO,
-        Skill.NOBREZA,
-        Skill.OFICIO,
-      ];
-
-      const newSkill = getNotRepeatedRandomSkill(
-        sheetClone.skills,
-        allowedSkills
-      );
-
-      subSteps.push({
-        name: 'Conhecimento Enciclopédico',
-        value: `Treinamento em ${newSkill}`,
-      });
-
-      sheetClone.skills.push(newSkill);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Conhecimento Enciclopédico' },
+        action: {
+          type: 'learnSkill',
+          availableSkills: [
+            Skill.CONHECIMENTO,
+            Skill.GUERRA,
+            Skill.INVESTIGACAO,
+            Skill.MISTICISMO,
+            Skill.NOBREZA,
+            Skill.OFICIO,
+          ],
+          pick: 2,
+        },
+      },
+    ],
   },
   CONJURAR_ARMA: {
     name: 'Conjurar Arma',
@@ -388,28 +347,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você aprende e pode lançar Controlar Plantas. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const { spells, stepValue } = addOrCheapenSpell(
-        sheet,
-        spellsCircle1.controlarPlantas,
-        Atributo.SABEDORIA
-      );
-
-      if (stepValue) {
-        subSteps.push({
-          name: 'Dedo Verde',
-          value: stepValue,
-        });
-      }
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        spells,
-      });
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Dedo Verde' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.controlarPlantas],
+          pick: 1,
+        },
+      },
+    ],
   },
   DESCANSO_NATURAL: {
     name: 'Descanso Natural',
@@ -424,25 +371,25 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você soma sua Sabedoria em seus PV em vez de Constituição, e se torna imune às condições alquebrado, esmorecido e frustrado.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
+    // action(
+    //   sheet: CharacterSheet,
+    //   subSteps: { name: string; value: string }[]
+    // ): CharacterSheet {
+    //   const sheetClone = cloneDeep(sheet);
 
-      subSteps.push({
-        name: 'Dom da Esperança',
-        value: `Mudou PV de Constituição para Sabedoria: ${
-          sheetClone.classe.pv
-        } + ${sheetClone.atributos.Sabedoria.mod} = ${
-          sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod
-        }`,
-      });
+    //   subSteps.push({
+    //     name: 'Dom da Esperança',
+    //     value: `Mudou PV de Constituição para Sabedoria: ${
+    //       sheetClone.classe.pv
+    //     } + ${sheetClone.atributos.Sabedoria.mod} = ${
+    //       sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod
+    //     }`,
+    //   });
 
-      sheetClone.pv = sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod;
+    //   sheetClone.pv = sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod;
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   DOM_DA_IMORTALIDADE: {
     name: 'Dom da Imortalidade',
@@ -462,23 +409,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode lançar Augúrio. Caso aprenda novamente essa magia, seu custo diminui em –1 PM. Você também pode gastar 2 PM para receber +2 em um teste.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Thyatis' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const newSpell = spellsCircle2.augurio;
-
-      subSteps.push({
-        name: 'Dom da Profecia',
-        value: 'Adicionou magia Augúrio',
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Dom da Profecia' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle2.augurio],
+          pick: 1,
+        },
+      },
+    ],
   },
   DOM_DA_RESSUREICAO: {
     name: 'Dom da Ressurreição',
@@ -504,38 +444,18 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 na Defesa e em Fortitude.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      subSteps.push({
-        name: 'Escamas Dracônicas',
-        value: '+2 na Defesa',
-      });
-
-      sheetClone.defesa += 2;
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.FORTITUDE) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      subSteps.push({
-        name: 'Escamas Dracônicas',
-        value: `Somando +2 em Fortitude`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Escamas Dracônicas' },
+        target: { type: 'Defense' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Escamas Dracônicas' },
+        target: { type: 'Skill', name: Skill.FORTITUDE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   ESCUDO_MAGICO: {
     name: 'Escudo Mágico',
@@ -581,22 +501,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você aprende e pode lançar Criar Ilusão. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const newSpell = spellsCircle1.criarIlusao;
-
-      subSteps.push({
-        name: 'Farsa do Fingidor',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Farsa do Fingidor' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.criarIlusao],
+          pick: 1,
+        },
+      },
+    ],
   },
   FE_GUERREIRA: {
     name: 'Fé Guerreira',
@@ -631,32 +545,23 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 em Enganação, Jogatina e Ladinagem.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Hynnin' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.ENGANACAO ||
-          sk.name === Skill.JOGATINA ||
-          sk.name === Skill.LADINAGEM
-        ) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Golpista Divino',
-        value: `Somando +2 em Enganação e Ladinagem`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Golpista Divino' },
+        target: { type: 'Skill', name: Skill.ENGANACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Golpista Divino' },
+        target: { type: 'Skill', name: Skill.JOGATINA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Golpista Divino' },
+        target: { type: 'Skill', name: Skill.LADINAGEM },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   HABITANTE_DO_DESERTO: {
     name: 'Habitante do Deserto',
@@ -692,86 +597,62 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você aprende e pode lançar Escuridão. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tenebra' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const newSpell = spellsCircle1.escuridao;
-
-      subSteps.push({
-        name: 'Manto da Penumbra',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Manto da Penumbra' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.escuridao],
+          pick: 1,
+        },
+      },
+    ],
   },
   MENTE_ANALITICA: {
     name: 'Mente Analítica',
     description: 'Você recebe +2 em Intuição, Investigação e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.INTUICAO ||
-          sk.name === Skill.INVESTIGACAO ||
-          sk.name === Skill.VONTADE
-        ) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Mente Analítica',
-        value: `Somando +2 em Intuição, Investigação e Vontade`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Mente Analítica' },
+        target: { type: 'Skill', name: Skill.INTUICAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mente Analítica' },
+        target: { type: 'Skill', name: Skill.INVESTIGACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mente Analítica' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   MENTE_VAZIA: {
     name: 'Mente Vazia',
     description: 'Você recebe +2 em Iniciativa, Percepção e Vontade.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.INICIATIVA ||
-          sk.name === Skill.PERCEPCAO ||
-          sk.name === Skill.VONTADE
-        ) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Mente Vazia',
-        value: `Somando +2 em Iniciativa, Percepção e Vontade.`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Mente Vazia' },
+        target: { type: 'Skill', name: Skill.INICIATIVA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mente Vazia' },
+        target: { type: 'Skill', name: Skill.PERCEPCAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Mente Vazia' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   MESTRE_DOS_MARES: {
     name: 'Mestre dos Mares',
@@ -789,22 +670,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       [{ type: RequirementType.DEVOTO, name: 'Megalokk' }],
       [{ type: RequirementType.DEVOTO, name: 'Thwor' }],
     ],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const newSpell = spellsCircle1.amedrontar;
-
-      subSteps.push({
-        name: 'Olhar Amedrontador',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Olhar Amedrontador' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.amedrontar],
+          pick: 1,
+        },
+      },
+    ],
   },
   PALAVRAS_DE_BONDADE: {
     name: 'Palavras de Bondade',
@@ -812,22 +687,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você aprende e pode lançar Enfeitiçar. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const newSpell = spellsCircle1.enfeiticar;
-
-      subSteps.push({
-        name: 'Palavras de Bondade',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Palavras de Bondade' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.enfeiticar],
+          pick: 1,
+        },
+      },
+    ],
   },
   PERCEPCAO_TEMPORAL: {
     name: 'Percepção Temporal',
@@ -920,32 +789,23 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você recebe +2 em Acrobacia, Atuação e Diplomacia.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.ATUACAO ||
-          sk.name === Skill.ACROBACIA ||
-          sk.name === Skill.DIPLOMACIA
-        ) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Talento Artístico',
-        value: `Somando +2 em Acrobacia, Atuação e Diplomacia.`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Talento Artístico' },
+        target: { type: 'Skill', name: Skill.ACROBACIA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Talento Artístico' },
+        target: { type: 'Skill', name: Skill.ATUACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Talento Artístico' },
+        target: { type: 'Skill', name: Skill.DIPLOMACIA },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   TEURGISTA_MISTICO: {
     name: 'Teurgista Místico',
@@ -965,36 +825,36 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você considera a katana uma arma simples e, se for proficiente em armas marciais, recebe +1 na margem de ameaça com ela.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
+    // action(
+    //   sheet: CharacterSheet,
+    //   subSteps: { name: string; value: string }[]
+    // ): CharacterSheet {
+    //   const sheetClone = cloneDeep(sheet);
 
-      subSteps.push({
-        name: 'Tradição de Lin-Wu',
-        value: 'Katana considerada arma simples.',
-      });
+    //   subSteps.push({
+    //     name: 'Tradição de Lin-Wu',
+    //     value: 'Katana considerada arma simples.',
+    //   });
 
-      sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
-        (item) => {
-          if (item.nome === Armas.Katana.nome) {
-            return {
-              ...item,
-              critico: `${item.critico} - 1`,
-            };
-          }
-          return item;
-        }
-      );
+    //   sheetClone.bag.equipments.Arma = sheetClone.bag.equipments.Arma.map(
+    //     (item) => {
+    //       if (item.nome === Armas.Katana.nome) {
+    //         return {
+    //           ...item,
+    //           critico: `${item.critico} - 1`,
+    //         };
+    //       }
+    //       return item;
+    //     }
+    //   );
 
-      subSteps.push({
-        name: 'Tradição de Lin-Wu',
-        value: 'Margem de ameaça da Katana aumentada em 1.',
-      });
+    //   subSteps.push({
+    //     name: 'Tradição de Lin-Wu',
+    //     value: 'Margem de ameaça da Katana aumentada em 1.',
+    //   });
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   TRANSMISSAO_DA_LOUCURA: {
     name: 'Transmissão da Loucura',
@@ -1002,23 +862,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode lançar Sussurros Insanos (CD Car). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Nimb' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const newSpell = spellsCircle2.sussurosInsanos;
-
-      subSteps.push({
-        name: 'Transmissão da Loucura',
-        value: 'Ganhou a magia Sussurros Insanos',
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Transmissão da Loucura' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle2.sussurosInsanos],
+          pick: 1,
+        },
+      },
+    ],
   },
   TROPAS_DUYSHIDAKK: {
     name: 'Tropas Duyshidakk',
@@ -1046,23 +899,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     description: 'Você está sempre sob efeito de Compreensão.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const newSpell = spellsCircle1.compreensao;
-
-      subSteps.push({
-        name: 'Voz da Civilização',
-        value: 'Ganhou Compreensão (sempre ativada).',
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Voz da Civilização (Sempre ativa)' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.compreensao],
+          pick: 1,
+        },
+      },
+    ],
   },
   VOZ_DA_NATUREZA: {
     name: 'Voz da Natureza',
@@ -1070,22 +916,16 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode falar com animais (como o efeito da magia Voz Divina) e aprende e pode lançar Acalmar Animal, mas só contra animais. Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Allihanna' }]],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      const newSpell = spellsCircle1.acalmarAnimal;
-
-      subSteps.push({
-        name: 'Voz da Natureza',
-        value: newSpell.nome,
-      });
-
-      sheetClone.spells.push(newSpell);
-
-      return sheetClone;
-    },
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Voz da Natureza' },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.acalmarAnimal],
+          pick: 1,
+        },
+      },
+    ],
   },
   VOZ_DOS_MONSTROS: {
     name: 'Voz dos Monstros',

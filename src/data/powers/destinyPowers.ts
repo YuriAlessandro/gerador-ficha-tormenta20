@@ -1,13 +1,10 @@
-import _, { cloneDeep, merge } from 'lodash';
-
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
 } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
-import { getNotRepeatedRandomSkill } from '../pericias';
+import { Atributo } from '../atributos';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
   ACROBATICO: {
@@ -49,40 +46,35 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 2 }],
     ],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      subSteps.push({
-        name: 'Atlético',
-        value: 'Deslocamento +3',
-      });
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.ATLETISMO) {
-          value += 2;
-
-          subSteps.push({
-            name: 'Atlético',
-            value: `+2 em Atletismo`,
-          });
-        }
-
-        return { ...sk, others: value };
-      });
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        displacement: sheetClone.displacement + 3,
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Atlético',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ATLETISMO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Atlético',
+        },
+        target: {
+          type: 'Displacement',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
   },
   ATRAENTE: {
     name: 'Atraente',
@@ -113,13 +105,21 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         { type: RequirementType.ATRIBUTO, name: 'Força', value: 1 },
       ],
     ],
-    action(sheet: CharacterSheet): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        maxSpaces: sheetClone.maxSpaces + 5,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Costas Largas',
+        },
+        target: {
+          type: 'MaxSpaces',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 5,
+        },
+      },
+    ],
   },
   FOCO_EM_PERICIA: {
     name: 'Foco em Perícia',
@@ -137,13 +137,21 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
     ],
-    action(sheet: CharacterSheet): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        maxSpaces: sheetClone.maxSpaces + sheetClone.atributos.Inteligência.mod,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Inventário Organizado',
+        },
+        target: {
+          type: 'MaxSpaces',
+        },
+        modifier: {
+          type: 'Attribute',
+          attribute: Atributo.INTELIGENCIA,
+        },
+      },
+    ],
   },
   INVESTIGADOR: {
     name: 'Investigador',
@@ -153,32 +161,36 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     requirements: [
       [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
     ],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const bnsInt = sheetClone.atributos.Inteligência.mod;
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.INVESTIGACAO) {
-          value += 2;
-        }
-
-        if (sk.name === Skill.INTUICAO) value += bnsInt;
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Investigador',
-        value: `+2 em Investigação e +${bnsInt} em Intuição.`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Investigador',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INVESTIGACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Investigador',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INTUICAO,
+        },
+        modifier: {
+          type: 'Attribute',
+          attribute: Atributo.INTELIGENCIA,
+        },
+      },
+    ],
   },
   LOBO_SOLITARIO: {
     name: 'Lobo Solitário',
@@ -233,30 +245,24 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +2 em Percepção, não fica desprevenido contra inimigos que não possa ver e, sempre que erra um ataque devido a camuflagem, pode rolar mais uma vez o dado da chance de falha.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
     ],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.PERCEPCAO) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Sentidos Aguçados',
-        value: `Somando +2 em Percepção`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Sentidos Aguçados',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.PERCEPCAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   SORTUDO: {
     name: 'Sortudo',
@@ -271,7 +277,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Uma vez por rodada, você pode gastar 5 PM para realizar uma ação padrão ou de movimento adicional.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
     ],
   },
   TORCIDA: {
@@ -290,26 +296,19 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     type: GeneralPowerType.DESTINO,
     allowSeveralPicks: true,
     requirements: [],
-    action(
-      sheet: CharacterSheet,
-      subSteps: {
-        name: string;
-        value: string;
-      }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const newSkill = getNotRepeatedRandomSkill(sheetClone.skills);
-
-      subSteps.push({
-        name: 'Treinamento em Perícia',
-        value: newSkill,
-      });
-
-      return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        skills: [...sheetClone.skills, newSkill],
-      });
-    },
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Treinamento em Perícia',
+        },
+        action: {
+          type: 'learnSkill',
+          availableSkills: Object.values(Skill),
+          pick: 1,
+        },
+      },
+    ],
   },
   VENEFICIO: {
     name: 'Venefício',
@@ -326,38 +325,37 @@ export const DestinyPowers: Record<string, GeneralPower> = {
       'Você recebe +1 PM para cada dois níveis de personagem e +2 em Vontade.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 13 }],
+      [{ type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 }],
     ],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      // Dois PMS para cada dois níveis de personagem
-      const newPM = Math.floor(sheetClone.nivel / 2);
-      sheetClone.pmModifier.push({
-        source: 'Vontade de Ferro',
-        type: 'Number',
-        value: newPM,
-      });
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.VONTADE) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Vontade de Ferro',
-        value: `Somando +2 em Vontade`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Vontade de Ferro',
+        },
+        target: {
+          type: 'PM',
+        },
+        modifier: {
+          type: 'LevelCalc',
+          formula: 'Math.floor({level} / 2)',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Vontade de Ferro',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.VONTADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
 };
 

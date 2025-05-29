@@ -1,5 +1,5 @@
 import { Atributo } from '../data/atributos';
-import CharacterSheet from './CharacterSheet';
+import { SheetBonus, SheetAction } from './CharacterSheet';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
@@ -34,20 +34,16 @@ export type ClassAbility = {
   name: string;
   text: string;
   nivel: number;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
 };
 
 export type ClassPower = {
   name: string;
   text: string;
   requirements?: Requirement[][];
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
 };
 

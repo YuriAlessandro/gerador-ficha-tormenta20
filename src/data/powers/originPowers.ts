@@ -1,8 +1,5 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
 import { OriginPower } from '../../interfaces/Poderes';
-import { spellsCircle1 } from '../magias/generalSpells';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
@@ -42,56 +39,26 @@ const originPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +2 em testes de Atuação, e recebe o dobro de tibares em apresentações.',
     type: ORIGIN_POWER_TYPE,
-    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.ATUACAO) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      subSteps.push({
-        name: 'Dom artístico',
-        value: `Somando +2 em Atuação`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Dom artístico' },
+        target: { type: 'Skill', name: Skill.ATUACAO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   ESSE_CHEIRO: {
     name: 'Esse Cheiro...',
     description:
       'Você recebe +2 em Fortitude e passa automaticamente em testes de Ofício (alquimia) para identificar itens alquímicos em alcance curto.',
     type: ORIGIN_POWER_TYPE,
-    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.FORTITUDE) {
-          value += 2;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      subSteps.push({
-        name: 'Esse Cheiro...',
-        value: `Somando +2 em Fortitude`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Esse Cheiro...' },
+        target: { type: 'Skill', name: Skill.FORTITUDE },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   PROVA_DE_TUDO: {
     name: 'À Prova de Tudo',
@@ -116,28 +83,28 @@ const originPowers: Record<string, OriginPower> = {
     description:
       'Você pode lançar Explosão de Chamas, Hipnotismo e Queda Suave, mas apenas com o aprimoramento Truque. Esta não é uma habilidade mágica — os efeitos provêm de prestidigitação.',
     type: ORIGIN_POWER_TYPE,
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = _.cloneDeep(sheet);
+    // action(
+    //   sheet: CharacterSheet,
+    //   subSteps: { name: string; value: string }[]
+    // ): CharacterSheet {
+    //   const sheetClone = _.cloneDeep(sheet);
 
-      const spells = [
-        spellsCircle1.explosaoDeChamas,
-        spellsCircle1.hipnotismo,
-        spellsCircle1.quedaSuave,
-      ];
+    //   const spells = [
+    //     spellsCircle1.explosaoDeChamas,
+    //     spellsCircle1.hipnotismo,
+    //     spellsCircle1.quedaSuave,
+    //   ];
 
-      spells.forEach((spell) => {
-        sheetClone.spells.push(spell);
-        subSteps.push({
-          name: 'Truque de Mágica',
-          value: `Adicionando ${spell.nome} à sua lista de magias.`,
-        });
-      });
+    //   spells.forEach((spell) => {
+    //     sheetClone.spells.push(spell);
+    //     subSteps.push({
+    //       name: 'Truque de Mágica',
+    //       value: `Adicionando ${spell.nome} à sua lista de magias.`,
+    //     });
+    //   });
 
-      return sheetClone;
-    },
+    //   return sheetClone;
+    // },
   },
   PUNGUISTA: {
     name: 'Punguista',
@@ -239,18 +206,13 @@ const originPowers: Record<string, OriginPower> = {
     name: 'Mochileiro',
     description: 'Seu limite de carga aumenta em 5 espaços.',
     type: ORIGIN_POWER_TYPE,
-    action: (sheet: CharacterSheet, subSteps: SubStep[]) => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      sheetClone.maxSpaces += 5;
-
-      subSteps.push({
-        name: 'Mochileiro',
-        value: `Aumentando o limite de carga em 5 espaços`,
-      });
-
-      return sheetClone;
-    },
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Mochileiro' },
+        target: { type: 'MaxSpaces' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   QUEBRA_GALHO: {
     name: 'Quebra-galho',

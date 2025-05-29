@@ -76,7 +76,7 @@ const Result: React.FC<ResultProps> = (props) => {
     skillA.name < skillB.name ? -1 : 1
   );
 
-  const periciasDiv = <SkillTable skills={periciasSorted} />;
+  const periciasDiv = <SkillTable sheet={sheet} skills={periciasSorted} />;
 
   const proficienciasDiv = classe.proficiencias.map((proe) => (
     <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
@@ -148,15 +148,21 @@ const Result: React.FC<ResultProps> = (props) => {
   const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
   const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
 
+  const fightAttrBonus = fightSkill?.modAttr
+    ? sheet.atributos[fightSkill.modAttr].mod
+    : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
-    (fightSkill?.modAttr ?? 0) +
+    fightAttrBonus +
     (fightSkill?.others ?? 0) +
     (fightSkill?.training ?? 0);
 
+  const rangeAttrBonus = rangeSkill?.modAttr
+    ? sheet.atributos[rangeSkill.modAttr].mod
+    : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
-    (rangeSkill?.modAttr ?? 0) +
+    rangeAttrBonus +
     (rangeSkill?.others ?? 0) +
     (rangeSkill?.training ?? 0);
 

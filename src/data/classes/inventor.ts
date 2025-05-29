@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -133,6 +132,12 @@ const INVENTOR: ClassDescription = {
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [[]],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Autômato',
@@ -153,24 +158,22 @@ const INVENTOR: ClassDescription = {
           { type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO },
         ],
       ],
-      action: (sheet, subSteps) => {
-        const cloneSheet = _.cloneDeep(sheet);
-
-        const profList = [
-          'Armas Marciais de Ataque à Distância',
-          'Armas de Fogo',
-        ];
-        const randomProf =
-          profList[Math.floor(Math.random() * profList.length)];
-        cloneSheet.classe.proficiencias.push(randomProf);
-
-        subSteps.push({
-          name: 'Proficiência com armas de ataque à distância',
-          value: `Você recebe proficiência com ${randomProf}.`,
-        });
-
-        return cloneSheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Balística',
+          },
+          action: {
+            type: 'addProficiency',
+            availableProficiencies: [
+              PROFICIENCIAS.MARCIAIS_DISTANCIA,
+              PROFICIENCIAS.FOGO,
+            ],
+            pick: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Blindagem',

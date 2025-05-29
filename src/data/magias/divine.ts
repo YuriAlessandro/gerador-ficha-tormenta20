@@ -125,3 +125,56 @@ export const allDivineSpellsCircle4: Spell[] = Object.values(
 export const allDivineSpellsCircle5: Spell[] = Object.values(
   divineSpellsCircle5
 ).reduce((acc, current) => [...acc, ...current]);
+
+export function getDivineSpellsOfCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return Object.values(allDivineSpellsCircle1);
+  }
+  if (circle === 2) {
+    return Object.values(allDivineSpellsCircle2);
+  }
+  if (circle === 3) {
+    return Object.values(allDivineSpellsCircle3);
+  }
+  if (circle === 4) {
+    return Object.values(allDivineSpellsCircle4);
+  }
+  if (circle === 5) {
+    return Object.values(allDivineSpellsCircle5);
+  }
+  return [];
+}
+
+export function allDivineSpellsUpToCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return allDivineSpellsCircle1;
+  }
+  if (circle === 2) {
+    return [...allDivineSpellsCircle1, ...allDivineSpellsCircle2];
+  }
+  if (circle === 3) {
+    return [
+      ...allDivineSpellsCircle1,
+      ...allDivineSpellsCircle2,
+      ...allDivineSpellsCircle3,
+    ];
+  }
+  if (circle === 4) {
+    return [
+      ...allDivineSpellsCircle1,
+      ...allDivineSpellsCircle2,
+      ...allDivineSpellsCircle3,
+      ...allDivineSpellsCircle4,
+    ];
+  }
+  if (circle === 5) {
+    return [
+      ...allDivineSpellsCircle1,
+      ...allDivineSpellsCircle2,
+      ...allDivineSpellsCircle3,
+      ...allDivineSpellsCircle4,
+      ...allDivineSpellsCircle5,
+    ];
+  }
+  return [];
+}

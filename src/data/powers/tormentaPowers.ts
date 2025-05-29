@@ -1,8 +1,4 @@
-import _, { cloneDeep } from 'lodash';
-
 import Skill from '@/interfaces/Skills';
-import { countTormentaPowers } from '@/functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -23,35 +19,50 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe +1 em Iniciativa, Percepção e Vontade. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const tormentaPowersQtd = countTormentaPowers(sheetClone);
-      const totalBonus = Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.INICIATIVA ||
-          sk.name === Skill.PERCEPCAO ||
-          sk.name === Skill.VONTADE
-        ) {
-          value += Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Antenas',
-        value: `Somando ${totalBonus} (por ${tormentaPowersQtd} poderes da Tormenta) em Iniciativa, Percepção e Vontade`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Antenas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INICIATIVA,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Antenas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.PERCEPCAO,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Antenas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.VONTADE,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+    ],
   },
   ARMAMENTO_ABERRANTE: {
     name: 'Armamento Aberrante',
@@ -73,35 +84,50 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe +1 em Acrobacia, Furtividade e Reflexos. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const tormentaPowersQtd = countTormentaPowers(sheetClone);
-      const totalBonus = Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (
-          sk.name === Skill.ACROBACIA ||
-          sk.name === Skill.FURTIVIDADE ||
-          sk.name === Skill.REFLEXOS
-        ) {
-          value += Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Articulações Flexíveis',
-        value: `Somando ${totalBonus} (por ${tormentaPowersQtd} poderes da tormenta) em Acrobacia, Furtividade e Reflexos`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Articulações Flexíveis',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ACROBACIA,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Articulações Flexíveis',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FURTIVIDADE,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Articulações Flexíveis',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+    ],
   },
   ASAS_INSETOIDES: {
     name: 'Asas Insetoides',
@@ -123,24 +149,21 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Sua pele é recoberta por placas quitinosas. Você recebe +1 na Defesa. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-
-      const tormentaPowersQtd = countTormentaPowers(sheetClone);
-      const defenseBonus = Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-
-      subSteps.push({
-        name: 'Carapaça',
-        value: `+${defenseBonus} na Defesa`,
-      });
-
-      sheetClone.defesa += defenseBonus;
-
-      return sheetClone;
-    },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Carapaça',
+        },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+    ],
   },
   CORPO_ABERRANTE: {
     name: 'Corpo Aberrante',
@@ -169,27 +192,30 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
-    action(
-      sheet: CharacterSheet,
-      subSteps: { name: string; value: string }[]
-    ): CharacterSheet {
-      const sheetClone = cloneDeep(sheet);
-      subSteps.push({ name: 'Dentes Afiados', value: 'Ataque "Mordida"' });
-      sheetClone.bag.addEquipment({
-        Arma: [
-          {
-            group: 'Arma',
-            nome: 'Mordida',
-            dano: '1d4',
-            critico: 'x2',
-            tipo: 'Corte',
-            spaces: 0,
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Dentes Afiados',
+        },
+        action: {
+          type: 'addEquipment',
+          equipment: {
+            Arma: [
+              {
+                group: 'Arma',
+                nome: 'Mordida',
+                dano: '1d4',
+                critico: 'x2',
+                tipo: 'Corte',
+                spaces: 0,
+              },
+            ],
           },
-        ],
-      });
-
-      return sheetClone;
-    },
+          description: 'Mordida pode ser usado como arma.',
+        },
+      },
+    ],
   },
   DESPREZAR_A_REALIDADE: {
     name: 'Desprezar a Realidade',
@@ -231,42 +257,47 @@ const tormentaPowers: Record<string, GeneralPower> = {
     description:
       'Seu corpo se transforma em uma massa de insetos rubros. Você pode atravessar qualquer espaço por onde seja possível passar uma moeda (mas considera esses espaços como terreno difícil) e recebe +1 em testes contra manobras de combate e de resistência contra efeitos que tenham você como alvo (mas não efeitos de área). Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [],
+    requirements: [
+      [{ type: RequirementType.PODER, name: 'Anatomia Insana' }],
+      [{ type: RequirementType.PODER_TORMENTA, value: 3 }],
+    ],
   },
   MAOS_MEMBRANOSAS: {
     name: 'Mãos Membranosas',
     description:
       'Você recebe +1 em Atletismo, Fortitude e testes de agarrar. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
-    requirements: [
-      [{ type: RequirementType.PODER, name: 'Anatomia Insana' }],
-      [{ type: RequirementType.PODER_TORMENTA, value: 3 }],
+    requirements: [],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Mãos Membranosas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ATLETISMO,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Mãos Membranosas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
     ],
-    action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-      const sheetClone = _.cloneDeep(sheet);
-
-      const tormentaPowersQtd = countTormentaPowers(sheetClone);
-      const totalBonus = Math.floor((tormentaPowersQtd - 1) / 2) + 1;
-
-      const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === Skill.ATLETISMO || sk.name === Skill.FORTITUDE) {
-          value += totalBonus;
-        }
-
-        return { ...sk, others: value };
-      });
-
-      substeps.push({
-        name: 'Mãos Membranosa',
-        value: `Somando ${totalBonus} (por ${tormentaPowersQtd} poderes da tormenta) em Atletismo e Fortitude`,
-      });
-
-      return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-        completeSkills: newCompleteSkills,
-      });
-    },
   },
   MEMBROS_ESTENDIDOS: {
     name: 'Membros Estendidos',
@@ -302,6 +333,34 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe visão no escuro e +1 em Intimidação. Este bônus aumenta em +1 para cada dois outros poderes da Tormenta que você possui.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Olhos Vermelhos',
+        },
+        action: {
+          type: 'addSense',
+          sense: 'Visão no escuro',
+        },
+      },
+    ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Olhos Vermelhos',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INTIMIDACAO,
+        },
+        modifier: {
+          type: 'TormentaPowersCalc',
+          formula: 'Math.floor(({tPowQtd} - 1) / 2) + 1',
+        },
+      },
+    ],
   },
   PELE_CORROMPIDA: {
     name: 'Pele Corrompida',

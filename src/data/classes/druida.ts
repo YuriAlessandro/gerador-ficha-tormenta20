@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skills from '../../interfaces/Skills';
@@ -58,19 +57,21 @@ const DRUIDA: ClassDescription = {
       name: 'Magias',
       text: 'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias divinas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const finalPM = sheet.pm + sheet.atributos.Sabedoria.mod;
-        substeps.push({
-          name: 'Magias',
-          value: `+SAB PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm: finalPM,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Caminho dos Ermos',
@@ -88,67 +89,89 @@ const DRUIDA: ClassDescription = {
       name: 'Aspecto do Inverno',
       text: 'Você aprende e pode lançar uma magia de convocação ou evocação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, recebe redução de frio 5 e suas magias que causam dano de frio causam +1 ponto de dano por dado.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        // TODO
-
-        substeps.push({
-          name: 'Aspecto do Inverno',
-          value: `Você recebe uma magia.`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Inverno',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Conv', 'Evoc'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Outono',
       text: 'Você aprende e pode lançar uma magia de necromancia, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para impor uma penalidade de –2 nos testes de resistência de todos os inimigos em alcance curto até o início do seu próximo turno.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        // TODO
-
-        substeps.push({
-          name: 'Aspecto do Outono',
-          value: `Você recebe uma magia.`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Outono',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Necro'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto da Primavera',
       text: 'Você aprende e pode lançar uma magia de encantamento ou ilusão, arcana ou divina, de qualquer círculo que possa lançar. Além disso, escolha uma quantidade de magias igual ao seu Carisma (mínimo 1). O custo dessas magias é reduzido em −1 PM.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        // TODO
-
-        substeps.push({
-          name: 'Aspecto da Primavera',
-          value: `Você recebe uma magia.`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto da Primavera',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Encan', 'Ilusão'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Verão',
       text: 'Você aprende e pode lançar uma magia de transmutação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para cobrir uma de suas armas com chamas até o fim da cena. A arma causa +1d6 pontos de dano de fogo. Sempre que você acertar um ataque com ela, recebe 1 PM temporário. Você pode ganhar um máximo de PM temporários por cena igual ao seu nível e eles desaparecem no final da cena.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        // TODO
-
-        substeps.push({
-          name: 'Aspecto do Verão',
-          value: `Você recebe uma magia.`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Verão',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Trans'],
+          },
+        },
+      ],
     },
     {
       name: 'Aumento de Atributo',
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [[]],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Companheiro Animal',
@@ -218,28 +241,22 @@ const DRUIDA: ClassDescription = {
       name: 'Força dos Penhascos',
       text: 'Você recebe +2 em Fortitude. Quando sofre dano enquanto em contato com o solo ou uma superfície de pedra, pode gastar uma quantidade de PM limitada por sua Sabedoria. Para cada PM gasto, reduz esse dano em 10.',
       requirements: [[{ type: RequirementType.NIVEL, value: 4 }]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skills.FORTITUDE) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Força dos Penhascos',
-          value: `Somando +2 em Fortitude`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Força dos Penhascos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.FORTITUDE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Forma Primal',
@@ -275,28 +292,22 @@ const DRUIDA: ClassDescription = {
       name: 'Liberdade da Pradaria',
       text: 'Você recebe +2 em Reflexos. Se estiver ao ar livre, sempre que lança uma magia, pode gastar 1 PM para aumentar o alcance dela em um passo (de toque para curto, de curto para médio ou de médio para longo).',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skills.REFLEXOS) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Liberdade da Pradaria',
-          value: `Somando +2 em Reflexos`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Liberdade da Pradaria',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.REFLEXOS,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Magia Natural',
@@ -317,28 +328,22 @@ const DRUIDA: ClassDescription = {
       name: 'Tranquilidade dos Lagos',
       text: 'Você recebe +2 em Vontade. Se estiver portando um recipiente com água (não precisa estar empunhando), uma vez por rodada, quando faz um teste de resistência, pode pagar 1 PM para refazer a rolagem.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skills.VONTADE) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Tranquilidade dos Lagos',
-          value: `Somando +2 em Vontade`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Tranquilidade dos Lagos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.VONTADE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
   ],
   probDevoto: 1,

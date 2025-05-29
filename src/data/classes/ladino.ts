@@ -1,10 +1,9 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { allArcaneSpellsCircle1 } from '../magias/arcane';
 
 const LADINO: ClassDescription = {
   name: 'Ladino',
@@ -90,6 +89,12 @@ const LADINO: ClassDescription = {
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Contatos no Submundo',
@@ -121,28 +126,22 @@ const LADINO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.PERICIA, name: Skill.ATLETISMO }],
       ],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skill.ATLETISMO) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Gatuno',
-          value: `Somando +2 em Atletismo`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Gatuno',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.ATLETISMO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Ladrão Arcano',
@@ -175,28 +174,36 @@ const LADINO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Destreza', value: 1 }],
       ],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skill.LADINAGEM || sk.name === Skill.FURTIVIDADE) {
-            value += sheetClone.atributos.Inteligência.mod;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Mente Criminosa',
-          value: `Somando modificador de INT em Ladinagem e Furtividade`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Mente Criminosa',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.LADINAGEM,
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.INTELIGENCIA,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Mente Criminosa',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.FURTIVIDADE,
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.INTELIGENCIA,
+          },
+        },
+      ],
     },
     {
       name: 'Oportunismo',
@@ -229,28 +236,22 @@ const LADINO: ClassDescription = {
       requirements: [
         [{ type: RequirementType.PERICIA, name: Skill.FURTIVIDADE }],
       ],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skill.FURTIVIDADE) {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Sombra',
-          value: `Recebe +2 em Furtividade`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Sombra',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.FURTIVIDADE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Truque Mágico',
@@ -259,18 +260,19 @@ const LADINO: ClassDescription = {
         [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
       ],
       canRepeat: true,
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        substeps.push({
-          name: 'Truque Mágico',
-          value: `Aprendendo uma magia arcana de 1º círculo`,
-        });
-
-        // TODO
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Truque Mágico',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: allArcaneSpellsCircle1,
+            pick: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Velocidade Ladina',

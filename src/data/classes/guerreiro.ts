@@ -89,9 +89,15 @@ const GUERREIRO: ClassDescription = {
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Bater e Correr',
@@ -117,15 +123,15 @@ const GUERREIRO: ClassDescription = {
       text: 'Escolha uma arma. Você recebe +2 em rolagens de dano com essa arma. Você pode escolher este poder outras vezes para armas diferentes.',
       requirements: [],
       canRepeat: true,
-      action: (sheet, subSteps) => {
-        // TODO
-        subSteps.push({
-          name: 'Escolha uma arma',
-          value:
-            'Escolha uma arma para receber +2 em rolagens de dano com ela.',
-        });
-        return sheet;
-      },
+      // action: (sheet, subSteps) => {
+      //   // TODO
+      //   subSteps.push({
+      //     name: 'Escolha uma arma',
+      //     value:
+      //       'Escolha uma arma para receber +2 em rolagens de dano com ela.',
+      //   });
+      //   return sheet;
+      // },
     },
     {
       name: 'Especialização em Armadura',

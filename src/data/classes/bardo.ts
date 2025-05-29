@@ -1,16 +1,11 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { allSpellSchools } from '../../interfaces/Spells';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
-import {
-  addOrCheapenRandomSpells,
-  getSpellsOfCircle,
-} from '../magias/generalSpells';
 
 const BARDO: ClassDescription = {
   name: 'Bardo',
@@ -61,20 +56,21 @@ const BARDO: ClassDescription = {
       name: 'Magias',
       text: 'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias arcanas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Você pode lançar essas magias vestindo armaduras leves sem precisar de testes de Misticismo. Seu atributo-chave para lançar magias é Carisma e você soma seu bônus de Carisma no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
-      action(sheet: CharacterSheet): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const { pmModifier } = sheetClone;
-        pmModifier.push({
-          source: 'Magias',
-          type: 'Attribute',
-          attribute: Atributo.CARISMA,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pmModifier,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Eclético',
@@ -98,36 +94,31 @@ const BARDO: ClassDescription = {
       text: 'Você aprende duas magias de qualquer círculo que possa lançar. Elas devem pertencer às escolas que você sabe usar, mas podem ser arcanas ou divinas. Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-        const currentSpellCircle =
-          sheetClone.classe.spellPath?.spellCircleAvailableAtLevel(
-            sheet.nivel
-          ) || 1;
-
-        const availableSpells = getSpellsOfCircle(currentSpellCircle).filter(
-          (spell) =>
-            !!sheetClone.spells.find((s) => s.nome !== spell.nome) &&
-            sheetClone.classe.spellPath?.schools?.includes(spell.school)
-        );
-
-        addOrCheapenRandomSpells(
-          sheetClone,
-          substeps,
-          availableSpells,
-          'Conhecimento Mágico',
-          Atributo.CARISMA,
-          2
-        );
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aumentar Repertório',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Aumento de Atributo',
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Dança das Lâminas',

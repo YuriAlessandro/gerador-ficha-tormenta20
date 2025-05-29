@@ -1,6 +1,3 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
-
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -68,30 +65,35 @@ const BUCANEIRO: ClassDescription = {
       name: 'Esquiva Sagaz',
       text: 'Você recebe +1 na Defesa e em Reflexos. Esse bônus aumenta em +1 a cada quatro níveis. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 3,
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Reflexos') {
-            value += 1;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        sheetClone.defesa += 1;
-
-        substeps.push({
-          name: 'Esquiva Sagaz',
-          value: `+1 em Defesa e Reflexos`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Esquiva Sagaz',
+          },
+          target: {
+            type: 'Defense',
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 4)',
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Esquiva Sagaz',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.REFLEXOS,
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 4)',
+          },
+        },
+      ],
     },
     {
       name: 'Panache',
@@ -147,6 +149,12 @@ const BUCANEIRO: ClassDescription = {
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Aventureiro Ávido',
@@ -179,17 +187,20 @@ const BUCANEIRO: ClassDescription = {
       name: 'Flagelo dos Mares',
       text: 'Você aprende e pode lançar Amedrontar (atributo-chave Carisma). Esta não é uma habilidade mágica e provém de sua capacidade de incutir medo em seus inimigos.',
       requirements: [[{ type: RequirementType.PERICIA, name: 'Intimidação' }]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const { amedrontar } = spellsCircle1;
-        sheet.spells.push(amedrontar);
-
-        substeps.push({
-          name: 'Flagelo dos Mares',
-          value: `Aprende e pode lançar Amedrontar (atributo-chave Carisma)`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Flagelo dos Mares',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle1.amedrontar],
+            pick: 1,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Folião',
@@ -212,43 +223,54 @@ const BUCANEIRO: ClassDescription = {
       name: 'Pernas do Mar',
       text: ' Você recebe +2 em Acrobacia e Atletismo. Além disso, quando está se equilibrando ou escalando, você não fica desprevenido e seu deslocamento não é reduzido à metade',
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Acrobacia' || sk.name === 'Atletismo') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Pernas do Mar',
-          value: `+2 em Acrobacia e Atletismo`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Pernas do Mar',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.ACROBACIA,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Pernas do Mar',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.ATLETISMO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Pistoleiro',
       text: 'Você recebe proficiência com armas de fogo e +2 nas rolagens de dano com essas armas.',
       requirements: [],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        sheet.classe.proficiencias.push(PROFICIENCIAS.FOGO);
-
-        substeps.push({
-          name: 'Pistoleiro',
-          value: `Proficiência com armas de fogo`,
-        });
-
-        return sheet;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Pistoleiro',
+          },
+          action: {
+            type: 'addProficiency',
+            availableProficiencies: [PROFICIENCIAS.FOGO],
+            pick: 1,
+          },
+        },
+      ],
     },
     {
       name: 'Presença Paralisante',
@@ -259,18 +281,22 @@ const BUCANEIRO: ClassDescription = {
           { type: RequirementType.NIVEL, value: 4 },
         ],
       ],
-      action: (sheet: CharacterSheet): CharacterSheet => {
-        sheet.skillsModifier.push([
-          Skill.INICIATIVA,
-          {
-            source: 'Presença Paralisante',
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Presença Paralisante',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.INICIATIVA,
+          },
+          modifier: {
             type: 'Attribute',
             attribute: Atributo.CARISMA,
           },
-        ]);
-
-        return sheet;
-      },
+        },
+      ],
     },
     {
       name: 'Ripostar',

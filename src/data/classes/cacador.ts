@@ -1,11 +1,9 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 const CACADOR: ClassDescription = {
   name: 'Caçador',
@@ -57,28 +55,22 @@ const CACADOR: ClassDescription = {
       name: 'Rastreador',
       text: 'Você recebe +2 em Sobrevivência. Além disso, pode se mover com seu deslocamento normal enquanto rastreia sem sofrer penalidades no teste de Sobrevivência.',
       nivel: 1,
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Sobrevivência') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Rastreador',
-          value: `+2 em Sobrevivência`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Rastreador',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.SOBREVIVENCIA,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Explorador',
@@ -158,6 +150,12 @@ const CACADOR: ClassDescription = {
       text: ' Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Bote',
@@ -204,31 +202,35 @@ const CACADOR: ClassDescription = {
           { type: RequirementType.NIVEL, value: 3 },
         ],
       ],
-      action: (sheet, subSteps): CharacterSheet => {
-        sheet.pmModifier.push({
-          source: 'Elo com a Natureza',
-          type: 'Attribute',
-          attribute: Atributo.SABEDORIA,
-        });
-
-        const { spells, stepValue } = addOrCheapenSpell(
-          sheet,
-          spellsCircle1.caminhosDaNatureza,
-          Atributo.SABEDORIA
-        );
-
-        if (stepValue) {
-          subSteps.push({
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
             name: 'Elo com a Natureza',
-            value: stepValue,
-          });
-        }
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheet, {
-          spells,
-          pmModifier: sheet.pmModifier,
-        });
-      },
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Elo com a Natureza',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle1.caminhosDaNatureza],
+            pick: 1,
+            customAttribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Emboscar',

@@ -88,7 +88,6 @@ function makeOriginGeneralPowerGetter(
 
     const randomPower = getNotRepeatedRandom(
       sheet.generalPowers,
-      'power',
       allowedByRequirement
     );
 
@@ -103,7 +102,6 @@ function makeOriginGeneralPowerGetter(
 
     const randomSkillFromOrigin = getNotRepeatedRandom(
       sheet.skills,
-      'skill',
       origin.pericias
     );
     if (randomSkillFromOrigin) {
@@ -115,7 +113,10 @@ function makeOriginGeneralPowerGetter(
       return;
     }
 
-    const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+    const randomSkill = getNotRepeatedRandom(
+      sheet.skills,
+      Object.values(Skill)
+    );
 
     sheet.skills.push(randomSkill);
     subSteps.push({

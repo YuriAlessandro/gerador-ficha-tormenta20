@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -83,6 +81,12 @@ const LUTADOR: ClassDescription = {
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Braços Calejados',
@@ -171,31 +175,35 @@ const LUTADOR: ClassDescription = {
       requirements: [
         [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 3 }],
       ],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const modFor = sheetClone.atributos.Força.mod;
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === Skill.FORTITUDE) {
-            value += modFor;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Sarado',
-          value: `Somando FOR na PV e em Fortitude`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-          pv: sheetClone.pv + modFor,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Sarado',
+          },
+          target: {
+            type: 'PV',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.FORCA,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Sarado',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.FORTITUDE,
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.FORCA,
+          },
+        },
+      ],
     },
     {
       name: 'Sequência Destruidora',

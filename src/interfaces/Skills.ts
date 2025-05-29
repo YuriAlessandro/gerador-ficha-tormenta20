@@ -105,7 +105,7 @@ export const SkillsWithArmorPenalty: Skill[] = [
 export type CompleteSkill = {
   name: Skill;
   halfLevel?: number;
-  modAttr?: number;
+  modAttr?: Atributo;
   training?: number;
   others?: number;
   countAsTormentaPower?: boolean;

@@ -29,6 +29,7 @@ import {
   getRandomItemFromArray,
   mergeFaithProbabilities,
   pickFaith,
+  pickFromAllowed,
   pickFromArray,
   rollDice,
 } from './randomUtils';
@@ -48,6 +49,7 @@ import {
   arcaneSpellsCircle3,
   arcaneSpellsCircle4,
   arcaneSpellsCircle5,
+  getArcaneSpellsOfCircle,
 } from '../data/magias/arcane';
 import {
   allDivineSpellsCircle1,
@@ -67,8 +69,14 @@ import {
   getRaceSize,
 } from '../data/races/functions/functions';
 import Origin from '../interfaces/Origin';
-import { OriginPower, PowerGetter, PowersGetters } from '../interfaces/Poderes';
+import {
+  GeneralPower,
+  OriginPower,
+  PowerGetter,
+  PowersGetters,
+} from '../interfaces/Poderes';
 import CharacterSheet, {
+  SheetChangeSource,
   StatModifier,
   Step,
   SubStep,
@@ -84,6 +92,20 @@ import {
   getAllowedClassPowers,
   getPowersAllowedByRequirements,
 } from './powers';
+import {
+  addOrCheapenRandomSpells,
+  getSpellsOfCircle,
+} from '../data/magias/generalSpells';
+import {
+  applyHumanoVersatil,
+  applyLefouDeformidade,
+  applyOsteonMemoriaPostuma,
+} from './powers/special';
+import { addOtherBonusToSkill } from './skills/general';
+import {
+  getAttributeIncreasesInSamePlateau,
+  getCurrentPlateau,
+} from './powers/general';
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
@@ -717,14 +739,278 @@ function calcDisplacement(
   return raceDisplacement + baseDisplacement;
 }
 
+export const applyPower = (
+  _sheet: CharacterSheet,
+  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses'>
+): [CharacterSheet, SubStep[]] => {
+  const sheet = _.cloneDeep(_sheet);
+  const subSteps: SubStep[] = [];
+
+  const getSourceName = (source: SheetChangeSource) => {
+    if (source.type === 'power') {
+      return source.name;
+    }
+    if (source.type === 'levelUp') {
+      return `Nível ${source.level}`;
+    }
+    return '';
+  };
+
+  // sheet action
+  if (powerOrAbility.sheetActions) {
+    powerOrAbility.sheetActions.forEach((sheetAction) => {
+      if (sheetAction.action.type === 'ModifyAttribute') {
+        const { attribute, value } = sheetAction.action;
+        const newValue = sheet.atributos[attribute].mod + value;
+        sheet.atributos[attribute].mod = newValue;
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `+${value} em ${sheetAction.action.attribute}`,
+        });
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [{ type: 'Attribute', attribute, value: newValue }],
+        });
+      } else if (sheetAction.action.type === 'addProficiency') {
+        // Ver Proficiência em combat powers e depois remove comment
+        let { availableProficiencies } = sheetAction.action;
+        if (!sheet.classe.proficiencias.includes(todasProficiencias.MARCIAIS)) {
+          availableProficiencies = availableProficiencies.filter(
+            (prof) => prof !== todasProficiencias.EXOTICAS
+          );
+        }
+
+        const pickedProficiencies = pickFromAllowed(
+          availableProficiencies,
+          sheetAction.action.pick,
+          sheet.classe.proficiencias
+        );
+
+        sheet.classe.proficiencias.push(...pickedProficiencies);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: pickedProficiencies.map((prof) => ({
+            type: 'ProficiencyAdded',
+            proficiency: prof,
+          })),
+        });
+
+        pickedProficiencies.forEach((prof) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Proficiência em ${prof}`,
+          });
+        });
+      } else if (sheetAction.action.type === 'learnSkill') {
+        const pickedSkills = pickFromAllowed(
+          sheetAction.action.availableSkills,
+          sheetAction.action.pick,
+          sheet.skills
+        );
+
+        sheet.skills.push(...pickedSkills);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SkillsAdded',
+              skills: pickedSkills,
+            },
+          ],
+        });
+
+        pickedSkills.forEach((skill) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprende a perícia ${skill}`,
+          });
+        });
+      } else if (sheetAction.action.type === 'addSense') {
+        if (!sheet.sentidos) sheet.sentidos = [];
+        if (!sheet.sentidos.includes(sheetAction.action.sense)) {
+          sheet.sentidos.push(sheetAction.action.sense);
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            changes: [{ type: 'SenseAdded', sense: sheetAction.action.sense }],
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Recebe o sentido ${sheetAction.action.sense}`,
+          });
+        }
+      } else if (sheetAction.action.type === 'addEquipment') {
+        const { equipment } = sheetAction.action;
+        sheet.bag.addEquipment(equipment);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [{ type: 'EquipmentAdded', equipment }],
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: sheetAction.action.description,
+        });
+      } else if (sheetAction.action.type === 'getGeneralPower') {
+        const pickedPowers = pickFromAllowed(
+          sheetAction.action.availablePowers,
+          sheetAction.action.pick,
+          sheet.generalPowers
+        );
+
+        sheet.generalPowers.push(...pickedPowers);
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: pickedPowers.map((power) => ({
+            type: 'PowerAdded',
+            powerName: power.name,
+          })),
+        });
+
+        pickedPowers.forEach((power) => {
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Recebe o poder geral ${power.name}`,
+          });
+        });
+      } else if (sheetAction.action.type === 'learnSpell') {
+        const learnedSpells = addOrCheapenRandomSpells(
+          sheet,
+          subSteps,
+          sheetAction.action.availableSpells,
+          getSourceName(sheetAction.source),
+          sheetAction.action.customAttribute ||
+            sheet.classe.spellPath?.keyAttribute ||
+            Atributo.INTELIGENCIA,
+          sheetAction.action.pick
+        );
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SpellsLearned',
+              spellNames: learnedSpells.map((spell) => spell.nome),
+            },
+          ],
+        });
+      } else if (sheetAction.action.type === 'learnAnySpellFromHighestCircle') {
+        const highestCircle =
+          sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
+
+        let allSpellsOfCircle: Spell[] = [];
+        if (sheetAction.action.allowedType === 'Arcane') {
+          allSpellsOfCircle = getArcaneSpellsOfCircle(highestCircle);
+        } else if (sheetAction.action.allowedType === 'Divine') {
+          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
+        } else {
+          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
+        }
+
+        const allowedSchools = sheetAction.action.schools || [];
+        const availableSpells = allSpellsOfCircle.filter((spell) => {
+          if (allowedSchools.length === 0) return true;
+          return allowedSchools.includes(spell.school);
+        });
+
+        const learnedSpells = addOrCheapenRandomSpells(
+          sheet,
+          subSteps,
+          availableSpells,
+          getSourceName(sheetAction.source),
+          sheet.classe.spellPath?.keyAttribute || Atributo.INTELIGENCIA,
+          sheetAction.action.pick
+        );
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'SpellsLearned',
+              spellNames: learnedSpells.map((spell) => spell.nome),
+            },
+          ],
+        });
+      } else if (sheetAction.action.type === 'increaseAttribute') {
+        const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+        const availableAttributes = Object.values(Atributo).filter(
+          (attr) => !usedAttributes.includes(attr)
+        );
+
+        // Pick first attributes higher on the priority list
+        const [firstPriorityAttribute] = sheet.classe.attrPriority.filter(
+          (attr) => availableAttributes.includes(attr)
+        );
+
+        let targetAttribute: Atributo;
+        if (firstPriorityAttribute) {
+          targetAttribute = firstPriorityAttribute;
+        } else {
+          // If no priority attributes available, pick any
+          targetAttribute = getRandomItemFromArray(availableAttributes);
+        }
+
+        sheet.atributos[targetAttribute].mod += 1;
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          changes: [
+            {
+              type: 'AttributeIncreasedByAumentoDeAtributo',
+              attribute: targetAttribute,
+              plateau: getCurrentPlateau(sheet),
+            },
+          ],
+        });
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Aumenta o atributo ${targetAttribute} por +1`,
+        });
+      } else if (sheetAction.action.type === 'special') {
+        let currentSteps: SubStep[];
+        if (sheetAction.action.specialAction === 'humanoVersatil') {
+          currentSteps = applyHumanoVersatil(sheet);
+        } else if (sheetAction.action.specialAction === 'lefouDeformidade') {
+          currentSteps = applyLefouDeformidade(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'osteonMemoriaPostuma'
+        ) {
+          currentSteps = applyOsteonMemoriaPostuma(sheet);
+        } else {
+          throw new Error(
+            `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
+          );
+        }
+
+        subSteps.push(...currentSteps);
+      } else {
+        throw new Error(
+          `Ação de ficha desconhecida: ${JSON.stringify(sheetAction)}`
+        );
+      }
+    });
+  }
+
+  // sheet bonuses
+  if (powerOrAbility.sheetBonuses) {
+    sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
+  }
+
+  return [sheet, subSteps];
+};
+
 export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.raca.abilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   if (subSteps.length) {
     sheetClone.steps.push({
@@ -739,12 +1025,14 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
 
 function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.devoto?.poderes || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
+    const [newAcc, newSubSteps] = applyPower(acc, power);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
@@ -758,16 +1046,18 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
 
 function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
   const availableAbilities = sheetClone.classe.abilities.filter(
     (abilitie) => abilitie.nivel <= sheet.nivel
   );
 
-  sheetClone = (availableAbilities || []).reduce(
-    (acc, ability) => (ability.action ? ability.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (availableAbilities || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
+
   if (subSteps.length) {
     sheetClone.steps.push({
       type: 'Poderes',
@@ -783,12 +1073,13 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
 
 function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
-  sheetClone = (sheetClone.generalPowers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.generalPowers || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   // Quando escolhe um poder da Tormenta, perde 1 de Carisma. Para cada dois outros poderes da Tormenta, perde 1 de carisma.
   const tormentaPowersQtd = countTormentaPowers(sheetClone);
@@ -844,16 +1135,17 @@ function applyPowerGetters(
   powersGetters: PowersGetters
 ): CharacterSheet {
   let sheetClone = cloneDeep(sheet);
-  const subSteps: { name: string; value: string }[] = [];
+  const subSteps: SubStep[] = [];
 
   powersGetters.Origem.forEach((addPower) => {
     addPower(sheetClone, subSteps);
   });
 
-  sheetClone = (sheetClone.origin?.powers || []).reduce(
-    (acc, power) => (power.action ? power.action(acc, subSteps) : acc),
-    sheetClone
-  );
+  sheetClone = (sheetClone.origin?.powers || []).reduce((acc, ability) => {
+    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    subSteps.push(...newSubSteps);
+    return newAcc;
+  }, sheetClone);
 
   if (subSteps.length && sheet.origin) {
     sheetClone.steps.push({
@@ -963,14 +1255,14 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
-
     const newPower = getRandomItemFromArray(allowedPowers);
     if (updatedSheet.classPowers) {
-      const nSubSteps: { name: string; value: string }[] = [];
+      const nSubSteps: SubStep[] = [];
 
       updatedSheet.classPowers.push(newPower);
 
-      const newSheet = newPower.action?.(updatedSheet, nSubSteps);
+      const [newSheet, newSubSteps] = applyPower(updatedSheet, newPower);
+      nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
 
       if (nSubSteps.length) {
@@ -990,30 +1282,232 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     }
   } else {
     // Escolha poder geral
+    const nSubSteps: SubStep[] = [];
     const newPower = getRandomItemFromArray(allowedGeneralPowers);
     updatedSheet.generalPowers.push(newPower);
 
-    subSteps.push({
-      name: `Novo poder geral`,
-      value: newPower.name,
-    });
+    const [newSheet, newSubSteps] = applyPower(updatedSheet, newPower);
+    nSubSteps.push(...newSubSteps);
+    if (newSheet) updatedSheet = newSheet;
+
+    if (nSubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novo poder Geral`,
+        value: nSubSteps,
+      });
+    } else {
+      subSteps.push({
+        name: `Novo poder Geral`,
+        value: newPower.name,
+      });
+    }
   }
 
   return updatedSheet;
 }
 
-export function getStatModifierValue(
-  sheet: CharacterSheet,
-  modifier: StatModifier
-) {
-  if (modifier.type === 'Attribute') {
-    return sheet.atributos[modifier.attribute].mod;
+const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
+  if (bonus.type === 'Attribute') {
+    return sheet.atributos[bonus.attribute].mod;
   }
-  if (modifier.type === 'Number') {
-    return modifier.value;
+  if (bonus.type === 'LevelCalc') {
+    const filledFormula = bonus.formula.replace(
+      '{level}',
+      sheet.nivel.toString()
+    );
+    // eslint-disable-next-line no-eval
+    return eval(filledFormula);
+  }
+  if (bonus.type === 'TormentaPowersCalc') {
+    const filledFormula = bonus.formula.replace(
+      '{tPowQtd}',
+      countTormentaPowers(sheet).toString()
+    );
+    // eslint-disable-next-line no-eval
+    return eval(filledFormula);
+    return 0;
+  }
+  if (bonus.type === 'SpecialAttribute') {
+    if (bonus.attribute === 'spellKeyAttr') {
+      const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
+      return sheet.atributos[attr].mod;
+    }
+  }
+  if (bonus.type === 'Fixed') {
+    return bonus.value;
   }
   return 0;
-}
+};
+
+const applyStatModifiers = (_sheet: CharacterSheet) => {
+  const sheet = _.cloneDeep(_sheet);
+
+  const pvSubSteps: SubStep[] = [];
+  const pmSubSteps: SubStep[] = [];
+  const defSubSteps: SubStep[] = [];
+  const skillSubSteps: SubStep[] = [];
+  const displacementSubSteps: SubStep[] = [];
+  const armorPenaltySubSteps: SubStep[] = [];
+  const modifySkillAttributeSubSteps: SubStep[] = [];
+
+  sheet.sheetBonuses.forEach((bonus) => {
+    const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+    const subStepName: string =
+      bonus.source.type === 'power'
+        ? `${bonus.source.name}:`
+        : `Nível ${bonus.source.level}:`;
+
+    if (bonus.target.type === 'PV') {
+      sheet.pv += bonusValue;
+      pvSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'PM') {
+      sheet.pm += bonusValue;
+      pmSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'Defense') {
+      sheet.defesa += bonusValue;
+      defSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'Skill') {
+      const skillName = bonus.target.name;
+
+      // TODO: Adicionar bonus bom pra oficios
+      if (skillName === Skill.OFICIO) {
+        console.warn('need good bonus for OFICIO skill');
+      }
+
+      addOtherBonusToSkill(sheet, skillName, bonusValue);
+
+      skillSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em ${skillName}`,
+      });
+    } else if (bonus.target.type === 'Displacement') {
+      sheet.displacement += bonusValue;
+
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}m`,
+      });
+    } else if (bonus.target.type === 'MaxSpaces') {
+      sheet.maxSpaces += bonusValue;
+
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} espaços de carga`,
+      });
+    } else if (bonus.target.type === 'ArmorPenalty') {
+      sheet.extraArmorPenalty += bonusValue;
+
+      armorPenaltySubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'PickSkill') {
+      const pickedSkills = pickFromArray(
+        bonus.target.skills,
+        bonus.target.pick
+      );
+
+      pickedSkills.forEach((skill) => {
+        // TODO: Adicionar bonus bom pra oficios
+        if (skill === Skill.OFICIO) {
+          console.warn('need good bonus for OFICIO skill');
+        }
+
+        addOtherBonusToSkill(sheet, skill, bonusValue);
+      });
+    } else if (bonus.target.type === 'ModifySkillAttribute') {
+      const { attribute } = bonus.target;
+      const skillName = bonus.target.skill;
+
+      const newCompleteSkills = sheet.completeSkills?.map((skill) => {
+        if (skill.name === skillName) {
+          return {
+            ...skill,
+            modAttr: attribute,
+          };
+        }
+        return skill;
+      });
+
+      _.merge(sheet, { completeSkills: newCompleteSkills });
+
+      modifySkillAttributeSubSteps.push({
+        name: subStepName,
+        value: `Modifica atributo de ${skillName} para ${attribute}`,
+      });
+    } else {
+      console.warn('bonus não implementado', bonus);
+    }
+  });
+
+  if (pvSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de PV',
+      type: 'Atributos Extras',
+      value: pvSubSteps,
+    });
+  }
+
+  if (pmSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de PM',
+      type: 'Atributos Extras',
+      value: pmSubSteps,
+    });
+  }
+
+  if (defSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Defesa',
+      type: 'Atributos Extras',
+      value: defSubSteps,
+    });
+  }
+
+  if (skillSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Perícias',
+      type: 'Atributos Extras',
+      value: skillSubSteps,
+    });
+  }
+
+  if (displacementSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Deslocamento',
+      type: 'Atributos Extras',
+      value: displacementSubSteps,
+    });
+  }
+
+  if (armorPenaltySubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Penalidade de Armadura',
+      type: 'Atributos Extras',
+      value: armorPenaltySubSteps,
+    });
+  }
+
+  if (modifySkillAttributeSubSteps.length) {
+    sheet.steps.push({
+      label: 'Bonus de Modificação de Atributo de Perícia',
+      type: 'Modificação de Atributo de Perícia',
+      value: modifySkillAttributeSubSteps,
+    });
+  }
+
+  return sheet;
+};
 
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
@@ -1161,9 +1655,8 @@ export default function generateRandomSheet(
     classe,
     pv: summedPV,
     pm: initialPM,
-    pvModifier: [],
-    pmModifier: [],
-    skillsModifier: [],
+    sheetBonuses: [], // TODO: I think this needs to be initialized already
+    sheetActionHistory: [], // TODO: THINK this one can be empty and get filled later on apply powers. Remove comment if true
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
@@ -1209,7 +1702,7 @@ export default function generateRandomSheet(
         name: skill,
         halfLevel: Math.floor(charSheet.nivel / 2),
         training: Object.values(charSheet.skills).includes(skill) ? 2 : 0,
-        modAttr: attr.mod,
+        modAttr: attr.name,
         others: armorPenalty > 0 ? armorPenalty * -1 : 0,
       };
     })
@@ -1247,83 +1740,8 @@ export default function generateRandomSheet(
     charSheet = levelUp(charSheet);
   }
 
-  if (charSheet.pvModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    // Aplicar modificadores de atributos
-    const pvExtra = charSheet.pvModifier.reduce((acc, mod) => {
-      const modifierValue = getStatModifierValue(charSheet, mod);
-      subSteps.push({
-        value: `${mod.source}: +${modifierValue}${
-          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
-        }`,
-      });
-      return acc + modifierValue;
-    }, 0);
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'PV extra',
-      value: subSteps,
-    });
-    charSheet.pv += pvExtra;
-  }
-
-  if (charSheet.pmModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    const pmExtra = charSheet.pmModifier.reduce((acc, mod) => {
-      const modifierValue = getStatModifierValue(charSheet, mod);
-      subSteps.push({
-        value: `${mod.source}: +${modifierValue}${
-          mod.type === 'Attribute' ? ` (${mod.attribute})` : ''
-        }`,
-      });
-      return acc + modifierValue;
-    }, 0);
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'PM extra',
-      value: subSteps,
-    });
-    charSheet.pm += pmExtra;
-  }
-
-  if (charSheet.skillsModifier.length > 0) {
-    const subSteps: SubStep[] = [];
-
-    let newCompleteSkills = _.clone(charSheet.completeSkills);
-
-    charSheet.skillsModifier.forEach(([skill, modifier]) => {
-      newCompleteSkills = charSheet.completeSkills?.map((sk) => {
-        let value = sk.others ?? 0;
-
-        if (sk.name === skill) {
-          const modifierValue = getStatModifierValue(charSheet, modifier);
-          value += modifierValue;
-
-          subSteps.push({
-            value: `${modifier.source}: +${modifierValue}${
-              modifier.type === 'Attribute' ? ` (${modifier.attribute})` : ''
-            } em ${skill}`,
-          });
-        }
-
-        return { ...sk, others: value };
-      });
-    });
-
-    charSheet.steps.push({
-      type: 'Atributos Extras',
-      label: 'Extras nas Perícias:',
-      value: subSteps,
-    });
-
-    charSheet = _.merge(charSheet, {
-      completeSkills: newCompleteSkills,
-    });
-  }
+  // Passo 13: Aplicar modificadores de atributos
+  charSheet = applyStatModifiers(charSheet);
 
   return charSheet;
 }

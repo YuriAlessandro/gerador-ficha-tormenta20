@@ -31,39 +31,50 @@ const HYNNE: Race = {
       name: 'Pequeno e Rechonchudo',
       description:
         'Seu tamanho é Pequeno (veja a página 106) e seu deslocamento é 6m. Você recebe +2 em Enganação e usa o modificador de Destreza para Atletismo (em vez de Força).',
-      action(sheet, subSteps) {
-        const sheetClone = { ...sheet };
-
-        sheetClone.completeSkills = sheetClone.completeSkills?.map((skill) => {
-          if (skill.name === Skill.ENGANACAO) {
-            subSteps.push({
-              name: 'Pequeno e Rechonchudo',
-              value: `+2 em Enganação`,
-            });
-
-            return {
-              ...skill,
-              others: (skill.others || 0) + 2,
-            };
-          }
-
-          if (skill.name === Skill.ATLETISMO) {
-            subSteps.push({
-              name: 'Pequeno e Rechonchudo',
-              value: `Usa Destreza em Atletismo`,
-            });
-
-            return {
-              ...skill,
-              modAttr: sheetClone.atributos?.Destreza.mod,
-            };
-          }
-
-          return skill;
-        });
-
-        return sheetClone;
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Pequeno e Rechonchudo',
+          },
+          target: {
+            type: 'Displacement',
+          },
+          modifier: {
+            type: 'Fixed',
+            value: -3,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Pequeno e Rechonchudo',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.ENGANACAO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Pequeno e Rechonchudo',
+          },
+          target: {
+            type: 'ModifySkillAttribute',
+            skill: Skill.ATLETISMO,
+            attribute: Atributo.DESTREZA,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 0,
+          },
+        },
+      ],
     },
     {
       name: 'Sorte Salvadora',

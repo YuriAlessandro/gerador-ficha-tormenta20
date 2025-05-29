@@ -22,23 +22,18 @@ const MEDUSA: Race = {
       name: 'Cria de Megalokk',
       description:
         'Você é uma criatura do tipo monstro e recebe visão no escuro.',
-      action(sheet, subSteps) {
-        const sheetClone = { ...sheet };
-
-        if (!sheetClone.sentidos?.includes('Visão no escuro')) {
-          sheetClone.sentidos = [
-            ...(sheetClone.sentidos || []),
-            'Visão no escuro',
-          ];
-        }
-
-        subSteps.push({
-          name: 'Cria de Megalokk',
-          value: 'Você recebe visão no escuro',
-        });
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Cria de Megalokk',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão no escuro',
+          },
+        },
+      ],
     },
     {
       name: 'Natureza Venenosa',

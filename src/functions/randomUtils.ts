@@ -1,6 +1,4 @@
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import generalPowers from '../data/poderes';
-import PROFICIENCIAS from '../data/proficiencias';
 import {
   allDivindadeNames,
   DivindadeNames,
@@ -114,38 +112,16 @@ export function rollDice(
   return sum;
 }
 
-type notRepeatedDefaultsTypes = 'power' | 'skill' | 'proficiencia';
 type notRepeatedTypes = GeneralPower | Skill | string;
 
-const generalPowersEmpty: GeneralPower[] = [];
-
-const NOT_REPEATED_DEFAULTS: Record<
-  notRepeatedDefaultsTypes,
-  (GeneralPower | Skill | string)[]
-> = {
-  power: generalPowersEmpty.concat(...Object.values(generalPowers)),
-  skill: Object.values(Skill),
-  proficiencia: Object.values(PROFICIENCIAS),
-};
-
-export function getNotUsedFromAllowed<T>(
-  used: T[],
-  type: notRepeatedDefaultsTypes,
-  allowed?: T[]
-): T[] {
-  return ((allowed || NOT_REPEATED_DEFAULTS[type]) as T[]).filter(
-    (element: T) => !used.includes(element)
-  );
+export function getNotUsedFromAllowed<T>(used: T[], allowed?: T[]): T[] {
+  return (allowed as T[]).filter((element: T) => !used.includes(element));
 }
 export function getNotRepeatedRandom<T extends notRepeatedTypes>(
   used: T[],
-  type: notRepeatedDefaultsTypes,
-  allowed?: T[]
+  allowed: T[]
 ): T {
-  const notRepeated = allowed
-    ? getNotUsedFromAllowed(used, type, allowed)
-    : getNotUsedFromAllowed(used, type);
-
+  const notRepeated = getNotUsedFromAllowed(used, allowed);
   return getRandomItemFromArray<T>(notRepeated);
 }
 
@@ -161,4 +137,27 @@ export function countTormentaPowers(sheet: CharacterSheet) {
   }
 
   return tormentaPowersQtd;
+}
+
+export function pickFromAllowed<
+  T extends string | { name: string } | { nome: string }
+>(options: T[], pick: number, alreadyPicked: T[] = []) {
+  const getName = (option: T) => {
+    if (typeof option === 'string') {
+      return option;
+    }
+    if (typeof option === 'object' && 'name' in option) {
+      return option.name;
+    }
+    if (typeof option === 'object' && 'nome' in option) {
+      return option.nome;
+    }
+    throw new Error('Option must have a name or nome property');
+  };
+
+  const notPicked = options.filter(
+    (option) =>
+      !alreadyPicked.find((picked) => getName(picked) === getName(option))
+  );
+  return pickFromArray(notPicked, pick);
 }

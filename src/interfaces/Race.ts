@@ -1,7 +1,7 @@
 import { Atributo } from '../data/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
-import CharacterSheet, { SubStep } from './CharacterSheet';
+import CharacterSheet, { SheetAction, SheetBonus, SubStep } from './CharacterSheet';
 import { ClassDescription } from './Class';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
@@ -56,7 +56,8 @@ export interface CharacterStats {
 export type RaceAbility = {
   name: string;
   description: string;
-  action?: (sheet: CharacterSheet, subSteps: SubStep[]) => CharacterSheet;
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
 };
 
 export type RaceNames =

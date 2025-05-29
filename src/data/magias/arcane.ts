@@ -134,3 +134,56 @@ export const allArcaneSpellsCircle4: Spell[] = Object.values(
 export const allArcaneSpellsCircle5: Spell[] = Object.values(
   arcaneSpellsCircle5
 ).reduce((acc, current) => [...acc, ...current]);
+
+export function getArcaneSpellsOfCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return Object.values(allArcaneSpellsCircle1);
+  }
+  if (circle === 2) {
+    return Object.values(allArcaneSpellsCircle2);
+  }
+  if (circle === 3) {
+    return Object.values(allArcaneSpellsCircle3);
+  }
+  if (circle === 4) {
+    return Object.values(allArcaneSpellsCircle4);
+  }
+  if (circle === 5) {
+    return Object.values(allArcaneSpellsCircle5);
+  }
+  return [];
+}
+
+export function allArcaneSpellsUpToCircle(circle: number): Spell[] {
+  if (circle === 1) {
+    return allArcaneSpellsCircle1;
+  }
+  if (circle === 2) {
+    return [...allArcaneSpellsCircle1, ...allArcaneSpellsCircle2];
+  }
+  if (circle === 3) {
+    return [
+      ...allArcaneSpellsCircle1,
+      ...allArcaneSpellsCircle2,
+      ...allArcaneSpellsCircle3,
+    ];
+  }
+  if (circle === 4) {
+    return [
+      ...allArcaneSpellsCircle1,
+      ...allArcaneSpellsCircle2,
+      ...allArcaneSpellsCircle3,
+      ...allArcaneSpellsCircle4,
+    ];
+  }
+  if (circle === 5) {
+    return [
+      ...allArcaneSpellsCircle1,
+      ...allArcaneSpellsCircle2,
+      ...allArcaneSpellsCircle3,
+      ...allArcaneSpellsCircle4,
+      ...allArcaneSpellsCircle5,
+    ];
+  }
+  return [];
+}
