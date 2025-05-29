@@ -30,22 +30,22 @@ export interface RemainingExpertise {
   list: Skill[];
 }
 
-export interface ClassAbility {
+export type ClassAbility = {
   name: string;
   text: string;
   nivel: number;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
-}
+};
 
-export interface ClassPower {
+export type ClassPower = {
   name: string;
   text: string;
   requirements?: Requirement[][];
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
-}
+};
 
 export interface SpellPath {
   initialSpells: number;

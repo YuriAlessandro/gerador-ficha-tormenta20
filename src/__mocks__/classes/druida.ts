@@ -35,7 +35,7 @@ export function druida(race: Race): CharacterSheet {
         {
           nome: 'Pique',
           dano: '1d8',
-          critico: '2x',
+          critico: 'x2',
           peso: 5,
           tipo: 'Perf.',
           alcance: '-',

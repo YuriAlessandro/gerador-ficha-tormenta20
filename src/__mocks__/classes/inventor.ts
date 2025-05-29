@@ -34,7 +34,7 @@ export function inventor(race: Race): CharacterSheet {
           {
             nome: 'Azagaia',
             dano: '1d6',
-            critico: '2x',
+            critico: 'x2',
             peso: 1,
             tipo: 'Perf.',
             alcance: 'Médio',

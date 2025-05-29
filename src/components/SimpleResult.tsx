@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import ReactToPrint from 'react-to-print';
+import { Card, Container } from '@mui/material';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
 
 interface ResultProps {
   sheet: CharacterSheet;
-  isDarkMode: boolean;
 }
 
 const SimpleResult: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode } = props;
+  const { sheet } = props;
   const [showExportButton, setExportButton] = React.useState<boolean>();
 
   function getKey(elementId: string) {
@@ -56,7 +56,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
   const handleExport = () => resultRef.current;
 
   return (
-    <>
+    <Container maxWidth='xl'>
       <div className='exportButtonsContainer'>
         <div
           style={{
@@ -75,10 +75,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           />
         </div>
       </div>
-      <div
-        className={`resultMainDiv ${isDarkMode ? 'dark' : ''}`}
-        ref={resultRef}
-      >
+      <Card ref={resultRef} sx={{ p: 2, mt: 2 }}>
         <div className='simpleSeetName'>{sheet.nome}</div>
         {sheet.raca.name} {sheet.nivel}
         <div className='simpleSheetDivisor' />
@@ -217,8 +214,8 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
             ))}
           </div>
         )}
-      </div>
-    </>
+      </Card>
+    </Container>
   );
 };
 

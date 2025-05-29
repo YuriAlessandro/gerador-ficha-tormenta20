@@ -53,12 +53,12 @@ export interface CharacterStats {
   };
 }
 
-export interface RaceAbility {
+export type RaceAbility = {
   name: string;
   description: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
-}
+};
 
 export type RaceNames =
   | 'Humano'

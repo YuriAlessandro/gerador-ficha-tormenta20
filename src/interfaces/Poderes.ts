@@ -47,13 +47,13 @@ export type GeneralPowers = {
   [key in GeneralPowerType]: GeneralPower[];
 };
 
-export interface OriginPower {
+export type OriginPower = {
   name: string;
   description: string;
   type: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
-}
+};
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
 
