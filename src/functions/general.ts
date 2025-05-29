@@ -1320,7 +1320,12 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
     return eval(filledFormula);
   }
   if (bonus.type === 'TormentaPowersCalc') {
-    // TODO
+    const filledFormula = bonus.formula.replace(
+      '{tPowQtd}',
+      countTormentaPowers(sheet).toString()
+    );
+    // eslint-disable-next-line no-eval
+    return eval(filledFormula);
     return 0;
   }
   if (bonus.type === 'SpecialAttribute') {
