@@ -3,6 +3,7 @@ import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { Box } from '@mui/material';
 import React from 'react';
+import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
 import PowerDisplay from './PowerDisplay';
 
 function filterUnique<T>(array: T[]) {
@@ -10,6 +11,7 @@ function filterUnique<T>(array: T[]) {
 }
 
 const PowersDisplay: React.FC<{
+  sheetHistory: SheetActionHistoryEntry[];
   classPowers: ClassPower[];
   raceAbilities: RaceAbility[];
   classAbilities: ClassAbility[];
@@ -19,6 +21,7 @@ const PowersDisplay: React.FC<{
   className: string;
   raceName: string;
 }> = ({
+  sheetHistory,
   classPowers,
   raceAbilities,
   classAbilities,
@@ -78,6 +81,7 @@ const PowersDisplay: React.FC<{
     <Box>
       {uniquePowers.map((power) => (
         <PowerDisplay
+          sheetHistory={sheetHistory}
           key={power.name}
           power={power}
           type={getPowerOrigin(power)}

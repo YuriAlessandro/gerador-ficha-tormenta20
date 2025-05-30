@@ -16,6 +16,16 @@ export type SheetChangeSource =
   | {
       type: 'levelUp';
       level: number;
+    }
+  | { type: 'origin'; originName: string }
+  | { type: 'race'; raceName: string }
+  | {
+      type: 'class';
+      className: string;
+    }
+  | {
+      type: 'divinity';
+      divinityName: string;
     };
 
 export type SheetAction = {

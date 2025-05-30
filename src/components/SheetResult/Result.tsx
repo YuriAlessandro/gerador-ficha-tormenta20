@@ -455,6 +455,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 <Box>
                   <BookTitle>Poderes</BookTitle>
                   <PowersDisplay
+                    sheetHistory={sheet.sheetActionHistory}
                     classAbilities={classe.abilities}
                     classPowers={classPowers}
                     raceAbilities={raca.abilities}

@@ -1006,6 +1006,19 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
+  // Adicionar habilidades da raça
+  sheetClone.sheetActionHistory.push({
+    source: {
+      type: 'race',
+      raceName: sheetClone.raca.name,
+    },
+    changes:
+      sheetClone.raca.abilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })) || [],
+  });
+
   sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
     const [newAcc, newSubSteps] = applyPower(acc, ability);
     subSteps.push(...newSubSteps);
@@ -1026,6 +1039,19 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
 function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
+
+  // Adicionar poderes concedidos da divindade
+  sheetClone.sheetActionHistory.push({
+    source: {
+      type: 'divinity',
+      divinityName: sheetClone.devoto?.divindade.name || 'Divindade',
+    },
+    changes:
+      sheetClone.devoto?.poderes.map((power) => ({
+        type: 'PowerAdded',
+        powerName: power.name,
+      })) || [],
+  });
 
   sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
     const [newAcc, newSubSteps] = applyPower(acc, power);
@@ -1051,6 +1077,19 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   const availableAbilities = sheetClone.classe.abilities.filter(
     (abilitie) => abilitie.nivel <= sheet.nivel
   );
+
+  // Adicionar habilidades da classe
+  sheetClone.sheetActionHistory.push({
+    source: {
+      type: 'class',
+      className: sheetClone.classe.name,
+    },
+    changes:
+      availableAbilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })) || [],
+  });
 
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
     const [newAcc, newSubSteps] = applyPower(acc, ability);
@@ -1139,6 +1178,19 @@ function applyPowerGetters(
 
   powersGetters.Origem.forEach((addPower) => {
     addPower(sheetClone, subSteps);
+  });
+
+  // Poderes de origem adicionados, adicionar no histórico de ações
+  sheetClone.sheetActionHistory.push({
+    source: {
+      type: 'origin',
+      originName: sheetClone.origin?.name || 'Origem',
+    },
+    changes:
+      sheetClone.origin?.powers.map((power) => ({
+        type: 'PowerAdded',
+        powerName: power.name,
+      })) || [],
   });
 
   sheetClone = (sheetClone.origin?.powers || []).reduce((acc, ability) => {
@@ -1243,6 +1295,19 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
+  updatedSheet.sheetActionHistory.push({
+    source: {
+      type: 'levelUp',
+      level: updatedSheet.nivel,
+    },
+    changes: [
+      {
+        type: 'SpellsLearned',
+        spellNames: newSpells.map((spell) => spell.nome),
+      },
+    ],
+  });
+
   updatedSheet.steps.push({
     type: 'Poderes',
     label: `Nível ${updatedSheet.nivel}`,
@@ -1278,6 +1343,18 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
         });
       }
 
+      updatedSheet.sheetActionHistory.push({
+        source: {
+          type: 'levelUp',
+          level: updatedSheet.nivel,
+        },
+        changes: [
+          {
+            type: 'PowerAdded',
+            powerName: newPower.name,
+          },
+        ],
+      });
       // subSteps.push(nSubSteps);
     }
   } else {
@@ -1302,6 +1379,19 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
         value: newPower.name,
       });
     }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: [
+        {
+          type: 'PowerAdded',
+          powerName: newPower.name,
+        },
+      ],
+    });
   }
 
   return updatedSheet;
@@ -1353,10 +1443,17 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
   sheet.sheetBonuses.forEach((bonus) => {
     const bonusValue = calculateBonusValue(sheet, bonus.modifier);
-    const subStepName: string =
-      bonus.source.type === 'power'
-        ? `${bonus.source.name}:`
-        : `Nível ${bonus.source.level}:`;
+    const getSubStepName = (source: SheetChangeSource) => {
+      if (source.type === 'power') {
+        return `${source.name}:`;
+      }
+      if (source.type === 'levelUp') {
+        return `Nível ${source.level}:`;
+      }
+      // Assumindo que as únicas fontes de bonus são poderes e levelUp
+      return '';
+    };
+    const subStepName: string = getSubStepName(bonus.source);
 
     if (bonus.target.type === 'PV') {
       sheet.pv += bonusValue;
@@ -1655,8 +1752,8 @@ export default function generateRandomSheet(
     classe,
     pv: summedPV,
     pm: initialPM,
-    sheetBonuses: [], // TODO: I think this needs to be initialized already
-    sheetActionHistory: [], // TODO: THINK this one can be empty and get filled later on apply powers. Remove comment if true
+    sheetBonuses: [],
+    sheetActionHistory: [],
     defesa: initialDefense,
     bag: initialBag,
     devoto: devote,
