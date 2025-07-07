@@ -23,6 +23,54 @@ const Changelog: React.FC = () => (
         .
       </p>
 
+      <h2>Versão 3.0</h2>
+
+      <h3>3.0.0</h3>
+      <ul>
+        <li>
+          Todos os textos foram atualizados para{' '}
+          <strong>Tormenta 20: Edição Jogo do Ano</strong>.
+        </li>
+        <ul>
+          <li>
+            Os textos da versão inicial do livro não estão mais disponíveis na
+            plataforma.
+          </li>
+        </ul>
+        <li>
+          O layout da ficha foi atualizado para ficar mais moderno e bonito.
+        </li>
+        <ul>
+          <li>
+            Devido essa mudança, não está sendo possível exportar a nova ficha
+            para PDF diretamente. Você pode usar a opção &quot;Ficha
+            Detalhada&quot; para fazer isso.
+          </li>
+        </ul>
+        <li>
+          Mais poderes estão sendo automaticamente adicionados à ficha (por
+          exemplo os Aumentos de Atributo). Acreditamos que alcançamos um estado
+          em que praticamente todos os poderes que devem ser calculados
+          automaticamente na ficha já estão fazendo isso.
+        </li>
+        <li>
+          O gerador de recompensas agora está utilizando as regras atualizadas
+          da versão JdA e resultando em itens mais detalhados ainda.
+        </li>
+        <li>
+          O antigo &quot;Database&quot; teve o nome alterado para
+          &quot;Enciclopédia de Tannah-Toh&quot;.
+          <ul>
+            <li>As magias agora estão com todas as descrições.</li>
+            <li>
+              Magias divinas não estavam exibindo os aprimoramentos. Isso foi
+              alterado.
+            </li>
+          </ul>
+        </li>
+        <li>A página incial foi reorganizada.</li>
+      </ul>
+
       <h2>Versão 2.0</h2>
 
       <h3>2.6.2</h3>

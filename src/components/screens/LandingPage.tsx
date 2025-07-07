@@ -86,6 +86,22 @@ const LandingPage: React.FC<{
               </Grid>
             </Grid>
           </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Enciclopédia de Tanah-Toh'
+              text='Um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
+              image={others}
+              onClick={() => onClickButton('database/raças')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Rolador de recompensas'
+              text='Gere as recompensas da sua mesa de forma muito rápida.'
+              image={ferramentas}
+              onClick={() => onClickButton('recompensas')}
+            />
+          </Grid>
           <Grid item xs={12}>
             <Card>
               <div id='presentation'>
@@ -135,14 +151,6 @@ const LandingPage: React.FC<{
               </div>
             </Card>
           </Grid>
-          <Grid item xs={12}>
-            <LandingOption
-              title='Rolador de recompensas'
-              text='Gere as recompensas da sua mesa de forma muito rápida.'
-              image={ferramentas}
-              onClick={() => onClickButton('recompensas')}
-            />
-          </Grid>
           <Grid item xs={6}>
             <LandingOption
               title='Compre Tormenta 20'
@@ -159,14 +167,6 @@ const LandingPage: React.FC<{
               title='Changelog'
               text='Acompanhe o progresso do nosso projeto.'
               onClick={() => onClickButton('changelog')}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <LandingOption
-              title='Enciclopédia de Tanah-Toh'
-              text='Um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
-              image={others}
-              onClick={() => onClickButton('database/raças')}
             />
           </Grid>
           <Grid item xs={6}>
