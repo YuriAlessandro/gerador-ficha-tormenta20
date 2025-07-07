@@ -1,5 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
+import { Box, Grid, Typography } from '@mui/material';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
@@ -23,6 +24,8 @@ const Spells: React.FC<SpellsProp> = (props) => {
   const mod = keyAttr ? keyAttr.mod : 0;
   const resistence = 10 + Math.floor(nivel * 0.5) + mod;
 
+  const isMobile = window.innerWidth < 720;
+
   return (
     <div>
       {spells.length > 0 && spellPath && (
@@ -37,7 +40,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
           <span>
             <strong>Teste de Resistência:</strong> {resistence}
             <span className='spellCalc'>
-              {` (10 + ¹/₂ nível + mod. atributo-chave)`}
+              {` (10 + ¹/₂ nível + atributo-chave)`}
             </span>
           </span>
         </div>
@@ -45,36 +48,42 @@ const Spells: React.FC<SpellsProp> = (props) => {
       {spells.length === 0 ? (
         <span>Não Possui</span>
       ) : (
-        <div>
-          <table>
-            <thead>
-              <tr>
-                <th>Círculo</th>
-                <th>(Custo) Magia</th>
-                <th>Escola</th>
-                <th>Execução</th>
-                <th>Alcance</th>
-                <th>Alvo/Área</th>
-                <th>Duração</th>
-                <th>Resistência</th>
-              </tr>
-            </thead>
-            {spells.map((spell) => (
-              <SpellRow key={spell.nome} spell={spell} />
-            ))}
-          </table>
-
-          <div>
-            {spellPath?.schools && (
-              <div style={{ marginTop: '15px' }}>
-                <strong>{'Escolas: '}</strong>
-                {spellPath?.schools?.map((school) => (
-                  <span key={school}>{school}, </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <Box>
+          {!isMobile && (
+            <Grid container spacing={2} sx={{ fontSize: 12 }}>
+              <Grid item xs={4}>
+                <span />
+              </Grid>
+              <Grid item xs={2}>
+                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                  Escola
+                </Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                  Execução
+                </Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                  Alcance
+                </Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                  Resistência
+                </Typography>
+              </Grid>
+            </Grid>
+          )}
+          <Box>
+            {spells
+              .sort((a, b) => a.nome.localeCompare(b.nome))
+              .map((spell) => (
+                <SpellRow key={spell.nome} spell={spell} />
+              ))}
+          </Box>
+        </Box>
       )}
     </div>
   );

@@ -7,7 +7,7 @@ import Bag from '../../interfaces/Bag';
 export function inventor(race: Race): CharacterSheet {
   return {
     id: 'testid',
-    maxWeight: 33,
+    maxSpaces: 12,
     nome: 'Fulano',
     raca: race,
     sexo: 'Homem',
@@ -34,7 +34,7 @@ export function inventor(race: Race): CharacterSheet {
           {
             nome: 'Azagaia',
             dano: '1d6',
-            critico: '2x',
+            critico: 'x2',
             peso: 1,
             tipo: 'Perf.',
             alcance: 'Médio',
@@ -142,5 +142,7 @@ export function inventor(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 13,
     pm: 4,
+    sheetActionHistory: [],
+    sheetBonuses: [],
   };
 }

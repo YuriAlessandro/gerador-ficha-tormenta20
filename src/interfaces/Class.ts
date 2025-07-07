@@ -1,5 +1,5 @@
 import { Atributo } from '../data/atributos';
-import CharacterSheet from './CharacterSheet';
+import { SheetBonus, SheetAction } from './CharacterSheet';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
@@ -30,26 +30,22 @@ export interface RemainingExpertise {
   list: Skill[];
 }
 
-export interface ClassAbility {
+export type ClassAbility = {
   name: string;
   text: string;
   nivel: number;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
-}
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
+};
 
-export interface ClassPower {
+export type ClassPower = {
   name: string;
   text: string;
   requirements?: Requirement[][];
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
-}
+};
 
 export interface SpellPath {
   initialSpells: number;
@@ -72,7 +68,7 @@ export interface ClassDescription {
   abilities: ClassAbility[];
   powers: ClassPower[];
   probDevoto: number;
-  qtdPoderesConcedidos?: string;
+  qtdPoderesConcedidos?: string | number;
   faithProbability?: FaithProbability;
   attrPriority: Atributo[];
   spellPath?: SpellPath;

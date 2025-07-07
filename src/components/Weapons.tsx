@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from '@mui/material';
 import Equipment from '../interfaces/Equipment';
 import Weapon from './Weapon';
 
@@ -22,23 +23,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     />
   ));
 
-  return (
-    <table>
-      <thead>
-        <tr>
-          <th>
-            Ataques <span id='bnsAtk'>(+Bônus de Ataque)</span>
-          </th>
-          <th>Dano</th>
-          <th>Crítico</th>
-          <th>Tipo</th>
-          <th>Alcance</th>
-          <th>Peso</th>
-        </tr>
-      </thead>
-      <tbody>{weaponsDiv}</tbody>
-    </table>
-  );
+  return <Box>{weaponsDiv}</Box>;
 };
 
 export default Weapons;

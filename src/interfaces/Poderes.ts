@@ -1,6 +1,6 @@
 import { Atributo } from '../data/atributos';
 // eslint-disable-next-line
-import CharacterSheet, { SubStep } from './CharacterSheet';
+import CharacterSheet, { SheetBonus, SheetAction, SubStep } from './CharacterSheet';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -22,6 +22,7 @@ export enum RequirementType {
   TIPO_ARCANISTA = 'TIPO_ARCANISTA',
   MAGIA = 'MAGIA',
   DEVOTO = 'DEVOTO',
+  TEXT = 'TEXT',
 }
 
 export interface Requirement {
@@ -29,6 +30,7 @@ export interface Requirement {
   name?: string | Atributo;
   value?: number;
   not?: boolean;
+  text?: string;
 }
 
 export interface GeneralPower {
@@ -37,21 +39,21 @@ export interface GeneralPower {
   name: string;
   requirements: Requirement[][];
   allowSeveralPicks?: boolean;
-  action?: (
-    sheet: CharacterSheet,
-    subSteps: { name: string; value: string }[]
-  ) => CharacterSheet;
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
 }
 
 export type GeneralPowers = {
   [key in GeneralPowerType]: GeneralPower[];
 };
 
-export interface OriginPower {
+export type OriginPower = {
   name: string;
   description: string;
   type: string;
-}
+  sheetActions?: SheetAction[];
+  sheetBonuses?: SheetBonus[];
+};
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;
 
@@ -59,7 +61,9 @@ export type PowersGetters = Record<'Origem', PowerGetter[]>;
 
 export type grantedPowers =
   | 'AFINIDADE_COM_A_TORMENTA'
+  | 'ALMEJAR_O_IMPOSSIVEL'
   | 'ANFIBIO'
+  | 'APOSTAR_COM_O_TRAPACEIRO'
   | 'ARMAS_DA_AMBICAO'
   | 'ARSENAL_DAS_PROFUNDEZAS'
   | 'ASTUCIA_DA_SERPENTE'
@@ -70,6 +74,7 @@ export type grantedPowers =
   | 'BENCAO_DO_MANA'
   | 'CARICIA_SOMBRIA'
   | 'CENTELHA_MAGICA'
+  | 'COMPREENDER_OS_ERMOS'
   | 'CONHECIMENTO_ENCICLOPEDICO'
   | 'CONJURAR_ARMA'
   | 'CORAGEM_TOTAL'
@@ -77,6 +82,7 @@ export type grantedPowers =
   | 'CURANDEIRA_PERFEITA'
   | 'DEDO_VERDE'
   | 'DESCANSO_NATURAL'
+  | 'DOM_DA_ESPERANCA'
   | 'DOM_DA_IMORTALIDADE'
   | 'DOM_DA_PROFECIA'
   | 'DOM_DA_RESSUREICAO'
@@ -85,8 +91,12 @@ export type grantedPowers =
   | 'ESCUDO_MAGICO'
   | 'ESPADA_JUSTICEIRA'
   | 'ESPADA_SOLAR'
+  | 'EXTASE_DA_LOUCURA'
+  | 'FAMILIAR_OFIDICO'
   | 'FARSA_DO_FINGIDOR'
+  | 'FE_GUERREIRA'
   | 'FORMA_DE_MACACO'
+  | 'FULGOR_SOLAR'
   | 'FURIA_DIVINA'
   | 'GOLPISTA_DIVINO'
   | 'HABITANTE_DO_DESERTO'
@@ -100,19 +110,25 @@ export type grantedPowers =
   | 'OLHAR_AMEDRONTADOR'
   | 'PALAVRAS_DE_BONDADE'
   | 'PERCEPCAO_TEMPORAL'
+  | 'PESQUISA_ABENCOADA'
   | 'PODER_OCULTO'
+  | 'PRESAS_PRIMORDIAIS'
   | 'PRESAS_VENENOSAS'
+  | 'REPARAR_INJUSTICA'
   | 'REJEICAO_DIVINA'
   | 'SANGUE_DE_FERRO'
   | 'SANGUE_OFIDICO'
   | 'SERVOS_DO_DRAGAO'
   | 'SORTE_DOS_LOUCOS'
+  | 'SOPRO_DO_MAR'
   | 'TALENTO_ARTISTICO'
   | 'TEURGISTA_MISTICO'
+  | 'TRADICAO_DE_LIN_WU'
   | 'TRANSMISSAO_DA_LOUCURA'
   | 'TROPAS_DUYSHIDAKK'
   | 'URRO_DIVINO'
   | 'VISAO_NAS_TREVAS'
   | 'VOZ_DA_CIVILIZACAO'
   | 'VOZ_DA_NATUREZA'
-  | 'VOZ_DOS_MONSTROS';
+  | 'VOZ_DOS_MONSTROS'
+  | 'ZUMBIFICAR';

@@ -1,5 +1,4 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
+import Skill from '@/interfaces/Skills';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -7,9 +6,9 @@ const ELFO: Race = {
   name: 'Elfo',
   attributes: {
     attrs: [
-      { attr: Atributo.INTELIGENCIA, mod: 4 },
-      { attr: Atributo.DESTREZA, mod: 2 },
-      { attr: Atributo.CONSTITUICAO, mod: -2 },
+      { attr: Atributo.INTELIGENCIA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 1 },
+      { attr: Atributo.CONSTITUICAO, mod: -1 },
     ],
   },
   faithProbability: {
@@ -29,28 +28,68 @@ const ELFO: Race = {
     {
       name: 'Herança Feérica',
       description: 'Você recebe +1 ponto de mana por nível.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-
-        const finalAddPM = sheet.classe.addpm + 1;
-        substeps.push({
-          name: 'Herança Feérica',
-          value: `+1 PM por nível (${sheet.classe.addpm} + 1 = ${finalAddPM})`,
-        });
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          classe: {
-            ...sheetClone.classe,
-            addpm: finalAddPM,
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Herança Feérica',
           },
-          pm: sheetClone.nivel === 1 ? sheetClone.pm + 1 : sheetClone.pm,
-        });
-      },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: '{level}',
+          },
+        },
+      ],
     },
     {
       name: 'Sentidos Élficos',
       description:
         'Você recebe visão na penumbra e +2 em Misticismo e Percepção.',
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Sentidos Élficos',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão na penumbra',
+          },
+        },
+      ],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Sentidos Élficos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.MISTICISMO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Sentidos Élficos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.PERCEPCAO,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
   ],
 };

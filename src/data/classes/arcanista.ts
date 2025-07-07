@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import { getRandomItemFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import {
   ClassDescription,
   ClassAbility,
@@ -10,6 +9,8 @@ import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import tormentaPowers from '../powers/tormentaPowers';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
@@ -84,18 +85,59 @@ const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
 const feiticeiroPaths: ClassAbility[] = [
   {
     name: 'Linhagem Dracônica',
-    text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5. (ADICIONE VOCÊ MESMO)',
+    text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5',
     nivel: 1,
+    // Tipo do dano está sendo escolhido no setup
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Dracônica',
+        },
+        target: { type: 'PV' },
+        modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
+      },
+    ],
   },
   {
     name: 'Linhagem Feérica',
-    text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha. (ADICIONE VOCÊ MESMO)',
+    text: 'Seu sangue foi tocado pelas fadas. Básica: Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão, arcana ou divina, a sua escolha.',
     nivel: 1,
+    // Enganação já foi dado no setup
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Feérica',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1).filter(
+            (spell) => spell.school === 'Encan' || spell.school === 'Ilusão'
+          ),
+          pick: 1,
+        },
+      },
+    ],
   },
   {
     name: 'Linhagem Rubra',
-    text: 'Seu sangue foi corrompido pela Tormenta. Básica: Você recebe um poder da Tormenta. Quando adquire um poder da Tormenta, você pode aplicar a penalidade em Carisma a outro atributo. Sua relação com a invasão aberrante lhe permite sacrificar partes específicas de seu ser. (ADICIONE VOCÊ MESMO)',
+    text: 'Seu sangue foi corrompido pela Tormenta. Básica: Você recebe um poder da Tormenta. Além disso, pode perder outro atributo em vez de Carisma por poderes da Tormenta.',
     nivel: 1,
+    // Gimmick de perder Carisma está na parte de aplicar poderes da tormenta
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Linhagem Rubra',
+        },
+        action: {
+          type: 'getGeneralPower',
+          availablePowers: Object.values(tormentaPowers),
+          pick: 1,
+        },
+      },
+    ],
   },
 ];
 
@@ -112,8 +154,20 @@ const ARCANISTA: ClassDescription = {
     },
   ],
   periciasrestantes: {
-    qtd: 1,
-    list: [Skill.CONHECIMENTO, Skill.INICIATIVA, Skill.OFICIO, Skill.PERCEPCAO],
+    qtd: 2,
+    list: [
+      Skill.CONHECIMENTO,
+      Skill.DIPLOMACIA,
+      Skill.ENGANACAO,
+      Skill.GUERRA,
+      Skill.INICIATIVA,
+      Skill.INTIMIDACAO,
+      Skill.INTUICAO,
+      Skill.INVESTIGACAO,
+      Skill.NOBREZA,
+      Skill.OFICIO,
+      Skill.PERCEPCAO,
+    ],
   },
   proficiencias: [PROFICIENCIAS.SIMPLES, PROFICIENCIAS.LEVES],
   abilities: [
@@ -121,26 +175,16 @@ const ARCANISTA: ClassDescription = {
       name: 'Magias',
       text: 'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2o círculo no 5o nível, 3o círculo no 9o nível e assim por diante).',
       nivel: 1,
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        let keyAttr = 'INT';
-        let keyAttrMod = sheet.atributos.Inteligência.mod;
-        if (sheet.classe.subname === 'Feiticeiro') {
-          keyAttr = 'CAR';
-          keyAttrMod = sheet.atributos.Carisma.mod;
-        }
-
-        const finalPM = sheet.pm + keyAttrMod;
-        substeps.push({
-          name: 'Magias',
-          value: `+(Mod ${keyAttr}) PMs inicias (${sheet.pm} + ${keyAttrMod} = ${finalPM})`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm: finalPM,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: { type: 'PM' },
+          modifier: { type: 'SpecialAttribute', attribute: 'spellKeyAttr' },
+        },
+      ],
     },
     {
       name: 'Alta Arcana',
@@ -151,18 +195,24 @@ const ARCANISTA: ClassDescription = {
   powers: [
     {
       name: 'Arcano de Batalha',
-      text: 'Você soma o bônus de seu atributo-chave nas rolagens de dano para magias e para seu Raio Arcano (caso possua).',
+      text: 'Você soma o bônus de seu atributo-chave nas rolagens de dano para magias.',
       requirements: [],
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo a sua escolha (NÃO CONTABILIZADO).  Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo',
       canRepeat: true,
       requirements: [],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Caldeirão do Bruxo',
-      text: 'Você pode criar poções, como se tivesse o poder geral Preparar Poção. Se tiver ambos, você pode criar poções de 3º círculo.',
+      text: 'Você pode criar poções, como se tivesse o poder geral Preparar Poção. Se tiver ambos, você pode criar poções de 5º círculo.',
       requirements: [
         [
           { type: RequirementType.TIPO_ARCANISTA, name: 'Bruxo' },
@@ -172,9 +222,46 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Conhecimento Mágico',
-      text: 'Você aprende duas magias de qualquer círculo que possa lançar (NÃO INCLUÍDO). Você pode escolher este poder quantas vezes quiser.',
+      text: 'Você aprende duas magias de qualquer círculo que possa lançar. Você pode escolher este poder quantas vezes quiser.',
       canRepeat: true,
       requirements: [],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Conhecimento Mágico',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            pick: 2,
+            allowedType: 'Arcane',
+          },
+        },
+      ],
+      // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
+      //   const sheetClone = _.cloneDeep(sheet);
+      //   const currentSpellCircle =
+      //     sheetClone.classe.spellPath?.spellCircleAvailableAtLevel(
+      //       sheet.nivel
+      //     ) || 1;
+
+      //   const keyAttr = sheetClone.classe.spellPath?.keyAttribute;
+
+      //   const availableSpells = getSpellsOfCircle(currentSpellCircle).filter(
+      //     (spell) => !!sheetClone.spells.find((s) => s.nome !== spell.nome)
+      //   );
+
+      //   addOrCheapenRandomSpells(
+      //     sheetClone,
+      //     substeps,
+      //     availableSpells,
+      //     'Conhecimento Mágico',
+      //     keyAttr || Atributo.INTELIGENCIA,
+      //     2
+      //   );
+
+      //   return sheetClone;
+      // },
     },
     {
       name: 'Contramágica Aprimorada',
@@ -189,7 +276,12 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Escriba Arcano',
       text: 'Você pode aprender magias copiando os textos de pergaminhos e grimórios de outros magos. Aprender uma magia dessa forma exige um dia de trabalho e T$ 250 em matérias-primas por PM necessário para lançar a magia. Assim, aprender uma magia de 3º círculo (6 PM) exige 6 dias de trabalho e o gasto de T$ 1.500.',
-      requirements: [[{ type: RequirementType.TIPO_ARCANISTA, name: 'Mago' }]],
+      requirements: [
+        [
+          { type: RequirementType.TIPO_ARCANISTA, name: 'Mago' },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRITA },
+        ],
+      ],
     },
     {
       name: 'Especialista em Escola',
@@ -201,7 +293,7 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Familiar',
-      text: 'Você possui um animal de estimação mágico (ver página 36).',
+      text: 'Você possui um animal de estimação mágico (ver página 38).',
       requirements: [],
     },
     {
@@ -217,7 +309,7 @@ const ARCANISTA: ClassDescription = {
     {
       name: 'Fortalecimento Arcano',
       text: 'A CD para resistir a suas magias aumenta em +1. Se você puder lançar magias de 4º círculo, em vez disso ela aumenta em +2.',
-      requirements: [],
+      requirements: [[{ type: RequirementType.NIVEL, value: 5 }]],
     },
     {
       name: 'Herança Aprimorada',
@@ -256,23 +348,30 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Poder Mágico',
-      text: 'Você recebe +1 ponto de mana por nível de arcanista (NÃO CONTABILIZADO). Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante. Você pode escolher este poder uma segunda vez, para um total de +2 PM por nível.',
+      text: 'Você recebe +1 ponto de mana por nível de arcanista. Quando sobe de nível, os PM que recebe por este poder aumentam de acordo. Por exemplo, se escolher este poder no 4º nível, recebe 4 PM. Quando subir para o 5º nível, recebe +1 PM e assim por diante.',
       requirements: [],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Poder Mágico' },
+          target: { type: 'PM' },
+          modifier: { type: 'LevelCalc', formula: '{level}' },
+        },
+      ],
     },
     {
       name: 'Raio Arcano',
-      text: 'Você pode gastar uma ação padrão para disparar um raio num alvo em alcance curto que causa 1d6 pontos de dano de essência. Esse dano aumenta em +1d6 para cada círculo de magia acima do 1º que você puder lançar. O alvo pode fazer um teste de Reflexos (CD atributo-chave) para reduzir o dano à metade.',
+      text: 'Você pode gastar uma ação padrão para causar 1d8 pontos de dano de essência num alvo em alcance curto. Esse dano aumenta em +1d8 para cada círculo de magia acima do 1º que você puder lançar. O alvo pode fazer um teste de Reflexos (CD atributo-chave) para reduzir o dano à metade. O raio arcano conta como uma magia para efeitos de habilidades e itens que beneficiem suas magias.',
       requirements: [],
     },
     {
       name: 'Raio Elemental',
-      text: 'Quando usa Raio Arcano, você pode pagar 1 PM para que ele cause dano de um tipo de energia a sua escolha, entre ácido, eletricidade, fogo, frio ou trevas. Se o alvo falhar no teste de Reflexos, sofre uma condição, de acordo com o tipo de energia. Veja a descrição das condições no Apêndice. Ácido: vulnerável por uma rodada. Eletricidade: ofuscado por uma rodada. Fogo: fica em chamas. Frio: lento por uma rodada. Trevas: não pode ser curado por uma rodada.',
-      requirements: [[{ type: RequirementType.PODER, name: 'Raio Elemental' }]],
+      text: 'Quando usa Raio Arcano, você pode pagar 1 PM para que ele cause dano de um tipo de energia a sua escolha, entre ácido, eletricidade, fogo, frio ou trevas. Se o alvo falhar no teste de Reflexos, sofre uma condição, de acordo com o tipo de energia. Veja a descrição das condições no Apêndice. Ácido: vulnerável por 1 rodada. Eletricidade: ofuscado por 1 rodada. Fogo: fica em chamas. Frio: lento por 1 rodada. Trevas: não pode curar PV por 1 uma rodada.',
+      requirements: [[{ type: RequirementType.PODER, name: 'Raio Arcano' }]],
     },
     {
       name: 'Raio Poderoso',
-      text: 'Os dados de dano do seu Raio Arcano aumentam para d8 e o alcance dele aumenta para médio.',
-      requirements: [[{ type: RequirementType.PODER, name: 'Raio Poderoso' }]],
+      text: 'Os dados de dano do seu Raio Arcano aumentam para d12 e o alcance dele aumenta para médio.',
+      requirements: [[{ type: RequirementType.PODER, name: 'Raio Arcano' }]],
     },
     {
       name: 'Tinta do Mago',
@@ -280,13 +379,14 @@ const ARCANISTA: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.TIPO_ARCANISTA, name: 'MAGO' },
-          { type: RequirementType.PERICIA, name: Skill.CONHECIMENTO },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRITA },
         ],
       ],
     },
   ],
   probDevoto: 0.3,
   faithProbability: {
+    AHARADAK: 1,
     AZGHER: 1,
     KALLYADRANOCH: 1,
     NIMB: 1,
@@ -304,8 +404,25 @@ const ARCANISTA: ClassDescription = {
     modifiedClasse.spellPath = spellPaths[subtype];
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
-      modifiedClasse.abilities.push(getRandomItemFromArray(feiticeiroPaths));
       modifiedClasse.attrPriority = [Atributo.CARISMA];
+      const selectedSubType = getRandomItemFromArray(feiticeiroPaths);
+      if (selectedSubType.name === 'Linhagem Dracônica') {
+        selectedSubType.text += `. Tipo escolhido: ${getRandomItemFromArray([
+          'Ácido',
+          'Elétrico',
+          'Fogo',
+          'Frio',
+        ])}`;
+      } else if (selectedSubType.name === 'Linhagem Feérica') {
+        modifiedClasse.periciasbasicas.push({
+          type: 'and',
+          list: [Skill.ENGANACAO],
+        });
+      } else if (selectedSubType.name === 'Linhagem Rubra') {
+        // Nothing here
+      }
+
+      modifiedClasse.abilities.push(selectedSubType);
     }
 
     return modifiedClasse;

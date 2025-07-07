@@ -1,8 +1,6 @@
-import { cloneDeep, merge } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
-import { addOrCheapenSpell, spellsCircle1 } from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 export const PLANTS_FRIEND_MANA_REDUCTION = 1;
 
@@ -10,9 +8,9 @@ const DAHLLAN: Race = {
   name: 'Dahllan',
   attributes: {
     attrs: [
-      { attr: Atributo.SABEDORIA, mod: 4 },
-      { attr: Atributo.DESTREZA, mod: 2 },
-      { attr: Atributo.INTELIGENCIA, mod: -2 },
+      { attr: Atributo.SABEDORIA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 1 },
+      { attr: Atributo.INTELIGENCIA, mod: -1 },
     ],
   },
   faithProbability: {
@@ -27,25 +25,20 @@ const DAHLLAN: Race = {
       name: 'Amiga das Plantas',
       description:
         'Você pode lançar a magia Controlar Plantas (atributo-chave Sabedoria). Caso aprenda novamente essa magia, seu custo diminui em –1 PM.',
-      action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-        const { spells, stepValue } = addOrCheapenSpell(
-          sheet,
-          spellsCircle1.controlarPlantas,
-          Atributo.SABEDORIA
-        );
-
-        if (stepValue) {
-          subSteps.push({
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
             name: 'Amiga das Plantas',
-            value: stepValue,
-          });
-        }
-
-        return merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          spells,
-        });
-      },
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: [spellsCircle1.controlarPlantas],
+            pick: 1,
+            customAttribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Armadura de Allihanna',
@@ -55,7 +48,7 @@ const DAHLLAN: Race = {
     {
       name: 'Empatia Selvagem',
       description:
-        'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 117). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
+        'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento para mudar atitude e pedir favores de animais (veja Diplomacia, na página 118). Caso receba esta habilidade novamente, recebe +2 em Adestramento.',
     },
   ],
 };

@@ -5,8 +5,8 @@ const MEDUSA: Race = {
   name: 'Medusa',
   attributes: {
     attrs: [
-      { attr: Atributo.DESTREZA, mod: 4 },
-      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.DESTREZA, mod: 2 },
+      { attr: Atributo.CARISMA, mod: 1 },
     ],
   },
   faithProbability: {
@@ -22,6 +22,18 @@ const MEDUSA: Race = {
       name: 'Cria de Megalokk',
       description:
         'Você é uma criatura do tipo monstro e recebe visão no escuro.',
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Cria de Megalokk',
+          },
+          action: {
+            type: 'addSense',
+            sense: 'Visão no escuro',
+          },
+        },
+      ],
     },
     {
       name: 'Natureza Venenosa',

@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import { pickFromArray } from '../../functions/randomUtils';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skills from '../../interfaces/Skills';
@@ -45,123 +44,155 @@ const DRUIDA: ClassDescription = {
   ],
   abilities: [
     {
-      name: 'Devoto',
-      text: 'Você se torna devoto de uma divindade disponível para druidas (Allihanna, Megalokk ou Oceano). Você deve obedecer às Obrigações & Restrições de seu deus, mas, em troca, ganha os Poderes Concedidos dele. O nome desta habilidade muda de acordo com a divindade escolhida: Devoto de Allihanna, Devoto de Megalokk ou Devoto de Oceano.',
+      name: 'Devoto Fiel',
+      text: 'Você se torna devoto de um deus disponível para druidas (Allihanna, Megalokk ou Oceano). Veja as regras de devotos na página 96. Ao contrário de devotos normais, você recebe dois poderes concedidos por se tornar devoto, em vez de apenas um.',
       nivel: 1,
     },
     {
       name: 'Empatia Selvagem',
-      text: 'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento com animais para mudar atitude e pedir favores (veja Diplomacia, na página 117).',
+      text: 'Você pode se comunicar com animais por meio de linguagem corporal e vocalizações. Você pode usar Adestramento com animais para mudar atitude e persuasão (veja a página 118).',
       nivel: 1,
     },
     {
       name: 'Magias',
-      text: 'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias divinas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma seu bônus de Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
+      text: 'Escolha três escolas de magia. Uma vez feita, essa escolha não pode ser mudada. Você pode lançar magias divinas de 1º círculo que pertençam a essas escolas. À medida que sobe de nível, pode lançar magias de círculos maiores (2º círculo no 6º nível, 3º círculo no 10º nível e 4º círculo no 14º nível). Você começa com duas magias de 1º círculo. A cada nível par (2º, 4º etc.), aprende uma magia de qualquer círculo e escola que possa lançar. Seu atributo-chave para lançar magias é Sabedoria e você soma sua Sabedoria no seu total de PM. Veja o Capítulo 4 para as regras de magia.',
       nivel: 1,
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const finalPM = sheet.pm + sheet.atributos.Sabedoria.mod;
-        substeps.push({
-          name: 'Magias',
-          value: `+(Mod SAB) PMs inicias (${sheet.pm} + ${sheet.atributos.Sabedoria.mod} = ${finalPM})`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          pm: finalPM,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Magias',
+          },
+          target: {
+            type: 'PM',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.SABEDORIA,
+          },
+        },
+      ],
     },
     {
       name: 'Caminho dos Ermos',
-      text: 'Você pode atravessar terrenos difíceis sem sofrer redução em seu deslocamento e a CD para rastreá-lo aumenta em +10. Esta habilidade só funciona em terrenos naturais.',
+      text: 'No 2º nível, você pode atravessar terrenos difíceis sem sofrer redução em seu deslocamento e a CD para rastreá-lo aumenta em +10. Esta habilidade só funciona em terrenos naturais.',
       nivel: 2,
     },
     {
       name: 'Força da Natureza',
-      text: 'Você diminui o custo de todas as suas magias em –2 PM e aumenta a CD delas em +2. Os bônus dobram (–4 PM e +4 na CD) se você estiver em terrenos naturais.',
+      text: 'No 20º nível, você diminui o custo de todas as suas magias em –2 PM e aumenta a CD delas em +2. Os bônus dobram (–4 PM e +4 na CD) se você estiver em terrenos naturais.',
       nivel: 20,
     },
   ],
   powers: [
     {
       name: 'Aspecto do Inverno',
-      text: 'Você recebe resistência a frio 5 e suas magias que causam dano de frio causam +1 ponto de dano por dado. Durante o inverno, suas magias de druida custam −1 PM.',
+      text: 'Você aprende e pode lançar uma magia de convocação ou evocação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, recebe redução de frio 5 e suas magias que causam dano de frio causam +1 ponto de dano por dado.',
       requirements: [[]],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Inverno',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Conv', 'Evoc'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Outono',
-      text: 'Você aprende uma magia de necromancia, arcana ou divina, de qualquer círculo que possa lançar. Você pode gastar 1 PM para impor uma penalidade de –2 nos testes de resistência de todos os inimigos em alcance médio até o início do seu próximo turno. Durante o outono, suas magias de druida custam −1 PM.',
+      text: 'Você aprende e pode lançar uma magia de necromancia, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para impor uma penalidade de –2 nos testes de resistência de todos os inimigos em alcance curto até o início do seu próximo turno.',
       requirements: [[]],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Outono',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Necro'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto da Primavera',
-      text: 'Você recebe +1 em Carisma (NÃO CONTABILIZADO) e suas magias de cura curam +1 PV por dado. Durante a primavera, suas magias de druida custam −1 PM.',
+      text: 'Você aprende e pode lançar uma magia de encantamento ou ilusão, arcana ou divina, de qualquer círculo que possa lançar. Além disso, escolha uma quantidade de magias igual ao seu Carisma (mínimo 1). O custo dessas magias é reduzido em −1 PM.',
       requirements: [[]],
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto da Primavera',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Encan', 'Ilusão'],
+          },
+        },
+      ],
     },
     {
       name: 'Aspecto do Verão',
-      text: 'Você recebe +2 em Iniciativa (JÁ CONTABILIZADO) e pode gastar 1 PM para cobrir suas armas ou armas naturais com chamas, causando +1d6 pontos de dano de fogo até o fim da cena. Durante o verão, suas magias de druida custam −1 PM.',
+      text: 'Você aprende e pode lançar uma magia de transmutação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para cobrir uma de suas armas com chamas até o fim da cena. A arma causa +1d6 pontos de dano de fogo. Sempre que você acertar um ataque com ela, recebe 1 PM temporário. Você pode ganhar um máximo de PM temporários por cena igual ao seu nível e eles desaparecem no final da cena.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Iniciativa') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Aspecto do Verão',
-          value: `+2 em Iniciativa`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Aspecto do Verão',
+          },
+          action: {
+            type: 'learnAnySpellFromHighestCircle',
+            allowedType: 'Both',
+            pick: 1,
+            schools: ['Trans'],
+          },
+        },
+      ],
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [[]],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Companheiro Animal',
-      text: 'Você recebe um companheiro animal. Veja o quadro a seguir para detalhes.',
-      requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
-    },
-    {
-      name: 'Companheiro Animal Adicional',
-      text: 'Você recebe um companheiro animal adicional, de um tipo diferente dos que já tenha. Você pode escolher este poder quantas vezes quiser, mas ainda está sujeito ao limite de aliados que pode ter (veja a página 246)',
-      requirements: [
-        [
-          { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 15 },
-          { type: RequirementType.PODER, name: 'Companheiro Animal' },
-          { type: RequirementType.NIVEL, value: 7 },
-        ],
-      ],
+      text: 'Você recebe um companheiro animal. Veja o quadro na página 62 para detalhes. Você pode escolher este poder quantas vezes quiser, mas deve escolher companheiros diferentes e ainda está sujeito ao limite de parceiros que pode ter (veja a página 260).',
       canRepeat: true,
+      requirements: [[{ type: RequirementType.PERICIA, name: 'Adestramento' }]],
+      // PROVAVEL TODO NAS ACTIONS PARA ADICIONAR COMPANHEIROS
     },
     {
       name: 'Companheiro Animal Aprimorado',
-      text: 'Escolha um de seus companheiros animais. Esse animal recebe um segundo tipo diferente, ganhando os bônus equivalentes. Por exemplo, se você tiver um companheiro guardião, pode adicionar o tipo fortão a ele, tornando-o um guardião fortão que concede +2 na Defesa e +1d8 nas rolagens de dano corpo a corpo.',
+      text: 'Escolha um de seus companheiros animais. Ele recebe um segundo tipo, ganhando os bônus de seu nível. Por exemplo, se você tiver um companheiro guardião veterano, pode adicionar o tipo fortão a ele, tornando-o um guardião fortão veterano que concede +3 na Defesa e +1d12 em uma rolagem de dano corpo a corpo.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Companheiro Animal' },
-          { type: RequirementType.NIVEL, value: 8 },
+          { type: RequirementType.NIVEL, value: 6 },
         ],
       ],
     },
     {
       name: 'Companheiro Animal Lendário',
-      text: 'Escolha um de seus companheiros animais. Esse animal passa a dobrar seus bônus concedidos. No caso de companheiros que concedem dados de bônus, o número de dados aumenta em 1.',
+      text: 'Escolha um de seus companheiros animais. Esse animal passa a dobrar os bônus concedidos de seu tipo original.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Companheiro Animal' },
@@ -171,7 +202,7 @@ const DRUIDA: ClassDescription = {
     },
     {
       name: 'Companheiro Animal Mágico',
-      text: 'Escolha um de seus companheiros animais. Esse animal recebe um segundo tipo diferente, entre destruidor ou médico, ganhando os bônus equivalentes.',
+      text: 'Escolha um de seus companheiros animais. Ele recebe um segundo tipo diferente, entre adepto, destruidor, magivocador ou médico, ganhando os bônus de seu nível.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Companheiro Animal' },
@@ -181,34 +212,12 @@ const DRUIDA: ClassDescription = {
     },
     {
       name: 'Coração da Selva',
-      text: 'Você recebe +2 em Fortitude (JÁ CONTABILIZADO) e se torna imune a venenos.',
+      text: 'A CD para resistir a seus efeitos de veneno aumenta em +2 e estes efeitos causam +1 de perda de vida por dado.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Fortitude') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Coração da Selva',
-          value: `+2 em Fortitude`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
     },
     {
       name: 'Espírito dos Equinócios',
-      text: 'Sua alma e corpo estão em equilíbrio. Você pode gastar 1 PM para escolher 10 em um teste de resistência.',
+      text: 'Você pode gastar 4 PM para ficar em equilíbrio com o mundo. Até o final da cena, quando rola um dado, pode rolar novamente qualquer resultado 1.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Aspecto da Primavera' },
@@ -230,87 +239,84 @@ const DRUIDA: ClassDescription = {
     },
     {
       name: 'Força dos Penhascos',
-      text: 'Você recebe +2 em Fortitude (JÁ CONTABILIZADO). Se estiver pisando em rocha sólida, pode gastar 1 PM e uma reação para receber RD 10 contra um ataque.',
-      requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Fortitude') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Força dos Penhascos',
-          value: `Somando +2 em Fortitude`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      text: 'Você recebe +2 em Fortitude. Quando sofre dano enquanto em contato com o solo ou uma superfície de pedra, pode gastar uma quantidade de PM limitada por sua Sabedoria. Para cada PM gasto, reduz esse dano em 10.',
+      requirements: [[{ type: RequirementType.NIVEL, value: 4 }]],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Força dos Penhascos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.FORTITUDE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Forma Primal',
       text: 'Quando usa Forma Selvagem, você pode se transformar em uma fera primal. Você recebe os benefícios de dois tipos de animais (bônus iguais não se acumulam; use o que você quiser de cada tipo).',
-      requirements: [
-        [
-          { type: RequirementType.PODER, name: 'Forma Selvagem', value: 2 },
-          { type: RequirementType.NIVEL, value: 18 },
-        ],
-      ],
+      requirements: [[{ type: RequirementType.NIVEL, value: 18 }]],
     },
     {
       name: 'Forma Selvagem',
-      text: 'Você pode se transformar em um tipo de animal. Veja a seguir. Você pode escolher este poder diversas vezes. A cada vez, aprende uma forma selvagem diferente.',
+      text: 'Você pode se transformar em animais. A lista está disponível na página 63.',
       requirements: [[]],
-      canRepeat: true,
     },
     {
-      name: 'Liberdade da Pradaria',
-      text: 'Você recebe +2 em Reflexos (JÁ CONTABILIZADO). Se estiver ao ar livre, você pode gastar 1 PM sempre que lançar uma magia para aumentar o alcance dela em um passo (de toque para curto, de curto para médio etc.).',
-      requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Reflexos') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Liberdade da Pradaria',
-          value: `Somando +2 em Reflexos`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
-    },
-    {
-      name: 'Magia Natural',
-      text: 'Você pode lançar magias em forma selvagem.',
+      name: 'Forma Selvagem Aprimorada',
+      text: 'Quando usa Forma Selvagem, você pode gastar 6 PM ao todo para assumir uma forma aprimorada.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Forma Selvagem' },
-          { type: RequirementType.NIVEL, value: 8 },
+          { type: RequirementType.NIVEL, value: 6 },
         ],
       ],
     },
     {
+      name: 'Forma Selvagem Superior',
+      text: 'Quando usa Forma Selvagem, você pode gastar 10 PM ao todo para assumir uma forma superior.',
+      requirements: [
+        [
+          { type: RequirementType.PODER, name: 'Forma Selvagem Aprimorada' },
+          { type: RequirementType.NIVEL, value: 12 },
+        ],
+      ],
+    },
+    {
+      name: 'Liberdade da Pradaria',
+      text: 'Você recebe +2 em Reflexos. Se estiver ao ar livre, sempre que lança uma magia, pode gastar 1 PM para aumentar o alcance dela em um passo (de toque para curto, de curto para médio ou de médio para longo).',
+      requirements: [[]],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Liberdade da Pradaria',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.REFLEXOS,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
+    },
+    {
+      name: 'Magia Natural',
+      text: 'Em forma selvagem, você pode lançar magias e empunhar catalisadores e esotéricos.',
+      requirements: [[{ type: RequirementType.PODER, name: 'Forma Selvagem' }]],
+    },
+    {
       name: 'Presas Afiadas',
-      text: 'A margem de ameaça de suas armas naturais em forma selvagem aumenta em +2.',
+      text: 'A margem de ameaça de suas armas naturais aumenta em +2.',
       requirements: [[{ type: RequirementType.PODER, name: 'Forma Selvagem' }]],
     },
     {
@@ -320,34 +326,28 @@ const DRUIDA: ClassDescription = {
     },
     {
       name: 'Tranquilidade dos Lagos',
-      text: 'Você recebe +2 em Vontade (JÁ CONTABILIZADO). Se estiver em alcance médio de um lago, rio ou equivalente, pode gastar 1 PM uma vez por rodada para repetir um teste de resistência recém realizado.',
+      text: 'Você recebe +2 em Vontade. Se estiver portando um recipiente com água (não precisa estar empunhando), uma vez por rodada, quando faz um teste de resistência, pode pagar 1 PM para refazer a rolagem.',
       requirements: [[]],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Vontade') {
-            value += 2;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Tranquilidade dos Lagos',
-          value: `Somando +2 em Vontade`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Tranquilidade dos Lagos',
+          },
+          target: {
+            type: 'Skill',
+            name: Skills.VONTADE,
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
   ],
   probDevoto: 1,
-  qtdPoderesConcedidos: 'all',
+  qtdPoderesConcedidos: 2,
   faithProbability: {
     AHARADAK: 0,
     OCEANO: 1,

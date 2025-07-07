@@ -102,13 +102,14 @@ export const SkillsWithArmorPenalty: Skill[] = [
   Skill.LADINAGEM,
 ];
 
-export interface CompleteSkill {
+export type CompleteSkill = {
   name: Skill;
   halfLevel?: number;
-  modAttr?: number;
+  modAttr?: Atributo;
   training?: number;
   others?: number;
-}
+  countAsTormentaPower?: boolean;
+};
 
 export type SkillsTotals = {
   [value in Skill]: number;

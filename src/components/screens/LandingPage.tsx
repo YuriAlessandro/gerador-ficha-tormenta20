@@ -1,32 +1,10 @@
 import background from '@/assets/images/fantasybg.png';
-import books from '@/assets/images/options/books.png';
-import builder from '@/assets/images/options/builder.png';
-import characters from '@/assets/images/options/characters.png';
-import database from '@/assets/images/options/database.png';
-import items from '@/assets/images/options/items.png';
 // import magical from '@/assets/images/options/magical.png';
-import random from '@/assets/images/options/random.png';
-import treasure from '@/assets/images/options/treasure.png';
-import treasureMap from '@/assets/images/options/treasure-map.png';
-import { createNewSheet } from '@/store/slices/sheetStorage/sheetStorage';
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Container,
-  Divider,
-  Grid,
-  Stack,
-  useTheme,
-} from '@mui/material';
+import adventure from '@/assets/images/adventure.jpg';
+import dice from '@/assets/images/dice.jpg';
+import { Box, Card, Container, Grid, useTheme } from '@mui/material';
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import { useHistory } from 'react-router';
-import { BuildingSheet } from 't20-sheet-builder';
-import { v4 as uuid } from 'uuid';
 import ferramentas from '../../assets/images/ferramentas.jpg';
-import ficha from '../../assets/images/ficha2.jpg';
 import library from '../../assets/images/library.jpg';
 import others from '../../assets/images/others.jpg';
 import LandingOption from '../LandingOption';
@@ -34,21 +12,14 @@ import LandingOption from '../LandingOption';
 const LandingPage: React.FC<{
   onClickButton: (link: string) => void;
 }> = ({ onClickButton }) => {
-  const dispatch = useDispatch();
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
-  const history = useHistory();
 
   const onOpenLink = (link: string) => {
     window.open(link);
   };
 
-  const onClickNewSheet = () => {
-    const id = uuid();
-    const sheet = new BuildingSheet();
-    dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
-    history.push(`/sheet-builder/${id}`);
-  };
+  const isMobile = window.innerWidth < 720;
 
   return (
     <>
@@ -82,133 +53,54 @@ const LandingPage: React.FC<{
         >
           <h1>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</h1>
         </Box>
+
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardMedia sx={{ height: 140 }} image={ficha} title='Fichas' />
-              <CardContent>
-                <Stack spacing={2}>
-                  <Divider>Versão antiga</Divider>
-                  <LandingOption
-                    title='Ficha aleatória'
-                    text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
-                    image={random}
-                    onClick={() => onClickButton('ficha-aleatoria')}
-                  />
-                  <Divider>Versão JdA</Divider>
-                  <LandingOption
-                    title='Meus personagens'
-                    text='[EM BREVE] Fichas criadas por você. Use e gerencie suas fichas.'
-                    image={characters}
-                    onClick={() => onClickButton('sheets')}
-                    disabled
-                  />
-                  <LandingOption
-                    title='Nova ficha'
-                    text='[EM BREVE] Cria sua ficha seguindo o passo-a-passo e escolhendo cada opção manualmente.'
-                    image={builder}
-                    onClick={onClickNewSheet}
-                    disabled
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
+          <Grid item xs={isMobile ? 12 : 6}>
+            <LandingOption
+              title='Ficha aleatória'
+              text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
+              image={dice}
+              onClick={() => onClickButton('ficha-aleatoria')}
+              full
+            />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardMedia
-                sx={{ height: 140 }}
-                image={ferramentas}
-                title='Ferramentas'
-              />
-              <CardContent>
-                <Stack spacing={2}>
-                  <Divider>Utilitários</Divider>
-                  <LandingOption
-                    title='Mapa de Arton'
-                    text='Um mapa interativo de Arton, com pins de cidades, pontos de interesse e mais.'
-                    image={treasureMap}
-                    onClick={() =>
-                      onOpenLink('https://mapadearton.fichasdenimb.com.br/')
-                    }
-                  />
-                  <LandingOption
-                    title='Rolador de recompensas'
-                    text='Gere as recompensas da sua mesa de forma muito rápida.'
-                    image={treasure}
-                    onClick={() => onClickButton('recompensas')}
-                  />
-                  <LandingOption
-                    title='Criar item superior'
-                    text='Gerar itens com modificações.'
-                    image={items}
-                    onClick={() => onClickButton('itens-superiores')}
-                  />
-                  {/* <LandingOption
-                    title='Criar item mágico'
-                    text='Em desenvolvimento.'
-                    image={magical}
-                    disabled
-                    onClick={() => onClickButton('itens-superiores')}
-                  /> */}
-                </Stack>
-              </CardContent>
-            </Card>
+          <Grid item xs={isMobile ? 12 : 6}>
+            <Grid container spacing={2} direction='column'>
+              <Grid item xs={6}>
+                <LandingOption
+                  title='Mapa de Arton'
+                  text='Um mapa interativo de Arton, com pins de cidades, pontos de interesse e mais.'
+                  image={adventure}
+                  onClick={() =>
+                    onOpenLink('https://mapadearton.fichasdenimb.com.br/')
+                  }
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <LandingOption
+                  title='Caverna do Saber'
+                  text='Compilado com conteúdos de Tormenta 20 na revista Dragão Brasil.'
+                  image={library}
+                  onClick={() => onClickButton('caverna-do-saber')}
+                />
+              </Grid>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardMedia
-                sx={{ height: 140 }}
-                image={library}
-                title='Conhecimento'
-              />
-              <CardContent>
-                <Stack spacing={2}>
-                  <Divider>Dragão Brasil</Divider>
-                  <LandingOption
-                    title='Caverna do Saber'
-                    text='Compilado com conteúdos de Tormenta 20 na revista Dragão Brasil.'
-                    image={books}
-                    onClick={() => onClickButton('caverna-do-saber')}
-                  />
-                  <Divider>Versão antiga</Divider>
-                  <LandingOption
-                    title='Database'
-                    text='Diretamente do livro, um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
-                    image={database}
-                    onClick={() => onClickButton('database/raças')}
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Enciclopédia de Tanah-Toh'
+              text='Um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
+              image={others}
+              onClick={() => onClickButton('database/raças')}
+            />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardMedia
-                sx={{ height: 140 }}
-                image={others}
-                title='Comunidade'
-              />
-              <CardContent>
-                <Stack spacing={2}>
-                  <Divider>Projetos da Comunidade</Divider>
-                  <LandingOption
-                    title='Grimório T20'
-                    text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'
-                    onClick={() =>
-                      onOpenLink('https://eduardomarques.pythonanywhere.com/')
-                    }
-                  />
-                  <LandingOption
-                    title='Calculadora ND'
-                    text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'
-                    onClick={() =>
-                      onOpenLink('https://mclemente.github.io/Calculadora-ND/')
-                    }
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Rolador de recompensas'
+              text='Gere as recompensas da sua mesa de forma muito rápida.'
+              image={ferramentas}
+              onClick={() => onClickButton('recompensas')}
+            />
           </Grid>
           <Grid item xs={12}>
             <Card>
@@ -258,6 +150,57 @@ const LandingPage: React.FC<{
                 </p>
               </div>
             </Card>
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Compre Tormenta 20'
+              text='O maior sistema de RPG do Brasil.'
+              onClick={() =>
+                onOpenLink(
+                  'https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
+                )
+              }
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Changelog'
+              text='Acompanhe o progresso do nosso projeto.'
+              onClick={() => onClickButton('changelog')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Criar item superior'
+              text='Gerar itens com modificações.'
+              onClick={() => onClickButton('itens-superiores')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Criar item mágico'
+              text='Em desenvolvimento.'
+              disabled
+              onClick={() => onClickButton('itens-superiores')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Grimório T20'
+              text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'
+              onClick={() =>
+                onOpenLink('https://eduardomarques.pythonanywhere.com/')
+              }
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <LandingOption
+              title='Calculadora ND'
+              text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'
+              onClick={() =>
+                onOpenLink('https://mclemente.github.io/Calculadora-ND/')
+              }
+            />
           </Grid>
         </Grid>
       </Container>

@@ -9,7 +9,7 @@ import Bag from '../../interfaces/Bag';
 export function druida(race: Race): CharacterSheet {
   return {
     id: 'testid2',
-    maxWeight: 30,
+    maxSpaces: 15,
     nome: 'Fulano',
     raca: race,
     sexo: 'Homem',
@@ -35,7 +35,7 @@ export function druida(race: Race): CharacterSheet {
         {
           nome: 'Pique',
           dano: '1d8',
-          critico: '2x',
+          critico: 'x2',
           peso: 5,
           tipo: 'Perf.',
           alcance: '-',
@@ -225,5 +225,7 @@ export function druida(race: Race): CharacterSheet {
     generalPowers: [],
     pv: 16,
     pm: 4,
+    sheetActionHistory: [],
+    sheetBonuses: [],
   };
 }

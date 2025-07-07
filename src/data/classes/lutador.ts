@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { RequirementType } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
@@ -43,12 +41,12 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Golpe Relâmpago',
-      text: 'Quando usa a ação atacar para fazer um ataque desarmado, você pode gastar 1 PM para realizar um ataque desarmado adicional.',
+      text: 'Quando usa a ação agredir para fazer um ataque desarmado, você pode gastar 1 PM para realizar um ataque desarmado adicional.',
       nivel: 1,
     },
     {
       name: 'Casca Grossa',
-      text: 'No 3º nível, você soma seu bônus de Constituição na Defesa, limitado pelo seu nível e apenas se não estiver usando armadura pesada. Além disso, no 7º nível, e a cada quatro níveis, você recebe +1 na Defesa.',
+      text: 'No 3º nível, você soma sua Constituição na Defesa, limitado pelo seu nível e apenas se não estiver usando armadura pesada. Além disso, no 7º nível, e a cada quatro níveis, você recebe +1 na Defesa.',
       nivel: 3,
     },
     {
@@ -58,19 +56,19 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Golpe Violento',
-      text: 'No 9º nível, você bate com muita força. Seu multiplicador de crítico com ataques desarmados aumenta em +1.',
+      text: ' No 9º nível, você bate com muita força. Seu multiplicador de crítico com ataques desarmados aumenta em +1.',
       nivel: 9,
     },
     {
       name: 'Dono da Rua',
-      text: 'No 20º nível, seu dano desarmado aumenta para 2d10 (para criaturas Médias). Além disso, quando usa a ação atacar para fazer um ataque desarmado, você pode fazer dois ataques, em vez de um (podendo usar Golpe Relâmpago para fazer um terceiro).',
+      text: 'No 20º nível, seu dano desarmado aumenta para 2d10 (para criaturas Médias). Além disso, quando usa a ação agredir para fazer um ataque desarmado, você pode fazer dois ataques, em vez de um (podendo usar Golpe Relâmpago para fazer um terceiro).',
       nivel: 20,
     },
   ],
   powers: [
     {
       name: 'Arma Improvisada',
-      text: 'Ao usar armas improvisadas, você usa as estatísticas de seu ataque desarmado — bônus de ataque, margem de ameaça etc. — mas seu dano aumenta em um passo. Você pode gastar uma ação de movimento para procurar uma pedra, cadeira, garrafa ou qualquer coisa que possa usar como arma. Faça um teste de Percepção (CD 20). Se você passar, encontra uma arma improvisada. Armas improvisadas são frágeis; se você errar um ataque e o resultado do d20 for um número ímpar, a arma quebra.',
+      text: 'Para você, atacar com armas improvisadas conta como fazer um ataque desarmado, mas seu dano aumenta em um passo. Você pode gastar uma ação de movimento para procurar uma pedra, cadeira, garrafa ou qualquer coisa que possa usar como arma. Faça um teste de Percepção (CD 20). Se você passar, encontra uma arma improvisada. Armas improvisadas são frágeis; se você errar um ataque e o resultado do d20 for um número ímpar, a arma quebra.',
       requirements: [],
     },
     {
@@ -80,18 +78,24 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +2 em um atributo a sua escolha (NÃO CONTABILIZADO). Você pode escolher este poder várias vezes. A partir da segunda vez que escolhê-lo para o mesmo atributo, o aumento diminui para +1.',
+      text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Aumento de Atributo' },
+          action: { type: 'increaseAttribute' },
+        },
+      ],
     },
     {
       name: 'Braços Calejados',
-      text: 'Se você não estiver usando armadura, soma seu bônus de Força na Defesa, limitado pelo seu nível.',
+      text: 'Se você não estiver usando armadura, soma sua Força na Defesa, limitado pelo seu nível.',
       requirements: [],
     },
     {
       name: 'Cabeçada',
-      text: 'Quando faz um ataque desarmado, você pode gastar 2 PM. Se fizer isso, o oponente fica desprevenido contra este ataque. Você só pode usar este poder uma vez por cena contra uma mesma criatura.',
+      text: 'Quando faz um ataque desarmado, você pode gastar 2 PM. Se fizer isso, o oponente fica desprevenido contra este ataque. Você só pode usar este poder uma vez por cena contra um mesmo alvo.',
       requirements: [],
     },
     {
@@ -99,7 +103,7 @@ const LUTADOR: ClassDescription = {
       text: 'Se estiver agarrando uma criatura e fizer um teste de manobra contra ela para causar dano, o dano desarmado aumenta em um passo.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 13 },
+          { type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 },
           { type: RequirementType.PODER, name: 'Lutador de Chão' },
           { type: RequirementType.NIVEL, value: 4 },
         ],
@@ -107,22 +111,22 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Confiança dos Ringues',
-      text: 'Quando um oponente erra um ataque corpo a corpo contra você, você recebe 1 PM temporário. PM temporários desaparecem no final da cena.',
-      requirements: [[{ type: RequirementType.NIVEL, value: 10 }]],
+      text: 'Quando um inimigo erra um ataque corpo a corpo contra você, você recebe 2 PM temporários (cumulativos). Você pode ganhar um máximo de PM temporários por cena igual ao seu nível. Esses pontos temporários desaparecem no final da cena.',
+      requirements: [[{ type: RequirementType.NIVEL, value: 8 }]],
     },
     {
       name: 'Convencido',
-      text: 'Acostumado a contar apenas com seus músculos, você adquiriu certo desdém por artes mais sofisticadas. Você recebe +5 em testes de resistência contra efeitos de Encantamento.',
+      text: 'Acostumado a contar apenas com seus músculos, você adquiriu certo desdém por artes mais sofisticadas. Você recebe resistência a medo e mental +5.',
       requirements: [],
     },
     {
       name: 'Golpe Baixo',
-      text: 'Quando faz um ataque desarmado, você pode gastar 2 PM. Se fizer isso e acertar o ataque, o oponente deve fazer um teste de Fortitude (CD For). Se ele falhar, fica atordoado por uma rodada. Você só pode usar este poder uma vez por cena contra uma mesma criatura.',
+      text: 'Quando faz um ataque desarmado, você pode gastar 2 PM. Se fizer isso e acertar o ataque, o oponente deve fazer um teste de Fortitude (CD For). Se ele falhar, fica atordoado por uma rodada (apenas uma vez por cena).',
       requirements: [],
     },
     {
       name: 'Golpe Imprudente',
-      text: 'Quando usa Golpe Relâmpago, você pode atacar de forma impulsiva. Se fizer isso, você aumenta seu dano desarmado em mais um dado do mesmo tipo (por exemplo, se o seu dano é 2d6, você causa 3d6), mas sofre –5 em sua Defesa, até o início de seu próximo turno.',
+      text: 'Quando usa Golpe Relâmpago, você pode atacar de forma impulsiva. Se fizer isso, seus ataques desarmados recebem um dado de dano extra do mesmo tipo (por exemplo, se o seu dano é 2d6, você causa 3d6), mas você sofre –5 na Defesa até o início de seu próximo turno.',
       requirements: [],
     },
     {
@@ -137,10 +141,10 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Língua dos Becos',
-      text: 'Você pode pagar 1 PM para usar seu bônus de Força no lugar de Carisma em um teste de perícia baseada em Carisma.',
+      text: 'Você pode pagar 1 PM para usar sua Força no lugar de Carisma em um teste de perícia baseada em Carisma.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Força', value: 13 },
+          { type: RequirementType.ATRIBUTO, name: 'Força', value: 1 },
           { type: RequirementType.PERICIA, name: Skill.INTIMIDACAO },
         ],
       ],
@@ -152,54 +156,58 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Nome na Arena',
-      text: 'Você construiu uma reputação no circuito de lutas de Arton. Escolha uma perícia que represente a característica pela qual você é conhecido, como Atletismo para uma fama de musculoso ou Intimidação para uma fama de “malvado”. Uma vez por cena, você pode gastar uma ação de movimento para fazer um teste dessa perícia (CD 10) e impressionar os presentes. Se passar, você recebe +1 em todos os seus testes de perícias baseadas em Carisma até o fim da cena. Esse bônus aumenta em +1 para cada 5 pontos pelos quais o resultado do teste exceder a CD (+2 para um resultado 15, +3 para 20 e assim por diante). Como alternativa, você pode aplicar esse bônus em seu próximo teste de ataque.',
-      requirements: [[{ type: RequirementType.NIVEL, value: 12 }]],
+      text: 'Você construiu uma reputação no circuito de lutas de Arton. Uma vez por cena, pode gastar uma ação completa para fazer um teste de Luta (CD 10) e impressionar os presentes. Se passar, você recebe +2 em todos os seus testes de perícias originalmente baseadas em Carisma até o fim da cena e a atitude de qualquer pessoa que seja fã de lutas aumenta em uma categoria em relação a você (veja a página 259). Esse bônus aumenta em +2 para cada 10 pontos pelos quais o resultado do teste exceder a CD (+4 para um resultado 20, +6 para 30 e assim por diante).',
+      requirements: [[{ type: RequirementType.NIVEL, value: 11 }]],
     },
     {
       name: 'Punhos de Adamante',
-      text: 'Seus ataques desarmados ignoram 10 pontos de resistência a dano do alvo, se houver.',
+      text: 'Seus ataques desarmados ignoram 10 pontos de redução de dano do alvo, se houver.',
       requirements: [[{ type: RequirementType.NIVEL, value: 8 }]],
     },
     {
       name: 'Rasteira',
-      text: 'Quando faz um ataque desarmado, você pode gastar 2 PM. Se fizer isso e acertar o ataque, o oponente fica caído.',
+      text: 'Quando faz um ataque desarmado contra uma criatura até uma categoria de tamanho maior que a sua, você pode gastar 2 PM. Se fizer isso e acertar o ataque, a criatura fica caída.',
       requirements: [],
     },
     {
       name: 'Sarado',
-      text: 'Você soma seu bônus de Força no seu total de pontos de vida e em testes de Fortitude (JÁ CONTABIBLIZADO). A critério do mestre, você pode chamar a atenção de pessoas que se atraiam por físicos bem definidos.',
+      text: 'Você soma sua Força no seu total de pontos de vida e em Fortitude. Você pode usar Força em vez de Carisma em testes de Diplomacia com pessoas que se atraiam por físicos bem definidos.',
       requirements: [
-        [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 17 }],
+        [{ type: RequirementType.ATRIBUTO, name: 'Força', value: 3 }],
       ],
-      action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
-        const sheetClone = _.cloneDeep(sheet);
-
-        const modFor = sheetClone.atributos.Força.mod;
-
-        const newCompleteSkills = sheetClone.completeSkills?.map((sk) => {
-          let value = sk.others ?? 0;
-
-          if (sk.name === 'Fortitude') {
-            value += modFor;
-          }
-
-          return { ...sk, others: value };
-        });
-
-        substeps.push({
-          name: 'Sarado',
-          value: `Somando mod. FOR na PV e em Fortitude`,
-        });
-
-        return _.merge<CharacterSheet, Partial<CharacterSheet>>(sheetClone, {
-          completeSkills: newCompleteSkills,
-          pv: sheetClone.pv + modFor,
-        });
-      },
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Sarado',
+          },
+          target: {
+            type: 'PV',
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.FORCA,
+          },
+        },
+        {
+          source: {
+            type: 'power',
+            name: 'Sarado',
+          },
+          target: {
+            type: 'Skill',
+            name: Skill.FORTITUDE,
+          },
+          modifier: {
+            type: 'Attribute',
+            attribute: Atributo.FORCA,
+          },
+        },
+      ],
     },
     {
       name: 'Sequência Destruidora',
-      text: 'No início do seu turno, você pode gastar 2 PM para dizer um número (no mínimo 2). Se fizer e acertar uma quantidade de ataques igual ao número dito, o último tem seu dano aumentado um número de passos igual à quantidade de ataques feitos. Por exemplo, se você falar “três” e fizer e acertar três ataques, o último ataque (o terceiro) terá seu dano aumentado em três passos.',
+      text: 'No início do seu turno, você pode gastar 2 PM para dizer um número (no mínimo 2). Se fizer e acertar uma quantidade de ataques igual ao número dito, o último recebe um bônus cumulativo de +4 na rolagem de dano por ataque feito. Por exemplo, se você falar “três” e fizer e acertar três ataques, o último ataque (o terceiro) receberá +12 na rolagem de dano.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Trocação' },
@@ -209,10 +217,10 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Trincado',
-      text: 'Esculpido à exaustão, seu corpo se tornou uma máquina. Você soma seu modificador de Constituição nas suas rolagens de dano desarmado.',
+      text: 'Esculpido à exaustão, seu corpo se tornou uma máquina. Você soma sua Constituição nas rolagens de dano desarmado.',
       requirements: [
         [
-          { type: RequirementType.ATRIBUTO, name: 'Constituição', value: 17 },
+          { type: RequirementType.ATRIBUTO, name: 'Constituição', value: 3 },
           { type: RequirementType.PODER, name: 'Sarado' },
           { type: RequirementType.NIVEL, value: 10 },
         ],
@@ -225,7 +233,7 @@ const LUTADOR: ClassDescription = {
     },
     {
       name: 'Trocação Tumultuosa',
-      text: 'Quando usa a ação atacar para fazer um ataque desarmado, você pode gastar 2 PM para atingir todas as criaturas adjacentes — incluindo aliados! Você deve usar este poder antes de rolar o ataque e compara o resultado de seu teste contra a Defesa de cada criatura.',
+      text: 'Quando usa a ação agredir para fazer um ataque desarmado, você pode gastar 2 PM para atingir todas as criaturas adjacentes — incluindo aliados! Você deve usar este poder antes de rolar o ataque e compara o resultado de seu teste contra a Defesa de cada criatura.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Trocação' },

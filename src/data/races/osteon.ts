@@ -1,67 +1,61 @@
-import { cloneDeep } from 'lodash';
 import Race from '../../interfaces/Race';
-import {
-  getNotRepeatedRandom,
-  getRandomItemFromArray,
-} from '../../functions/randomUtils';
+import { getRandomItemFromArray } from '../../functions/randomUtils';
 import { getRaceDisplacement, getRaceSize } from './functions/functions';
 import { Atributo } from '../atributos';
 import HUMANO from './humano';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
-import { getPowersAllowedByRequirements } from '../../functions/powers';
 
-function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
-  const shouldGetSkill = Math.random() > 0.5;
+// function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
+//   const shouldGetSkill = Math.random() > 0.5;
 
-  if (shouldGetSkill) {
-    const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
-    sheet.skills.push();
-    substeps.push({
-      name: 'Memória Póstuma',
-      value: `Perícia treinada (${randomSkill})`,
-    });
-  } else {
-    const allowedPowers = getPowersAllowedByRequirements(sheet);
-    const randomPower = getNotRepeatedRandom(
-      sheet.generalPowers,
-      'power',
-      allowedPowers
-    );
-    sheet.generalPowers.push(randomPower);
-    substeps.push({
-      name: 'Memória Póstuma',
-      value: `Poder geral recebido (${randomPower.name})`,
-    });
-  }
-}
+//   if (shouldGetSkill) {
+//     const randomSkill = getNotRepeatedRandom(sheet.skills, 'skill');
+//     sheet.skills.push(randomSkill);
+//     substeps.push({
+//       name: 'Memória Póstuma',
+//       value: `Perícia treinada (${randomSkill})`,
+//     });
+//   } else {
+//     const allowedPowers = getPowersAllowedByRequirements(sheet);
+//     const randomPower = getNotRepeatedRandom(
+//       sheet.generalPowers,
+//       'power',
+//       allowedPowers
+//     );
+//     sheet.generalPowers.push(randomPower);
+//     substeps.push({
+//       name: 'Memória Póstuma',
+//       value: `Poder geral recebido (${randomPower.name})`,
+//     });
+//   }
+// }
 
-function getAndApplyRandomOldRaceAbility(
-  sheet: CharacterSheet,
-  substeps: SubStep[]
-) {
-  if (sheet.raca.oldRace?.abilities) {
-    const randomAbility = getRandomItemFromArray(sheet.raca.oldRace.abilities);
-    sheet.raca.abilities?.push(randomAbility);
-    substeps.push({
-      name: 'Memória Póstuma',
-      value: `${sheet.raca.oldRace.name} (${randomAbility.name})`,
-    });
-    if (randomAbility.action) {
-      return randomAbility.action(sheet, substeps);
-    }
-  }
+// function getAndApplyRandomOldRaceAbility(
+//   sheet: CharacterSheet,
+//   substeps: SubStep[]
+// ) {
+//   if (sheet.raca.oldRace?.abilities) {
+//     const randomAbility = getRandomItemFromArray(sheet.raca.oldRace.abilities);
+//     sheet.raca.abilities?.push(randomAbility);
+//     substeps.push({
+//       name: 'Memória Póstuma',
+//       value: `${sheet.raca.oldRace.name} (${randomAbility.name})`,
+//     });
+//     if (randomAbility.action) {
+//       return randomAbility.action(sheet, substeps);
+//     }
+//   }
 
-  return sheet;
-}
+//   return sheet;
+// }
 
 const OSTEON: Race = {
   name: 'Osteon',
   attributes: {
     attrs: [
-      { attr: Atributo.CONSTITUICAO, mod: -2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
+      { attr: Atributo.CONSTITUICAO, mod: -1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
     ],
   },
   faithProbability: {
@@ -74,9 +68,15 @@ const OSTEON: Race = {
       (element) => element.name !== 'Golem' && element.name !== 'Osteon'
     );
 
+    const randomNumber = Math.random();
+    let oldRace = HUMANO;
+    if (randomNumber < 0.2) {
+      oldRace = getRandomItemFromArray(validRaces);
+    }
+
     return {
       ...race,
-      oldRace: getRandomItemFromArray(validRaces),
+      oldRace,
     };
   },
   getDisplacement(race) {
@@ -102,19 +102,31 @@ const OSTEON: Race = {
       name: 'Memória Póstuma',
       description:
         'Você se torna treinado em uma perícia (não precisa ser da sua classe) ou recebe um poder geral a sua escolha. Como alternativa, você pode ser um osteon de outra raça humanoide que não humano. Neste caso, você ganha uma habilidade dessa raça a sua escolha. Se a raça era de tamanho diferente de Médio, você também possui sua categoria de tamanho.',
-      action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
-        let sheetClone = cloneDeep(sheet);
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Memória Póstuma',
+          },
+          action: {
+            type: 'special',
+            specialAction: 'osteonMemoriaPostuma',
+          },
+        },
+        // action(sheet: CharacterSheet, subSteps: SubStep[]): CharacterSheet {
+        //   let sheetClone = cloneDeep(sheet);
 
-        if (sheet.raca.oldRace) {
-          if (sheet.raca.oldRace.name === HUMANO.name) {
-            addSkillOrGeneralPower(sheetClone, subSteps);
-          } else if (sheet.raca.oldRace.abilities) {
-            sheetClone = getAndApplyRandomOldRaceAbility(sheetClone, subSteps);
-          }
-        }
+        //   if (sheet.raca.oldRace) {
+        //     if (sheet.raca.oldRace.name === HUMANO.name) {
+        //       addSkillOrGeneralPower(sheetClone, subSteps);
+        //     } else if (sheet.raca.oldRace.abilities) {
+        //       sheetClone = getAndApplyRandomOldRaceAbility(sheetClone, subSteps);
+        //     }
+        //   }
 
-        return sheetClone;
-      },
+        //   return sheetClone;
+        // },
+      ],
     },
     {
       name: 'Natureza Esquelética',

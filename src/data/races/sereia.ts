@@ -1,11 +1,6 @@
-import { cloneDeep } from 'lodash';
-import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
-import {
-  addOrCheapenRandomSpells,
-  spellsCircle1,
-} from '../magias/generalSpells';
+import { spellsCircle1 } from '../magias/generalSpells';
 
 const seaSongSpells = [
   spellsCircle1.amedrontar,
@@ -16,13 +11,15 @@ const seaSongSpells = [
   spellsCircle1.sono,
 ];
 
+// const goodWeapons = [Armas.TRIDENTE.nome, Armas.LANCA.nome, Armas.AZAGAIA.nome];
+
 const SEREIA: Race = {
   name: 'Sereia',
   attributes: {
     attrs: [
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
-      { attr: 'any', mod: 2 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
     ],
   },
   faithProbability: {
@@ -35,24 +32,56 @@ const SEREIA: Race = {
       name: 'Canção dos Mares',
       description:
         'Você pode lançar duas das magias a seguir: Amedrontar, Comando, Despedaçar, Enfeitiçar, Hipnotismo ou Sono (atributo-chave Carisma). Caso aprenda novamente uma dessas magias, seu custo diminui em –1 PM.',
-      action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
-        const sheetClone = cloneDeep(sheet);
-
-        addOrCheapenRandomSpells(
-          sheetClone,
-          substeps,
-          seaSongSpells,
-          'Canção dos Mares',
-          Atributo.CARISMA
-        );
-
-        return sheetClone;
-      },
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Canção dos Mares',
+          },
+          action: {
+            type: 'learnSpell',
+            availableSpells: seaSongSpells,
+            pick: 2,
+            customAttribute: Atributo.CARISMA,
+          },
+        },
+      ],
     },
     {
       name: 'Mestre do Tridente',
       description:
         'Para você, o tridente é uma arma simples. Além disso, você recebe +2 em rolagens de dano com azagaias, lanças e tridentes',
+      // action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
+      //   const cloneSheet = cloneDeep(sheet);
+
+      //   cloneSheet.bag.equipments.Arma = cloneSheet.bag.equipments.Arma.map(
+      //     (equipment) => {
+      //       if (goodWeapons.includes(equipment.nome)) {
+      //         return {
+      //           ...equipment,
+      //           tipo:
+      //             equipment.nome === Armas.TRIDENTE.nome
+      //               ? 'Simples'
+      //               : equipment.tipo,
+      //           atkBonus: (equipment.atkBonus || 0) + 2,
+      //         };
+      //       }
+      //       return equipment;
+      //     }
+      //   );
+
+      //   substeps.push({
+      //     name: 'Mestre do Tridente',
+      //     value: `Tridente é uma arma simples.`,
+      //   });
+
+      //   substeps.push({
+      //     name: 'Mestre do Tridente',
+      //     value: `+2 em dano com azagaias, lanças e tridentes.`,
+      //   });
+
+      //   return cloneSheet;
+      // },
     },
     {
       name: 'Transformação Anfíbia',

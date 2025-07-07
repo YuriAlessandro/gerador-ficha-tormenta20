@@ -2,7 +2,6 @@
 .filterArea {
   display: flex;
   flex-direction: column;
-  margin: 30px 30px 30px 25px;
 }
 
 .filtersRow {
@@ -33,7 +32,6 @@
 }
 
 #presentation {
-  max-width: 30vw;
   padding: 0 30px;
 }
 
@@ -46,7 +44,6 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    margin: 15px 0;
   }
 
   .filterSelect {

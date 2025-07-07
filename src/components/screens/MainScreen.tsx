@@ -1,14 +1,15 @@
-import { FormControlLabel } from '@mui/material';
+import { Container, FormControlLabel, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
+import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import CLASSES from '../../data/classes';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
-import Result from '../Result';
+import Result from '../SheetResult/Result';
 
 import generateRandomSheet from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
@@ -178,14 +179,28 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const sheetComponent =
     randomSheet &&
     (simpleSheet ? (
-      <SimpleResult isDarkMode={isDarkMode} sheet={randomSheet} />
+      <SimpleResult sheet={randomSheet} />
     ) : (
       <Result sheet={randomSheet} isDarkMode={isDarkMode} />
     ));
 
+  function encodeFoundryJSON(json: FoundryJSON | undefined) {
+    if (json) {
+      return `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(json)
+      )}`;
+    }
+
+    return '';
+  }
+
+  const foundryJSON = randomSheet ? convertToFoundry(randomSheet) : undefined;
+
+  const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
+
   return (
     <div id='main-screen'>
-      <div className='filterArea'>
+      <Container className='filterArea' maxWidth='xl'>
         <div className='filtersRow'>
           <Select
             className='filterSelect'
@@ -299,7 +314,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           />
         </div>
 
-        <div className='buttonsRow'>
+        <Stack spacing={2} direction='row' mt={2} mb={2}>
           <Button variant='contained' onClick={onClickGenerate}>
             Gerar Ficha
           </Button>
@@ -307,8 +322,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           <Button variant='contained' onClick={onClickShowHistoric}>
             Ver histórico
           </Button>
-        </div>
-      </div>
+        </Stack>
+
+        {randomSheet && (
+          <div className='exportButtonsContainer'>
+            <div className='export-to-foundry'>
+              <a
+                href={encodedJSON}
+                className='exportBtn'
+                download={`${randomSheet.nome}.json`}
+              >
+                Exportar para o Foundry
+              </a>
+            </div>
+          </div>
+        )}
+      </Container>
 
       {randomSheet && !showHistoric && sheetComponent}
 
