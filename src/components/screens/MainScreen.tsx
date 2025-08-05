@@ -6,6 +6,7 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
+import Bag from '@/interfaces/Bag';
 import CLASSES from '../../data/classes';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
@@ -82,6 +83,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
+
+    sheet.bag = new Bag(sheet.bag.equipments);
+
     setRandomSheet(sheet);
   };
 
