@@ -207,14 +207,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const preparePrint = async () => {
     if (!randomSheet) return;
-    const pdfBytes = await preparePDF(randomSheet);
+    try {
+      const pdfBytes = await preparePDF(randomSheet);
 
-    // Allow user to download the modified PDF
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'modified_sheet.pdf';
-    link.click();
+      // Allow user to download the modified PDF
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: 'application/pdf',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Ficha de ${randomSheet.nome}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      // eslint-disable-next-line no-alert
+      alert(`Erro ao gerar PDF.`);
+    }
   };
 
   return (

@@ -328,6 +328,8 @@ const preparePDF: (
       }
     });
 
+  pdfDoc.setTitle(`Ficha de ${sheet.nome}`);
+  pdfDoc.setAuthor('Fichas de Nimb');
   const pdfBytes = await pdfDoc.save();
 
   return pdfBytes;
