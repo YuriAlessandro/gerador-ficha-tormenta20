@@ -2,7 +2,6 @@ import React from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import {
   Box,
-  Button,
   Card,
   Chip,
   Container,
@@ -14,13 +13,10 @@ import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
 import bigBoxDark from '@/assets/images/bigBoxDark.svg';
 import bigBox from '@/assets/images/bigBox.svg';
-import { PDFDocument } from 'pdf-lib'
-import pdfSheet from '@/assets/sheet.pdf';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
 import Equipment from '../../interfaces/Equipment';
-
 import '../../assets/css/result.css';
 import Spells from '../Spells';
 import SkillTable from './SkillTable';
@@ -29,7 +25,6 @@ import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
-
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -295,22 +290,8 @@ const Result: React.FC<ResultProps> = (props) => {
     margin-bottom: -20px;
   `;
 
-  const preparePrint = async () => {
-    const url = 'https://pdf-lib.js.org/assets/dod_character.pdf';
-    const existingPdfBytes = await fetch(url).then((res) => res.arrayBuffer());
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const form = pdfDoc.getForm();
-
-    const nameField = form.getTextField('CharacterName 2');
-    nameField.setText('Mario');
-    console.log(form);
-  };
-
   return (
     <Box>
-      <Button onClick={preparePrint} variant='contained' color='primary'>
-        Preparar PDF
-      </Button>
       <BackgroundBox sx={{ p: 2 }}>
         <Container maxWidth='xl'>
           <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
