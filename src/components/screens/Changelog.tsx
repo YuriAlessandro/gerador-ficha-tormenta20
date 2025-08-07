@@ -25,6 +25,12 @@ const Changelog: React.FC = () => (
 
       <h2>Versão 3.0</h2>
 
+      <h3>3.0.1</h3>
+      <ul>
+        <li>Histórico de fichas geradas voltou a funcionar.</li>
+        <li>Adicionado uma nova forma de extrair ficha em PDF.</li>
+      </ul>
+
       <h3>3.0.0</h3>
       <ul>
         <li>
