@@ -1842,3 +1842,51 @@ export default function generateRandomSheet(
 
   return charSheet;
 }
+
+export function generateEmptySheet(
+  selectedOptions: SelectedOptions
+): CharacterSheet {
+  console.log(selectedOptions);
+  const race = selectRace(selectedOptions);
+  const size = getRaceSize(race);
+  const generatedClass = CLASSES.find((classe) =>
+    classByName(classe, selectedOptions.classe)
+  );
+
+  if (!generatedClass) {
+    throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
+  }
+
+  return {
+    id: uuid(),
+    nome: '',
+    sexo: '',
+    nivel: selectedOptions.nivel,
+    atributos: {
+      Força: { name: Atributo.FORCA, mod: 0, value: 10 },
+      Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
+      Constituição: { name: Atributo.CONSTITUICAO, mod: 0, value: 10 },
+      Inteligência: { name: Atributo.INTELIGENCIA, mod: 0, value: 10 },
+      Sabedoria: { name: Atributo.SABEDORIA, mod: 0, value: 10 },
+      Carisma: { name: Atributo.CARISMA, mod: 0, value: 10 },
+    },
+    maxSpaces: 10,
+    raca: race,
+    classe: generatedClass,
+    pv: 10,
+    pm: 0,
+    sheetBonuses: [],
+    sheetActionHistory: [],
+    defesa: 10,
+    bag: new Bag(),
+    devoto: undefined,
+    origin: undefined,
+    displacement: 0,
+    size,
+    generalPowers: [],
+    classPowers: [],
+    steps: [],
+    skills: [],
+    spells: [],
+  };
+}
