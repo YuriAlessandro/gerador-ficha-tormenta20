@@ -200,7 +200,7 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Aumento de Atributo',
-      text: 'Você recebe +1 em um atributo a sua escolha (NÃO CONTABILIZADO).  Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo',
+      text: 'Você recebe +1 em um atributo a sua escolha.  Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo',
       canRepeat: true,
       requirements: [],
       sheetActions: [
