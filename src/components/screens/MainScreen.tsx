@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import { Container, FormControlLabel, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -7,6 +9,7 @@ import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
+import preparePDF from '@/functions/downloadSheetPdf';
 import CLASSES from '../../data/classes';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
@@ -202,6 +205,26 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const encodedJSON = foundryJSON ? encodeFoundryJSON(foundryJSON) : '';
 
+  const preparePrint = async () => {
+    if (!randomSheet) return;
+    try {
+      const pdfBytes = await preparePDF(randomSheet);
+
+      // Allow user to download the modified PDF
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: 'application/pdf',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Ficha de ${randomSheet.nome}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      // eslint-disable-next-line no-alert
+      alert(`Erro ao gerar PDF.`);
+    }
+  };
+
   return (
     <div id='main-screen'>
       <Container className='filterArea' maxWidth='xl'>
@@ -330,6 +353,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         {randomSheet && (
           <div className='exportButtonsContainer'>
+            <div className='export-to-foundry'>
+              <a
+                className='exportBtn'
+                onClick={preparePrint}
+                role='link'
+                tabIndex={0}
+              >
+                Gerar PDF da Ficha
+              </a>
+            </div>
             <div className='export-to-foundry'>
               <a
                 href={encodedJSON}

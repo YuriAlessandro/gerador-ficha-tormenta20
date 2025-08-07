@@ -17,7 +17,6 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
 import Equipment from '../../interfaces/Equipment';
-
 import '../../assets/css/result.css';
 import Spells from '../Spells';
 import SkillTable from './SkillTable';
