@@ -1939,5 +1939,24 @@ export function generateEmptySheet(
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
 
+  // Generate complete skills table with base values of 0
+  emptySheet.completeSkills = Object.values(Skill)
+    .map((skill) => {
+      const skillAttr = SkillsAttrs[skill];
+
+      return {
+        name: skill,
+        halfLevel: Math.floor(emptySheet.nivel / 2),
+        training: emptySheet.skills.includes(skill) ? 2 : 0,
+        modAttr: skillAttr as unknown as Atributo,
+        others: 0, // Base value of 0 for empty sheet
+      };
+    })
+    .filter(
+      (skill) =>
+        !skill.name.startsWith('Of') ||
+        (skill.name.startsWith('Of') && skill.training > 0)
+    );
+
   return emptySheet;
 }
