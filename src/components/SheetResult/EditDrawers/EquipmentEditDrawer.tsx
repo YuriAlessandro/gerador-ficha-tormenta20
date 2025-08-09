@@ -13,9 +13,17 @@ import {
   Checkbox,
   FormControlLabel,
   Chip,
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, { calcDefense } from '@/data/equipamentos';
@@ -47,6 +55,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       shields: [],
     }
   );
+  const [showAddWeapons, setShowAddWeapons] = useState(false);
+  const [showAddArmor, setShowAddArmor] = useState(false);
+  const [showAddShield, setShowAddShield] = useState(false);
 
   useEffect(() => {
     if (sheet.bag && open) {
@@ -66,6 +77,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       weapons: prev.weapons.some((w) => w.nome === weapon.nome)
         ? prev.weapons.filter((w) => w.nome !== weapon.nome)
         : [...prev.weapons, weapon],
+    }));
+  };
+
+  const handleRemoveWeapon = (weapon: Equipment) => {
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      weapons: prev.weapons.filter((w) => w.nome !== weapon.nome),
     }));
   };
 
@@ -90,6 +108,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
   };
 
+  const handleRemoveArmor = (armor: DefenseEquipment) => {
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      armors: prev.armors.filter((a) => a.nome !== armor.nome),
+    }));
+  };
+
   const handleShieldToggle = (shield: DefenseEquipment) => {
     setSelectedEquipment((prev) => {
       const isCurrentlySelected = prev.shields.some(
@@ -109,6 +134,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         shields: [shield],
       };
     });
+  };
+
+  const handleRemoveShield = (shield: DefenseEquipment) => {
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      shields: prev.shields.filter((s) => s.nome !== shield.nome),
+    }));
   };
 
   const handleSave = () => {
@@ -151,51 +183,51 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
       if (weaponsChanged) {
         const addedWeapons = selectedEquipment.weapons.filter(
-          (w) => !originalWeapons.some((ow) => ow.nome === w.nome)
+          (sw) => !originalWeapons.some((ow) => ow.nome === sw.nome)
         );
         const removedWeapons = originalWeapons.filter(
-          (ow) => !selectedEquipment.weapons.some((w) => w.nome === ow.nome)
+          (ow) => !selectedEquipment.weapons.some((sw) => sw.nome === ow.nome)
         );
 
         addedWeapons.forEach((w) =>
           equipmentChanges.push({
             name: w.nome,
-            value: `${w.nome} (arma) - adicionada`,
+            value: `${w.nome} (arma) - adicionado`,
           })
         );
         removedWeapons.forEach((w) =>
           equipmentChanges.push({
             name: w.nome,
-            value: `${w.nome} (arma) - removida`,
+            value: `${w.nome} (arma) - removido`,
           })
         );
       }
 
       if (armorChanged) {
         const addedArmors = selectedEquipment.armors.filter(
-          (a) => !originalArmor.some((oa) => oa.nome === a.nome)
+          (sa) => !originalArmor.some((oa) => oa.nome === sa.nome)
         );
         const removedArmors = originalArmor.filter(
-          (oa) => !selectedEquipment.armors.some((a) => a.nome === oa.nome)
+          (oa) => !selectedEquipment.armors.some((sa) => sa.nome === oa.nome)
         );
 
         addedArmors.forEach((a) =>
           equipmentChanges.push({
             name: a.nome,
-            value: `${a.nome} (armadura) - adicionada`,
+            value: `${a.nome} (armadura) - adicionado`,
           })
         );
         removedArmors.forEach((a) =>
           equipmentChanges.push({
             name: a.nome,
-            value: `${a.nome} (armadura) - removida`,
+            value: `${a.nome} (armadura) - removido`,
           })
         );
       }
 
       if (shieldChanged) {
         const addedShields = selectedEquipment.shields.filter(
-          (s) => !originalShield.some((os) => os.nome === s.nome)
+          (ss) => !originalShield.some((os) => os.nome === ss.nome)
         );
         const removedShields = originalShield.filter(
           (os) => !selectedEquipment.shields.some((s) => s.nome === os.nome)
@@ -262,6 +294,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         shields: bagEquipments.Escudo || [],
       });
     }
+    setShowAddWeapons(false);
+    setShowAddArmor(false);
+    setShowAddShield(false);
     onClose();
   };
 
@@ -273,8 +308,6 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   const isShieldSelected = (shield: DefenseEquipment) =>
     selectedEquipment.shields.some((s) => s.nome === shield.nome);
-
-  // No need to combine, we'll use the separate categories
 
   return (
     <Drawer
@@ -301,303 +334,388 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Typography variant='body2' sx={{ mb: 2 }}>
-          Selecione as armas, armaduras e escudos do personagem.
+          Gerencie os equipamentos do personagem. Você pode remover itens
+          existentes ou adicionar novos.
           <br />
           <strong>Limite:</strong> 1 armadura e 1 escudo por vez.
         </Typography>
 
-        {/* Selected Equipment Summary */}
-        {(selectedEquipment.weapons.length > 0 ||
-          selectedEquipment.armors.length > 0 ||
-          selectedEquipment.shields.length > 0) && (
-          <Box
-            sx={{
-              mb: 3,
-              p: 2,
-              backgroundColor: 'action.hover',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Equipamentos Selecionados:
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap'>
-              {[
-                ...selectedEquipment.weapons,
-                ...selectedEquipment.armors,
-                ...selectedEquipment.shields,
-              ].map((item) => (
-                <Chip key={item.nome} label={item.nome} size='small' />
-              ))}
-            </Stack>
-          </Box>
-        )}
-
         <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
-          {/* Simple Weapons */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>Armas Simples</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armasSimples.map((weapon) => (
-                  <FormControlLabel
-                    key={weapon.nome}
-                    control={
-                      <Checkbox
-                        checked={isWeaponSelected(weapon)}
-                        onChange={() => handleWeaponToggle(weapon)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {weapon.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Dano: {weapon.dano || '-'} | Crítico:{' '}
-                          {weapon.critico || '-'} | Tipo: {weapon.tipo || '-'}
-                          {weapon.spaces &&
-                            weapon.spaces > 0 &&
-                            ` | ${weapon.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Martial Weapons */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>Armas Marciais</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armasMarciais.map((weapon) => (
-                  <FormControlLabel
-                    key={weapon.nome}
-                    control={
-                      <Checkbox
-                        checked={isWeaponSelected(weapon)}
-                        onChange={() => handleWeaponToggle(weapon)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {weapon.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Dano: {weapon.dano || '-'} | Crítico:{' '}
-                          {weapon.critico || '-'} | Tipo: {weapon.tipo || '-'}
-                          {weapon.spaces &&
-                            weapon.spaces > 0 &&
-                            ` | ${weapon.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Exotic Weapons */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>Armas Exóticas</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armasExoticas.map((weapon) => (
-                  <FormControlLabel
-                    key={weapon.nome}
-                    control={
-                      <Checkbox
-                        checked={isWeaponSelected(weapon)}
-                        onChange={() => handleWeaponToggle(weapon)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {weapon.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Dano: {weapon.dano || '-'} | Crítico:{' '}
-                          {weapon.critico || '-'} | Tipo: {weapon.tipo || '-'}
-                          {weapon.spaces &&
-                            weapon.spaces > 0 &&
-                            ` | ${weapon.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Firearms */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>Armas de Fogo</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armasDeFogo.map((weapon) => (
-                  <FormControlLabel
-                    key={weapon.nome}
-                    control={
-                      <Checkbox
-                        checked={isWeaponSelected(weapon)}
-                        onChange={() => handleWeaponToggle(weapon)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {weapon.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Dano: {weapon.dano || '-'} | Crítico:{' '}
-                          {weapon.critico || '-'} | Tipo: {weapon.tipo || '-'}
-                          {weapon.spaces &&
-                            weapon.spaces > 0 &&
-                            ` | ${weapon.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Light Armor */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>
-                Armaduras Leves ({selectedEquipment.armors.length}/1)
+          {/* Current Equipment Section */}
+          <Card sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant='h6' gutterBottom>
+                Equipamentos Atuais
               </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armadurasLeves.map((armor) => (
-                  <FormControlLabel
-                    key={armor.nome}
-                    control={
-                      <Checkbox
-                        checked={isArmorSelected(armor)}
-                        onChange={() => handleArmorToggle(armor)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {armor.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Defesa: +{armor.defenseBonus} | Penalidade:{' '}
-                          {armor.armorPenalty}
-                          {armor.spaces &&
-                            armor.spaces > 0 &&
-                            ` | ${armor.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
 
-          {/* Heavy Armor */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>
-                Armaduras Pesadas ({selectedEquipment.armors.length}/1)
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.armaduraPesada.map((armor) => (
-                  <FormControlLabel
-                    key={armor.nome}
-                    control={
-                      <Checkbox
-                        checked={isArmorSelected(armor)}
-                        onChange={() => handleArmorToggle(armor)}
-                        size='small'
-                      />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {armor.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Defesa: +{armor.defenseBonus} | Penalidade:{' '}
-                          {armor.armorPenalty}
-                          {armor.spaces &&
-                            armor.spaces > 0 &&
-                            ` | ${armor.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
+              {/* Weapons */}
+              <Box sx={{ mb: 2 }}>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle1' fontWeight='bold'>
+                    Armas ({selectedEquipment.weapons.length})
+                  </Typography>
+                  <Button
+                    size='small'
+                    startIcon={<AddIcon />}
+                    onClick={() => setShowAddWeapons(!showAddWeapons)}
+                  >
+                    Adicionar
+                  </Button>
+                </Stack>
+                {selectedEquipment.weapons.length > 0 ? (
+                  <List dense>
+                    {selectedEquipment.weapons.map((weapon) => (
+                      <ListItem key={weapon.nome}>
+                        <ListItemText
+                          primary={weapon.nome}
+                          secondary={`Dano: ${weapon.dano} | Crítico: ${
+                            weapon.critico || '20/x2'
+                          }`}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge='end'
+                            size='small'
+                            onClick={() => handleRemoveWeapon(weapon)}
+                            color='error'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhuma arma equipada
+                  </Typography>
+                )}
+              </Box>
 
-          {/* Shields Section */}
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant='h6'>
-                Escudos ({selectedEquipment.shields.length})
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack spacing={1}>
-                {EQUIPAMENTOS.escudos.map((shield) => (
-                  <FormControlLabel
-                    key={shield.nome}
-                    control={
-                      <Checkbox
-                        checked={isShieldSelected(shield)}
-                        onChange={() => handleShieldToggle(shield)}
-                        size='small'
+              {/* Armor */}
+              <Box sx={{ mb: 2 }}>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle1' fontWeight='bold'>
+                    Armadura
+                  </Typography>
+                  {selectedEquipment.armors.length === 0 && (
+                    <Button
+                      size='small'
+                      startIcon={<AddIcon />}
+                      onClick={() => setShowAddArmor(!showAddArmor)}
+                    >
+                      Adicionar
+                    </Button>
+                  )}
+                </Stack>
+                {selectedEquipment.armors.length > 0 ? (
+                  <List dense>
+                    {selectedEquipment.armors.map((armor) => (
+                      <ListItem key={armor.nome}>
+                        <ListItemText
+                          primary={armor.nome}
+                          secondary={`Defesa: +${armor.defenseBonus} | Penalidade: ${armor.armorPenalty}`}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge='end'
+                            size='small'
+                            onClick={() => handleRemoveArmor(armor)}
+                            color='error'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhuma armadura equipada
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Shield */}
+              <Box>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle1' fontWeight='bold'>
+                    Escudo
+                  </Typography>
+                  {selectedEquipment.shields.length === 0 && (
+                    <Button
+                      size='small'
+                      startIcon={<AddIcon />}
+                      onClick={() => setShowAddShield(!showAddShield)}
+                    >
+                      Adicionar
+                    </Button>
+                  )}
+                </Stack>
+                {selectedEquipment.shields.length > 0 ? (
+                  <List dense>
+                    {selectedEquipment.shields.map((shield) => (
+                      <ListItem key={shield.nome}>
+                        <ListItemText
+                          primary={shield.nome}
+                          secondary={`Defesa: +${shield.defenseBonus} | Penalidade: ${shield.armorPenalty}`}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge='end'
+                            size='small'
+                            onClick={() => handleRemoveShield(shield)}
+                            color='error'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhum escudo equipado
+                  </Typography>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Add Weapons Section */}
+          {showAddWeapons && (
+            <Accordion expanded={showAddWeapons}>
+              <AccordionSummary>
+                <Typography variant='h6'>Adicionar Armas</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
+                  {/* Simple Weapons */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armas Simples
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armasSimples.map((weapon) => (
+                      <FormControlLabel
+                        key={weapon.nome}
+                        control={
+                          <Checkbox
+                            checked={isWeaponSelected(weapon)}
+                            onChange={() => handleWeaponToggle(weapon)}
+                            size='small'
+                          />
+                        }
+                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
                       />
-                    }
-                    label={
-                      <Box>
-                        <Typography variant='body2' fontWeight='bold'>
-                          {shield.nome}
-                        </Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          Defesa: +{shield.defenseBonus} | Penalidade:{' '}
-                          {shield.armorPenalty}
-                          {shield.spaces &&
-                            shield.spaces > 0 &&
-                            ` | ${shield.spaces} espaço(s)`}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                ))}
-              </Stack>
-            </AccordionDetails>
-          </Accordion>
+                    ))}
+                  </Stack>
+
+                  {/* Martial Weapons */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armas Marciais
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armasMarciais.map((weapon) => (
+                      <FormControlLabel
+                        key={weapon.nome}
+                        control={
+                          <Checkbox
+                            checked={isWeaponSelected(weapon)}
+                            onChange={() => handleWeaponToggle(weapon)}
+                            size='small'
+                          />
+                        }
+                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  {/* Exotic Weapons */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armas Exóticas
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armasExoticas.map((weapon) => (
+                      <FormControlLabel
+                        key={weapon.nome}
+                        control={
+                          <Checkbox
+                            checked={isWeaponSelected(weapon)}
+                            onChange={() => handleWeaponToggle(weapon)}
+                            size='small'
+                          />
+                        }
+                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  {/* Firearms */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armas de Fogo
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armasDeFogo.map((weapon) => (
+                      <FormControlLabel
+                        key={weapon.nome}
+                        control={
+                          <Checkbox
+                            checked={isWeaponSelected(weapon)}
+                            onChange={() => handleWeaponToggle(weapon)}
+                            size='small'
+                          />
+                        }
+                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowAddWeapons(false)}
+                    fullWidth
+                  >
+                    Fechar
+                  </Button>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
+          {/* Add Armor Section */}
+          {showAddArmor && (
+            <Accordion expanded={showAddArmor}>
+              <AccordionSummary>
+                <Typography variant='h6'>Adicionar Armadura</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
+                  {/* Light Armor */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armaduras Leves
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armadurasLeves.map((armor) => (
+                      <FormControlLabel
+                        key={armor.nome}
+                        control={
+                          <Checkbox
+                            checked={isArmorSelected(armor)}
+                            onChange={() => handleArmorToggle(armor)}
+                            size='small'
+                          />
+                        }
+                        label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  {/* Heavy Armor */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Armaduras Pesadas
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.armaduraPesada.map((armor) => (
+                      <FormControlLabel
+                        key={armor.nome}
+                        control={
+                          <Checkbox
+                            checked={isArmorSelected(armor)}
+                            onChange={() => handleArmorToggle(armor)}
+                            size='small'
+                          />
+                        }
+                        label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowAddArmor(false)}
+                    fullWidth
+                  >
+                    Fechar
+                  </Button>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
+          {/* Add Shield Section */}
+          {showAddShield && (
+            <Accordion expanded={showAddShield}>
+              <AccordionSummary>
+                <Typography variant='h6'>Adicionar Escudo</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {EQUIPAMENTOS.escudos.map((shield) => (
+                      <FormControlLabel
+                        key={shield.nome}
+                        control={
+                          <Checkbox
+                            checked={isShieldSelected(shield)}
+                            onChange={() => handleShieldToggle(shield)}
+                            size='small'
+                          />
+                        }
+                        label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                      />
+                    ))}
+                  </Stack>
+
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowAddShield(false)}
+                    fullWidth
+                  >
+                    Fechar
+                  </Button>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          )}
         </Box>
 
         <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
