@@ -379,8 +379,10 @@ const Result: React.FC<ResultProps> = (props) => {
               ⚠️ Ficha do Histórico - Edição Limitada
             </Typography>
             <Typography variant='body2' color='warning.dark'>
-              Esta ficha foi carregada do histórico. A edição de fichas históricas está temporariamente desabilitada 
-              devido a limitações técnicas. Para editar esta ficha, gere uma nova ficha com as mesmas configurações.
+              Esta ficha foi carregada do histórico. A edição de fichas
+              históricas está temporariamente desabilitada devido a limitações
+              técnicas. Para editar esta ficha, gere uma nova ficha com as
+              mesmas configurações.
             </Typography>
           </Card>
         </Container>
@@ -745,40 +747,44 @@ const Result: React.FC<ResultProps> = (props) => {
         </Container>
       </BackgroundBox>
 
-      <SheetInfoEditDrawer
-        open={sheetInfoDrawerOpen}
-        onClose={() => setSheetInfoDrawerOpen(false)}
-        sheet={currentSheet}
-        onSave={handleSheetInfoUpdate}
-      />
+      {!isHistoricSheet && (
+        <>
+          <SheetInfoEditDrawer
+            open={sheetInfoDrawerOpen}
+            onClose={() => setSheetInfoDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+          />
 
-      <SkillsEditDrawer
-        open={skillsDrawerOpen}
-        onClose={() => setSkillsDrawerOpen(false)}
-        sheet={currentSheet}
-        onSave={handleSkillsUpdate}
-      />
+          <SkillsEditDrawer
+            open={skillsDrawerOpen}
+            onClose={() => setSkillsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSkillsUpdate}
+          />
 
-      <EquipmentEditDrawer
-        open={equipmentDrawerOpen}
-        onClose={() => setEquipmentDrawerOpen(false)}
-        sheet={currentSheet}
-        onSave={handleEquipmentUpdate}
-      />
+          <EquipmentEditDrawer
+            open={equipmentDrawerOpen}
+            onClose={() => setEquipmentDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleEquipmentUpdate}
+          />
 
-      <PowersEditDrawer
-        open={powersDrawerOpen}
-        onClose={() => setPowersDrawerOpen(false)}
-        sheet={currentSheet}
-        onSave={handlePowersUpdate}
-      />
+          <PowersEditDrawer
+            open={powersDrawerOpen}
+            onClose={() => setPowersDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handlePowersUpdate}
+          />
 
-      <SpellsEditDrawer
-        open={spellsDrawerOpen}
-        onClose={() => setSpellsDrawerOpen(false)}
-        sheet={currentSheet}
-        onSave={handleSpellsUpdate}
-      />
+          <SpellsEditDrawer
+            open={spellsDrawerOpen}
+            onClose={() => setSpellsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSpellsUpdate}
+          />
+        </>
+      )}
     </Box>
   );
 };
