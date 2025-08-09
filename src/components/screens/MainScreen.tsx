@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { Container, FormControlLabel, Stack } from '@mui/material';
+import { Box, Card, Container, FormControlLabel, Stack } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
@@ -15,7 +15,9 @@ import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Result from '../SheetResult/Result';
 
-import generateRandomSheet from '../../functions/general';
+import generateRandomSheet, {
+  generateEmptySheet,
+} from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
@@ -49,6 +51,25 @@ const saveSheetOnHistoric = (sheet: CharacterSheet) => {
   ls.setItem('fdnHistoric', JSON.stringify(historic));
 };
 
+const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
+  const ls = localStorage;
+  const lsHistoric = ls.getItem('fdnHistoric');
+  const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
+
+  // Find and update the existing sheet in historic
+  const sheetIndex = historic.findIndex(
+    (entry) => entry.id === updatedSheet.id
+  );
+  if (sheetIndex !== -1) {
+    historic[sheetIndex] = {
+      sheet: updatedSheet,
+      date: historic[sheetIndex].date, // Keep original date
+      id: updatedSheet.id,
+    };
+    ls.setItem('fdnHistoric', JSON.stringify(historic));
+  }
+};
+
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
@@ -62,9 +83,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showHistoric, setShowHistoric] = React.useState(false);
+  const [isHistoricSheet, setIsHistoricSheet] = React.useState(false);
+
+  const canGenerateEmptySheet =
+    selectedOptions.classe &&
+    selectedOptions.classe !== 'Golem' &&
+    selectedOptions.raca &&
+    selectedOptions.origin &&
+    selectedOptions.nivel &&
+    (selectedOptions.devocao.label !== 'Padrão' ||
+      selectedOptions.devocao.value === '**');
 
   const onClickGenerate = () => {
     setShowHistoric(false);
+    setIsHistoricSheet(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -77,8 +109,25 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setRandomSheet(anotherRandomSheet);
   };
 
+  const onClickGenerateEmptySheet = () => {
+    setShowHistoric(false);
+    setIsHistoricSheet(false);
+    const presentation = document.getElementById('presentation');
+    if (presentation) {
+      setInterval(() => {
+        presentation.style.opacity = '0';
+        presentation.style.display = 'none';
+      }, 200);
+    }
+    const emptySheet = generateEmptySheet(selectedOptions);
+    emptySheet.bag = new Bag(emptySheet.bag.equipments);
+    saveSheetOnHistoric(emptySheet);
+    setRandomSheet(emptySheet);
+  };
+
   const onClickSeeSheet = (sheet: CharacterSheet) => {
     setShowHistoric(false);
+    setIsHistoricSheet(true);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -87,9 +136,38 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
 
+    // Restore Bag class methods
     sheet.bag = new Bag(sheet.bag.equipments);
 
+    // Restore spellPath functions if the class has spellcasting
+    if (sheet.classe.spellPath) {
+      const originalClass = CLASSES.find(
+        (c) =>
+          c.name === sheet.classe.name && c.subname === sheet.classe.subname
+      );
+      if (originalClass?.spellPath) {
+        sheet.classe.spellPath = originalClass.spellPath;
+      }
+    }
+
     setRandomSheet(sheet);
+  };
+
+  const handleSheetUpdate = (updatedSheet: CharacterSheet) => {
+    // Ensure the updated sheet has proper class methods restored
+    if (updatedSheet.classe.spellPath) {
+      const originalClass = CLASSES.find(
+        (c) =>
+          c.name === updatedSheet.classe.name &&
+          c.subname === updatedSheet.classe.subname
+      );
+      if (originalClass?.spellPath) {
+        updatedSheet.classe.spellPath = originalClass.spellPath;
+      }
+    }
+
+    setRandomSheet(updatedSheet);
+    updateSheetInHistoric(updatedSheet);
   };
 
   const onClickShowHistoric = () => {
@@ -188,7 +266,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     (simpleSheet ? (
       <SimpleResult sheet={randomSheet} />
     ) : (
-      <Result sheet={randomSheet} isDarkMode={isDarkMode} />
+      <Result
+        sheet={randomSheet}
+        isDarkMode={isDarkMode}
+        onSheetUpdate={handleSheetUpdate}
+        isHistoricSheet={isHistoricSheet}
+      />
     ));
 
   function encodeFoundryJSON(json: FoundryJSON | undefined) {
@@ -228,128 +311,146 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   return (
     <div id='main-screen'>
       <Container className='filterArea' maxWidth='xl'>
-        <div className='filtersRow'>
-          <Select
-            className='filterSelect'
-            options={[{ value: '', label: 'Todas as raças' }, ...racas]}
-            placeholder='Todas as raças'
-            onChange={onSelectRaca}
-            style={{ background: 'blue' }}
-            theme={(theme) => ({
-              ...theme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
+        <Card sx={{ p: 2, mb: 2 }}>
+          <Box>
+            <Select
+              className='filterSelect'
+              options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+              placeholder='Todas as raças'
+              onChange={onSelectRaca}
+              style={{ background: 'blue' }}
+              theme={(theme) => ({
+                ...theme,
+                colors: {
+                  ...formThemeColors,
+                },
+              })}
+            />
 
-          <Select
-            className='filterSelect'
-            options={[
-              {
-                label: 'Classes',
-                options: [
-                  { value: '', label: 'Todas as Classes' },
-                  ...classesopt,
-                ],
-              },
-              {
-                label: 'Roles',
-                options: [{ value: '', label: 'Todas as Roles' }, ...rolesopt],
-              },
-            ]}
-            placeholder='Todas as Classes e Roles'
-            formatGroupLabel={fmtGroupLabel}
-            onChange={onSelectClasse}
-            theme={(theme) => ({
-              ...theme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
+            <Select
+              className='filterSelect'
+              options={[
+                {
+                  label: 'Classes',
+                  options: [
+                    { value: '', label: 'Todas as Classes' },
+                    ...classesopt,
+                  ],
+                },
+                {
+                  label: 'Roles',
+                  options: [
+                    { value: '', label: 'Todas as Roles' },
+                    ...rolesopt,
+                  ],
+                },
+              ]}
+              placeholder='Todas as Classes e Roles'
+              formatGroupLabel={fmtGroupLabel}
+              onChange={onSelectClasse}
+              theme={(theme) => ({
+                ...theme,
+                colors: {
+                  ...formThemeColors,
+                },
+              })}
+            />
 
-          <Select
-            className='filterSelect'
-            placeholder='Todas as Origens'
-            options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
-            isSearchable
-            onChange={onSelectOrigin}
-            isDisabled={selectedOptions.raca === 'Golem'}
-            theme={(theme) => ({
-              ...theme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
+            <Select
+              className='filterSelect'
+              placeholder='Todas as Origens'
+              options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
+              isSearchable
+              onChange={onSelectOrigin}
+              isDisabled={selectedOptions.raca === 'Golem'}
+              theme={(theme) => ({
+                ...theme,
+                colors: {
+                  ...formThemeColors,
+                },
+              })}
+            />
 
-          <Select
-            className='filterSelect'
-            placeholder='Todas as Divindades'
-            options={[
-              {
-                label: '',
-                options: [
-                  { value: '', label: 'Padrão' },
-                  { value: '**', label: 'Qualquer divindade' },
-                  { value: '--', label: 'Não devoto' },
-                ],
-              },
-              {
-                label: `Divindades Permitidas (${
-                  selectedOptions.classe || 'Todas as Classes'
-                })`,
-                options: divindades,
-              },
-            ]}
-            isSearchable
-            value={selectedOptions.devocao}
-            onChange={inSelectDivindade}
-            // value={selectedOptions.devocao}
-            theme={(theme) => ({
-              ...theme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
+            <Select
+              className='filterSelect'
+              placeholder='Todas as Divindades'
+              options={[
+                {
+                  label: '',
+                  options: [
+                    { value: '', label: 'Padrão' },
+                    { value: '**', label: 'Qualquer divindade' },
+                    { value: '--', label: 'Não devoto' },
+                  ],
+                },
+                {
+                  label: `Divindades Permitidas (${
+                    selectedOptions.classe || 'Todas as Classes'
+                  })`,
+                  options: divindades,
+                },
+              ]}
+              isSearchable
+              value={selectedOptions.devocao}
+              onChange={inSelectDivindade}
+              // value={selectedOptions.devocao}
+              theme={(theme) => ({
+                ...theme,
+                colors: {
+                  ...formThemeColors,
+                },
+              })}
+            />
 
-          <CreatableSelect
-            className='filterSelect'
-            placeholder='Nível 1'
-            options={niveis}
-            isSearchable
-            formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
-            onChange={onSelectNivel}
-            theme={(theme) => ({
-              ...theme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
+            <CreatableSelect
+              className='filterSelect'
+              placeholder='Nível 1'
+              options={niveis}
+              isSearchable
+              formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
+              onChange={onSelectNivel}
+              theme={(theme) => ({
+                ...theme,
+                colors: {
+                  ...formThemeColors,
+                },
+              })}
+            />
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                value={simpleSheet}
-                onChange={() => setSimpleSheet(!simpleSheet)}
-              />
-            }
-            label='Ficha simplificada'
-          />
-        </div>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  value={simpleSheet}
+                  onChange={() => setSimpleSheet(!simpleSheet)}
+                />
+              }
+              label='Ficha simplificada'
+            />
+          </Box>
 
-        <Stack spacing={2} direction='row' mt={2} mb={2}>
-          <Button variant='contained' onClick={onClickGenerate}>
-            Gerar Ficha
-          </Button>
+          <Stack spacing={2} direction='row' mt={2} mb={2}>
+            <Button variant='contained' onClick={onClickGenerate}>
+              Gerar Ficha Aleatória
+            </Button>
 
-          <Button variant='contained' onClick={onClickShowHistoric}>
-            Ver histórico
-          </Button>
-        </Stack>
+            <Button
+              variant='contained'
+              onClick={onClickGenerateEmptySheet}
+              disabled={!canGenerateEmptySheet}
+            >
+              Gerar Ficha Vazia
+            </Button>
+
+            <Button variant='contained' onClick={onClickShowHistoric}>
+              Ver histórico
+            </Button>
+          </Stack>
+
+          <p>
+            Para gerar uma ficha vazia, sem poderes, magias e atributos, você
+            deve selecionar todas as informações no formulário acima.
+          </p>
+        </Card>
 
         {randomSheet && (
           <div className='exportButtonsContainer'>

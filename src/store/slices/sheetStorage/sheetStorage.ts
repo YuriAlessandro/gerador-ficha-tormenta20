@@ -72,6 +72,19 @@ export const sheetStorageSlice = createSlice({
     ) => {
       state.sheets[action.payload.id].date = action.payload.date;
     },
+    updateSheetData: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        updates: Partial<SerializedSheetInterface>;
+      }>
+    ) => {
+      const sheet = state.sheets[action.payload.id];
+      if (sheet && sheet.sheet) {
+        sheet.sheet = { ...sheet.sheet, ...action.payload.updates };
+        sheet.date = new Date().getTime();
+      }
+    },
   },
 });
 
@@ -82,6 +95,7 @@ export const {
   removeSheet,
   updateSheetDate,
   createNewSheet,
+  updateSheetData,
 } = sheetStorageSlice.actions;
 
 export const selectStoredSheets = (state: RootState) =>

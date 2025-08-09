@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 26/07/2024.
+        Segue a lista de mudanças no projeto. Última atualização em 09/08/2025.
       </p>
 
       <p>
@@ -22,6 +22,157 @@ const Changelog: React.FC = () => (
         </a>
         .
       </p>
+
+      <h2>Versão 3.1</h2>
+
+      <h3>3.1.0</h3>
+      <ul>
+        <li>
+          <strong>🎉 Nova funcionalidade: Edição Completa de Fichas!</strong>
+          <ul>
+            <li>
+              Agora é possível editar qualquer aspecto de uma ficha gerada:
+              informações básicas, atributos, perícias, equipamentos, poderes e
+              magias.
+            </li>
+            <li>
+              Todas as edições são automaticamente recalculadas e mantêm a
+              consistência da ficha (defesa, PV, PM, bônus de perícias, etc.).
+            </li>
+            <li>
+              Sistema de histórico de edições: todas as modificações manuais são
+              registradas no passo-a-passo da ficha para auditoria completa.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>📝 Edição de Informações Básicas:</strong>
+          <ul>
+            <li>
+              Nome com sugestões automáticas baseadas na raça e gênero (usando
+              banco expandido de nomes).
+            </li>
+            <li>
+              Modificação de nível, gênero, raça, classe, origem e divindade.
+            </li>
+            <li>
+              Edição livre de modificadores de atributos com recálculo
+              automático de todos os valores dependentes.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>⚔️ Edição de Equipamentos:</strong>
+          <ul>
+            <li>
+              Adição/remoção de armas, armaduras, escudos e equipamentos gerais.
+            </li>
+            <li>
+              Controle automático de espaços ocupados e cálculo de penalidades.
+            </li>
+            <li>
+              Recálculo automático de defesa e bônus quando equipamentos são
+              alterados.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>🎯 Edição de Perícias:</strong>
+          <ul>
+            <li>Treinamento/destreinamento de qualquer perícia.</li>
+            <li>Adição de bônus manuais na coluna &quot;Outros&quot;.</li>
+            <li>Suporte completo a Ofícios customizados.</li>
+            <li>
+              Recálculo automático de totais considerando atributos e níveis.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>💪 Edição de Poderes:</strong>
+          <ul>
+            <li>
+              Liberdade total: adicione qualquer poder independente de
+              pré-requisitos (para máxima flexibilidade de criação).
+            </li>
+            <li>
+              Sistema visual inteligente: poderes disponíveis em verde, não
+              disponíveis em vermelho.
+            </li>
+            <li>
+              Aplicação automática de efeitos dos poderes (bônus em atributos,
+              defesa, perícias, etc.).
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>✨ Edição de Magias:</strong>
+          <ul>
+            <li>
+              Organização por círculos com indicação visual de disponibilidade.
+            </li>
+            <li>
+              Sistema de busca avançada por nome, descrição e escola de magia.
+            </li>
+            <li>
+              Filtros por círculo e tipo (arcanas/divinas) para navegação fácil.
+            </li>
+            <li>
+              Liberdade total: adicione qualquer magia independente de
+              limitações de nível.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>📚 Banco de Nomes Massivamente Expandido:</strong>
+          <ul>
+            <li>
+              Adicionados mais de 300 novos nomes para todas as raças, baseados
+              nos padrões linguísticos existentes.
+            </li>
+            <li>
+              Cada raça agora possui 20-40+ nomes adicionais masculinos e
+              femininos para maior variedade.
+            </li>
+            <li>
+              Sistema de sugestões inteligente no editor de nomes com
+              autocomplete.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>💾 Persistência Automática:</strong>
+          <ul>
+            <li>
+              Todas as edições são automaticamente salvas no histórico local.
+            </li>
+            <li>
+              Consistência total entre ficha exibida e dados salvos no
+              navegador.
+            </li>
+            <li>
+              Histórico de fichas sempre atualizado com as versões mais
+              recentes.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>⚠️ Limitação Temporária - Fichas Históricas:</strong>
+          <ul>
+            <li>
+              Fichas carregadas do histórico têm edição temporariamente
+              desabilitada devido a limitações técnicas de serialização.
+            </li>
+            <li>
+              Interface clara informa a limitação e sugere gerar nova ficha com
+              mesmas configurações para edição.
+            </li>
+            <li>
+              Fichas recém-geradas mantêm funcionalidade de edição completamente
+              normal.
+            </li>
+          </ul>
+        </li>
+      </ul>
 
       <h2>Versão 3.0</h2>
 

@@ -1478,7 +1478,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
       // TODO: Adicionar bonus bom pra oficios
       if (skillName === Skill.OFICIO) {
-        console.warn('need good bonus for OFICIO skill');
+        // console.warn('need good bonus for OFICIO skill');
       }
 
       addOtherBonusToSkill(sheet, skillName, bonusValue);
@@ -1517,7 +1517,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       pickedSkills.forEach((skill) => {
         // TODO: Adicionar bonus bom pra oficios
         if (skill === Skill.OFICIO) {
-          console.warn('need good bonus for OFICIO skill');
+          // console.warn('need good bonus for OFICIO skill');
         }
 
         addOtherBonusToSkill(sheet, skill, bonusValue);
@@ -1543,7 +1543,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `Modifica atributo de ${skillName} para ${attribute}`,
       });
     } else {
-      console.warn('bonus não implementado', bonus);
+      // console.warn('bonus não implementado', bonus);
     }
   });
 
@@ -1744,7 +1744,7 @@ export default function generateRandomSheet(
   let charSheet: CharacterSheet = {
     id: uuid(),
     nome,
-    sexo,
+    sexo: sexo === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
     maxSpaces,
@@ -1841,4 +1841,52 @@ export default function generateRandomSheet(
   charSheet = applyStatModifiers(charSheet);
 
   return charSheet;
+}
+
+export function generateEmptySheet(
+  selectedOptions: SelectedOptions
+): CharacterSheet {
+  // console.log(selectedOptions);
+  const race = selectRace(selectedOptions);
+  const size = getRaceSize(race);
+  const generatedClass = CLASSES.find((classe) =>
+    classByName(classe, selectedOptions.classe)
+  );
+
+  if (!generatedClass) {
+    throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
+  }
+
+  return {
+    id: uuid(),
+    nome: '',
+    sexo: '',
+    nivel: selectedOptions.nivel,
+    atributos: {
+      Força: { name: Atributo.FORCA, mod: 0, value: 10 },
+      Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
+      Constituição: { name: Atributo.CONSTITUICAO, mod: 0, value: 10 },
+      Inteligência: { name: Atributo.INTELIGENCIA, mod: 0, value: 10 },
+      Sabedoria: { name: Atributo.SABEDORIA, mod: 0, value: 10 },
+      Carisma: { name: Atributo.CARISMA, mod: 0, value: 10 },
+    },
+    maxSpaces: 10,
+    raca: race,
+    classe: generatedClass,
+    pv: 10,
+    pm: 0,
+    sheetBonuses: [],
+    sheetActionHistory: [],
+    defesa: 10,
+    bag: new Bag(),
+    devoto: undefined,
+    origin: undefined,
+    displacement: 0,
+    size,
+    generalPowers: [],
+    classPowers: [],
+    steps: [],
+    skills: [],
+    spells: [],
+  };
 }

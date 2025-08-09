@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import EditIcon from '@mui/icons-material/Edit';
 import {
   Box,
   Card,
@@ -8,6 +9,7 @@ import {
   Stack,
   Typography,
   useTheme,
+  IconButton,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
@@ -25,16 +27,83 @@ import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
+import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
+import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
+import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
+import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
+import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 
 interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
+  onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
+  isHistoricSheet?: boolean;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode } = props;
+  const { sheet, isDarkMode, onSheetUpdate, isHistoricSheet = false } = props;
+  const [currentSheet, setCurrentSheet] = useState(sheet);
+  const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
+  const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
+  const [equipmentDrawerOpen, setEquipmentDrawerOpen] = useState(false);
+  const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
+  const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
 
   const theme = useTheme();
+
+  // Update currentSheet when sheet prop changes
+  React.useEffect(() => {
+    setCurrentSheet(sheet);
+  }, [sheet]);
+
+  const handleSheetInfoUpdate = (updates: Partial<CharacterSheet>) => {
+    const updatedSheet = { ...currentSheet, ...updates };
+    setCurrentSheet(updatedSheet);
+    if (onSheetUpdate) {
+      onSheetUpdate(updatedSheet);
+    }
+  };
+
+  const handleSkillsUpdate = (updates: Partial<CharacterSheet>) => {
+    const updatedSheet = { ...currentSheet, ...updates };
+    setCurrentSheet(updatedSheet);
+    if (onSheetUpdate) {
+      onSheetUpdate(updatedSheet);
+    }
+  };
+
+  const handleEquipmentUpdate = (updates: Partial<CharacterSheet>) => {
+    const updatedSheet = { ...currentSheet, ...updates };
+    setCurrentSheet(updatedSheet);
+    if (onSheetUpdate) {
+      onSheetUpdate(updatedSheet);
+    }
+  };
+
+  const handlePowersUpdate = (
+    updates: Partial<CharacterSheet> | CharacterSheet
+  ) => {
+    // Check if it's a full sheet (has required properties) or partial updates
+    const isFullSheet =
+      'id' in updates && 'nome' in updates && 'atributos' in updates;
+
+    const updatedSheet = isFullSheet
+      ? (updates as CharacterSheet)
+      : { ...currentSheet, ...updates };
+
+    setCurrentSheet(updatedSheet);
+    if (onSheetUpdate) {
+      onSheetUpdate(updatedSheet);
+    }
+  };
+
+  const handleSpellsUpdate = (updates: Partial<CharacterSheet>) => {
+    const updatedSheet = { ...currentSheet, ...updates };
+    setCurrentSheet(updatedSheet);
+    if (onSheetUpdate) {
+      onSheetUpdate(updatedSheet);
+    }
+  };
 
   const {
     nome,
@@ -58,7 +127,7 @@ const Result: React.FC<ResultProps> = (props) => {
     steps,
     extraArmorPenalty = 0,
     completeSkills,
-  } = sheet;
+  } = currentSheet;
 
   function getKey(elementId: string) {
     return `${id}-${elementId}`;
@@ -71,7 +140,9 @@ const Result: React.FC<ResultProps> = (props) => {
     skillA.name < skillB.name ? -1 : 1
   );
 
-  const periciasDiv = <SkillTable sheet={sheet} skills={periciasSorted} />;
+  const periciasDiv = (
+    <SkillTable sheet={currentSheet} skills={periciasSorted} />
+  );
 
   const proficienciasDiv = classe.proficiencias.map((proe) => (
     <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
@@ -144,7 +215,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
 
   const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].mod
+    ? currentSheet.atributos[fightSkill.modAttr].mod
     : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
@@ -153,7 +224,7 @@ const Result: React.FC<ResultProps> = (props) => {
     (fightSkill?.training ?? 0);
 
   const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].mod
+    ? currentSheet.atributos[rangeSkill.modAttr].mod
     : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
@@ -201,7 +272,8 @@ const Result: React.FC<ResultProps> = (props) => {
       step.type === 'Perícias' ||
       step.type === 'Magias' ||
       step.type === 'Equipamentos' ||
-      step.type === 'Atributos Extras'
+      step.type === 'Atributos Extras' ||
+      step.type === 'Edição Manual'
     ) {
       return (
         <li key={getKey(step.label)}>
@@ -292,6 +364,29 @@ const Result: React.FC<ResultProps> = (props) => {
 
   return (
     <Box>
+      {isHistoricSheet && (
+        <Container maxWidth='xl'>
+          <Card
+            sx={{
+              p: 2,
+              mb: 2,
+              backgroundColor: 'warning.light',
+              border: '2px solid',
+              borderColor: 'warning.main',
+            }}
+          >
+            <Typography variant='h6' color='warning.dark' sx={{ mb: 1 }}>
+              ⚠️ Ficha do Histórico - Edição Limitada
+            </Typography>
+            <Typography variant='body2' color='warning.dark'>
+              Esta ficha foi carregada do histórico. A edição de fichas
+              históricas está temporariamente desabilitada devido a limitações
+              técnicas. Para editar esta ficha, gere uma nova ficha com as
+              mesmas configurações.
+            </Typography>
+          </Card>
+        </Container>
+      )}
       <BackgroundBox sx={{ p: 2 }}>
         <Container maxWidth='xl'>
           <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
@@ -299,8 +394,33 @@ const Result: React.FC<ResultProps> = (props) => {
             <Box width={isMobile ? '100%' : '60%'}>
               {/* PARTE DE CIMA: Informações da ficha */}
               <Card
-                sx={{ p: 3, mb: 2, minHeight: isMobile ? '500px' : '180px' }}
+                sx={{
+                  p: 3,
+                  mb: 4,
+                  minHeight: isMobile ? '500px' : '180px',
+                  position: 'relative',
+                  overflow: 'visible', // Allow the button to show outside the card
+                }}
               >
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16, // Half the button height to position it on the edge
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1, // Makes it square with slightly rounded corners
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSheetInfoDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Stack
                   direction='row'
                   spacing={2}
@@ -399,9 +519,30 @@ const Result: React.FC<ResultProps> = (props) => {
               <Card
                 sx={{
                   p: 3,
-                  mb: 2,
+                  mb: 4,
+                  position: 'relative',
+                  overflow: 'visible',
                 }}
               >
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setEquipmentDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Stack
                   direction={isMobile ? 'column' : 'row'}
                   spacing={2}
@@ -450,11 +591,32 @@ const Result: React.FC<ResultProps> = (props) => {
                   </Box>
                 </Stack>
               </Card>
-              <Card sx={{ p: 3, mb: 2 }}>
+              <Card
+                sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+              >
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setPowersDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box>
                   <BookTitle>Poderes</BookTitle>
                   <PowersDisplay
-                    sheetHistory={sheet.sheetActionHistory}
+                    sheetHistory={currentSheet.sheetActionHistory}
                     classAbilities={classe.abilities}
                     classPowers={classPowers}
                     raceAbilities={raca.abilities}
@@ -466,7 +628,28 @@ const Result: React.FC<ResultProps> = (props) => {
                   />
                 </Box>
               </Card>
-              <Card sx={{ p: 3, mb: 2 }}>
+              <Card
+                sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+              >
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSpellsDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box>
                   <BookTitle>Magias</BookTitle>
                   <Spells
@@ -480,8 +663,29 @@ const Result: React.FC<ResultProps> = (props) => {
             </Box>
             {/* LADO DIREITO, 40% */}
             <Box width={isMobile ? '100%' : '40%'}>
-              <Stack spacing={2}>
-                <Card>{periciasDiv}</Card>
+              <Stack spacing={4}>
+                <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                  {!isHistoricSheet && (
+                    <IconButton
+                      size='small'
+                      sx={{
+                        position: 'absolute',
+                        top: -16,
+                        right: 16,
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setSkillsDrawerOpen(true)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                  {periciasDiv}
+                </Card>
                 <Card>
                   <Box p={2}>
                     <BookTitle>Equipamentos</BookTitle>
@@ -542,6 +746,45 @@ const Result: React.FC<ResultProps> = (props) => {
           </Stack>
         </Container>
       </BackgroundBox>
+
+      {!isHistoricSheet && (
+        <>
+          <SheetInfoEditDrawer
+            open={sheetInfoDrawerOpen}
+            onClose={() => setSheetInfoDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSheetInfoUpdate}
+          />
+
+          <SkillsEditDrawer
+            open={skillsDrawerOpen}
+            onClose={() => setSkillsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSkillsUpdate}
+          />
+
+          <EquipmentEditDrawer
+            open={equipmentDrawerOpen}
+            onClose={() => setEquipmentDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleEquipmentUpdate}
+          />
+
+          <PowersEditDrawer
+            open={powersDrawerOpen}
+            onClose={() => setPowersDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handlePowersUpdate}
+          />
+
+          <SpellsEditDrawer
+            open={spellsDrawerOpen}
+            onClose={() => setSpellsDrawerOpen(false)}
+            sheet={currentSheet}
+            onSave={handleSpellsUpdate}
+          />
+        </>
+      )}
     </Box>
   );
 };

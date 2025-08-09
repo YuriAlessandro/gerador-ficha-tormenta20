@@ -30,7 +30,7 @@ const PowerDisplay: React.FC<{
 
   const isMobile = window.innerWidth < 720;
 
-  const powerSources = sheetHistory
+  const historySources = sheetHistory
     .filter((entry) =>
       entry.changes.some(
         (change) =>
@@ -59,7 +59,14 @@ const PowerDisplay: React.FC<{
       }
       return '';
     })
-    .join(', ');
+    .filter((source) => source !== '');
+
+  // Check if this is a general power that was added manually
+  const isManuallyAdded = type === 'Poder Geral' && historySources.length === 0;
+
+  const powerSources = isManuallyAdded
+    ? 'Adicionado manualmente'
+    : historySources.join(', ');
 
   return (
     <Accordion
@@ -84,7 +91,11 @@ const PowerDisplay: React.FC<{
       <AccordionDetails>
         {generateClassPowerDiv(power as ClassPower)}
         {generateGeneralPowerDiv(power as RaceAbility)}
-        <div style={{ paddingTop: '16px' }}>Vindo de: {powerSources}</div>
+        <div style={{ paddingTop: '16px' }}>
+          <Typography variant='caption' color='text.secondary'>
+            Vindo de: {powerSources || 'Origem não identificada'}
+          </Typography>
+        </div>
       </AccordionDetails>
     </Accordion>
   );
