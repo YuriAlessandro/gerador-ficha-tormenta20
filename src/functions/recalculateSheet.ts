@@ -6,10 +6,10 @@ import Skill, {
 } from '@/interfaces/Skills';
 import { Atributo } from '@/data/atributos';
 import { calcDefense } from '@/data/equipamentos';
-import { applyRaceAbilities, applyPower } from './general';
 import { getRaceDisplacement } from '@/data/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
+import { applyRaceAbilities, applyPower } from './general';
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (

@@ -16,7 +16,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  FormControlLabel,
   Select,
   MenuItem,
   FormControl,
@@ -24,9 +23,9 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import CharacterSheet from '@/interfaces/CharacterSheet';
-import { CompleteSkill } from '@/interfaces/Skills';
-import Skill from '@/interfaces/Skills';
+import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
+import Skill, { CompleteSkill } from '@/interfaces/Skills';
+
 import { Atributo } from '@/data/atributos';
 
 interface SkillsEditDrawerProps {
@@ -192,7 +191,78 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
     const finalSkills = [...updatedSkills, ...newOficios];
 
-    onSave({ completeSkills: finalSkills });
+    // Track skill changes in steps
+    const originalTrainedSkills =
+      sheet.completeSkills
+        ?.filter((s) => (s.training ?? 0) > 0)
+        .map((s) => s.name) || [];
+    const newTrainedSkills = finalSkills
+      .filter((s) => (s.training ?? 0) > 0)
+      .map((s) => s.name);
+
+    const newlyTrained = newTrainedSkills.filter(
+      (name) => !originalTrainedSkills.includes(name)
+    );
+    const newlyUntrained = originalTrainedSkills.filter(
+      (name) => !newTrainedSkills.includes(name)
+    );
+
+    const newSteps: Step[] = [];
+
+    if (newlyTrained.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Perícias Treinadas',
+        type: 'Perícias',
+        value: newlyTrained.map((name) => ({
+          name,
+          value: `${name} - treinada`,
+        })),
+      });
+    }
+
+    if (newlyUntrained.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Perícias Destreinadas',
+        type: 'Perícias',
+        value: newlyUntrained.map((name) => ({
+          name,
+          value: `${name} - destreinada`,
+        })),
+      });
+    }
+
+    // Check for bonus changes
+    const bonusChanges = editedSkills.filter((editedSkill) => {
+      const originalSkill = sheet.completeSkills?.find(
+        (s) => s.name === editedSkill.name
+      );
+      return (
+        originalSkill && (originalSkill.others ?? 0) !== editedSkill.others
+      );
+    });
+
+    if (bonusChanges.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Bônus de Perícias',
+        type: 'Perícias',
+        value: bonusChanges.map((skill) => ({
+          name: skill.name,
+          value: `${skill.name}: ${skill.others >= 0 ? '+' : ''}${
+            skill.others
+          }`,
+        })),
+      });
+    }
+
+    const updates: Partial<CharacterSheet> = {
+      completeSkills: finalSkills,
+    };
+
+    if (newSteps.length > 0) {
+      updates.steps = [...sheet.steps, ...newSteps];
+    }
+
+    onSave(updates);
     onClose();
   };
 
@@ -237,8 +307,8 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Typography variant='body2' sx={{ mb: 2 }}>
-          Marque as perícias treinadas e ajuste os valores de "Outros" conforme
-          necessário.
+          Marque as perícias treinadas e ajuste os valores de
+          &ldquo;Outros&rdquo; conforme necessário.
         </Typography>
 
         <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
@@ -271,7 +341,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
                       onChange={(e) =>
                         handleSkillOthersChange(
                           skill.name,
-                          parseInt(e.target.value) || 0
+                          parseInt(e.target.value, 10) || 0
                         )
                       }
                       size='small'

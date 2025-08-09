@@ -18,7 +18,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -26,6 +26,7 @@ import {
 } from '@/interfaces/Poderes';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+
 import combatPowers from '@/data/powers/combatPowers';
 import destinyPowers from '@/data/powers/destinyPowers';
 import spellPowers from '@/data/powers/spellPowers';
@@ -204,8 +205,43 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   };
 
   const handleSave = () => {
-    // Update the sheet with new powers and recalculate everything
-    const updatedSheet = { ...sheet, generalPowers: selectedPowers };
+    // Track power changes in steps
+    const originalPowerNames = sheet.generalPowers?.map((p) => p.name) || [];
+    const newPowerNames = selectedPowers.map((p) => p.name);
+
+    const addedPowers = selectedPowers.filter(
+      (p) => !originalPowerNames.includes(p.name)
+    );
+    const removedPowers =
+      sheet.generalPowers?.filter((p) => !newPowerNames.includes(p.name)) || [];
+
+    const newSteps: Step[] = [];
+
+    if (addedPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes Adicionados',
+        type: 'Poderes',
+        value: addedPowers.map((p) => ({ name: p.name, value: p.name })),
+      });
+    }
+
+    if (removedPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes Removidos',
+        type: 'Poderes',
+        value: removedPowers.map((p) => ({
+          name: p.name,
+          value: `${p.name} (removido)`,
+        })),
+      });
+    }
+
+    // Update the sheet with new powers and steps, then recalculate everything
+    const updatedSheet = {
+      ...sheet,
+      generalPowers: selectedPowers,
+      steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
+    };
     const recalculatedSheet = recalculateSheet(updatedSheet);
 
     // Pass the fully recalculated sheet

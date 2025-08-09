@@ -22,7 +22,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import { Spell } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
@@ -131,7 +131,49 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   };
 
   const handleSave = () => {
-    onSave({ spells: selectedSpells });
+    // Track spell changes in steps
+    const originalSpellNames = sheet.spells?.map((s) => s.nome) || [];
+    const newSpellNames = selectedSpells.map((s) => s.nome);
+
+    const addedSpells = selectedSpells.filter(
+      (s) => !originalSpellNames.includes(s.nome)
+    );
+    const removedSpells =
+      sheet.spells?.filter((s) => !newSpellNames.includes(s.nome)) || [];
+
+    const newSteps: Step[] = [];
+
+    if (addedSpells.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Magias Adicionadas',
+        type: 'Magias',
+        value: addedSpells.map((s) => ({
+          name: s.nome,
+          value: `${s.nome} (${s.spellCircle}º círculo)`,
+        })),
+      });
+    }
+
+    if (removedSpells.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Magias Removidas',
+        type: 'Magias',
+        value: removedSpells.map((s) => ({
+          name: s.nome,
+          value: `${s.nome} (${s.spellCircle}º círculo) - removida`,
+        })),
+      });
+    }
+
+    const updates: Partial<CharacterSheet> = {
+      spells: selectedSpells,
+    };
+
+    if (newSteps.length > 0) {
+      updates.steps = [...sheet.steps, ...newSteps];
+    }
+
+    onSave(updates);
     onClose();
   };
 

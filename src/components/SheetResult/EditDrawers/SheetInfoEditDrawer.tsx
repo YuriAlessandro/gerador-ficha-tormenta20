@@ -12,16 +12,14 @@ import {
   Stack,
   IconButton,
   Divider,
-  Grid,
-  Paper,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import RACAS from '@/data/racas';
 import CLASSES from '@/data/classes';
 import { ORIGINS } from '@/data/origins';
 import { allDivindadeNames } from '@/interfaces/Divindade';
-import DIVINDADES from '@/data/divindades';
+import DIVINDADES_DATA from '@/data/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -45,12 +43,10 @@ interface EditedData {
 }
 
 // Helper function to calculate the highest attribute value for a given modifier
-const calculateValueFromModifier = (modifier: number): number => {
+const calculateValueFromModifier = (modifier: number): number =>
   // Formula: modifier = floor((value - 10) / 2)
   // Reverse: value = modifier * 2 + 10 + 1 (using highest value for the modifier)
-  return modifier * 2 + 11;
-};
-
+  modifier * 2 + 11;
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
@@ -118,13 +114,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     return pmBase + pmPerLevel * (level - 1);
   };
 
-
-  const handleAttributeModifierChange = (atributo: Atributo, newMod: number) => {
+  const handleAttributeModifierChange = (
+    atributo: Atributo,
+    newMod: number
+  ) => {
     // Clamp the modifier to reasonable bounds
     const clampedMod = Math.max(-5, Math.min(10, newMod));
     const newValue = calculateValueFromModifier(clampedMod);
-    
-    setEditedData(prev => ({
+
+    setEditedData((prev) => ({
       ...prev,
       attributes: {
         ...prev.attributes,
@@ -144,6 +142,93 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: editedData.sexo,
       atributos: editedData.attributes,
     };
+
+    // Track manual edits in steps
+    const newSteps: Step[] = [];
+
+    // Check for basic info changes
+    const infoChanges: SubStep[] = [];
+    if (editedData.nome !== sheet.nome) {
+      infoChanges.push({ name: 'Nome', value: editedData.nome });
+    }
+    if (editedData.nivel !== sheet.nivel) {
+      infoChanges.push({ name: 'Nível', value: editedData.nivel.toString() });
+    }
+    if (editedData.sexo !== sheet.sexo) {
+      infoChanges.push({ name: 'Gênero', value: editedData.sexo });
+    }
+
+    if (infoChanges.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Informações Básicas',
+        type: 'Edição Manual',
+        value: infoChanges,
+      });
+    }
+
+    // Check for attribute changes
+    const attrChanges: SubStep[] = [];
+    Object.entries(editedData.attributes).forEach(([attrName, attrData]) => {
+      const originalAttr =
+        sheet.atributos[attrName as keyof CharacterAttributes];
+      if (attrData.mod !== originalAttr.mod) {
+        attrChanges.push({
+          name: attrName,
+          value: `${attrData.mod >= 0 ? '+' : ''}${attrData.mod}`,
+        });
+      }
+    });
+
+    if (attrChanges.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Modificadores de Atributos',
+        type: 'Atributos',
+        value: attrChanges,
+      });
+    }
+
+    // Check for race change
+    if (editedData.raceName !== sheet.raca.name) {
+      newSteps.push({
+        label: 'Edição Manual - Raça',
+        type: 'Edição Manual',
+        value: [{ name: 'Raça', value: editedData.raceName }],
+      });
+    }
+
+    // Check for class change
+    if (editedData.className !== sheet.classe.name) {
+      newSteps.push({
+        label: 'Edição Manual - Classe',
+        type: 'Edição Manual',
+        value: [{ name: 'Classe', value: editedData.className }],
+      });
+    }
+
+    // Check for origin change
+    if (editedData.originName !== (sheet.origin?.name || '')) {
+      newSteps.push({
+        label: 'Edição Manual - Origem',
+        type: 'Edição Manual',
+        value: [{ name: 'Origem', value: editedData.originName || 'Removida' }],
+      });
+    }
+
+    // Check for deity change
+    if (editedData.deityName !== (sheet.devoto?.divindade.name || '')) {
+      newSteps.push({
+        label: 'Edição Manual - Divindade',
+        type: 'Edição Manual',
+        value: [
+          { name: 'Divindade', value: editedData.deityName || 'Removida' },
+        ],
+      });
+    }
+
+    // Add new steps to the sheet
+    if (newSteps.length > 0) {
+      updates.steps = [...sheet.steps, ...newSteps];
+    }
 
     // Recalculate level-dependent values if level changed
     if (editedData.nivel !== sheet.nivel) {
@@ -191,7 +276,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName &&
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
-      const newDeity = Object.values(DIVINDADES).find(
+      const newDeity = Object.values(DIVINDADES_DATA).find(
         (d) => d.name === editedData.deityName
       );
       if (newDeity) {
@@ -205,7 +290,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }
 
     // Use recalculation for full sheet update if attributes changed
-    if (JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos)) {
+    if (
+      JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos)
+    ) {
       const updatedSheet = { ...sheet, ...updates };
       const recalculatedSheet = recalculateSheet(updatedSheet);
       onSave(recalculatedSheet);
@@ -272,7 +359,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             onChange={(e) =>
               setEditedData({
                 ...editedData,
-                nivel: parseInt(e.target.value) || 1,
+                nivel: parseInt(e.target.value, 10) || 1,
               })
             }
             inputProps={{ min: 1, max: 20 }}
@@ -371,16 +458,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           <Typography variant='h6' sx={{ mb: 2 }}>
             Atributos
           </Typography>
-          
+
           <Typography variant='body2' sx={{ mb: 2 }}>
-            Ajuste os modificadores dos atributos. O valor será definido automaticamente.
+            Ajuste os modificadores dos atributos. O valor será definido
+            automaticamente.
           </Typography>
-          
+
           <Stack spacing={2}>
             {Object.values(Atributo).map((atributo) => {
               const attribute = editedData.attributes[atributo];
               return (
-                <Stack key={atributo} direction='row' spacing={2} alignItems='center'>
+                <Stack
+                  key={atributo}
+                  direction='row'
+                  spacing={2}
+                  alignItems='center'
+                >
                   <Box sx={{ minWidth: '120px' }}>
                     <Typography variant='body2'>{atributo}:</Typography>
                   </Box>
@@ -389,7 +482,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     type='number'
                     value={attribute.mod}
                     onChange={(e) => {
-                      const newMod = parseInt(e.target.value) || 0;
+                      const newMod = parseInt(e.target.value, 10) || 0;
                       handleAttributeModifierChange(atributo, newMod);
                     }}
                     inputProps={{

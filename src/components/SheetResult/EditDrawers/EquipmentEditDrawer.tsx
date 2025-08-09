@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, { calcDefense } from '@/data/equipamentos';
 import Bag from '@/interfaces/Bag';
@@ -81,13 +81,12 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           ...prev,
           armors: prev.armors.filter((a) => a.nome !== armor.nome),
         };
-      } else {
-        // Replace with new armor (only one allowed)
-        return {
-          ...prev,
-          armors: [armor],
-        };
       }
+      // Replace with new armor (only one allowed)
+      return {
+        ...prev,
+        armors: [armor],
+      };
     });
   };
 
@@ -103,13 +102,12 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           ...prev,
           shields: prev.shields.filter((s) => s.nome !== shield.nome),
         };
-      } else {
-        // Replace with new shield (only one allowed)
-        return {
-          ...prev,
-          shields: [shield],
-        };
       }
+      // Replace with new shield (only one allowed)
+      return {
+        ...prev,
+        shields: [shield],
+      };
     });
   };
 
@@ -131,9 +129,14 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     // Create updated sheet with new bag
     const updatedSheet = { ...sheet, bag: updatedBag };
 
-    // Recalculate defense if armor or shield changed
+    // Track equipment changes in steps
+    const originalWeapons = sheet.bag.getEquipments().Arma || [];
     const originalArmor = sheet.bag.getEquipments().Armadura || [];
     const originalShield = sheet.bag.getEquipments().Escudo || [];
+
+    const weaponsChanged =
+      JSON.stringify(originalWeapons) !==
+      JSON.stringify(selectedEquipment.weapons);
     const armorChanged =
       JSON.stringify(originalArmor) !==
       JSON.stringify(selectedEquipment.armors);
@@ -141,13 +144,109 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       JSON.stringify(originalShield) !==
       JSON.stringify(selectedEquipment.shields);
 
+    const newSteps: Step[] = [];
+
+    if (weaponsChanged || armorChanged || shieldChanged) {
+      const equipmentChanges: SubStep[] = [];
+
+      if (weaponsChanged) {
+        const addedWeapons = selectedEquipment.weapons.filter(
+          (w) => !originalWeapons.some((ow) => ow.nome === w.nome)
+        );
+        const removedWeapons = originalWeapons.filter(
+          (ow) => !selectedEquipment.weapons.some((w) => w.nome === ow.nome)
+        );
+
+        addedWeapons.forEach((w) =>
+          equipmentChanges.push({
+            name: w.nome,
+            value: `${w.nome} (arma) - adicionada`,
+          })
+        );
+        removedWeapons.forEach((w) =>
+          equipmentChanges.push({
+            name: w.nome,
+            value: `${w.nome} (arma) - removida`,
+          })
+        );
+      }
+
+      if (armorChanged) {
+        const addedArmors = selectedEquipment.armors.filter(
+          (a) => !originalArmor.some((oa) => oa.nome === a.nome)
+        );
+        const removedArmors = originalArmor.filter(
+          (oa) => !selectedEquipment.armors.some((a) => a.nome === oa.nome)
+        );
+
+        addedArmors.forEach((a) =>
+          equipmentChanges.push({
+            name: a.nome,
+            value: `${a.nome} (armadura) - adicionada`,
+          })
+        );
+        removedArmors.forEach((a) =>
+          equipmentChanges.push({
+            name: a.nome,
+            value: `${a.nome} (armadura) - removida`,
+          })
+        );
+      }
+
+      if (shieldChanged) {
+        const addedShields = selectedEquipment.shields.filter(
+          (s) => !originalShield.some((os) => os.nome === s.nome)
+        );
+        const removedShields = originalShield.filter(
+          (os) => !selectedEquipment.shields.some((s) => s.nome === os.nome)
+        );
+
+        addedShields.forEach((s) =>
+          equipmentChanges.push({
+            name: s.nome,
+            value: `${s.nome} (escudo) - adicionado`,
+          })
+        );
+        removedShields.forEach((s) =>
+          equipmentChanges.push({
+            name: s.nome,
+            value: `${s.nome} (escudo) - removido`,
+          })
+        );
+      }
+
+      if (equipmentChanges.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - Equipamentos',
+          type: 'Equipamentos',
+          value: equipmentChanges,
+        });
+      }
+    }
+
     if (armorChanged || shieldChanged) {
       // Reset to base defense (10) before recalculation
       const sheetWithBaseDefense = { ...updatedSheet, defesa: 10 };
       const recalculatedSheet = calcDefense(sheetWithBaseDefense);
-      onSave({ bag: updatedBag, defesa: recalculatedSheet.defesa });
+
+      const updates: Partial<CharacterSheet> = {
+        bag: updatedBag,
+        defesa: recalculatedSheet.defesa,
+      };
+
+      if (newSteps.length > 0) {
+        updates.steps = [...sheet.steps, ...newSteps];
+      }
+
+      onSave(updates);
     } else {
-      onSave({ bag: updatedBag });
+      const updates: Partial<CharacterSheet> = { bag: updatedBag };
+
+      if (newSteps.length > 0) {
+        updates.steps = [...sheet.steps, ...newSteps];
+      }
+
+      onSave(updates);
     }
 
     onClose();

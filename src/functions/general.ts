@@ -1478,7 +1478,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
       // TODO: Adicionar bonus bom pra oficios
       if (skillName === Skill.OFICIO) {
-        console.warn('need good bonus for OFICIO skill');
+        // console.warn('need good bonus for OFICIO skill');
       }
 
       addOtherBonusToSkill(sheet, skillName, bonusValue);
@@ -1517,7 +1517,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       pickedSkills.forEach((skill) => {
         // TODO: Adicionar bonus bom pra oficios
         if (skill === Skill.OFICIO) {
-          console.warn('need good bonus for OFICIO skill');
+          // console.warn('need good bonus for OFICIO skill');
         }
 
         addOtherBonusToSkill(sheet, skill, bonusValue);
@@ -1543,7 +1543,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `Modifica atributo de ${skillName} para ${attribute}`,
       });
     } else {
-      console.warn('bonus não implementado', bonus);
+      // console.warn('bonus não implementado', bonus);
     }
   });
 
@@ -1846,7 +1846,7 @@ export default function generateRandomSheet(
 export function generateEmptySheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
-  console.log(selectedOptions);
+  // console.log(selectedOptions);
   const race = selectRace(selectedOptions);
   const size = getRaceSize(race);
   const generatedClass = CLASSES.find((classe) =>

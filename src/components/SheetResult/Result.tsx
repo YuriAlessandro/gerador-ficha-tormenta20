@@ -271,7 +271,8 @@ const Result: React.FC<ResultProps> = (props) => {
       step.type === 'Perícias' ||
       step.type === 'Magias' ||
       step.type === 'Equipamentos' ||
-      step.type === 'Atributos Extras'
+      step.type === 'Atributos Extras' ||
+      step.type === 'Edição Manual'
     ) {
       return (
         <li key={getKey(step.label)}>
