@@ -12,6 +12,7 @@ import {
   Stack,
   IconButton,
   Divider,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
@@ -23,6 +24,7 @@ import DIVINDADES_DATA from '@/data/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { nomes, nameGenerators } from '@/data/nomes';
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -47,6 +49,39 @@ const calculateValueFromModifier = (modifier: number): number =>
   // Formula: modifier = floor((value - 10) / 2)
   // Reverse: value = modifier * 2 + 10 + 1 (using highest value for the modifier)
   modifier * 2 + 11;
+
+// Helper function to get name suggestions based on race and gender
+const getNameSuggestions = (raceName: string, gender: string): string[] => {
+  // Convert gender from display format to data format
+  const genderKey = gender === 'Masculino' ? 'Homem' : 'Mulher';
+
+  // Check if this race has specific names
+  if (nomes[raceName] && nomes[raceName][genderKey]) {
+    return nomes[raceName][genderKey];
+  }
+
+  // For special races like Lefou, Osteon, etc., try to get names from name generators
+  const race = RACAS.find((r) => r.name === raceName);
+  if (race && nameGenerators[raceName]) {
+    // For complex name generators, return a sample of generated names
+    const sampleNames: string[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      try {
+        const name = nameGenerators[raceName](race, genderKey);
+        if (name && !sampleNames.includes(name)) {
+          sampleNames.push(name);
+        }
+      } catch (error) {
+        // If name generation fails, break the loop
+        break;
+      }
+    }
+    return sampleNames;
+  }
+
+  // Default fallback to Humano names if no specific names found
+  return nomes.Humano[genderKey] || [];
+};
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
@@ -64,6 +99,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     attributes: { ...sheet.atributos },
   });
 
+  // State for name suggestions
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
+    getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+  );
+
   useEffect(() => {
     setEditedData({
       nome: sheet.nome,
@@ -75,7 +115,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
     });
+    setNameSuggestions(
+      getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+    );
   }, [sheet, open]);
+
+  // Update name suggestions when race or gender changes
+  useEffect(() => {
+    setNameSuggestions(
+      getNameSuggestions(editedData.raceName, editedData.sexo)
+    );
+  }, [editedData.raceName, editedData.sexo]);
 
   const recalculateSkills = (level: number) => {
     if (!sheet.completeSkills) return sheet.completeSkills;
@@ -314,6 +364,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
     });
+    setNameSuggestions(
+      getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+    );
     onClose();
   };
 
@@ -342,13 +395,25 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Stack spacing={3}>
-          <TextField
-            fullWidth
-            label='Nome'
+          <Autocomplete
+            freeSolo
+            options={nameSuggestions}
             value={editedData.nome}
-            onChange={(e) =>
-              setEditedData({ ...editedData, nome: e.target.value })
-            }
+            onChange={(event, newValue) => {
+              setEditedData({ ...editedData, nome: newValue || '' });
+            }}
+            onInputChange={(event, newInputValue) => {
+              setEditedData({ ...editedData, nome: newInputValue });
+            }}
+            renderInput={(params) => (
+              <TextField
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
+                fullWidth
+                label='Nome'
+                helperText='Digite ou selecione um nome baseado na raça e gênero'
+              />
+            )}
           />
 
           <TextField
