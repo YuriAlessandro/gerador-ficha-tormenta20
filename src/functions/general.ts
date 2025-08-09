@@ -1107,8 +1107,8 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
 
   // Store available abilities for display, but keep original abilities list intact
   // for future level-ups to reference
-  if (!sheetClone.classe._originalAbilities) {
-    sheetClone.classe._originalAbilities = [...sheetClone.classe.abilities];
+  if (!sheetClone.classe.originalAbilities) {
+    sheetClone.classe.originalAbilities = [...sheetClone.classe.abilities];
   }
   sheetClone.classe.abilities = availableAbilities;
 
@@ -1400,7 +1400,8 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   }
 
   // Apply newly available class abilities for this level
-  const originalAbilities = updatedSheet.classe._originalAbilities || updatedSheet.classe.abilities;
+  const originalAbilities =
+    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
   const newlyAvailableAbilities = originalAbilities.filter(
     (ability) => ability.nivel === updatedSheet.nivel
   );
