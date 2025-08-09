@@ -12,7 +12,6 @@ import {
   AccordionDetails,
   Checkbox,
   FormControlLabel,
-  Chip,
   Card,
   CardContent,
   List,
@@ -20,7 +19,6 @@ import {
   ListItemText,
   ListItemSecondaryAction,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
