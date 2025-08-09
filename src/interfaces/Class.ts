@@ -73,4 +73,5 @@ export interface ClassDescription {
   attrPriority: Atributo[];
   spellPath?: SpellPath;
   setup?: (classe: ClassDescription) => ClassDescription;
+  _originalAbilities?: ClassAbility[]; // Internal field to preserve original abilities during level-ups
 }

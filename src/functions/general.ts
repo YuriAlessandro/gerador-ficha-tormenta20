@@ -1105,6 +1105,11 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
+  // Store available abilities for display, but keep original abilities list intact
+  // for future level-ups to reference
+  if (!sheetClone.classe._originalAbilities) {
+    sheetClone.classe._originalAbilities = [...sheetClone.classe.abilities];
+  }
   sheetClone.classe.abilities = availableAbilities;
 
   return sheetClone;
@@ -1394,6 +1399,47 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
+  // Apply newly available class abilities for this level
+  const originalAbilities = updatedSheet.classe._originalAbilities || updatedSheet.classe.abilities;
+  const newlyAvailableAbilities = originalAbilities.filter(
+    (ability) => ability.nivel === updatedSheet.nivel
+  );
+
+  if (newlyAvailableAbilities.length > 0) {
+    const abilitySubSteps: SubStep[] = [];
+
+    newlyAvailableAbilities.forEach((ability) => {
+      const [newSheet, newSubSteps] = applyPower(updatedSheet, ability);
+      updatedSheet = newSheet;
+      abilitySubSteps.push(...newSubSteps);
+    });
+
+    if (abilitySubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novas habilidades de classe (Nível ${updatedSheet.nivel})`,
+        value: abilitySubSteps,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: newlyAvailableAbilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })),
+    });
+
+    // Update displayed abilities to include newly available ones
+    const allAvailableAbilities = originalAbilities.filter(
+      (ability) => ability.nivel <= updatedSheet.nivel
+    );
+    updatedSheet.classe.abilities = allAvailableAbilities;
+  }
+
   return updatedSheet;
 }
 
@@ -1416,7 +1462,6 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
     );
     // eslint-disable-next-line no-eval
     return eval(filledFormula);
-    return 0;
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
@@ -1857,7 +1902,7 @@ export function generateEmptySheet(
     throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
   }
 
-  return {
+  let emptySheet: CharacterSheet = {
     id: uuid(),
     nome: '',
     sexo: '',
@@ -1889,4 +1934,9 @@ export function generateEmptySheet(
     skills: [],
     spells: [],
   };
+
+  // Apply class abilities filtering by level
+  emptySheet = applyClassAbilities(emptySheet);
+
+  return emptySheet;
 }
