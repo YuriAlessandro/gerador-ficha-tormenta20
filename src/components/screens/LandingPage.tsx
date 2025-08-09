@@ -2,7 +2,14 @@ import background from '@/assets/images/fantasybg.png';
 // import magical from '@/assets/images/options/magical.png';
 import adventure from '@/assets/images/adventure.jpg';
 import dice from '@/assets/images/dice.jpg';
-import { Box, Card, Container, Grid, useTheme } from '@mui/material';
+import {
+  Box,
+  Card,
+  Container,
+  Grid,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 import React from 'react';
 import ferramentas from '../../assets/images/ferramentas.jpg';
 import library from '../../assets/images/library.jpg';
@@ -14,12 +21,11 @@ const LandingPage: React.FC<{
 }> = ({ onClickButton }) => {
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const onOpenLink = (link: string) => {
     window.open(link);
   };
-
-  const isMobile = window.innerWidth < 720;
 
   return (
     <>
@@ -32,30 +38,41 @@ const LandingPage: React.FC<{
         ), url(${background})`,
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
+          backgroundPosition: { xs: 'center top', sm: 'center center' },
           position: 'absolute',
           top: 0,
           width: '100%',
-          height: '75vh',
+          height: { xs: '60vh', sm: '70vh', md: '75vh' },
           zIndex: 0,
         }}
       />
 
-      <Container sx={{ position: 'relative', mb: 2 }}>
+      <Container sx={{ position: 'relative', mb: 2, px: { xs: 1, sm: 2 } }}>
         <Box
           sx={{
             textAlign: 'center',
-            mb: 5,
+            mb: { xs: 3, sm: 4, md: 5 },
             fontFamily: 'Tfont',
             color: '#FFFFFF',
-            textShadow: '2px 2px black',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
+            px: { xs: 1, sm: 2 },
           }}
         >
-          <h1>“Khalmyr tem o tabuleiro, mas quem move as peças é Nimb”</h1>
+          <h1
+            style={{
+              fontSize: isMobile ? '24px' : '32px',
+              lineHeight: 1.2,
+              margin: 0,
+              padding: '16px 0',
+            }}
+          >
+            &ldquo;Khalmyr tem o tabuleiro, mas quem move as peças é Nimb&rdquo;
+          </h1>
         </Box>
 
         <Grid container spacing={2}>
-          <Grid item xs={isMobile ? 12 : 6}>
+          {/* Main Feature - Random Sheet */}
+          <Grid item xs={12} md={6}>
             <LandingOption
               title='Ficha aleatória'
               text='Uma ficha totalmente aleatória gerada a partir das suas opções selecionadas.'
@@ -64,9 +81,11 @@ const LandingPage: React.FC<{
               full
             />
           </Grid>
-          <Grid item xs={isMobile ? 12 : 6}>
-            <Grid container spacing={2} direction='column'>
-              <Grid item xs={6}>
+
+          {/* Secondary Features */}
+          <Grid item xs={12} md={6}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6} md={12}>
                 <LandingOption
                   title='Mapa de Arton'
                   text='Um mapa interativo de Arton, com pins de cidades, pontos de interesse e mais.'
@@ -76,7 +95,7 @@ const LandingPage: React.FC<{
                   }
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={12}>
                 <LandingOption
                   title='Caverna do Saber'
                   text='Compilado com conteúdos de Tormenta 20 na revista Dragão Brasil.'
@@ -86,7 +105,9 @@ const LandingPage: React.FC<{
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={6}>
+
+          {/* Tools Section */}
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Enciclopédia de Tanah-Toh'
               text='Um compilado com todos as raças, classes, divindades, poderes, magias, etc.'
@@ -94,7 +115,7 @@ const LandingPage: React.FC<{
               onClick={() => onClickButton('database/raças')}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Rolador de recompensas'
               text='Gere as recompensas da sua mesa de forma muito rápida.'
@@ -151,7 +172,9 @@ const LandingPage: React.FC<{
               </div>
             </Card>
           </Grid>
-          <Grid item xs={6}>
+
+          {/* Additional Tools */}
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Compre Tormenta 20'
               text='O maior sistema de RPG do Brasil.'
@@ -162,21 +185,21 @@ const LandingPage: React.FC<{
               }
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Changelog'
               text='Acompanhe o progresso do nosso projeto.'
               onClick={() => onClickButton('changelog')}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Criar item superior'
               text='Gerar itens com modificações.'
               onClick={() => onClickButton('itens-superiores')}
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Criar item mágico'
               text='Em desenvolvimento.'
@@ -184,7 +207,9 @@ const LandingPage: React.FC<{
               onClick={() => onClickButton('itens-superiores')}
             />
           </Grid>
-          <Grid item xs={6}>
+
+          {/* Community Projects */}
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Grimório T20'
               text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'
@@ -193,7 +218,7 @@ const LandingPage: React.FC<{
               }
             />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12} sm={6}>
             <LandingOption
               title='Calculadora ND'
               text='Projeto da comunidade. Não possui vínculo com Fichas de Nimb.'

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Box, Card, Typography, useTheme } from '@mui/material';
+import { Box, Card, Typography, useTheme, useMediaQuery } from '@mui/material';
 import React from 'react';
 
 interface Props {
@@ -20,6 +20,7 @@ const LandingOption: React.FC<Props> = ({
   full = false,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const Title = styled.h2`
     color: ${disabled ? '#696969' : theme.palette.primary.main};
@@ -33,35 +34,71 @@ const LandingOption: React.FC<Props> = ({
         if (!disabled) onClick();
       }}
       sx={{
-        cursor: 'pointer',
+        cursor: disabled ? 'default' : 'pointer',
         background: '#FFF',
         backgroundImage: image ? `url(${image})` : '',
-        backgroundSize: '150%',
-        backgroundPosition: 'center',
+        backgroundSize: isMobile ? 'cover' : '150%',
+        backgroundPosition: isMobile ? 'center center' : 'center',
         height: full ? '100%' : 'auto',
-        minHeight: full ? '350px' : '200px',
+        minHeight: {
+          xs: full ? '250px' : '180px', // Smaller on mobile
+          sm: full ? '300px' : '200px', // Medium on tablet
+          md: full ? '350px' : '220px', // Full size on desktop
+        },
+        maxHeight: {
+          xs: full ? 'none' : '180px',
+          sm: full ? 'none' : '200px',
+          md: full ? 'none' : '220px',
+        },
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
         backgroundRepeat: 'no-repeat',
         alignItems: 'flex-start',
-        transition: 'all 1.5s',
+        transition: 'all 0.3s ease-in-out',
+        opacity: disabled ? 0.6 : 1,
         '&:hover': {
-          backgroundSize: '200%',
+          ...(disabled
+            ? {}
+            : {
+                backgroundSize: isMobile ? 'cover' : '200%',
+                transform: 'translateY(-2px)',
+                boxShadow: theme.shadows[4],
+              }),
         },
       }}
     >
       <Box
         sx={{
           background: image
-            ? 'linear-gradient(180deg,rgba(71, 68, 68, 0) 10%, rgba(71, 68, 68, 0.8) 50%)'
+            ? 'linear-gradient(180deg,rgba(71, 68, 68, 0) 0%, rgba(71, 68, 68, 0.9) 70%)'
             : '',
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           width: '100%',
         }}
       >
-        <Title>{title}</Title>
-        <Typography color={image ? 'white' : 'black'} maxWidth='90%'>
+        <Title
+          style={{
+            fontSize: isMobile ? '18px' : '24px',
+            margin: '0 0 8px 0',
+            lineHeight: 1.2,
+          }}
+        >
+          {title}
+        </Title>
+        <Typography
+          color={image ? 'white' : 'black'}
+          sx={{
+            fontSize: { xs: '13px', sm: '14px', md: '16px' },
+            lineHeight: 1.3,
+            maxWidth: '95%',
+            display: '-webkit-box',
+            WebkitLineClamp: isMobile ? 3 : 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {text}
         </Typography>
       </Box>
