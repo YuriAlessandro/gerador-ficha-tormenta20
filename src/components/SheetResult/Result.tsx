@@ -37,10 +37,11 @@ interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
+  isHistoricSheet?: boolean;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode, onSheetUpdate } = props;
+  const { sheet, isDarkMode, onSheetUpdate, isHistoricSheet = false } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
@@ -363,6 +364,27 @@ const Result: React.FC<ResultProps> = (props) => {
 
   return (
     <Box>
+      {isHistoricSheet && (
+        <Container maxWidth='xl'>
+          <Card
+            sx={{
+              p: 2,
+              mb: 2,
+              backgroundColor: 'warning.light',
+              border: '2px solid',
+              borderColor: 'warning.main',
+            }}
+          >
+            <Typography variant='h6' color='warning.dark' sx={{ mb: 1 }}>
+              ⚠️ Ficha do Histórico - Edição Limitada
+            </Typography>
+            <Typography variant='body2' color='warning.dark'>
+              Esta ficha foi carregada do histórico. A edição de fichas históricas está temporariamente desabilitada 
+              devido a limitações técnicas. Para editar esta ficha, gere uma nova ficha com as mesmas configurações.
+            </Typography>
+          </Card>
+        </Container>
+      )}
       <BackgroundBox sx={{ p: 2 }}>
         <Container maxWidth='xl'>
           <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
@@ -378,23 +400,25 @@ const Result: React.FC<ResultProps> = (props) => {
                   overflow: 'visible', // Allow the button to show outside the card
                 }}
               >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16, // Half the button height to position it on the edge
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1, // Makes it square with slightly rounded corners
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSheetInfoDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16, // Half the button height to position it on the edge
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1, // Makes it square with slightly rounded corners
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSheetInfoDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Stack
                   direction='row'
                   spacing={2}
@@ -498,23 +522,25 @@ const Result: React.FC<ResultProps> = (props) => {
                   overflow: 'visible',
                 }}
               >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setEquipmentDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setEquipmentDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Stack
                   direction={isMobile ? 'column' : 'row'}
                   spacing={2}
@@ -566,23 +592,25 @@ const Result: React.FC<ResultProps> = (props) => {
               <Card
                 sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
               >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setPowersDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setPowersDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box>
                   <BookTitle>Poderes</BookTitle>
                   <PowersDisplay
@@ -601,23 +629,25 @@ const Result: React.FC<ResultProps> = (props) => {
               <Card
                 sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
               >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSpellsDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {!isHistoricSheet && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSpellsDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box>
                   <BookTitle>Magias</BookTitle>
                   <Spells
@@ -633,23 +663,25 @@ const Result: React.FC<ResultProps> = (props) => {
             <Box width={isMobile ? '100%' : '40%'}>
               <Stack spacing={4}>
                 <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setSkillsDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
+                  {!isHistoricSheet && (
+                    <IconButton
+                      size='small'
+                      sx={{
+                        position: 'absolute',
+                        top: -16,
+                        right: 16,
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setSkillsDrawerOpen(true)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
                   {periciasDiv}
                 </Card>
                 <Card>

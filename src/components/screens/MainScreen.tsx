@@ -51,6 +51,25 @@ const saveSheetOnHistoric = (sheet: CharacterSheet) => {
   ls.setItem('fdnHistoric', JSON.stringify(historic));
 };
 
+const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
+  const ls = localStorage;
+  const lsHistoric = ls.getItem('fdnHistoric');
+  const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
+
+  // Find and update the existing sheet in historic
+  const sheetIndex = historic.findIndex(
+    (entry) => entry.id === updatedSheet.id
+  );
+  if (sheetIndex !== -1) {
+    historic[sheetIndex] = {
+      sheet: updatedSheet,
+      date: historic[sheetIndex].date, // Keep original date
+      id: updatedSheet.id,
+    };
+    ls.setItem('fdnHistoric', JSON.stringify(historic));
+  }
+};
+
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
@@ -64,6 +83,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showHistoric, setShowHistoric] = React.useState(false);
+  const [isHistoricSheet, setIsHistoricSheet] = React.useState(false);
 
   const canGenerateEmptySheet =
     selectedOptions.classe &&
@@ -76,6 +96,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickGenerate = () => {
     setShowHistoric(false);
+    setIsHistoricSheet(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -90,6 +111,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickGenerateEmptySheet = () => {
     setShowHistoric(false);
+    setIsHistoricSheet(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -105,6 +127,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickSeeSheet = (sheet: CharacterSheet) => {
     setShowHistoric(false);
+    setIsHistoricSheet(true);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -113,9 +136,38 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
 
+    // Restore Bag class methods
     sheet.bag = new Bag(sheet.bag.equipments);
 
+    // Restore spellPath functions if the class has spellcasting
+    if (sheet.classe.spellPath) {
+      const originalClass = CLASSES.find(
+        (c) =>
+          c.name === sheet.classe.name && c.subname === sheet.classe.subname
+      );
+      if (originalClass?.spellPath) {
+        sheet.classe.spellPath = originalClass.spellPath;
+      }
+    }
+
     setRandomSheet(sheet);
+  };
+
+  const handleSheetUpdate = (updatedSheet: CharacterSheet) => {
+    // Ensure the updated sheet has proper class methods restored
+    if (updatedSheet.classe.spellPath) {
+      const originalClass = CLASSES.find(
+        (c) =>
+          c.name === updatedSheet.classe.name &&
+          c.subname === updatedSheet.classe.subname
+      );
+      if (originalClass?.spellPath) {
+        updatedSheet.classe.spellPath = originalClass.spellPath;
+      }
+    }
+
+    setRandomSheet(updatedSheet);
+    updateSheetInHistoric(updatedSheet);
   };
 
   const onClickShowHistoric = () => {
@@ -214,7 +266,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     (simpleSheet ? (
       <SimpleResult sheet={randomSheet} />
     ) : (
-      <Result sheet={randomSheet} isDarkMode={isDarkMode} />
+      <Result
+        sheet={randomSheet}
+        isDarkMode={isDarkMode}
+        onSheetUpdate={handleSheetUpdate}
+        isHistoricSheet={isHistoricSheet}
+      />
     ));
 
   function encodeFoundryJSON(json: FoundryJSON | undefined) {

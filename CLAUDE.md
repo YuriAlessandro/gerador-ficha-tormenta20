@@ -75,5 +75,6 @@ npm run typecheck  # Run TypeScript compiler check
 - Deployed to GitHub Pages at https://yurialessandro.github.io/gerador-ficha-tormenta20/
 
 ### TODO: Future Development
-- **Sheet Edit Persistence**: When implementing sheet editing functionality, ensure that any edits to a character sheet also update its corresponding save in localStorage ('fdnHistoric'). This maintains consistency between the displayed sheet and the saved history.
-- to memorize users must be able to remove any power or spell from the sheet
+- **Sheet Edit Persistence**: ✅ COMPLETED - When implementing sheet editing functionality, ensure that any edits to a character sheet also update its corresponding save in localStorage ('fdnHistoric'). This maintains consistency between the displayed sheet and the saved history.
+- ✅ COMPLETED - to memorize users must be able to remove any power or spell from the sheet
+- **Historic Sheet Editing**: Currently, users cannot edit sheets loaded from localStorage history due to function serialization issues. The spellPath object loses its functions (spellCircleAvailableAtLevel, qtySpellsLearnAtLevel) when serialized to JSON. Need to implement proper function restoration for all class methods when loading historic sheets, similar to how Bag class is handled.
