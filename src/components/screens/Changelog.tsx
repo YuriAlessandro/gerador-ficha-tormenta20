@@ -32,7 +32,8 @@ const Changelog: React.FC = () => (
           <ul>
             <li>
               Agora é possível editar qualquer aspecto de uma ficha gerada:
-              informações básicas, atributos, perícias, equipamentos, poderes e magias.
+              informações básicas, atributos, perícias, equipamentos, poderes e
+              magias.
             </li>
             <li>
               Todas as edições são automaticamente recalculadas e mantêm a
@@ -51,10 +52,12 @@ const Changelog: React.FC = () => (
               Nome com sugestões automáticas baseadas na raça e gênero (usando
               banco expandido de nomes).
             </li>
-            <li>Modificação de nível, gênero, raça, classe, origem e divindade.</li>
             <li>
-              Edição livre de modificadores de atributos com recálculo automático
-              de todos os valores dependentes.
+              Modificação de nível, gênero, raça, classe, origem e divindade.
+            </li>
+            <li>
+              Edição livre de modificadores de atributos com recálculo
+              automático de todos os valores dependentes.
             </li>
           </ul>
         </li>
@@ -77,9 +80,11 @@ const Changelog: React.FC = () => (
           <strong>🎯 Edição de Perícias:</strong>
           <ul>
             <li>Treinamento/destreinamento de qualquer perícia.</li>
-            <li>Adição de bônus manuais na coluna "Outros".</li>
+            <li>Adição de bônus manuais na coluna &quot;Outros&quot;.</li>
             <li>Suporte completo a Ofícios customizados.</li>
-            <li>Recálculo automático de totais considerando atributos e níveis.</li>
+            <li>
+              Recálculo automático de totais considerando atributos e níveis.
+            </li>
           </ul>
         </li>
         <li>
@@ -112,8 +117,8 @@ const Changelog: React.FC = () => (
               Filtros por círculo e tipo (arcanas/divinas) para navegação fácil.
             </li>
             <li>
-              Liberdade total: adicione qualquer magia independente de limitações
-              de nível.
+              Liberdade total: adicione qualquer magia independente de
+              limitações de nível.
             </li>
           </ul>
         </li>
@@ -129,7 +134,8 @@ const Changelog: React.FC = () => (
               femininos para maior variedade.
             </li>
             <li>
-              Sistema de sugestões inteligente no editor de nomes com autocomplete.
+              Sistema de sugestões inteligente no editor de nomes com
+              autocomplete.
             </li>
           </ul>
         </li>
@@ -140,10 +146,12 @@ const Changelog: React.FC = () => (
               Todas as edições são automaticamente salvas no histórico local.
             </li>
             <li>
-              Consistência total entre ficha exibida e dados salvos no navegador.
+              Consistência total entre ficha exibida e dados salvos no
+              navegador.
             </li>
             <li>
-              Histórico de fichas sempre atualizado com as versões mais recentes.
+              Histórico de fichas sempre atualizado com as versões mais
+              recentes.
             </li>
           </ul>
         </li>
