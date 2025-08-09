@@ -268,6 +268,37 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     ? getSelectTheme('dark')
     : getSelectTheme('default');
 
+  // Shared styles for react-select to fix z-index issues
+  const selectStyles = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    container: (provided: any) => ({
+      ...provided,
+      width: '100%',
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    control: (provided: any) => ({
+      ...provided,
+      minHeight: isMobile ? '44px' : '38px',
+      fontSize: isMobile ? '16px' : '14px',
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    option: (provided: any) => ({
+      ...provided,
+      fontSize: isMobile ? '16px' : '14px',
+      padding: isMobile ? '12px' : '8px 12px',
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    menu: (provided: any) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    menuPortal: (provided: any) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+  };
+
   const fmtGroupLabel: formatGroupLabel = (data) => (
     <div>
       <span>{data.label}</span>
@@ -323,8 +354,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   return (
     <div id='main-screen'>
-      <Container maxWidth='xl' sx={{ px: { xs: 1, sm: 2 } }}>
-        <Card sx={{ p: { xs: 2, sm: 3 }, mb: 2 }}>
+      <Container
+        maxWidth='xl'
+        sx={{
+          px: { xs: 1, sm: 2 },
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <Card sx={{ p: { xs: 2, sm: 3 }, mb: 2, overflow: 'visible' }}>
           <Typography
             variant={isSmall ? 'h6' : 'h5'}
             component='h1'
@@ -345,22 +383,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 placeholder='Todas as raças'
                 onChange={onSelectRaca}
                 isSearchable
-                styles={{
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided) => ({
-                    ...provided,
-                    minHeight: isMobile ? '44px' : '38px',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    fontSize: isMobile ? '16px' : '14px',
-                    padding: isMobile ? '12px' : '8px 12px',
-                  }),
-                }}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
                   ...selectTheme,
                   colors: {
@@ -396,22 +420,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 formatGroupLabel={fmtGroupLabel}
                 onChange={onSelectClasse}
                 isSearchable
-                styles={{
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided) => ({
-                    ...provided,
-                    minHeight: isMobile ? '44px' : '38px',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    fontSize: isMobile ? '16px' : '14px',
-                    padding: isMobile ? '12px' : '8px 12px',
-                  }),
-                }}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
                   ...selectTheme,
                   colors: {
@@ -432,22 +442,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 isSearchable
                 onChange={onSelectOrigin}
                 isDisabled={selectedOptions.raca === 'Golem'}
-                styles={{
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided) => ({
-                    ...provided,
-                    minHeight: isMobile ? '44px' : '38px',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    fontSize: isMobile ? '16px' : '14px',
-                    padding: isMobile ? '12px' : '8px 12px',
-                  }),
-                }}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
                   ...selectTheme,
                   colors: {
@@ -481,22 +477,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 isSearchable
                 value={selectedOptions.devocao}
                 onChange={inSelectDivindade}
-                styles={{
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided) => ({
-                    ...provided,
-                    minHeight: isMobile ? '44px' : '38px',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    fontSize: isMobile ? '16px' : '14px',
-                    padding: isMobile ? '12px' : '8px 12px',
-                  }),
-                }}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
                   ...selectTheme,
                   colors: {
@@ -517,22 +499,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 isSearchable
                 formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
                 onChange={onSelectNivel}
-                styles={{
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided) => ({
-                    ...provided,
-                    minHeight: isMobile ? '44px' : '38px',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }),
-                  option: (provided) => ({
-                    ...provided,
-                    fontSize: isMobile ? '16px' : '14px',
-                    padding: isMobile ? '12px' : '8px 12px',
-                  }),
-                }}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
                   ...selectTheme,
                   colors: {
