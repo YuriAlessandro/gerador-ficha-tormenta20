@@ -256,7 +256,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       <Container className='filterArea' maxWidth='xl'>
         <Card sx={{ p: 2, mb: 2 }}>
           <Box>
-            <h2>Gerar Ficha Aleatória</h2>
             <Select
               className='filterSelect'
               options={[{ value: '', label: 'Todas as raças' }, ...racas]}

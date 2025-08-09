@@ -1744,7 +1744,7 @@ export default function generateRandomSheet(
   let charSheet: CharacterSheet = {
     id: uuid(),
     nome,
-    sexo,
+    sexo: sexo === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
     maxSpaces,

@@ -1,0 +1,349 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Drawer,
+  Box,
+  Typography,
+  TextField,
+  Checkbox,
+  Button,
+  Stack,
+  IconButton,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
+import CharacterSheet from '@/interfaces/CharacterSheet';
+import { CompleteSkill } from '@/interfaces/Skills';
+import Skill from '@/interfaces/Skills';
+import { Atributo } from '@/data/atributos';
+
+interface SkillsEditDrawerProps {
+  open: boolean;
+  onClose: () => void;
+  sheet: CharacterSheet;
+  onSave: (updates: Partial<CharacterSheet>) => void;
+}
+
+interface EditedSkill {
+  name: string;
+  trained: boolean;
+  others: number;
+}
+
+// Available Oficio options based on the Skills enum
+const AVAILABLE_OFICIOS = [
+  'Ofício (Armeiro)',
+  'Ofício (Artesanato)',
+  'Ofício (Alquímia)',
+  'Ofício (Culinária)',
+  'Ofício (Alfaiate)',
+  'Ofício (Alvenaria)',
+  'Ofício (Carpinteiro)',
+  'Ofício (Joalheiro)',
+  'Ofício (Fazendeiro)',
+  'Ofício (Pescador)',
+  'Ofício (Estalajadeiro)',
+  'Ofício (Escrita)',
+  'Ofício (Escultor)',
+  'Ofício (Engenhoqueiro)',
+  'Ofício (Pintor)',
+  'Ofício (Minerador)',
+];
+
+const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
+  open,
+  onClose,
+  sheet,
+  onSave,
+}) => {
+  const [editedSkills, setEditedSkills] = useState<EditedSkill[]>([]);
+  const [selectedOficio, setSelectedOficio] = useState<string>('');
+
+  useEffect(() => {
+    if (sheet.completeSkills && open) {
+      const skills = sheet.completeSkills.map((skill) => ({
+        name: skill.name,
+        trained: (skill.training ?? 0) > 0,
+        others: skill.others ?? 0,
+      }));
+      setEditedSkills(skills);
+    }
+  }, [sheet.completeSkills, open]);
+
+  const handleSkillTrainingChange = (skillName: string, trained: boolean) => {
+    setEditedSkills((prev) => {
+      if (!trained && skillName.startsWith('Ofício')) {
+        // Remove Oficio skills when unchecked
+        return prev.filter((skill) => skill.name !== skillName);
+      }
+      // Update training status for other skills
+      return prev.map((skill) =>
+        skill.name === skillName ? { ...skill, trained } : skill
+      );
+    });
+  };
+
+  const handleSkillOthersChange = (skillName: string, others: number) => {
+    setEditedSkills((prev) =>
+      prev.map((skill) =>
+        skill.name === skillName ? { ...skill, others } : skill
+      )
+    );
+  };
+
+  const calculateSkillTotal = (skill: EditedSkill): number => {
+    const originalSkill = sheet.completeSkills?.find(
+      (s) => s.name === skill.name
+    );
+
+    // For new Oficio skills, calculate manually
+    if (!originalSkill && skill.name.startsWith('Ofício')) {
+      const intMod = sheet.atributos.Inteligência.mod;
+      const halfLevel = Math.floor(sheet.nivel / 2);
+      const training = skill.trained ? 5 : 0;
+      return halfLevel + intMod + training + skill.others;
+    }
+
+    if (!originalSkill) return 0;
+
+    const attrBonus = originalSkill.modAttr
+      ? sheet.atributos[originalSkill.modAttr].mod
+      : 0;
+    const halfLevel = originalSkill.halfLevel ?? 0;
+    const training = skill.trained ? originalSkill.training ?? 5 : 0;
+
+    return halfLevel + attrBonus + training + skill.others;
+  };
+
+  const getAvailableOficios = (): string[] => {
+    const existingOficios = editedSkills
+      .filter((skill) => skill.name.startsWith('Ofício'))
+      .map((skill) => skill.name);
+
+    return AVAILABLE_OFICIOS.filter(
+      (oficio) => !existingOficios.includes(oficio)
+    );
+  };
+
+  const handleAddOficio = () => {
+    if (!selectedOficio) return;
+
+    const newSkill: EditedSkill = {
+      name: selectedOficio,
+      trained: false,
+      others: 0,
+    };
+
+    setEditedSkills((prev) => [...prev, newSkill]);
+    setSelectedOficio('');
+  };
+
+  const handleSave = () => {
+    if (!sheet.completeSkills) return;
+
+    // Update existing skills, but filter out removed Oficios
+    const updatedSkills: CompleteSkill[] = sheet.completeSkills
+      .filter((originalSkill) => {
+        // If it's an Oficio and not in editedSkills, it was removed
+        if (originalSkill.name.startsWith('Ofício')) {
+          return editedSkills.some((s) => s.name === originalSkill.name);
+        }
+        return true; // Keep all non-Oficio skills
+      })
+      .map((originalSkill) => {
+        const editedSkill = editedSkills.find(
+          (s) => s.name === originalSkill.name
+        );
+        if (!editedSkill) return originalSkill;
+
+        return {
+          ...originalSkill,
+          training: editedSkill.trained ? originalSkill.training || 5 : 0,
+          others: editedSkill.others,
+        };
+      });
+
+    // Add new Oficio skills (only trained ones are in editedSkills now)
+    const newOficios: CompleteSkill[] = editedSkills
+      .filter(
+        (editedSkill) =>
+          editedSkill.name.startsWith('Ofício') &&
+          !sheet.completeSkills?.some((s) => s.name === editedSkill.name)
+      )
+      .map((editedSkill) => ({
+        name: editedSkill.name as Skill,
+        halfLevel: Math.floor(sheet.nivel / 2),
+        modAttr: Atributo.INTELIGENCIA,
+        training: editedSkill.trained ? 5 : 0,
+        others: editedSkill.others,
+      }));
+
+    const finalSkills = [...updatedSkills, ...newOficios];
+
+    onSave({ completeSkills: finalSkills });
+    onClose();
+  };
+
+  const handleCancel = () => {
+    if (sheet.completeSkills) {
+      const skills = sheet.completeSkills.map((skill) => ({
+        name: skill.name,
+        trained: (skill.training ?? 0) > 0,
+        others: skill.others ?? 0,
+      }));
+      setEditedSkills(skills);
+    }
+    onClose();
+  };
+
+  const sortedSkills = [...editedSkills].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  return (
+    <Drawer
+      anchor='right'
+      open={open}
+      onClose={handleCancel}
+      PaperProps={{
+        sx: { width: { xs: '100%', sm: 600 } },
+      }}
+    >
+      <Box sx={{ p: 3 }}>
+        <Stack
+          direction='row'
+          justifyContent='space-between'
+          alignItems='center'
+          mb={2}
+        >
+          <Typography variant='h6'>Editar Perícias</Typography>
+          <IconButton onClick={handleCancel} size='small'>
+            <CloseIcon />
+          </IconButton>
+        </Stack>
+
+        <Divider sx={{ mb: 3 }} />
+
+        <Typography variant='body2' sx={{ mb: 2 }}>
+          Marque as perícias treinadas e ajuste os valores de "Outros" conforme
+          necessário.
+        </Typography>
+
+        <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+          <Table stickyHeader size='small'>
+            <TableHead>
+              <TableRow>
+                <TableCell>Perícia</TableCell>
+                <TableCell align='center'>Treinada</TableCell>
+                <TableCell align='center'>Outros</TableCell>
+                <TableCell align='center'>Total</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedSkills.map((skill) => (
+                <TableRow key={skill.name}>
+                  <TableCell>{skill.name}</TableCell>
+                  <TableCell align='center'>
+                    <Checkbox
+                      checked={skill.trained}
+                      onChange={(e) =>
+                        handleSkillTrainingChange(skill.name, e.target.checked)
+                      }
+                      size='small'
+                    />
+                  </TableCell>
+                  <TableCell align='center'>
+                    <TextField
+                      type='number'
+                      value={skill.others}
+                      onChange={(e) =>
+                        handleSkillOthersChange(
+                          skill.name,
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                      size='small'
+                      sx={{ width: 70 }}
+                      inputProps={{
+                        style: { textAlign: 'center' },
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align='center'>
+                    <Typography fontWeight='bold'>
+                      {calculateSkillTotal(skill)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {getAvailableOficios().length > 0 && (
+          <Box
+            sx={{
+              mt: 3,
+              p: 2,
+              backgroundColor: 'action.hover',
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant='subtitle2' sx={{ mb: 2 }}>
+              Adicionar Novo Ofício
+            </Typography>
+            <Stack direction='row' spacing={2} alignItems='center'>
+              <FormControl sx={{ minWidth: 200, flexGrow: 1 }}>
+                <InputLabel>Selecione um Ofício</InputLabel>
+                <Select
+                  value={selectedOficio}
+                  label='Selecione um Ofício'
+                  onChange={(e) => setSelectedOficio(e.target.value)}
+                  size='small'
+                >
+                  {getAvailableOficios().map((oficio) => (
+                    <MenuItem key={oficio} value={oficio}>
+                      {oficio}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant='contained'
+                onClick={handleAddOficio}
+                disabled={!selectedOficio}
+                startIcon={<AddIcon />}
+                size='small'
+              >
+                Adicionar
+              </Button>
+            </Stack>
+          </Box>
+        )}
+
+        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
+          <Button fullWidth variant='contained' onClick={handleSave}>
+            Salvar
+          </Button>
+          <Button fullWidth variant='outlined' onClick={handleCancel}>
+            Cancelar
+          </Button>
+        </Stack>
+      </Box>
+    </Drawer>
+  );
+};
+
+export default SkillsEditDrawer;
