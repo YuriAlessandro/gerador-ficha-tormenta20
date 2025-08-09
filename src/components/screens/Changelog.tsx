@@ -156,6 +156,67 @@ const Changelog: React.FC = () => (
           </ul>
         </li>
         <li>
+          <strong>📱 Progressive Web App (PWA):</strong>
+          <ul>
+            <li>
+              Agora é possível instalar Fichas de Nimb como um aplicativo no seu
+              dispositivo.
+            </li>
+            <li>
+              Funcionalidade offline completa - use o gerador mesmo sem
+              internet.
+            </li>
+            <li>
+              Notificação de instalação aparece automaticamente no topo da
+              página.
+            </li>
+            <li>
+              Service Worker configurado para cache inteligente de todos os
+              recursos.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>📱 Melhorias Massivas de Mobile:</strong>
+          <ul>
+            <li>
+              Formulário de geração de fichas redesenhado com foco mobile-first.
+            </li>
+            <li>
+              Layout responsivo com Grid do Material-UI para melhor organização.
+            </li>
+            <li>Controles maiores e mais acessíveis em dispositivos móveis.</li>
+            <li>
+              Correção de dropdowns sendo cortados por containers de cards.
+            </li>
+            <li>
+              Landing page otimizada para mobile com imagens de fundo
+              responsivas.
+            </li>
+            <li>
+              Tamanhos consistentes de cards e melhor adaptação a diferentes
+              telas.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>🐛 Correções de Bugs Importantes:</strong>
+          <ul>
+            <li>
+              Corrigido problema crítico onde habilidades de classe de níveis
+              superiores não apareciam (ex: &ldquo;Eclético&rdquo; do Bardo no
+              nível 2, &ldquo;Artista Completo&rdquo; no nível 20).
+            </li>
+            <li>
+              Aplicação adequada de habilidades de classe durante level-up em
+              fichas aleatórias.
+            </li>
+            <li>
+              Filtragem correta de habilidades por nível em fichas vazias.
+            </li>
+          </ul>
+        </li>
+        <li>
           <strong>⚠️ Limitação Temporária - Fichas Históricas:</strong>
           <ul>
             <li>
