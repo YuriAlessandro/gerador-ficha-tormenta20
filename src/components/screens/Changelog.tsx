@@ -217,19 +217,19 @@ const Changelog: React.FC = () => (
           </ul>
         </li>
         <li>
-          <strong>⚠️ Limitação Temporária - Fichas Históricas:</strong>
+          <strong>✅ Edição de Fichas Históricas Habilitada:</strong>
           <ul>
             <li>
-              Fichas carregadas do histórico têm edição temporariamente
-              desabilitada devido a limitações técnicas de serialização.
+              Fichas carregadas do histórico agora podem ser editadas
+              normalmente.
             </li>
             <li>
-              Interface clara informa a limitação e sugere gerar nova ficha com
-              mesmas configurações para edição.
+              Sistema de restauração automática de funções perdidas na
+              serialização JSON.
             </li>
             <li>
-              Fichas recém-geradas mantêm funcionalidade de edição completamente
-              normal.
+              Funcionalidade completa de edição para todas as fichas,
+              independente da origem.
             </li>
           </ul>
         </li>

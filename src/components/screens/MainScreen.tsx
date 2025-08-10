@@ -96,7 +96,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showHistoric, setShowHistoric] = React.useState(false);
-  const [isHistoricSheet, setIsHistoricSheet] = React.useState(false);
 
   const canGenerateEmptySheet =
     selectedOptions.classe &&
@@ -109,7 +108,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickGenerate = () => {
     setShowHistoric(false);
-    setIsHistoricSheet(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -124,7 +122,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickGenerateEmptySheet = () => {
     setShowHistoric(false);
-    setIsHistoricSheet(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -140,7 +137,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const onClickSeeSheet = (sheet: CharacterSheet) => {
     setShowHistoric(false);
-    setIsHistoricSheet(true);
     const presentation = document.getElementById('presentation');
     if (presentation) {
       setInterval(() => {
@@ -314,7 +310,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
-        isHistoricSheet={isHistoricSheet}
       />
     ));
 

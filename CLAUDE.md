@@ -77,4 +77,4 @@ npm run typecheck  # Run TypeScript compiler check
 ### TODO: Future Development
 - **Sheet Edit Persistence**: ✅ COMPLETED - When implementing sheet editing functionality, ensure that any edits to a character sheet also update its corresponding save in localStorage ('fdnHistoric'). This maintains consistency between the displayed sheet and the saved history.
 - ✅ COMPLETED - to memorize users must be able to remove any power or spell from the sheet
-- **Historic Sheet Editing**: Currently, users cannot edit sheets loaded from localStorage history due to function serialization issues. The spellPath object loses its functions (spellCircleAvailableAtLevel, qtySpellsLearnAtLevel) when serialized to JSON. Need to implement proper function restoration for all class methods when loading historic sheets, similar to how Bag class is handled.
+- ✅ COMPLETED - **Historic Sheet Editing**: Function restoration system automatically restores spellPath functions and Bag class methods when loading historic sheets, enabling full editing capabilities for all stored sheets.
