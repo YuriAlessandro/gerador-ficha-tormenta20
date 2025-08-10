@@ -1,13 +1,17 @@
 {
-  "name": "Gerador de Fichas Tormenta 20",
-  "short_name": "Tormenta 20",
+  "name": "Fichas de Nimb",
+  "short_name": "FdN",
   "description": "Gerador de fichas para o RPG Tormenta 20 - Crie personagens completos offline",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1976d2",
   "orientation": "portrait-primary",
-  "categories": ["games", "utilities", "entertainment"],
+  "categories": [
+    "games",
+    "utilities",
+    "entertainment"
+  ],
   "lang": "pt-BR",
   "icons": [
     {

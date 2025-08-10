@@ -64,12 +64,13 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,wasm}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB limit (increased from default 2MB)
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'tormenta20-cache-v1',
+              cacheName: 'tormenta20-cache-v2',
               expiration: {
                 maxEntries: 1000,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 365 days
