@@ -1105,6 +1105,11 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
+  // Store available abilities for display, but keep original abilities list intact
+  // for future level-ups to reference
+  if (!sheetClone.classe.originalAbilities) {
+    sheetClone.classe.originalAbilities = [...sheetClone.classe.abilities];
+  }
   sheetClone.classe.abilities = availableAbilities;
 
   return sheetClone;
@@ -1394,6 +1399,48 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
+  // Apply newly available class abilities for this level
+  const originalAbilities =
+    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
+  const newlyAvailableAbilities = originalAbilities.filter(
+    (ability) => ability.nivel === updatedSheet.nivel
+  );
+
+  if (newlyAvailableAbilities.length > 0) {
+    const abilitySubSteps: SubStep[] = [];
+
+    newlyAvailableAbilities.forEach((ability) => {
+      const [newSheet, newSubSteps] = applyPower(updatedSheet, ability);
+      updatedSheet = newSheet;
+      abilitySubSteps.push(...newSubSteps);
+    });
+
+    if (abilitySubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novas habilidades de classe (Nível ${updatedSheet.nivel})`,
+        value: abilitySubSteps,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: newlyAvailableAbilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })),
+    });
+
+    // Update displayed abilities to include newly available ones
+    const allAvailableAbilities = originalAbilities.filter(
+      (ability) => ability.nivel <= updatedSheet.nivel
+    );
+    updatedSheet.classe.abilities = allAvailableAbilities;
+  }
+
   return updatedSheet;
 }
 
@@ -1416,7 +1463,6 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
     );
     // eslint-disable-next-line no-eval
     return eval(filledFormula);
-    return 0;
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
@@ -1478,7 +1524,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
 
       // TODO: Adicionar bonus bom pra oficios
       if (skillName === Skill.OFICIO) {
-        console.warn('need good bonus for OFICIO skill');
+        // console.warn('need good bonus for OFICIO skill');
       }
 
       addOtherBonusToSkill(sheet, skillName, bonusValue);
@@ -1517,7 +1563,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
       pickedSkills.forEach((skill) => {
         // TODO: Adicionar bonus bom pra oficios
         if (skill === Skill.OFICIO) {
-          console.warn('need good bonus for OFICIO skill');
+          // console.warn('need good bonus for OFICIO skill');
         }
 
         addOtherBonusToSkill(sheet, skill, bonusValue);
@@ -1543,7 +1589,7 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `Modifica atributo de ${skillName} para ${attribute}`,
       });
     } else {
-      console.warn('bonus não implementado', bonus);
+      // console.warn('bonus não implementado', bonus);
     }
   });
 
@@ -1744,7 +1790,7 @@ export default function generateRandomSheet(
   let charSheet: CharacterSheet = {
     id: uuid(),
     nome,
-    sexo,
+    sexo: sexo === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
     maxSpaces,
@@ -1841,4 +1887,76 @@ export default function generateRandomSheet(
   charSheet = applyStatModifiers(charSheet);
 
   return charSheet;
+}
+
+export function generateEmptySheet(
+  selectedOptions: SelectedOptions
+): CharacterSheet {
+  // console.log(selectedOptions);
+  const race = selectRace(selectedOptions);
+  const size = getRaceSize(race);
+  const generatedClass = CLASSES.find((classe) =>
+    classByName(classe, selectedOptions.classe)
+  );
+
+  if (!generatedClass) {
+    throw new Error(`Classe ${selectedOptions.classe} não encontrada`);
+  }
+
+  let emptySheet: CharacterSheet = {
+    id: uuid(),
+    nome: '',
+    sexo: '',
+    nivel: selectedOptions.nivel,
+    atributos: {
+      Força: { name: Atributo.FORCA, mod: 0, value: 10 },
+      Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
+      Constituição: { name: Atributo.CONSTITUICAO, mod: 0, value: 10 },
+      Inteligência: { name: Atributo.INTELIGENCIA, mod: 0, value: 10 },
+      Sabedoria: { name: Atributo.SABEDORIA, mod: 0, value: 10 },
+      Carisma: { name: Atributo.CARISMA, mod: 0, value: 10 },
+    },
+    maxSpaces: 10,
+    raca: race,
+    classe: generatedClass,
+    pv: 10,
+    pm: 0,
+    sheetBonuses: [],
+    sheetActionHistory: [],
+    defesa: 10,
+    bag: new Bag(),
+    devoto: undefined,
+    origin: undefined,
+    displacement: 0,
+    size,
+    generalPowers: [],
+    classPowers: [],
+    steps: [],
+    skills: [],
+    spells: [],
+  };
+
+  // Apply class abilities filtering by level
+  emptySheet = applyClassAbilities(emptySheet);
+
+  // Generate complete skills table with base values of 0
+  emptySheet.completeSkills = Object.values(Skill)
+    .map((skill) => {
+      const skillAttr = SkillsAttrs[skill];
+
+      return {
+        name: skill,
+        halfLevel: Math.floor(emptySheet.nivel / 2),
+        training: emptySheet.skills.includes(skill) ? 2 : 0,
+        modAttr: skillAttr as unknown as Atributo,
+        others: 0, // Base value of 0 for empty sheet
+      };
+    })
+    .filter(
+      (skill) =>
+        !skill.name.startsWith('Of') ||
+        (skill.name.startsWith('Of') && skill.training > 0)
+    );
+
+  return emptySheet;
 }

@@ -10,7 +10,7 @@ export function inventor(race: Race): CharacterSheet {
     maxSpaces: 12,
     nome: 'Fulano',
     raca: race,
-    sexo: 'Homem',
+    sexo: 'Masculino',
     steps: [],
     atributos: {
       Força: { name: Atributo.FORCA, value: 11, mod: 0 },

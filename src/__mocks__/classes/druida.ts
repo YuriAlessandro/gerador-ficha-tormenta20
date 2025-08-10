@@ -12,7 +12,7 @@ export function druida(race: Race): CharacterSheet {
     maxSpaces: 15,
     nome: 'Fulano',
     raca: race,
-    sexo: 'Homem',
+    sexo: 'Masculino',
     steps: [],
     atributos: {
       Força: { name: Atributo.FORCA, value: 10, mod: 0 },
