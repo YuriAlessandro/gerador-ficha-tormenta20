@@ -21,6 +21,7 @@ import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
 import CLASSES from '../../data/classes';
+import { Atributo } from '../../data/atributos';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Result from '../SheetResult/Result';
@@ -150,12 +151,81 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     // Restore spellPath functions if the class has spellcasting
     if (sheet.classe.spellPath) {
-      const originalClass = CLASSES.find(
-        (c) =>
-          c.name === sheet.classe.name && c.subname === sheet.classe.subname
-      );
-      if (originalClass?.spellPath) {
-        sheet.classe.spellPath = originalClass.spellPath;
+      // For Arcanista with subtypes, recreate the spellPath based on subname
+      if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+        const spellPaths = {
+          Bruxo: {
+            initialSpells: 3,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.INTELIGENCIA,
+          },
+          Mago: {
+            initialSpells: 4,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) =>
+              [5, 9, 13, 17].includes(level) ? 2 : 1,
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.INTELIGENCIA,
+          },
+          Feiticeiro: {
+            initialSpells: 3,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 1 ? 1 : 0),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.CARISMA,
+          },
+        };
+
+        const subtype = sheet.classe.subname as keyof typeof spellPaths;
+        if (spellPaths[subtype]) {
+          sheet.classe.spellPath = spellPaths[subtype];
+        }
+      } else {
+        // For other classes, try to find matching class
+        const originalClass = CLASSES.find((c) => {
+          if (c.name !== sheet.classe.name) return false;
+          const cSubname = c.subname || '';
+          const sheetSubname = sheet.classe.subname || '';
+          return cSubname === sheetSubname;
+        });
+
+        if (originalClass?.spellPath) {
+          sheet.classe.spellPath = originalClass.spellPath;
+        }
+      }
+    }
+
+    // Also restore originalAbilities for proper level-based filtering
+    if (!sheet.classe.originalAbilities && sheet.classe.abilities) {
+      const originalClass = CLASSES.find((c) => {
+        if (c.name !== sheet.classe.name) return false;
+        const cSubname = c.subname || '';
+        const sheetSubname = sheet.classe.subname || '';
+        return cSubname === sheetSubname;
+      });
+
+      if (originalClass) {
+        sheet.classe.originalAbilities = originalClass.abilities;
       }
     }
 
@@ -165,13 +235,67 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleSheetUpdate = (updatedSheet: CharacterSheet) => {
     // Ensure the updated sheet has proper class methods restored
     if (updatedSheet.classe.spellPath) {
-      const originalClass = CLASSES.find(
-        (c) =>
-          c.name === updatedSheet.classe.name &&
-          c.subname === updatedSheet.classe.subname
-      );
-      if (originalClass?.spellPath) {
-        updatedSheet.classe.spellPath = originalClass.spellPath;
+      // Use the same restoration logic as onClickSeeSheet
+      if (
+        updatedSheet.classe.name === 'Arcanista' &&
+        updatedSheet.classe.subname
+      ) {
+        const spellPaths = {
+          Bruxo: {
+            initialSpells: 3,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.INTELIGENCIA,
+          },
+          Mago: {
+            initialSpells: 4,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) =>
+              [5, 9, 13, 17].includes(level) ? 2 : 1,
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.INTELIGENCIA,
+          },
+          Feiticeiro: {
+            initialSpells: 3,
+            spellType: 'Arcane' as const,
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 1 ? 1 : 0),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.CARISMA,
+          },
+        };
+
+        const subtype = updatedSheet.classe.subname as keyof typeof spellPaths;
+        if (spellPaths[subtype]) {
+          updatedSheet.classe.spellPath = spellPaths[subtype];
+        }
+      } else {
+        const originalClass = CLASSES.find(
+          (c) =>
+            c.name === updatedSheet.classe.name &&
+            c.subname === updatedSheet.classe.subname
+        );
+        if (originalClass?.spellPath) {
+          updatedSheet.classe.spellPath = originalClass.spellPath;
+        }
       }
     }
 

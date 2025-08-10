@@ -216,23 +216,6 @@ const Changelog: React.FC = () => (
             </li>
           </ul>
         </li>
-        <li>
-          <strong>✅ Edição de Fichas Históricas Habilitada:</strong>
-          <ul>
-            <li>
-              Fichas carregadas do histórico agora podem ser editadas
-              normalmente.
-            </li>
-            <li>
-              Sistema de restauração automática de funções perdidas na
-              serialização JSON.
-            </li>
-            <li>
-              Funcionalidade completa de edição para todas as fichas,
-              independente da origem.
-            </li>
-          </ul>
-        </li>
       </ul>
 
       <h2>Versão 3.0</h2>
