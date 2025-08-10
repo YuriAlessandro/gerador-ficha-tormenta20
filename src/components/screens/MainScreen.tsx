@@ -151,57 +151,106 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     // Restore spellPath functions if the class has spellcasting
     if (sheet.classe.spellPath) {
-      // For Arcanista with subtypes, recreate the spellPath based on subname
-      if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
-        const spellPaths = {
-          Bruxo: {
-            initialSpells: 3,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
-            spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+      const baseClass = CLASSES.find((c) => c.name === sheet.classe.name);
+
+      if (baseClass?.setup) {
+        // For classes with setup functions, recreate spellPath based on class
+        if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+          // Arcanista has subtypes that determine spellPath
+          const spellPaths = {
+            Bruxo: {
+              initialSpells: 3,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.INTELIGENCIA,
             },
-            keyAttribute: Atributo.INTELIGENCIA,
-          },
-          Mago: {
-            initialSpells: 4,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) =>
-              [5, 9, 13, 17].includes(level) ? 2 : 1,
-            spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+            Mago: {
+              initialSpells: 4,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) =>
+                [5, 9, 13, 17].includes(level) ? 2 : 1,
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.INTELIGENCIA,
             },
-            keyAttribute: Atributo.INTELIGENCIA,
-          },
-          Feiticeiro: {
-            initialSpells: 3,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 1 ? 1 : 0),
+            Feiticeiro: {
+              initialSpells: 3,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) =>
+                level % 2 === 1 ? 1 : 0,
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.CARISMA,
+            },
+          };
+
+          const subtype = sheet.classe.subname as keyof typeof spellPaths;
+          if (spellPaths[subtype]) {
+            sheet.classe.spellPath = spellPaths[subtype];
+          }
+        } else if (sheet.classe.name === 'Bardo') {
+          // Bard spellPath configuration
+          sheet.classe.spellPath = {
+            initialSpells: 2,
+            spellType: 'Arcane',
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
             spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+              if (level < 6) return 1;
+              if (level < 10) return 2;
+              if (level < 14) return 3;
+              return 4;
             },
             keyAttribute: Atributo.CARISMA,
-          },
-        };
-
-        const subtype = sheet.classe.subname as keyof typeof spellPaths;
-        if (spellPaths[subtype]) {
-          sheet.classe.spellPath = spellPaths[subtype];
+          };
+        } else if (sheet.classe.name === 'Clérigo') {
+          // Cleric spellPath configuration
+          sheet.classe.spellPath = {
+            initialSpells: 3,
+            spellType: 'Divine',
+            qtySpellsLearnAtLevel: () => 1,
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.SABEDORIA,
+          };
+        } else if (sheet.classe.name === 'Druida') {
+          // Druid spellPath configuration
+          sheet.classe.spellPath = {
+            initialSpells: 2,
+            spellType: 'Divine',
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 6) return 1;
+              if (level < 10) return 2;
+              if (level < 14) return 3;
+              return 4;
+            },
+            keyAttribute: Atributo.SABEDORIA,
+          };
         }
       } else {
-        // For other classes, try to find matching class
+        // For classes without setup, try direct matching
         const originalClass = CLASSES.find((c) => {
           if (c.name !== sheet.classe.name) return false;
           const cSubname = c.subname || '';
@@ -235,57 +284,105 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleSheetUpdate = (updatedSheet: CharacterSheet) => {
     // Ensure the updated sheet has proper class methods restored
     if (updatedSheet.classe.spellPath) {
-      // Use the same restoration logic as onClickSeeSheet
-      if (
-        updatedSheet.classe.name === 'Arcanista' &&
-        updatedSheet.classe.subname
-      ) {
-        const spellPaths = {
-          Bruxo: {
-            initialSpells: 3,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
-            spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+      const baseClass = CLASSES.find(
+        (c) => c.name === updatedSheet.classe.name
+      );
+
+      if (baseClass?.setup) {
+        // Use the same restoration logic as onClickSeeSheet
+        if (
+          updatedSheet.classe.name === 'Arcanista' &&
+          updatedSheet.classe.subname
+        ) {
+          const spellPaths = {
+            Bruxo: {
+              initialSpells: 3,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.INTELIGENCIA,
             },
-            keyAttribute: Atributo.INTELIGENCIA,
-          },
-          Mago: {
-            initialSpells: 4,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) =>
-              [5, 9, 13, 17].includes(level) ? 2 : 1,
-            spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+            Mago: {
+              initialSpells: 4,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) =>
+                [5, 9, 13, 17].includes(level) ? 2 : 1,
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.INTELIGENCIA,
             },
-            keyAttribute: Atributo.INTELIGENCIA,
-          },
-          Feiticeiro: {
-            initialSpells: 3,
-            spellType: 'Arcane' as const,
-            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 1 ? 1 : 0),
+            Feiticeiro: {
+              initialSpells: 3,
+              spellType: 'Arcane' as const,
+              qtySpellsLearnAtLevel: (level: number) =>
+                level % 2 === 1 ? 1 : 0,
+              spellCircleAvailableAtLevel: (level: number) => {
+                if (level < 5) return 1;
+                if (level < 9) return 2;
+                if (level < 13) return 3;
+                if (level < 17) return 4;
+                return 5;
+              },
+              keyAttribute: Atributo.CARISMA,
+            },
+          };
+
+          const subtype = updatedSheet.classe
+            .subname as keyof typeof spellPaths;
+          if (spellPaths[subtype]) {
+            updatedSheet.classe.spellPath = spellPaths[subtype];
+          }
+        } else if (updatedSheet.classe.name === 'Bardo') {
+          updatedSheet.classe.spellPath = {
+            initialSpells: 2,
+            spellType: 'Arcane',
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
             spellCircleAvailableAtLevel: (level: number) => {
-              if (level < 5) return 1;
-              if (level < 9) return 2;
-              if (level < 13) return 3;
-              if (level < 17) return 4;
-              return 5;
+              if (level < 6) return 1;
+              if (level < 10) return 2;
+              if (level < 14) return 3;
+              return 4;
             },
             keyAttribute: Atributo.CARISMA,
-          },
-        };
-
-        const subtype = updatedSheet.classe.subname as keyof typeof spellPaths;
-        if (spellPaths[subtype]) {
-          updatedSheet.classe.spellPath = spellPaths[subtype];
+          };
+        } else if (updatedSheet.classe.name === 'Clérigo') {
+          updatedSheet.classe.spellPath = {
+            initialSpells: 3,
+            spellType: 'Divine',
+            qtySpellsLearnAtLevel: () => 1,
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 5) return 1;
+              if (level < 9) return 2;
+              if (level < 13) return 3;
+              if (level < 17) return 4;
+              return 5;
+            },
+            keyAttribute: Atributo.SABEDORIA,
+          };
+        } else if (updatedSheet.classe.name === 'Druida') {
+          updatedSheet.classe.spellPath = {
+            initialSpells: 2,
+            spellType: 'Divine',
+            qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
+            spellCircleAvailableAtLevel: (level: number) => {
+              if (level < 6) return 1;
+              if (level < 10) return 2;
+              if (level < 14) return 3;
+              return 4;
+            },
+            keyAttribute: Atributo.SABEDORIA,
+          };
         }
       } else {
         const originalClass = CLASSES.find(
