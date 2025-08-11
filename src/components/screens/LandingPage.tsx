@@ -201,10 +201,10 @@ const LandingPage: React.FC<{
           </Grid>
           <Grid item xs={12} sm={6}>
             <LandingOption
-              title='Criar item mágico'
-              text='Em desenvolvimento.'
-              disabled
-              onClick={() => onClickButton('itens-superiores')}
+              title='Gerador de Ameaças'
+              text='Crie inimigos e NPCs seguindo as regras oficiais do Tormenta 20.'
+              image={ferramentas}
+              onClick={() => onClickButton('gerador-ameacas')}
             />
           </Grid>
 

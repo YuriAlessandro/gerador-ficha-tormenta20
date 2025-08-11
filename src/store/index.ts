@@ -13,10 +13,16 @@ import storage from 'redux-persist/lib/storage';
 import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddleware';
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
+import threatStorageReducer from './slices/threatStorage';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
   key: 'sheetStorage',
+  storage,
+};
+
+export const threatPersistConfig = {
+  key: 'threatStorage',
   storage,
 };
 
@@ -25,10 +31,16 @@ const persistedReducer = persistReducer(
   sheetStorageSlice.reducer
 );
 
+const persistedThreatReducer = persistReducer(
+  threatPersistConfig,
+  threatStorageReducer
+);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
     sheetStorage: persistedReducer,
+    threatStorage: persistedThreatReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
