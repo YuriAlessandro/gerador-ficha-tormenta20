@@ -33,7 +33,6 @@ export default defineConfig({
         short_name: 'Fichas de Nimb',
         description:
           'Gerador de fichas e ameaças para Tormenta 20 - Crie personagens e NPCs completos offline',
-        version: '3.1.1',
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
