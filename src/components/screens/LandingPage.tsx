@@ -180,34 +180,6 @@ const LandingPage: React.FC<{
                     regras oficiais
                   </Typography>
                 </Box>
-
-                <Box
-                  sx={{
-                    px: 3,
-                    py: 2.5,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    borderTop: `1px solid rgba(255, 255, 255, 0.2)`,
-                    minHeight: { xs: 44, md: 48 },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#FFFFFF',
-                      fontSize: '1.2rem',
-                    }}
-                  >
-                    →
-                  </Box>
-                </Box>
               </Card>
             </Grid>
 
