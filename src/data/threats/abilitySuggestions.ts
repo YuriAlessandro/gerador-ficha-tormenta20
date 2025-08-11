@@ -8,25 +8,25 @@ export const ABILITY_SUGGESTIONS: AbilitySuggestion[] = [
   {
     name: 'Agarrar Aprimorado',
     description:
-      'Se a criatura acertar um ataque com uma arma natural (especificada na habilidade), pode usar o ataque para agarrar como uma ação livre. Se a criatura tiver outra arma natural, pode usar o ataque para agarrar ou causar dano. A descrição da habilidade pode limitar o tipo ou tamanho de criatura que pode ser agarrado.',
+      'Se a criatura acertar um ataque com uma arma natural, pode usar o ataque para agarrar como uma ação livre. Se a criatura tiver outra arma natural, pode usar o ataque para agarrar ou causar dano.',
     category: 'Combate',
   },
   {
     name: 'Ataque Furtivo',
     description:
-      'A criatura é capaz de desferir ataques furtivos, causando dano adicional contra criaturas desprevenidas ou que estejam flanqueadas. O dano adicional é indicado na descrição. Se a criatura tiver múltiplos ataques, o dano furtivo é aplicado apenas uma vez por rodada. Criaturas imunes a dano de precisão ou sem partes vitais são imunes.',
+      'Uma vez por rodada, quando atinge uma criatura desprevenida com um ataque corpo a corpo ou em alcance curto, ou uma criatura que esteja flanqueando, você causa 1d6 pontos de dano extra. A cada dois níveis, esse dano extra aumenta em +1d6.',
     category: 'Combate',
   },
-  {
-    name: 'Bando',
-    description:
-      'A criatura é eficaz em grupo com outros de seu tipo. Se estiver a até 3 m de outra criatura com a mesma habilidade, recebe bônus de +2 em ataques corpo a corpo. Algumas habilidades de Bando concedem outros bônus, como em testes de resistência ou dano. Criaturas com esta habilidade devem ter o mesmo tipo listado.',
-    category: 'Tático',
-  },
+  // {
+  //   name: 'Bando',
+  //   description:
+  //     'A criatura é eficaz em grupo com outros de seu tipo. Se estiver a até 3 m de outra criatura com a mesma habilidade, recebe bônus de +2 em ataques corpo a corpo. Algumas habilidades de Bando concedem outros bônus, como em testes de resistência ou dano. Criaturas com esta habilidade devem ter o mesmo tipo listado.',
+  //   category: 'Tático',
+  // },
   {
     name: 'Cura Acelerada',
     description:
-      'Todo turno, a criatura recupera pontos de vida igual ao valor listado. Isso ocorre mesmo que esteja abaixo de 0 PV, desde que não esteja morta. Se o dano for causado por um tipo listado (como ácido ou fogo), a cura não ocorre. A criatura com cura acelerada 10/ácido recupera 10 PV por turno, a menos que o dano tenha sido causado por ácido.',
+      'Todo turno, a criatura recupera 1d8 pontos de vida. Isso ocorre mesmo que esteja abaixo de 0 PV, desde que não esteja morta.',
     category: 'Defesa',
   },
   {
@@ -44,13 +44,13 @@ export const ABILITY_SUGGESTIONS: AbilitySuggestion[] = [
   {
     name: 'Enlaçar',
     description:
-      'Se a criatura acertar um ataque com uma arma natural, pode tentar agarrar como uma ação livre. Se tiver outra arma natural, pode escolher entre agarrar ou causar dano. A descrição pode limitar o tipo ou tamanho de criatura que pode ser agarrado.',
+      'Se a criatura acertar um ataque com uma arma natural, pode tentar agarrar como uma ação livre. Se tiver outra arma natural, pode escolher entre agarrar ou causar dano.',
     category: 'Combate',
   },
   {
     name: 'Enxame',
     description:
-      'A criatura é composta por um grupo de indivíduos muito pequenos, como insetos ou ratos. Enxames ocupam o mesmo espaço que uma criatura Média, mas não podem ser agarrados, flanqueados ou sofrer ataques precisos. Sofrem metade do dano de armas e efeitos que afetam uma área.',
+      'Enxames ocupam o mesmo espaço que uma criatura Média, mas não podem ser agarrados, flanqueados ou sofrer ataques precisos. Sofrem metade do dano de armas e efeitos que afetam uma área.',
     category: 'Especial',
   },
   {
@@ -80,13 +80,13 @@ export const ABILITY_SUGGESTIONS: AbilitySuggestion[] = [
   {
     name: 'Fortificação',
     description:
-      'A criatura tem uma chance (indicada por uma porcentagem) de ignorar acertos críticos e ataques furtivos. Se for bem-sucedida, o ataque é considerado normal.',
+      'A criatura tem uma chance de 20% de ignorar acertos críticos e ataques furtivos. Se for bem-sucedida, o ataque é considerado normal.',
     category: 'Defesa',
   },
   {
     name: 'Imunidade',
     description:
-      'A criatura é imune a um tipo de efeito ou outro tipo de condição. A imunidade será descrita na ficha da criatura (como imunidade a ácido, magia, etc.).',
+      'A criatura é imune a um tipo de efeito ou outro tipo de condição (como imunidade a ácido, magia, etc.).',
     category: 'Defesa',
   },
   {
@@ -97,8 +97,7 @@ export const ABILITY_SUGGESTIONS: AbilitySuggestion[] = [
   },
   {
     name: 'Magias',
-    description:
-      'A criatura lança magias. A descrição da habilidade indica quais magias ela pode lançar, a CD de resistência para suas magias e o limite de PM que possui. Algumas criaturas lançam magias como se fossem conjuradores (veja o ND da criatura).',
+    description: 'A criatura lança magias.',
     category: 'Magia',
   },
 ];

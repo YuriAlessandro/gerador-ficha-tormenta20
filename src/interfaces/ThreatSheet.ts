@@ -84,12 +84,12 @@ export interface ThreatAbility {
 }
 
 export interface ThreatAttributes {
-  [Atributo.FORCA]: number;
-  [Atributo.DESTREZA]: number;
-  [Atributo.CONSTITUICAO]: number;
-  [Atributo.INTELIGENCIA]: number;
-  [Atributo.SABEDORIA]: number;
-  [Atributo.CARISMA]: number;
+  [Atributo.FORCA]: number | '-';
+  [Atributo.DESTREZA]: number | '-';
+  [Atributo.CONSTITUICAO]: number | '-';
+  [Atributo.INTELIGENCIA]: number | '-';
+  [Atributo.SABEDORIA]: number | '-';
+  [Atributo.CARISMA]: number | '-';
 }
 
 export interface ThreatSkill {

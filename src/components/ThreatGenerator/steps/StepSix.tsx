@@ -17,10 +17,7 @@ import {
 } from '@mui/material';
 import { Atributo } from '../../../data/atributos';
 import { ThreatSheet, ThreatAttributes } from '../../../interfaces/ThreatSheet';
-import {
-  calculateAllSkills,
-  calculateAttributeModifier,
-} from '../../../functions/threatGenerator';
+import { calculateAllSkills } from '../../../functions/threatGenerator';
 
 interface StepSixProps {
   threat: Partial<ThreatSheet>;
@@ -31,10 +28,17 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
   const theme = useTheme();
 
   const handleAttributeChange = (attribute: Atributo, value: string) => {
-    const numValue = parseInt(value, 10) || 10;
+    let parsedValue: number | '-';
+
+    if (value === '-' || value === '') {
+      parsedValue = '-';
+    } else {
+      parsedValue = parseInt(value, 10) || 0;
+    }
+
     const updatedAttributes = {
       ...threat.attributes,
-      [attribute]: numValue,
+      [attribute]: parsedValue,
     } as ThreatAttributes;
     onUpdate({ attributes: updatedAttributes });
 
@@ -117,12 +121,13 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
         <Grid item xs={12} md={6}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
-              Atributos
+              Atributos (Modificadores)
             </Typography>
             <Typography variant='body2' color='text.secondary' mb={2}>
-              Para os atributos, escolha valores compatíveis com o conceito da
-              ameaça. Lembre-se que esses valores não vão impactar as
-              estatísticas de combate; essas já foram definidas pelo ND.
+              Insira apenas os <strong>modificadores</strong> dos atributos. Use
+              &quot;-&quot; para atributos que a ameaça não possui. Esses
+              valores não impactam as estatísticas de combate (já definidas pelo
+              ND).
             </Typography>
 
             <Box mb={2}>
@@ -133,41 +138,45 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Categoria</TableCell>
-                    <TableCell align='center'>Modificador</TableCell>
+                    <TableCell align='center'>Valor</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
+                  <TableRow>
+                    <TableCell>Não possui</TableCell>
+                    <TableCell align='center'>-</TableCell>
+                  </TableRow>
                   <TableRow>
                     <TableCell>Incapaz</TableCell>
                     <TableCell align='center'>-5</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Incompetente</TableCell>
-                    <TableCell align='center'>-4 / -3</TableCell>
+                    <TableCell align='center'>-4 ou -3</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Ineficaz</TableCell>
-                    <TableCell align='center'>-2 / -1</TableCell>
+                    <TableCell align='center'>-2 ou -1</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Mediano</TableCell>
-                    <TableCell align='center'>0 / +1</TableCell>
+                    <TableCell align='center'>0 ou +1</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Notável</TableCell>
-                    <TableCell align='center'>+2 / +3</TableCell>
+                    <TableCell align='center'>+2 ou +3</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Excelente</TableCell>
-                    <TableCell align='center'>+4 / +5</TableCell>
+                    <TableCell align='center'>+4 ou +5</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Extraordinário</TableCell>
-                    <TableCell align='center'>+6 / +7</TableCell>
+                    <TableCell align='center'>+6 ou +7</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>Excepcional</TableCell>
-                    <TableCell align='center'>+8+</TableCell>
+                    <TableCell align='center'>+8 ou mais</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -177,32 +186,17 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                 <Grid item xs={6} key={attribute}>
                   <TextField
                     fullWidth
-                    type='number'
                     label={attribute}
                     value={
-                      (attributes as unknown as Record<string, number>)[
+                      (attributes as unknown as Record<string, number | '-'>)[
                         attribute
-                      ] || 10
+                      ] ?? 0
                     }
                     onChange={(e) =>
                       handleAttributeChange(attribute, e.target.value)
                     }
-                    InputProps={{
-                      inputProps: { min: 1, max: 30 },
-                    }}
-                    helperText={`Mod: ${
-                      calculateAttributeModifier(
-                        (attributes as unknown as Record<string, number>)[
-                          attribute
-                        ] || 10
-                      ) >= 0
-                        ? '+'
-                        : ''
-                    }${calculateAttributeModifier(
-                      (attributes as unknown as Record<string, number>)[
-                        attribute
-                      ] || 10
-                    )}`}
+                    placeholder='Ex: +2, -1, ou -'
+                    helperText='Use "-" se não possui este atributo'
                   />
                 </Grid>
               ))}

@@ -112,15 +112,19 @@ export function calculateSkillValue(
 /**
  * Calcula o modificador de um atributo
  */
-export function calculateAttributeModifier(attributeValue: number): number {
+export function calculateAttributeModifier(
+  attributeValue: number | '-'
+): number {
   if (
-    Number.isNaN(attributeValue) ||
+    attributeValue === '-' ||
     attributeValue === undefined ||
-    attributeValue === null
+    attributeValue === null ||
+    Number.isNaN(attributeValue)
   ) {
-    return 0; // Default to 0 modifier for invalid values
+    return 0; // Default to 0 modifier for invalid/missing values
   }
-  return Math.floor((attributeValue - 10) / 2);
+  // attributeValue is now the modifier itself, not the full attribute value
+  return Number(attributeValue);
 }
 
 /**
@@ -143,7 +147,7 @@ export function calculateAllSkills(
     const existingSkill = existingSkills.find((s) => s.name === skillName);
     const trained = existingSkill?.trained || false;
     let customBonus = existingSkill?.customBonus || 0;
-    const attributeValue = attributes[attribute] || 10;
+    const attributeValue = attributes[attribute] ?? 0;
     const attributeModifier = calculateAttributeModifier(attributeValue);
 
     // Apply resistance bonuses for Fortitude, Reflexos, Vontade
@@ -251,12 +255,12 @@ export function getRecommendedAbilityCount(
  */
 export function createDefaultAttributes(): ThreatAttributes {
   return {
-    [Atributo.FORCA]: 10,
-    [Atributo.DESTREZA]: 10,
-    [Atributo.CONSTITUICAO]: 10,
-    [Atributo.INTELIGENCIA]: 10,
-    [Atributo.SABEDORIA]: 10,
-    [Atributo.CARISMA]: 10,
+    [Atributo.FORCA]: 0,
+    [Atributo.DESTREZA]: 0,
+    [Atributo.CONSTITUICAO]: 0,
+    [Atributo.INTELIGENCIA]: 0,
+    [Atributo.SABEDORIA]: 0,
+    [Atributo.CARISMA]: 0,
   };
 }
 

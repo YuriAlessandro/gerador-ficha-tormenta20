@@ -109,6 +109,11 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   const handleNext = () => {
     setActiveStep((prevStep) => prevStep + 1);
+
+    // Scroll to top on mobile when going to next step
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleBack = () => {
