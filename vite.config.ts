@@ -32,7 +32,8 @@ export default defineConfig({
         name: 'Fichas de Nimb',
         short_name: 'Fichas de Nimb',
         description:
-          'Gerador de fichas para o RPG Tormenta 20 - Crie personagens completos offline',
+          'Gerador de fichas e ameaças para Tormenta 20 - Crie personagens e NPCs completos offline',
+        version: '3.1.1',
         theme_color: '#1976d2',
         background_color: '#ffffff',
         display: 'standalone',
@@ -70,7 +71,7 @@ export default defineConfig({
             urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'tormenta20-cache-v2',
+              cacheName: 'tormenta20-cache-v3',
               expiration: {
                 maxEntries: 1000,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 365 days
