@@ -211,55 +211,129 @@ const Database: React.FC<IProps> = () => {
               </Grid>
             ) : (
               // Tab navigation when content is selected
-              <Paper
-                elevation={0}
-                sx={{
-                  mb: 3,
-                  background:
-                    'linear-gradient(135deg, #d13235 0%, #922325 100%)',
-                  borderRadius: 2,
-                }}
-              >
-                <Tabs
-                  value={selectedMenu}
-                  onChange={handleTabChange}
-                  variant={isMobile ? 'scrollable' : 'fullWidth'}
-                  scrollButtons={isMobile ? 'auto' : false}
-                  sx={{
-                    '& .MuiTab-root': {
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontFamily: 'Tfont, serif',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      minHeight: 60,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        color: 'white',
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      },
-                      '&.Mui-selected': {
-                        color: 'white',
-                        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      },
-                    },
-                    '& .MuiTabs-indicator': {
-                      backgroundColor: 'white',
-                      height: 3,
-                    },
-                  }}
-                >
-                  {menuItems.map((item) => (
-                    <Tab
-                      key={item.id}
-                      label={item.title}
-                      icon={item.icon}
-                      iconPosition='start'
-                      sx={{ gap: 1 }}
-                    />
-                  ))}
-                </Tabs>
-              </Paper>
+              <>
+                {isMobile ? (
+                  // Mobile: 2x3 Grid layout
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    {menuItems.map((item) => (
+                      <Grid item xs={4} key={item.id}>
+                        <Card
+                          onClick={() => onSelectMenu(item.id, item.route)}
+                          sx={{
+                            cursor: 'pointer',
+                            minHeight: 80,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease',
+                            background:
+                              selectedMenu === item.id
+                                ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
+                                : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                            border: '1px solid rgba(209, 50, 53, 0.2)',
+                            color:
+                              selectedMenu === item.id ? 'white' : 'inherit',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                              boxShadow: '0 4px 12px rgba(209, 50, 53, 0.3)',
+                              background:
+                                selectedMenu === item.id
+                                  ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
+                                  : 'linear-gradient(135deg, rgba(209, 50, 53, 0.1) 0%, rgba(209, 50, 53, 0.05) 100%)',
+                            },
+                          }}
+                        >
+                          <CardContent
+                            sx={{
+                              textAlign: 'center',
+                              py: 1,
+                              px: 0.5,
+                              '&:last-child': { pb: 1 },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                fontSize: '1.5rem',
+                                mb: 0.5,
+                                color:
+                                  selectedMenu === item.id
+                                    ? 'white'
+                                    : '#d13235',
+                              }}
+                            >
+                              {item.icon}
+                            </Box>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                fontFamily: 'Tfont, serif',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                color:
+                                  selectedMenu === item.id
+                                    ? 'white'
+                                    : 'inherit',
+                              }}
+                            >
+                              {item.title}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                ) : (
+                  // Desktop: Horizontal tabs
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      mb: 3,
+                      background:
+                        'linear-gradient(135deg, #d13235 0%, #922325 100%)',
+                      borderRadius: 2,
+                    }}
+                  >
+                    <Tabs
+                      value={selectedMenu}
+                      onChange={handleTabChange}
+                      variant='fullWidth'
+                      sx={{
+                        '& .MuiTab-root': {
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontFamily: 'Tfont, serif',
+                          fontWeight: 600,
+                          textTransform: 'none',
+                          fontSize: '1rem',
+                          minHeight: 60,
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            color: 'white',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          },
+                          '&.Mui-selected': {
+                            color: 'white',
+                            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          },
+                        },
+                        '& .MuiTabs-indicator': {
+                          backgroundColor: 'white',
+                          height: 3,
+                        },
+                      }}
+                    >
+                      {menuItems.map((item) => (
+                        <Tab
+                          key={item.id}
+                          label={item.title}
+                          icon={item.icon}
+                          iconPosition='start'
+                          sx={{ gap: 1 }}
+                        />
+                      ))}
+                    </Tabs>
+                  </Paper>
+                )}
+              </>
             )}
           </Box>
 

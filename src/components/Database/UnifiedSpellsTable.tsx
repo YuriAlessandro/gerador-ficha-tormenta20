@@ -189,9 +189,22 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
         <TableCell />
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell
+          style={{ paddingBottom: 0, paddingTop: 0 }}
+          colSpan={6}
+          sx={{ overflow: 'hidden' }}
+        >
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: '3px solid #d13235',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                maxWidth: '100%',
+              }}
+            >
               <Typography
                 variant='h6'
                 color='primary'
@@ -228,7 +241,15 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
 
               <Divider sx={{ my: 2 }} />
 
-              <Typography variant='body1' paragraph>
+              <Typography
+                variant='body1'
+                paragraph
+                sx={{
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
                 {spell.description}
               </Typography>
 
@@ -451,7 +472,26 @@ const UnifiedSpellsTable: React.FC = () => {
       </Box>
 
       {/* Spells Table */}
-      <TableContainer component={Paper} className='table-container'>
+      <TableContainer
+        component={Paper}
+        className='table-container'
+        sx={{
+          maxWidth: '100%',
+          overflowX: 'auto',
+          '& .MuiTable-root': {
+            minWidth: 650,
+            '@media (max-width: 768px)': {
+              minWidth: '100%',
+            },
+          },
+          '& .MuiTableCell-root': {
+            '@media (max-width: 768px)': {
+              padding: '8px 4px',
+              fontSize: '0.875rem',
+            },
+          },
+        }}
+      >
         <Table aria-label='unified spells table'>
           <TableHead>
             <TableRow>

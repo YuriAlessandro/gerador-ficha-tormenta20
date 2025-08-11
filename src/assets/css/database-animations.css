@@ -218,6 +218,12 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Table-specific overflow only for actual table content */
+.table-container .MuiTableContainer-root {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 /* Floating Action Elements */
 .floating-element {
   animation: fadeInUp 0.8s ease-out;
@@ -240,6 +246,17 @@
   
   .floating-element {
     position: static;
+  }
+  
+  .table-container .MuiTableContainer-root {
+    /* Ensure horizontal scroll on mobile */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .table-container .MuiTable-root {
+    /* Force minimum width on mobile to enable scrolling */
+    min-width: 700px;
   }
 }
 
