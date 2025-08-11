@@ -108,7 +108,8 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   // Helper function to determine training bonus
   const skillTrainingMod = (isTrained: boolean, level: number): number => {
     if (!isTrained) return 0;
-    if (level >= 7) return 5;
+    if (level >= 15) return 6;
+    if (level >= 7) return 4;
     return 2;
   };
 

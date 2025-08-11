@@ -17,12 +17,12 @@ export const ABILITY_SUGGESTIONS: AbilitySuggestion[] = [
       'Uma vez por rodada, quando atinge uma criatura desprevenida com um ataque corpo a corpo ou em alcance curto, ou uma criatura que esteja flanqueando, você causa 1d6 pontos de dano extra. A cada dois níveis, esse dano extra aumenta em +1d6.',
     category: 'Combate',
   },
-  // {
-  //   name: 'Bando',
-  //   description:
-  //     'A criatura é eficaz em grupo com outros de seu tipo. Se estiver a até 3 m de outra criatura com a mesma habilidade, recebe bônus de +2 em ataques corpo a corpo. Algumas habilidades de Bando concedem outros bônus, como em testes de resistência ou dano. Criaturas com esta habilidade devem ter o mesmo tipo listado.',
-  //   category: 'Tático',
-  // },
+  {
+    name: 'Bando',
+    description:
+      'A criatura é eficaz em grupo com outros de seu tipo. Se estiver a até 3 m de outra criatura com a mesma habilidade, recebe bônus de +2 em ataques corpo a corpo.',
+    category: 'Tático',
+  },
   {
     name: 'Cura Acelerada',
     description:

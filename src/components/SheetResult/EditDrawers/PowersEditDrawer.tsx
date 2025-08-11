@@ -379,7 +379,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           alignItems='center'
           mb={2}
         >
-          <Typography variant='h6'>Editar Poderes</Typography>
+          <Typography variant='h6'>Editar Poderes e Habilidades</Typography>
           <IconButton onClick={handleCancel} size='small'>
             <CloseIcon />
           </IconButton>
@@ -388,9 +388,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         <Divider sx={{ mb: 3 }} />
 
         <Typography variant='body2' sx={{ mb: 2 }}>
-          Selecione os poderes gerais do personagem. Poderes que não atendem aos
-          pré-requisitos são marcados em vermelho. Você pode adicionar qualquer
-          poder que desejar, incluindo os que não cumprem requisitos.
+          Selecione os poderes gerais e de classe do personagem. As habilidades
+          de classe são automáticas e não podem ser removidas. Poderes que não
+          atendem aos pré-requisitos são marcados em vermelho. Você pode
+          adicionar qualquer poder que desejar, incluindo os que não cumprem
+          requisitos.
         </Typography>
 
         {/* Search Bar */}
@@ -409,7 +411,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         />
 
         {/* Selected Powers Summary */}
-        {(selectedPowers.length > 0 || selectedClassPowers.length > 0) && (
+        {(selectedPowers.length > 0 ||
+          selectedClassPowers.length > 0 ||
+          (sheet.classe.abilities &&
+            sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
+              .length > 0) ||
+          (sheet.raca.abilities && sheet.raca.abilities.length > 0)) && (
           <Box
             sx={{
               mb: 3,
@@ -445,7 +452,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 <Typography variant='subtitle2' sx={{ mb: 1 }}>
                   Poderes de Classe Selecionados ({selectedClassPowers.length}):
                 </Typography>
-                <Stack direction='row' spacing={1} flexWrap='wrap'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  flexWrap='wrap'
+                  sx={{ mb: 2 }}
+                >
                   {selectedClassPowers.map((power) => (
                     <Chip
                       key={power.name}
@@ -458,10 +470,94 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 </Stack>
               </>
             )}
+            {sheet.classe.abilities &&
+              sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
+                .length > 0 && (
+                <>
+                  <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                    Habilidades de Classe Ativas (
+                    {
+                      sheet.classe.abilities.filter(
+                        (a) => a.nivel <= sheet.nivel
+                      ).length
+                    }
+                    ):
+                  </Typography>
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    flexWrap='wrap'
+                    sx={{ mb: 2 }}
+                  >
+                    {sheet.classe.abilities
+                      .filter((ability) => ability.nivel <= sheet.nivel)
+                      .map((ability) => (
+                        <Chip
+                          key={ability.name}
+                          label={`${ability.name} (Nv.${ability.nivel})`}
+                          size='small'
+                          color='info'
+                        />
+                      ))}
+                  </Stack>
+                </>
+              )}
+            {sheet.raca.abilities && sheet.raca.abilities.length > 0 && (
+              <>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Habilidades de Raça ({sheet.raca.abilities.length}):
+                </Typography>
+                <Stack direction='row' spacing={1} flexWrap='wrap'>
+                  {sheet.raca.abilities.map((ability) => (
+                    <Chip
+                      key={ability.name}
+                      label={ability.name}
+                      size='small'
+                      color='warning'
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
           </Box>
         )}
 
         <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+          {/* Race Abilities Section */}
+          {sheet.raca.abilities && sheet.raca.abilities.length > 0 && (
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant='h6'>
+                  Habilidades de {sheet.raca.name} (
+                  {sheet.raca.abilities.length})
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={2}>
+                  {sheet.raca.abilities.map((ability) => (
+                    <Box
+                      key={ability.name}
+                      sx={{
+                        p: 2,
+                        border: 2,
+                        borderColor: 'warning.main',
+                        borderRadius: 1,
+                        backgroundColor: 'warning.50',
+                      }}
+                    >
+                      <Typography variant='body1' fontWeight='bold'>
+                        {ability.name}
+                      </Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        {ability.description}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
           {/* Class Abilities Section */}
           {sheet.classe.abilities && sheet.classe.abilities.length > 0 && (
             <Accordion>

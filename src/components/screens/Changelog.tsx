@@ -59,6 +59,17 @@ const Changelog: React.FC = () => (
               Ficha de Resultado: CD agora é exibido na ficha final quando a
               ameaça possui habilidades.
             </li>
+            <li>
+              Editor de Poderes: Agora exibe também as habilidades de classe e
+              raça na seção de resumo com chips, proporcionando uma visão
+              completa de todas as capacidades do personagem.
+            </li>
+            <li>
+              Correção do treinamento de perícias: Corrigido problema onde
+              marcar uma perícia como treinada não atualizava o valor
+              corretamente. Agora usa a progressão correta de bônus (+2 nível
+              1-6, +4 nível 7-14, +6 nível 15+).
+            </li>
           </ul>
         </li>
       </ul>

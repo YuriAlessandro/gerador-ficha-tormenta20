@@ -107,11 +107,19 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       (s) => s.name === skill.name
     );
 
+    // Helper function to determine training bonus based on level
+    const skillTrainingMod = (isTrained: boolean, level: number): number => {
+      if (!isTrained) return 0;
+      if (level >= 15) return 6;
+      if (level >= 7) return 4;
+      return 2;
+    };
+
     // For new Oficio skills, calculate manually
     if (!originalSkill && skill.name.startsWith('Ofício')) {
       const intMod = sheet.atributos.Inteligência.mod;
       const halfLevel = Math.floor(sheet.nivel / 2);
-      const training = skill.trained ? 5 : 0;
+      const training = skillTrainingMod(skill.trained, sheet.nivel);
       return halfLevel + intMod + training + skill.others;
     }
 
@@ -121,7 +129,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       ? sheet.atributos[originalSkill.modAttr].mod
       : 0;
     const halfLevel = originalSkill.halfLevel ?? 0;
-    const training = skill.trained ? originalSkill.training ?? 5 : 0;
+    const training = skillTrainingMod(skill.trained, sheet.nivel);
 
     return halfLevel + attrBonus + training + skill.others;
   };
@@ -152,6 +160,14 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
   const handleSave = () => {
     if (!sheet.completeSkills) return;
 
+    // Helper function to determine training bonus based on level
+    const skillTrainingMod = (isTrained: boolean, level: number): number => {
+      if (!isTrained) return 0;
+      if (level >= 15) return 6;
+      if (level >= 7) return 4;
+      return 2;
+    };
+
     // Update existing skills, but filter out removed Oficios
     const updatedSkills: CompleteSkill[] = sheet.completeSkills
       .filter((originalSkill) => {
@@ -169,7 +185,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
         return {
           ...originalSkill,
-          training: editedSkill.trained ? originalSkill.training || 5 : 0,
+          training: skillTrainingMod(editedSkill.trained, sheet.nivel),
           others: editedSkill.others,
         };
       });
@@ -185,7 +201,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         name: editedSkill.name as Skill,
         halfLevel: Math.floor(sheet.nivel / 2),
         modAttr: Atributo.INTELIGENCIA,
-        training: editedSkill.trained ? 5 : 0,
+        training: skillTrainingMod(editedSkill.trained, sheet.nivel),
         others: editedSkill.others,
       }));
 
