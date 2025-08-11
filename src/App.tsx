@@ -32,6 +32,9 @@ import Rewards from './components/screens/Rewards';
 import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
+import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorScreen';
+import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
+import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import DiscordInvite from './components/DiscordInvite';
@@ -287,6 +290,18 @@ function App(): JSX.Element {
                     </Route>
                     <Route path='/sheet-builder/:id'>
                       <SheetBuilderPage />
+                    </Route>
+                    <Route path='/gerador-ameacas'>
+                      <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
+                    </Route>
+                    <Route path='/threat-generator'>
+                      <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
+                    </Route>
+                    <Route path='/threat-history'>
+                      <ThreatHistory />
+                    </Route>
+                    <Route path='/threat/:id'>
+                      <ThreatViewWrapper />
                     </Route>
                     {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />

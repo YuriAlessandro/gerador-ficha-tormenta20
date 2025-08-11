@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 09/08/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 11/08/2025.
       </p>
 
       <p>
@@ -196,6 +196,24 @@ const Changelog: React.FC = () => (
             <li>
               Tamanhos consistentes de cards e melhor adaptação a diferentes
               telas.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>⚔️ Gerador de Ameaças:</strong>
+          <ul>
+            <li>
+              Sistema de atributos simplificado: agora utiliza apenas
+              modificadores ao invés de valores completos (ex: +2, -1, ou
+              &quot;-&quot; para não possuir).
+            </li>
+            <li>
+              Suporte completo para ameaças que não possuem determinados
+              atributos usando &quot;-&quot; como valor.
+            </li>
+            <li>
+              Interface mobile otimizada com scroll automático ao topo ao
+              avançar etapas.
             </li>
           </ul>
         </li>
