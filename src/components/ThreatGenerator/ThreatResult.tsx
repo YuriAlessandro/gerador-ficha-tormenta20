@@ -73,9 +73,9 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   // Format resistance values
   const getResistanceValue = (type: string) => {
-    let resistanceValue = threat.combatStats.strongSave;
+    let resistanceValue = threat.combatStats.weakSave;
     if (type === 'strong') {
-      resistanceValue = threat.combatStats.weakSave;
+      resistanceValue = threat.combatStats.strongSave;
     } else if (type === 'medium') {
       resistanceValue = threat.combatStats.mediumSave;
     }
@@ -195,6 +195,12 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           <span className='simpleSheetText'>Fort</span> {fortResist},{' '}
           <span className='simpleSheetText'>Ref</span> {refResist},{' '}
           <span className='simpleSheetText'>Von</span> {wonResist}
+          {threat.abilities && threat.abilities.length > 0 && (
+            <>
+              , <span className='simpleSheetText'>CD</span>{' '}
+              {threat.combatStats.standardEffectDC}
+            </>
+          )}
         </div>
         <div>
           <span className='simpleSheetText'>Pontos de Vida</span>{' '}

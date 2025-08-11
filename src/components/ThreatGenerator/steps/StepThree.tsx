@@ -132,13 +132,13 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
                     }
                   >
                     <MenuItem value={ResistanceType.STRONG}>
-                      Forte (+{combatStats?.weakSave || '?'})
+                      Forte (+{combatStats?.strongSave ?? '?'})
                     </MenuItem>
                     <MenuItem value={ResistanceType.MEDIUM}>
-                      Média (+{combatStats?.mediumSave || '?'})
+                      Média (+{combatStats?.mediumSave ?? '?'})
                     </MenuItem>
                     <MenuItem value={ResistanceType.WEAK}>
-                      Fraca (+{combatStats?.strongSave || '?'})
+                      Fraca (+{combatStats?.weakSave ?? '?'})
                     </MenuItem>
                   </Select>
                 </FormControl>
@@ -245,7 +245,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
                     }}
                   >
                     <Typography variant='subtitle2' gutterBottom>
-                      <strong>Forte (+{combatStats.weakSave})</strong>
+                      <strong>Forte (+{combatStats.strongSave})</strong>
                     </Typography>
                     <Typography variant='body2'>
                       {Object.entries(threat.resistanceAssignments || {}).find(
@@ -283,7 +283,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
                     }}
                   >
                     <Typography variant='subtitle2' gutterBottom>
-                      <strong>Fraca (+{combatStats.strongSave})</strong>
+                      <strong>Fraca (+{combatStats.weakSave})</strong>
                     </Typography>
                     <Typography variant='body2'>
                       {Object.entries(threat.resistanceAssignments || {}).find(

@@ -32,6 +32,18 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
     onUpdate({ name });
   };
 
+  const handleCombatStatChange = (
+    field: 'defense' | 'hitPoints' | 'standardEffectDC',
+    value: number
+  ) => {
+    onUpdate({
+      combatStats: {
+        ...threat.combatStats!,
+        [field]: value,
+      },
+    });
+  };
+
   return (
     <Box p={3}>
       <Typography variant='h6' gutterBottom>
@@ -125,14 +137,59 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell>{threat.combatStats.defense}</TableCell>
-                    <TableCell>{threat.combatStats.hitPoints}</TableCell>
+                    <TableCell>
+                      <TextField
+                        type='number'
+                        value={threat.combatStats.defense}
+                        onChange={(e) =>
+                          handleCombatStatChange(
+                            'defense',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        size='small'
+                        variant='outlined'
+                        sx={{ width: 80 }}
+                        inputProps={{ style: { textAlign: 'center' } }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        type='number'
+                        value={threat.combatStats.hitPoints}
+                        onChange={(e) =>
+                          handleCombatStatChange(
+                            'hitPoints',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        size='small'
+                        variant='outlined'
+                        sx={{ width: 80 }}
+                        inputProps={{ style: { textAlign: 'center' } }}
+                      />
+                    </TableCell>
                     {threat.combatStats.manaPoints && (
                       <TableCell>{threat.combatStats.manaPoints}</TableCell>
                     )}
                     <TableCell>+{threat.combatStats.attackValue}</TableCell>
                     <TableCell>{threat.combatStats.averageDamage}</TableCell>
-                    <TableCell>{threat.combatStats.standardEffectDC}</TableCell>
+                    <TableCell>
+                      <TextField
+                        type='number'
+                        value={threat.combatStats.standardEffectDC}
+                        onChange={(e) =>
+                          handleCombatStatChange(
+                            'standardEffectDC',
+                            parseInt(e.target.value, 10) || 0
+                          )
+                        }
+                        size='small'
+                        variant='outlined'
+                        sx={{ width: 80 }}
+                        inputProps={{ style: { textAlign: 'center' } }}
+                      />
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

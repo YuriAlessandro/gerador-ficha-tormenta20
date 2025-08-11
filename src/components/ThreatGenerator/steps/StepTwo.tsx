@@ -11,12 +11,11 @@ import {
   Chip,
   useTheme,
   ListSubheader,
+  Divider,
 } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { ChallengeLevel, ThreatSheet } from '../../../interfaces/ThreatSheet';
-import {
-  getTierByChallengeLevel,
-  getTierDisplayName,
-} from '../../../functions/threatGenerator';
+import { getTierByChallengeLevel } from '../../../functions/threatGenerator';
 
 interface StepTwoProps {
   threat: Partial<ThreatSheet>;
@@ -110,147 +109,110 @@ const StepTwo: React.FC<StepTwoProps> = ({ threat, onUpdate }) => {
             </Select>
           </FormControl>
         </Grid>
-
-        {/* Informações sobre o patamar */}
-        {currentTier && (
-          <Grid item xs={12} md={6}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 3,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-              }}
-            >
-              <Typography variant='subtitle1' gutterBottom>
-                Patamar de Poder
-              </Typography>
-              <Chip
-                label={getTierDisplayName(currentTier)}
-                color='primary'
-                size='medium'
-                sx={{ mb: 2, fontSize: '1rem', py: 1 }}
-              />
-              <Typography variant='body2' color='text.secondary'>
-                ND {threat.challengeLevel} pertence ao patamar{' '}
-                <strong>{getTierDisplayName(currentTier)}</strong>
-              </Typography>
-            </Paper>
-          </Grid>
-        )}
       </Grid>
 
-      {/* Tabela de patamares */}
-      <Box mt={4}>
-        <Typography variant='subtitle1' gutterBottom>
-          Patamares de Desafio
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6} sm={3} md={2.4}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                backgroundColor:
-                  currentTier === 'Iniciante'
-                    ? `${theme.palette.primary.light}20`
-                    : 'transparent',
-              }}
-            >
-              <Typography variant='subtitle2' gutterBottom>
-                <strong>Iniciante</strong>
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                ND 1/4 - 4
-              </Typography>
-            </Paper>
+      {/* Tabela de patamares - agora clicável */}
+      <Box mt={3}>
+        <Paper sx={{ p: 3 }}>
+          <Box display='flex' alignItems='center' mb={2}>
+            <InfoOutlinedIcon sx={{ mr: 1, color: 'text.secondary' }} />
+            <Typography variant='subtitle1'>
+              Selecione por Patamar de Desafio
+            </Typography>
+          </Box>
+          <Typography variant='body2' color='text.secondary' mb={2}>
+            Clique em um patamar para selecionar um ND representativo.
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          <Grid container spacing={2}>
+            {[
+              {
+                name: 'Iniciante',
+                range: 'ND 1/4 - 4',
+                tier: 'Iniciante',
+                defaultND: ChallengeLevel.ONE,
+              },
+              {
+                name: 'Veterano',
+                range: 'ND 5 - 10',
+                tier: 'Veterano',
+                defaultND: ChallengeLevel.FIVE,
+              },
+              {
+                name: 'Campeão',
+                range: 'ND 11 - 16',
+                tier: 'Campeão',
+                defaultND: ChallengeLevel.ELEVEN,
+              },
+              {
+                name: 'Lenda',
+                range: 'ND 17 - 20',
+                tier: 'Lenda',
+                defaultND: ChallengeLevel.SEVENTEEN,
+              },
+              {
+                name: 'Lenda+',
+                range: 'ND S / S+',
+                tier: 'L+',
+                defaultND: ChallengeLevel.S,
+              },
+            ].map((item) => (
+              <Grid item xs={6} sm={4} md={2.4} key={item.name}>
+                <Paper
+                  elevation={currentTier === item.tier ? 4 : 1}
+                  sx={{
+                    p: 2,
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    border: currentTier === item.tier ? 2 : 0,
+                    borderColor: 'primary.main',
+                    backgroundColor:
+                      currentTier === item.tier
+                        ? `${theme.palette.primary.main}15`
+                        : 'background.paper',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      elevation: 3,
+                      backgroundColor:
+                        currentTier === item.tier
+                          ? `${theme.palette.primary.main}20`
+                          : theme.palette.action.hover,
+                    },
+                  }}
+                  onClick={() => handleChallengeLevelChange(item.defaultND)}
+                >
+                  <Typography
+                    variant='subtitle2'
+                    gutterBottom
+                    color={
+                      currentTier === item.tier ? 'primary' : 'text.primary'
+                    }
+                    fontWeight={currentTier === item.tier ? 'bold' : 'medium'}
+                  >
+                    {item.name}
+                  </Typography>
+                  <Typography
+                    variant='caption'
+                    color={
+                      currentTier === item.tier ? 'primary' : 'text.secondary'
+                    }
+                  >
+                    {item.range}
+                  </Typography>
+                  {currentTier === item.tier && (
+                    <Box mt={1}>
+                      <Chip
+                        label={`ND ${threat.challengeLevel}`}
+                        color='primary'
+                        size='small'
+                      />
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            ))}
           </Grid>
-          <Grid item xs={6} sm={3} md={2.4}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                backgroundColor:
-                  currentTier === 'Veterano'
-                    ? `${theme.palette.primary.light}20`
-                    : 'transparent',
-              }}
-            >
-              <Typography variant='subtitle2' gutterBottom>
-                <strong>Veterano</strong>
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                ND 5 - 10
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} md={2.4}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                backgroundColor:
-                  currentTier === 'Campeão'
-                    ? `${theme.palette.primary.light}20`
-                    : 'transparent',
-              }}
-            >
-              <Typography variant='subtitle2' gutterBottom>
-                <strong>Campeão</strong>
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                ND 11 - 16
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} md={2.4}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                backgroundColor:
-                  currentTier === 'Lenda'
-                    ? `${theme.palette.primary.light}20`
-                    : 'transparent',
-              }}
-            >
-              <Typography variant='subtitle2' gutterBottom>
-                <strong>Lenda</strong>
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                ND 17 - 20
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sm={3} md={2.4}>
-            <Paper
-              variant='outlined'
-              sx={{
-                p: 2,
-                textAlign: 'center',
-                backgroundColor:
-                  currentTier === 'L+'
-                    ? `${theme.palette.primary.light}20`
-                    : 'transparent',
-              }}
-            >
-              <Typography variant='subtitle2' gutterBottom>
-                <strong>Lenda+</strong>
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                ND S / S+
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+        </Paper>
       </Box>
     </Box>
   );

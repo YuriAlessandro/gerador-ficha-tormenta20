@@ -25,6 +25,44 @@ const Changelog: React.FC = () => (
 
       <h2>Versão 3.1</h2>
 
+      <h3>3.1.1</h3>
+      <ul>
+        <li>
+          <strong>🔧 Correções no Gerador de Ameaças:</strong>
+          <ul>
+            <li>
+              Corrigidos os valores das tabelas de combate (Solo, Lacaio,
+              Especial) com base nos dados oficiais.
+            </li>
+            <li>
+              Corrigida a exibição dos valores de resistência (Forte, Média,
+              Fraca) que estavam invertidos.
+            </li>
+            <li>
+              ND S agora é corretamente classificado como patamar
+              &quot;Lenda+&quot;.
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>✨ Melhorias na Interface:</strong>
+          <ul>
+            <li>
+              Passo 2: Redesenhada a interface de seleção de ND com melhor UX -
+              patamares agora são clicáveis para seleção rápida.
+            </li>
+            <li>
+              Passo 8: Adicionada capacidade de editar PV, Defesa e CD
+              diretamente na tela de resumo.
+            </li>
+            <li>
+              Ficha de Resultado: CD agora é exibido na ficha final quando a
+              ameaça possui habilidades.
+            </li>
+          </ul>
+        </li>
+      </ul>
+
       <h3>3.1.0</h3>
       <ul>
         <li>
