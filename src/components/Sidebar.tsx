@@ -18,6 +18,8 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import StorageIcon from '@mui/icons-material/Storage';
 import ArchitectureIcon from '@mui/icons-material/Architecture';
 import LinkIcon from '@mui/icons-material/Link';
+import MapIcon from '@mui/icons-material/Map';
+import SecurityIcon from '@mui/icons-material/Security';
 import Slide from '@mui/material/Slide';
 import {
   Divider,
@@ -103,6 +105,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     onCloseSidebar();
   };
 
+  const onClickThreatGenerator = () => {
+    history.push('/gerador-ameacas');
+    onCloseSidebar();
+  };
+
+  const onClickMap = () => {
+    window.open('https://mapadearton.fichasdenimb.com.br/', '_blank');
+  };
+
   document.addEventListener('keydown', handleEscKeyPress, false);
 
   return (
@@ -143,13 +154,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             <ListItemIcon>
               <PersonAddIcon />
             </ListItemIcon>
-            <Typography variant='inherit'>Fichas Aleátorias</Typography>
+            <Typography variant='inherit'>Ficha Aleatória</Typography>
           </StyledMenuItem>
-          <StyledMenuItem onClick={onClickRewards}>
+          <StyledMenuItem onClick={onClickMap}>
             <ListItemIcon>
-              <AttachMoney />
+              <MapIcon />
             </ListItemIcon>
-            <Typography variant='inherit'>Recompensas</Typography>
+            <Typography variant='inherit'>Mapa Interativo</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickThreatGenerator}>
+            <ListItemIcon>
+              <SecurityIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Gerador de Ameaças</Typography>
           </StyledMenuItem>
           <StyledMenuItem onClick={onClickRevista}>
             <ListItemIcon>
@@ -157,17 +174,23 @@ const Sidebar: React.FC<SidebarProps> = ({
             </ListItemIcon>
             <Typography variant='inherit'>Caverna do Saber</Typography>
           </StyledMenuItem>
-          <StyledMenuItem onClick={onClickItems}>
-            <ListItemIcon>
-              <ArchitectureIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Itens Superiores</Typography>
-          </StyledMenuItem>
           <StyledMenuItem onClick={onClickDatabase}>
             <ListItemIcon>
               <StorageIcon />
             </ListItemIcon>
-            <Typography variant='inherit'>Database</Typography>
+            <Typography variant='inherit'>Enciclopédia de Tanah-Toh</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickRewards}>
+            <ListItemIcon>
+              <AttachMoney />
+            </ListItemIcon>
+            <Typography variant='inherit'>Rolador de Recompensas</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickItems}>
+            <ListItemIcon>
+              <ArchitectureIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Criar Item Superior</Typography>
           </StyledMenuItem>
           <Divider />
           <StyledMenuItem
