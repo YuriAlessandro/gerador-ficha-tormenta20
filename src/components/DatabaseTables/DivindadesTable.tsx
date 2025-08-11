@@ -11,16 +11,19 @@ import {
   IconButton,
   Collapse,
   Box,
-  Snackbar,
+  Typography,
+  Divider,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchInput from './SearchInput';
 import { DIVINDADES } from '../../data/divindades';
 import Divindade from '../../interfaces/Divindade';
+import TormentaTitle from '../Database/TormentaTitle';
+import CopyUrlButton from '../Database/CopyUrlButton';
 
 interface IProps {
   divindade: Divindade;
@@ -29,28 +32,21 @@ interface IProps {
 
 const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
   const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
-  const onCopy = (name: string) => {
-    navigator.clipboard.writeText(
-      `${window.location.href}/${name.toLowerCase()}`
-    );
-    setAlert(true);
-  };
-
   return (
     <>
-      <Snackbar
-        open={alert}
-        autoHideDuration={5000}
-        message='Link copiado para a área de transferência.'
-        onClose={() => setAlert(false)}
-      />
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow
+        sx={{
+          '& > *': { borderBottom: 'unset' },
+          '&:hover': {
+            backgroundColor: 'rgba(209, 50, 53, 0.02)',
+          },
+        }}
+      >
         <TableCell width={10}>
           <IconButton
             aria-label='expand row'
@@ -61,31 +57,77 @@ const Row: React.FC<IProps> = ({ divindade, defaultOpen }) => {
           </IconButton>
         </TableCell>
         <TableCell component='th' scope='row'>
-          {divindade.name}
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+          >
+            <Box display='flex' alignItems='center' gap={1}>
+              <FilterDramaIcon color='primary' fontSize='small' />
+              <Typography variant='body1' fontWeight={500}>
+                {divindade.name}
+              </Typography>
+            </Box>
+            <CopyUrlButton
+              itemName={divindade.name}
+              itemType='divindade'
+              size='small'
+              variant='minimal'
+            />
+          </Box>
         </TableCell>
-        <TableCell>
-          <IconButton title='Copiar URL' onClick={() => onCopy(divindade.name)}>
-            <ContentCopyIcon />
-          </IconButton>
-        </TableCell>
+        <TableCell />
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Box>
-                <h2>Poderes Concedidos</h2>
-                {divindade.poderes.map((power) => (
-                  <Box>
-                    <h4>
-                      <Link to={`/database/poderes/${power.name}`}>
-                        {power.name}
-                      </Link>
-                    </h4>
-                    <p>{power.description}</p>
-                  </Box>
-                ))}
-              </Box>
+            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+              <Typography
+                variant='h6'
+                color='primary'
+                gutterBottom
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                {divindade.name}
+              </Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography
+                variant='h6'
+                gutterBottom
+                sx={{ fontFamily: 'Tfont, serif', fontSize: '1.2rem' }}
+              >
+                Poderes Concedidos
+              </Typography>
+              {divindade.poderes.map((power) => (
+                <Box key={power.name} sx={{ mb: 3 }}>
+                  <Typography
+                    variant='h6'
+                    color='primary'
+                    component={Link}
+                    to={`/database/poderes/${power.name}`}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      fontSize: '1rem',
+                      mb: 1,
+                      textDecoration: 'none',
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      },
+                    }}
+                  >
+                    {power.name}
+                  </Typography>
+                  <Typography variant='body1' paragraph>
+                    {power.description}
+                  </Typography>
+                  {power.name !==
+                    divindade.poderes[divindade.poderes.length - 1]?.name && (
+                    <Divider sx={{ my: 2 }} />
+                  )}
+                </Box>
+              ))}
             </Box>
           </Collapse>
         </TableCell>
@@ -134,39 +176,72 @@ const DivindadesTable: React.FC = () => {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label='collapsible table'>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>
-              <h1>Divindades</h1>
-            </TableCell>
-            <TableCell />
-          </TableRow>
-          <TableRow>
-            <TableCell />
-            <TableCell>
-              <SearchInput
-                value={value}
-                handleChange={handleChange}
-                onVoiceSearch={onVoiceSearch}
-              />
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {divindades.map((divindade) => (
-            <Row
-              key={divindade.name}
-              divindade={divindade}
-              defaultOpen={divindades.length === 1}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box>
+      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+        Divindades de Arton
+      </TormentaTitle>
+
+      {/* Search Input */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <SearchInput
+            value={value}
+            handleChange={handleChange}
+            onVoiceSearch={onVoiceSearch}
+          />
+        </Box>
+      </Box>
+
+      {/* Results Summary */}
+      <Box sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography variant='body1' color='text.secondary'>
+          {divindades.length === 0
+            ? 'Nenhuma divindade encontrada com os filtros aplicados'
+            : `${divindades.length} divindade${
+                divindades.length !== 1 ? 's' : ''
+              } encontrada${divindades.length !== 1 ? 's' : ''}`}
+        </Typography>
+      </Box>
+
+      {/* Divindades Table */}
+      <TableContainer component={Paper} className='table-container'>
+        <Table aria-label='divindades table'>
+          <TableHead>
+            <TableRow>
+              <TableCell />
+              <TableCell>
+                <Typography
+                  variant='h6'
+                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                >
+                  Nome da Divindade
+                </Typography>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {divindades.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                  <Typography variant='body1' color='text.secondary'>
+                    Nenhuma divindade encontrada. Tente ajustar a busca.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              divindades.map((divindade) => (
+                <Row
+                  key={divindade.name}
+                  divindade={divindade}
+                  defaultOpen={divindades.length === 1}
+                />
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

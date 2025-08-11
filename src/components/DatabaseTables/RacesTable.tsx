@@ -11,44 +11,88 @@ import {
   IconButton,
   Collapse,
   Box,
-  Snackbar,
+  Typography,
+  Divider,
+  Chip,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import GroupIcon from '@mui/icons-material/Group';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import RACAS from '../../data/racas';
 import Race from '../../interfaces/Race';
 import SearchInput from './SearchInput';
+import TormentaTitle from '../Database/TormentaTitle';
+import CopyUrlButton from '../Database/CopyUrlButton';
+
+interface ProcessedAttribute {
+  label: string;
+  type: 'specific' | 'any' | 'special';
+}
+
+const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
+  if (race.name === 'Humano') {
+    return [{ label: '+2 em três atributos à sua escolha', type: 'special' }];
+  }
+
+  const specificAttrs = race.attributes.attrs.filter(
+    (attr) => attr.attr !== 'any'
+  );
+  const anyAttrs = race.attributes.attrs.filter((attr) => attr.attr === 'any');
+
+  const result: ProcessedAttribute[] = [];
+
+  // Add specific attributes
+  specificAttrs.forEach((attr) => {
+    result.push({
+      label: `${attr.attr} ${attr.mod > 0 ? '+' : ''}${attr.mod}`,
+      type: 'specific',
+    });
+  });
+
+  // Group "any" attributes by modifier value
+  const anyGroups: { [mod: number]: number } = {};
+  anyAttrs.forEach((attr) => {
+    anyGroups[attr.mod] = (anyGroups[attr.mod] || 0) + 1;
+  });
+
+  // Add "any" attribute groups
+  Object.entries(anyGroups).forEach(([mod, count]) => {
+    const modValue = parseInt(mod, 10);
+    const sign = modValue > 0 ? '+' : '';
+    const plural = count > 1;
+    result.push({
+      label: `${sign}${modValue} em ${count} atributo${plural ? 's' : ''} ${
+        plural ? 'diferentes' : ''
+      } à sua escolha`,
+      type: 'any',
+    });
+  });
+
+  return result;
+};
 
 const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
   race,
   defaultOpen,
 }) => {
   const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
-  const onCopy = (name: string) => {
-    navigator.clipboard.writeText(
-      `${window.location.href}/${name.toLowerCase()}`
-    );
-    setAlert(true);
-  };
-
   return (
     <>
-      <Snackbar
-        open={alert}
-        autoHideDuration={5000}
-        message='Link copiado para a área de transferência.'
-        onClose={() => setAlert(false)}
-      />
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+      <TableRow
+        sx={{
+          '& > *': { borderBottom: 'unset' },
+          '&:hover': {
+            backgroundColor: 'rgba(209, 50, 53, 0.02)',
+          },
+        }}
+      >
         <TableCell width={10}>
           <IconButton
             aria-label='expand row'
@@ -59,37 +103,97 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
           </IconButton>
         </TableCell>
         <TableCell component='th' scope='row'>
-          {race.name}
+          <Box
+            display='flex'
+            alignItems='center'
+            justifyContent='space-between'
+          >
+            <Box display='flex' alignItems='center' gap={1}>
+              <GroupIcon color='primary' fontSize='small' />
+              <Typography variant='body1' fontWeight={500}>
+                {race.name}
+              </Typography>
+            </Box>
+            <CopyUrlButton
+              itemName={race.name}
+              itemType='raça'
+              size='small'
+              variant='minimal'
+            />
+          </Box>
         </TableCell>
-        <TableCell>
-          <IconButton title='Copiar URL' onClick={() => onCopy(race.name)}>
-            <ContentCopyIcon />
-          </IconButton>
-        </TableCell>
+        <TableCell />
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <span>
-                {race.name === 'Humano' && (
-                  <span>+2 em três atributos a sua escolha</span>
-                )}
-                {race.name !== 'Humano' &&
-                  race.attributes.attrs.map((attr, idx) => (
-                    <span>{`${attr.attr} ${attr.mod > 0 ? '+' : ''}${attr.mod}${
-                      idx + 1 < race.attributes.attrs.length ? ',' : ''
-                    } `}</span>
+            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+              <Typography
+                variant='h6'
+                color='primary'
+                gutterBottom
+                sx={{ fontFamily: 'Tfont, serif' }}
+              >
+                {race.name}
+              </Typography>
+
+              {/* Attribute Bonuses */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  variant='h6'
+                  gutterBottom
+                  sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
+                >
+                  Modificadores de Atributos
+                </Typography>
+                <Box display='flex' gap={1} flexWrap='wrap'>
+                  {processRaceAttributes(race).map((attrInfo, _idx) => (
+                    <Chip
+                      key={`${race.name}-attr-${attrInfo.label.replace(
+                        /[^a-zA-Z0-9]/g,
+                        '-'
+                      )}`}
+                      label={attrInfo.label}
+                      variant='outlined'
+                      color={attrInfo.type === 'any' ? 'secondary' : 'primary'}
+                      sx={{ fontFamily: 'Tfont, serif' }}
+                    />
                   ))}
-              </span>
-              <Box>
-                {race.abilities.map((abl) => (
-                  <Box>
-                    <h4>{abl.name}</h4>
-                    <p>{abl.description}</p>
-                  </Box>
-                ))}
+                </Box>
               </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Race Abilities */}
+              <Typography
+                variant='h6'
+                gutterBottom
+                sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
+              >
+                Habilidades Raciais
+              </Typography>
+              {race.abilities.map((ability) => (
+                <Box key={ability.name} sx={{ mb: 2 }}>
+                  <Typography
+                    variant='h6'
+                    color='primary'
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      fontSize: '1rem',
+                      mb: 1,
+                    }}
+                  >
+                    {ability.name}
+                  </Typography>
+                  <Typography variant='body1' paragraph>
+                    {ability.description}
+                  </Typography>
+                  {ability.name !==
+                    race.abilities[race.abilities.length - 1]?.name && (
+                    <Divider sx={{ my: 1.5 }} />
+                  )}
+                </Box>
+              ))}
             </Box>
           </Collapse>
         </TableCell>
@@ -146,35 +250,72 @@ const RacesTable: React.FC = () => {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table aria-label='collapsible table'>
-        <TableHead>
-          <TableRow>
-            <TableCell />
-            <TableCell>
-              <h1>Raças e Habilidades de Raça</h1>
-            </TableCell>
-            <TableCell />
-          </TableRow>
-          <TableRow>
-            <TableCell />
-            <TableCell>
-              <SearchInput
-                value={value}
-                handleChange={handleChange}
-                onVoiceSearch={onVoiceSearch}
-              />
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {races.map((race) => (
-            <Row key={race.name} race={race} defaultOpen={races.length === 1} />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box>
+      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+        Raças e Habilidades Raciais
+      </TormentaTitle>
+
+      {/* Search Input */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+        <Box sx={{ width: '100%', maxWidth: 500 }}>
+          <SearchInput
+            value={value}
+            handleChange={handleChange}
+            onVoiceSearch={onVoiceSearch}
+          />
+        </Box>
+      </Box>
+
+      {/* Results Summary */}
+      <Box sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography variant='body1' color='text.secondary'>
+          {races.length === 0
+            ? 'Nenhuma raça encontrada com os filtros aplicados'
+            : `${races.length} raça${races.length !== 1 ? 's' : ''} encontrada${
+                races.length !== 1 ? 's' : ''
+              }`}
+        </Typography>
+      </Box>
+
+      {/* Races Table */}
+      <TableContainer component={Paper} className='table-container'>
+        <Table aria-label='races table'>
+          <TableHead>
+            <TableRow>
+              <TableCell />
+              <TableCell>
+                <Typography
+                  variant='h6'
+                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                >
+                  Nome da Raça
+                </Typography>
+              </TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {races.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                  <Typography variant='body1' color='text.secondary'>
+                    Nenhuma raça encontrada. Tente ajustar a busca.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              races.map((race) => (
+                <Row
+                  key={race.name}
+                  race={race}
+                  defaultOpen={races.length === 1}
+                />
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

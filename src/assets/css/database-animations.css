@@ -1,0 +1,285 @@
+/* Database Animations CSS */
+
+/* Keyframe Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(209, 50, 53, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(209, 50, 53, 0.6), 0 0 30px rgba(209, 50, 53, 0.4);
+  }
+}
+
+/* Database Container Animations */
+.database-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.database-title {
+  animation: slideInFromTop 0.8s ease-out;
+  font-family: 'Tfont', serif;
+  color: #d13235;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+/* Menu Items Animations */
+.database-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeInLeft 0.8s ease-out 0.2s both;
+}
+
+@media (max-width: 720px) {
+  .database-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Animated Card Styles */
+.animated-card {
+  position: relative;
+  border: 2px solid #d13235;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(209, 50, 53, 0.15);
+  font-family: 'Tfont', serif;
+  font-weight: 500;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.animated-card:nth-child(1) { animation-delay: 0.1s; }
+.animated-card:nth-child(2) { animation-delay: 0.2s; }
+.animated-card:nth-child(3) { animation-delay: 0.3s; }
+.animated-card:nth-child(4) { animation-delay: 0.4s; }
+.animated-card:nth-child(5) { animation-delay: 0.5s; }
+.animated-card:nth-child(6) { animation-delay: 0.6s; }
+
+.animated-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(209, 50, 53, 0.1), transparent);
+  transition: left 0.6s ease-in-out;
+}
+
+.animated-card:hover::before {
+  left: 100%;
+}
+
+.animated-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(209, 50, 53, 0.3);
+  border-color: #922325;
+}
+
+.animated-card.selected {
+  background: linear-gradient(135deg, #d13235 0%, #922325 100%);
+  color: white;
+  transform: translateY(-2px);
+  animation: pulseGlow 2s infinite;
+}
+
+.animated-card.selected:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.animated-card .card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.animated-card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.animated-card .card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .animated-card {
+    width: calc(33% - 8px);
+    min-width: 100px;
+    height: 80px;
+    padding: 0.8rem;
+    font-size: 0.875rem;
+  }
+  
+  .animated-card .card-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .animated-card .card-title {
+    font-size: 0.9rem;
+  }
+}
+
+/* Content Area Animations */
+.database-content {
+  animation: fadeInUp 0.6s ease-out 0.4s both;
+  width: 100%;
+}
+
+.welcome-message {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(209, 50, 53, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.welcome-message h2 {
+  font-family: 'Tfont', serif;
+  color: #d13235;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Table Animations */
+.table-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.table-container .MuiPaper-root {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Floating Action Elements */
+.floating-element {
+  animation: fadeInUp 0.8s ease-out;
+  position: sticky;
+  top: 20px;
+  z-index: 10;
+}
+
+/* Responsive adjustments */
+@media (max-width: 720px) {
+  .database-title {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .database-container {
+    padding: 0 1rem;
+  }
+  
+  .floating-element {
+    position: static;
+  }
+}
+
+/* Loading States */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 2s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .animated-card {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  border-color: #d13235;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .animated-card.selected {
+  background: linear-gradient(135deg, #d13235 0%, #922325 100%);
+}
+
+[data-theme="dark"] .welcome-message {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  color: #ffffff;
+  border-color: rgba(209, 50, 53, 0.3);
+}
+
+[data-theme="dark"] .welcome-message h2 {
+  color: #d13235;
+}
+
+[data-theme="dark"] .welcome-message p {
+  color: #b0b0b0;
+}
