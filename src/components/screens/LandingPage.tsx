@@ -461,118 +461,342 @@ const LandingPage: React.FC<{
           <Grid container spacing={3}>
             {/* Caverna do Saber */}
             <Grid item xs={12} sm={6} md={2.4}>
-              <Button
-                variant='outlined'
+              <Box
                 onClick={() => onClickButton('caverna-do-saber')}
                 sx={{
                   width: '100%',
                   height: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  borderRadius: 2,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                  },
+                  perspective: '1000px',
+                  cursor: 'pointer',
                 }}
               >
-                <Typography variant='h5'>📚</Typography>
-                <Typography variant='body2' fontWeight='bold'>
-                  Caverna do Saber
-                </Typography>
-              </Button>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.6s ease-in-out',
+                    '&:hover': {
+                      transform: 'rotateY(180deg)',
+                    },
+                    // For mobile devices: show flip on tap/touch
+                    '@media (hover: none)': {
+                      '&:active': {
+                        transform: 'rotateY(180deg)',
+                      },
+                    },
+                  }}
+                >
+                  {/* Front of card */}
+                  <Button
+                    variant='outlined'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      borderWidth: 2,
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Typography variant='h5'>📚</Typography>
+                    <Typography variant='body2' fontWeight='bold'>
+                      Caverna do Saber
+                    </Typography>
+                  </Button>
+
+                  {/* Back of card */}
+                  <Button
+                    variant='contained'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                      bgcolor: 'primary.main',
+                      color: 'white',
+                      p: 1,
+                    }}
+                  >
+                    <Typography
+                      variant='caption'
+                      sx={{ textAlign: 'center', lineHeight: 1.2 }}
+                    >
+                      Material de jogo em fase de teste, que está sendo
+                      trabalhado pela equipe de game design
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
             </Grid>
 
             {/* Enciclopédia */}
             <Grid item xs={12} sm={6} md={2.4}>
-              <Button
-                variant='outlined'
+              <Box
                 onClick={() => onClickButton('database/raças')}
                 sx={{
                   width: '100%',
                   height: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  borderRadius: 2,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                  },
+                  perspective: '1000px',
+                  cursor: 'pointer',
                 }}
               >
-                <Typography variant='h5'>📖</Typography>
-                <Typography
-                  variant='body2'
-                  fontWeight='bold'
-                  textAlign='center'
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.6s ease-in-out',
+                    '&:hover': {
+                      transform: 'rotateY(180deg)',
+                    },
+                    // For mobile devices: show flip on tap/touch
+                    '@media (hover: none)': {
+                      '&:active': {
+                        transform: 'rotateY(180deg)',
+                      },
+                    },
+                  }}
                 >
-                  Enciclopédia de Tanah-Toh
-                </Typography>
-              </Button>
+                  {/* Front of card */}
+                  <Button
+                    variant='outlined'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      borderWidth: 2,
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Typography variant='h5'>📖</Typography>
+                    <Typography
+                      variant='body2'
+                      fontWeight='bold'
+                      textAlign='center'
+                    >
+                      Enciclopédia de Tanah-Toh
+                    </Typography>
+                  </Button>
+
+                  {/* Back of card */}
+                  <Button
+                    variant='contained'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                      bgcolor: 'secondary.main',
+                      color: 'white',
+                      p: 1,
+                    }}
+                  >
+                    <Typography
+                      variant='caption'
+                      sx={{ textAlign: 'center', lineHeight: 1.2 }}
+                    >
+                      Base de dados completa com raças, classes, magias,
+                      equipamentos e muito mais
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
             </Grid>
 
             {/* Rolador de Recompensas */}
             <Grid item xs={12} sm={6} md={2.4}>
-              <Button
-                variant='outlined'
+              <Box
                 onClick={() => onClickButton('recompensas')}
                 sx={{
                   width: '100%',
                   height: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  borderRadius: 2,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                  },
+                  perspective: '1000px',
+                  cursor: 'pointer',
                 }}
               >
-                <Typography variant='h5'>💰</Typography>
-                <Typography
-                  variant='body2'
-                  fontWeight='bold'
-                  textAlign='center'
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.6s ease-in-out',
+                    '&:hover': {
+                      transform: 'rotateY(180deg)',
+                    },
+                    // For mobile devices: show flip on tap/touch
+                    '@media (hover: none)': {
+                      '&:active': {
+                        transform: 'rotateY(180deg)',
+                      },
+                    },
+                  }}
                 >
-                  Rolador de Recompensas
-                </Typography>
-              </Button>
+                  {/* Front of card */}
+                  <Button
+                    variant='outlined'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      borderWidth: 2,
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Typography variant='h5'>💰</Typography>
+                    <Typography
+                      variant='body2'
+                      fontWeight='bold'
+                      textAlign='center'
+                    >
+                      Rolador de Recompensas
+                    </Typography>
+                  </Button>
+
+                  {/* Back of card */}
+                  <Button
+                    variant='contained'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                      bgcolor: 'success.main',
+                      color: 'white',
+                      p: 1,
+                    }}
+                  >
+                    <Typography
+                      variant='caption'
+                      sx={{ textAlign: 'center', lineHeight: 1.2 }}
+                    >
+                      Gere tesouros, dinheiro e itens baseados no nível de
+                      desafio do encontro
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
             </Grid>
 
             {/* Criar Item Superior */}
             <Grid item xs={12} sm={6} md={2.4}>
-              <Button
-                variant='outlined'
+              <Box
                 onClick={() => onClickButton('itens-superiores')}
                 sx={{
                   width: '100%',
                   height: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 1,
-                  borderRadius: 2,
-                  borderWidth: 2,
-                  '&:hover': {
-                    borderWidth: 2,
-                    transform: 'translateY(-2px)',
-                  },
+                  perspective: '1000px',
+                  cursor: 'pointer',
                 }}
               >
-                <Typography variant='h5'>✨</Typography>
-                <Typography
-                  variant='body2'
-                  fontWeight='bold'
-                  textAlign='center'
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.6s ease-in-out',
+                    '&:hover': {
+                      transform: 'rotateY(180deg)',
+                    },
+                    // For mobile devices: show flip on tap/touch
+                    '@media (hover: none)': {
+                      '&:active': {
+                        transform: 'rotateY(180deg)',
+                      },
+                    },
+                  }}
                 >
-                  Criar Item Superior
-                </Typography>
-              </Button>
+                  {/* Front of card */}
+                  <Button
+                    variant='outlined'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      borderWidth: 2,
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Typography variant='h5'>✨</Typography>
+                    <Typography
+                      variant='body2'
+                      fontWeight='bold'
+                      textAlign='center'
+                    >
+                      Criar Item Superior
+                    </Typography>
+                  </Button>
+
+                  {/* Back of card */}
+                  <Button
+                    variant='contained'
+                    sx={{
+                      position: 'absolute',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      borderRadius: 2,
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                      pointerEvents: 'none',
+                      bgcolor: 'warning.main',
+                      color: 'white',
+                      p: 1,
+                    }}
+                  >
+                    <Typography
+                      variant='caption'
+                      sx={{ textAlign: 'center', lineHeight: 1.2 }}
+                    >
+                      Crie armas e armaduras superiores com modificações e
+                      materiais especiais
+                    </Typography>
+                  </Button>
+                </Box>
+              </Box>
             </Grid>
 
             {/* Criar Item Mágico */}
@@ -611,32 +835,82 @@ const LandingPage: React.FC<{
                 >
                   Novo
                 </Box>
-                <Button
-                  variant='outlined'
+                <Box
                   onClick={() => onClickButton('itens-magicos')}
                   sx={{
                     width: '100%',
                     height: '100px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1,
-                    borderRadius: 2,
-                    borderWidth: 2,
-                    '&:hover': {
-                      borderWidth: 2,
-                      transform: 'translateY(-2px)',
-                    },
+                    perspective: '1000px',
+                    cursor: 'pointer',
                   }}
                 >
-                  <Typography variant='h5'>🔮</Typography>
-                  <Typography
-                    variant='body2'
-                    fontWeight='bold'
-                    textAlign='center'
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      transformStyle: 'preserve-3d',
+                      transition: 'transform 0.6s ease-in-out',
+                      '&:hover': {
+                        transform: 'rotateY(180deg)',
+                      },
+                    }}
                   >
-                    Criar Item Mágico
-                  </Typography>
-                </Button>
+                    {/* Front of card */}
+                    <Button
+                      variant='outlined'
+                      sx={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        borderRadius: 2,
+                        borderWidth: 2,
+                        backfaceVisibility: 'hidden',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <Typography variant='h5'>🔮</Typography>
+                      <Typography
+                        variant='body2'
+                        fontWeight='bold'
+                        textAlign='center'
+                      >
+                        Criar Item Mágico
+                      </Typography>
+                    </Button>
+
+                    {/* Back of card */}
+                    <Button
+                      variant='contained'
+                      sx={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        borderRadius: 2,
+                        transform: 'rotateY(180deg)',
+                        backfaceVisibility: 'hidden',
+                        pointerEvents: 'none',
+                        bgcolor: '#9C27B0',
+                        color: 'white',
+                        p: 1,
+                      }}
+                    >
+                      <Typography
+                        variant='caption'
+                        sx={{ textAlign: 'center', lineHeight: 1.2 }}
+                      >
+                        Crie itens mágicos com encantamentos poderosos para
+                        armas, armaduras e escudos
+                      </Typography>
+                    </Button>
+                  </Box>
+                </Box>
               </Box>
             </Grid>
           </Grid>
