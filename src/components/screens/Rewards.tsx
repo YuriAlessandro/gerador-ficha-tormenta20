@@ -1,4 +1,4 @@
-import { Button, Stack, styled } from '@mui/material';
+import { Button, Container, Stack, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
 
@@ -168,7 +168,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
     : getSelectTheme('default');
 
   return (
-    <div id='main-screen' style={{ margin: '30px 30px 30px 25px' }}>
+    <Container maxWidth='lg' sx={{ py: 3 }}>
       <Stack
         spacing={2}
         direction='row'
@@ -335,7 +335,7 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           </li>
         </ul>
       </p> */}
-    </div>
+    </Container>
   );
 };
 
