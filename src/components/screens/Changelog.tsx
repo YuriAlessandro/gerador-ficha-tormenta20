@@ -23,6 +23,28 @@ const Changelog: React.FC = () => (
         .
       </p>
 
+      <h2>Versão 3.2</h2>
+
+      <h3>3.2.0</h3>
+      <ul>
+        <li>
+          <strong>🔮 Novo Gerador de Itens Mágicos:</strong> Adicionada nova
+          ferramenta para criar itens mágicos com encantamentos para armas,
+          armaduras e escudos. Inclui modos aleatório e manual com sistema de
+          custos e validações.
+        </li>
+        <li>
+          <strong>✨ Melhorias no Gerador de Itens Superiores:</strong>{' '}
+          Aprimorado o gerador de itens superiores com nova interface, melhor
+          experiência do usuário e funcionalidades expandidas.
+        </li>
+        <li>
+          <strong>🎨 Reorganização das Ferramentas:</strong> Ajustado o layout
+          da página inicial para acomodar 5 ferramentas secundárias em uma
+          linha, otimizando o espaço disponível.
+        </li>
+      </ul>
+
       <h2>Versão 3.1</h2>
 
       <h3>3.1.1</h3>
