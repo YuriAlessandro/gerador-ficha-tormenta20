@@ -119,5 +119,7 @@ export interface ItemMod {
   min: number;
   max: number;
   mod: string;
+  description?: string;
+  prerequisite?: string;
   double?: boolean;
 }

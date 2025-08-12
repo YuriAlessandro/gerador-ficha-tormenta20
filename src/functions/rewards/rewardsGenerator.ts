@@ -142,7 +142,7 @@ const getMiscellaneousItem = (diceRoll: number) => {
   return '';
 };
 
-const getSpecialMaterial = () => {
+export const getSpecialMaterial = () => {
   const materialRoll = rollDice(1, 6);
 
   switch (materialRoll) {
@@ -170,33 +170,51 @@ export const getWeaponModification = (mods: number): string => {
   let str = '(';
   let remainingMods = mods;
   const takenMods: ItemMod[] = [];
+  const availableMods = [...weaponsModifications];
 
   for (let index = 0; index < realQtd; index += 1) {
+    const validMods = availableMods.filter((mod) => {
+      if (takenMods.some((taken) => taken.mod === mod.mod)) return false;
+
+      if (mod.prerequisite) {
+        return takenMods.some((taken) => taken.mod === mod.prerequisite);
+      }
+
+      return true;
+    });
+
+    if (validMods.length === 0) break;
+
     const modRoll = rollDice(1, 100);
-    const modification = weaponsModifications.find(
+    let modification = validMods.find(
       (wm) => modRoll >= wm.min && modRoll <= wm.max
     );
 
-    if (modification) {
-      if (takenMods.includes(modification)) {
-        realQtd += 1;
-      } else if (modification?.double && mods === 1) {
-        realQtd += 1;
-      } else if (modification?.double && remainingMods < 2) {
-        realQtd += 1;
-      } else {
-        if (modification?.double) realQtd -= 1;
+    if (!modification) {
+      modification = getRandomItemFromArray(validMods);
+    }
 
-        remainingMods -= 1;
+    if (modification) {
+      if (modification?.double && remainingMods < 2) {
+        realQtd += 1;
+        // Skip adding this modification and try again in next iteration
+      } else {
+        if (modification?.double) remainingMods -= 2;
+        else remainingMods -= 1;
+
         takenMods.push(modification);
-        if (modification?.mod === 'Material especial')
+
+        if (modification?.mod === 'Material especial') {
           str = str.concat(`Material ${getSpecialMaterial()}; `);
-        else
+        } else {
           str = str.concat(
             `${modification?.mod}${index === realQtd - 1 ? `` : '; '}`
           );
+        }
       }
     }
+
+    if (remainingMods <= 0) break;
   }
 
   return `${str})`;
@@ -207,34 +225,51 @@ export const getArmorModification = (mods: number): string => {
   let str = '(';
   let remainingMods = mods;
   const takenMods: ItemMod[] = [];
+  const availableMods = [...armorsModifications];
 
   for (let index = 0; index < realQtd; index += 1) {
-    const modRoll = rollDice(1, 100);
+    const validMods = availableMods.filter((mod) => {
+      if (takenMods.some((taken) => taken.mod === mod.mod)) return false;
 
-    const modification = armorsModifications.find(
+      if (mod.prerequisite) {
+        return takenMods.some((taken) => taken.mod === mod.prerequisite);
+      }
+
+      return true;
+    });
+
+    if (validMods.length === 0) break;
+
+    const modRoll = rollDice(1, 100);
+    let modification = validMods.find(
       (wm) => modRoll >= wm.min && modRoll <= wm.max
     );
 
-    if (modification) {
-      if (takenMods.includes(modification)) {
-        realQtd += 1;
-      } else if (modification?.double && mods === 1) {
-        realQtd += 1;
-      } else if (modification?.double && remainingMods < 2) {
-        realQtd += 1;
-      } else {
-        if (modification?.double) realQtd -= 1;
+    if (!modification) {
+      modification = getRandomItemFromArray(validMods);
+    }
 
-        remainingMods -= 1;
+    if (modification) {
+      if (modification?.double && remainingMods < 2) {
+        realQtd += 1;
+        // Skip adding this modification and try again in next iteration
+      } else {
+        if (modification?.double) remainingMods -= 2;
+        else remainingMods -= 1;
+
         takenMods.push(modification);
-        if (modification?.mod === 'Material especial')
+
+        if (modification?.mod === 'Material especial') {
           str = str.concat(`Material ${getSpecialMaterial()}; `);
-        else
+        } else {
           str = str.concat(
             `${modification?.mod}${index === realQtd - 1 ? `` : '; '}`
           );
+        }
       }
     }
+
+    if (remainingMods <= 0) break;
   }
 
   return `${str})`;

@@ -22,12 +22,6 @@ npm run build       # Build for production
 npm run deploy      # Deploy to GitHub Pages (builds first)
 ```
 
-### Testing
-
-```bash
-npm test           # Run tests once with Vitest
-npm run testWatch  # Run tests in watch mode
-```
 
 ### Code Quality
 
@@ -78,7 +72,6 @@ npx prettier --check <filename>  # Check if files are formatted
 
 - All content is in Portuguese (Brazilian)
 - Follows official Tormenta 20 RPG rules and terminology
-- Test files use Vitest and React Testing Library
 - ESLint with Airbnb config + Prettier for formatting
 - **IMPORTANT**: Always run `npx prettier --write <filename>` on every file you create or edit to ensure consistent formatting
 - **IMPORTANT**: Always develop with mobile responsiveness in mind - while most users are on desktop, a significant portion use mobile devices
