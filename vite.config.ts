@@ -70,7 +70,7 @@ export default defineConfig({
             urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'tormenta20-cache-v3.1.1',
+              cacheName: 'tormenta20-cache-v3.2.0',
               expiration: {
                 maxEntries: 1000,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 365 days
