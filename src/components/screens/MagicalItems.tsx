@@ -355,7 +355,9 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
 
     if (!selectedEquipment) return;
 
-    const validation = validateEnchantmentCombination(state.selectedEnchantments);
+    const validation = validateEnchantmentCombination(
+      state.selectedEnchantments
+    );
     if (!validation.isValid) {
       setAlertMessage(`Erro: ${validation.errors.join(', ')}`);
       return;
@@ -648,7 +650,8 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                 <Grid item xs={12}>
                   <Typography variant='body2' color='text.secondary'>
                     Custo total:{' '}
-                    {calculateEnchantmentCost(state.selectedEnchantments)} pontos
+                    {calculateEnchantmentCost(state.selectedEnchantments)}{' '}
+                    pontos
                   </Typography>
                 </Grid>
               )}

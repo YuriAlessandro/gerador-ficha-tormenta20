@@ -1,7 +1,10 @@
 import { ItemE } from '../interfaces/Rewards';
 
 export const calculateEnchantmentCost = (enchantments: ItemE[]): number =>
-  enchantments.reduce((total, enchantment) => total + (enchantment.double ? 2 : 1), 0);
+  enchantments.reduce(
+    (total, enchantment) => total + (enchantment.double ? 2 : 1),
+    0
+  );
 
 export const validateEnchantmentCombination = (
   enchantments: ItemE[]
@@ -16,7 +19,9 @@ export const validateEnchantmentCombination = (
   const enchantmentNames = enchantments.map((e) => e.enchantment);
   const uniqueNames = new Set(enchantmentNames);
   if (enchantmentNames.length !== uniqueNames.size) {
-    errors.push('Não é possível selecionar o mesmo encantamento múltiplas vezes');
+    errors.push(
+      'Não é possível selecionar o mesmo encantamento múltiplas vezes'
+    );
   }
 
   return {
@@ -31,11 +36,11 @@ export const addEnchantmentIfValid = (
 ): ItemE[] => {
   const newEnchantments = [...selectedEnchantments, enchantment];
   const validation = validateEnchantmentCombination(newEnchantments);
-  
+
   if (validation.isValid) {
     return newEnchantments;
   }
-  
+
   return selectedEnchantments;
 };
 
@@ -47,6 +52,6 @@ export const validateEnchantmentForItemType = (
   if (enchantment.onlyShield && itemType !== 'shield') {
     return false;
   }
-  
+
   return true;
 };
