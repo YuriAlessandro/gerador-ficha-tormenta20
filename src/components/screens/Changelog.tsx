@@ -28,25 +28,9 @@ const Changelog: React.FC = () => (
       <h3>3.1.1</h3>
       <ul>
         <li>
-          <strong>🧹 Limpeza de Código da Enciclopédia:</strong>
-          <ul>
-            <li>
-              Corrigidos todos os erros e avisos do ESLint nos componentes da
-              Enciclopédia de Tanah-Toh para melhor qualidade de código.
-            </li>
-            <li>
-              Substituídas chaves baseadas em índices de array por chaves
-              baseadas em conteúdo para melhor performance do React.
-            </li>
-            <li>
-              Removidas importações não utilizadas e corrigidos parâmetros não
-              utilizados.
-            </li>
-            <li>
-              Aplicada formatação consistente com Prettier em todos os
-              componentes.
-            </li>
-          </ul>
+          <strong>🎨 Renovação Visual da Enciclopédia:</strong> A Enciclopédia
+          de Tanah-Toh recebeu uma completa reformulação visual com novo design
+          moderno, animações suaves e melhor experiência do usuário.
         </li>
         <li>
           <strong>🔧 Correções no Gerador de Ameaças:</strong>
