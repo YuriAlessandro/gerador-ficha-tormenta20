@@ -945,13 +945,14 @@ const LandingPage: React.FC<{
             paragraph
             sx={{ textAlign: 'justify', lineHeight: 1.6 }}
           >
-            <strong>Fichas de Nimb</strong> é uma plataforma com diversas
-            ferramentas para mestres e jogadores do sistema Tormenta 20. Com
-            ele, é possível gerar fichas de quaisquer raças e classes, e ter sua
-            ficha montada facilmente, de forma aleatória ou dinâmica. Todas as
-            características de uma ficha de Tormenta 20 serão criadas:
-            atributos, perícias, origem, divindades, magias, etc. Tudo
-            respeitando as regras oficiais do jogo.
+            <strong>Fichas de Nimb</strong> é uma plataforma completa com
+            diversas ferramentas para mestres e jogadores do sistema Tormenta
+            20. Além da geração de fichas de personagens, oferece ferramentas
+            para criar itens superiores e mágicos, gerar recompensas, consultar
+            a enciclopédia e muito mais. Todas as características de uma ficha
+            de Tormenta 20 são criadas automaticamente: atributos, perícias,
+            origem, divindades, magias, etc. Tudo respeitando as regras oficiais
+            do jogo.
           </Typography>
 
           <Typography
@@ -971,9 +972,10 @@ const LandingPage: React.FC<{
             sx={{ textAlign: 'justify', lineHeight: 1.6 }}
           >
             O criador de fichas é uma forma prática e rápida de criar
-            personagens sem se preocupar com a aplicação das regras. Tudo está
-            sendo validado pelo código. Você só precisa escolher as opções e
-            usar a ficha.
+            personagens sem se preocupar com a aplicação das regras. As
+            ferramentas de geração de itens permitem criar equipamentos únicos
+            para suas aventuras. Tudo está sendo validado pelo código - você só
+            precisa escolher as opções e usar o resultado.
           </Typography>
 
           <Box sx={{ textAlign: 'center', mt: 3 }}>
