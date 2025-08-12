@@ -8,7 +8,11 @@
   "background_color": "#ffffff",
   "theme_color": "#1976d2",
   "orientation": "portrait-primary",
-  "categories": ["games", "utilities", "entertainment"],
+  "categories": [
+    "games",
+    "utilities",
+    "entertainment"
+  ],
   "lang": "pt-BR",
   "icons": [
     {
