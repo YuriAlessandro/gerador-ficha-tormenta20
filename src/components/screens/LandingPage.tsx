@@ -460,7 +460,7 @@ const LandingPage: React.FC<{
         <Box sx={{ mb: 6 }}>
           <Grid container spacing={3}>
             {/* Caverna do Saber */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Button
                 variant='outlined'
                 onClick={() => onClickButton('caverna-do-saber')}
@@ -486,7 +486,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Enciclopédia */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Button
                 variant='outlined'
                 onClick={() => onClickButton('database/raças')}
@@ -516,7 +516,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Rolador de Recompensas */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Button
                 variant='outlined'
                 onClick={() => onClickButton('recompensas')}
@@ -546,7 +546,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Criar Item Superior */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Button
                 variant='outlined'
                 onClick={() => onClickButton('itens-superiores')}
@@ -573,6 +573,71 @@ const LandingPage: React.FC<{
                   Criar Item Superior
                 </Typography>
               </Button>
+            </Grid>
+
+            {/* Criar Item Mágico */}
+            <Grid item xs={12} sm={6} md={2.4}>
+              <Box sx={{ position: 'relative' }}>
+                {/* New Badge */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -8,
+                    right: 12,
+                    background:
+                      'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)',
+                    color: '#FFFFFF',
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 2,
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
+                    zIndex: 10,
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%': {
+                        boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
+                      },
+                      '50%': {
+                        boxShadow: '0 2px 16px rgba(156, 39, 176, 0.6)',
+                      },
+                      '100%': {
+                        boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
+                      },
+                    },
+                  }}
+                >
+                  Novo
+                </Box>
+                <Button
+                  variant='outlined'
+                  onClick={() => onClickButton('itens-magicos')}
+                  sx={{
+                    width: '100%',
+                    height: '100px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    borderRadius: 2,
+                    borderWidth: 2,
+                    '&:hover': {
+                      borderWidth: 2,
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                >
+                  <Typography variant='h5'>🔮</Typography>
+                  <Typography
+                    variant='body2'
+                    fontWeight='bold'
+                    textAlign='center'
+                  >
+                    Criar Item Mágico
+                  </Typography>
+                </Button>
+              </Box>
             </Grid>
           </Grid>
         </Box>

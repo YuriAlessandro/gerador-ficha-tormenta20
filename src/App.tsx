@@ -32,6 +32,7 @@ import Rewards from './components/screens/Rewards';
 import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
+import MagicalItems from './components/screens/MagicalItems';
 import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorScreen';
 import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
@@ -275,6 +276,9 @@ function App(): JSX.Element {
                     </Route>
                     <Route path='/itens-superiores'>
                       <SuperiorItems isDarkMode={isDarkTheme} />
+                    </Route>
+                    <Route path='/itens-magicos'>
+                      <MagicalItems isDarkMode={isDarkTheme} />
                     </Route>
                     <Route path='/ficha-aleatoria'>
                       <MainScreen isDarkMode={isDarkTheme} />
