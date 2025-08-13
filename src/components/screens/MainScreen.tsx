@@ -10,6 +10,7 @@ import {
   useMediaQuery,
   useTheme,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -97,6 +98,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const [randomSheet, setRandomSheet] = React.useState<CharacterSheet>();
   const [showHistoric, setShowHistoric] = React.useState(false);
+  const [loadingPDF, setLoadingPDF] = React.useState(false);
+  const [loadingFoundry, setLoadingFoundry] = React.useState(false);
 
   const canGenerateEmptySheet =
     selectedOptions.classe &&
@@ -550,6 +553,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const preparePrint = async () => {
     if (!randomSheet) return;
+    setLoadingPDF(true);
     try {
       const pdfBytes = await preparePDF(randomSheet);
 
@@ -565,7 +569,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     } catch (error) {
       // eslint-disable-next-line no-alert
       alert(`Erro ao gerar PDF.`);
+    } finally {
+      setLoadingPDF(false);
     }
+  };
+
+  const exportFoundry = () => {
+    if (!randomSheet || !encodedJSON) return;
+    setLoadingFoundry(true);
+
+    // Simulate a small delay for better UX
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.href = encodedJSON;
+      link.download = `${randomSheet.nome}.json`;
+      link.click();
+      setLoadingFoundry(false);
+    }, 300);
   };
 
   return (
@@ -832,19 +852,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 variant='outlined'
                 onClick={preparePrint}
                 fullWidth={isMobile}
+                disabled={loadingPDF}
                 sx={{ justifyContent: 'flex-start' }}
+                startIcon={loadingPDF ? <CircularProgress size={20} /> : '📄'}
               >
-                📄 Gerar PDF da Ficha
+                {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF da Ficha'}
               </Button>
               <Button
                 variant='outlined'
-                href={encodedJSON}
-                download={`${randomSheet.nome}.json`}
-                component='a'
+                onClick={exportFoundry}
                 fullWidth={isMobile}
+                disabled={loadingFoundry}
                 sx={{ justifyContent: 'flex-start' }}
+                startIcon={
+                  loadingFoundry ? <CircularProgress size={20} /> : '🎲'
+                }
               >
-                🎲 Exportar para Foundry
+                {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
               </Button>
             </Stack>
           </Card>

@@ -11,12 +11,13 @@ interface FoundryCharAttribute {
 }
 
 const foundrySizes: Record<string, string> = {
-  Minúsculo: 'Minusculo',
-  Pequeno: 'Pequeno',
-  Médio: 'Medio',
-  Gigante: 'Gigante',
-  Enorme: 'Enorme',
-  Colossal: 'Colossal',
+  Minúsculo: 'min',
+  Pequeno: 'peq',
+  Médio: 'med',
+  Medio: 'med', // Fallback for without accent
+  Grande: 'gra',
+  Enorme: 'enor',
+  Colossal: 'col',
 };
 export interface FoundryJSON {
   name: string;
@@ -50,6 +51,7 @@ export interface FoundryJSON {
         fly: number;
         swim: number;
         walk: number;
+        unit: string;
         hover: boolean;
       };
       defesa: {
@@ -72,6 +74,7 @@ export interface FoundryJSON {
           value: number;
           min: number;
           proximo: number;
+          pct: number;
         };
       };
       carga: {
@@ -121,15 +124,14 @@ export interface FoundryJSON {
 }
 
 function setOficio(acc: Record<string, FoundryCharSkill>, skill: Skill) {
-  const nextIndex = Object.keys(acc.ofi.mais || {}).length;
-  acc.ofi = {
-    ...acc.ofi,
+  const nextIndex = Object.keys(acc.ofic.mais || {}).length;
+  acc.ofic = {
+    ...acc.ofic,
     mais: {
-      ...acc.ofi.mais,
+      ...acc.ofic.mais,
       [nextIndex]: {
         atributo: 'int',
         label: skill,
-        treino: 0,
         treinado: 1,
         outros: 0,
       },
@@ -146,12 +148,14 @@ function getSkills(sheet: CharacterSheet): Record<string, FoundryCharSkill> {
       }
 
       const skillKey = FOUNDRY_SKILLS[skill];
-      acc[skillKey].treino = 1;
+      acc[skillKey].treinado = true;
     }
 
     return acc;
   }, cloneDeep(DEFAULT_SKILLS));
 }
+
+export { convertThreatToFoundry } from './threatExporter';
 
 export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
   return {
@@ -216,6 +220,7 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
           fly: 0,
           swim: 0,
           walk: sheet.displacement,
+          unit: 'm',
           hover: false,
         },
         defesa: {
@@ -242,6 +247,7 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
             value: 0,
             min: 0,
             proximo: 0,
+            pct: 0,
           },
         },
         carga: {
@@ -266,7 +272,7 @@ export function convertToFoundry(sheet: CharacterSheet): FoundryJSON {
         info: 'Ficha criada no Fichas de Nimb',
       },
       tracos: {
-        tamanho: foundrySizes[sheet.size.name],
+        tamanho: foundrySizes[sheet.size.name] || 'med',
         profArmas: {
           value: [],
         },

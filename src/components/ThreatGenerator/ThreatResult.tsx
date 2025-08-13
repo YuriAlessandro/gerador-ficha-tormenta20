@@ -3,6 +3,7 @@ import ReactToPrint from 'react-to-print';
 import { Card, Container } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
+import { convertThreatToFoundry } from '../../2foundry';
 import { ThreatSheet } from '../../interfaces/ThreatSheet';
 import {
   getTierDisplayName,
@@ -25,6 +26,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const dispatch = useDispatch();
   const history = useHistory();
   const [showExportButton, setExportButton] = React.useState<boolean>();
+  const [loadingFoundry, setLoadingFoundry] = React.useState(false);
 
   const resultRef = React.createRef<HTMLDivElement>();
 
@@ -66,6 +68,28 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   const handleExport = () => resultRef.current;
 
+  function encodeFoundryJSON(json: unknown) {
+    return `data:text/json;charset=utf-8,${encodeURIComponent(
+      JSON.stringify(json)
+    )}`;
+  }
+
+  const handleFoundryExport = () => {
+    setLoadingFoundry(true);
+
+    // Simulate a small delay for better UX
+    setTimeout(() => {
+      const foundryJSON = convertThreatToFoundry(threat);
+      const encodedJSON = encodeFoundryJSON(foundryJSON);
+
+      const link = document.createElement('a');
+      link.href = encodedJSON;
+      link.download = `${threat.name}.json`;
+      link.click();
+      setLoadingFoundry(false);
+    }, 300);
+  };
+
   // Get tier name
   const tier = getTierDisplayName(
     getTierByChallengeLevel(threat.challengeLevel)
@@ -106,12 +130,25 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           <ReactToPrint
             trigger={() => (
               <button className='exportBtn' type='button'>
-                Exportar ou imprimir PDF
+                📄 Exportar ou imprimir PDF
               </button>
             )}
             content={handleExport}
             documentTitle={`${threat.name} - ${threat.type} ND ${threat.challengeLevel}`}
           />
+
+          <button
+            className='exportBtn'
+            type='button'
+            onClick={handleFoundryExport}
+            disabled={loadingFoundry}
+            style={{
+              backgroundColor: loadingFoundry ? '#6c757d' : '#9c27b0',
+              opacity: loadingFoundry ? 0.7 : 1,
+            }}
+          >
+            {loadingFoundry ? '⏳ Exportando...' : '🎲 Exportar para Foundry'}
+          </button>
 
           <button
             className='exportBtn'
