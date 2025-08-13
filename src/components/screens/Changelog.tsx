@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 11/08/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 13/08/2025.
       </p>
 
       <p>
@@ -24,6 +24,25 @@ const Changelog: React.FC = () => (
       </p>
 
       <h2>Versão 3.2</h2>
+
+      <h3>3.2.1</h3>
+      <ul>
+        <li>
+          <strong>🎲 Export para Foundry VTT:</strong> Adicionado exportador
+          completo para o Foundry VTT nas ameaças geradas, permitindo importar
+          inimigos diretamente para suas mesas virtuais.
+        </li>
+        <li>
+          <strong>⏳ Indicadores de Carregamento:</strong> Melhorada a
+          experiência do usuário com indicadores visuais durante o processo de
+          exportação de fichas e ameaças.
+        </li>
+        <li>
+          <strong>🔧 Correções Gerais:</strong> Corrigidos problemas de
+          validação no exportador do Foundry e adicionada ferramenta de itens
+          mágicos ao menu lateral.
+        </li>
+      </ul>
 
       <h3>3.2.0</h3>
       <ul>

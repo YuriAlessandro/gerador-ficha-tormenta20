@@ -20,6 +20,7 @@ import ArchitectureIcon from '@mui/icons-material/Architecture';
 import LinkIcon from '@mui/icons-material/Link';
 import MapIcon from '@mui/icons-material/Map';
 import SecurityIcon from '@mui/icons-material/Security';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Slide from '@mui/material/Slide';
 import {
   Divider,
@@ -92,6 +93,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const onClickItems = () => {
     history.push('/itens-superiores');
+    onCloseSidebar();
+  };
+
+  const onClickMagicalItems = () => {
+    history.push('/itens-magicos');
     onCloseSidebar();
   };
 
@@ -191,6 +197,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <ArchitectureIcon />
             </ListItemIcon>
             <Typography variant='inherit'>Criar Item Superior</Typography>
+          </StyledMenuItem>
+          <StyledMenuItem onClick={onClickMagicalItems}>
+            <ListItemIcon>
+              <AutoFixHighIcon />
+            </ListItemIcon>
+            <Typography variant='inherit'>Criar Item Mágico</Typography>
           </StyledMenuItem>
           <Divider />
           <StyledMenuItem
