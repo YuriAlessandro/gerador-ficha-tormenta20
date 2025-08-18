@@ -30,7 +30,7 @@ describe('Testa as definições da raça Duende', () => {
 
   describe('Testa a função setup', () => {
     test('Deve adicionar a habilidade de Tabu', () => {
-      const race = DUENDE.setup(DUENDE, { choices: { tabu: 'Luta' } });
+      const race = DUENDE.setup(DUENDE, { tabu: 'Luta' });
       const tabu = race.abilities.find(a => a.name === 'Tabu');
       expect(tabu).toBeDefined();
       expect(tabu.description).toContain('Luta');
@@ -38,19 +38,19 @@ describe('Testa as definições da raça Duende', () => {
     });
 
     test('Deve configurar o tamanho corretamente', () => {
-      const race = DUENDE.setup(DUENDE, { choices: { tamanho: 'Grande' } });
+      const race = DUENDE.setup(DUENDE, { tamanho: 'Grande' });
       expect(race.getDisplacement()).toBe(9);
       expect(race.attributes.attrs).toContainEqual({ attr: Atributo.DESTREZA, mod: -1 });
     });
 
     test('Deve configurar a natureza corretamente', () => {
-      const race = DUENDE.setup(DUENDE, { choices: { natureza: 'Mineral' } });
+      const race = DUENDE.setup(DUENDE, { natureza: 'Mineral' });
       const natureza = race.abilities.find(a => a.name === 'Natureza Mineral');
       expect(natureza).toBeDefined();
     });
 
     test('Deve adicionar os presentes escolhidos', () => {
-      const race = DUENDE.setup(DUENDE, { choices: { presentes: ['Voo'] } });
+      const race = DUENDE.setup(DUENDE, { presentes: ['Voo'] });
       const presente = race.abilities.find(a => a.name === 'Voo');
       expect(presente).toBeDefined();
     });

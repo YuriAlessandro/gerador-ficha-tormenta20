@@ -36,32 +36,124 @@ const DUENDE: Race = {
     if (natureza === 'Animal') {
       // Bonus de atributo da natureza animal
       raceClone.attributes.attrs.push({ attr: 'any', mod: 1 });
-    } else if (natureza === 'Vegetal') {
       raceClone.abilities.push({
-        name: 'Natureza Vegetal',
-        description: 'Imune a atordoamento e metamorfose. Pode usar Florescer Feérico.',
+        name: 'Natureza Animal',
+        description:
+          'Você é feito de carne e osso, com um corpo humanoide de aparência variada. Você recebe +1 em um atributo à sua escolha. Este bônus PODE ser acumulado com um dos outros bônus de atributo do Duende, para um total de +2 em um atributo.',
       });
+    } else if (natureza === 'Vegetal') {
+      raceClone.abilities.push(
+        {
+          name: 'Natureza Vegetal',
+          description:
+            'Você é feito de material orgânico como folhas, vinhas ou madeira. Você é imune a atordoamento e metamorfose. É afetado por efeitos que afetam plantas monstruosas; se o efeito não tiver teste de resistência, você tem direito a um teste de Fortitude.',
+        },
+        {
+          name: 'Florescer Feérico',
+          description:
+            'Uma vez por rodada, você pode gastar uma quantidade de PM limitada pela sua Constituição para curar 2d8 Pontos de Vida por PM gasto no início do seu próximo turno.',
+        }
+      );
     } else if (natureza === 'Mineral') {
       raceClone.abilities.push({
         name: 'Natureza Mineral',
-        description: 'Imunidade a efeitos de metabolismo, RD 5 (corte, fogo, perfuração).',
+        description:
+          'Você é feito de material inorgânico como argila, rocha ou cristal. Você tem imunidade a efeitos de metabolismo e Redução de Dano 5 contra corte, fogo e perfuração. Você não se beneficia de itens da categoria alimentação.',
       });
     }
 
     // Presentes
+    const PRESENTES_DATA = {
+      'Afinidade Elemental (Água)': {
+        name: 'Afinidade Elemental (Água)',
+        description: 'Sua ligação com o elemento água lhe concede deslocamento de natação igual ao seu deslocamento base. Você pode lançar as magias Criar Elementos (apenas água) e Névoa. Seu atributo-chave para estas magias é Carisma.',
+      },
+      'Afinidade Elemental (Fogo)': {
+        name: 'Afinidade Elemental (Fogo)',
+        description: 'Sua ligação com o elemento fogo lhe concede redução de dano de fogo 5. Você pode lançar as magias Criar Elementos (apenas fogo) e Explosão de Chamas. Seu atributo-chave para estas magias é Carisma.',
+      },
+      'Afinidade Elemental (Vegetação)': {
+        name: 'Afinidade Elemental (Vegetação)',
+        description: 'Sua ligação com a vegetação permite que você atravesse terrenos difíceis naturais sem sofrer redução no deslocamento. Você pode lançar as magias Armamento da Natureza e Controlar Plantas. Seu atributo-chave para estas magias é Carisma.',
+      },
+      'Encantar Objetos': {
+        name: 'Encantar Objetos',
+        description: 'Você pode gastar uma ação de movimento e 3 PM para tocar um item e aplicar a ele um encanto (sem pré-requisitos) que dura até o fim da cena.',
+      },
+      'Enfeitiçar': {
+        name: 'Enfeitiçar',
+        description: 'Você pode lançar a magia Enfeitiçar e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
+      },
+      'Invisibilidade': {
+        name: 'Invisibilidade',
+        description: 'Você pode lançar a magia Invisibilidade e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
+      },
+      'Língua da Natureza': {
+        name: 'Língua da Natureza',
+        description: 'Você pode falar com animais e plantas e recebe +2 em Adestramento e Sobrevivência.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Língua da Natureza' },
+            target: { type: 'Skill', name: 'Adestramento' },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+          {
+            source: { type: 'power', name: 'Língua da Natureza' },
+            target: { type: 'Skill', name: 'Sobrevivência' },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+        ],
+      },
+      'Maldição': {
+        name: 'Maldição',
+        description: 'Você pode gastar uma ação padrão e 3 PM para amaldiçoar uma criatura em alcance curto. A vítima tem direito a um teste de resistência (Fortitude ou Vontade, escolhido na criação do duende). Se falhar, sofre um efeito permanente (escolhido de uma lista na criação do duende) até ser cancelado ou curado. Você só pode manter uma maldição por vez.',
+      },
+      'Mais Lá do que Aqui': {
+        name: 'Mais Lá do que Aqui',
+        description: 'Você pode gastar uma ação padrão e 2 PM para fazer a maior parte do seu corpo desaparecer por uma cena, recebendo camuflagem leve e +5 em Furtividade.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Mais Lá do que Aqui' },
+            target: { type: 'Skill', name: 'Furtividade' },
+            modifier: { type: 'Fixed', value: 5 },
+          },
+        ],
+      },
+      'Metamorfose Animal': {
+        name: 'Metamorfose Animal',
+        description: 'Você pode se transformar em um tipo de animal. Escolha uma forma selvagem básica do druida. Você pode gastar uma ação completa e 3 PM para assumir essa forma. Você pode falar e lançar magias em sua forma animal.',
+      },
+      'Sonhos Proféticos': {
+        name: 'Sonhos Proféticos',
+        description: 'Uma vez por cena, você pode gastar 3 PM e rolar 1d20. Até o fim da cena, você pode substituir o resultado do d20 de um teste de uma criatura em alcance curto pelo resultado que você rolou.',
+      },
+      'Velocidade do Pensamento': {
+        name: 'Velocidade do Pensamento',
+        description: 'No primeiro turno de cada cena, você pode gastar 2 PM para realizar uma ação padrão adicional, mas em troca pula o seu turno na segunda rodada.',
+      },
+      'Visão Feérica': {
+        name: 'Visão Feérica',
+        description: 'Você recebe visão na penumbra e está permanentemente sob efeito da magia Visão Mística (com o aprimoramento para ver criaturas invisíveis).',
+      },
+      'Voo': {
+        name: 'Voo',
+        description: 'Você pode flutuar a 1,5m do chão com deslocamento de seu deslocamento base +3m e é imune a dano por queda. Pode voar de verdade gastando 1 PM por rodada, com deslocamento de seu deslocamento base +6m.',
+      },
+    };
+
     const presentes = choices.presentes || [];
     presentes.forEach((presente) => {
-      raceClone.abilities.push({
-        name: presente,
-        description: `Você pode usar a magia ${presente}.`,
-      });
+      const presenteData = PRESENTES_DATA[presente];
+      if (presenteData) {
+        raceClone.abilities.push(presenteData);
+      }
     });
 
     // Tabu
     const tabu = choices.tabu || 'Diplomacia';
     raceClone.abilities.push({
       name: 'Tabu',
-      description: `Você possui uma regra de comportamento que não pode quebrar. Você sofre -5 de penalidade em ${tabu}. Quebrar o tabu tem consequências severas.`,
+      description: `Você possui uma regra de comportamento que nunca pode quebrar (definida com o mestre). Você deve escolher uma das seguintes perícias para sofrer -5 de penalidade: Diplomacia, Iniciativa, Luta ou Percepção. A perícia escolhida foi: ${tabu}. Quebrar o tabu acarreta em penalidades diárias e cumulativas: 1º dia fatigado, 2º dia exausto, 3º dia morto.`,
       sheetBonuses: [
         {
           source: {
@@ -80,13 +172,25 @@ const DUENDE: Race = {
       ],
     });
 
+    if (choices.sonhosMalucos) {
+      raceClone.abilities.push({
+        name: 'Sonhos Malucos (Regra Opcional)',
+        description: 'Este duende foi criado de forma aleatória (1d3 Natureza, 1d4 Tamanho, 2d6 Atributos, 3d12 Presentes), recebendo +2 Pontos de Mana iniciais como bônus. O Tabu ainda deve ser definido com o mestre.',
+        sheetBonuses: [{
+            source: { type: 'power', name: 'Sonhos Malucos' },
+            target: { type: 'Attribute', name: 'pm' },
+            modifier: { type: 'Fixed', value: 2 }
+        }]
+      });
+    }
+
     return raceClone;
   },
   faithProbability: {
     ALLIHANNA: 1,
     HYNINN: 1,
     NIMB: 1,
-    THWOR: 2,
+    WYNNA: 1,
   },
   size: RACE_SIZES.PEQUENO,
   getDisplacement: () => 9,
@@ -102,7 +206,7 @@ const DUENDE: Race = {
     },
     {
       name: 'Aversão a Sinos',
-      description: 'Ao ouvir um sino, fica alquebrado e esmorecido até o fim da cena.',
+      description: 'Ao ouvir o badalar de um sino, você fica nas condições alquebrado e esmorecido até o fim da cena. Em ambientes urbanos, há uma chance em seis (role 1d6, resultado 1) de ouvir um sino no início de qualquer cena.',
     },
   ],
 };
