@@ -173,7 +173,7 @@ const ARCANISTA: ClassDescription = {
   abilities: [
     {
       name: 'Magias',
-      text: 'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2o círculo no 5o nível, 3o círculo no 9o nível e assim por diante).',
+      text: 'Você pode lançar magias arcanas de 1º círculo. A cada quatro níveis, pode lançar magias de um círculo maior (2º círculo no 5º nível, 3º círculo no 9º nível e assim por diante).',
       nivel: 1,
       sheetBonuses: [
         {
