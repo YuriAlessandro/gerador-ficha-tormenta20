@@ -80,7 +80,8 @@ export type RaceNames =
   | 'Suraggel'
   | 'Trog'
   | 'Suraggel (Aggelus)'
-  | 'Suraggel (Sulfure)';
+  | 'Suraggel (Sulfure)'
+  | 'Duende';
 
 export default interface Race {
   name: RaceNames;
