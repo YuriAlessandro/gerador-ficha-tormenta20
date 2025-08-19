@@ -81,49 +81,58 @@ export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
   return subSteps;
 }
 
-function applyDuendeTamanho(sheet: CharacterSheet, tamanho: string): SubStep {
+function applyDuendeTamanho(sheet: CharacterSheet, tamanho: string): SubStep[] {
   if (tamanho === 'Minúsculo') {
     sheet.size = RACE_SIZES.MINUSCULO;
     sheet.displacement = 6;
     sheet.atributos[Atributo.FORCA].mod -= 1;
-    return {
-      name: 'Tamanho',
-      value: 'Minúsculo (-1 Força, 6m deslocamento)',
-    };
+    return [
+      {
+        name: 'Tamanho',
+        value: 'Minúsculo (-1 Força, 6m deslocamento)',
+      },
+    ];
   }
   if (tamanho === 'Pequeno') {
     sheet.size = RACE_SIZES.PEQUENO;
     sheet.displacement = 6;
-    return { name: 'Tamanho', value: 'Pequeno (6m deslocamento)' };
+    return [{ name: 'Tamanho', value: 'Pequeno (6m deslocamento)' }];
   }
   if (tamanho === 'Médio') {
     sheet.size = RACE_SIZES.MEDIO;
     sheet.displacement = 9;
-    return { name: 'Tamanho', value: 'Médio (9m deslocamento)' };
+    return [{ name: 'Tamanho', value: 'Médio (9m deslocamento)' }];
   }
   if (tamanho === 'Grande') {
     sheet.size = RACE_SIZES.GRANDE;
     sheet.displacement = 9;
     sheet.atributos[Atributo.DESTREZA].mod -= 1;
-    return {
-      name: 'Tamanho',
-      value: 'Grande (-1 Destreza, 9m deslocamento)',
-    };
+    return [
+      {
+        name: 'Tamanho',
+        value: 'Grande (-1 Destreza, 9m deslocamento)',
+      },
+    ];
   }
-  return { name: 'Tamanho', value: 'Padrão' };
+  return [{ name: 'Tamanho', value: 'Padrão' }];
 }
 
-function applyDuendeNatureza(sheet: CharacterSheet, natureza: string): SubStep {
+function applyDuendeNatureza(
+  sheet: CharacterSheet,
+  natureza: string
+): SubStep[] {
   if (natureza === 'Animal') {
     sheet.raca.abilities?.push({
       name: 'Natureza Animal',
       description:
         'Você é feito de carne e osso, com um corpo humanoide de aparência variada. Você recebe +1 em um atributo à sua escolha. Este bônus PODE ser acumulado com um dos outros bônus de atributo do Duende, para um total de +2 em um atributo.',
     });
-    return {
-      name: 'Natureza',
-      value: 'Animal (+1 em atributo à escolha)',
-    };
+    return [
+      {
+        name: 'Natureza',
+        value: 'Animal (+1 em atributo à escolha)',
+      },
+    ];
   }
   if (natureza === 'Vegetal') {
     sheet.raca.abilities?.push(
@@ -138,7 +147,7 @@ function applyDuendeNatureza(sheet: CharacterSheet, natureza: string): SubStep {
           'Uma vez por rodada, você pode gastar uma quantidade de PM limitada pela sua Constituição para curar 2d8 Pontos de Vida por PM gasto no início do seu próximo turno.',
       }
     );
-    return { name: 'Natureza', value: 'Vegetal' };
+    return [{ name: 'Natureza', value: 'Vegetal' }];
   }
   if (natureza === 'Mineral') {
     sheet.raca.abilities?.push({
@@ -146,9 +155,9 @@ function applyDuendeNatureza(sheet: CharacterSheet, natureza: string): SubStep {
       description:
         'Você é feito de material inorgânico como argila, rocha ou cristal. Você tem imunidade a efeitos de metabolismo e Redução de Dano 5 contra corte, fogo e perfuração. Você não se beneficia de itens da categoria alimentação.',
     });
-    return { name: 'Natureza', value: 'Mineral' };
+    return [{ name: 'Natureza', value: 'Mineral' }];
   }
-  return { name: 'Natureza', value: 'Nenhuma' };
+  return [{ name: 'Natureza', value: 'Nenhuma' }];
 }
 
 function applyDuendePresentes(
@@ -212,8 +221,8 @@ export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
     ]),
   };
 
-  subSteps.push(applyDuendeTamanho(sheet, choices.tamanho));
-  subSteps.push(applyDuendeNatureza(sheet, choices.natureza));
+  subSteps.push(...applyDuendeTamanho(sheet, choices.tamanho));
+  subSteps.push(...applyDuendeNatureza(sheet, choices.natureza));
   subSteps.push(...applyDuendePresentes(sheet, choices.presentes));
   subSteps.push(...applyDuendeTabu(sheet, choices.tabu));
 
