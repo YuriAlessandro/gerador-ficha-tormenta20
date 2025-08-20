@@ -23,12 +23,12 @@ export const PRESENTES_DATA: { [key: string]: RaceAbility } = {
     description:
       'Você pode gastar uma ação de movimento e 3 PM para tocar um item e aplicar a ele um encanto (sem pré-requisitos) que dura até o fim da cena.',
   },
-  Enfeitiçar: {
+  'Enfeitiçar': {
     name: 'Enfeitiçar',
     description:
       'Você pode lançar a magia Enfeitiçar e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
   },
-  Invisibilidade: {
+  'Invisibilidade': {
     name: 'Invisibilidade',
     description:
       'Você pode lançar a magia Invisibilidade e seus aprimoramentos como se tivesse acesso aos mesmos círculos de magia que um arcanista de seu nível. A CD para resistência é baseada em Carisma.',
@@ -50,7 +50,7 @@ export const PRESENTES_DATA: { [key: string]: RaceAbility } = {
       },
     ],
   },
-  Maldição: {
+  'Maldição': {
     name: 'Maldição',
     description:
       'Você pode gastar uma ação padrão e 3 PM para amaldiçoar uma criatura em alcance curto. A vítima tem direito a um teste de resistência (Fortitude ou Vontade, escolhido na criação do duende). Se falhar, sofre um efeito permanente (escolhido de uma lista na criação do duende) até ser cancelado ou curado. Você só pode manter uma maldição por vez.',
@@ -87,7 +87,7 @@ export const PRESENTES_DATA: { [key: string]: RaceAbility } = {
     description:
       'Você recebe visão na penumbra e está permanentemente sob efeito da magia Visão Mística (com o aprimoramento para ver criaturas invisíveis).',
   },
-  Voo: {
+  'Voo': {
     name: 'Voo',
     description:
       'Você pode flutuar a 1,5m do chão com deslocamento de seu deslocamento base +3m e é imune a dano por queda. Pode voar de verdade gastando 1 PM por rodada, com deslocamento de seu deslocamento base +6m.',

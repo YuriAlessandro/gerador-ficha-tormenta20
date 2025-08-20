@@ -202,8 +202,6 @@ function applyDuendeTabu(sheet: CharacterSheet, tabu: string): SubStep[] {
 export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
   const subSteps: SubStep[] = [];
 
-  // This is a placeholder for the choices UI that would be implemented.
-  // For now, we will make random choices to simulate the logic.
   const choices = {
     tamanho: getRandomItemFromArray([
       'Minúsculo',
