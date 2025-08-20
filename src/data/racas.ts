@@ -2,6 +2,7 @@ import _ from 'lodash';
 import AGGELUS from './races/aggelus';
 import ANAO from './races/anao';
 import DAHLLAN from './races/dahllan';
+import DUENDE from './races/duende';
 import ELFO from './races/elfo';
 import GOBLIN from './races/goblin';
 import LEFEU from './races/lefou';
@@ -23,6 +24,7 @@ const RACAS = [
   AGGELUS,
   ANAO,
   DAHLLAN,
+  DUENDE,
   ELFO,
   GOBLIN,
   LEFEU,
