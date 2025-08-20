@@ -1,7 +1,6 @@
 import DUENDE from '../duende';
-import { Atributo } from '../../atributos';
 
-describe('Testa as definições da raça Duende', () => {
+describe('Testa as definições da raça Duende (nova implementação)', () => {
   test('Deve ter o nome "Duende"', () => {
     expect(DUENDE.name).toBe('Duende');
   });
@@ -23,36 +22,22 @@ describe('Testa as definições da raça Duende', () => {
   });
 
   test('Deve incluir as duas limitações obrigatórias', () => {
-    const nomesHabilidades = DUENDE.abilities.map(a => a.name);
+    const nomesHabilidades = DUENDE.abilities.map((a) => a.name);
     expect(nomesHabilidades).toContain('Aversão a Ferro');
     expect(nomesHabilidades).toContain('Aversão a Sinos');
   });
 
-  describe('Testa a função setup', () => {
-    test('Deve adicionar a habilidade de Tabu', () => {
-      const race = DUENDE.setup(DUENDE, { tabu: 'Luta' });
-      const tabu = race.abilities.find(a => a.name === 'Tabu');
-      expect(tabu).toBeDefined();
-      expect(tabu.description).toContain('Luta');
-      expect(tabu.sheetBonuses[0].modifier.value).toBe(-5);
-    });
-
-    test('Deve configurar o tamanho corretamente', () => {
-      const race = DUENDE.setup(DUENDE, { tamanho: 'Grande' });
-      expect(race.getDisplacement()).toBe(9);
-      expect(race.attributes.attrs).toContainEqual({ attr: Atributo.DESTREZA, mod: -1 });
-    });
-
-    test('Deve configurar a natureza corretamente', () => {
-      const race = DUENDE.setup(DUENDE, { natureza: 'Mineral' });
-      const natureza = race.abilities.find(a => a.name === 'Natureza Mineral');
-      expect(natureza).toBeDefined();
-    });
-
-    test('Deve adicionar os presentes escolhidos', () => {
-      const race = DUENDE.setup(DUENDE, { presentes: ['Voo'] });
-      const presente = race.abilities.find(a => a.name === 'Voo');
-      expect(presente).toBeDefined();
-    });
+  test('Deve incluir a habilidade de "Poderes de Duende" com a specialAction correta', () => {
+    const poderesHabilidade = DUENDE.abilities.find(
+      (ability) => ability.name === 'Poderes de Duende'
+    );
+    expect(poderesHabilidade).toBeDefined();
+    expect(poderesHabilidade?.sheetActions).toBeDefined();
+    expect(poderesHabilidade?.sheetActions?.[0].action.type).toBe('special');
+    if (poderesHabilidade?.sheetActions?.[0].action.type === 'special') {
+      expect(poderesHabilidade?.sheetActions?.[0].action.specialAction).toBe(
+        'duendePowers'
+      );
+    }
   });
 });

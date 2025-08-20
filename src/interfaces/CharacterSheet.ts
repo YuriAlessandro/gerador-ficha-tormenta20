@@ -83,7 +83,8 @@ export type SheetActionStep =
       specialAction:
         | 'humanoVersatil'
         | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma';
+        | 'osteonMemoriaPostuma'
+        | 'duendePowers';
     };
 
 export type SheetActionReceipt =
