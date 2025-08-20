@@ -2,6 +2,47 @@ import Race, { RaceAbility } from '../../interfaces/Race';
 import Skill from '../../interfaces/Skills';
 import { RACE_SIZES } from './raceSizes/raceSizes';
 
+export const NATUREZA_ABILITIES: { [key: string]: RaceAbility[] } = {
+  Animal: [
+    {
+      name: 'Natureza Animal',
+      description:
+        'Você é feito de carne e osso, com um corpo humanoide de aparência variada. Você recebe +1 em um atributo à sua escolha. Este bônus PODE ser acumulado com um dos outros bônus de atributo do Duende, para um total de +2 em um atributo.',
+    },
+  ],
+  Vegetal: [
+    {
+      name: 'Natureza Vegetal',
+      description:
+        'Você é feito de material orgânico como folhas, vinhas ou madeira. Você é imune a atordoamento e metamorfose. É afetado por efeitos que afetam plantas monstruosas; se o efeito não tiver teste de resistência, você tem direito a um teste de Fortitude.',
+    },
+    {
+      name: 'Florescer Feérico',
+      description:
+        'Uma vez por rodada, você pode gastar uma quantidade de PM limitada pela sua Constituição para curar 2d8 Pontos de Vida por PM gasto no início do seu próximo turno.',
+    },
+  ],
+  Mineral: [
+    {
+      name: 'Natureza Mineral',
+      description:
+        'Você é feito de material inorgânico como argila, rocha ou cristal. Você tem imunidade a efeitos de metabolismo e Redução de Dano 5 contra corte, fogo e perfuração. Você não se beneficia de itens da categoria alimentação.',
+    },
+  ],
+};
+
+export const buildTabuAbility = (skill: Skill): RaceAbility => ({
+  name: 'Tabu',
+  description: `Você possui uma regra de comportamento que nunca pode quebrar (definida com o mestre). Você deve escolher uma das seguintes perícias para sofrer -5 de penalidade: Diplomacia, Iniciativa, Luta ou Percepção. A perícia escolhida foi: ${skill}. Quebrar o tabu acarreta em penalidades diárias e cumulativas: 1º dia fatigado, 2º dia exausto, 3º dia morto.`,
+  sheetBonuses: [
+    {
+      source: { type: 'power' as const, name: 'Tabu' },
+      target: { type: 'Skill', name: skill },
+      modifier: { type: 'Fixed', value: -5 },
+    },
+  ],
+});
+
 export const PRESENTES_DATA: { [key: string]: RaceAbility } = {
   'Afinidade Elemental (Água)': {
     name: 'Afinidade Elemental (Água)',

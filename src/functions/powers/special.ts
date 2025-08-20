@@ -2,7 +2,11 @@ import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
 import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import tormentaPowers from '@/data/powers/tormentaPowers';
-import { PRESENTES_DATA } from '@/data/races/duende';
+import {
+  buildTabuAbility,
+  NATUREZA_ABILITIES,
+  PRESENTES_DATA,
+} from '@/data/races/duende';
 import HUMANO from '@/data/races/humano';
 import { Atributo } from '@/data/atributos';
 import { RACE_SIZES } from '@/data/races/raceSizes/raceSizes';
@@ -81,148 +85,99 @@ export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
   return subSteps;
 }
 
-function applyDuendeTamanho(sheet: CharacterSheet, tamanho: string): SubStep[] {
-  if (tamanho === 'Minúsculo') {
-    sheet.size = RACE_SIZES.MINUSCULO;
-    sheet.displacement = 6;
-    sheet.atributos[Atributo.FORCA].mod -= 1;
-    return [
-      {
-        name: 'Tamanho',
-        value: 'Minúsculo (-1 Força, 6m deslocamento)',
-      },
-    ];
-  }
-  if (tamanho === 'Pequeno') {
-    sheet.size = RACE_SIZES.PEQUENO;
-    sheet.displacement = 6;
-    return [{ name: 'Tamanho', value: 'Pequeno (6m deslocamento)' }];
-  }
-  if (tamanho === 'Médio') {
-    sheet.size = RACE_SIZES.MEDIO;
-    sheet.displacement = 9;
-    return [{ name: 'Tamanho', value: 'Médio (9m deslocamento)' }];
-  }
-  if (tamanho === 'Grande') {
-    sheet.size = RACE_SIZES.GRANDE;
-    sheet.displacement = 9;
-    sheet.atributos[Atributo.DESTREZA].mod -= 1;
-    return [
-      {
-        name: 'Tamanho',
-        value: 'Grande (-1 Destreza, 9m deslocamento)',
-      },
-    ];
-  }
-  return [{ name: 'Tamanho', value: 'Padrão' }];
-}
-
-function applyDuendeNatureza(
-  sheet: CharacterSheet,
-  natureza: string
-): SubStep[] {
-  if (natureza === 'Animal') {
-    sheet.raca.abilities?.push({
-      name: 'Natureza Animal',
-      description:
-        'Você é feito de carne e osso, com um corpo humanoide de aparência variada. Você recebe +1 em um atributo à sua escolha. Este bônus PODE ser acumulado com um dos outros bônus de atributo do Duende, para um total de +2 em um atributo.',
-    });
-    return [
-      {
-        name: 'Natureza',
-        value: 'Animal (+1 em atributo à escolha)',
-      },
-    ];
-  }
-  if (natureza === 'Vegetal') {
-    sheet.raca.abilities?.push(
-      {
-        name: 'Natureza Vegetal',
-        description:
-          'Você é feito de material orgânico como folhas, vinhas ou madeira. Você é imune a atordoamento e metamorfose. É afetado por efeitos que afetam plantas monstruosas; se o efeito não tiver teste de resistência, você tem direito a um teste de Fortitude.',
-      },
-      {
-        name: 'Florescer Feérico',
-        description:
-          'Uma vez por rodada, você pode gastar uma quantidade de PM limitada pela sua Constituição para curar 2d8 Pontos de Vida por PM gasto no início do seu próximo turno.',
-      }
-    );
-    return [{ name: 'Natureza', value: 'Vegetal' }];
-  }
-  if (natureza === 'Mineral') {
-    sheet.raca.abilities?.push({
-      name: 'Natureza Mineral',
-      description:
-        'Você é feito de material inorgânico como argila, rocha ou cristal. Você tem imunidade a efeitos de metabolismo e Redução de Dano 5 contra corte, fogo e perfuração. Você não se beneficia de itens da categoria alimentação.',
-    });
-    return [{ name: 'Natureza', value: 'Mineral' }];
-  }
-  return [{ name: 'Natureza', value: 'Nenhuma' }];
-}
-
-function applyDuendePresentes(
-  sheet: CharacterSheet,
-  presentes: string[]
-): SubStep[] {
-  const subSteps: SubStep[] = [];
-  presentes.forEach((presente: string) => {
-    const presenteData = PRESENTES_DATA[presente];
-    if (presenteData) {
-      sheet.raca.abilities?.push(presenteData);
-      const [newSheet, newSubSteps] = applyPower(sheet, presenteData);
-      Object.assign(sheet, newSheet);
-      subSteps.push(...newSubSteps);
-      subSteps.push({ name: 'Presente', value: presente });
-    }
-  });
-  return subSteps;
-}
-
-function applyDuendeTabu(sheet: CharacterSheet, tabu: string): SubStep[] {
-  const subSteps: SubStep[] = [];
-  const tabuAbility: RaceAbility = {
-    name: 'Tabu',
-    description: `Você possui uma regra de comportamento que nunca pode quebrar (definida com o mestre). Você deve escolher uma das seguintes perícias para sofrer -5 de penalidade: Diplomacia, Iniciativa, Luta ou Percepção. A perícia escolhida foi: ${tabu}. Quebrar o tabu acarreta em penalidades diárias e cumulativas: 1º dia fatigado, 2º dia exausto, 3º dia morto.`,
-    sheetBonuses: [
-      {
-        source: { type: 'power' as const, name: 'Tabu' },
-        target: { type: 'Skill', name: tabu as Skill },
-        modifier: { type: 'Fixed', value: -5 },
-      },
-    ],
-  };
-  sheet.raca.abilities?.push(tabuAbility);
-  const [newSheet, newSubSteps] = applyPower(sheet, tabuAbility);
-  Object.assign(sheet, newSheet);
-  subSteps.push(...newSubSteps);
-  subSteps.push({ name: 'Tabu', value: `-5 em ${tabu}` });
-  return subSteps;
-}
-
 export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
   const subSteps: SubStep[] = [];
 
-  const choices = {
-    tamanho: getRandomItemFromArray([
+  function applyDuendeTamanho() {
+    const tamanho = getRandomItemFromArray([
       'Minúsculo',
       'Pequeno',
       'Médio',
       'Grande',
-    ]),
-    natureza: getRandomItemFromArray(['Animal', 'Vegetal', 'Mineral']),
-    presentes: pickFromArray(Object.keys(PRESENTES_DATA), 3),
-    tabu: getRandomItemFromArray([
-      'Diplomacia',
-      'Iniciativa',
-      'Luta',
-      'Percepção',
-    ]),
-  };
+    ]);
 
-  subSteps.push(...applyDuendeTamanho(sheet, choices.tamanho));
-  subSteps.push(...applyDuendeNatureza(sheet, choices.natureza));
-  subSteps.push(...applyDuendePresentes(sheet, choices.presentes));
-  subSteps.push(...applyDuendeTabu(sheet, choices.tabu));
+    const displacement = sheet.raca.getDisplacement?.(sheet.raca) ?? 9;
+
+    if (tamanho === 'Minúsculo') {
+      sheet.size = RACE_SIZES.MINUSCULO;
+      sheet.displacement = 6;
+      sheet.atributos[Atributo.FORCA].mod -= 1;
+      subSteps.push({
+        name: 'Tamanho',
+        value: 'Minúsculo (-1 Força, 6m deslocamento)',
+      });
+    } else if (tamanho === 'Pequeno') {
+      sheet.size = RACE_SIZES.PEQUENO;
+      sheet.displacement = 6;
+      subSteps.push({ name: 'Tamanho', value: 'Pequeno (6m deslocamento)' });
+    } else if (tamanho === 'Médio') {
+      sheet.size = RACE_SIZES.MEDIO;
+      sheet.displacement = displacement;
+      subSteps.push({
+        name: 'Tamanho',
+        value: `Médio (${displacement}m deslocamento)`,
+      });
+    } else if (tamanho === 'Grande') {
+      sheet.size = RACE_SIZES.GRANDE;
+      sheet.displacement = displacement;
+      sheet.atributos[Atributo.DESTREZA].mod -= 1;
+      subSteps.push({
+        name: 'Tamanho',
+        value: `Grande (-1 Destreza, ${displacement}m deslocamento)`,
+      });
+    } else {
+      subSteps.push({ name: 'Tamanho', value: 'Padrão' });
+    }
+  }
+
+  function applyDuendeNatureza() {
+    const natureza = getRandomItemFromArray(Object.keys(NATUREZA_ABILITIES));
+    const abilities = NATUREZA_ABILITIES[natureza];
+
+    if (abilities) {
+      sheet.raca.abilities?.push(...abilities);
+    }
+
+    subSteps.push({
+      name: 'Natureza',
+      value: natureza,
+    });
+  }
+
+  function applyDuendePresentes() {
+    const presentes = pickFromArray(Object.keys(PRESENTES_DATA), 3);
+    presentes.forEach((presente: string) => {
+      const presenteData = PRESENTES_DATA[presente];
+      if (presenteData) {
+        sheet.raca.abilities?.push(presenteData);
+        const [newSheet, newSubSteps] = applyPower(sheet, presenteData);
+        Object.assign(sheet, newSheet);
+        subSteps.push(...newSubSteps);
+        subSteps.push({ name: 'Presente', value: presente });
+      }
+    });
+  }
+
+  function applyDuendeTabu() {
+    const tabuSkill = getRandomItemFromArray([
+      Skill.DIPLOMACIA,
+      Skill.INICIATIVA,
+      Skill.LUTA,
+      Skill.PERCEPCAO,
+    ]);
+
+    const tabuAbility = buildTabuAbility(tabuSkill);
+    sheet.raca.abilities?.push(tabuAbility);
+    const [newSheet, newSubSteps] = applyPower(sheet, tabuAbility);
+    Object.assign(sheet, newSheet);
+    subSteps.push(...newSubSteps);
+    subSteps.push({ name: 'Tabu', value: `-5 em ${tabuSkill}` });
+  }
+
+  applyDuendeTamanho();
+  applyDuendeNatureza();
+  applyDuendePresentes();
+  applyDuendeTabu();
 
   return subSteps;
 }
