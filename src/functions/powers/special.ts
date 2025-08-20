@@ -100,7 +100,7 @@ export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
 
     if (tamanho === 'Minúsculo') {
       sheet.size = RACE_SIZES.MINUSCULO;
-      sheet.displacement = 6;
+      sheet.displacement = -3;
       sheet.atributos[Atributo.FORCA].mod -= 1;
       subSteps.push({
         name: 'Tamanho',
@@ -108,18 +108,18 @@ export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
       });
     } else if (tamanho === 'Pequeno') {
       sheet.size = RACE_SIZES.PEQUENO;
-      sheet.displacement = 6;
+      sheet.displacement = -3;
       subSteps.push({ name: 'Tamanho', value: 'Pequeno (6m deslocamento)' });
     } else if (tamanho === 'Médio') {
       sheet.size = RACE_SIZES.MEDIO;
-      sheet.displacement = displacement;
+      sheet.displacement = 0;
       subSteps.push({
         name: 'Tamanho',
         value: `Médio (${displacement}m deslocamento)`,
       });
     } else if (tamanho === 'Grande') {
       sheet.size = RACE_SIZES.GRANDE;
-      sheet.displacement = displacement;
+      sheet.displacement = 0;
       sheet.atributos[Atributo.DESTREZA].mod -= 1;
       subSteps.push({
         name: 'Tamanho',
