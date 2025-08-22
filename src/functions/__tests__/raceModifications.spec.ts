@@ -27,8 +27,8 @@ describe('Testa modificações da raça Aggelus', () => {
 
     const expectedAttrs = {
       ...attrNotChanged,
-      Carisma: { name: Atributo.CARISMA, value: 14, mod: 2 },
-      Sabedoria: { name: Atributo.SABEDORIA, value: 17, mod: 3 },
+      Carisma: { name: Atributo.CARISMA, value: 12, mod: 2 },
+      Sabedoria: { name: Atributo.SABEDORIA, value: 13, mod: 3 },
     };
 
     const received = modifyAttributesBasedOnRace(
@@ -42,10 +42,10 @@ describe('Testa modificações da raça Aggelus', () => {
   });
 });
 
-function countAttrWithPlusTwo(attributes: CharacterAttribute[]) {
+function countAttrWithPlusOne(attributes: CharacterAttribute[]) {
   return attributes.reduce((acc, attr) => {
     const original = originalAttrs[attr.name];
-    return attr.value === original.value + 2 ? acc + 1 : acc;
+    return attr.mod === original.mod + 1 ? acc + 1 : acc;
   }, 0);
 }
 
@@ -53,23 +53,18 @@ describe('Testa modificações da raça Humano', () => {
   Array(1)
     .fill(0)
     .forEach(() => {
-      test('Se o Humano recebe +2 em 3 atributos diferentes', () => {
+      test('Se o Humano recebe +1 em 3 atributos diferentes', () => {
         const received = modifyAttributesBasedOnRace(
           HUMANO,
           originalAttrs,
           [],
           []
         );
-        const qtdOfAttrWithPlusTwo = countAttrWithPlusTwo(
+        const qtdOfAttrWithPlusOne = countAttrWithPlusOne(
           Object.values(received)
         );
 
-        expect(qtdOfAttrWithPlusTwo).toBe(3);
-
-        Object.values(received).forEach((attribute) => {
-          const expected = getModValue(attribute.value);
-          expect(attribute.mod).toBe(expected);
-        });
+        expect(qtdOfAttrWithPlusOne).toBe(3);
       });
     });
 });

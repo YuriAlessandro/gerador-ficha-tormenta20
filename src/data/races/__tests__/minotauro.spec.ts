@@ -1,11 +1,13 @@
 import _ from 'lodash';
 import { applyRaceAbilities } from '../../../functions/general';
+import { recalculateSheet } from '../../../functions/recalculateSheet';
 import { inventor } from '../../../__mocks__/classes/inventor';
 import MINOTAURO from '../minotauro';
 
 describe('Testa habilidades da raça Minotauro', () => {
   const sheet = _.cloneDeep(inventor(MINOTAURO));
-  const received = applyRaceAbilities(sheet);
+  const sheetWithRaceAbilities = applyRaceAbilities(sheet);
+  const received = recalculateSheet(sheetWithRaceAbilities);
 
   test('Chifres: adiciona arma "Chifres"', () => {
     const foundChifres = received.bag

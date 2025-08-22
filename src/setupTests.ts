@@ -3,7 +3,22 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-import { expect } from 'vitest';
+import { expect, vitest } from 'vitest';
+
+// Mock window.matchMedia for tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vitest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vitest.fn(), // deprecated
+    removeListener: vitest.fn(), // deprecated
+    addEventListener: vitest.fn(),
+    removeEventListener: vitest.fn(),
+    dispatchEvent: vitest.fn(),
+  })),
+});
 
 function toHaveUniqueElements<T>(expected: T[]) {
   const pass =
