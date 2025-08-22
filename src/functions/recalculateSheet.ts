@@ -258,7 +258,7 @@ export function recalculateSheet(
         historyEntry.changes.forEach((change) => {
           // Inline reversal logic to avoid circular imports
           switch (change.type) {
-            case 'Attribute':
+            case 'Attribute': {
               // Find the original modification to get the exact value that was added
               const relevantHistory = updatedSheet.sheetActionHistory.find(
                 (entry) =>
@@ -283,8 +283,9 @@ export function recalculateSheet(
                 }
               }
               break;
+            }
 
-            case 'ProficiencyAdded':
+            case 'ProficiencyAdded': {
               const profIndex = updatedSheet.classe.proficiencias.indexOf(
                 change.proficiency
               );
@@ -292,8 +293,9 @@ export function recalculateSheet(
                 updatedSheet.classe.proficiencias.splice(profIndex, 1);
               }
               break;
+            }
 
-            case 'SkillsAdded':
+            case 'SkillsAdded': {
               change.skills.forEach((skill: string) => {
                 const skillIndex = updatedSheet.skills.indexOf(skill as Skill);
                 if (skillIndex > -1) {
@@ -301,8 +303,9 @@ export function recalculateSheet(
                 }
               });
               break;
+            }
 
-            case 'SenseAdded':
+            case 'SenseAdded': {
               if (updatedSheet.sentidos) {
                 const senseIndex = updatedSheet.sentidos.indexOf(change.sense);
                 if (senseIndex > -1) {
@@ -310,8 +313,9 @@ export function recalculateSheet(
                 }
               }
               break;
+            }
 
-            case 'PowerAdded':
+            case 'PowerAdded': {
               if (updatedSheet.generalPowers) {
                 const powerIndex = updatedSheet.generalPowers.findIndex(
                   (power) => power.name === change.powerName
@@ -321,8 +325,9 @@ export function recalculateSheet(
                 }
               }
               break;
+            }
 
-            case 'SpellsLearned':
+            case 'SpellsLearned': {
               if (updatedSheet.spells) {
                 change.spellNames.forEach((spellName: string) => {
                   const spellIndex = updatedSheet.spells.findIndex(
@@ -334,12 +339,15 @@ export function recalculateSheet(
                 });
               }
               break;
+            }
 
             case 'AttributeIncreasedByAumentoDeAtributo':
               updatedSheet.atributos[change.attribute].mod -= 1;
               break;
 
-            // Add other cases as needed
+            default:
+              // Other action types not yet implemented
+              break;
           }
         });
       });
