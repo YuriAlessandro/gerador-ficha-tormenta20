@@ -1,6 +1,6 @@
 import AGGELUS from '../../data/races/aggelus';
 import HUMANO from '../../data/races/humano';
-import { modifyAttributesBasedOnRace, getModValue } from '../general';
+import { modifyAttributesBasedOnRace } from '../general';
 import {
   CharacterAttribute,
   CharacterAttributes,
