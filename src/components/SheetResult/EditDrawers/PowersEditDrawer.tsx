@@ -345,7 +345,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       classPowers: selectedClassPowers,
       steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
     };
-    const recalculatedSheet = recalculateSheet(updatedSheet);
+    const recalculatedSheet = recalculateSheet(updatedSheet, sheet);
 
     // Pass the fully recalculated sheet
     onSave(recalculatedSheet);

@@ -124,6 +124,7 @@ export type SheetActionReceipt =
 
 export type SheetActionHistoryEntry = {
   source: SheetChangeSource;
+  powerName?: string; // Name of the power that caused this action
   changes: SheetActionReceipt[];
 };
 

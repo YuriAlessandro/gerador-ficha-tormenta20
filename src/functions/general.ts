@@ -741,7 +741,7 @@ function calcDisplacement(
 
 export const applyPower = (
   _sheet: CharacterSheet,
-  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses'>
+  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -770,6 +770,7 @@ export const applyPower = (
         });
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [{ type: 'Attribute', attribute, value: newValue }],
         });
       } else if (sheetAction.action.type === 'addProficiency') {
@@ -791,6 +792,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: pickedProficiencies.map((prof) => ({
             type: 'ProficiencyAdded',
             proficiency: prof,
@@ -814,6 +816,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [
             {
               type: 'SkillsAdded',
@@ -834,6 +837,7 @@ export const applyPower = (
           sheet.sentidos.push(sheetAction.action.sense);
           sheet.sheetActionHistory.push({
             source: sheetAction.source,
+            powerName: powerOrAbility.name,
             changes: [{ type: 'SenseAdded', sense: sheetAction.action.sense }],
           });
           subSteps.push({
@@ -847,6 +851,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [{ type: 'EquipmentAdded', equipment }],
         });
 
@@ -865,6 +870,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: pickedPowers.map((power) => ({
             type: 'PowerAdded',
             powerName: power.name,
@@ -891,6 +897,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [
             {
               type: 'SpellsLearned',
@@ -928,6 +935,7 @@ export const applyPower = (
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [
             {
               type: 'SpellsLearned',
@@ -957,6 +965,7 @@ export const applyPower = (
         sheet.atributos[targetAttribute].mod += 1;
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
+          powerName: powerOrAbility.name,
           changes: [
             {
               type: 'AttributeIncreasedByAumentoDeAtributo',

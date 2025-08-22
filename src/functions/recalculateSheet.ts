@@ -10,6 +10,7 @@ import { getRaceDisplacement } from '@/data/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { applyRaceAbilities, applyPower } from './general';
+import { getRemovedPowers } from './reverseSheetActions';
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
@@ -122,11 +123,11 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         Object.values(updatedSheet.skills).includes(skill.name),
         updatedSheet.nivel
       ),
-      // Apply armor penalty only to affected skills
+      // Reset others to 0 and only apply armor penalty if affected
       others:
         SkillsWithArmorPenalty.includes(skill.name) && armorPenalty > 0
-          ? (skill.others || 0) + armorPenalty * -1
-          : skill.others || 0,
+          ? armorPenalty * -1
+          : 0,
     }));
   } else {
     // Create completeSkills from SkillsAttrs if it doesn't exist
@@ -215,31 +216,163 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
  * This function applies all powers, abilities, and bonuses to ensure
  * the sheet is consistent and up-to-date.
  *
- * For now, this is a simplified version that focuses on the most important
- * recalculations: powers, defense, and race abilities.
+ * @param sheet - The updated character sheet
+ * @param originalSheet - Optional original sheet state to detect removed powers
  */
-export function recalculateSheet(sheet: CharacterSheet): CharacterSheet {
+export function recalculateSheet(
+  sheet: CharacterSheet,
+  originalSheet?: CharacterSheet
+): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
+  let removedPowerNames: string[] = [];
 
-  // Step 0: Clear existing bonuses to avoid accumulation
+  // Step 0: If we have the original sheet, identify removed powers
+  if (originalSheet) {
+    // Find removed general powers
+    const originalGeneralPowers = originalSheet.generalPowers || [];
+    const newGeneralPowers = updatedSheet.generalPowers || [];
+    const removedGeneralPowers = getRemovedPowers(
+      originalGeneralPowers,
+      newGeneralPowers
+    );
+
+    // Find removed class powers
+    const originalClassPowers = originalSheet.classPowers || [];
+    const newClassPowers = updatedSheet.classPowers || [];
+    const removedClassPowers = getRemovedPowers(
+      originalClassPowers,
+      newClassPowers
+    );
+
+    removedPowerNames = [...removedGeneralPowers, ...removedClassPowers];
+
+    // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
+    removedPowerNames.forEach((powerName) => {
+      // Find all history entries for this power
+      const powerHistoryEntries = updatedSheet.sheetActionHistory.filter(
+        (entry) => entry.powerName === powerName
+      );
+
+      // Reverse each action in reverse order (LIFO)
+      powerHistoryEntries.reverse().forEach((historyEntry) => {
+        historyEntry.changes.forEach((change) => {
+          // Inline reversal logic to avoid circular imports
+          switch (change.type) {
+            case 'Attribute':
+              // Find the original modification to get the exact value that was added
+              const relevantHistory = updatedSheet.sheetActionHistory.find(
+                (entry) =>
+                  entry.powerName === powerName &&
+                  entry.changes.some(
+                    (c) =>
+                      c.type === 'Attribute' && c.attribute === change.attribute
+                  )
+              );
+              if (relevantHistory) {
+                const attributeChange = relevantHistory.changes.find(
+                  (c) =>
+                    c.type === 'Attribute' && c.attribute === change.attribute
+                ) as { type: 'Attribute'; attribute: Atributo; value: number };
+                if (attributeChange) {
+                  const originalValue =
+                    updatedSheet.atributos[change.attribute].mod;
+                  const modificationValue =
+                    attributeChange.value - originalValue;
+                  updatedSheet.atributos[change.attribute].mod -=
+                    modificationValue;
+                }
+              }
+              break;
+
+            case 'ProficiencyAdded':
+              const profIndex = updatedSheet.classe.proficiencias.indexOf(
+                change.proficiency
+              );
+              if (profIndex > -1) {
+                updatedSheet.classe.proficiencias.splice(profIndex, 1);
+              }
+              break;
+
+            case 'SkillsAdded':
+              change.skills.forEach((skill: string) => {
+                const skillIndex = updatedSheet.skills.indexOf(skill as Skill);
+                if (skillIndex > -1) {
+                  updatedSheet.skills.splice(skillIndex, 1);
+                }
+              });
+              break;
+
+            case 'SenseAdded':
+              if (updatedSheet.sentidos) {
+                const senseIndex = updatedSheet.sentidos.indexOf(change.sense);
+                if (senseIndex > -1) {
+                  updatedSheet.sentidos.splice(senseIndex, 1);
+                }
+              }
+              break;
+
+            case 'PowerAdded':
+              if (updatedSheet.generalPowers) {
+                const powerIndex = updatedSheet.generalPowers.findIndex(
+                  (power) => power.name === change.powerName
+                );
+                if (powerIndex > -1) {
+                  updatedSheet.generalPowers.splice(powerIndex, 1);
+                }
+              }
+              break;
+
+            case 'SpellsLearned':
+              if (updatedSheet.spells) {
+                change.spellNames.forEach((spellName: string) => {
+                  const spellIndex = updatedSheet.spells.findIndex(
+                    (spell) => spell.nome === spellName
+                  );
+                  if (spellIndex > -1) {
+                    updatedSheet.spells.splice(spellIndex, 1);
+                  }
+                });
+              }
+              break;
+
+            case 'AttributeIncreasedByAumentoDeAtributo':
+              updatedSheet.atributos[change.attribute].mod -= 1;
+              break;
+
+            // Add other cases as needed
+          }
+        });
+      });
+
+      // Remove history entries for this power
+      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory.filter(
+        (entry) => entry.powerName !== powerName
+      );
+    });
+  }
+
+  // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
 
-  // Step 1: Apply general powers (most important for manual additions)
+  // Step 2: Apply general powers (most important for manual additions)
   updatedSheet = applyGeneralPowers(updatedSheet);
 
-  // Step 2: Apply race abilities
+  // Step 3: Apply race abilities
   updatedSheet = applyRaceAbilities(updatedSheet);
 
-  // Step 3: Apply class abilities (filter by level)
+  // Step 4: Apply class abilities (filter by level)
   updatedSheet = applyClassAbilities(updatedSheet);
 
-  // Step 4: Apply divine powers
+  // Step 5: Apply divine powers
   updatedSheet = applyDivinePowers(updatedSheet);
 
-  // Step 5: Apply origin powers
+  // Step 6: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet);
 
-  // Step 6: Apply non-defense bonuses (PV, PM, skills, etc.)
+  // Step 7: Recalculate skills first (resets others to 0)
+  updatedSheet = recalculateCompleteSkills(updatedSheet);
+
+  // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (bonus.target.type !== 'Defense') {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
@@ -260,17 +393,14 @@ export function recalculateSheet(sheet: CharacterSheet): CharacterSheet {
     }
   });
 
-  // Step 7: Recalculate skills after applying bonuses
-  updatedSheet = recalculateCompleteSkills(updatedSheet);
-
-  // Step 8: Reset defense to base and recalculate from ground up
+  // Step 9: Reset defense to base and recalculate from ground up
   updatedSheet.defesa = 10; // Reset to base defense
   updatedSheet = calcDefense(updatedSheet); // Calculate base + equipment + attributes
 
-  // Step 9: Apply defense bonuses from powers AFTER base calculation
+  // Step 10: Apply defense bonuses from powers AFTER base calculation
   updatedSheet = applyDefenseBonuses(updatedSheet);
 
-  // Step 10: Recalculate displacement from ground up
+  // Step 11: Recalculate displacement from ground up
   const baseDisplacementBonuses = updatedSheet.sheetBonuses
     .filter((bonus) => bonus.target.type === 'Displacement')
     .reduce(
