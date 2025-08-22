@@ -1,7 +1,15 @@
 import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
+import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import tormentaPowers from '@/data/powers/tormentaPowers';
+import {
+  buildTabuAbility,
+  NATUREZA_ABILITIES,
+  PRESENTES_DATA,
+} from '@/data/races/duende';
 import HUMANO from '@/data/races/humano';
+import { Atributo } from '@/data/atributos';
+import { RACE_SIZES } from '@/data/races/raceSizes/raceSizes';
 import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
@@ -73,6 +81,103 @@ export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
       value: `Poder da Tormenta recebido (${randomPower.name})`,
     });
   }
+
+  return subSteps;
+}
+
+export function applyDuendePowers(sheet: CharacterSheet): SubStep[] {
+  const subSteps: SubStep[] = [];
+
+  function applyDuendeTamanho() {
+    const tamanho = getRandomItemFromArray([
+      'Minúsculo',
+      'Pequeno',
+      'Médio',
+      'Grande',
+    ]);
+
+    const displacement = sheet.raca.getDisplacement?.(sheet.raca) ?? 9;
+
+    if (tamanho === 'Minúsculo') {
+      sheet.size = RACE_SIZES.MINUSCULO;
+      sheet.displacement = -3;
+      sheet.atributos[Atributo.FORCA].mod -= 1;
+      subSteps.push({
+        name: 'Tamanho',
+        value: 'Minúsculo (-1 Força, 6m deslocamento)',
+      });
+    } else if (tamanho === 'Pequeno') {
+      sheet.size = RACE_SIZES.PEQUENO;
+      sheet.displacement = -3;
+      subSteps.push({ name: 'Tamanho', value: 'Pequeno (6m deslocamento)' });
+    } else if (tamanho === 'Médio') {
+      sheet.size = RACE_SIZES.MEDIO;
+      sheet.displacement = 0;
+      subSteps.push({
+        name: 'Tamanho',
+        value: `Médio (${displacement}m deslocamento)`,
+      });
+    } else if (tamanho === 'Grande') {
+      sheet.size = RACE_SIZES.GRANDE;
+      sheet.displacement = 0;
+      sheet.atributos[Atributo.DESTREZA].mod -= 1;
+      subSteps.push({
+        name: 'Tamanho',
+        value: `Grande (-1 Destreza, ${displacement}m deslocamento)`,
+      });
+    } else {
+      subSteps.push({ name: 'Tamanho', value: 'Padrão' });
+    }
+  }
+
+  function applyDuendeNatureza() {
+    const natureza = getRandomItemFromArray(Object.keys(NATUREZA_ABILITIES));
+    const abilities = NATUREZA_ABILITIES[natureza];
+
+    if (abilities) {
+      sheet.raca.abilities?.push(...abilities);
+    }
+
+    subSteps.push({
+      name: 'Natureza',
+      value: natureza,
+    });
+  }
+
+  function applyDuendePresentes() {
+    const presentes = pickFromArray(Object.keys(PRESENTES_DATA), 3);
+    presentes.forEach((presente: string) => {
+      const presenteData = PRESENTES_DATA[presente];
+      if (presenteData) {
+        sheet.raca.abilities?.push(presenteData);
+        const [newSheet, newSubSteps] = applyPower(sheet, presenteData);
+        Object.assign(sheet, newSheet);
+        subSteps.push(...newSubSteps);
+        subSteps.push({ name: 'Presente', value: presente });
+      }
+    });
+  }
+
+  function applyDuendeTabu() {
+    const tabuSkill = getRandomItemFromArray([
+      Skill.DIPLOMACIA,
+      Skill.INICIATIVA,
+      Skill.LUTA,
+      Skill.PERCEPCAO,
+    ]);
+
+    const tabuAbility = buildTabuAbility(tabuSkill);
+    sheet.raca.abilities?.push(tabuAbility);
+    const [newSheet, newSubSteps] = applyPower(sheet, tabuAbility);
+    Object.assign(sheet, newSheet);
+    subSteps.push(...newSubSteps);
+    subSteps.push({ name: 'Tabu', value: `-5 em ${tabuSkill}` });
+  }
+
+  applyDuendeTamanho();
+  applyDuendeNatureza();
+  applyDuendePresentes();
+  applyDuendeTabu();
 
   return subSteps;
 }

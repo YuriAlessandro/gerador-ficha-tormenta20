@@ -100,6 +100,7 @@ import {
   applyHumanoVersatil,
   applyLefouDeformidade,
   applyOsteonMemoriaPostuma,
+  applyDuendePowers,
 } from './powers/special';
 import { addOtherBonusToSkill } from './skills/general';
 import {
@@ -979,6 +980,8 @@ export const applyPower = (
           sheetAction.action.specialAction === 'osteonMemoriaPostuma'
         ) {
           currentSteps = applyOsteonMemoriaPostuma(sheet);
+        } else if (sheetAction.action.specialAction === 'duendePowers') {
+          currentSteps = applyDuendePowers(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
