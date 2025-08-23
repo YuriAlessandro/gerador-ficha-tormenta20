@@ -36,6 +36,18 @@ const Changelog: React.FC = () => (
           personalização da ficha.
         </li>
         <li>
+          <strong>⚔️ Bônus de Armas Específicas:</strong> Implementado sistema
+          de bônus para armas específicas. Poderes como &quot;Especialização em
+          Arma&quot;, &quot;Estilo de Arma Longa&quot; e outros agora aplicam
+          corretamente bônus de ataque, dano ou crítico nas armas apropriadas.
+        </li>
+        <li>
+          <strong>💖 Dom da Esperança:</strong> O poder &quot;Dom da
+          Esperança&quot; agora funciona corretamente, substituindo Constituição
+          por Sabedoria no cálculo de pontos de vida, inclusive ao subir de
+          nível.
+        </li>
+        <li>
           <strong>🔧 Melhorias na Edição:</strong> Sistema de edição de poderes
           aprimorado com melhor interface e seleções mais intuitivas. Poderes
           com opções específicas agora permitem escolhas precisas em vez de
