@@ -193,9 +193,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
         // Apply power with auto-selections and add to selected list
         setManualSelections((prev) => {
-          const canRepeat = power.canRepeat || false;
+          const isPowerRepeatable = power.canRepeat || false;
 
-          if (canRepeat) {
+          if (isPowerRepeatable) {
             // For repeatable powers, combine selections
             const currentSelections =
               (prev[power.name] as SelectionOptions) || {};
@@ -227,23 +227,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               ];
             }
             if (autoSelections.attributes) {
-              combined.attributes = [
-                ...(combined.attributes || []),
-                ...autoSelections.attributes,
-              ];
+              // For attributes, only store the new selection (not accumulate)
+              // since each power application should only affect the newly selected attribute
+              combined.attributes = autoSelections.attributes;
             }
 
             return {
               ...prev,
               [power.name]: combined,
             };
-          } else {
-            // For non-repeatable powers, store as single selection
-            return {
-              ...prev,
-              [power.name]: autoSelections,
-            };
           }
+          // For non-repeatable powers, store as single selection
+          return {
+            ...prev,
+            [power.name]: autoSelections,
+          };
         });
         setSelectedPowers((prev) => [...prev, power]);
       }
@@ -338,9 +336,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
         // Apply power with auto-selections and add to selected list
         setManualSelections((prev) => {
-          const canRepeat = power.canRepeat || false;
+          const isPowerRepeatable = power.canRepeat || false;
 
-          if (canRepeat) {
+          if (isPowerRepeatable) {
             // For repeatable powers, combine selections
             const currentSelections =
               (prev[power.name] as SelectionOptions) || {};
@@ -372,23 +370,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               ];
             }
             if (autoSelections.attributes) {
-              combined.attributes = [
-                ...(combined.attributes || []),
-                ...autoSelections.attributes,
-              ];
+              // For attributes, only store the new selection (not accumulate)
+              // since each power application should only affect the newly selected attribute
+              combined.attributes = autoSelections.attributes;
             }
 
             return {
               ...prev,
               [power.name]: combined,
             };
-          } else {
-            // For non-repeatable powers, store as single selection
-            return {
-              ...prev,
-              [power.name]: autoSelections,
-            };
           }
+          // For non-repeatable powers, store as single selection
+          return {
+            ...prev,
+            [power.name]: autoSelections,
+          };
         });
         setSelectedClassPowers((prev) => [...prev, power]);
       }
@@ -418,7 +414,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     const { powerToAdd, isClassPower } = selectionDialog;
 
     if (powerToAdd) {
-      const canRepeat = (powerToAdd as any).canRepeat || false;
+      const canRepeat =
+        ('canRepeat' in powerToAdd ? powerToAdd.canRepeat : false) || false;
 
       // Store the selections - for repeatable powers, combine all selections
       setManualSelections((prev) => {
@@ -459,23 +456,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }
 
           if (selections.attributes) {
-            combined.attributes = [
-              ...(combined.attributes || []),
-              ...selections.attributes,
-            ];
+            // For attributes, only store the new selection (not accumulate)
+            // since each power application should only affect the newly selected attribute
+            combined.attributes = selections.attributes;
           }
 
           return {
             ...prev,
             [powerToAdd.name]: combined,
           };
-        } else {
-          // For non-repeatable powers, store as single selection
-          return {
-            ...prev,
-            [powerToAdd.name]: selections,
-          };
         }
+        // For non-repeatable powers, store as single selection
+        return {
+          ...prev,
+          [powerToAdd.name]: selections,
+        };
       });
 
       // Add the power to the selected list
