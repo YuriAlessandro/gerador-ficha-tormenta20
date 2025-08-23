@@ -109,7 +109,10 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
 };
 
 // Helper function to apply weapon bonuses
-const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
+const applyWeaponBonuses = (
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet => {
   const updatedSheet = _.cloneDeep(sheet);
 
   // Apply weapon bonuses to all weapons in the bag
@@ -141,6 +144,22 @@ const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
           }
         }
       });
+
+      // Apply weapon specialization bonuses from manual selections
+      if (manualSelections) {
+        Object.entries(manualSelections).forEach(([powerName, selections]) => {
+          if (selections.weapons) {
+            selections.weapons.forEach((selectedWeapon) => {
+              if (weapon.nome === selectedWeapon) {
+                // Check if this is a specialization power
+                if (powerName === 'Especialização em Arma') {
+                  totalDamageBonus += 2; // +2 damage for weapon specialization
+                }
+              }
+            });
+          }
+        });
+      }
 
       // Apply totaled bonuses
       if (totalAttackBonus > 0) {
@@ -620,7 +639,7 @@ export function recalculateSheet(
   );
 
   // Step 12: Apply weapon bonuses
-  updatedSheet = applyWeaponBonuses(updatedSheet);
+  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
   return updatedSheet;
 }

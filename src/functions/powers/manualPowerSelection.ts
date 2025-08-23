@@ -12,6 +12,7 @@ import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
 import { Atributo } from '@/data/atributos';
 import { getAttributeIncreasesInSamePlateau } from './general';
+import { Armas } from '@/data/equipamentos';
 
 /**
  * Check if a power requires manual selection from the user
@@ -89,6 +90,15 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
           pick: 1, // Always pick 1 attribute
           label: 'Selecione 1 atributo para aumentar',
+        });
+      }
+
+      if (action.type === 'selectWeaponSpecialization') {
+        requirements.push({
+          type: 'selectWeaponSpecialization',
+          availableOptions: action.availableWeapons || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 weapon
+          label: 'Selecione 1 arma para especialização',
         });
       }
     });
@@ -243,6 +253,19 @@ export function getFilteredAvailableOptions(
 
       // Return attribute names sorted alphabetically
       return availableAttributes.sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'selectWeaponSpecialization': {
+      // If specific weapons were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available weapons
+      const allWeaponNames = Object.values(Armas).map((weapon) => weapon.nome);
+      return allWeaponNames.sort((a, b) => a.localeCompare(b));
     }
 
     default:
