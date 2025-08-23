@@ -25,6 +25,7 @@ import {
   getFilteredAvailableOptions,
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
+import { FAMILIARS } from '@/data/familiars';
 
 interface PowerSelectionDialogProps {
   open: boolean;
@@ -207,6 +208,33 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
       }
 
       return { ...prev, weapons: newWeapons };
+    });
+  };
+
+  const handleFamiliarSelection = (
+    familiar: string,
+    checked: boolean,
+    pick: number
+  ) => {
+    setSelections((prev) => {
+      const currentFamiliars = prev.familiars || [];
+      let newFamiliars: string[];
+
+      if (pick === 1) {
+        // Single selection - replace
+        newFamiliars = checked ? [familiar] : [];
+      } else if (checked) {
+        // Multiple selection (keeping for consistency)
+        if (currentFamiliars.length < pick) {
+          newFamiliars = [...currentFamiliars, familiar];
+        } else {
+          newFamiliars = currentFamiliars;
+        }
+      } else {
+        newFamiliars = currentFamiliars.filter((f) => f !== familiar);
+      }
+
+      return { ...prev, familiars: newFamiliars };
     });
   };
 
@@ -555,6 +583,47 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                     label={weapon}
                   />
                 ))}
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        );
+      }
+
+      case 'selectFamiliar': {
+        const selectedFamiliars = selections.familiars || [];
+
+        return (
+          <Box key={index} mb={2}>
+            <Typography variant='h6' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset'>
+              <RadioGroup
+                value={selectedFamiliars[0] || ''}
+                onChange={(e) =>
+                  handleFamiliarSelection(e.target.value, true, pick)
+                }
+              >
+                {availableOptions.map((familiarKey) => {
+                  const familiar = FAMILIARS[familiarKey];
+                  return (
+                    <FormControlLabel
+                      key={familiarKey}
+                      value={familiarKey}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant='subtitle2'>
+                            {familiar.name}
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            {familiar.description}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  );
+                })}
               </RadioGroup>
             </FormControl>
           </Box>

@@ -88,6 +88,10 @@ export type SheetActionStep =
   | {
       type: 'selectWeaponSpecialization';
       availableWeapons?: string[]; // List of weapon names to choose from, or empty for all weapons
+    }
+  | {
+      type: 'selectFamiliar';
+      availableFamiliars?: string[]; // List of familiar names to choose from, or empty for all familiars
     };
 
 export type SheetActionReceipt =

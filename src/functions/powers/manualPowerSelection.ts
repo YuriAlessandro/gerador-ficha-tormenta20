@@ -12,6 +12,7 @@ import { Atributo } from '@/data/atributos';
 import { Armas } from '@/data/equipamentos';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
+import { FAMILIAR_NAMES } from '@/data/familiars';
 import { getAttributeIncreasesInSamePlateau } from './general';
 
 /**
@@ -99,6 +100,15 @@ export function getPowerSelectionRequirements(
           availableOptions: action.availableWeapons || [], // Will be populated dynamically if empty
           pick: 1, // Always pick 1 weapon
           label: 'Selecione 1 arma para especialização',
+        });
+      }
+
+      if (action.type === 'selectFamiliar') {
+        requirements.push({
+          type: 'selectFamiliar',
+          availableOptions: action.availableFamiliars || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 familiar
+          label: 'Selecione 1 familiar',
         });
       }
     });
@@ -268,6 +278,18 @@ export function getFilteredAvailableOptions(
       return allWeaponNames.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'selectFamiliar': {
+      // If specific familiars were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available familiars
+      return FAMILIAR_NAMES.sort((a, b) => a.localeCompare(b));
+    }
+
     default:
       return availableOptions;
   }
@@ -319,6 +341,11 @@ export function validateSelections(
 
       case 'selectWeaponSpecialization':
         selectedItems = selections.weapons || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'selectFamiliar':
+        selectedItems = selections.familiars || [];
         selectedCount = selectedItems.length;
         break;
 

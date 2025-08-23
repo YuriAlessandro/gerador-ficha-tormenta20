@@ -16,6 +16,7 @@ import EQUIPAMENTOS, {
   bardInstruments,
   Armas,
 } from '../data/equipamentos';
+import { FAMILIARS, FAMILIAR_NAMES } from '../data/familiars';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import {
@@ -1062,6 +1063,56 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Especialização em ${selectedWeapon} (+2 dano)`,
+        });
+      } else if (sheetAction.action.type === 'selectFamiliar') {
+        // Get all available familiars
+        const availableFamiliars = FAMILIAR_NAMES;
+
+        let selectedFamiliar: string;
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.familiars &&
+          manualSelections.familiars.length > 0
+        ) {
+          [selectedFamiliar] = manualSelections.familiars;
+        } else {
+          selectedFamiliar = getRandomItemFromArray(availableFamiliars);
+        }
+
+        // Get familiar data
+        const familiar = FAMILIARS[selectedFamiliar];
+
+        // Apply Cat bonus (+2 Stealth) if Gato is selected
+        if (selectedFamiliar === 'GATO') {
+          sheet.sheetBonuses.push({
+            source: sheetAction.source,
+            target: {
+              type: 'Skill',
+              name: Skill.FURTIVIDADE,
+            },
+            modifier: {
+              type: 'Fixed',
+              value: 2,
+            },
+          });
+        }
+
+        // Update power text to show selected familiar
+        if (sheet.classPowers) {
+          const powerIndex = sheet.classPowers.findIndex(
+            (power) => power.name === 'Familiar'
+          );
+          if (powerIndex !== -1) {
+            sheet.classPowers[
+              powerIndex
+            ].text = `Você possui um familiar ${familiar.name}. ${familiar.description}`;
+          }
+        }
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Familiar selecionado: ${familiar.name}`,
         });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];

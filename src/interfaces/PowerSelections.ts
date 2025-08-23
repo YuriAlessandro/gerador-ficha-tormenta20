@@ -11,6 +11,7 @@ export interface SelectionOptions {
   spells?: Spell[];
   attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
   weapons?: string[]; // Weapon names for specialization
+  familiars?: string[]; // Familiar names for selection
 }
 
 /**
@@ -41,7 +42,8 @@ export interface PowerSelectionRequirement {
     | 'learnSpell'
     | 'learnAnySpellFromHighestCircle'
     | 'increaseAttribute'
-    | 'selectWeaponSpecialization';
+    | 'selectWeaponSpecialization'
+    | 'selectFamiliar';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;
