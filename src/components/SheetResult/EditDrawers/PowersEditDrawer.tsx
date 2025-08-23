@@ -312,11 +312,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     });
   };
 
-  const isPowerSelected = (power: GeneralPower) =>
-    selectedPowers.some((p) => p.name === power.name);
+  const isPowerSelected = (power: GeneralPower) => {
+    if (power.canRepeat) {
+      // For repeatable powers, never show as "selected" (always allow adding more)
+      return false;
+    }
+    return selectedPowers.some((p) => p.name === power.name);
+  };
 
-  const isClassPowerSelected = (power: ClassPower) =>
-    selectedClassPowers.some((p) => p.name === power.name);
+  const isClassPowerSelected = (power: ClassPower) => {
+    if (power.canRepeat) {
+      // For repeatable powers, never show as "selected" (always allow adding more)
+      return false;
+    }
+    return selectedClassPowers.some((p) => p.name === power.name);
+  };
 
   const checkRequirements = (power: GeneralPower): boolean => {
     if (!power.requirements || power.requirements.length === 0) {
@@ -634,14 +644,31 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   flexWrap='wrap'
                   sx={{ mb: 2 }}
                 >
-                  {selectedPowers.map((power) => (
-                    <Chip
-                      key={power.name}
-                      label={power.name}
-                      size='small'
-                      onDelete={() => handlePowerToggle(power)}
-                    />
-                  ))}
+                  {selectedPowers.map((power, index) => {
+                    // Count how many instances of this power exist and what position this one is
+                    const instancesOfSamePower = selectedPowers.filter(
+                      (p) => p.name === power.name
+                    );
+                    const instanceNumber = selectedPowers
+                      .slice(0, index + 1)
+                      .filter((p) => p.name === power.name).length;
+                    const totalInstances = instancesOfSamePower.length;
+
+                    const label =
+                      totalInstances > 1
+                        ? `${power.name} (${instanceNumber}/${totalInstances})`
+                        : power.name;
+
+                    return (
+                      <Chip
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={`${power.name}-${index}`}
+                        label={label}
+                        size='small'
+                        onDelete={() => handlePowerToggle(power)}
+                      />
+                    );
+                  })}
                 </Stack>
               </>
             )}
@@ -656,15 +683,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   flexWrap='wrap'
                   sx={{ mb: 2 }}
                 >
-                  {selectedClassPowers.map((power) => (
-                    <Chip
-                      key={power.name}
-                      label={power.name}
-                      size='small'
-                      color='secondary'
-                      onDelete={() => handleClassPowerToggle(power)}
-                    />
-                  ))}
+                  {selectedClassPowers.map((power, index) => {
+                    // Count how many instances of this power exist and what position this one is
+                    const instancesOfSamePower = selectedClassPowers.filter(
+                      (p) => p.name === power.name
+                    );
+                    const instanceNumber = selectedClassPowers
+                      .slice(0, index + 1)
+                      .filter((p) => p.name === power.name).length;
+                    const totalInstances = instancesOfSamePower.length;
+
+                    const label =
+                      totalInstances > 1
+                        ? `${power.name} (${instanceNumber}/${totalInstances})`
+                        : power.name;
+
+                    return (
+                      <Chip
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={`${power.name}-${index}`}
+                        label={label}
+                        size='small'
+                        color='secondary'
+                        onDelete={() => handleClassPowerToggle(power)}
+                      />
+                    );
+                  })}
                 </Stack>
               </>
             )}

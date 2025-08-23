@@ -39,6 +39,7 @@ export interface GeneralPower {
   name: string;
   requirements: Requirement[][];
   allowSeveralPicks?: boolean;
+  canRepeat?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
 }
