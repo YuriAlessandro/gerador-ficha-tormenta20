@@ -87,6 +87,27 @@ const weaponMatchesBonus = (
   return true;
 };
 
+// Helper function to reset weapon to base values (remove previous bonuses)
+const resetWeaponToBase = (weapon: Equipment): Equipment => {
+  const resetWeapon = { ...weapon };
+
+  // Reset atkBonus to 0 (base value)
+  resetWeapon.atkBonus = 0;
+
+  // Reset damage string to remove any added bonuses
+  if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
+    // Extract base damage (everything before the first '+')
+    resetWeapon.dano = resetWeapon.dano.split('+')[0];
+  }
+
+  // Reset critical to base value - this is more complex as we need to handle
+  // various formats like "x2", "19", "19/x3", etc.
+  // For now, we'll store original values or use a more sophisticated approach
+  // TODO: Consider storing original weapon data separately
+
+  return resetWeapon;
+};
+
 // Helper function to apply weapon bonuses
 const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
   const updatedSheet = _.cloneDeep(sheet);
@@ -94,7 +115,13 @@ const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
   // Apply weapon bonuses to all weapons in the bag
   updatedSheet.bag.equipments.Arma = updatedSheet.bag.equipments.Arma.map(
     (weapon) => {
-      const weaponCopy = { ...weapon };
+      // Start with a clean weapon (reset any previous bonuses)
+      const weaponCopy = resetWeaponToBase(weapon);
+
+      // Calculate total bonuses for this weapon
+      let totalAttackBonus = 0;
+      let totalDamageBonus = 0;
+      let totalCriticalBonus = 0;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
         if (
@@ -106,53 +133,54 @@ const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
           const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
           if (bonus.target.type === 'WeaponAttack') {
-            weaponCopy.atkBonus = (weaponCopy.atkBonus || 0) + bonusValue;
+            totalAttackBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamage') {
-            // For damage bonuses, we'll add them to the weapon name for display
-            // This is a simple approach - a more sophisticated one would modify the damage calculation
-            if (bonusValue > 0) {
-              weaponCopy.dano = weaponCopy.dano
-                ? `${weaponCopy.dano}+${bonusValue}`
-                : `+${bonusValue}`;
-            }
+            totalDamageBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponCritical') {
-            // For critical bonuses, modify the critical range/multiplier
-            // This is a simplified implementation
-            if (weaponCopy.critico && bonusValue > 0) {
-              if (weaponCopy.critico.includes('x')) {
-                // Handle multiplier increase (e.g., x2 -> x3)
-                const currentMult = parseInt(
-                  weaponCopy.critico.match(/x(\d+)/)?.[1] || '2'
-                );
-                weaponCopy.critico = weaponCopy.critico.replace(
-                  /x\d+/,
-                  `x${currentMult + bonusValue}`
-                );
-              } else if (weaponCopy.critico.includes('/')) {
-                // Handle combined range/multiplier (e.g., 19/x3)
-                const parts = weaponCopy.critico.split('/');
-                if (parts[1].includes('x')) {
-                  const currentMult = parseInt(
-                    parts[1].match(/x(\d+)/)?.[1] || '2'
-                  );
-                  weaponCopy.critico = `${parts[0]}/x${
-                    currentMult + bonusValue
-                  }`;
-                }
-              } else {
-                // Handle range increase (e.g., 19 -> 18)
-                const currentRange = parseInt(weaponCopy.critico);
-                if (!isNaN(currentRange)) {
-                  weaponCopy.critico = `${Math.max(
-                    1,
-                    currentRange - bonusValue
-                  )}`;
-                }
-              }
-            }
+            totalCriticalBonus += bonusValue;
           }
         }
       });
+
+      // Apply totaled bonuses
+      if (totalAttackBonus > 0) {
+        weaponCopy.atkBonus = totalAttackBonus;
+      }
+
+      if (totalDamageBonus > 0) {
+        weaponCopy.dano = weaponCopy.dano
+          ? `${weaponCopy.dano}+${totalDamageBonus}`
+          : `+${totalDamageBonus}`;
+      }
+
+      if (totalCriticalBonus > 0 && weaponCopy.critico) {
+        // Apply critical bonus logic (simplified for now)
+        if (weaponCopy.critico.includes('x')) {
+          const currentMult = parseInt(
+            weaponCopy.critico.match(/x(\d+)/)?.[1] || '2'
+          );
+          weaponCopy.critico = weaponCopy.critico.replace(
+            /x\d+/,
+            `x${currentMult + totalCriticalBonus}`
+          );
+        } else if (weaponCopy.critico.includes('/')) {
+          const parts = weaponCopy.critico.split('/');
+          if (parts[1].includes('x')) {
+            const currentMult = parseInt(parts[1].match(/x(\d+)/)?.[1] || '2');
+            weaponCopy.critico = `${parts[0]}/x${
+              currentMult + totalCriticalBonus
+            }`;
+          }
+        } else {
+          const currentRange = parseInt(weaponCopy.critico);
+          if (!isNaN(currentRange)) {
+            weaponCopy.critico = `${Math.max(
+              1,
+              currentRange - totalCriticalBonus
+            )}`;
+          }
+        }
+      }
 
       return weaponCopy;
     }
