@@ -127,83 +127,155 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   const handlePowerToggle = (power: GeneralPower) => {
     const isSelected = selectedPowers.some((p) => p.name === power.name);
+    const canRepeat = power.canRepeat || false;
 
-    if (isSelected) {
-      // Remove power and its selections
+    // For repeatable powers, always add a new instance
+    // For non-repeatable powers, toggle (add if not selected, remove if selected)
+    if (isSelected && !canRepeat) {
+      // Remove non-repeatable power and its selections
       setSelectedPowers((prev) => prev.filter((p) => p.name !== power.name));
       setManualSelections((prev) => {
         const updated = { ...prev };
         delete updated[power.name];
         return updated;
       });
-    } else {
-      // Check if power requires manual selection
-      const requirements = getPowerSelectionRequirements(power);
+      return;
+    }
 
-      if (requirements) {
-        // Check if any requirement actually has multiple options to choose from
-        const requiresUserInput = requirements.requirements.some((req) => {
+    // Adding a new instance (for both first-time selection and repeatable powers)
+    // Check if power requires manual selection
+    const requirements = getPowerSelectionRequirements(power);
+
+    if (requirements) {
+      // Check if any requirement actually has multiple options to choose from
+      const requiresUserInput = requirements.requirements.some((req) => {
+        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        return (
+          availableOptions.length > 1 && req.pick < availableOptions.length
+        );
+      });
+
+      if (requiresUserInput) {
+        // Open selection dialog
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: false,
+        });
+      } else {
+        // Auto-select when there's only one option or all options must be picked
+        const autoSelections: SelectionOptions = {};
+        requirements.requirements.forEach((req) => {
           const availableOptions = getFilteredAvailableOptions(req, sheet);
-          return (
-            availableOptions.length > 1 && req.pick < availableOptions.length
-          );
+          if (
+            availableOptions.length === req.pick ||
+            availableOptions.length === 1
+          ) {
+            if (req.type === 'learnSkill') {
+              autoSelections.skills = availableOptions as string[];
+            } else if (req.type === 'addProficiency') {
+              autoSelections.proficiencies = availableOptions as string[];
+            } else if (req.type === 'getGeneralPower') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.powers = availableOptions as any[];
+            } else if (
+              req.type === 'learnSpell' ||
+              req.type === 'learnAnySpellFromHighestCircle'
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.spells = availableOptions as any[];
+            } else if (req.type === 'increaseAttribute') {
+              autoSelections.attributes = availableOptions as string[];
+            }
+          }
         });
 
-        if (requiresUserInput) {
-          // Open selection dialog
-          setSelectionDialog({
-            open: true,
-            requirements,
-            powerToAdd: power,
-            isClassPower: false,
-          });
-        } else {
-          // Auto-select when there's only one option or all options must be picked
-          const autoSelections: SelectionOptions = {};
-          requirements.requirements.forEach((req) => {
-            const availableOptions = getFilteredAvailableOptions(req, sheet);
-            if (
-              availableOptions.length === req.pick ||
-              availableOptions.length === 1
-            ) {
-              if (req.type === 'learnSkill') {
-                autoSelections.skills = availableOptions as string[];
-              } else if (req.type === 'addProficiency') {
-                autoSelections.proficiencies = availableOptions as string[];
-              } else if (req.type === 'getGeneralPower') {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                autoSelections.powers = availableOptions as any[];
-              } else if (
-                req.type === 'learnSpell' ||
-                req.type === 'learnAnySpellFromHighestCircle'
-              ) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                autoSelections.spells = availableOptions as any[];
-              } else if (req.type === 'increaseAttribute') {
-                autoSelections.attributes = availableOptions as string[];
-              }
-            }
-          });
+        // Apply power with auto-selections and add to selected list
+        setManualSelections((prev) => {
+          const canRepeat = power.canRepeat || false;
 
-          // Apply power with auto-selections and add to selected list
-          setManualSelections((prev) => ({
-            ...prev,
-            [power.name]: autoSelections,
-          }));
-          setSelectedPowers((prev) => [...prev, power]);
-        }
-      } else {
-        // Add power directly
+          if (canRepeat) {
+            // For repeatable powers, combine selections
+            const currentSelections =
+              (prev[power.name] as SelectionOptions) || {};
+            const combined: SelectionOptions = { ...currentSelections };
+
+            // Combine auto-selections
+            if (autoSelections.spells) {
+              combined.spells = [
+                ...(combined.spells || []),
+                ...autoSelections.spells,
+              ];
+            }
+            if (autoSelections.skills) {
+              combined.skills = [
+                ...(combined.skills || []),
+                ...autoSelections.skills,
+              ];
+            }
+            if (autoSelections.proficiencies) {
+              combined.proficiencies = [
+                ...(combined.proficiencies || []),
+                ...autoSelections.proficiencies,
+              ];
+            }
+            if (autoSelections.powers) {
+              combined.powers = [
+                ...(combined.powers || []),
+                ...autoSelections.powers,
+              ];
+            }
+            if (autoSelections.attributes) {
+              combined.attributes = [
+                ...(combined.attributes || []),
+                ...autoSelections.attributes,
+              ];
+            }
+
+            return {
+              ...prev,
+              [power.name]: combined,
+            };
+          } else {
+            // For non-repeatable powers, store as single selection
+            return {
+              ...prev,
+              [power.name]: autoSelections,
+            };
+          }
+        });
         setSelectedPowers((prev) => [...prev, power]);
       }
+    } else {
+      // Add power directly
+      setSelectedPowers((prev) => [...prev, power]);
     }
+  };
+
+  // Handler for removing specific power instances (called from chip delete buttons)
+  const handlePowerRemove = (powerToRemove: GeneralPower) => {
+    // Remove all instances of this power from selected powers
+    setSelectedPowers((prev) =>
+      prev.filter((p) => p.name !== powerToRemove.name)
+    );
+
+    // Remove all selections for this power
+    setManualSelections((prev) => {
+      const updated = { ...prev };
+      delete updated[powerToRemove.name];
+      return updated;
+    });
   };
 
   const handleClassPowerToggle = (power: ClassPower) => {
     const isSelected = selectedClassPowers.some((p) => p.name === power.name);
+    const canRepeat = power.canRepeat || false;
 
-    if (isSelected) {
-      // Remove power and its selections
+    // For repeatable powers, always add a new instance
+    // For non-repeatable powers, toggle (add if not selected, remove if selected)
+    if (isSelected && !canRepeat) {
+      // Remove non-repeatable power and its selections
       setSelectedClassPowers((prev) =>
         prev.filter((p) => p.name !== power.name)
       );
@@ -212,67 +284,133 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         delete updated[power.name];
         return updated;
       });
-    } else {
-      // Check if power requires manual selection
-      const requirements = getPowerSelectionRequirements(power);
+      return;
+    }
 
-      if (requirements) {
-        // Check if any requirement actually has multiple options to choose from
-        const requiresUserInput = requirements.requirements.some((req) => {
+    // Adding a new instance (for both first-time selection and repeatable powers)
+    // Check if power requires manual selection
+    const requirements = getPowerSelectionRequirements(power);
+
+    if (requirements) {
+      // Check if any requirement actually has multiple options to choose from
+      const requiresUserInput = requirements.requirements.some((req) => {
+        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        return (
+          availableOptions.length > 1 && req.pick < availableOptions.length
+        );
+      });
+
+      if (requiresUserInput) {
+        // Open selection dialog
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: true,
+        });
+      } else {
+        // Auto-select when there's only one option or all options must be picked
+        const autoSelections: SelectionOptions = {};
+        requirements.requirements.forEach((req) => {
           const availableOptions = getFilteredAvailableOptions(req, sheet);
-          return (
-            availableOptions.length > 1 && req.pick < availableOptions.length
-          );
+          if (
+            availableOptions.length === req.pick ||
+            availableOptions.length === 1
+          ) {
+            if (req.type === 'learnSkill') {
+              autoSelections.skills = availableOptions as string[];
+            } else if (req.type === 'addProficiency') {
+              autoSelections.proficiencies = availableOptions as string[];
+            } else if (req.type === 'getGeneralPower') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.powers = availableOptions as any[];
+            } else if (
+              req.type === 'learnSpell' ||
+              req.type === 'learnAnySpellFromHighestCircle'
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.spells = availableOptions as any[];
+            } else if (req.type === 'increaseAttribute') {
+              autoSelections.attributes = availableOptions as string[];
+            }
+          }
         });
 
-        if (requiresUserInput) {
-          // Open selection dialog
-          setSelectionDialog({
-            open: true,
-            requirements,
-            powerToAdd: power,
-            isClassPower: true,
-          });
-        } else {
-          // Auto-select when there's only one option or all options must be picked
-          const autoSelections: SelectionOptions = {};
-          requirements.requirements.forEach((req) => {
-            const availableOptions = getFilteredAvailableOptions(req, sheet);
-            if (
-              availableOptions.length === req.pick ||
-              availableOptions.length === 1
-            ) {
-              if (req.type === 'learnSkill') {
-                autoSelections.skills = availableOptions as string[];
-              } else if (req.type === 'addProficiency') {
-                autoSelections.proficiencies = availableOptions as string[];
-              } else if (req.type === 'getGeneralPower') {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                autoSelections.powers = availableOptions as any[];
-              } else if (
-                req.type === 'learnSpell' ||
-                req.type === 'learnAnySpellFromHighestCircle'
-              ) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                autoSelections.spells = availableOptions as any[];
-              } else if (req.type === 'increaseAttribute') {
-                autoSelections.attributes = availableOptions as string[];
-              }
-            }
-          });
+        // Apply power with auto-selections and add to selected list
+        setManualSelections((prev) => {
+          const canRepeat = power.canRepeat || false;
 
-          // Apply power with auto-selections and add to selected list
-          setManualSelections((prev) => ({
-            ...prev,
-            [power.name]: autoSelections,
-          }));
-          setSelectedClassPowers((prev) => [...prev, power]);
-        }
-      } else {
-        // Add power directly
+          if (canRepeat) {
+            // For repeatable powers, combine selections
+            const currentSelections =
+              (prev[power.name] as SelectionOptions) || {};
+            const combined: SelectionOptions = { ...currentSelections };
+
+            // Combine auto-selections
+            if (autoSelections.spells) {
+              combined.spells = [
+                ...(combined.spells || []),
+                ...autoSelections.spells,
+              ];
+            }
+            if (autoSelections.skills) {
+              combined.skills = [
+                ...(combined.skills || []),
+                ...autoSelections.skills,
+              ];
+            }
+            if (autoSelections.proficiencies) {
+              combined.proficiencies = [
+                ...(combined.proficiencies || []),
+                ...autoSelections.proficiencies,
+              ];
+            }
+            if (autoSelections.powers) {
+              combined.powers = [
+                ...(combined.powers || []),
+                ...autoSelections.powers,
+              ];
+            }
+            if (autoSelections.attributes) {
+              combined.attributes = [
+                ...(combined.attributes || []),
+                ...autoSelections.attributes,
+              ];
+            }
+
+            return {
+              ...prev,
+              [power.name]: combined,
+            };
+          } else {
+            // For non-repeatable powers, store as single selection
+            return {
+              ...prev,
+              [power.name]: autoSelections,
+            };
+          }
+        });
         setSelectedClassPowers((prev) => [...prev, power]);
       }
+    } else {
+      // Add power directly
+      setSelectedClassPowers((prev) => [...prev, power]);
     }
+  };
+
+  // Handler for removing specific class power instances (called from chip delete buttons)
+  const handleClassPowerRemove = (powerToRemove: ClassPower) => {
+    // Remove all instances of this power from selected class powers
+    setSelectedClassPowers((prev) =>
+      prev.filter((p) => p.name !== powerToRemove.name)
+    );
+
+    // Remove all selections for this power
+    setManualSelections((prev) => {
+      const updated = { ...prev };
+      delete updated[powerToRemove.name];
+      return updated;
+    });
   };
 
   // Selection dialog handlers
@@ -280,11 +418,65 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     const { powerToAdd, isClassPower } = selectionDialog;
 
     if (powerToAdd) {
-      // Store the selections
-      setManualSelections((prev) => ({
-        ...prev,
-        [powerToAdd.name]: selections,
-      }));
+      const canRepeat = (powerToAdd as any).canRepeat || false;
+
+      // Store the selections - for repeatable powers, combine all selections
+      setManualSelections((prev) => {
+        if (canRepeat) {
+          // For repeatable powers, combine selections
+          const currentSelections =
+            (prev[powerToAdd.name] as SelectionOptions) || {};
+          const combined: SelectionOptions = { ...currentSelections };
+
+          // Combine spells
+          if (selections.spells) {
+            combined.spells = [
+              ...(combined.spells || []),
+              ...selections.spells,
+            ];
+          }
+
+          // Combine other selection types
+          if (selections.skills) {
+            combined.skills = [
+              ...(combined.skills || []),
+              ...selections.skills,
+            ];
+          }
+
+          if (selections.proficiencies) {
+            combined.proficiencies = [
+              ...(combined.proficiencies || []),
+              ...selections.proficiencies,
+            ];
+          }
+
+          if (selections.powers) {
+            combined.powers = [
+              ...(combined.powers || []),
+              ...selections.powers,
+            ];
+          }
+
+          if (selections.attributes) {
+            combined.attributes = [
+              ...(combined.attributes || []),
+              ...selections.attributes,
+            ];
+          }
+
+          return {
+            ...prev,
+            [powerToAdd.name]: combined,
+          };
+        } else {
+          // For non-repeatable powers, store as single selection
+          return {
+            ...prev,
+            [powerToAdd.name]: selections,
+          };
+        }
+      });
 
       // Add the power to the selected list
       if (isClassPower) {
@@ -548,6 +740,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       classPowers: selectedClassPowers,
       steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
     };
+
     const recalculatedSheet = recalculateSheet(
       updatedSheet,
       sheet,
@@ -644,31 +837,28 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   flexWrap='wrap'
                   sx={{ mb: 2 }}
                 >
-                  {selectedPowers.map((power, index) => {
-                    // Count how many instances of this power exist and what position this one is
-                    const instancesOfSamePower = selectedPowers.filter(
-                      (p) => p.name === power.name
-                    );
-                    const instanceNumber = selectedPowers
-                      .slice(0, index + 1)
-                      .filter((p) => p.name === power.name).length;
-                    const totalInstances = instancesOfSamePower.length;
+                  {/* Show unique powers with counts */}
+                  {Array.from(new Set(selectedPowers.map((p) => p.name))).map(
+                    (powerName) => {
+                      const count = selectedPowers.filter(
+                        (p) => p.name === powerName
+                      ).length;
+                      const power = selectedPowers.find(
+                        (p) => p.name === powerName
+                      )!;
+                      const label =
+                        count > 1 ? `${powerName} (${count}x)` : powerName;
 
-                    const label =
-                      totalInstances > 1
-                        ? `${power.name} (${instanceNumber}/${totalInstances})`
-                        : power.name;
-
-                    return (
-                      <Chip
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${power.name}-${index}`}
-                        label={label}
-                        size='small'
-                        onDelete={() => handlePowerToggle(power)}
-                      />
-                    );
-                  })}
+                      return (
+                        <Chip
+                          key={powerName}
+                          label={label}
+                          size='small'
+                          onDelete={() => handlePowerRemove(power)}
+                        />
+                      );
+                    }
+                  )}
                 </Stack>
               </>
             )}
@@ -683,29 +873,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   flexWrap='wrap'
                   sx={{ mb: 2 }}
                 >
-                  {selectedClassPowers.map((power, index) => {
-                    // Count how many instances of this power exist and what position this one is
-                    const instancesOfSamePower = selectedClassPowers.filter(
-                      (p) => p.name === power.name
-                    );
-                    const instanceNumber = selectedClassPowers
-                      .slice(0, index + 1)
-                      .filter((p) => p.name === power.name).length;
-                    const totalInstances = instancesOfSamePower.length;
-
+                  {/* Show unique class powers with counts */}
+                  {Array.from(
+                    new Set(selectedClassPowers.map((p) => p.name))
+                  ).map((powerName) => {
+                    const count = selectedClassPowers.filter(
+                      (p) => p.name === powerName
+                    ).length;
+                    const power = selectedClassPowers.find(
+                      (p) => p.name === powerName
+                    )!;
                     const label =
-                      totalInstances > 1
-                        ? `${power.name} (${instanceNumber}/${totalInstances})`
-                        : power.name;
+                      count > 1 ? `${powerName} (${count}x)` : powerName;
 
                     return (
                       <Chip
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${power.name}-${index}`}
+                        key={powerName}
                         label={label}
                         size='small'
                         color='secondary'
-                        onDelete={() => handleClassPowerToggle(power)}
+                        onDelete={() => handleClassPowerRemove(power)}
                       />
                     );
                   })}

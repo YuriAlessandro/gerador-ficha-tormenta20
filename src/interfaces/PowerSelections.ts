@@ -22,6 +22,8 @@ export interface PowerSelection {
 
 /**
  * Collection of all manual power selections
+ * For repeatable powers, selections are combined into a single SelectionOptions
+ * For non-repeatable powers, stores a single selection
  */
 export interface ManualPowerSelections {
   [powerName: string]: SelectionOptions;

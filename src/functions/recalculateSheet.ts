@@ -195,8 +195,12 @@ function applyGeneralPowers(
   let sheetClone = _.cloneDeep(sheet);
 
   sheetClone = (sheetClone.generalPowers || []).reduce((acc, power) => {
-    const selections = manualSelections?.[power.name];
-    const [newAcc] = applyPower(acc, power, selections);
+    const powerName = power.name;
+    const powerSelections = manualSelections?.[powerName];
+
+    // All selections are now combined for repeatable powers
+
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
@@ -210,8 +214,12 @@ function applyClassPowers(
   let sheetClone = _.cloneDeep(sheet);
 
   sheetClone = (sheetClone.classPowers || []).reduce((acc, power) => {
-    const selections = manualSelections?.[power.name];
-    const [newAcc] = applyPower(acc, power, selections);
+    const powerName = power.name;
+    const powerSelections = manualSelections?.[powerName];
+
+    // All selections are now combined for repeatable powers
+
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
@@ -422,16 +430,21 @@ export function recalculateSheet(
         // Find which power this bonus belongs to by checking the bonus source
         if (
           bonus.source?.type === 'power' &&
-          manualSelections?.[bonus.source.name]?.skills
+          manualSelections?.[bonus.source.name]
         ) {
           const powerName = bonus.source.name;
           const powerSelections = manualSelections[powerName];
+
+          // All selections are now combined in a single SelectionOptions object
+          let skillsToProcess: string[] = [];
+
           if (powerSelections?.skills) {
-            const selectedSkills = powerSelections.skills.slice(
-              0,
-              bonus.target.pick
-            );
-            selectedSkills.forEach((skillName) => {
+            skillsToProcess = powerSelections.skills;
+          }
+
+          if (skillsToProcess.length > 0) {
+            const selectedSkills = skillsToProcess.slice(0, bonus.target.pick);
+            selectedSkills.forEach((skillName: string) => {
               addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
             });
           }
