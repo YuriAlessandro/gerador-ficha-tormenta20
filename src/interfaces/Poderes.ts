@@ -1,6 +1,10 @@
 import { Atributo } from '../data/atributos';
 // eslint-disable-next-line
-import CharacterSheet, { SheetBonus, SheetAction, SubStep } from './CharacterSheet';
+import CharacterSheet, {
+  SheetBonus,
+  SheetAction,
+  SubStep,
+} from './CharacterSheet';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',

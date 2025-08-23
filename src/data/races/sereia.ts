@@ -51,6 +51,22 @@ const SEREIA: Race = {
       name: 'Mestre do Tridente',
       description:
         'Para você, o tridente é uma arma simples. Além disso, você recebe +2 em rolagens de dano com azagaias, lanças e tridentes',
+      sheetBonuses: [
+        {
+          source: {
+            type: 'race',
+            raceName: 'Sereia',
+          },
+          target: {
+            type: 'WeaponDamage',
+            weaponTags: ['armaDeMar'],
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
       // action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
       //   const cloneSheet = cloneDeep(sheet);
 

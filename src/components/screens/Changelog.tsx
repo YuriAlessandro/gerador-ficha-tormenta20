@@ -36,6 +36,33 @@ const Changelog: React.FC = () => (
           personalização da ficha.
         </li>
         <li>
+          <strong>⚔️ Bônus de Armas Específicas:</strong> Implementado sistema
+          de bônus para armas específicas. Poderes como &quot;Especialização em
+          Arma&quot;, &quot;Estilo de Arma Longa&quot; e outros agora aplicam
+          corretamente bônus de ataque, dano ou crítico nas armas apropriadas.
+        </li>
+        <li>
+          <strong>💖 Dom da Esperança:</strong> O poder &quot;Dom da
+          Esperança&quot; agora funciona corretamente, substituindo Constituição
+          por Sabedoria no cálculo de pontos de vida, inclusive ao subir de
+          nível.
+        </li>
+        <li>
+          <strong>🐺 Totem Espiritual do Bárbaro:</strong> Implementado sistema
+          completo de seleção de animais totêmicos para o poder &quot;Totem
+          Espiritual&quot; do Bárbaro. Permite escolher entre 8 animais (Coruja,
+          Corvo, Falcão, Grifo, Lobo, Raposa, Tartaruga, Urso), cada um
+          concedendo uma magia específica de 1º círculo com Sabedoria como
+          atributo-chave.
+        </li>
+        <li>
+          <strong>🦉 Familiar do Arcanista:</strong> Adicionado sistema de
+          seleção de familiares para o poder &quot;Familiar&quot; do Arcanista.
+          Permite escolher entre 10 familiares diferentes, com o Gato fornecendo
+          bônus mecânico (+2 Furtividade) e os demais oferecendo benefícios
+          descritivos.
+        </li>
+        <li>
           <strong>🔧 Melhorias na Edição:</strong> Sistema de edição de poderes
           aprimorado com melhor interface e seleções mais intuitivas. Poderes
           com opções específicas agora permitem escolhas precisas em vez de

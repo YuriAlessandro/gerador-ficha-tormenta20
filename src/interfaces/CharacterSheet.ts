@@ -84,6 +84,18 @@ export type SheetActionStep =
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma';
+    }
+  | {
+      type: 'selectWeaponSpecialization';
+      availableWeapons?: string[]; // List of weapon names to choose from, or empty for all weapons
+    }
+  | {
+      type: 'selectFamiliar';
+      availableFamiliars?: string[]; // List of familiar names to choose from, or empty for all familiars
+    }
+  | {
+      type: 'selectAnimalTotem';
+      availableTotems?: string[]; // List of totem names to choose from, or empty for all totems
     };
 
 export type SheetActionReceipt =
@@ -160,6 +172,28 @@ export type StatModifierTarget =
       type: 'ModifySkillAttribute';
       skill: Skill;
       attribute: Atributo;
+    }
+  | {
+      type: 'WeaponDamage';
+      weaponName?: string; // Specific weapon name
+      weaponTags?: string[]; // Weapon tags to match
+      proficiencyRequired?: boolean; // Whether proficiency is required
+    }
+  | {
+      type: 'WeaponAttack';
+      weaponName?: string;
+      weaponTags?: string[];
+      proficiencyRequired?: boolean;
+    }
+  | {
+      type: 'WeaponCritical';
+      weaponName?: string;
+      weaponTags?: string[];
+      proficiencyRequired?: boolean;
+    }
+  | {
+      type: 'HPAttributeReplacement';
+      newAttribute: Atributo;
     };
 
 export type StatModifier =

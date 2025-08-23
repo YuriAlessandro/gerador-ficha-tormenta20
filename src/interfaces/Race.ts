@@ -1,7 +1,7 @@
 import { Atributo } from '../data/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
-import CharacterSheet, { SheetAction, SheetBonus, SubStep } from './CharacterSheet';
+import CharacterSheet, { SheetAction, SheetBonus } from './CharacterSheet';
 import { ClassDescription } from './Class';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';

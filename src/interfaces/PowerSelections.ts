@@ -10,6 +10,9 @@ export interface SelectionOptions {
   powers?: GeneralPower[];
   spells?: Spell[];
   attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
+  weapons?: string[]; // Weapon names for specialization
+  familiars?: string[]; // Familiar names for selection
+  animalTotems?: string[]; // Animal totem names for selection
 }
 
 /**
@@ -39,7 +42,10 @@ export interface PowerSelectionRequirement {
     | 'getGeneralPower'
     | 'learnSpell'
     | 'learnAnySpellFromHighestCircle'
-    | 'increaseAttribute';
+    | 'increaseAttribute'
+    | 'selectWeaponSpecialization'
+    | 'selectFamiliar'
+    | 'selectAnimalTotem';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

@@ -70,6 +70,22 @@ const ANAO: Race = {
       name: 'Tradição de Heredrimm',
       description:
         'Você é perito nas armas tradicionais anãs, seja por ter treinado com elas, seja por usá-las como ferramentas de ofício. Para você, todos os machados, martelos, marretas e picaretas são armas simples. Você recebe +2 em ataques com essas armas.',
+      sheetBonuses: [
+        {
+          source: {
+            type: 'race',
+            raceName: 'Anão',
+          },
+          target: {
+            type: 'WeaponAttack',
+            weaponTags: ['heredrimm'],
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
       // action(sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet {
       //   const cloneSheet = _.cloneDeep(sheet);
 

@@ -9,6 +9,7 @@ import { calcDefense } from '@/data/equipamentos';
 import { getRaceDisplacement } from '@/data/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
+import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
@@ -48,6 +49,174 @@ const calculateBonusValue = (
     return bonus.value || 0;
   }
   return 0;
+};
+
+// Helper function to check if a weapon matches bonus criteria
+const weaponMatchesBonus = (
+  weapon: Equipment,
+  bonus: {
+    weaponName?: string;
+    weaponTags?: string[];
+    proficiencyRequired?: boolean;
+  },
+  _sheet: CharacterSheet
+): boolean => {
+  // Check specific weapon name
+  if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
+    return false;
+  }
+
+  // Check weapon tags
+  if (bonus.weaponTags && bonus.weaponTags.length > 0) {
+    const weaponTags = weapon.weaponTags || [];
+    const hasMatchingTag = bonus.weaponTags.some((tag) =>
+      weaponTags.includes(tag)
+    );
+    if (!hasMatchingTag) {
+      return false;
+    }
+  }
+
+  // Check proficiency requirement
+  if (bonus.proficiencyRequired) {
+    // TODO: Implement proficiency check logic
+    // For now, assume all weapons are proficient
+    // This would need to check against sheet.classe.proficiencias
+  }
+
+  return true;
+};
+
+// Helper function to reset weapon to base values (remove previous bonuses)
+const resetWeaponToBase = (weapon: Equipment): Equipment => {
+  const resetWeapon = { ...weapon };
+
+  // Reset atkBonus to 0 (base value)
+  resetWeapon.atkBonus = 0;
+
+  // Reset damage string to remove any added bonuses
+  if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
+    // Extract base damage (everything before the first '+')
+    [resetWeapon.dano] = resetWeapon.dano.split('+');
+  }
+
+  // Reset critical to base value - this is more complex as we need to handle
+  // various formats like "x2", "19", "19/x3", etc.
+  // For now, we'll store original values or use a more sophisticated approach
+  // TODO: Consider storing original weapon data separately
+
+  return resetWeapon;
+};
+
+// Helper function to recalculate HP with attribute replacement
+const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Check if there's an HP attribute replacement
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    const { newAttribute } = hpReplacement.target;
+
+    // Recalculate HP using the new attribute instead of Constitution
+    const baseHp = updatedSheet.classe.pv;
+    const attributeBonus =
+      updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
+
+    updatedSheet.pv = baseHp + attributeBonus;
+  }
+
+  return updatedSheet;
+};
+
+// Helper function to apply weapon bonuses
+const applyWeaponBonuses = (
+  sheet: CharacterSheet,
+  _manualSelections?: ManualPowerSelections
+): CharacterSheet => {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Apply weapon bonuses to all weapons in the bag
+  updatedSheet.bag.equipments.Arma = updatedSheet.bag.equipments.Arma.map(
+    (weapon) => {
+      // Start with a clean weapon (reset any previous bonuses)
+      const weaponCopy = resetWeaponToBase(weapon);
+
+      // Calculate total bonuses for this weapon
+      let totalAttackBonus = 0;
+      let totalDamageBonus = 0;
+      let totalCriticalBonus = 0;
+
+      updatedSheet.sheetBonuses.forEach((bonus) => {
+        if (
+          (bonus.target.type === 'WeaponDamage' ||
+            bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponCritical') &&
+          weaponMatchesBonus(weapon, bonus.target, updatedSheet)
+        ) {
+          const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+
+          if (bonus.target.type === 'WeaponAttack') {
+            totalAttackBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponDamage') {
+            totalDamageBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponCritical') {
+            totalCriticalBonus += bonusValue;
+          }
+        }
+      });
+
+      // Apply totaled bonuses
+      if (totalAttackBonus > 0) {
+        weaponCopy.atkBonus = totalAttackBonus;
+      }
+
+      if (totalDamageBonus > 0) {
+        weaponCopy.dano = weaponCopy.dano
+          ? `${weaponCopy.dano}+${totalDamageBonus}`
+          : `+${totalDamageBonus}`;
+      }
+
+      if (totalCriticalBonus > 0 && weaponCopy.critico) {
+        // Apply critical bonus logic (simplified for now)
+        if (weaponCopy.critico.includes('x')) {
+          const currentMult = parseInt(
+            weaponCopy.critico.match(/x(\d+)/)?.[1] || '2',
+            10
+          );
+          weaponCopy.critico = weaponCopy.critico.replace(
+            /x\d+/,
+            `x${currentMult + totalCriticalBonus}`
+          );
+        } else if (weaponCopy.critico.includes('/')) {
+          const parts = weaponCopy.critico.split('/');
+          if (parts[1].includes('x')) {
+            const currentMult = parseInt(
+              parts[1].match(/x(\d+)/)?.[1] || '2',
+              10
+            );
+            weaponCopy.critico = `${parts[0]}/x${
+              currentMult + totalCriticalBonus
+            }`;
+          }
+        } else {
+          const currentRange = parseInt(weaponCopy.critico, 10);
+          if (!Number.isNaN(currentRange)) {
+            weaponCopy.critico = `${Math.max(
+              1,
+              currentRange - totalCriticalBonus
+            )}`;
+          }
+        }
+      }
+
+      return weaponCopy;
+    }
+  );
+
+  return updatedSheet;
 };
 
 // Helper function to add bonus to skill
@@ -415,7 +584,10 @@ export function recalculateSheet(
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   updatedSheet.sheetBonuses.forEach((bonus) => {
-    if (bonus.target.type !== 'Defense') {
+    if (
+      bonus.target.type !== 'Defense' &&
+      bonus.target.type !== 'HPAttributeReplacement'
+    ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
       if (bonus.target.type === 'PV') {
@@ -479,6 +651,12 @@ export function recalculateSheet(
     updatedSheet.atributos,
     baseDisplacementBonuses
   );
+
+  // Step 12: Apply HP attribute replacement (Dom da Esperança)
+  updatedSheet = applyHPAttributeReplacement(updatedSheet);
+
+  // Step 13: Apply weapon bonuses
+  updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
   return updatedSheet;
 }

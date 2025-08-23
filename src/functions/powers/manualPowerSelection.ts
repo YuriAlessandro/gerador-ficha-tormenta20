@@ -8,9 +8,12 @@ import {
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { Spell } from '@/interfaces/Spells';
+import { Atributo } from '@/data/atributos';
+import { Armas } from '@/data/equipamentos';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
-import { Atributo } from '@/data/atributos';
+import { FAMILIAR_NAMES } from '@/data/familiars';
+import { ANIMAL_TOTEM_NAMES } from '@/data/animalTotems';
 import { getAttributeIncreasesInSamePlateau } from './general';
 
 /**
@@ -89,6 +92,33 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
           pick: 1, // Always pick 1 attribute
           label: 'Selecione 1 atributo para aumentar',
+        });
+      }
+
+      if (action.type === 'selectWeaponSpecialization') {
+        requirements.push({
+          type: 'selectWeaponSpecialization',
+          availableOptions: action.availableWeapons || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 weapon
+          label: 'Selecione 1 arma para especialização',
+        });
+      }
+
+      if (action.type === 'selectFamiliar') {
+        requirements.push({
+          type: 'selectFamiliar',
+          availableOptions: action.availableFamiliars || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 familiar
+          label: 'Selecione 1 familiar',
+        });
+      }
+
+      if (action.type === 'selectAnimalTotem') {
+        requirements.push({
+          type: 'selectAnimalTotem',
+          availableOptions: action.availableTotems || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 totem
+          label: 'Selecione 1 animal totêmico',
         });
       }
     });
@@ -245,6 +275,43 @@ export function getFilteredAvailableOptions(
       return availableAttributes.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'selectWeaponSpecialization': {
+      // If specific weapons were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available weapons
+      const allWeaponNames = Object.values(Armas).map((weapon) => weapon.nome);
+      return allWeaponNames.sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'selectFamiliar': {
+      // If specific familiars were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available familiars
+      return FAMILIAR_NAMES.sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'selectAnimalTotem': {
+      // If specific totems were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available totems
+      return ANIMAL_TOTEM_NAMES.sort((a, b) => a.localeCompare(b));
+    }
+
     default:
       return availableOptions;
   }
@@ -291,6 +358,21 @@ export function validateSelections(
 
       case 'increaseAttribute':
         selectedItems = selections.attributes || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'selectWeaponSpecialization':
+        selectedItems = selections.weapons || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'selectFamiliar':
+        selectedItems = selections.familiars || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'selectAnimalTotem':
+        selectedItems = selections.animalTotems || [];
         selectedCount = selectedItems.length;
         break;
 

@@ -271,6 +271,22 @@ const BUCANEIRO: ClassDescription = {
           },
         },
       ],
+      sheetBonuses: [
+        {
+          source: {
+            type: 'power',
+            name: 'Pistoleiro',
+          },
+          target: {
+            type: 'WeaponDamage',
+            weaponTags: ['armaDeFogo'],
+          },
+          modifier: {
+            type: 'Fixed',
+            value: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Presença Paralisante',

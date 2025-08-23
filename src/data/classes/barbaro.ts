@@ -76,6 +76,19 @@ const BARBARO: ClassDescription = {
             formula: 'Math.floor(({level} + 3) / 6)',
           },
         },
+        {
+          source: {
+            type: 'power',
+            name: 'Instinto Selvagem',
+          },
+          target: {
+            type: 'WeaponDamage',
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 6)',
+          },
+        },
       ],
     },
     {
@@ -213,7 +226,7 @@ const BARBARO: ClassDescription = {
     },
     {
       name: 'Totem Espiritual',
-      text: 'Você soma seu bônus de Sabedoria no seu total de pontos de mana. Escolha um animal totêmico (veja o quadro). Você aprende e pode lançar uma magia definida pelo animal escolhido (atributo-chave Sabedoria) e pode lançá-la mesmo em fúria..',
+      text: 'Você soma seu bônus de Sabedoria no seu total de pontos de mana. Escolha um animal totêmico. Você aprende e pode lançar uma magia definida pelo animal escolhido (atributo-chave Sabedoria) e pode lançá-la mesmo em fúria.',
       requirements: [
         [
           { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
@@ -233,6 +246,12 @@ const BARBARO: ClassDescription = {
             type: 'Attribute',
             attribute: Atributo.SABEDORIA,
           },
+        },
+      ],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Totem Espiritual' },
+          action: { type: 'selectAnimalTotem' },
         },
       ],
     },

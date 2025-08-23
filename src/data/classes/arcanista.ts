@@ -293,8 +293,14 @@ const ARCANISTA: ClassDescription = {
     },
     {
       name: 'Familiar',
-      text: 'Você possui um animal de estimação mágico (ver página 38).',
+      text: 'Você possui um animal de estimação mágico. Escolha um familiar para receber seus benefícios.',
       requirements: [],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Familiar' },
+          action: { type: 'selectFamiliar' },
+        },
+      ],
     },
     {
       name: 'Fluxo de Mana',

@@ -14,7 +14,10 @@ import EQUIPAMENTOS, {
   Armaduras,
   Escudos,
   bardInstruments,
+  Armas,
 } from '../data/equipamentos';
+import { FAMILIARS, FAMILIAR_NAMES } from '../data/familiars';
+import { ANIMAL_TOTEMS, ANIMAL_TOTEM_NAMES } from '../data/animalTotems';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import {
@@ -96,6 +99,7 @@ import {
 import {
   addOrCheapenRandomSpells,
   getSpellsOfCircle,
+  spellsCircle1,
 } from '../data/magias/generalSpells';
 import {
   applyHumanoVersatil,
@@ -1030,6 +1034,138 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Aumenta o atributo ${targetAttribute} por +1`,
         });
+      } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
+        // Get all available weapons
+        const allWeaponNames = Object.values(Armas).map(
+          (weapon) => weapon.nome
+        );
+
+        let selectedWeapon: string;
+
+        // Use manual selection if provided, otherwise random
+        if (manualSelections?.weapons && manualSelections.weapons.length > 0) {
+          [selectedWeapon] = manualSelections.weapons;
+        } else {
+          selectedWeapon = getRandomItemFromArray(allWeaponNames);
+        }
+
+        // Add weapon specialization bonus (+2 damage to the selected weapon)
+        sheet.sheetBonuses.push({
+          source: sheetAction.source,
+          target: {
+            type: 'WeaponDamage' as const,
+            weaponName: selectedWeapon,
+          },
+          modifier: {
+            type: 'Fixed' as const,
+            value: 2,
+          },
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Especialização em ${selectedWeapon} (+2 dano)`,
+        });
+      } else if (sheetAction.action.type === 'selectFamiliar') {
+        // Get all available familiars
+        const availableFamiliars = FAMILIAR_NAMES;
+
+        let selectedFamiliar: string;
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.familiars &&
+          manualSelections.familiars.length > 0
+        ) {
+          [selectedFamiliar] = manualSelections.familiars;
+        } else {
+          selectedFamiliar = getRandomItemFromArray(availableFamiliars);
+        }
+
+        // Get familiar data
+        const familiar = FAMILIARS[selectedFamiliar];
+
+        // Apply Cat bonus (+2 Stealth) if Gato is selected
+        if (selectedFamiliar === 'GATO') {
+          sheet.sheetBonuses.push({
+            source: sheetAction.source,
+            target: {
+              type: 'Skill',
+              name: Skill.FURTIVIDADE,
+            },
+            modifier: {
+              type: 'Fixed',
+              value: 2,
+            },
+          });
+        }
+
+        // Update power text to show selected familiar
+        if (sheet.classPowers) {
+          const powerIndex = sheet.classPowers.findIndex(
+            (power) => power.name === 'Familiar'
+          );
+          if (powerIndex !== -1) {
+            sheet.classPowers[
+              powerIndex
+            ].text = `Você possui um familiar ${familiar.name}. ${familiar.description}`;
+          }
+        }
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Familiar selecionado: ${familiar.name}`,
+        });
+      } else if (sheetAction.action.type === 'selectAnimalTotem') {
+        // Get all available totems
+        const availableTotems = ANIMAL_TOTEM_NAMES;
+        let selectedTotem: string;
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.animalTotems &&
+          manualSelections.animalTotems.length > 0
+        ) {
+          [selectedTotem] = manualSelections.animalTotems;
+        } else {
+          selectedTotem = getRandomItemFromArray(availableTotems);
+        }
+
+        // Get totem data
+        const totem = ANIMAL_TOTEMS[selectedTotem];
+
+        // Learn the spell associated with the totem (all totem spells are 1st circle)
+        const spellToLearn = Object.values(spellsCircle1).find(
+          (spell) => spell.nome === totem.spellName
+        );
+        if (spellToLearn) {
+          // Set spell attribute to Sabedoria as per Totem Espiritual power
+          const spellWithAttribute = { ...spellToLearn };
+          spellWithAttribute.customKeyAttr = Atributo.SABEDORIA;
+          sheet.spells.push(spellWithAttribute);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprendeu a magia: ${spellToLearn.nome}`,
+          });
+        }
+
+        // Update power text to show selected totem
+        if (sheet.classPowers) {
+          const powerIndex = sheet.classPowers.findIndex(
+            (power) => power.name === 'Totem Espiritual'
+          );
+          if (powerIndex !== -1) {
+            sheet.classPowers[
+              powerIndex
+            ].text = `Você soma seu bônus de Sabedoria no seu total de pontos de mana. Animal totêmico escolhido: ${totem.name}. ${totem.description}`;
+          }
+        }
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Animal totêmico selecionado: ${totem.name}`,
+        });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];
         if (sheetAction.action.specialAction === 'humanoVersatil') {
@@ -1058,6 +1194,28 @@ export const applyPower = (
   // sheet bonuses
   if (powerOrAbility.sheetBonuses) {
     sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
+
+    // Check if there's an HP attribute replacement and apply it immediately
+    const hpReplacement = powerOrAbility.sheetBonuses.find(
+      (bonus) => bonus.target.type === 'HPAttributeReplacement'
+    );
+
+    if (
+      hpReplacement &&
+      hpReplacement.target.type === 'HPAttributeReplacement'
+    ) {
+      const { newAttribute } = hpReplacement.target;
+      const baseHp = sheet.classe.pv;
+      const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
+
+      const oldPv = sheet.pv;
+      sheet.pv = baseHp + attributeBonus;
+
+      subSteps.push({
+        name: getSourceName(hpReplacement.source),
+        value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
+      });
+    }
   }
 
   return [sheet, subSteps];
@@ -1300,8 +1458,18 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
+  // Check if there's an HP attribute replacement (Dom da Esperança)
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+
+  let hpAttribute = Atributo.CONSTITUICAO;
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    hpAttribute = hpReplacement.target.newAttribute;
+  }
+
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod;
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
 
   if (addPv < 1) addPv = 1;
 
@@ -1313,7 +1481,7 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   // Aumentar PV e PM
   subSteps.push(
     {
-      name: `PV (${updatedSheet.pv} + ${addPv} por nível)`,
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível - ${hpAttribute})`,
       value: newPvTotal,
     },
     {

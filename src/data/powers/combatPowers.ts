@@ -253,6 +253,22 @@ const combatPowers: Record<string, GeneralPower> = {
         },
       ],
     ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Estilo de Arma Longa',
+        },
+        target: {
+          type: 'WeaponAttack',
+          weaponTags: ['alongada'],
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   ESTILO_DE_ARREMESO: {
     name: 'Estilo de Arremesso',

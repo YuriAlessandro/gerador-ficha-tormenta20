@@ -458,6 +458,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             // since each power application should only affect the newly selected attribute
             combined.attributes = selections.attributes;
           }
+          if (selections.weapons) {
+            combined.weapons = [
+              ...(combined.weapons || []),
+              ...selections.weapons,
+            ];
+          }
 
           return {
             ...prev,
