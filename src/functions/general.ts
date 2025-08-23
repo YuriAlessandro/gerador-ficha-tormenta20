@@ -14,6 +14,7 @@ import EQUIPAMENTOS, {
   Armaduras,
   Escudos,
   bardInstruments,
+  Armas,
 } from '../data/equipamentos';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
@@ -1029,6 +1030,36 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Aumenta o atributo ${targetAttribute} por +1`,
+        });
+      } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
+        // Get all available weapons
+        const allWeaponNames = Object.values(Armas).map((weapon) => weapon.nome);
+        
+        let selectedWeapon: string;
+
+        // Use manual selection if provided, otherwise random
+        if (manualSelections?.weapons && manualSelections.weapons.length > 0) {
+          selectedWeapon = manualSelections.weapons[0];
+        } else {
+          selectedWeapon = getRandomItemFromArray(allWeaponNames);
+        }
+
+        // Add weapon specialization bonus (+2 damage to the selected weapon)
+        sheet.sheetBonuses.push({
+          source: sheetAction.source,
+          target: {
+            type: 'WeaponDamage' as const,
+            weaponName: selectedWeapon,
+          },
+          modifier: {
+            type: 'Fixed' as const,
+            value: 2,
+          },
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Especialização em ${selectedWeapon} (+2 dano)`,
         });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];

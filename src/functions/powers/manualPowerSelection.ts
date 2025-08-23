@@ -317,6 +317,11 @@ export function validateSelections(
         selectedCount = selectedItems.length;
         break;
 
+      case 'selectWeaponSpecialization':
+        selectedItems = selections.weapons || [];
+        selectedCount = selectedItems.length;
+        break;
+
       default:
         // Handle unknown types
         break;

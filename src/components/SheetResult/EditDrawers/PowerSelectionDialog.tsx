@@ -183,6 +183,33 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
     });
   };
 
+  const handleWeaponSelection = (
+    weapon: string,
+    checked: boolean,
+    pick: number
+  ) => {
+    setSelections((prev) => {
+      const currentWeapons = prev.weapons || [];
+      let newWeapons: string[];
+
+      if (pick === 1) {
+        // Single selection - replace (weapons are always single selection for specialization)
+        newWeapons = checked ? [weapon] : [];
+      } else if (checked) {
+        // Multiple selection (keeping for consistency)
+        if (currentWeapons.length < pick) {
+          newWeapons = [...currentWeapons, weapon];
+        } else {
+          newWeapons = currentWeapons;
+        }
+      } else {
+        newWeapons = currentWeapons.filter((w) => w !== weapon);
+      }
+
+      return { ...prev, weapons: newWeapons };
+    });
+  };
+
   const handleConfirm = () => {
     const validation = validateSelections(requirements, selections, sheet);
 
@@ -497,6 +524,35 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                     value={attribute}
                     control={<Radio />}
                     label={attribute}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        );
+      }
+
+      case 'selectWeaponSpecialization': {
+        const selectedWeapons = selections.weapons || [];
+
+        return (
+          <Box key={index} mb={2}>
+            <Typography variant='h6' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset'>
+              <RadioGroup
+                value={selectedWeapons[0] || ''}
+                onChange={(e) =>
+                  handleWeaponSelection(e.target.value, true, pick)
+                }
+              >
+                {availableOptions.map((weapon) => (
+                  <FormControlLabel
+                    key={weapon}
+                    value={weapon}
+                    control={<Radio />}
+                    label={weapon}
                   />
                 ))}
               </RadioGroup>
