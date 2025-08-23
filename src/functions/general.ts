@@ -1033,13 +1033,15 @@ export const applyPower = (
         });
       } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
         // Get all available weapons
-        const allWeaponNames = Object.values(Armas).map((weapon) => weapon.nome);
-        
+        const allWeaponNames = Object.values(Armas).map(
+          (weapon) => weapon.nome
+        );
+
         let selectedWeapon: string;
 
         // Use manual selection if provided, otherwise random
         if (manualSelections?.weapons && manualSelections.weapons.length > 0) {
-          selectedWeapon = manualSelections.weapons[0];
+          [selectedWeapon] = manualSelections.weapons;
         } else {
           selectedWeapon = getRandomItemFromArray(allWeaponNames);
         }

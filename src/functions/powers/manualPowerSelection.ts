@@ -8,11 +8,11 @@ import {
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
 import { Spell } from '@/interfaces/Spells';
+import { Atributo } from '@/data/atributos';
+import { Armas } from '@/data/equipamentos';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
-import { Atributo } from '@/data/atributos';
 import { getAttributeIncreasesInSamePlateau } from './general';
-import { Armas } from '@/data/equipamentos';
 
 /**
  * Check if a power requires manual selection from the user

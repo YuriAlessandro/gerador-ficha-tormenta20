@@ -9,10 +9,10 @@ import { calcDefense } from '@/data/equipamentos';
 import { getRaceDisplacement } from '@/data/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
+import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
-import Equipment from '@/interfaces/Equipment';
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
@@ -59,7 +59,7 @@ const weaponMatchesBonus = (
     weaponTags?: string[];
     proficiencyRequired?: boolean;
   },
-  sheet: CharacterSheet
+  _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
@@ -97,7 +97,7 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   // Reset damage string to remove any added bonuses
   if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
     // Extract base damage (everything before the first '+')
-    resetWeapon.dano = resetWeapon.dano.split('+')[0];
+    [resetWeapon.dano] = resetWeapon.dano.split('+');
   }
 
   // Reset critical to base value - this is more complex as we need to handle
@@ -111,7 +111,7 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
 // Helper function to apply weapon bonuses
 const applyWeaponBonuses = (
   sheet: CharacterSheet,
-  manualSelections?: ManualPowerSelections
+  _manualSelections?: ManualPowerSelections
 ): CharacterSheet => {
   const updatedSheet = _.cloneDeep(sheet);
 
@@ -145,7 +145,6 @@ const applyWeaponBonuses = (
         }
       });
 
-
       // Apply totaled bonuses
       if (totalAttackBonus > 0) {
         weaponCopy.atkBonus = totalAttackBonus;
@@ -161,7 +160,8 @@ const applyWeaponBonuses = (
         // Apply critical bonus logic (simplified for now)
         if (weaponCopy.critico.includes('x')) {
           const currentMult = parseInt(
-            weaponCopy.critico.match(/x(\d+)/)?.[1] || '2'
+            weaponCopy.critico.match(/x(\d+)/)?.[1] || '2',
+            10
           );
           weaponCopy.critico = weaponCopy.critico.replace(
             /x\d+/,
@@ -170,14 +170,17 @@ const applyWeaponBonuses = (
         } else if (weaponCopy.critico.includes('/')) {
           const parts = weaponCopy.critico.split('/');
           if (parts[1].includes('x')) {
-            const currentMult = parseInt(parts[1].match(/x(\d+)/)?.[1] || '2');
+            const currentMult = parseInt(
+              parts[1].match(/x(\d+)/)?.[1] || '2',
+              10
+            );
             weaponCopy.critico = `${parts[0]}/x${
               currentMult + totalCriticalBonus
             }`;
           }
         } else {
-          const currentRange = parseInt(weaponCopy.critico);
-          if (!isNaN(currentRange)) {
+          const currentRange = parseInt(weaponCopy.critico, 10);
+          if (!Number.isNaN(currentRange)) {
             weaponCopy.critico = `${Math.max(
               1,
               currentRange - totalCriticalBonus
