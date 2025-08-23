@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 13/08/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 23/08/2025.
       </p>
 
       <p>
@@ -22,6 +22,26 @@ const Changelog: React.FC = () => (
         </a>
         .
       </p>
+
+      <h2>Versão 3.3</h2>
+
+      <h3>3.3.0</h3>
+      <ul>
+        <li>
+          <strong>🎯 Seleção Manual de Poderes:</strong> Agora é possível
+          escolher manualmente os efeitos de poderes que requerem seleção, como
+          escolher qual atributo aumentar no poder &quot;Aumento de
+          Atributo&quot; ou quais perícias treinar. O sistema abre diálogos de
+          seleção quando necessário, permitindo maior controle sobre a
+          personalização da ficha.
+        </li>
+        <li>
+          <strong>🔧 Melhorias na Edição:</strong> Sistema de edição de poderes
+          aprimorado com melhor interface e seleções mais intuitivas. Poderes
+          com opções específicas agora permitem escolhas precisas em vez de
+          seleção aleatória.
+        </li>
+      </ul>
 
       <h2>Versão 3.2</h2>
 

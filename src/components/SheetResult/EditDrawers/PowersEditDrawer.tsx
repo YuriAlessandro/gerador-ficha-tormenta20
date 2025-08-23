@@ -127,12 +127,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   const handlePowerToggle = (power: GeneralPower) => {
     const isSelected = selectedPowers.some((p) => p.name === power.name);
-    const canRepeat = power.canRepeat || false;
 
-    // For repeatable powers, always add a new instance
-    // For non-repeatable powers, toggle (add if not selected, remove if selected)
-    if (isSelected && !canRepeat) {
-      // Remove non-repeatable power and its selections
+    // Simplified: all powers behave as non-repeatable (one instance max)
+    if (isSelected) {
+      // Remove power and its selections
       setSelectedPowers((prev) => prev.filter((p) => p.name !== power.name));
       setManualSelections((prev) => {
         const updated = { ...prev };
@@ -142,7 +140,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       return;
     }
 
-    // Adding a new instance (for both first-time selection and repeatable powers)
+    // Adding a new power
     // Check if power requires manual selection
     const requirements = getPowerSelectionRequirements(power);
 
@@ -285,7 +283,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       return;
     }
 
-    // Adding a new instance (for both first-time selection and repeatable powers)
+    // Adding a new power
     // Check if power requires manual selection
     const requirements = getPowerSelectionRequirements(power);
 
