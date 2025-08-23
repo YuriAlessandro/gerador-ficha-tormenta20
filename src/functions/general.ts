@@ -999,37 +999,69 @@ export const applyPower = (
           (attr) => availableAttributes.includes(attr)
         );
 
-        let targetAttribute: Atributo;
-
-        // Use manual selection if provided
+        // Use manual selection if provided - process all attributes in the array
         if (
           manualSelections?.attributes &&
           manualSelections.attributes.length > 0
         ) {
-          targetAttribute = manualSelections.attributes[0] as Atributo;
-        } else if (firstPriorityAttribute) {
-          targetAttribute = firstPriorityAttribute;
-        } else {
-          // If no priority attributes available, pick any
-          targetAttribute = getRandomItemFromArray(availableAttributes);
-        }
+          // Process each selected attribute (for repeatable powers)
+          const attributeChanges: Array<{
+            type: 'AttributeIncreasedByAumentoDeAtributo';
+            attribute: Atributo;
+            plateau: number;
+          }> = [];
+          const attributesProcessed: string[] = [];
 
-        sheet.atributos[targetAttribute].mod += 1;
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
+          manualSelections.attributes.forEach((attr) => {
+            const targetAttribute = attr as Atributo;
+            sheet.atributos[targetAttribute].mod += 1;
+            attributeChanges.push({
               type: 'AttributeIncreasedByAumentoDeAtributo',
               attribute: targetAttribute,
               plateau: getCurrentPlateau(sheet),
-            },
-          ],
-        });
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Aumenta o atributo ${targetAttribute} por +1`,
-        });
+            });
+            attributesProcessed.push(targetAttribute);
+          });
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: attributeChanges,
+          });
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aumenta os atributos ${attributesProcessed.join(
+              ', '
+            )} por +1 cada`,
+          });
+        } else {
+          // Fall back to automatic selection for single instance
+          let targetAttribute: Atributo;
+          if (firstPriorityAttribute) {
+            targetAttribute = firstPriorityAttribute;
+          } else {
+            // If no priority attributes available, pick any
+            targetAttribute = getRandomItemFromArray(availableAttributes);
+          }
+
+          sheet.atributos[targetAttribute].mod += 1;
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'AttributeIncreasedByAumentoDeAtributo',
+                attribute: targetAttribute,
+                plateau: getCurrentPlateau(sheet),
+              },
+            ],
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aumenta o atributo ${targetAttribute} por +1`,
+          });
+        }
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];
         if (sheetAction.action.specialAction === 'humanoVersatil') {
