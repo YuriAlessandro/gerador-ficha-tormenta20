@@ -182,6 +182,10 @@ export type StatModifierTarget =
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+    }
+  | {
+      type: 'HPAttributeReplacement';
+      newAttribute: Atributo;
     };
 
 export type StatModifier =

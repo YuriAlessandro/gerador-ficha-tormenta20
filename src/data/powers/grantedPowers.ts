@@ -6,6 +6,7 @@ import {
 } from '../../interfaces/Poderes';
 import Skill from '../../interfaces/Skills';
 import { spellsCircle1, spellsCircle2 } from '../magias/generalSpells';
+import { Atributo } from '../atributos';
 
 const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   AFINIDADE_COM_A_TORMENTA: {
@@ -431,25 +432,22 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você soma sua Sabedoria em seus PV em vez de Constituição, e se torna imune às condições alquebrado, esmorecido e frustrado.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Marah' }]],
-    // action(
-    //   sheet: CharacterSheet,
-    //   subSteps: { name: string; value: string }[]
-    // ): CharacterSheet {
-    //   const sheetClone = cloneDeep(sheet);
-
-    //   subSteps.push({
-    //     name: 'Dom da Esperança',
-    //     value: `Mudou PV de Constituição para Sabedoria: ${
-    //       sheetClone.classe.pv
-    //     } + ${sheetClone.atributos.Sabedoria.mod} = ${
-    //       sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod
-    //     }`,
-    //   });
-
-    //   sheetClone.pv = sheetClone.classe.pv + sheetClone.atributos.Sabedoria.mod;
-
-    //   return sheetClone;
-    // },
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Dom da Esperança',
+        },
+        target: {
+          type: 'HPAttributeReplacement',
+          newAttribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1, // Just a flag value, the actual logic is in recalculateSheet
+        },
+      },
+    ],
   },
   DOM_DA_IMORTALIDADE: {
     name: 'Dom da Imortalidade',

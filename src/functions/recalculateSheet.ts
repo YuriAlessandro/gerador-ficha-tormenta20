@@ -108,6 +108,30 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   return resetWeapon;
 };
 
+// Helper function to recalculate HP with attribute replacement
+const applyHPAttributeReplacement = (
+  sheet: CharacterSheet
+): CharacterSheet => {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Check if there's an HP attribute replacement
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    const newAttribute = hpReplacement.target.newAttribute;
+    
+    // Recalculate HP using the new attribute instead of Constitution
+    const baseHp = updatedSheet.classe.pv;
+    const attributeBonus = updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
+    
+    updatedSheet.pv = baseHp + attributeBonus;
+  }
+
+  return updatedSheet;
+};
+
 // Helper function to apply weapon bonuses
 const applyWeaponBonuses = (
   sheet: CharacterSheet,
@@ -561,7 +585,7 @@ export function recalculateSheet(
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   updatedSheet.sheetBonuses.forEach((bonus) => {
-    if (bonus.target.type !== 'Defense') {
+    if (bonus.target.type !== 'Defense' && bonus.target.type !== 'HPAttributeReplacement') {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
       if (bonus.target.type === 'PV') {
@@ -626,7 +650,10 @@ export function recalculateSheet(
     baseDisplacementBonuses
   );
 
-  // Step 12: Apply weapon bonuses
+  // Step 12: Apply HP attribute replacement (Dom da Esperança)
+  updatedSheet = applyHPAttributeReplacement(updatedSheet);
+
+  // Step 13: Apply weapon bonuses
   updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
   return updatedSheet;
