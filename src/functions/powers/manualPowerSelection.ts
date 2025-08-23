@@ -13,6 +13,7 @@ import { Armas } from '@/data/equipamentos';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
 import { FAMILIAR_NAMES } from '@/data/familiars';
+import { ANIMAL_TOTEM_NAMES } from '@/data/animalTotems';
 import { getAttributeIncreasesInSamePlateau } from './general';
 
 /**
@@ -109,6 +110,15 @@ export function getPowerSelectionRequirements(
           availableOptions: action.availableFamiliars || [], // Will be populated dynamically if empty
           pick: 1, // Always pick 1 familiar
           label: 'Selecione 1 familiar',
+        });
+      }
+
+      if (action.type === 'selectAnimalTotem') {
+        requirements.push({
+          type: 'selectAnimalTotem',
+          availableOptions: action.availableTotems || [], // Will be populated dynamically if empty
+          pick: 1, // Always pick 1 totem
+          label: 'Selecione 1 animal totêmico',
         });
       }
     });
@@ -290,6 +300,18 @@ export function getFilteredAvailableOptions(
       return FAMILIAR_NAMES.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'selectAnimalTotem': {
+      // If specific totems were provided, use those
+      if (availableOptions && availableOptions.length > 0) {
+        return (availableOptions as string[]).sort((a, b) =>
+          a.localeCompare(b)
+        );
+      }
+
+      // Otherwise, return all available totems
+      return ANIMAL_TOTEM_NAMES.sort((a, b) => a.localeCompare(b));
+    }
+
     default:
       return availableOptions;
   }
@@ -346,6 +368,11 @@ export function validateSelections(
 
       case 'selectFamiliar':
         selectedItems = selections.familiars || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'selectAnimalTotem':
+        selectedItems = selections.animalTotems || [];
         selectedCount = selectedItems.length;
         break;
 

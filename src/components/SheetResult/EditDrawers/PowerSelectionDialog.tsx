@@ -26,6 +26,7 @@ import {
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
 import { FAMILIARS } from '@/data/familiars';
+import { ANIMAL_TOTEMS } from '@/data/animalTotems';
 
 interface PowerSelectionDialogProps {
   open: boolean;
@@ -235,6 +236,33 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
       }
 
       return { ...prev, familiars: newFamiliars };
+    });
+  };
+
+  const handleAnimalTotemSelection = (
+    totem: string,
+    checked: boolean,
+    pick: number
+  ) => {
+    setSelections((prev) => {
+      const currentTotems = prev.animalTotems || [];
+      let newTotems: string[];
+
+      if (pick === 1) {
+        // Single selection - replace
+        newTotems = checked ? [totem] : [];
+      } else if (checked) {
+        // Multiple selection (keeping for consistency)
+        if (currentTotems.length < pick) {
+          newTotems = [...currentTotems, totem];
+        } else {
+          newTotems = currentTotems;
+        }
+      } else {
+        newTotems = currentTotems.filter((t) => t !== totem);
+      }
+
+      return { ...prev, animalTotems: newTotems };
     });
   };
 
@@ -618,6 +646,47 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                           </Typography>
                           <Typography variant='body2' color='text.secondary'>
                             {familiar.description}
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  );
+                })}
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        );
+      }
+
+      case 'selectAnimalTotem': {
+        const selectedTotems = selections.animalTotems || [];
+
+        return (
+          <Box key={index} mb={2}>
+            <Typography variant='h6' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset'>
+              <RadioGroup
+                value={selectedTotems[0] || ''}
+                onChange={(e) =>
+                  handleAnimalTotemSelection(e.target.value, true, pick)
+                }
+              >
+                {availableOptions.map((totemKey) => {
+                  const totem = ANIMAL_TOTEMS[totemKey];
+                  return (
+                    <FormControlLabel
+                      key={totemKey}
+                      value={totemKey}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant='subtitle2'>
+                            {totem.name}
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            {totem.description}
                           </Typography>
                         </Box>
                       }

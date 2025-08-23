@@ -12,6 +12,7 @@ export interface SelectionOptions {
   attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
   weapons?: string[]; // Weapon names for specialization
   familiars?: string[]; // Familiar names for selection
+  animalTotems?: string[]; // Animal totem names for selection
 }
 
 /**
@@ -43,7 +44,8 @@ export interface PowerSelectionRequirement {
     | 'learnAnySpellFromHighestCircle'
     | 'increaseAttribute'
     | 'selectWeaponSpecialization'
-    | 'selectFamiliar';
+    | 'selectFamiliar'
+    | 'selectAnimalTotem';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

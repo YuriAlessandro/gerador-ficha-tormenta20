@@ -17,6 +17,7 @@ import EQUIPAMENTOS, {
   Armas,
 } from '../data/equipamentos';
 import { FAMILIARS, FAMILIAR_NAMES } from '../data/familiars';
+import { ANIMAL_TOTEMS, ANIMAL_TOTEM_NAMES } from '../data/animalTotems';
 import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
 import { generateRandomName } from '../data/nomes';
 import {
@@ -98,6 +99,7 @@ import {
 import {
   addOrCheapenRandomSpells,
   getSpellsOfCircle,
+  spellsCircle1,
 } from '../data/magias/generalSpells';
 import {
   applyHumanoVersatil,
@@ -1113,6 +1115,56 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Familiar selecionado: ${familiar.name}`,
+        });
+      } else if (sheetAction.action.type === 'selectAnimalTotem') {
+        // Get all available totems
+        const availableTotems = ANIMAL_TOTEM_NAMES;
+        let selectedTotem: string;
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.animalTotems &&
+          manualSelections.animalTotems.length > 0
+        ) {
+          [selectedTotem] = manualSelections.animalTotems;
+        } else {
+          selectedTotem = getRandomItemFromArray(availableTotems);
+        }
+
+        // Get totem data
+        const totem = ANIMAL_TOTEMS[selectedTotem];
+
+        // Learn the spell associated with the totem (all totem spells are 1st circle)
+        const spellToLearn = Object.values(spellsCircle1).find(
+          (spell) => spell.nome === totem.spellName
+        );
+        if (spellToLearn) {
+          // Set spell attribute to Sabedoria as per Totem Espiritual power
+          const spellWithAttribute = { ...spellToLearn };
+          spellWithAttribute.customKeyAttr = Atributo.SABEDORIA;
+          sheet.spells.push(spellWithAttribute);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprendeu a magia: ${spellToLearn.nome}`,
+          });
+        }
+
+        // Update power text to show selected totem
+        if (sheet.classPowers) {
+          const powerIndex = sheet.classPowers.findIndex(
+            (power) => power.name === 'Totem Espiritual'
+          );
+          if (powerIndex !== -1) {
+            sheet.classPowers[
+              powerIndex
+            ].text = `Você soma seu bônus de Sabedoria no seu total de pontos de mana. Animal totêmico escolhido: ${totem.name}. ${totem.description}`;
+          }
+        }
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Animal totêmico selecionado: ${totem.name}`,
         });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];

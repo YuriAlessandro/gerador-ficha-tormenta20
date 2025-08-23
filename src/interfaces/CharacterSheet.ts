@@ -92,6 +92,10 @@ export type SheetActionStep =
   | {
       type: 'selectFamiliar';
       availableFamiliars?: string[]; // List of familiar names to choose from, or empty for all familiars
+    }
+  | {
+      type: 'selectAnimalTotem';
+      availableTotems?: string[]; // List of totem names to choose from, or empty for all totems
     };
 
 export type SheetActionReceipt =
