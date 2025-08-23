@@ -1352,8 +1352,18 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
   updatedSheet.nivel += 1;
 
+  // Check if there's an HP attribute replacement (Dom da Esperança)
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+  
+  let hpAttribute = Atributo.CONSTITUICAO;
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    hpAttribute = hpReplacement.target.newAttribute;
+  }
+
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos.Constituição.mod;
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
 
   if (addPv < 1) addPv = 1;
 
@@ -1365,7 +1375,7 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   // Aumentar PV e PM
   subSteps.push(
     {
-      name: `PV (${updatedSheet.pv} + ${addPv} por nível)`,
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível - ${hpAttribute})`,
       value: newPvTotal,
     },
     {
