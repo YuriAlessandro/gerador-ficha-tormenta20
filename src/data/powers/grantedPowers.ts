@@ -45,6 +45,36 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe +1 em testes de ataque e na margem de ameaça com armas nas quais é proficiente.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Valkaria' }]],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Armas da Ambição',
+        },
+        target: {
+          type: 'WeaponAttack',
+          proficiencyRequired: true,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Armas da Ambição',
+        },
+        target: {
+          type: 'WeaponCritical',
+          proficiencyRequired: true,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
     // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
     //   const sheetClone = _.cloneDeep(sheet);
 
@@ -109,6 +139,36 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe +2 nas rolagens de dano com azagaias, lanças e tridentes e seu multiplicador de crítico com essas armas aumenta em +1.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Arsenal das profundezas',
+        },
+        target: {
+          type: 'WeaponDamage',
+          weaponTags: ['armaDeMar'],
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Arsenal das profundezas',
+        },
+        target: {
+          type: 'WeaponCritical',
+          weaponTags: ['armaDeMar'],
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
     // action: (sheet: CharacterSheet, substeps: SubStep[]): CharacterSheet => {
     //   const sheetClone = _.cloneDeep(sheet);
 
@@ -825,6 +885,23 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você considera a katana uma arma simples e, se for proficiente em armas marciais, recebe +1 na margem de ameaça com ela.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Lin-Wu' }]],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Tradição de Lin-Wu',
+        },
+        target: {
+          type: 'WeaponCritical',
+          weaponName: 'Katana',
+          proficiencyRequired: true,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
     // action(
     //   sheet: CharacterSheet,
     //   subSteps: { name: string; value: string }[]

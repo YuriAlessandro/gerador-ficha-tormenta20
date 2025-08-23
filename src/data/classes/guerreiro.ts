@@ -123,6 +123,17 @@ const GUERREIRO: ClassDescription = {
       text: 'Escolha uma arma. Você recebe +2 em rolagens de dano com essa arma. Você pode escolher este poder outras vezes para armas diferentes.',
       requirements: [],
       canRepeat: true,
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Especialização em Arma',
+          },
+          action: {
+            type: 'selectWeaponSpecialization',
+          },
+        },
+      ],
       // action: (sheet, subSteps) => {
       //   // TODO
       //   subSteps.push({

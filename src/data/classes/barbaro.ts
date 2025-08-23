@@ -76,6 +76,19 @@ const BARBARO: ClassDescription = {
             formula: 'Math.floor(({level} + 3) / 6)',
           },
         },
+        {
+          source: {
+            type: 'power',
+            name: 'Instinto Selvagem',
+          },
+          target: {
+            type: 'WeaponDamage',
+          },
+          modifier: {
+            type: 'LevelCalc',
+            formula: 'Math.floor(({level} + 3) / 6)',
+          },
+        },
       ],
     },
     {
