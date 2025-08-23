@@ -12,6 +12,7 @@ import { CharacterAttributes } from '@/interfaces/Character';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
+import Equipment from '@/interfaces/Equipment';
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
@@ -48,6 +49,116 @@ const calculateBonusValue = (
     return bonus.value || 0;
   }
   return 0;
+};
+
+// Helper function to check if a weapon matches bonus criteria
+const weaponMatchesBonus = (
+  weapon: Equipment,
+  bonus: {
+    weaponName?: string;
+    weaponTags?: string[];
+    proficiencyRequired?: boolean;
+  },
+  sheet: CharacterSheet
+): boolean => {
+  // Check specific weapon name
+  if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
+    return false;
+  }
+
+  // Check weapon tags
+  if (bonus.weaponTags && bonus.weaponTags.length > 0) {
+    const weaponTags = weapon.weaponTags || [];
+    const hasMatchingTag = bonus.weaponTags.some((tag) =>
+      weaponTags.includes(tag)
+    );
+    if (!hasMatchingTag) {
+      return false;
+    }
+  }
+
+  // Check proficiency requirement
+  if (bonus.proficiencyRequired) {
+    // TODO: Implement proficiency check logic
+    // For now, assume all weapons are proficient
+    // This would need to check against sheet.classe.proficiencias
+  }
+
+  return true;
+};
+
+// Helper function to apply weapon bonuses
+const applyWeaponBonuses = (sheet: CharacterSheet): CharacterSheet => {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Apply weapon bonuses to all weapons in the bag
+  updatedSheet.bag.equipments.Arma = updatedSheet.bag.equipments.Arma.map(
+    (weapon) => {
+      const weaponCopy = { ...weapon };
+
+      updatedSheet.sheetBonuses.forEach((bonus) => {
+        if (
+          (bonus.target.type === 'WeaponDamage' ||
+            bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponCritical') &&
+          weaponMatchesBonus(weapon, bonus.target, updatedSheet)
+        ) {
+          const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+
+          if (bonus.target.type === 'WeaponAttack') {
+            weaponCopy.atkBonus = (weaponCopy.atkBonus || 0) + bonusValue;
+          } else if (bonus.target.type === 'WeaponDamage') {
+            // For damage bonuses, we'll add them to the weapon name for display
+            // This is a simple approach - a more sophisticated one would modify the damage calculation
+            if (bonusValue > 0) {
+              weaponCopy.dano = weaponCopy.dano
+                ? `${weaponCopy.dano}+${bonusValue}`
+                : `+${bonusValue}`;
+            }
+          } else if (bonus.target.type === 'WeaponCritical') {
+            // For critical bonuses, modify the critical range/multiplier
+            // This is a simplified implementation
+            if (weaponCopy.critico && bonusValue > 0) {
+              if (weaponCopy.critico.includes('x')) {
+                // Handle multiplier increase (e.g., x2 -> x3)
+                const currentMult = parseInt(
+                  weaponCopy.critico.match(/x(\d+)/)?.[1] || '2'
+                );
+                weaponCopy.critico = weaponCopy.critico.replace(
+                  /x\d+/,
+                  `x${currentMult + bonusValue}`
+                );
+              } else if (weaponCopy.critico.includes('/')) {
+                // Handle combined range/multiplier (e.g., 19/x3)
+                const parts = weaponCopy.critico.split('/');
+                if (parts[1].includes('x')) {
+                  const currentMult = parseInt(
+                    parts[1].match(/x(\d+)/)?.[1] || '2'
+                  );
+                  weaponCopy.critico = `${parts[0]}/x${
+                    currentMult + bonusValue
+                  }`;
+                }
+              } else {
+                // Handle range increase (e.g., 19 -> 18)
+                const currentRange = parseInt(weaponCopy.critico);
+                if (!isNaN(currentRange)) {
+                  weaponCopy.critico = `${Math.max(
+                    1,
+                    currentRange - bonusValue
+                  )}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      return weaponCopy;
+    }
+  );
+
+  return updatedSheet;
 };
 
 // Helper function to add bonus to skill
@@ -479,6 +590,9 @@ export function recalculateSheet(
     updatedSheet.atributos,
     baseDisplacementBonuses
   );
+
+  // Step 12: Apply weapon bonuses
+  updatedSheet = applyWeaponBonuses(updatedSheet);
 
   return updatedSheet;
 }
