@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
+import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
@@ -741,7 +742,8 @@ function calcDisplacement(
 
 export const applyPower = (
   _sheet: CharacterSheet,
-  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>
+  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>,
+  manualSelections?: SelectionOptions
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -782,11 +784,14 @@ export const applyPower = (
           );
         }
 
-        const pickedProficiencies = pickFromAllowed(
-          availableProficiencies,
-          sheetAction.action.pick,
-          sheet.classe.proficiencias
-        );
+        // Use manual selections if provided, otherwise random
+        const pickedProficiencies =
+          manualSelections?.proficiencies ||
+          pickFromAllowed(
+            availableProficiencies,
+            sheetAction.action.pick,
+            sheet.classe.proficiencias
+          );
 
         sheet.classe.proficiencias.push(...pickedProficiencies);
 
@@ -806,11 +811,14 @@ export const applyPower = (
           });
         });
       } else if (sheetAction.action.type === 'learnSkill') {
-        const pickedSkills = pickFromAllowed(
-          sheetAction.action.availableSkills,
-          sheetAction.action.pick,
-          sheet.skills
-        );
+        // Use manual selections if provided, otherwise random
+        const pickedSkills =
+          (manualSelections?.skills as Skill[]) ||
+          pickFromAllowed(
+            sheetAction.action.availableSkills,
+            sheetAction.action.pick,
+            sheet.skills
+          );
 
         sheet.skills.push(...pickedSkills);
 
@@ -860,11 +868,14 @@ export const applyPower = (
           value: sheetAction.action.description,
         });
       } else if (sheetAction.action.type === 'getGeneralPower') {
-        const pickedPowers = pickFromAllowed(
-          sheetAction.action.availablePowers,
-          sheetAction.action.pick,
-          sheet.generalPowers
-        );
+        // Use manual selections if provided, otherwise random
+        const pickedPowers =
+          manualSelections?.powers ||
+          pickFromAllowed(
+            sheetAction.action.availablePowers,
+            sheetAction.action.pick,
+            sheet.generalPowers
+          );
 
         sheet.generalPowers.push(...pickedPowers);
 
@@ -884,16 +895,33 @@ export const applyPower = (
           });
         });
       } else if (sheetAction.action.type === 'learnSpell') {
-        const learnedSpells = addOrCheapenRandomSpells(
-          sheet,
-          subSteps,
-          sheetAction.action.availableSpells,
-          getSourceName(sheetAction.source),
-          sheetAction.action.customAttribute ||
-            sheet.classe.spellPath?.keyAttribute ||
-            Atributo.INTELIGENCIA,
-          sheetAction.action.pick
-        );
+        let learnedSpells: Spell[];
+
+        if (manualSelections?.spells && manualSelections.spells.length > 0) {
+          // Use manual selections
+          learnedSpells = manualSelections.spells;
+
+          // Add to sheet.spells if not already present
+          learnedSpells.forEach((spell) => {
+            if (
+              !sheet.spells.some((existing) => existing.nome === spell.nome)
+            ) {
+              sheet.spells.push(spell);
+            }
+          });
+        } else {
+          // Fall back to random selection
+          learnedSpells = addOrCheapenRandomSpells(
+            sheet,
+            subSteps,
+            sheetAction.action.availableSpells,
+            getSourceName(sheetAction.source),
+            sheetAction.action.customAttribute ||
+              sheet.classe.spellPath?.keyAttribute ||
+              Atributo.INTELIGENCIA,
+            sheetAction.action.pick
+          );
+        }
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
@@ -924,14 +952,31 @@ export const applyPower = (
           return allowedSchools.includes(spell.school);
         });
 
-        const learnedSpells = addOrCheapenRandomSpells(
-          sheet,
-          subSteps,
-          availableSpells,
-          getSourceName(sheetAction.source),
-          sheet.classe.spellPath?.keyAttribute || Atributo.INTELIGENCIA,
-          sheetAction.action.pick
-        );
+        let learnedSpells: Spell[];
+
+        if (manualSelections?.spells && manualSelections.spells.length > 0) {
+          // Use manual selections
+          learnedSpells = manualSelections.spells;
+
+          // Add to sheet.spells if not already present
+          learnedSpells.forEach((spell) => {
+            if (
+              !sheet.spells.some((existing) => existing.nome === spell.nome)
+            ) {
+              sheet.spells.push(spell);
+            }
+          });
+        } else {
+          // Fall back to random selection
+          learnedSpells = addOrCheapenRandomSpells(
+            sheet,
+            subSteps,
+            availableSpells,
+            getSourceName(sheetAction.source),
+            sheet.classe.spellPath?.keyAttribute || Atributo.INTELIGENCIA,
+            sheetAction.action.pick
+          );
+        }
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
@@ -1485,7 +1530,10 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   return 0;
 };
 
-const applyStatModifiers = (_sheet: CharacterSheet) => {
+const applyStatModifiers = (
+  _sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+) => {
   const sheet = _.cloneDeep(_sheet);
 
   const pvSubSteps: SubStep[] = [];
@@ -1564,10 +1612,18 @@ const applyStatModifiers = (_sheet: CharacterSheet) => {
         value: `${bonusValue}`,
       });
     } else if (bonus.target.type === 'PickSkill') {
-      const pickedSkills = pickFromArray(
-        bonus.target.skills,
-        bonus.target.pick
-      );
+      let pickedSkills: Skill[];
+
+      // Use manual selections if provided
+      if (manualSelections?.skills && manualSelections.skills.length > 0) {
+        pickedSkills = manualSelections.skills.slice(
+          0,
+          bonus.target.pick
+        ) as Skill[];
+      } else {
+        // Fall back to random selection
+        pickedSkills = pickFromArray(bonus.target.skills, bonus.target.pick);
+      }
 
       pickedSkills.forEach((skill) => {
         // TODO: Adicionar bonus bom pra oficios

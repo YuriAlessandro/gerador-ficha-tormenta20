@@ -9,6 +9,7 @@ import { calcDefense } from '@/data/equipamentos';
 import { getRaceDisplacement } from '@/data/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
+import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
 
@@ -187,11 +188,30 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   return sheetClone;
 }
 
-function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
+function applyGeneralPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   sheetClone = (sheetClone.generalPowers || []).reduce((acc, power) => {
-    const [newAcc] = applyPower(acc, power);
+    const selections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, selections);
+    return newAcc;
+  }, sheetClone);
+
+  return sheetClone;
+}
+
+function applyClassPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
+  let sheetClone = _.cloneDeep(sheet);
+
+  sheetClone = (sheetClone.classPowers || []).reduce((acc, power) => {
+    const selections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, selections);
     return newAcc;
   }, sheetClone);
 
@@ -218,10 +238,12 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
  *
  * @param sheet - The updated character sheet
  * @param originalSheet - Optional original sheet state to detect removed powers
+ * @param manualSelections - Optional manual selections for powers that require them
  */
 export function recalculateSheet(
   sheet: CharacterSheet,
-  originalSheet?: CharacterSheet
+  originalSheet?: CharacterSheet,
+  manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
@@ -363,18 +385,21 @@ export function recalculateSheet(
   updatedSheet.sheetBonuses = [];
 
   // Step 2: Apply general powers (most important for manual additions)
-  updatedSheet = applyGeneralPowers(updatedSheet);
+  updatedSheet = applyGeneralPowers(updatedSheet, manualSelections);
 
-  // Step 3: Apply race abilities
+  // Step 3: Apply class powers (with manual selections)
+  updatedSheet = applyClassPowers(updatedSheet, manualSelections);
+
+  // Step 4: Apply race abilities
   updatedSheet = applyRaceAbilities(updatedSheet);
 
-  // Step 4: Apply class abilities (filter by level)
+  // Step 5: Apply class abilities (filter by level)
   updatedSheet = applyClassAbilities(updatedSheet);
 
-  // Step 5: Apply divine powers
+  // Step 6: Apply divine powers
   updatedSheet = applyDivinePowers(updatedSheet);
 
-  // Step 6: Apply origin powers
+  // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet);
 
   // Step 7: Recalculate skills first (resets others to 0)
@@ -392,6 +417,25 @@ export function recalculateSheet(
       } else if (bonus.target.type === 'Skill') {
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+      } else if (bonus.target.type === 'PickSkill') {
+        // Re-apply PickSkill bonuses using manual selections
+        // Find which power this bonus belongs to by checking the bonus source
+        if (
+          bonus.source?.type === 'power' &&
+          manualSelections?.[bonus.source.name]?.skills
+        ) {
+          const powerName = bonus.source.name;
+          const powerSelections = manualSelections[powerName];
+          if (powerSelections?.skills) {
+            const selectedSkills = powerSelections.skills.slice(
+              0,
+              bonus.target.pick
+            );
+            selectedSkills.forEach((skillName) => {
+              addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
+            });
+          }
+        }
       } else if (bonus.target.type === 'Displacement') {
         updatedSheet.displacement += bonusValue;
       } else if (bonus.target.type === 'ArmorPenalty') {
