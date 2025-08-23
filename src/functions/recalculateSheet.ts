@@ -109,9 +109,7 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
 };
 
 // Helper function to recalculate HP with attribute replacement
-const applyHPAttributeReplacement = (
-  sheet: CharacterSheet
-): CharacterSheet => {
+const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
   const updatedSheet = _.cloneDeep(sheet);
 
   // Check if there's an HP attribute replacement
@@ -120,12 +118,13 @@ const applyHPAttributeReplacement = (
   );
 
   if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
-    const newAttribute = hpReplacement.target.newAttribute;
-    
+    const { newAttribute } = hpReplacement.target;
+
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
-    const attributeBonus = updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
-    
+    const attributeBonus =
+      updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
+
     updatedSheet.pv = baseHp + attributeBonus;
   }
 
@@ -585,7 +584,10 @@ export function recalculateSheet(
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   updatedSheet.sheetBonuses.forEach((bonus) => {
-    if (bonus.target.type !== 'Defense' && bonus.target.type !== 'HPAttributeReplacement') {
+    if (
+      bonus.target.type !== 'Defense' &&
+      bonus.target.type !== 'HPAttributeReplacement'
+    ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
       if (bonus.target.type === 'PV') {

@@ -1091,20 +1091,23 @@ export const applyPower = (
   // sheet bonuses
   if (powerOrAbility.sheetBonuses) {
     sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
-    
+
     // Check if there's an HP attribute replacement and apply it immediately
     const hpReplacement = powerOrAbility.sheetBonuses.find(
       (bonus) => bonus.target.type === 'HPAttributeReplacement'
     );
-    
-    if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
-      const newAttribute = hpReplacement.target.newAttribute;
+
+    if (
+      hpReplacement &&
+      hpReplacement.target.type === 'HPAttributeReplacement'
+    ) {
+      const { newAttribute } = hpReplacement.target;
       const baseHp = sheet.classe.pv;
       const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
-      
+
       const oldPv = sheet.pv;
       sheet.pv = baseHp + attributeBonus;
-      
+
       subSteps.push({
         name: getSourceName(hpReplacement.source),
         value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
@@ -1356,7 +1359,7 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   const hpReplacement = updatedSheet.sheetBonuses.find(
     (bonus) => bonus.target.type === 'HPAttributeReplacement'
   );
-  
+
   let hpAttribute = Atributo.CONSTITUICAO;
   if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
     hpAttribute = hpReplacement.target.newAttribute;
