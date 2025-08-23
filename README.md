@@ -1,38 +1,139 @@
 # Gerador de Fichas de Tormenta 20
 
-[![CircleCI](https://circleci.com/gh/YuriAlessandro/gerador-ficha-tormenta20/tree/main.svg?style=svg)](https://yurialessandro.github.io/gerador-ficha-tormenta20/)
+[![CircleCI](https://circleci.com/gh/YuriAlessandro/gerador-ficha-tormenta20/tree/main.svg?style=svg)](https://fichasdenimb.com.br)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![Material-UI](https://img.shields.io/badge/Material--UI-0081CB?style=flat&logo=material-ui&logoColor=white)
 
-Um gerador de fichas para o sistema de RPG Tormenta 20.
-Você pode gerar raças e classes aleatórias ou selecionar específicas.
+Um gerador de fichas completo e moderno para o sistema de RPG **Tormenta 20**.
+Crie personagens aleatórios ou personalizados com todas as regras oficiais implementadas.
 
-É possível testar e utilizar a versão mais recente em [yurialessandro.github.io/gerador-ficha-tormenta20](https://yurialessandro.github.io/gerador-ficha-tormenta20/)
-Para ver o changelog com a lista de alterações [clique aqui](https://yurialessandro.github.io/gerador-ficha-tormenta20/#/changelog)
+🎲 **[Acesse o Gerador](https://fichasdenimb.com.br)**
 
-## Sugestões e Ideias
+📋 **[Changelog - Veja as novidades](https://fichasdenimb.com.br/#/changelog)**
 
-Se você tem alguma sugestão ou ideia, crie um tópico [aqui](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions)
+## ✨ Funcionalidades
 
-## Contribua
+### 🎯 Geração de Personagens
 
-Sinta-se a vontade para contribuir com este código tal como dar feedback e sugestões. Você pode fazer isso utilizando o sistema de Discussões do GitHub ou enviando um email para yuri.alessandro@hotmail.com.
+- **Criação Aleatória**: Gere personagens completamente aleatórios
+- **Criação Customizada**: Escolha raça, classe, origem e atributos específicos
+- **Sistema de Passos**: Interface wizard intuitiva para criação passo-a-passo
+- **Seleção Manual de Poderes**: Escolha manualmente os efeitos de poderes (v3.3.0+)
 
-### Contribuições no código
+### 📊 Base de Dados Completa
 
-Crie um fork do projeto e o clone para sua máquina.
+- **Todas as Raças**: Implementadas com habilidades raciais completas
+- **Todas as Classes**: Com progressão de nível e habilidades
+- **Sistema de Magias**: Arcanas e divinas com filtros avançados
+- **Equipamentos**: Armas, armaduras, itens e equipamentos especiais
+- **Origens**: Todas as origens com benefícios correspondentes
+- **Divindades**: Sistema completo de devoção e poderes concedidos
 
-Na pasta do projeto:
+### 🛠️ Ferramentas Avançadas
+
+- **Editor de Fichas**: Edite personagens salvos com recálculo automático
+- **Geração de PDF**: Exporte fichas em PDF oficial do T20
+- **Histórico Local**: Salve e gerencie múltiplos personagens
+- **Gerador de Ameaças**: Crie NPCs e criaturas rapidamente
+- **Exportação Foundry VTT**: Exporte ameaças para Foundry Virtual Tabletop
+- **Sistema de Recompensas**: Gerador de tesouros e itens mágicos
+
+### 🎨 Interface Moderna
+
+- **Design Responsivo**: Funciona perfeitamente em desktop e mobile
+- **Tema Claro/Escuro**: Alternância entre modos visuais
+- **Material Design**: Interface moderna e intuitiva
+- **PWA**: Instalável como aplicativo no dispositivo
+
+## 🚀 Tecnologias
+
+Este projeto utiliza tecnologias modernas para garantir performance e qualidade:
+
+- **React 17** com **TypeScript** - Base sólida e type-safe
+- **Vite** - Build tool moderna e rápida
+- **Material-UI v5** + **Tailwind CSS** - Interface consistente e responsiva
+- **Redux Toolkit** - Gerenciamento de estado eficiente
+- **pdf-lib** - Geração de PDFs nativos
+- **Vitest** - Testes unitários rápidos
+- **ESLint** + **Prettier** - Código limpo e consistente
+
+## 📦 Instalação e Uso
+
+### Requisitos
+
+- [Node.js](https://nodejs.org/en/) (versão 16 ou superior)
+- npm ou yarn
+
+### Desenvolvimento Local
 
 ```bash
+# Clone o repositório
+git clone https://github.com/YuriAlessandro/gerador-ficha-tormenta20.git
+
+# Entre no diretório
+cd gerador-ficha-tormenta20
+
+# Instale as dependências
 npm install
+
+# Inicie o servidor de desenvolvimento
 npm start
+
+# Acesse http://localhost:5173
 ```
 
-*É preciso ter o [node](https://nodejs.org/en/) instalado.
+### Comandos Úteis
 
-Você pode encontrar uma documentação mais detalhada do projeto em [CONTRIBUTING.md](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/blob/main/CONTRIBUTING.md).
+```bash
+# Executar testes
+npm test
 
-## Contribuidores
+# Build para produção
+npm run build
+
+# Verificação de tipos TypeScript
+npx tsc --noEmit
+
+# Linting
+npx eslint src/
+
+# Formatação
+npx prettier --write src/
+```
+
+## 🤝 Como Contribuir
+
+Contribuições são sempre bem-vindas! Veja como você pode ajudar:
+
+### Reportar Problemas
+
+- Abra uma [issue](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/issues) descrevendo o problema
+- Inclua screenshots e passos para reproduzir o erro
+- Mencione seu navegador e sistema operacional
+
+### Sugerir Melhorias
+
+- Use as [Discussions](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions) para sugestões
+- Compartilhe suas ideias e receba feedback da comunidade
+
+### Contribuir com Código
+
+1. Faça um **fork** do projeto
+2. Crie uma **branch** para sua funcionalidade (`git checkout -b feature/nova-funcionalidade`)
+3. **Commit** suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. **Push** para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um **Pull Request**
+
+📋 Consulte o [CONTRIBUTING.md](CONTRIBUTING.md) para detalhes sobre estrutura do código e convenções.
+
+## 📧 Contato
+
+- **GitHub Discussions**: [Link](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions)
+- **Email**: yuri.alessandro@hotmail.com
+
+## Contribuidores Principais
 
 - [Yuri Alessandro Martins](https://github.com/YuriAlessandro)
 - [Isaac Batista](https://github.com/isaacbatst)
