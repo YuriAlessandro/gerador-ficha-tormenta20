@@ -10,6 +10,8 @@ import {
 import { Spell } from '@/interfaces/Spells';
 import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
 import { getSpellsOfCircle } from '@/data/magias/generalSpells';
+import { Atributo } from '@/data/atributos';
+import { getAttributeIncreasesInSamePlateau } from './general';
 
 /**
  * Check if a power requires manual selection from the user
@@ -78,6 +80,15 @@ export function getPowerSelectionRequirements(
             allowedType: action.allowedType,
             schools: action.schools,
           },
+        });
+      }
+
+      if (action.type === 'increaseAttribute') {
+        requirements.push({
+          type: 'increaseAttribute',
+          availableOptions: [], // Will be populated dynamically in getFilteredAvailableOptions
+          pick: 1, // Always pick 1 attribute
+          label: 'Selecione 1 atributo para aumentar',
         });
       }
     });
@@ -223,6 +234,17 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.nome.localeCompare(b.nome));
     }
 
+    case 'increaseAttribute': {
+      // Get attributes that haven't been increased in the current plateau
+      const usedAttributes = getAttributeIncreasesInSamePlateau(sheet);
+      const availableAttributes = Object.values(Atributo).filter(
+        (attr) => !usedAttributes.includes(attr)
+      );
+
+      // Return attribute names sorted alphabetically
+      return availableAttributes.sort((a, b) => a.localeCompare(b));
+    }
+
     default:
       return availableOptions;
   }
@@ -264,6 +286,11 @@ export function validateSelections(
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
         selectedItems = selections.spells || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'increaseAttribute':
+        selectedItems = selections.attributes || [];
         selectedCount = selectedItems.length;
         break;
 

@@ -179,6 +179,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               ) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 autoSelections.spells = availableOptions as any[];
+              } else if (req.type === 'increaseAttribute') {
+                autoSelections.attributes = availableOptions as string[];
               }
             }
           });
@@ -253,6 +255,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               ) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 autoSelections.spells = availableOptions as any[];
+              } else if (req.type === 'increaseAttribute') {
+                autoSelections.attributes = availableOptions as string[];
               }
             }
           });

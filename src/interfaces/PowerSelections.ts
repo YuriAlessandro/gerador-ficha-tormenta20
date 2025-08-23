@@ -9,6 +9,7 @@ export interface SelectionOptions {
   proficiencies?: string[];
   powers?: GeneralPower[];
   spells?: Spell[];
+  attributes?: string[]; // Atributo names like 'Força', 'Destreza', etc.
 }
 
 /**
@@ -35,7 +36,8 @@ export interface PowerSelectionRequirement {
     | 'addProficiency'
     | 'getGeneralPower'
     | 'learnSpell'
-    | 'learnAnySpellFromHighestCircle';
+    | 'learnAnySpellFromHighestCircle'
+    | 'increaseAttribute';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

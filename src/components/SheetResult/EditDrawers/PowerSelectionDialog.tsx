@@ -156,6 +156,33 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
     });
   };
 
+  const handleAttributeSelection = (
+    attribute: string,
+    checked: boolean,
+    pick: number
+  ) => {
+    setSelections((prev) => {
+      const currentAttributes = prev.attributes || [];
+      let newAttributes: string[];
+
+      if (pick === 1) {
+        // Single selection - replace (attributes are always single selection)
+        newAttributes = checked ? [attribute] : [];
+      } else if (checked) {
+        // Multiple selection (unlikely for attributes but keeping for consistency)
+        if (currentAttributes.length < pick) {
+          newAttributes = [...currentAttributes, attribute];
+        } else {
+          newAttributes = currentAttributes;
+        }
+      } else {
+        newAttributes = currentAttributes.filter((a) => a !== attribute);
+      }
+
+      return { ...prev, attributes: newAttributes };
+    });
+  };
+
   const handleConfirm = () => {
     const validation = validateSelections(requirements, selections, sheet);
 
@@ -444,6 +471,35 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
                   ))}
                 </FormGroup>
               )}
+            </FormControl>
+          </Box>
+        );
+      }
+
+      case 'increaseAttribute': {
+        const selectedAttributes = selections.attributes || [];
+
+        return (
+          <Box key={index} mb={2}>
+            <Typography variant='h6' gutterBottom>
+              {label}
+            </Typography>
+            <FormControl component='fieldset'>
+              <RadioGroup
+                value={selectedAttributes[0] || ''}
+                onChange={(e) =>
+                  handleAttributeSelection(e.target.value, true, pick)
+                }
+              >
+                {availableOptions.map((attribute) => (
+                  <FormControlLabel
+                    key={attribute}
+                    value={attribute}
+                    control={<Radio />}
+                    label={attribute}
+                  />
+                ))}
+              </RadioGroup>
             </FormControl>
           </Box>
         );

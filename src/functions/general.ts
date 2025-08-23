@@ -1000,7 +1000,14 @@ export const applyPower = (
         );
 
         let targetAttribute: Atributo;
-        if (firstPriorityAttribute) {
+
+        // Use manual selection if provided
+        if (
+          manualSelections?.attributes &&
+          manualSelections.attributes.length > 0
+        ) {
+          targetAttribute = manualSelections.attributes[0] as Atributo;
+        } else if (firstPriorityAttribute) {
           targetAttribute = firstPriorityAttribute;
         } else {
           // If no priority attributes available, pick any
