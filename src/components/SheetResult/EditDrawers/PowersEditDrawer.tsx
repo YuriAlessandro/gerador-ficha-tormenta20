@@ -23,9 +23,11 @@ import {
   GeneralPower,
   GeneralPowerType,
   RequirementType,
+  OriginPower,
 } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
 import { Atributo } from '@/data/atributos';
+import { ORIGINS } from '@/data/origins';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   ManualPowerSelections,
@@ -37,6 +39,7 @@ import destinyPowers from '@/data/powers/destinyPowers';
 import spellPowers from '@/data/powers/spellPowers';
 import tormentaPowers from '@/data/powers/tormentaPowers';
 import GRANTED_POWERS from '@/data/powers/grantedPowers';
+import originPowers from '@/data/powers/originPowers';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -51,9 +54,9 @@ interface PowersEditDrawerProps {
 }
 
 interface PowerCategory {
-  type: GeneralPowerType;
+  type: GeneralPowerType | 'ORIGEM';
   name: string;
-  powers: GeneralPower[];
+  powers: (GeneralPower | OriginPower)[];
 }
 
 const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
@@ -66,6 +69,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const [selectedClassPowers, setSelectedClassPowers] = useState<ClassPower[]>(
     []
   );
+  const [selectedOriginPowers, setSelectedOriginPowers] = useState<
+    OriginPower[]
+  >([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // New state for manual power selections
@@ -91,13 +97,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       if (sheet.classPowers) {
         setSelectedClassPowers([...sheet.classPowers]);
       }
+      if (sheet.origin?.powers) {
+        setSelectedOriginPowers([...sheet.origin.powers]);
+      }
       // Reset manual selections when opening
       setManualSelections({});
     }
-  }, [sheet.generalPowers, sheet.classPowers, open]);
+  }, [sheet.generalPowers, sheet.classPowers, sheet.origin?.powers, open]);
 
   // Organize all powers by category
   const powerCategories: PowerCategory[] = [
+    {
+      type: 'ORIGEM',
+      name: 'Poderes de Origem',
+      powers: Object.values(originPowers),
+    },
     {
       type: GeneralPowerType.COMBATE,
       name: 'Poderes de Combate',
@@ -651,6 +665,33 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       .join(' OU ');
   };
 
+  // Helper function to find which origin a power belongs to
+  const getOriginForPower = (power: OriginPower): string | null => {
+    const foundOrigin = Object.values(ORIGINS).find((origin) =>
+      origin.poderes?.some((p) => p.name === power.name)
+    );
+    return foundOrigin ? foundOrigin.name : null;
+  };
+
+  const handleOriginPowerToggle = (power: OriginPower) => {
+    const isSelected = selectedOriginPowers.some((p) => p.name === power.name);
+
+    if (isSelected) {
+      // Remove power
+      setSelectedOriginPowers((prev) =>
+        prev.filter((p) => p.name !== power.name)
+      );
+      setManualSelections((prev) => {
+        const updated = { ...prev };
+        delete updated[power.name];
+        return updated;
+      });
+    } else {
+      // Add power
+      setSelectedOriginPowers((prev) => [...prev, power]);
+    }
+  };
+
   const filterPowers = <
     T extends { name: string; text?: string; description?: string }
   >(
@@ -692,6 +733,19 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       sheet.classPowers?.filter((p) => !newClassPowerNames.includes(p.name)) ||
       [];
 
+    // Track origin power changes
+    const originalOriginPowerNames =
+      sheet.origin?.powers?.map((p) => p.name) || [];
+    const newOriginPowerNames = selectedOriginPowers.map((p) => p.name);
+
+    const addedOriginPowers = selectedOriginPowers.filter(
+      (p) => !originalOriginPowerNames.includes(p.name)
+    );
+    const removedOriginPowers =
+      sheet.origin?.powers?.filter(
+        (p) => !newOriginPowerNames.includes(p.name)
+      ) || [];
+
     const newSteps: Step[] = [];
 
     if (addedPowers.length > 0) {
@@ -732,11 +786,36 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       });
     }
 
+    if (addedOriginPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes de Origem Adicionados',
+        type: 'Poderes',
+        value: addedOriginPowers.map((p) => ({ name: p.name, value: p.name })),
+      });
+    }
+
+    if (removedOriginPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes de Origem Removidos',
+        type: 'Poderes',
+        value: removedOriginPowers.map((p) => ({
+          name: p.name,
+          value: `${p.name} (removido)`,
+        })),
+      });
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
       generalPowers: selectedPowers,
       classPowers: selectedClassPowers,
+      origin: sheet.origin
+        ? {
+            ...sheet.origin,
+            powers: selectedOriginPowers,
+          }
+        : undefined,
       steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
     };
 
@@ -757,6 +836,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
     if (sheet.classPowers) {
       setSelectedClassPowers([...sheet.classPowers]);
+    }
+    if (sheet.origin?.powers) {
+      setSelectedOriginPowers([...sheet.origin.powers]);
     }
     setSearchTerm('');
     setManualSelections({});
@@ -858,6 +940,30 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       );
                     }
                   )}
+                </Stack>
+              </>
+            )}
+            {selectedOriginPowers.length > 0 && (
+              <>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Poderes de Origem Selecionados ({selectedOriginPowers.length}
+                  ):
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  flexWrap='wrap'
+                  sx={{ mb: 2 }}
+                >
+                  {selectedOriginPowers.map((power) => (
+                    <Chip
+                      key={power.name}
+                      label={power.name}
+                      size='small'
+                      color='warning'
+                      onDelete={() => handleOriginPowerToggle(power)}
+                    />
+                  ))}
                 </Stack>
               </>
             )}
@@ -1146,8 +1252,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   <Stack spacing={2}>
                     {filteredPowers
                       .sort((a, b) => {
-                        const aQualifies = checkRequirements(a);
-                        const bQualifies = checkRequirements(b);
+                        if (category.type === 'ORIGEM') {
+                          // Check if powers meet origin requirements
+                          const aOrigin = getOriginForPower(a as OriginPower);
+                          const bOrigin = getOriginForPower(b as OriginPower);
+                          const aQualifies = sheet.origin?.name === aOrigin;
+                          const bQualifies = sheet.origin?.name === bOrigin;
+                          // Show qualifying powers first
+                          if (aQualifies && !bQualifies) return -1;
+                          if (!aQualifies && bQualifies) return 1;
+                          // Then sort alphabetically
+                          return a.name.localeCompare(b.name);
+                        }
+                        const aQualifies = checkRequirements(a as GeneralPower);
+                        const bQualifies = checkRequirements(b as GeneralPower);
                         // Show qualifying powers first
                         if (aQualifies && !bQualifies) return -1;
                         if (!aQualifies && bQualifies) return 1;
@@ -1155,7 +1273,21 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         return a.name.localeCompare(b.name);
                       })
                       .map((power) => {
-                        const meetsRequirements = checkRequirements(power);
+                        const isOriginPower = category.type === 'ORIGEM';
+                        const requiredOrigin = isOriginPower
+                          ? getOriginForPower(power as OriginPower)
+                          : null;
+
+                        // Check if character has the required origin for this power
+                        const meetsRequirements = isOriginPower
+                          ? sheet.origin?.name === requiredOrigin
+                          : checkRequirements(power as GeneralPower);
+
+                        const isSelected = isOriginPower
+                          ? selectedOriginPowers.some(
+                              (p) => p.name === power.name
+                            )
+                          : isPowerSelected(power as GeneralPower);
 
                         return (
                           <Box
@@ -1168,7 +1300,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 : 'error.main',
                               borderRadius: 1,
                               backgroundColor: (() => {
-                                if (isPowerSelected(power)) {
+                                if (isSelected) {
                                   return meetsRequirements
                                     ? 'success.light'
                                     : 'error.light';
@@ -1183,8 +1315,16 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                             <FormControlLabel
                               control={
                                 <Checkbox
-                                  checked={isPowerSelected(power)}
-                                  onChange={() => handlePowerToggle(power)}
+                                  checked={isSelected}
+                                  onChange={() => {
+                                    if (isOriginPower) {
+                                      handleOriginPowerToggle(
+                                        power as OriginPower
+                                      );
+                                    } else {
+                                      handlePowerToggle(power as GeneralPower);
+                                    }
+                                  }}
                                   size='small'
                                 />
                               }
@@ -1208,17 +1348,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   >
                                     {power.description}
                                   </Typography>
-                                  <Typography
-                                    variant='caption'
-                                    color='text.secondary'
-                                    sx={{
-                                      display: 'block',
-                                      fontStyle: 'italic',
-                                    }}
-                                  >
-                                    <strong>Pré-requisitos:</strong>{' '}
-                                    {getRequirementText(power)}
-                                  </Typography>
+                                  {(isOriginPower ||
+                                    (power as GeneralPower).requirements) && (
+                                    <Typography
+                                      variant='caption'
+                                      color='text.secondary'
+                                      sx={{
+                                        display: 'block',
+                                        fontStyle: 'italic',
+                                      }}
+                                    >
+                                      <strong>Pré-requisitos:</strong>{' '}
+                                      {isOriginPower
+                                        ? `Origem: ${
+                                            requiredOrigin || 'Desconhecida'
+                                          }`
+                                        : getRequirementText(
+                                            power as GeneralPower
+                                          )}
+                                    </Typography>
+                                  )}
                                 </Box>
                               }
                               sx={{ alignItems: 'flex-start', width: '100%' }}

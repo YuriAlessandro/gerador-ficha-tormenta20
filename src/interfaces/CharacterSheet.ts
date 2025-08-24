@@ -96,6 +96,12 @@ export type SheetActionStep =
   | {
       type: 'selectAnimalTotem';
       availableTotems?: string[]; // List of totem names to choose from, or empty for all totems
+    }
+  | {
+      type: 'addTruqueMagicSpells';
+    }
+  | {
+      type: 'addVozCivilizacaoSpell';
     };
 
 export type SheetActionReceipt =

@@ -96,6 +96,26 @@ const SpellRow: React.FC<SpellProps> = (props) => {
           </Typography>
         )}
         <p>{spell.description}</p>
+        {spell.aprimoramentos && spell.aprimoramentos.length > 0 && (
+          <div style={{ marginTop: '16px' }}>
+            {spell.aprimoramentos.map((aprimoramento) => (
+              <Typography
+                key={`${aprimoramento.addPm}-${aprimoramento.text.substring(
+                  0,
+                  20
+                )}`}
+                sx={{ marginBottom: '8px' }}
+              >
+                <strong style={{ color: theme.palette.primary.main }}>
+                  {aprimoramento.addPm === 0
+                    ? 'Truque:'
+                    : `+${aprimoramento.addPm} PM:`}
+                </strong>{' '}
+                {aprimoramento.text}
+              </Typography>
+            ))}
+          </div>
+        )}
       </AccordionDetails>
     </Accordion>
   );

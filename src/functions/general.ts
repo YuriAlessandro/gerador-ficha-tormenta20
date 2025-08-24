@@ -112,6 +112,28 @@ import {
   getCurrentPlateau,
 } from './powers/general';
 
+export function createTruqueSpell(originalSpell: Spell): Spell {
+  const truqueSpell = cloneDeep(originalSpell);
+  truqueSpell.nome = `${originalSpell.nome} (Apenas Truque)`;
+
+  // Manter apenas o primeiro aprimoramento (addPm: 0)
+  if (truqueSpell.aprimoramentos && truqueSpell.aprimoramentos.length > 0) {
+    truqueSpell.aprimoramentos = [truqueSpell.aprimoramentos[0]];
+  }
+
+  return truqueSpell;
+}
+
+export function createAlwaysActiveSpell(originalSpell: Spell): Spell {
+  const alwaysActiveSpell = cloneDeep(originalSpell);
+  alwaysActiveSpell.nome = `${originalSpell.nome} (Sempre Ativo)`;
+
+  // Remove TODOS os aprimoramentos
+  alwaysActiveSpell.aprimoramentos = [];
+
+  return alwaysActiveSpell;
+}
+
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
 }
@@ -1165,6 +1187,31 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Animal totêmico selecionado: ${totem.name}`,
+        });
+      } else if (sheetAction.action.type === 'addTruqueMagicSpells') {
+        // Add the three truque magic spells
+        const originalSpells = [
+          spellsCircle1.explosaoDeChamas,
+          spellsCircle1.hipnotismo,
+          spellsCircle1.quedaSuave,
+        ];
+
+        originalSpells.forEach((spell) => {
+          const truqueSpell = createTruqueSpell(spell);
+          sheet.spells.push(truqueSpell);
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Adicionando ${truqueSpell.nome} à sua lista de magias.`,
+          });
+        });
+      } else if (sheetAction.action.type === 'addVozCivilizacaoSpell') {
+        // Add the Compreensão spell with always active effect
+        const compreensaoSpell = spellsCircle1.compreensao;
+        const alwaysActiveSpell = createAlwaysActiveSpell(compreensaoSpell);
+        sheet.spells.push(alwaysActiveSpell);
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Adicionando ${alwaysActiveSpell.nome} à sua lista de magias.`,
         });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];

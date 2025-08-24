@@ -976,11 +976,9 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tanna-Toh' }]],
     sheetActions: [
       {
-        source: { type: 'power', name: 'Voz da Civilização (Sempre ativa)' },
+        source: { type: 'power', name: 'Voz da Civilização' },
         action: {
-          type: 'learnSpell',
-          availableSpells: [spellsCircle1.compreensao],
-          pick: 1,
+          type: 'addVozCivilizacaoSpell',
         },
       },
     ],

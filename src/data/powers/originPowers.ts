@@ -83,28 +83,17 @@ const originPowers: Record<string, OriginPower> = {
     description:
       'Você pode lançar Explosão de Chamas, Hipnotismo e Queda Suave, mas apenas com o aprimoramento Truque. Esta não é uma habilidade mágica — os efeitos provêm de prestidigitação.',
     type: ORIGIN_POWER_TYPE,
-    // action(
-    //   sheet: CharacterSheet,
-    //   subSteps: { name: string; value: string }[]
-    // ): CharacterSheet {
-    //   const sheetClone = _.cloneDeep(sheet);
-
-    //   const spells = [
-    //     spellsCircle1.explosaoDeChamas,
-    //     spellsCircle1.hipnotismo,
-    //     spellsCircle1.quedaSuave,
-    //   ];
-
-    //   spells.forEach((spell) => {
-    //     sheetClone.spells.push(spell);
-    //     subSteps.push({
-    //       name: 'Truque de Mágica',
-    //       value: `Adicionando ${spell.nome} à sua lista de magias.`,
-    //     });
-    //   });
-
-    //   return sheetClone;
-    // },
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Truque de Mágica',
+        },
+        action: {
+          type: 'addTruqueMagicSpells',
+        },
+      },
+    ],
   },
   PUNGUISTA: {
     name: 'Punguista',
