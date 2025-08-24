@@ -9,9 +9,10 @@ import {
 import React from 'react';
 
 const ls = window.localStorage;
+const CURRENT_ALERT_NAME = 'version33Alert';
 
 const DiscordInvite = () => {
-  const doNotShow = ls.getItem('version3Alert') === 'true';
+  const doNotShow = ls.getItem(CURRENT_ALERT_NAME) === 'true';
   const [open, setOpen] = React.useState(!doNotShow);
 
   const handleClose = () => {
@@ -19,7 +20,7 @@ const DiscordInvite = () => {
   };
 
   const doNotShowAnymore = () => {
-    ls.setItem('version3Alert', 'true');
+    ls.setItem(CURRENT_ALERT_NAME, 'true');
     setOpen(false);
   };
 
@@ -30,24 +31,18 @@ const DiscordInvite = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>FdN - Versão 3</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>Versão 3.3</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            Atualizamos todo o projeto para a JdA, adicionamos a possibilidade
-            de editar fichas e construimos um novo gerador de ameaças. E mais
-            ferramentas estão por vir!
+            Uma nova versão está entre nós! Ao selecionar um poder manualmente
+            na ficha como &quot;Aumento de Atributo&quot;, agora você pode
+            escolher o que o poder irá afetar.
           </p>
           <p>
-            Se você encontrar algum bug ou tiver alguma sugestão, por favor faça
-            isso no link abaixo:
-            <a
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-              rel='noreferrer'
-              target='_blank'
-            >
-              https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions
-            </a>
+            Muitas melhorias foram feitas no editor de fichas em relação aos
+            poderes, e você pode conferir a lista comppleta de mudanças no
+            <a href='https://fichasdenimb.com.br/#/changelog'> Changelog</a>
           </p>
         </DialogContentText>
       </DialogContent>
