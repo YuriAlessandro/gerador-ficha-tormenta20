@@ -362,356 +362,350 @@ const Result: React.FC<ResultProps> = (props) => {
   `;
 
   return (
-    <Box>
-      <BackgroundBox sx={{ p: 2 }}>
-        <Container maxWidth='xl'>
-          <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
-            {/* LADO ESQUERDO, 60% */}
-            <Box width={isMobile ? '100%' : '60%'}>
-              {/* PARTE DE CIMA: Informações da ficha */}
-              <Card
+    <BackgroundBox sx={{ p: 2 }}>
+      <Container maxWidth='xl'>
+        <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
+          {/* LADO ESQUERDO, 60% */}
+          <Box width={isMobile ? '100%' : '60%'}>
+            {/* PARTE DE CIMA: Informações da ficha */}
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                minHeight: isMobile ? '500px' : '180px',
+                position: 'relative',
+                overflow: 'visible', // Allow the button to show outside the card
+              }}
+            >
+              <IconButton
+                size='small'
                 sx={{
-                  p: 3,
-                  mb: 4,
-                  minHeight: isMobile ? '500px' : '180px',
-                  position: 'relative',
-                  overflow: 'visible', // Allow the button to show outside the card
+                  position: 'absolute',
+                  top: -16, // Half the button height to position it on the edge
+                  right: 16,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: 1, // Makes it square with slightly rounded corners
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
                 }}
+                onClick={() => setSheetInfoDrawerOpen(true)}
               >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16, // Half the button height to position it on the edge
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1, // Makes it square with slightly rounded corners
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSheetInfoDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-                <Stack
-                  direction='row'
-                  spacing={2}
-                  alignItems='center'
-                  flexWrap='wrap'
-                  justifyContent='center'
-                >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <LabelDisplay text={nome} size='large' />
+                <EditIcon />
+              </IconButton>
+              <Stack
+                direction='row'
+                spacing={2}
+                alignItems='center'
+                flexWrap='wrap'
+                justifyContent='center'
+              >
+                <Box sx={{ flexGrow: 1 }}>
+                  <LabelDisplay text={nome} size='large' />
+                  <LabelDisplay
+                    text={`${raca.name} ${className} (${sexo})`}
+                    size='medium'
+                  />
+                  <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
+                  {origin && (
                     <LabelDisplay
-                      text={`${raca.name} ${className} (${sexo})`}
-                      size='medium'
-                    />
-                    <LabelDisplay
-                      title='Nível'
-                      text={`${nivel}`}
+                      title='Origem'
+                      text={origin.name || 'Não possui'}
                       size='small'
                     />
-                    {origin && (
-                      <LabelDisplay
-                        title='Origem'
-                        text={origin.name || 'Não possui'}
-                        size='small'
-                      />
-                    )}
-                    {devoto && (
-                      <LabelDisplay
-                        title='Divindade'
-                        text={devoto.divindade.name}
-                        size='small'
-                      />
-                    )}
-                  </Box>
-                  <Stack
-                    justifyContent='space-between'
-                    alignItems='center'
-                    direction={isMobile ? 'column' : 'row'}
-                  >
-                    <Box
-                      sx={{
-                        backgroundImage: `url(${
-                          isDarkMode ? bigBoxDark : bigBox
-                        })`,
-                        backgroundPosition: 'center',
-                        backgroundSize: 'fill',
-                        backgroundRepeat: 'no-repeat',
-                        width: '100px',
-                        // ml: 2,
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        p: 5,
-                        fontFamily: 'Tfont',
-                      }}
-                    >
-                      <TextBox>
-                        <Box
-                          sx={{
-                            fontSize: '50px',
-                            color: theme.palette.primary.main,
-                          }}
-                        >
-                          {pv}
-                        </Box>
-                        <Box>PV</Box>
-                      </TextBox>
-                      <TextBox>
-                        <Box
-                          sx={{
-                            fontSize: '50px',
-                            color: theme.palette.primary.main,
-                          }}
-                        >
-                          {pm}
-                        </Box>
-                        <Box>PM</Box>
-                      </TextBox>
-                    </Box>
-                  </Stack>
-                </Stack>
-              </Card>
-
-              {/* PARTE DO MEIO: Atributos */}
-              <Box
-                sx={
-                  isMobile
-                    ? { mt: '-290px', position: 'relative' }
-                    : { mt: '-90px', position: 'relative' }
-                }
-              >
-                <AttributeDisplay attributes={atributos} />
-              </Box>
-
-              {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
-              <Card
-                sx={{
-                  p: 3,
-                  mb: 4,
-                  position: 'relative',
-                  overflow: 'visible',
-                }}
-              >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setEquipmentDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                  )}
+                  {devoto && (
+                    <LabelDisplay
+                      title='Divindade'
+                      text={devoto.divindade.name}
+                      size='small'
+                    />
+                  )}
+                </Box>
                 <Stack
-                  direction={isMobile ? 'column' : 'row'}
-                  spacing={2}
                   justifyContent='space-between'
                   alignItems='center'
+                  direction={isMobile ? 'column' : 'row'}
                 >
-                  <Box width={isMobile ? '100%' : '33%'}>
-                    <BookTitle>Ataques</BookTitle>
-                    {weaponsDiv}
-                  </Box>
-                  <Stack spacing={2} direction='row'>
-                    <FancyBox>
-                      <Box>
-                        <DefenseLabel>{displacement}</DefenseLabel>
-                        <DisplacementTitle>Deslocamento</DisplacementTitle>
+                  <Box
+                    sx={{
+                      backgroundImage: `url(${
+                        isDarkMode ? bigBoxDark : bigBox
+                      })`,
+                      backgroundPosition: 'center',
+                      backgroundSize: 'fill',
+                      backgroundRepeat: 'no-repeat',
+                      width: '100px',
+                      // ml: 2,
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 5,
+                      fontFamily: 'Tfont',
+                    }}
+                  >
+                    <TextBox>
+                      <Box
+                        sx={{
+                          fontSize: '50px',
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        {pv}
                       </Box>
-                    </FancyBox>
-                    <FancyBox>
-                      <Box>
-                        <DefenseLabel>{defesa}</DefenseLabel>
-                        <DefenseTitle>Defesa</DefenseTitle>
+                      <Box>PV</Box>
+                    </TextBox>
+                    <TextBox>
+                      <Box
+                        sx={{
+                          fontSize: '50px',
+                          color: theme.palette.primary.main,
+                        }}
+                      >
+                        {pm}
                       </Box>
-                    </FancyBox>
-                  </Stack>
-                  <Box width={isMobile ? '100%' : '33%'}>
-                    <BookTitle>Defesa</BookTitle>
-                    <DefenseEquipments
-                      getKey={getKey}
-                      defenseEquipments={defenseEquipments}
-                    />
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      <Typography fontSize={12}>
-                        <strong>Penalidade de Armadura: </strong>
-                        {((bag.getArmorPenalty
-                          ? bag.getArmorPenalty()
-                          : bag.armorPenalty) +
-                          extraArmorPenalty) *
-                          -1}
-                      </Typography>
-                    </Box>
+                      <Box>PM</Box>
+                    </TextBox>
                   </Box>
                 </Stack>
-              </Card>
-              <Card
-                sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-              >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setPowersDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-                <Box>
-                  <BookTitle>Poderes</BookTitle>
-                  <PowersDisplay
-                    sheetHistory={currentSheet.sheetActionHistory}
-                    classAbilities={classe.abilities}
-                    classPowers={classPowers}
-                    raceAbilities={raca.abilities}
-                    originPowers={origin?.powers || []}
-                    deityPowers={devoto?.poderes || []}
-                    generalPowers={generalPowers}
-                    className={classe.name}
-                    raceName={raca.name}
-                  />
-                </Box>
-              </Card>
-              <Card
-                sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-              >
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSpellsDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-                <Box>
-                  <BookTitle>Magias</BookTitle>
-                  <Spells
-                    spells={spells}
-                    spellPath={classe.spellPath}
-                    keyAttr={keyAttr}
-                    nivel={nivel}
-                  />
-                </Box>
-              </Card>
-            </Box>
-            {/* LADO DIREITO, 40% */}
-            <Box width={isMobile ? '100%' : '40%'}>
-              <Stack spacing={4}>
-                <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                  <IconButton
-                    size='small'
-                    sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
-                    }}
-                    onClick={() => setSkillsDrawerOpen(true)}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  {periciasDiv}
-                </Card>
-                <Card>
-                  <Box p={2}>
-                    <BookTitle>Equipamentos</BookTitle>
-                    <Stack
-                      // spacing={2}
-                      direction='row'
-                      flexWrap='wrap'
-                      justifyContent='flex-start'
-                    >
-                      {equipamentosDiv}
-                    </Stack>
-                    <Box mt={2}>
-                      <strong>Espaços (atual/limite-máximo): </strong>
-                      {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
-                    </Box>
-                  </Box>
-                </Card>
-                <Card sx={{ p: 2 }}>
-                  <BookTitle>Proficiências</BookTitle>
-                  <Stack direction='row' flexWrap='wrap'>
-                    {proficienciasDiv}
-                  </Stack>
-                </Card>
               </Stack>
-            </Box>
-          </Stack>
-
-          <Stack
-            direction='row'
-            flexWrap='wrap'
-            alignItems='flex-start'
-            justifyContent='space-between'
-            width='100%'
-          >
-            <Card sx={{ mt: 2, p: 5, width: '30%' }}>
-              <p>
-                <small style={{ display: 'flex', alignItems: 'center' }}>
-                  <span
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginRight: '5px',
-                    }}
-                  >
-                    <BugReportIcon /> Encontrou algum problema nessa ficha?
-                  </span>
-                  <a
-                    target='blank'
-                    href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
-                  >
-                    Nos avise!
-                  </a>
-                </small>
-              </p>
             </Card>
 
-            <Card sx={{ mt: 2, p: 5, width: '50%' }}>{changesDiv}</Card>
-          </Stack>
-        </Container>
-      </BackgroundBox>
+            {/* PARTE DO MEIO: Atributos */}
+            <Box
+              sx={
+                isMobile
+                  ? { mt: '-290px', position: 'relative' }
+                  : { mt: '-90px', position: 'relative' }
+              }
+            >
+              <AttributeDisplay attributes={atributos} />
+            </Box>
+
+            {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                position: 'relative',
+                overflow: 'visible',
+              }}
+            >
+              <IconButton
+                size='small'
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                onClick={() => setEquipmentDrawerOpen(true)}
+              >
+                <EditIcon />
+              </IconButton>
+              <Stack
+                direction={isMobile ? 'column' : 'row'}
+                spacing={2}
+                justifyContent='space-between'
+                alignItems='center'
+              >
+                <Box width={isMobile ? '100%' : '33%'}>
+                  <BookTitle>Ataques</BookTitle>
+                  {weaponsDiv}
+                </Box>
+                <Stack spacing={2} direction='row'>
+                  <FancyBox>
+                    <Box>
+                      <DefenseLabel>{displacement}</DefenseLabel>
+                      <DisplacementTitle>Deslocamento</DisplacementTitle>
+                    </Box>
+                  </FancyBox>
+                  <FancyBox>
+                    <Box>
+                      <DefenseLabel>{defesa}</DefenseLabel>
+                      <DefenseTitle>Defesa</DefenseTitle>
+                    </Box>
+                  </FancyBox>
+                </Stack>
+                <Box width={isMobile ? '100%' : '33%'}>
+                  <BookTitle>Defesa</BookTitle>
+                  <DefenseEquipments
+                    getKey={getKey}
+                    defenseEquipments={defenseEquipments}
+                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <Typography fontSize={12}>
+                      <strong>Penalidade de Armadura: </strong>
+                      {((bag.getArmorPenalty
+                        ? bag.getArmorPenalty()
+                        : bag.armorPenalty) +
+                        extraArmorPenalty) *
+                        -1}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Stack>
+            </Card>
+            <Card
+              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+            >
+              <IconButton
+                size='small'
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                onClick={() => setPowersDrawerOpen(true)}
+              >
+                <EditIcon />
+              </IconButton>
+              <Box>
+                <BookTitle>Poderes</BookTitle>
+                <PowersDisplay
+                  sheetHistory={currentSheet.sheetActionHistory}
+                  classAbilities={classe.abilities}
+                  classPowers={classPowers}
+                  raceAbilities={raca.abilities}
+                  originPowers={origin?.powers || []}
+                  deityPowers={devoto?.poderes || []}
+                  generalPowers={generalPowers}
+                  className={classe.name}
+                  raceName={raca.name}
+                />
+              </Box>
+            </Card>
+            <Card
+              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+            >
+              <IconButton
+                size='small'
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                onClick={() => setSpellsDrawerOpen(true)}
+              >
+                <EditIcon />
+              </IconButton>
+              <Box>
+                <BookTitle>Magias</BookTitle>
+                <Spells
+                  spells={spells}
+                  spellPath={classe.spellPath}
+                  keyAttr={keyAttr}
+                  nivel={nivel}
+                />
+              </Box>
+            </Card>
+          </Box>
+          {/* LADO DIREITO, 40% */}
+          <Box width={isMobile ? '100%' : '40%'}>
+            <Stack spacing={4}>
+              <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSkillsDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+                {periciasDiv}
+              </Card>
+              <Card>
+                <Box p={2}>
+                  <BookTitle>Equipamentos</BookTitle>
+                  <Stack
+                    // spacing={2}
+                    direction='row'
+                    flexWrap='wrap'
+                    justifyContent='flex-start'
+                  >
+                    {equipamentosDiv}
+                  </Stack>
+                  <Box mt={2}>
+                    <strong>Espaços (atual/limite-máximo): </strong>
+                    {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
+                  </Box>
+                </Box>
+              </Card>
+              <Card sx={{ p: 2 }}>
+                <BookTitle>Proficiências</BookTitle>
+                <Stack direction='row' flexWrap='wrap'>
+                  {proficienciasDiv}
+                </Stack>
+              </Card>
+            </Stack>
+          </Box>
+        </Stack>
+
+        <Stack
+          direction='row'
+          flexWrap='wrap'
+          alignItems='flex-start'
+          justifyContent='space-between'
+          width='100%'
+        >
+          <Card sx={{ mt: 2, p: 5, width: '30%' }}>
+            <p>
+              <small style={{ display: 'flex', alignItems: 'center' }}>
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginRight: '5px',
+                  }}
+                >
+                  <BugReportIcon /> Encontrou algum problema nessa ficha?
+                </span>
+                <a
+                  target='blank'
+                  href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
+                >
+                  Nos avise!
+                </a>
+              </small>
+            </p>
+          </Card>
+
+          <Card sx={{ mt: 2, p: 5, width: '50%' }}>{changesDiv}</Card>
+        </Stack>
+      </Container>
 
       <>
         <SheetInfoEditDrawer
@@ -749,7 +743,7 @@ const Result: React.FC<ResultProps> = (props) => {
           onSave={handleSpellsUpdate}
         />
       </>
-    </Box>
+    </BackgroundBox>
   );
 };
 

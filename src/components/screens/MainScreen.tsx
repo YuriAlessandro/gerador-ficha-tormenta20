@@ -873,7 +873,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             </Stack>
           </Card>
         )}
-        {randomSheet && !showHistoric && sheetComponent}
 
         {showHistoric && (
           <Historic
@@ -882,6 +881,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           />
         )}
       </Container>
+
+      {randomSheet && !showHistoric && sheetComponent}
     </div>
   );
 };
