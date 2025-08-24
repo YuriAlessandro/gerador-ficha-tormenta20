@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 23/08/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 24/08/2025.
       </p>
 
       <p>
@@ -67,6 +67,32 @@ const Changelog: React.FC = () => (
           aprimorado com melhor interface e seleções mais intuitivas. Poderes
           com opções específicas agora permitem escolhas precisas em vez de
           seleção aleatória.
+        </li>
+        <li>
+          <strong>📖 Poderes de Origem:</strong> Adicionados poderes de origem
+          ao editor de poderes da ficha. Agora é possível adicionar ou remover
+          poderes de origem durante a edição, com indicação visual dos
+          pré-requisitos necessários.
+        </li>
+        <li>
+          <strong>🎭 Truque de Mágica:</strong> O poder &quot;Truque de
+          Mágica&quot; agora adiciona corretamente as magias Explosão de Chamas,
+          Hipnotismo e Queda Suave com apenas o aprimoramento Truque disponível.
+        </li>
+        <li>
+          <strong>🌍 Voz da Civilização:</strong> O poder &quot;Voz da
+          Civilização&quot; adiciona a magia Compreensão marcada como sempre
+          ativa, sem aprimoramentos disponíveis.
+        </li>
+        <li>
+          <strong>✨ Aprimoramentos de Magias:</strong> Agora as magias exibem
+          seus aprimoramentos disponíveis diretamente na ficha, mostrando o
+          custo em PM de cada um ou indicando quando é um Truque (0 PM).
+        </li>
+        <li>
+          <strong>🗑️ Remoção do Histórico:</strong> Adicionada opção para
+          remover fichas do histórico com confirmação antes de excluir
+          permanentemente.
         </li>
       </ul>
 
