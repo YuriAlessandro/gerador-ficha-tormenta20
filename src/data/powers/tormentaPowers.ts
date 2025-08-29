@@ -209,6 +209,7 @@ const tormentaPowers: Record<string, GeneralPower> = {
                 critico: 'x2',
                 tipo: 'Corte',
                 spaces: 0,
+                preco: 0,
               },
             ],
           },

@@ -38,6 +38,10 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
+import {
+  generateEquipmentRewards,
+  calculateEquipmentCost,
+} from './equipmentRewardGenerator';
 import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
 import Equipment, { BagEquipments } from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
@@ -136,6 +140,77 @@ export function createAlwaysActiveSpell(originalSpell: Spell): Spell {
 
 export function getModValue(attr: number): number {
   return Math.floor(attr / 2) - 5;
+}
+
+export function getInitialMoney(level: number): number {
+  const moneyByLevel: Record<number, number> = {
+    1: rollDice(4, 6, 0), // 4d6 para nível 1
+    2: 300,
+    3: 600,
+    4: 1000,
+    5: 2000,
+    6: 3000,
+    7: 5000,
+    8: 7000,
+    9: 10000,
+    10: 13000,
+    11: 19000,
+    12: 27000,
+    13: 36000,
+    14: 49000,
+    15: 66000,
+    16: 88000,
+    17: 110000,
+    18: 150000,
+    19: 200000,
+    20: 260000,
+  };
+
+  return moneyByLevel[level] || rollDice(4, 6, 0);
+}
+
+export function getInitialMoneyWithDetails(level: number): {
+  amount: number;
+  details?: string;
+} {
+  if (level === 1) {
+    // Roll 4 individual dice to show the breakdown
+    const dice: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      dice.push(Math.floor(Math.random() * 6) + 1);
+    }
+    const total = dice.reduce((sum, die) => sum + die, 0);
+    return {
+      amount: total,
+      details: `(${dice.join(', ')})`,
+    };
+  }
+
+  const fixedAmounts: Record<number, number> = {
+    2: 300,
+    3: 600,
+    4: 1000,
+    5: 2000,
+    6: 3000,
+    7: 5000,
+    8: 7000,
+    9: 10000,
+    10: 13000,
+    11: 19000,
+    12: 27000,
+    13: 36000,
+    14: 49000,
+    15: 66000,
+    16: 88000,
+    17: 110000,
+    18: 150000,
+    19: 200000,
+    20: 260000,
+  };
+
+  return {
+    amount: fixedAmounts[level] || rollDice(4, 6, 0),
+  };
 }
 
 // function getRandomPer() {
@@ -535,9 +610,9 @@ function getClassEquipments(
   };
 }
 
-function getInitialBag(origin: Origin | undefined): Bag {
+function getInitialBag(origin: Origin | undefined, level: number = 1): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const initialMoney = rollDice(4, 6, 0);
+  const initialMoney = getInitialMoney(level);
   const equipments: Partial<BagEquipments> = {
     'Item Geral': [
       {
@@ -2002,11 +2077,50 @@ export default function generateRandomSheet(
   }
 
   // Passo 5: itens, feitiços, e valores iniciais
-  const initialBag = getInitialBag(origin);
+  const initialBag = getInitialBag(origin, targetLevel);
+  let initialMoney = getInitialMoney(targetLevel);
+  const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
   const initialSpells: Spell[] = [];
   const initialPV = classe.pv;
   const initialPM = classe.pm;
   const initialDefense = 10;
+
+  // Gerar equipamentos de recompensa se solicitado
+  let generatedEquipments: Equipment[] = [];
+  let equipmentGenerationCost = 0;
+  let equipmentGenerationStep: SubStep[] = [];
+
+  if (
+    selectedOptions.gerarItens &&
+    selectedOptions.gerarItens !== 'nao-gerar'
+  ) {
+    const equipmentResult = generateEquipmentRewards(targetLevel);
+
+    if (equipmentResult.totalCost > 0) {
+      // Extrair equipamentos gerados para adicionar ao bag
+      Object.values(equipmentResult.equipments).forEach((equipmentArray) => {
+        if (equipmentArray) {
+          generatedEquipments.push(...equipmentArray);
+        }
+      });
+
+      equipmentGenerationCost = equipmentResult.totalCost;
+
+      // Se deve consumir dinheiro, reduzir do initial money
+      if (selectedOptions.gerarItens === 'consumir-dinheiro') {
+        initialMoney = Math.max(0, initialMoney - equipmentGenerationCost);
+      }
+
+      // Adicionar resumo e itens individuais aos steps
+      equipmentGenerationStep.push({
+        name: 'Resumo da Geração',
+        value: `${equipmentResult.generationDetails} (Custo total: ${equipmentGenerationCost} T$)`,
+      });
+
+      // Adicionar cada item gerado como substep
+      equipmentGenerationStep.push(...equipmentResult.itemsForSteps);
+    }
+  }
 
   steps.push(
     {
@@ -2022,10 +2136,31 @@ export default function generateRandomSheet(
       value: [{ value: initialDefense }],
     },
     {
+      label: 'Dinheiro Inicial',
+      value: [
+        {
+          value: `T$ ${initialMoneyWithDetails.amount}${
+            initialMoneyWithDetails.details
+              ? ` ${initialMoneyWithDetails.details}`
+              : ''
+          }`,
+        },
+      ],
+    },
+    {
       label: 'Equipamentos Iniciais e de Origem',
       value: [],
     }
   );
+
+  // Adicionar step dos equipamentos gerados se houver
+  if (equipmentGenerationStep.length > 0) {
+    steps.push({
+      label: 'Equipamentos por Nível',
+      type: 'Equipamentos',
+      value: equipmentGenerationStep,
+    });
+  }
 
   // Passo 6: Gerar atributos finais
   const atributos = generateFinalAttributes(classe, race, steps);
@@ -2099,6 +2234,7 @@ export default function generateRandomSheet(
     skills,
     spells: initialSpells,
     sentidos: [],
+    dinheiro: initialMoney,
   };
 
   // Passo 9:
@@ -2113,6 +2249,21 @@ export default function generateRandomSheet(
       value: equip.nome,
     })),
   });
+
+  // Adicionar equipamentos gerados ao bag
+  if (generatedEquipments.length > 0) {
+    const generatedEquipmentsByGroup: Partial<BagEquipments> = {};
+
+    generatedEquipments.forEach((equipment) => {
+      const group = equipment.group as keyof BagEquipments;
+      if (!generatedEquipmentsByGroup[group]) {
+        generatedEquipmentsByGroup[group] = [] as any;
+      }
+      (generatedEquipmentsByGroup[group] as any)!.push(equipment);
+    });
+
+    charSheet.bag.addEquipment(generatedEquipmentsByGroup);
+  }
 
   // Passo 10:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
@@ -2221,7 +2372,57 @@ export function generateEmptySheet(
     steps: [],
     skills: [],
     spells: [],
+    dinheiro: getInitialMoney(selectedOptions.nivel),
   };
+
+  // Gerar equipamentos de recompensa para ficha vazia se solicitado
+  if (
+    selectedOptions.gerarItens &&
+    selectedOptions.gerarItens !== 'nao-gerar'
+  ) {
+    const equipmentResult = generateEquipmentRewards(selectedOptions.nivel);
+
+    if (equipmentResult.totalCost > 0) {
+      // Adicionar equipamentos ao bag
+      Object.values(equipmentResult.equipments).forEach((equipmentArray) => {
+        if (equipmentArray) {
+          equipmentArray.forEach((equipment) => {
+            const group = equipment.group as keyof BagEquipments;
+            if (!emptySheet.bag.equipments[group]) {
+              emptySheet.bag.equipments[group] = [] as any;
+            }
+            (emptySheet.bag.equipments[group] as any).push(equipment);
+          });
+        }
+      });
+
+      // Se deve consumir dinheiro, reduzir
+      if (selectedOptions.gerarItens === 'consumir-dinheiro') {
+        emptySheet.dinheiro = Math.max(
+          0,
+          (emptySheet.dinheiro || 0) - equipmentResult.totalCost
+        );
+      }
+
+      // Criar steps dos equipamentos gerados
+      const equipmentSteps: SubStep[] = [];
+
+      equipmentSteps.push({
+        name: 'Resumo da Geração',
+        value: `${equipmentResult.generationDetails} (Custo total: ${equipmentResult.totalCost} T$)`,
+      });
+
+      // Adicionar cada item gerado como substep
+      equipmentSteps.push(...equipmentResult.itemsForSteps);
+
+      // Adicionar step ao histórico
+      emptySheet.steps.push({
+        label: 'Equipamentos por Nível',
+        type: 'Equipamentos',
+        value: equipmentSteps,
+      });
+    }
+  }
 
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);

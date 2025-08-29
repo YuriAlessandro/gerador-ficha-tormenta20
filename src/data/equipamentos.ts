@@ -14,6 +14,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: '-',
     alcance: '-',
     group: 'Arma',
+    preco: 20,
   },
   FLECHAS: {
     nome: 'Flechas (20)',
@@ -23,6 +24,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: '-',
     alcance: '-',
     group: 'Arma',
+    preco: 1,
   },
   MUNICAO: {
     nome: 'Munição (20)',
@@ -32,6 +34,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: '-',
     alcance: '-',
     group: 'Arma',
+    preco: 10,
   },
   VIROTES: {
     nome: 'Virotes (20)',
@@ -41,6 +44,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: '-',
     alcance: '-',
     group: 'Arma',
+    preco: 2,
   },
   ADAGA: {
     nome: 'Adaga',
@@ -50,6 +54,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: 'Curto',
     group: 'Arma',
+    preco: 2,
   },
   ESPADACURTA: {
     nome: 'Espada Curta',
@@ -59,6 +64,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: '-',
     group: 'Arma',
+    preco: 10,
   },
   FOICE: {
     nome: 'Foice',
@@ -68,6 +74,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Corte',
     alcance: '-',
     group: 'Arma',
+    preco: 4,
   },
   MANOPLA: {
     nome: 'Manopla',
@@ -77,6 +84,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impac.',
     alcance: '-',
     group: 'Arma',
+    preco: 10,
   },
   CLAVA: {
     nome: 'Clava',
@@ -86,6 +94,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impac.',
     alcance: '-',
     group: 'Arma',
+    preco: 0,
   },
   LANCA: {
     nome: 'Lança',
@@ -95,6 +104,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: 'Curto',
     group: 'Arma',
+    preco: 2,
     weaponTags: ['armaDeMar'],
   },
   MACA: {
@@ -105,6 +115,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impac.',
     alcance: '-',
     group: 'Arma',
+    preco: 12,
   },
   BORDAO: {
     nome: 'Bordão',
@@ -114,6 +125,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impac.',
     alcance: '-',
     group: 'Arma',
+    preco: 0,
   },
   PIQUE: {
     nome: 'Pique',
@@ -123,6 +135,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: '-',
     group: 'Arma',
+    preco: 2,
     weaponTags: ['alongada'],
   },
   TACAPE: {
@@ -133,6 +146,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impacto',
     alcance: '-',
     group: 'Arma',
+    preco: 0,
   },
   AZAGAIA: {
     nome: 'Azagaia',
@@ -142,6 +156,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: 'Médio',
     group: 'Arma',
+    preco: 1,
     weaponTags: ['armaDeMar'],
   },
   BESTALEVE: {
@@ -152,6 +167,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: 'Médio',
     group: 'Arma',
+    preco: 35,
   },
   FUNDA: {
     nome: 'Funda',
@@ -161,6 +177,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Impac.',
     alcance: 'Médio',
     group: 'Arma',
+    preco: 0,
   },
   ARCOCURTO: {
     nome: 'Arco Curto',
@@ -170,6 +187,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Perf.',
     alcance: 'Médio',
     group: 'Arma',
+    preco: 30,
   },
   MACHADINHA: {
     nome: 'Machadinha',
@@ -178,6 +196,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 6,
     weaponTags: ['heredrimm'],
   },
   CIMITARRA: {
@@ -187,6 +206,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 15,
   },
   ESPADA_LONGA: {
     nome: 'Espada Longa',
@@ -196,6 +216,7 @@ export const Armas: Record<string, Equipment> = {
     tipo: 'Corte',
     alcance: '-',
     group: 'Arma',
+    preco: 15,
   },
   FLORETE: {
     nome: 'Florete',
@@ -204,6 +225,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 20,
   },
   MACHADO_DE_BATALHA: {
     nome: 'Machado de Batalha',
@@ -212,6 +234,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 10,
     weaponTags: ['heredrimm'],
   },
   MANGUAL: {
@@ -221,6 +244,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Impacto',
     group: 'Arma',
+    preco: 8,
   },
   MARTELO_DE_GUERRA: {
     nome: 'Martelo de Guerra',
@@ -229,6 +253,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Impacto',
     group: 'Arma',
+    preco: 12,
     weaponTags: ['heredrimm'],
   },
   PICARETA: {
@@ -238,6 +263,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 8,
     weaponTags: ['heredrimm'],
   },
   TRIDENTE: {
@@ -247,6 +273,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 15,
     weaponTags: ['armaDeMar'],
   },
   ALABARDA: {
@@ -256,6 +283,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte/Perfuração',
     group: 'Arma',
+    preco: 10,
     weaponTags: ['alongada'],
   },
   ALFANGE: {
@@ -265,6 +293,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 75,
   },
   GADANHO: {
     nome: 'Gadanho',
@@ -273,6 +302,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 18,
   },
   LANCA_MONTADA: {
     nome: 'Lança Montada',
@@ -281,6 +311,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 10,
     weaponTags: ['alongada'],
   },
   MACHADO_DE_GUERRA: {
@@ -290,6 +321,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 20,
     weaponTags: ['heredrimm'],
   },
   MARRETA: {
@@ -299,6 +331,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Impacto',
     group: 'Arma',
+    preco: 20,
   },
   MONTANTE: {
     nome: 'Montante',
@@ -307,6 +340,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 50,
   },
   ARCO_LONGO: {
     nome: 'Arco Longo',
@@ -316,6 +350,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 100,
   },
   BESTA_PESADA: {
     nome: 'Besta Pesada',
@@ -325,6 +360,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 50,
   },
   CHICOTE: {
     nome: 'Chicote',
@@ -333,6 +369,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 2,
   },
   ESPADA_BASTARDA: {
     nome: 'Espada Bastarda',
@@ -341,6 +378,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Cirte',
     group: 'Arma',
+    preco: 35,
   },
   KATANA: {
     nome: 'Katana',
@@ -349,6 +387,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 100,
   },
   MACHADO_ANAO: {
     nome: 'Machado Anão',
@@ -357,6 +396,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 30,
     weaponTags: ['heredrimm'],
   },
   CORRENTE_DE_ESPINHOS: {
@@ -366,6 +406,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 25,
   },
   MACHADO_TAURICO: {
     nome: 'Machado Táurico',
@@ -374,6 +415,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Corte',
     group: 'Arma',
+    preco: 50,
     weaponTags: ['heredrimm'],
   },
   REDE: {
@@ -381,6 +423,7 @@ export const Armas: Record<string, Equipment> = {
     alcance: 'Curto',
     spaces: 1,
     group: 'Arma',
+    preco: 20,
   },
   MOSQUETE: {
     nome: 'Mosquete',
@@ -390,6 +433,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 2,
     tipo: 'Perfuração',
     group: 'Arma',
+    preco: 500,
     weaponTags: ['armaDeFogo'],
   },
   PISTOLA: {
@@ -400,6 +444,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Perguração',
     group: 'Arma',
+    preco: 250,
     weaponTags: ['armaDeFogo'],
   },
 };
@@ -411,6 +456,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 0,
     spaces: 2,
     group: 'Armadura',
+    preco: 5,
   },
   ARMADURADECOURO: {
     nome: 'Armadura de couro',
@@ -418,6 +464,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 0,
     spaces: 2,
     group: 'Armadura',
+    preco: 20,
   },
   COUROBATIDO: {
     nome: 'Couro batido',
@@ -425,6 +472,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 1,
     spaces: 2,
     group: 'Armadura',
+    preco: 35,
   },
   GIBAODEPELES: {
     nome: 'Gibão de peles',
@@ -432,6 +480,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 3,
     spaces: 2,
     group: 'Armadura',
+    preco: 25,
   },
   COURACA: {
     nome: 'Couraça',
@@ -439,6 +488,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 4,
     spaces: 2,
     group: 'Armadura',
+    preco: 500,
   },
   BRUNEA: {
     nome: 'Brunea',
@@ -446,6 +496,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    preco: 50,
   },
   COTA_DE_MALHA: {
     nome: 'Cota de Malha',
@@ -453,6 +504,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 2,
     spaces: 5,
     group: 'Armadura',
+    preco: 150,
   },
   LORIGA_SEGMENTADA: {
     nome: 'Loriga Segmentada',
@@ -460,6 +512,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 3,
     spaces: 5,
     group: 'Armadura',
+    preco: 250,
   },
   MEIA_ARMADURA: {
     nome: 'Meia Armadura',
@@ -467,6 +520,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 4,
     spaces: 5,
     group: 'Armadura',
+    preco: 600,
   },
   ARMADURA_COMPLETA: {
     nome: 'Armadura Completa',
@@ -474,6 +528,7 @@ export const Armaduras: Record<string, DefenseEquipment> = {
     armorPenalty: 5,
     spaces: 5,
     group: 'Armadura',
+    preco: 3000,
   },
 };
 
@@ -484,6 +539,7 @@ export const Escudos: Record<string, DefenseEquipment> = {
     armorPenalty: 1,
     spaces: 1,
     group: 'Escudo',
+    preco: 5,
   },
   ESCUDO_PESADO: {
     nome: 'Escudo Pesado',
@@ -491,6 +547,7 @@ export const Escudos: Record<string, DefenseEquipment> = {
     armorPenalty: 2,
     spaces: 2,
     group: 'Escudo',
+    preco: 15,
   },
 };
 

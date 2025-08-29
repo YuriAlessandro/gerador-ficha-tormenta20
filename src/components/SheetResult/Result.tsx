@@ -126,6 +126,7 @@ const Result: React.FC<ResultProps> = (props) => {
     steps,
     extraArmorPenalty = 0,
     completeSkills,
+    dinheiro = 0,
   } = currentSheet;
 
   function getKey(elementId: string) {
@@ -647,7 +648,24 @@ const Result: React.FC<ResultProps> = (props) => {
                 </IconButton>
                 {periciasDiv}
               </Card>
-              <Card>
+              <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setEquipmentDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
                 <Box p={2}>
                   <BookTitle>Equipamentos</BookTitle>
                   <Stack
@@ -659,6 +677,10 @@ const Result: React.FC<ResultProps> = (props) => {
                     {equipamentosDiv}
                   </Stack>
                   <Box mt={2}>
+                    <strong>Dinheiro: </strong>
+                    T$ {dinheiro}
+                  </Box>
+                  <Box mt={1}>
                     <strong>Espaços (atual/limite-máximo): </strong>
                     {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
                   </Box>

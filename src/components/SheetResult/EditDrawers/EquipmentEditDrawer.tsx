@@ -18,6 +18,7 @@ import {
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
+  TextField,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -53,6 +54,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       shields: [],
     }
   );
+  const [dinheiro, setDinheiro] = useState(0);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
   const [showAddArmor, setShowAddArmor] = useState(false);
   const [showAddShield, setShowAddShield] = useState(false);
@@ -66,8 +68,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         armors: bagEquipments.Armadura || [],
         shields: bagEquipments.Escudo || [],
       });
+
+      setDinheiro(sheet.dinheiro || 0);
     }
-  }, [sheet.bag, open]);
+  }, [sheet.bag, sheet.dinheiro, open]);
 
   const handleWeaponToggle = (weapon: Equipment) => {
     setSelectedEquipment((prev) => ({
@@ -176,7 +180,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
     const newSteps: Step[] = [];
 
-    if (weaponsChanged || armorChanged || shieldChanged) {
+    // Check if money changed
+    const moneyChanged = sheet.dinheiro !== dinheiro;
+
+    if (weaponsChanged || armorChanged || shieldChanged || moneyChanged) {
       const equipmentChanges: SubStep[] = [];
 
       if (weaponsChanged) {
@@ -245,6 +252,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         );
       }
 
+      // Add money change to equipment changes
+      if (moneyChanged) {
+        equipmentChanges.push({
+          name: 'Dinheiro',
+          value: `Dinheiro alterado de T$ ${
+            sheet.dinheiro || 0
+          } para T$ ${dinheiro}`,
+        });
+      }
+
       if (equipmentChanges.length > 0) {
         newSteps.push({
           label: 'Edição Manual - Equipamentos',
@@ -262,6 +279,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const updates: Partial<CharacterSheet> = {
         bag: updatedBag,
         defesa: recalculatedSheet.defesa,
+        dinheiro: dinheiro,
       };
 
       if (newSteps.length > 0) {
@@ -270,7 +288,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
       onSave(updates);
     } else {
-      const updates: Partial<CharacterSheet> = { bag: updatedBag };
+      const updates: Partial<CharacterSheet> = {
+        bag: updatedBag,
+        dinheiro: dinheiro,
+      };
 
       if (newSteps.length > 0) {
         updates.steps = [...sheet.steps, ...newSteps];
@@ -291,6 +312,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         armors: bagEquipments.Armadura || [],
         shields: bagEquipments.Escudo || [],
       });
+      setDinheiro(sheet.dinheiro || 0);
     }
     setShowAddWeapons(false);
     setShowAddArmor(false);
@@ -339,6 +361,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         </Typography>
 
         <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+          {/* Money Section */}
+          <Card sx={{ mb: 2 }}>
+            <CardContent>
+              <Typography variant='h6' gutterBottom>
+                Dinheiro
+              </Typography>
+              <TextField
+                fullWidth
+                type='number'
+                label='Dinheiro (T$)'
+                value={dinheiro}
+                onChange={(e) => setDinheiro(Number(e.target.value) || 0)}
+                inputProps={{ min: 0 }}
+                sx={{ mb: 2 }}
+              />
+            </CardContent>
+          </Card>
+
           {/* Current Equipment Section */}
           <Card sx={{ mb: 2 }}>
             <CardContent>

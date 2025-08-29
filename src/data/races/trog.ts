@@ -8,6 +8,7 @@ const mordida: Equipment = {
   dano: '1d6',
   critico: 'x2',
   tipo: 'Perf.',
+  preco: 0,
 };
 
 const TROG: Race = {

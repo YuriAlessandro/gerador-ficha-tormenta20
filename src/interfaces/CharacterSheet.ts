@@ -263,6 +263,7 @@ export default interface CharacterSheet {
   extraArmorPenalty?: number;
   completeSkills?: CompleteSkill[];
   sentidos?: string[];
+  dinheiro?: number;
 }
 
 export interface Step {
