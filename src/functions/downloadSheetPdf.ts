@@ -189,7 +189,7 @@ const preparePDF: (
 
   // Add powers as one big string
   const { generalPowers } = sheet;
-  const classPowers = sheet.classe.powers || [];
+  const classPowers = sheet.classPowers || [];
   const classAbilities = sheet.classe.abilities;
   const raceAbilities = sheet.raca.abilities;
   const originPowers = sheet.origin?.powers || [];
