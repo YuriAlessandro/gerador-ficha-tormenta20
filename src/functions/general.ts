@@ -173,7 +173,7 @@ export function getInitialMoneyWithDetails(level: number): {
   if (level === 1) {
     // Roll 4 individual dice to show the breakdown
     const dice: number[] = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i += 1) {
       dice.push(Math.floor(Math.random() * 6) + 1);
     }
     const total = dice.reduce((sum, die) => sum + die, 0);
@@ -2251,9 +2251,9 @@ export default function generateRandomSheet(
     generatedEquipments.forEach((equipment) => {
       const group = equipment.group as keyof BagEquipments;
       if (!generatedEquipmentsByGroup[group]) {
-        generatedEquipmentsByGroup[group] = [] as any;
+        generatedEquipmentsByGroup[group] = [] as Equipment[];
       }
-      (generatedEquipmentsByGroup[group] as any)!.push(equipment);
+      (generatedEquipmentsByGroup[group] as Equipment[]).push(equipment);
     });
 
     charSheet.bag.addEquipment(generatedEquipmentsByGroup);
@@ -2399,9 +2399,9 @@ export function generateEmptySheet(
           equipmentArray.forEach((equipment) => {
             const group = equipment.group as keyof BagEquipments;
             if (!emptySheet.bag.equipments[group]) {
-              emptySheet.bag.equipments[group] = [] as any;
+              emptySheet.bag.equipments[group] = [] as Equipment[];
             }
-            (emptySheet.bag.equipments[group] as any).push(equipment);
+            (emptySheet.bag.equipments[group] as Equipment[]).push(equipment);
           });
         }
       });

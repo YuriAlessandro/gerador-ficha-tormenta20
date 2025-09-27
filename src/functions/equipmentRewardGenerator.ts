@@ -250,7 +250,7 @@ function applyWeaponModifications(
   const takenMods: string[] = [];
 
   // Aplicar número específico de modificações
-  for (let i = 0; i < mods; i++) {
+  for (let i = 0; i < mods; i += 1) {
     // Filtrar modificações disponíveis (que não foram usadas e atendem pré-requisitos)
     const availableMods = weaponsModifications.filter((mod) => {
       if (takenMods.includes(mod.mod)) return false;
@@ -332,7 +332,7 @@ function applyWeaponModifications(
 
       // Se é modificação dupla, contar como 2
       if (selectedMod.double) {
-        i++; // Pula a próxima iteração
+        i += 1; // Pula a próxima iteração
       }
     }
   }
@@ -405,7 +405,7 @@ function applyArmorModifications(
   const takenMods: string[] = [];
 
   // Aplicar número específico de modificações
-  for (let i = 0; i < mods; i++) {
+  for (let i = 0; i < mods; i += 1) {
     // Filtrar modificações disponíveis
     const availableMods = armorsModifications.filter((mod) => {
       if (takenMods.includes(mod.mod)) return false;
@@ -463,7 +463,7 @@ function applyArmorModifications(
 
       // Se é modificação dupla, contar como 2
       if (selectedMod.double) {
-        i++;
+        i += 1;
       }
     }
   }
@@ -640,7 +640,7 @@ export function generateEquipmentRewards(
     }
 
     // Fazer múltiplas tentativas de geração
-    for (let attempt = 0; attempt < numberOfAttempts; attempt++) {
+    for (let attempt = 0; attempt < numberOfAttempts; attempt += 1) {
       const reward = rewardGenerator(rewardND);
 
       // Se há item para gerar, processar
@@ -690,13 +690,13 @@ export function generateEquipmentRewards(
 
           if (filteredEquipments.length > 0) {
             allGeneratedEquipments.push(...filteredEquipments);
-            extraAttempts++;
+            extraAttempts += 1;
             attemptDetails.push(
               `Tentativa extra ${extraAttempts}: ${filteredEquipments.length} item(s)`
             );
           } else {
             // If all items were filtered out, still increment attempts to avoid infinite loop
-            extraAttempts++;
+            extraAttempts += 1;
           }
         }
       } else {
@@ -708,7 +708,7 @@ export function generateEquipmentRewards(
           spaces: 1,
         };
         allGeneratedEquipments.push(genericItem);
-        extraAttempts++;
+        extraAttempts += 1;
         attemptDetails.push(`Tentativa extra ${extraAttempts}: Item genérico`);
       }
     }
@@ -723,10 +723,10 @@ export function generateEquipmentRewards(
       const group = equipment.group as keyof BagEquipments;
 
       if (!equipmentsByGroup[group]) {
-        equipmentsByGroup[group] = [] as any;
+        equipmentsByGroup[group] = [] as Equipment[];
       }
 
-      (equipmentsByGroup[group] as any).push(equipment);
+      (equipmentsByGroup[group] as Equipment[]).push(equipment);
       totalCost += equipment.preco || 0;
       itemDetails.push(`${equipment.nome} (${equipment.preco || 0} T$)`);
 
@@ -835,7 +835,7 @@ function generateEquipmentsByType(itemReward: ItemReward): Equipment[] {
 function generateMiscellaneousEquipmentWithRetries(
   maxRetries: number = 5
 ): Equipment | null {
-  for (let i = 0; i < maxRetries; i++) {
+  for (let i = 0; i < maxRetries; i += 1) {
     const diceRoll = rollDice(1, 100);
     const equipment = generateMiscellaneousEquipment(diceRoll);
     if (equipment) return equipment;
@@ -857,7 +857,7 @@ function generateWeaponOrArmorWithRetries(
   mods: number,
   maxRetries: number = 5
 ): Equipment | DefenseEquipment | null {
-  for (let i = 0; i < maxRetries; i++) {
+  for (let i = 0; i < maxRetries; i += 1) {
     const diceRoll = rollDice(1, 100);
     const equipment = generateWeaponOrArmor(diceRoll, mods);
     if (equipment) return equipment;
@@ -882,7 +882,7 @@ function generateMagicalEquipmentWithRetries(
   level: number,
   maxRetries: number = 5
 ): Equipment | null {
-  for (let i = 0; i < maxRetries; i++) {
+  for (let i = 0; i < maxRetries; i += 1) {
     const equipment = generateMagicalEquipment(level);
     if (equipment) return equipment;
   }
