@@ -38,10 +38,7 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/proficiencias';
-import {
-  generateEquipmentRewards,
-  calculateEquipmentCost,
-} from './equipmentRewardGenerator';
+import { generateEquipmentRewards } from './equipmentRewardGenerator';
 import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
 import Equipment, { BagEquipments } from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
@@ -2095,9 +2092,9 @@ export default function generateRandomSheet(
   const initialDefense = 10;
 
   // Gerar equipamentos de recompensa se solicitado
-  let generatedEquipments: Equipment[] = [];
+  const generatedEquipments: Equipment[] = [];
   let equipmentGenerationCost = 0;
-  let equipmentGenerationStep: SubStep[] = [];
+  const equipmentGenerationStep: SubStep[] = [];
 
   if (
     selectedOptions.gerarItens &&
