@@ -1,11 +1,5 @@
 import { LEVELS, ItemReward, ITEM_TYPE } from '../interfaces/Rewards';
-import {
-  rewardGenerator,
-  getSpecialMaterial,
-  getWeaponModification,
-  getArmorModification,
-  RewardGenerated,
-} from './rewards/rewardsGenerator';
+import { rewardGenerator } from './rewards/rewardsGenerator';
 import {
   miscellaneousItems,
   weapons,
@@ -17,8 +11,11 @@ import {
   weaponsModifications,
   armorsModifications,
 } from '../data/rewards/items';
-import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
-import { BagEquipments } from '../interfaces/Equipment';
+import Equipment, {
+  DefenseEquipment,
+  BagEquipments,
+} from '../interfaces/Equipment';
+
 import { rollDice } from './randomUtils';
 import Bag from '../interfaces/Bag';
 
@@ -553,7 +550,8 @@ function generateMagicalEquipment(level: number): Equipment | null {
       preco: 1000 * level,
       spaces: 1,
     };
-  } else if (typeRoll === 3) {
+  }
+  if (typeRoll === 3) {
     // Armadura mágica - por enquanto retorna item genérico
     return {
       nome: 'Armadura Mágica',
@@ -561,42 +559,39 @@ function generateMagicalEquipment(level: number): Equipment | null {
       preco: 1500 * level,
       spaces: 2,
     };
-  } else {
-    // Acessório mágico
-    let accessoryTable;
-    let basePrice;
+  }
+  // Acessório mágico
+  let accessoryTable;
+  let basePrice;
 
-    switch (level) {
-      case 1: // Menor
-        accessoryTable = minorAccessories;
-        basePrice = 500;
-        break;
-      case 3: // Médio
-        accessoryTable = mediumAccessories;
-        basePrice = 2000;
-        break;
-      case 4: // Maior
-        accessoryTable = majorAccessories;
-        basePrice = 8000;
-        break;
-      default:
-        accessoryTable = minorAccessories;
-        basePrice = 500;
-    }
+  switch (level) {
+    case 1: // Menor
+      accessoryTable = minorAccessories;
+      basePrice = 500;
+      break;
+    case 3: // Médio
+      accessoryTable = mediumAccessories;
+      basePrice = 2000;
+      break;
+    case 4: // Maior
+      accessoryTable = majorAccessories;
+      basePrice = 8000;
+      break;
+    default:
+      accessoryTable = minorAccessories;
+      basePrice = 500;
+  }
 
-    const roll = rollDice(1, 100);
-    const accessory = accessoryTable.find(
-      (a) => roll >= a.min && roll <= a.max
-    );
+  const roll = rollDice(1, 100);
+  const accessory = accessoryTable.find((a) => roll >= a.min && roll <= a.max);
 
-    if (accessory) {
-      return {
-        nome: accessory.item,
-        group: 'Item Geral',
-        preco: basePrice,
-        spaces: 1,
-      };
-    }
+  if (accessory) {
+    return {
+      nome: accessory.item,
+      group: 'Item Geral',
+      preco: basePrice,
+      spaces: 1,
+    };
   }
 
   return null;
@@ -755,7 +750,7 @@ export function generateEquipmentRewards(
       itemsForSteps,
     };
   } catch (error) {
-    console.error('Erro ao gerar equipamentos:', error);
+    // console.error('Erro ao gerar equipamentos:', error);
     return {
       equipments: {},
       totalCost: 0,
