@@ -204,6 +204,118 @@ function ensureInventorSpecialization(skills: Skill[]): Skill[] {
   return [...skills, randomSpecialization.skill];
 }
 
+// Specific Oficio System - Replace generic "Ofício (Qualquer)" with contextual crafts
+export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
+  Inventor: [
+    Skill.OFICIO_ALQUIMIA,
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_EGENHOQUEIRO,
+  ], // Already handled by specialization system
+  Guerreiro: [
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_MINERADOR,
+  ],
+  Lutador: [
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_CULINARIA,
+  ],
+  Bárbaro: [
+    Skill.OFICIO_FAZENDEIRO,
+    Skill.OFICIO_MINERADOR,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_PESCADOR,
+  ],
+  Bucaneiro: [
+    Skill.OFICIO_PESCADOR,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Arcanista: [
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ALQUIMIA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Nobre: [
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Clérigo: [
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_CULINARIA,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ALFAIATE,
+  ],
+  Ladino: [
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Caçador: [
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_FAZENDEIRO,
+  ],
+  Druida: [
+    Skill.OFICIO_FAZENDEIRO,
+    Skill.OFICIO_CULINARIA,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_CARPINTEIRO,
+  ],
+};
+
+export const DEFAULT_CONTEXTUAL_OFICIOS: Skill[] = [
+  Skill.OFICIO_ARTESANATO,
+  Skill.OFICIO_CULINARIA,
+  Skill.OFICIO_CARPINTEIRO,
+  Skill.OFICIO_ALFAIATE,
+  Skill.OFICIO_JOALHEIRO,
+  Skill.OFICIO_ESCRITA,
+];
+
+function replaceGenericOficioWithSpecific(
+  skills: Skill[],
+  className?: string
+): Skill[] {
+  return skills.map((skill) => {
+    if (skill !== Skill.OFICIO) {
+      return skill;
+    }
+
+    // Get contextual oficios for the class
+    const contextualOficios =
+      (className && CONTEXTUAL_OFICIOS_BY_CLASS[className]) ||
+      DEFAULT_CONTEXTUAL_OFICIOS;
+
+    // Find oficios not already in the skill list
+    const availableOficios = contextualOficios.filter(
+      (oficio) => !skills.includes(oficio)
+    );
+
+    // If no contextual oficios available, use default ones
+    const finalOficios =
+      availableOficios.length > 0
+        ? availableOficios
+        : DEFAULT_CONTEXTUAL_OFICIOS.filter(
+            (oficio) => !skills.includes(oficio)
+          );
+
+    // Return a random specific oficio
+    return finalOficios.length > 0
+      ? getRandomItemFromArray(finalOficios)
+      : Skill.OFICIO_ARTESANATO; // Final fallback
+  });
+}
+
 export function createTruqueSpell(originalSpell: Spell): Spell {
   const truqueSpell = cloneDeep(originalSpell);
   truqueSpell.nome = `${originalSpell.nome} (Apenas Truque)`;
@@ -571,9 +683,15 @@ export function getSkillsAndPowersByClassAndOrigin(
   usedSkills.push(...classBaseSkills);
 
   if (origin) {
-    const { skills: originSkills, powers: originPowers } = getOriginBenefits(
+    const { skills: rawOriginSkills, powers: originPowers } = getOriginBenefits(
       usedSkills,
       origin
+    );
+
+    // Replace generic oficio in origin skills
+    const originSkills = replaceGenericOficioWithSpecific(
+      rawOriginSkills,
+      classe.name
     );
 
     const originSubSteps: SubStep[] = [];
@@ -634,14 +752,30 @@ export function getSkillsAndPowersByClassAndOrigin(
 
   usedSkills.push(...remainingSkills);
 
-  const classSkills = [...classBaseSkills, ...remainingSkills];
+  let classSkills = [...classBaseSkills, ...remainingSkills];
+
+  // Replace generic "Ofício (Qualquer)" with specific crafts
+  classSkills = replaceGenericOficioWithSpecific(classSkills, classe.name);
+
+  // Update usedSkills to reflect the replaced skills
+  const updatedUsedSkills = replaceGenericOficioWithSpecific(
+    usedSkills,
+    classe.name
+  );
+
   steps.push({
     label: 'Perícias da classe',
     type: 'Perícias',
     value: classSkills.map((skill) => ({ value: `${skill}` })),
   });
 
-  const attributesSkills = getAttributesSkills(attributes, usedSkills);
+  let attributesSkills = getAttributesSkills(attributes, updatedUsedSkills);
+
+  // Also replace generic oficio in attributes skills
+  attributesSkills = replaceGenericOficioWithSpecific(
+    attributesSkills,
+    classe.name
+  );
 
   if (attributesSkills.length) {
     steps.push({
@@ -651,9 +785,15 @@ export function getSkillsAndPowersByClassAndOrigin(
     });
   }
 
-  usedSkills.push(...attributesSkills);
+  const finalSkills = [
+    ...replaceGenericOficioWithSpecific(
+      [...updatedUsedSkills, ...attributesSkills],
+      classe.name
+    ),
+  ];
+
   return {
-    skills: usedSkills,
+    skills: finalSkills,
     powers: {
       ...powers,
       general: {
