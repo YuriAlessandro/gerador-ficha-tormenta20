@@ -23,7 +23,18 @@ const Changelog: React.FC = () => (
         .
       </p>
 
-      <h2>Versão 3.3</h2>
+      <h2>Versão 3</h2>
+
+      <h3>3.4.0</h3>
+      <ul>
+        <li>
+          <strong>⚔️ Sistema de Equipamentos Expandido:</strong> Agora é
+          possível adicionar qualquer tipo de equipamento (não apenas armas,
+          armaduras e escudos) na edição de fichas. Adicionados 97 novos itens
+          incluindo equipamentos de aventureiro, ferramentas, vestuário, itens
+          esotéricos, alquímicos e alimentação.
+        </li>
+      </ul>
 
       <h3>3.3.0</h3>
       <ul>
@@ -96,8 +107,6 @@ const Changelog: React.FC = () => (
         </li>
       </ul>
 
-      <h2>Versão 3.2</h2>
-
       <h3>3.2.1</h3>
       <ul>
         <li>
@@ -136,8 +145,6 @@ const Changelog: React.FC = () => (
           linha, otimizando o espaço disponível.
         </li>
       </ul>
-
-      <h2>Versão 3.1</h2>
 
       <h3>3.1.1</h3>
       <ul>
@@ -403,8 +410,6 @@ const Changelog: React.FC = () => (
           </ul>
         </li>
       </ul>
-
-      <h2>Versão 3.0</h2>
 
       <h3>3.0.1</h3>
       <ul>
