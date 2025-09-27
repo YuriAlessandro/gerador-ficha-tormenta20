@@ -22,7 +22,6 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
@@ -594,7 +593,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const updates: Partial<CharacterSheet> = {
         bag: updatedBag,
         defesa: recalculatedSheet.defesa,
-        dinheiro: dinheiro,
+        dinheiro,
       };
 
       if (newSteps.length > 0) {
@@ -605,7 +604,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     } else {
       const updates: Partial<CharacterSheet> = {
         bag: updatedBag,
-        dinheiro: dinheiro,
+        dinheiro,
       };
 
       if (newSteps.length > 0) {
