@@ -20,6 +20,7 @@ export default interface Equipment {
   group: equipGroup;
   atkBonus?: number;
   weaponTags?: string[];
+  preco?: number;
 }
 
 export type defenseEquipGroup = 'Armadura' | 'Escudo';

@@ -4,4 +4,5 @@ export default interface SelectOptions {
   classe: string;
   origin: string;
   devocao: { label: string; value: string };
+  gerarItens?: 'nao-gerar' | 'consumir-dinheiro' | 'sem-gastar-dinheiro';
 }

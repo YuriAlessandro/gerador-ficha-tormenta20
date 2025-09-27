@@ -92,6 +92,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     raca: '',
     origin: '',
     devocao: { label: 'Aleatória', value: '' },
+    gerarItens: 'nao-gerar',
   });
 
   const [simpleSheet, setSimpleSheet] = React.useState(false);
@@ -444,6 +445,18 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
   };
 
+  const onSelectGerarItens = (opcao: SelectedOption | null) => {
+    if (opcao) {
+      setSelectedOptions({
+        ...selectedOptions,
+        gerarItens: opcao.value as
+          | 'nao-gerar'
+          | 'consumir-dinheiro'
+          | 'sem-gastar-dinheiro',
+      });
+    }
+  };
+
   const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
   const rolesopt = Object.keys(roles).map((role) => ({
     value: role,
@@ -463,6 +476,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       label: `Nível ${index}`,
     });
   }
+
+  const opcoesGerarItens = [
+    { value: 'nao-gerar', label: 'Não gerar' },
+    { value: 'consumir-dinheiro', label: 'Gerar consumindo dinheiro inicial' },
+    { value: 'sem-gastar-dinheiro', label: 'Gerar sem gastar dinheiro' },
+  ];
 
   const origens = Object.keys(ORIGINS).map((origin) => ({
     value: origin,
@@ -735,6 +754,29 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 isSearchable
                 formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
                 onChange={onSelectNivel}
+                styles={selectStyles}
+                menuPortalTarget={document.body}
+                theme={(selectTheme) => ({
+                  ...selectTheme,
+                  colors: {
+                    ...formThemeColors,
+                  },
+                })}
+              />
+            </Grid>
+
+            {/* Generate Items Selection */}
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
+                Gerar Itens
+              </Typography>
+              <Select
+                placeholder='Não gerar'
+                options={opcoesGerarItens}
+                value={opcoesGerarItens.find(
+                  (opt) => opt.value === selectedOptions.gerarItens
+                )}
+                onChange={onSelectGerarItens}
                 styles={selectStyles}
                 menuPortalTarget={document.body}
                 theme={(selectTheme) => ({
