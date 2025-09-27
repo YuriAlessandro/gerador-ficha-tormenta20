@@ -99,6 +99,7 @@ import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
   getPowersAllowedByRequirements,
+  getWeightedInventorClassPowers,
 } from './powers';
 import {
   addOrCheapenRandomSpells,
@@ -115,6 +116,205 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
+
+// Inventor Specializations System
+export enum InventorSpecialization {
+  ALQUIMISTA = 'ALQUIMISTA',
+  ARMEIRO = 'ARMEIRO',
+  ENGENHOQUEIRO = 'ENGENHOQUEIRO',
+}
+
+export interface InventorSpecializationData {
+  skill: Skill;
+  relatedPowers: string[];
+}
+
+export const INVENTOR_SPECIALIZATIONS: Record<
+  InventorSpecialization,
+  InventorSpecializationData
+> = {
+  [InventorSpecialization.ALQUIMISTA]: {
+    skill: Skill.OFICIO_ALQUIMIA,
+    relatedPowers: [
+      'Agite Antes de Usar',
+      'Alquimista Iniciado',
+      'Alquimista de Batalha',
+      'Catalisador Instável',
+      'Farmacêutico',
+      'Homúnculo',
+      'Conhecimento de Fórmulas',
+      'Mistura Fervilhante',
+      'Síntese Rápida',
+      'Granadeiro',
+      'Mestre Alquimista',
+    ],
+  },
+  [InventorSpecialization.ARMEIRO]: {
+    skill: Skill.OFICIO_ARMEIRO,
+    relatedPowers: [
+      'Armeiro',
+      'Balística',
+      'Couraceiro',
+      'Ferreiro',
+      'Oficina de Campo',
+      'Pedra de Amolar',
+      'Ajuste de Mira.',
+      'Blindagem',
+      'Cano Raiado',
+    ],
+  },
+  [InventorSpecialization.ENGENHOQUEIRO]: {
+    skill: Skill.OFICIO_EGENHOQUEIRO,
+    relatedPowers: [
+      'Engenhoqueiro',
+      'Ativação Rápida',
+      'Autômato',
+      'Autômato Prototipado',
+      'Chutes e Palavrões',
+      'Manutenção Eficiente',
+    ],
+  },
+};
+
+function getInventorSpecialization(
+  skills: Skill[]
+): InventorSpecialization | null {
+  const specializationEntries = Object.entries(
+    INVENTOR_SPECIALIZATIONS
+  ) as Array<[InventorSpecialization, InventorSpecializationData]>;
+
+  const foundSpecialization = specializationEntries.find(([, data]) =>
+    skills.includes(data.skill)
+  );
+
+  return foundSpecialization ? foundSpecialization[0] : null;
+}
+
+function ensureInventorSpecialization(skills: Skill[]): Skill[] {
+  const hasSpecialization = getInventorSpecialization(skills);
+
+  if (hasSpecialization) {
+    return skills;
+  }
+
+  // Choose a random specialization skill if none exists
+  const specializations = Object.values(INVENTOR_SPECIALIZATIONS);
+  const randomSpecialization = getRandomItemFromArray(specializations);
+
+  return [...skills, randomSpecialization.skill];
+}
+
+// Specific Oficio System - Replace generic "Ofício (Qualquer)" with contextual crafts
+export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
+  Inventor: [
+    Skill.OFICIO_ALQUIMIA,
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_EGENHOQUEIRO,
+  ], // Already handled by specialization system
+  Guerreiro: [
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_MINERADOR,
+  ],
+  Lutador: [
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_CULINARIA,
+  ],
+  Bárbaro: [
+    Skill.OFICIO_FAZENDEIRO,
+    Skill.OFICIO_MINERADOR,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_PESCADOR,
+  ],
+  Bucaneiro: [
+    Skill.OFICIO_PESCADOR,
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Arcanista: [
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ALQUIMIA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Nobre: [
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Clérigo: [
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_CULINARIA,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ALFAIATE,
+  ],
+  Ladino: [
+    Skill.OFICIO_ALFAIATE,
+    Skill.OFICIO_JOALHEIRO,
+    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ARTESANATO,
+  ],
+  Caçador: [
+    Skill.OFICIO_CARPINTEIRO,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_ARMEIRO,
+    Skill.OFICIO_FAZENDEIRO,
+  ],
+  Druida: [
+    Skill.OFICIO_FAZENDEIRO,
+    Skill.OFICIO_CULINARIA,
+    Skill.OFICIO_ARTESANATO,
+    Skill.OFICIO_CARPINTEIRO,
+  ],
+};
+
+export const DEFAULT_CONTEXTUAL_OFICIOS: Skill[] = [
+  Skill.OFICIO_ARTESANATO,
+  Skill.OFICIO_CULINARIA,
+  Skill.OFICIO_CARPINTEIRO,
+  Skill.OFICIO_ALFAIATE,
+  Skill.OFICIO_JOALHEIRO,
+  Skill.OFICIO_ESCRITA,
+];
+
+function replaceGenericOficioWithSpecific(
+  skills: Skill[],
+  className?: string
+): Skill[] {
+  return skills.map((skill) => {
+    if (skill !== Skill.OFICIO) {
+      return skill;
+    }
+
+    // Get contextual oficios for the class
+    const contextualOficios =
+      (className && CONTEXTUAL_OFICIOS_BY_CLASS[className]) ||
+      DEFAULT_CONTEXTUAL_OFICIOS;
+
+    // Find oficios not already in the skill list
+    const availableOficios = contextualOficios.filter(
+      (oficio) => !skills.includes(oficio)
+    );
+
+    // If no contextual oficios available, use default ones
+    const finalOficios =
+      availableOficios.length > 0
+        ? availableOficios
+        : DEFAULT_CONTEXTUAL_OFICIOS.filter(
+            (oficio) => !skills.includes(oficio)
+          );
+
+    // Return a random specific oficio
+    return finalOficios.length > 0
+      ? getRandomItemFromArray(finalOficios)
+      : Skill.OFICIO_ARTESANATO; // Final fallback
+  });
+}
 
 export function createTruqueSpell(originalSpell: Spell): Spell {
   const truqueSpell = cloneDeep(originalSpell);
@@ -483,9 +683,15 @@ export function getSkillsAndPowersByClassAndOrigin(
   usedSkills.push(...classBaseSkills);
 
   if (origin) {
-    const { skills: originSkills, powers: originPowers } = getOriginBenefits(
+    const { skills: rawOriginSkills, powers: originPowers } = getOriginBenefits(
       usedSkills,
       origin
+    );
+
+    // Replace generic oficio in origin skills
+    const originSkills = replaceGenericOficioWithSpecific(
+      rawOriginSkills,
+      classe.name
     );
 
     const originSubSteps: SubStep[] = [];
@@ -523,17 +729,53 @@ export function getSkillsAndPowersByClassAndOrigin(
     usedSkills.push(...originSkills);
   }
 
-  const remainingSkills = getRemainingSkills(usedSkills, classe);
+  let remainingSkills = getRemainingSkills(usedSkills, classe);
+
+  // Special handling for Inventor class to ensure synergy
+  if (classe.name === 'Inventor') {
+    const skillsWithSpecialization = ensureInventorSpecialization([
+      ...usedSkills,
+      ...remainingSkills,
+    ]);
+
+    // If we added a specialization skill, we need to adjust remaining skills
+    const addedSkills = skillsWithSpecialization.filter(
+      (skill) => !usedSkills.includes(skill) && !remainingSkills.includes(skill)
+    );
+
+    if (addedSkills.length > 0) {
+      // Remove one random skill to make room for the specialization
+      remainingSkills = remainingSkills.slice(0, -addedSkills.length);
+      remainingSkills.push(...addedSkills);
+    }
+  }
+
   usedSkills.push(...remainingSkills);
 
-  const classSkills = [...classBaseSkills, ...remainingSkills];
+  let classSkills = [...classBaseSkills, ...remainingSkills];
+
+  // Replace generic "Ofício (Qualquer)" with specific crafts
+  classSkills = replaceGenericOficioWithSpecific(classSkills, classe.name);
+
+  // Update usedSkills to reflect the replaced skills
+  const updatedUsedSkills = replaceGenericOficioWithSpecific(
+    usedSkills,
+    classe.name
+  );
+
   steps.push({
     label: 'Perícias da classe',
     type: 'Perícias',
     value: classSkills.map((skill) => ({ value: `${skill}` })),
   });
 
-  const attributesSkills = getAttributesSkills(attributes, usedSkills);
+  let attributesSkills = getAttributesSkills(attributes, updatedUsedSkills);
+
+  // Also replace generic oficio in attributes skills
+  attributesSkills = replaceGenericOficioWithSpecific(
+    attributesSkills,
+    classe.name
+  );
 
   if (attributesSkills.length) {
     steps.push({
@@ -543,9 +785,15 @@ export function getSkillsAndPowersByClassAndOrigin(
     });
   }
 
-  usedSkills.push(...attributesSkills);
+  const finalSkills = [
+    ...replaceGenericOficioWithSpecific(
+      [...updatedUsedSkills, ...attributesSkills],
+      classe.name
+    ),
+  ];
+
   return {
-    skills: usedSkills,
+    skills: finalSkills,
     powers: {
       ...powers,
       general: {
@@ -1681,7 +1929,10 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
 
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers = getAllowedClassPowers(updatedSheet);
+  const allowedPowers =
+    updatedSheet.classe.name === 'Inventor'
+      ? getWeightedInventorClassPowers(updatedSheet)
+      : getAllowedClassPowers(updatedSheet);
   const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
