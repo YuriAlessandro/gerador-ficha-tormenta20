@@ -77,6 +77,8 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
       return total + cost;
     }, 0);
 
+  const totalCost = calculateTotalCost();
+
   const generateDescription = (): string => {
     const effectDescriptions = Object.values(selectedEffects).map(
       (selection) => {
@@ -96,7 +98,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
 
     return `Golpe Pessoal (${weapon}) - ${effectDescriptions.join(
       ', '
-    )} [${calculateTotalCost()} PM]`;
+    )} [${totalCost} PM]`;
   };
 
   // Reset state when dialog opens
@@ -226,28 +228,6 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
     } else {
       setErrors(validation.errors);
     }
-  };
-
-  const generateDescription = (): string => {
-    const effectDescriptions = Object.values(selectedEffects).map(
-      (selection) => {
-        let desc = selection.effect.name;
-
-        if (selection.count > 1) {
-          desc += ` (${selection.count}x)`;
-        }
-
-        if (selection.choices.length > 0) {
-          desc += ` (${selection.choices.join(', ')})`;
-        }
-
-        return desc;
-      }
-    );
-
-    return `Golpe Pessoal (${weapon}) - ${effectDescriptions.join(
-      ', '
-    )} [${totalCost} PM]`;
   };
 
   const renderEffectCard = (effect: GolpePessoalEffect) => {
