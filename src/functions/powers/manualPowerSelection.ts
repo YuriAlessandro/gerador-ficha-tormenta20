@@ -121,6 +121,15 @@ export function getPowerSelectionRequirements(
           label: 'Selecione 1 animal totêmico',
         });
       }
+
+      if (action.type === 'buildGolpePessoal') {
+        requirements.push({
+          type: 'buildGolpePessoal',
+          availableOptions: [], // No predefined options, will use builder interface
+          pick: 1, // Always build 1 golpe
+          label: 'Construa seu Golpe Pessoal',
+        });
+      }
     });
   }
 

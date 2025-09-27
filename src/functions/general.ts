@@ -46,6 +46,8 @@ import Equipment, {
 } from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
+import { generateRandomGolpePessoal } from './powers/golpePessoal';
+import { GOLPE_PESSOAL_EFFECTS } from '../data/golpePessoal';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
@@ -1544,6 +1546,42 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Adicionando ${alwaysActiveSpell.nome} à sua lista de magias.`,
+        });
+      } else if (sheetAction.action.type === 'buildGolpePessoal') {
+        // For automatic generation, create a random Golpe Pessoal
+        const golpePessoalBuild = generateRandomGolpePessoal(sheet);
+
+        // Store the build in the power's description
+        const golpePessoalPower = sheet.classPowers?.find(
+          (p) => p.name === 'Golpe Pessoal'
+        );
+        if (golpePessoalPower) {
+          // Update name to include weapon
+          golpePessoalPower.name = `Golpe Pessoal (${golpePessoalBuild.weapon})`;
+
+          // Create detailed description with effect descriptions
+          const effectDescriptions = golpePessoalBuild.effects
+            .map((effectData) => {
+              const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+              if (!effect) return '';
+
+              let desc = `• ${effect.name}: ${effect.description}`;
+              if (effectData.repeats > 1) {
+                desc += ` (${effectData.repeats}x)`;
+              }
+              if (effectData.choices && effectData.choices.length > 0) {
+                desc += ` [${effectData.choices.join(', ')}]`;
+              }
+              return desc;
+            })
+            .join('\n');
+
+          golpePessoalPower.text = `${effectDescriptions}\n\n💠 Custo Total: ${golpePessoalBuild.totalCost} PM`;
+        }
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Golpe Pessoal criado com ${golpePessoalBuild.weapon}`,
         });
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];

@@ -102,6 +102,9 @@ export type SheetActionStep =
     }
   | {
       type: 'addVozCivilizacaoSpell';
+    }
+  | {
+      type: 'buildGolpePessoal';
     };
 
 export type SheetActionReceipt =

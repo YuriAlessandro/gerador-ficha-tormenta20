@@ -45,7 +45,8 @@ export interface PowerSelectionRequirement {
     | 'increaseAttribute'
     | 'selectWeaponSpecialization'
     | 'selectFamiliar'
-    | 'selectAnimalTotem';
+    | 'selectAnimalTotem'
+    | 'buildGolpePessoal';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;
