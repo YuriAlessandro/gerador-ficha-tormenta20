@@ -20,6 +20,7 @@ import {
 import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 import { BagEquipments } from '../interfaces/Equipment';
 import { rollDice } from './randomUtils';
+import Bag from '../interfaces/Bag';
 
 /**
  * Mapeia o nível do personagem para o ND (Nível de Desafio) apropriado para geração de recompensas
@@ -605,10 +606,12 @@ function generateMagicalEquipment(level: number): Equipment | null {
  * Gera equipamentos baseado no nível do personagem usando o sistema de recompensas
  *
  * @param characterLevel - Nível do personagem
+ * @param existingBag - Bag existente para verificar armaduras
  * @returns Resultado da geração com equipamentos e informações
  */
 export function generateEquipmentRewards(
-  characterLevel: number
+  characterLevel: number,
+  existingBag?: Bag
 ): GeneratedEquipmentResult {
   const rewardND = getLevelToNDMapping(characterLevel);
 
@@ -631,6 +634,15 @@ export function generateEquipmentRewards(
     const allGeneratedEquipments: Equipment[] = [];
     const attemptDetails: string[] = [];
     const minimumItems = Math.floor(characterLevel / 2);
+    let hasGeneratedArmor = false; // Track if we've already generated armor
+
+    // Check if there's already armor in existing bag
+    if (
+      existingBag?.equipments?.Armadura &&
+      existingBag.equipments.Armadura.length > 0
+    ) {
+      hasGeneratedArmor = true;
+    }
 
     // Fazer múltiplas tentativas de geração
     for (let attempt = 0; attempt < numberOfAttempts; attempt++) {
@@ -640,10 +652,23 @@ export function generateEquipmentRewards(
       if (reward.item) {
         const equipments = generateEquipmentsByType(reward.item);
         if (equipments.length > 0) {
-          allGeneratedEquipments.push(...equipments);
-          attemptDetails.push(
-            `Tentativa ${attempt + 1}: ${equipments.length} item(s)`
-          );
+          // Filter out armors if we already have one
+          const filteredEquipments = equipments.filter((eq) => {
+            if (eq.group === 'Armadura' && hasGeneratedArmor) {
+              return false; // Skip this armor
+            }
+            if (eq.group === 'Armadura') {
+              hasGeneratedArmor = true; // Mark that we now have armor
+            }
+            return true;
+          });
+
+          if (filteredEquipments.length > 0) {
+            allGeneratedEquipments.push(...filteredEquipments);
+            attemptDetails.push(
+              `Tentativa ${attempt + 1}: ${filteredEquipments.length} item(s)`
+            );
+          }
         }
       }
     }
@@ -656,11 +681,28 @@ export function generateEquipmentRewards(
       if (reward.item) {
         const equipments = generateEquipmentsByType(reward.item);
         if (equipments.length > 0) {
-          allGeneratedEquipments.push(...equipments);
-          extraAttempts++;
-          attemptDetails.push(
-            `Tentativa extra ${extraAttempts}: ${equipments.length} item(s)`
-          );
+          // Filter out armors if we already have one
+          const filteredEquipments = equipments.filter((equipment) => {
+            if (equipment.group === 'Armadura' && hasGeneratedArmor) {
+              return false;
+            }
+            // Update flag if this is an armor
+            if (equipment.group === 'Armadura') {
+              hasGeneratedArmor = true;
+            }
+            return true;
+          });
+
+          if (filteredEquipments.length > 0) {
+            allGeneratedEquipments.push(...filteredEquipments);
+            extraAttempts++;
+            attemptDetails.push(
+              `Tentativa extra ${extraAttempts}: ${filteredEquipments.length} item(s)`
+            );
+          } else {
+            // If all items were filtered out, still increment attempts to avoid infinite loop
+            extraAttempts++;
+          }
         }
       } else {
         // Se não conseguiu gerar via recompensas, gerar itens genéricos

@@ -575,7 +575,15 @@ function getShields(classe: ClassDescription) {
   return shields;
 }
 
-function getArmors(classe: ClassDescription) {
+function getArmors(classe: ClassDescription, currentBag?: Bag) {
+  // Se já tem armadura no bag, não gerar nova
+  if (
+    currentBag?.equipments?.Armadura &&
+    currentBag.equipments.Armadura.length > 0
+  ) {
+    return [];
+  }
+
   const armors = [];
   if (classe.proficiencias.includes(todasProficiencias.PESADAS)) {
     armors.push(Armaduras.BRUNEA);
@@ -587,11 +595,12 @@ function getArmors(classe: ClassDescription) {
 }
 
 function getClassEquipments(
-  classe: ClassDescription
+  classe: ClassDescription,
+  currentBag?: Bag
 ): Pick<BagEquipments, 'Arma' | 'Escudo' | 'Armadura' | 'Item Geral'> {
   const weapons = getWeapons(classe);
   const shields = getShields(classe);
-  const armors = getArmors(classe);
+  const armors = getArmors(classe, currentBag);
 
   const instruments: Equipment[] = [];
   if (classe.name === 'Bardo') {
@@ -2094,7 +2103,7 @@ export default function generateRandomSheet(
     selectedOptions.gerarItens &&
     selectedOptions.gerarItens !== 'nao-gerar'
   ) {
-    const equipmentResult = generateEquipmentRewards(targetLevel);
+    const equipmentResult = generateEquipmentRewards(targetLevel, initialBag);
 
     if (equipmentResult.totalCost > 0) {
       // Extrair equipamentos gerados para adicionar ao bag
@@ -2238,19 +2247,7 @@ export default function generateRandomSheet(
   };
 
   // Passo 9:
-  // Gerar equipamento
-  const classEquipments = getClassEquipments(classe);
-  charSheet.bag.addEquipment(classEquipments);
-
-  charSheet.steps.push({
-    type: 'Equipamentos',
-    label: 'Equipamentos da classe',
-    value: [...Object.values(classEquipments).flat()].map((equip) => ({
-      value: equip.nome,
-    })),
-  });
-
-  // Adicionar equipamentos gerados ao bag
+  // Adicionar equipamentos gerados ao bag ANTES dos equipamentos de classe
   if (generatedEquipments.length > 0) {
     const generatedEquipmentsByGroup: Partial<BagEquipments> = {};
 
@@ -2266,6 +2263,19 @@ export default function generateRandomSheet(
   }
 
   // Passo 10:
+  // Gerar equipamento de classe (verificando armaduras existentes)
+  const classEquipments = getClassEquipments(classe, charSheet.bag);
+  charSheet.bag.addEquipment(classEquipments);
+
+  charSheet.steps.push({
+    type: 'Equipamentos',
+    label: 'Equipamentos da classe',
+    value: [...Object.values(classEquipments).flat()].map((equip) => ({
+      value: equip.nome,
+    })),
+  });
+
+  // Passo 11:
   // Gerar poderes restantes, e aplicar habilidades, e poderes
   charSheet = getAndApplyPowers(charSheet, powersGetters);
 
@@ -2293,11 +2303,11 @@ export default function generateRandomSheet(
         (skill.name.startsWith('Of') && skill.training > 0)
     );
 
-  // Passo 11:
+  // Passo 12:
   // Recalcular defesa
   charSheet = calcDefense(charSheet);
 
-  // Passo 12: Gerar magias se possível
+  // Passo 13: Gerar magias se possível
   const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
   charSheet.spells.push(...newSpells);
 
@@ -2321,7 +2331,7 @@ export default function generateRandomSheet(
     charSheet = levelUp(charSheet);
   }
 
-  // Passo 13: Aplicar modificadores de atributos
+  // Passo 14: Aplicar modificadores de atributos
   charSheet = applyStatModifiers(charSheet);
 
   return charSheet;
@@ -2380,7 +2390,10 @@ export function generateEmptySheet(
     selectedOptions.gerarItens &&
     selectedOptions.gerarItens !== 'nao-gerar'
   ) {
-    const equipmentResult = generateEquipmentRewards(selectedOptions.nivel);
+    const equipmentResult = generateEquipmentRewards(
+      selectedOptions.nivel,
+      emptySheet.bag
+    );
 
     if (equipmentResult.totalCost > 0) {
       // Adicionar equipamentos ao bag
