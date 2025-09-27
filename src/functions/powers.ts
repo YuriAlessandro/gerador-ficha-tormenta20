@@ -4,6 +4,7 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
+import { INVENTOR_SPECIALIZATIONS, InventorSpecialization } from './general';
 
 export function isPowerAvailable(
   sheet: CharacterSheet,
@@ -120,4 +121,61 @@ export function getAllowedClassPowers(sheet: CharacterSheet): ClassPower[] {
 
     return isPowerAvailable(sheet, power);
   });
+}
+
+interface WeightedPower {
+  power: ClassPower;
+  weight: number;
+}
+
+function getInventorSpecializationFromSkills(
+  skills: Skill[]
+): InventorSpecialization | null {
+  const specializationEntries = Object.entries(
+    INVENTOR_SPECIALIZATIONS
+  ) as Array<
+    [InventorSpecialization, { skill: Skill; relatedPowers: string[] }]
+  >;
+
+  const foundSpecialization = specializationEntries.find(([, data]) =>
+    skills.includes(data.skill)
+  );
+
+  return foundSpecialization ? foundSpecialization[0] : null;
+}
+
+export function getWeightedInventorClassPowers(
+  sheet: CharacterSheet
+): ClassPower[] {
+  const allowedPowers = getAllowedClassPowers(sheet);
+
+  if (sheet.classe.name !== 'Inventor' || allowedPowers.length === 0) {
+    return allowedPowers;
+  }
+
+  const specialization = getInventorSpecializationFromSkills(sheet.skills);
+
+  if (!specialization) {
+    return allowedPowers;
+  }
+
+  const { relatedPowers } = INVENTOR_SPECIALIZATIONS[specialization];
+
+  // Create weighted powers array
+  const weightedPowers: WeightedPower[] = allowedPowers.map((power) => ({
+    power,
+    weight: relatedPowers.includes(power.name) ? 3 : 1, // 3x weight for synergistic powers
+  }));
+
+  // For weighted selection, we'll modify the array to have multiple entries
+  // of high-weight powers to simulate probability
+  const expandedPowers: ClassPower[] = [];
+  weightedPowers.forEach((wp) => {
+    // Add the power multiple times based on its weight
+    for (let i = 0; i < wp.weight; i += 1) {
+      expandedPowers.push(wp.power);
+    }
+  });
+
+  return expandedPowers;
 }

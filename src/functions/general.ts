@@ -99,6 +99,7 @@ import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
   getPowersAllowedByRequirements,
+  getWeightedInventorClassPowers,
 } from './powers';
 import {
   addOrCheapenRandomSpells,
@@ -115,6 +116,93 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
+
+// Inventor Specializations System
+export enum InventorSpecialization {
+  ALQUIMISTA = 'ALQUIMISTA',
+  ARMEIRO = 'ARMEIRO',
+  ENGENHOQUEIRO = 'ENGENHOQUEIRO',
+}
+
+export interface InventorSpecializationData {
+  skill: Skill;
+  relatedPowers: string[];
+}
+
+export const INVENTOR_SPECIALIZATIONS: Record<
+  InventorSpecialization,
+  InventorSpecializationData
+> = {
+  [InventorSpecialization.ALQUIMISTA]: {
+    skill: Skill.OFICIO_ALQUIMIA,
+    relatedPowers: [
+      'Agite Antes de Usar',
+      'Alquimista Iniciado',
+      'Alquimista de Batalha',
+      'Catalisador Instável',
+      'Farmacêutico',
+      'Homúnculo',
+      'Conhecimento de Fórmulas',
+      'Mistura Fervilhante',
+      'Síntese Rápida',
+      'Granadeiro',
+      'Mestre Alquimista',
+    ],
+  },
+  [InventorSpecialization.ARMEIRO]: {
+    skill: Skill.OFICIO_ARMEIRO,
+    relatedPowers: [
+      'Armeiro',
+      'Balística',
+      'Couraceiro',
+      'Ferreiro',
+      'Oficina de Campo',
+      'Pedra de Amolar',
+      'Ajuste de Mira.',
+      'Blindagem',
+      'Cano Raiado',
+    ],
+  },
+  [InventorSpecialization.ENGENHOQUEIRO]: {
+    skill: Skill.OFICIO_EGENHOQUEIRO,
+    relatedPowers: [
+      'Engenhoqueiro',
+      'Ativação Rápida',
+      'Autômato',
+      'Autômato Prototipado',
+      'Chutes e Palavrões',
+      'Manutenção Eficiente',
+    ],
+  },
+};
+
+function getInventorSpecialization(
+  skills: Skill[]
+): InventorSpecialization | null {
+  const specializationEntries = Object.entries(
+    INVENTOR_SPECIALIZATIONS
+  ) as Array<[InventorSpecialization, InventorSpecializationData]>;
+
+  const foundSpecialization = specializationEntries.find(([, data]) =>
+    skills.includes(data.skill)
+  );
+
+  return foundSpecialization ? foundSpecialization[0] : null;
+}
+
+function ensureInventorSpecialization(skills: Skill[]): Skill[] {
+  const hasSpecialization = getInventorSpecialization(skills);
+
+  if (hasSpecialization) {
+    return skills;
+  }
+
+  // Choose a random specialization skill if none exists
+  const specializations = Object.values(INVENTOR_SPECIALIZATIONS);
+  const randomSpecialization = getRandomItemFromArray(specializations);
+
+  return [...skills, randomSpecialization.skill];
+}
 
 export function createTruqueSpell(originalSpell: Spell): Spell {
   const truqueSpell = cloneDeep(originalSpell);
@@ -523,7 +611,27 @@ export function getSkillsAndPowersByClassAndOrigin(
     usedSkills.push(...originSkills);
   }
 
-  const remainingSkills = getRemainingSkills(usedSkills, classe);
+  let remainingSkills = getRemainingSkills(usedSkills, classe);
+
+  // Special handling for Inventor class to ensure synergy
+  if (classe.name === 'Inventor') {
+    const skillsWithSpecialization = ensureInventorSpecialization([
+      ...usedSkills,
+      ...remainingSkills,
+    ]);
+
+    // If we added a specialization skill, we need to adjust remaining skills
+    const addedSkills = skillsWithSpecialization.filter(
+      (skill) => !usedSkills.includes(skill) && !remainingSkills.includes(skill)
+    );
+
+    if (addedSkills.length > 0) {
+      // Remove one random skill to make room for the specialization
+      remainingSkills = remainingSkills.slice(0, -addedSkills.length);
+      remainingSkills.push(...addedSkills);
+    }
+  }
+
   usedSkills.push(...remainingSkills);
 
   const classSkills = [...classBaseSkills, ...remainingSkills];
@@ -1681,7 +1789,10 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
 
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers = getAllowedClassPowers(updatedSheet);
+  const allowedPowers =
+    updatedSheet.classe.name === 'Inventor'
+      ? getWeightedInventorClassPowers(updatedSheet)
+      : getAllowedClassPowers(updatedSheet);
   const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
