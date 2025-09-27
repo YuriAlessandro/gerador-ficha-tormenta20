@@ -34,6 +34,18 @@ const Changelog: React.FC = () => (
           incluindo equipamentos de aventureiro, ferramentas, vestuário, itens
           esotéricos, alquímicos e alimentação.
         </li>
+        <li>
+          <strong>🔧 Inventores Aprimorados:</strong> Inventores agora são
+          gerados com maior sinergia entre perícias e poderes. Todo inventor
+          garante ter pelo menos uma especialização (Alquimista, Armeiro ou
+          Engenhoqueiro) e recebe poderes compatíveis com suas perícias.
+        </li>
+        <li>
+          <strong>🎯 Ofícios Específicos:</strong> Substituído o genérico
+          &quot;Ofício (Qualquer)&quot; por ofícios específicos e temáticos
+          baseados na classe do personagem (ex: Guerreiros recebem Armeiro,
+          Druidas recebem Fazendeiro).
+        </li>
       </ul>
 
       <h3>3.3.0</h3>
