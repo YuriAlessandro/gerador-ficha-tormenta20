@@ -40,7 +40,10 @@ import {
 import todasProficiencias from '../data/proficiencias';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
 import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
-import Equipment, { BagEquipments } from '../interfaces/Equipment';
+import Equipment, {
+  BagEquipments,
+  DefenseEquipment,
+} from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/powers/grantedPowers';
 import {
@@ -2251,9 +2254,19 @@ export default function generateRandomSheet(
     generatedEquipments.forEach((equipment) => {
       const group = equipment.group as keyof BagEquipments;
       if (!generatedEquipmentsByGroup[group]) {
-        generatedEquipmentsByGroup[group] = [] as Equipment[];
+        if (group === 'Armadura' || group === 'Escudo') {
+          generatedEquipmentsByGroup[group] = [] as DefenseEquipment[];
+        } else {
+          generatedEquipmentsByGroup[group] = [] as Equipment[];
+        }
       }
-      (generatedEquipmentsByGroup[group] as Equipment[]).push(equipment);
+      if (group === 'Armadura' || group === 'Escudo') {
+        (generatedEquipmentsByGroup[group] as DefenseEquipment[]).push(
+          equipment as DefenseEquipment
+        );
+      } else {
+        (generatedEquipmentsByGroup[group] as Equipment[]).push(equipment);
+      }
     });
 
     charSheet.bag.addEquipment(generatedEquipmentsByGroup);
@@ -2399,9 +2412,19 @@ export function generateEmptySheet(
           equipmentArray.forEach((equipment) => {
             const group = equipment.group as keyof BagEquipments;
             if (!emptySheet.bag.equipments[group]) {
-              emptySheet.bag.equipments[group] = [] as Equipment[];
+              if (group === 'Armadura' || group === 'Escudo') {
+                emptySheet.bag.equipments[group] = [] as DefenseEquipment[];
+              } else {
+                emptySheet.bag.equipments[group] = [] as Equipment[];
+              }
             }
-            (emptySheet.bag.equipments[group] as Equipment[]).push(equipment);
+            if (group === 'Armadura' || group === 'Escudo') {
+              (emptySheet.bag.equipments[group] as DefenseEquipment[]).push(
+                equipment as DefenseEquipment
+              );
+            } else {
+              (emptySheet.bag.equipments[group] as Equipment[]).push(equipment);
+            }
           });
         }
       });

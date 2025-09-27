@@ -20,89 +20,7 @@ import { rollDice } from './randomUtils';
 import Bag from '../interfaces/Bag';
 
 /**
- * Mapeia o nível do personagem para o ND (Nível de Desafio) apropriado para geração de recompensas
- *
- * Lógica:
- * - Nível 1: Sem recompensas (apenas equipamentos iniciais)
- * - Nível 2: ND 1/4 (S4)
- * - Nível 3: ND 1/3 (S3)
- * - Nível 4: ND 1/2 (S2)
- * - Nível 5+: ND = nível - 4 (F1, F2, F3, etc.)
- *
- * @param characterLevel - Nível do personagem (1-20)
- * @returns LEVELS enum ou null se não deve gerar recompensas
- */
-export function getLevelToNDMapping(characterLevel: number): LEVELS | null {
-  if (characterLevel <= 1) {
-    return null; // Nível 1 não recebe recompensas
-  }
-
-  const mapping: Record<number, LEVELS> = {
-    2: LEVELS.S4, // ND 1/4
-    3: LEVELS.S3, // ND 1/3
-    4: LEVELS.S2, // ND 1/2
-    5: LEVELS.F1, // ND 1
-    6: LEVELS.F2, // ND 2
-    7: LEVELS.F3, // ND 3
-    8: LEVELS.F4, // ND 4
-    9: LEVELS.F5, // ND 5
-    10: LEVELS.F6, // ND 6
-    11: LEVELS.F7, // ND 7
-    12: LEVELS.F8, // ND 8
-    13: LEVELS.F9, // ND 9
-    14: LEVELS.F10, // ND 10
-    15: LEVELS.F11, // ND 11
-    16: LEVELS.F12, // ND 12
-    17: LEVELS.F13, // ND 13
-    18: LEVELS.F14, // ND 14
-    19: LEVELS.F15, // ND 15
-    20: LEVELS.F16, // ND 16
-  };
-
-  return mapping[characterLevel] || null;
-}
-
-export interface GeneratedEquipmentResult {
-  equipments: Partial<BagEquipments>;
-  totalCost: number;
-  generationDetails: string;
-  itemsForSteps: { name?: string; value: string }[];
-}
-
-/**
- * Gera um item diverso baseado na tabela miscellaneousItems
- */
-function generateMiscellaneousEquipment(diceRoll: number): Equipment | null {
-  const rolledItem = miscellaneousItems.find(
-    (i) => diceRoll >= i.min && diceRoll <= i.max
-  );
-
-  if (rolledItem) {
-    let quantity = 1;
-    let itemName = rolledItem.item;
-
-    // Se tem efeito de quantidade, aplicar
-    if (rolledItem.effect) {
-      quantity = rollDice(rolledItem.effect.qtd, rolledItem.effect.dice);
-      itemName = `${quantity} ${rolledItem.item}`;
-    }
-
-    // Preço base para itens diversos (pode ser refinado depois)
-    const basePrice = getBasePriceForMiscellaneous(rolledItem.item);
-
-    return {
-      nome: itemName,
-      group: 'Item Geral',
-      preco: basePrice * quantity,
-      spaces: 1,
-    };
-  }
-
-  return null;
-}
-
-/**
- * Calcula preço base para itens diversos baseado no tipo
+ * Função auxiliar para obter preço base de itens diversos
  */
 function getBasePriceForMiscellaneous(itemName: string): number {
   // Mapeamento básico de preços para itens diversos
@@ -162,75 +80,69 @@ function getBasePriceForMiscellaneous(itemName: string): number {
 }
 
 /**
- * Gera uma arma ou armadura baseado nas tabelas com modificações
+ * Aumenta o dano de uma arma
  */
-function generateWeaponOrArmor(
-  diceRoll: number,
-  mods: number
-): Equipment | DefenseEquipment | null {
-  const typeRoll = rollDice(1, 6);
-
-  if (typeRoll >= 1 && typeRoll <= 4) {
-    // É uma arma
-    const rolledItem = weapons.find(
-      (i) => diceRoll >= i.min && diceRoll <= i.max
-    );
-
-    if (rolledItem) {
-      let finalWeapon = { ...rolledItem.item };
-      let priceMultiplier = 1;
-      let modsList: string[] = [];
-
-      // Aplicar modificações se necessário
-      if (mods > 0) {
-        const modsResult = applyWeaponModifications(finalWeapon, mods);
-        finalWeapon = modsResult.modifiedWeapon;
-        modsList = modsResult.modsList;
-        priceMultiplier = modsResult.priceMultiplier;
-
-        // Atualizar nome com modificações
-        if (modsList.length > 0) {
-          finalWeapon.nome = `${finalWeapon.nome} (${modsList.join(', ')})`;
-        }
-      }
-
-      return {
-        ...finalWeapon,
-        preco: Math.round((finalWeapon.preco || 0) * priceMultiplier),
-      };
-    }
-  } else if (typeRoll >= 5 && typeRoll <= 6) {
-    // É uma armadura ou escudo
-    const rolledItem = armors.find(
-      (i) => diceRoll >= i.min && diceRoll <= i.max
-    );
-
-    if (rolledItem) {
-      let finalArmor = { ...rolledItem.item } as DefenseEquipment;
-      let priceMultiplier = 1;
-      let modsList: string[] = [];
-
-      // Aplicar modificações se necessário
-      if (mods > 0) {
-        const modsResult = applyArmorModifications(finalArmor, mods);
-        finalArmor = modsResult.modifiedArmor;
-        modsList = modsResult.modsList;
-        priceMultiplier = modsResult.priceMultiplier;
-
-        // Atualizar nome com modificações
-        if (modsList.length > 0) {
-          finalArmor.nome = `${finalArmor.nome} (${modsList.join(', ')})`;
-        }
-      }
-
-      return {
-        ...finalArmor,
-        preco: Math.round((finalArmor.preco || 0) * priceMultiplier),
-      };
-    }
+function increaseDamage(currentDamage: string, bonus: number): string {
+  // Se já tem um bônus, extrair e somar
+  const bonusMatch = currentDamage.match(/([^+]+)\+(\d+)/);
+  if (bonusMatch) {
+    const baseDamage = bonusMatch[1];
+    const existingBonus = parseInt(bonusMatch[2], 10);
+    return `${baseDamage}+${existingBonus + bonus}`;
   }
 
-  return null;
+  // Senão, adicionar bônus
+  return `${currentDamage}+${bonus}`;
+}
+
+/**
+ * Melhora a margem de ameaça crítica
+ */
+function improveCriticalThreat(currentCritical: string): string {
+  if (currentCritical === 'x2') return '19/x2';
+  if (currentCritical === '19/x2') return '18/x2';
+  if (currentCritical === '18/x2') return '17/x2';
+  if (currentCritical === 'x3') return '19/x3';
+  if (currentCritical === '19/x3') return '18/x3';
+  if (currentCritical === 'x4') return '19/x4';
+
+  return currentCritical; // Não pode melhorar mais
+}
+
+/**
+ * Melhora o multiplicador crítico
+ */
+function improveCriticalMultiplier(currentCritical: string): string {
+  if (currentCritical.includes('x2'))
+    return currentCritical.replace('x2', 'x3');
+  if (currentCritical.includes('x3'))
+    return currentCritical.replace('x3', 'x4');
+  if (currentCritical.includes('x4'))
+    return currentCritical.replace('x4', 'x5');
+
+  return currentCritical; // Já é x5 ou formato não reconhecido
+}
+
+/**
+ * Função auxiliar para obter preço de poções
+ */
+function getPotionPrice(potionName: string): number {
+  const potionPrices: Record<string, number> = {
+    'Poção de Cura Leve': 50,
+    'Poção de Cura Moderada': 200,
+    'Poção de Cura Grave': 750,
+    'Poção de Cura Completa': 3000,
+    'Poção de Atributo': 300,
+    'Poção de Resistência': 150,
+    'Poção de Velocidade': 400,
+    'Poção de Força': 300,
+    'Poção de Invisibilidade': 500,
+    Antídoto: 100,
+    'Óleo Escorregadio': 75,
+    'Fogo Alquímico': 20,
+  };
+
+  return potionPrices[potionName] || 100; // Preço padrão
 }
 
 /**
@@ -286,53 +198,34 @@ function applyWeaponModifications(
           break;
 
         case 'Certeira':
-          // +1 nos testes de ataque
-          modifiedWeapon.atkBonus = (modifiedWeapon.atkBonus || 0) + 1;
-          priceMultiplier += 0.4;
-          break;
-
-        case 'Pungente':
-          // +2 nos testes de ataque (requer Certeira)
-          modifiedWeapon.atkBonus = (modifiedWeapon.atkBonus || 0) + 2;
-          priceMultiplier += 0.8;
-          break;
-
-        case 'Precisa':
-          // +1 na margem de ameaça
+          // Melhora margem de crítico
           modifiedWeapon.critico = improveCriticalThreat(
             modifiedWeapon.critico || 'x2'
           );
-          priceMultiplier += 0.6;
+          priceMultiplier += 0.8;
           break;
 
-        case 'Maciça':
-          // +1 no multiplicador de crítico
+        case 'Infalível':
+          // Melhora multiplicador crítico (requer Certeira)
           modifiedWeapon.critico = improveCriticalMultiplier(
             modifiedWeapon.critico || 'x2'
           );
-          priceMultiplier += 0.7;
+          priceMultiplier += 1.2;
           break;
 
-        case 'Discreta':
-          // -1 espaço
-          modifiedWeapon.spaces = Math.max(0, (modifiedWeapon.spaces || 1) - 1);
+        case 'Leve':
+          // Reduz peso/espaços
+          modifiedWeapon.spaces = Math.max(1, (modifiedWeapon.spaces || 2) - 1);
           priceMultiplier += 0.3;
           break;
 
-        case 'Material especial':
-          // Material especial - aumenta preço significativamente
-          priceMultiplier += 2.0;
+        case 'Resistente':
+          // Melhora durabilidade - efeito cosmético por agora
+          priceMultiplier += 0.4;
           break;
 
         default:
-          // Modificações genéricas
-          priceMultiplier += 0.3;
           break;
-      }
-
-      // Se é modificação dupla, contar como 2
-      if (selectedMod.double) {
-        i += 1; // Pula a próxima iteração
       }
     }
   }
@@ -342,50 +235,6 @@ function applyWeaponModifications(
     modsList: appliedMods,
     priceMultiplier,
   };
-}
-
-/**
- * Aumenta o dano de uma arma
- */
-function increaseDamage(currentDamage: string, bonus: number): string {
-  // Se já tem um bônus, extrair e somar
-  const bonusMatch = currentDamage.match(/([^+]+)\+(\d+)/);
-  if (bonusMatch) {
-    const baseDamage = bonusMatch[1];
-    const existingBonus = parseInt(bonusMatch[2], 10);
-    return `${baseDamage}+${existingBonus + bonus}`;
-  }
-
-  // Senão, adicionar bônus
-  return `${currentDamage}+${bonus}`;
-}
-
-/**
- * Melhora a margem de ameaça crítica
- */
-function improveCriticalThreat(currentCritical: string): string {
-  if (currentCritical === 'x2') return '19/x2';
-  if (currentCritical === '19/x2') return '18/x2';
-  if (currentCritical === '18/x2') return '17/x2';
-  if (currentCritical === 'x3') return '19/x3';
-  if (currentCritical === '19/x3') return '18/x3';
-  if (currentCritical === 'x4') return '19/x4';
-
-  return currentCritical; // Não pode melhorar mais
-}
-
-/**
- * Melhora o multiplicador crítico
- */
-function improveCriticalMultiplier(currentCritical: string): string {
-  if (currentCritical.includes('x2'))
-    return currentCritical.replace('x2', 'x3');
-  if (currentCritical.includes('x3'))
-    return currentCritical.replace('x3', 'x4');
-  if (currentCritical.includes('x4'))
-    return currentCritical.replace('x4', 'x5');
-
-  return currentCritical; // Já é x5 ou formato não reconhecido
 }
 
 /**
@@ -452,18 +301,11 @@ function applyArmorModifications(
         case 'Material especial':
           // Material especial - aumenta defesa e preço
           modifiedArmor.defenseBonus += 1;
-          priceMultiplier += 2.0;
+          priceMultiplier += 1.0;
           break;
 
         default:
-          // Modificações genéricas
-          priceMultiplier += 0.3;
           break;
-      }
-
-      // Se é modificação dupla, contar como 2
-      if (selectedMod.double) {
-        i += 1;
       }
     }
   }
@@ -476,7 +318,113 @@ function applyArmorModifications(
 }
 
 /**
- * Gera equipamentos de poção baseado na quantidade e dados
+ * Gera uma arma ou armadura baseado nas tabelas com modificações
+ */
+function generateWeaponOrArmor(
+  diceRoll: number,
+  mods: number
+): Equipment | DefenseEquipment | null {
+  const typeRoll = rollDice(1, 6);
+
+  if (typeRoll >= 1 && typeRoll <= 4) {
+    // É uma arma
+    const rolledItem = weapons.find(
+      (i) => diceRoll >= i.min && diceRoll <= i.max
+    );
+
+    if (rolledItem) {
+      let finalWeapon = { ...rolledItem.item };
+      let priceMultiplier = 1;
+      let modsList: string[] = [];
+
+      // Aplicar modificações se necessário
+      if (mods > 0) {
+        const modsResult = applyWeaponModifications(finalWeapon, mods);
+        finalWeapon = modsResult.modifiedWeapon;
+        modsList = modsResult.modsList;
+        priceMultiplier = modsResult.priceMultiplier;
+
+        // Atualizar nome com modificações
+        if (modsList.length > 0) {
+          finalWeapon.nome = `${finalWeapon.nome} (${modsList.join(', ')})`;
+        }
+      }
+
+      // Atualizar preço
+      finalWeapon.preco = Math.round(
+        (finalWeapon.preco || 0) * priceMultiplier
+      );
+
+      return finalWeapon;
+    }
+  } else {
+    // É uma armadura (5-6)
+    const rolledItem = armors.find(
+      (i) => diceRoll >= i.min && diceRoll <= i.max
+    );
+
+    if (rolledItem) {
+      let finalArmor = { ...rolledItem.item } as DefenseEquipment;
+      let priceMultiplier = 1;
+      let modsList: string[] = [];
+
+      // Aplicar modificações se necessário
+      if (mods > 0) {
+        const modsResult = applyArmorModifications(finalArmor, mods);
+        finalArmor = modsResult.modifiedArmor;
+        modsList = modsResult.modsList;
+        priceMultiplier = modsResult.priceMultiplier;
+
+        // Atualizar nome com modificações
+        if (modsList.length > 0) {
+          finalArmor.nome = `${finalArmor.nome} (${modsList.join(', ')})`;
+        }
+      }
+
+      // Atualizar preço
+      finalArmor.preco = Math.round((finalArmor.preco || 0) * priceMultiplier);
+
+      return finalArmor;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Gera um item diverso baseado na tabela miscellaneousItems
+ */
+function generateMiscellaneousEquipment(diceRoll: number): Equipment | null {
+  const rolledItem = miscellaneousItems.find(
+    (i) => diceRoll >= i.min && diceRoll <= i.max
+  );
+
+  if (rolledItem) {
+    let quantity = 1;
+    let itemName = rolledItem.item;
+
+    // Se tem efeito de quantidade, aplicar
+    if (rolledItem.effect) {
+      quantity = rollDice(rolledItem.effect.qtd, rolledItem.effect.dice);
+      itemName = `${quantity} ${rolledItem.item}`;
+    }
+
+    // Preço base para itens diversos (pode ser refinado depois)
+    const basePrice = getBasePriceForMiscellaneous(rolledItem.item);
+
+    return {
+      nome: itemName,
+      group: 'Item Geral',
+      preco: basePrice * quantity,
+      spaces: 1,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Gera equipamentos de poção baseado nos parâmetros
  */
 function generatePotionEquipment(
   qty: number,
@@ -515,29 +463,7 @@ function generatePotionEquipment(
 }
 
 /**
- * Calcula preço de poções baseado no tipo
- */
-function getPotionPrice(potionName: string): number {
-  const potionPrices: Record<string, number> = {
-    'Poção de Cura Leve': 50,
-    'Poção de Cura Moderada': 200,
-    'Poção de Cura Grave': 750,
-    'Poção de Cura Completa': 3000,
-    'Poção de Atributo': 300,
-    'Poção de Resistência': 150,
-    'Poção de Velocidade': 400,
-    'Poção de Força': 300,
-    'Poção de Invisibilidade': 500,
-    Antídoto: 100,
-    'Óleo Escorregadio': 75,
-    'Fogo Alquímico': 20,
-  };
-
-  return potionPrices[potionName] || 100; // Preço padrão
-}
-
-/**
- * Gera equipamentos mágicos (acessórios)
+ * Gera equipamento mágico baseado no nível
  */
 function generateMagicalEquipment(level: number): Equipment | null {
   const typeRoll = rollDice(1, 6);
@@ -595,238 +521,6 @@ function generateMagicalEquipment(level: number): Equipment | null {
   }
 
   return null;
-}
-
-/**
- * Gera equipamentos baseado no nível do personagem usando o sistema de recompensas
- *
- * @param characterLevel - Nível do personagem
- * @param existingBag - Bag existente para verificar armaduras
- * @returns Resultado da geração com equipamentos e informações
- */
-export function generateEquipmentRewards(
-  characterLevel: number,
-  existingBag?: Bag
-): GeneratedEquipmentResult {
-  const rewardND = getLevelToNDMapping(characterLevel);
-
-  if (!rewardND) {
-    return {
-      equipments: {},
-      totalCost: 0,
-      generationDetails: 'Nenhum item gerado (nível 1)',
-      itemsForSteps: [],
-    };
-  }
-
-  try {
-    // Calcular quantidade de tentativas: entre 1 e 3 + nível/5
-    const minAttempts = 1;
-    const maxAttempts = Math.max(2, 3 + Math.floor(characterLevel / 5));
-    const numberOfAttempts =
-      rollDice(1, maxAttempts - minAttempts + 1) + minAttempts - 1;
-
-    const allGeneratedEquipments: Equipment[] = [];
-    const attemptDetails: string[] = [];
-    const minimumItems = Math.floor(characterLevel / 2);
-    let hasGeneratedArmor = false; // Track if we've already generated armor
-
-    // Check if there's already armor in existing bag
-    if (
-      existingBag?.equipments?.Armadura &&
-      existingBag.equipments.Armadura.length > 0
-    ) {
-      hasGeneratedArmor = true;
-    }
-
-    // Fazer múltiplas tentativas de geração
-    for (let attempt = 0; attempt < numberOfAttempts; attempt += 1) {
-      const reward = rewardGenerator(rewardND);
-
-      // Se há item para gerar, processar
-      if (reward.item) {
-        const equipments = generateEquipmentsByType(reward.item);
-        if (equipments.length > 0) {
-          // Filter out armors if we already have one
-          const filteredEquipments = equipments.filter((eq) => {
-            if (eq.group === 'Armadura' && hasGeneratedArmor) {
-              return false; // Skip this armor
-            }
-            if (eq.group === 'Armadura') {
-              hasGeneratedArmor = true; // Mark that we now have armor
-            }
-            return true;
-          });
-
-          if (filteredEquipments.length > 0) {
-            allGeneratedEquipments.push(...filteredEquipments);
-            attemptDetails.push(
-              `Tentativa ${attempt + 1}: ${filteredEquipments.length} item(s)`
-            );
-          }
-        }
-      }
-    }
-
-    // Se não atingiu o mínimo de itens, fazer tentativas extras até conseguir
-    let extraAttempts = 0;
-    while (allGeneratedEquipments.length < minimumItems && extraAttempts < 20) {
-      const reward = rewardGenerator(rewardND);
-
-      if (reward.item) {
-        const equipments = generateEquipmentsByType(reward.item);
-        if (equipments.length > 0) {
-          // Filter out armors if we already have one
-          const filteredEquipments = equipments.filter((equipment) => {
-            if (equipment.group === 'Armadura' && hasGeneratedArmor) {
-              return false;
-            }
-            // Update flag if this is an armor
-            if (equipment.group === 'Armadura') {
-              hasGeneratedArmor = true;
-            }
-            return true;
-          });
-
-          if (filteredEquipments.length > 0) {
-            allGeneratedEquipments.push(...filteredEquipments);
-            extraAttempts += 1;
-            attemptDetails.push(
-              `Tentativa extra ${extraAttempts}: ${filteredEquipments.length} item(s)`
-            );
-          } else {
-            // If all items were filtered out, still increment attempts to avoid infinite loop
-            extraAttempts += 1;
-          }
-        }
-      } else {
-        // Se não conseguiu gerar via recompensas, gerar itens genéricos
-        const genericItem: Equipment = {
-          nome: `Item Genérico ${extraAttempts + 1}`,
-          group: 'Item Geral',
-          preco: 5 + rollDice(1, 10),
-          spaces: 1,
-        };
-        allGeneratedEquipments.push(genericItem);
-        extraAttempts += 1;
-        attemptDetails.push(`Tentativa extra ${extraAttempts}: Item genérico`);
-      }
-    }
-
-    // Organizar equipamentos por grupo
-    const equipmentsByGroup: Partial<BagEquipments> = {};
-    let totalCost = 0;
-    const itemDetails: string[] = [];
-    const itemsForSteps: { name?: string; value: string }[] = [];
-
-    allGeneratedEquipments.forEach((equipment) => {
-      const group = equipment.group as keyof BagEquipments;
-
-      if (!equipmentsByGroup[group]) {
-        equipmentsByGroup[group] = [] as Equipment[];
-      }
-
-      (equipmentsByGroup[group] as Equipment[]).push(equipment);
-      totalCost += equipment.preco || 0;
-      itemDetails.push(`${equipment.nome} (${equipment.preco || 0} T$)`);
-
-      // Adicionar item para os steps com preço
-      itemsForSteps.push({
-        value: `${equipment.nome} - ${equipment.preco || 0} T$`,
-      });
-    });
-
-    const totalItemsGenerated = allGeneratedEquipments.length;
-    const totalAttempts = numberOfAttempts + extraAttempts;
-    const detailsMessage =
-      totalItemsGenerated > 0
-        ? `ND ${rewardND} - ${totalAttempts} tentativas, ${totalItemsGenerated}/${minimumItems} itens (mín. garantido)`
-        : `ND ${rewardND} - ${totalAttempts} tentativas, nenhum item gerado`;
-
-    return {
-      equipments: equipmentsByGroup,
-      totalCost,
-      generationDetails: detailsMessage,
-      itemsForSteps,
-    };
-  } catch (error) {
-    // console.error('Erro ao gerar equipamentos:', error);
-    return {
-      equipments: {},
-      totalCost: 0,
-      generationDetails: `Erro ao gerar itens para ND ${rewardND}`,
-      itemsForSteps: [],
-    };
-  }
-}
-
-/**
- * Gera equipamentos baseado no tipo da recompensa
- * Faz múltiplas tentativas para garantir que sempre gere algo
- */
-function generateEquipmentsByType(itemReward: ItemReward): Equipment[] {
-  const results: Equipment[] = [];
-
-  if (!itemReward.reward) return results;
-
-  const { reward } = itemReward;
-
-  switch (reward.type) {
-    case ITEM_TYPE.DIVERSO: {
-      const equipment = generateMiscellaneousEquipmentWithRetries();
-      if (equipment) results.push(equipment);
-      break;
-    }
-
-    case ITEM_TYPE.ARMA_ARMADURA:
-    case ITEM_TYPE.SUPERIOR: {
-      const equipment = generateWeaponOrArmorWithRetries(reward.mods || 0);
-      if (equipment) results.push(equipment);
-      break;
-    }
-
-    case ITEM_TYPE.POCAO: {
-      const potionEquipments = generatePotionEquipment(
-        reward.qty || 1,
-        reward.dice || 1,
-        reward.som || 0,
-        reward.applyRollBonus
-      );
-      results.push(...potionEquipments);
-      break;
-    }
-
-    case ITEM_TYPE.MAGICO_MENOR: {
-      const equipment = generateMagicalEquipmentWithRetries(1);
-      if (equipment) results.push(equipment);
-      break;
-    }
-
-    case ITEM_TYPE.MAGICO_MEDIO: {
-      const equipment = generateMagicalEquipmentWithRetries(3);
-      if (equipment) results.push(equipment);
-      break;
-    }
-
-    case ITEM_TYPE.MAGICO_MAIOR: {
-      const equipment = generateMagicalEquipmentWithRetries(4);
-      if (equipment) results.push(equipment);
-      break;
-    }
-
-    default: {
-      // Tipo de item não reconhecido - gerar item genérico
-      results.push({
-        nome: 'Item Misterioso',
-        group: 'Item Geral',
-        preco: 10,
-        spaces: 1,
-      });
-      break;
-    }
-  }
-
-  return results;
 }
 
 /**
@@ -897,10 +591,125 @@ function generateMagicalEquipmentWithRetries(
 }
 
 /**
- * Calcula o custo total de equipamentos
+ * Gera equipamentos baseado no tipo de recompensa
+ */
+function generateEquipmentsByType(itemReward: ItemReward): Equipment[] {
+  const results: Equipment[] = [];
+
+  if (!itemReward.reward) return results;
+
+  const { reward } = itemReward;
+
+  switch (reward.type) {
+    case ITEM_TYPE.DIVERSO: {
+      const equipment = generateMiscellaneousEquipmentWithRetries();
+      if (equipment) results.push(equipment);
+      break;
+    }
+
+    case ITEM_TYPE.ARMA_ARMADURA:
+    case ITEM_TYPE.SUPERIOR: {
+      const equipment = generateWeaponOrArmorWithRetries(reward.mods || 0);
+      if (equipment) results.push(equipment);
+      break;
+    }
+
+    case ITEM_TYPE.POCAO: {
+      const potionEquipments = generatePotionEquipment(
+        reward.qty || 1,
+        reward.dice || 1,
+        reward.som || 0,
+        reward.applyRollBonus
+      );
+      results.push(...potionEquipments);
+      break;
+    }
+
+    case ITEM_TYPE.MAGICO_MENOR: {
+      const equipment = generateMagicalEquipmentWithRetries(1);
+      if (equipment) results.push(equipment);
+      break;
+    }
+
+    case ITEM_TYPE.MAGICO_MEDIO: {
+      const equipment = generateMagicalEquipmentWithRetries(3);
+      if (equipment) results.push(equipment);
+      break;
+    }
+
+    case ITEM_TYPE.MAGICO_MAIOR: {
+      const equipment = generateMagicalEquipmentWithRetries(4);
+      if (equipment) results.push(equipment);
+      break;
+    }
+
+    default: {
+      // Tipo de item não reconhecido - gerar item genérico
+      results.push({
+        nome: 'Item Misterioso',
+        group: 'Item Geral',
+        preco: 10,
+        spaces: 1,
+      });
+      break;
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Mapeia o nível do personagem para o ND (Nível de Desafio) apropriado para geração de recompensas
  *
- * @param equipments - Equipamentos gerados
- * @returns Custo total em T$
+ * Lógica:
+ * - Nível 1: Sem recompensas (apenas equipamentos iniciais)
+ * - Nível 2: ND 1/4 (S4)
+ * - Nível 3: ND 1/3 (S3)
+ * - Nível 4: ND 1/2 (S2)
+ * - Nível 5+: ND = nível - 4 (F1, F2, F3, etc.)
+ *
+ * @param characterLevel - Nível do personagem (1-20)
+ * @returns LEVELS enum ou null se não deve gerar recompensas
+ */
+export function getLevelToNDMapping(characterLevel: number): LEVELS | null {
+  if (characterLevel <= 1) {
+    return null; // Nível 1 não recebe recompensas
+  }
+
+  const mapping: Record<number, LEVELS> = {
+    2: LEVELS.S4, // ND 1/4
+    3: LEVELS.S3, // ND 1/3
+    4: LEVELS.S2, // ND 1/2
+    5: LEVELS.F1, // ND 1
+    6: LEVELS.F2, // ND 2
+    7: LEVELS.F3, // ND 3
+    8: LEVELS.F4, // ND 4
+    9: LEVELS.F5, // ND 5
+    10: LEVELS.F6, // ND 6
+    11: LEVELS.F7, // ND 7
+    12: LEVELS.F8, // ND 8
+    13: LEVELS.F9, // ND 9
+    14: LEVELS.F10, // ND 10
+    15: LEVELS.F11, // ND 11
+    16: LEVELS.F12, // ND 12
+    17: LEVELS.F13, // ND 13
+    18: LEVELS.F14, // ND 14
+    19: LEVELS.F15, // ND 15
+    20: LEVELS.F16, // ND 16
+  };
+
+  return mapping[characterLevel] || null;
+}
+
+export interface GeneratedEquipmentResult {
+  equipments: Partial<BagEquipments>;
+  totalCost: number;
+  generationDetails: string;
+  itemsForSteps: { name?: string; value: string }[];
+}
+
+/**
+ * Calcula o custo total de equipamentos
  */
 export function calculateEquipmentCost(
   equipments: Partial<BagEquipments>
@@ -916,4 +725,222 @@ export function calculateEquipmentCost(
   });
 
   return totalCost;
+}
+
+/**
+ * Gera equipamentos baseado no nível do personagem usando o sistema de recompensas
+ */
+export function generateEquipmentRewards(
+  characterLevel: number,
+  existingBag?: Bag
+): GeneratedEquipmentResult {
+  const rewardND = getLevelToNDMapping(characterLevel);
+
+  if (!rewardND) {
+    return {
+      equipments: {},
+      totalCost: 0,
+      generationDetails: 'Nenhum item gerado (nível 1)',
+      itemsForSteps: [],
+    };
+  }
+
+  try {
+    // Calcular quantidade de tentativas: entre 1 e 3 + nível/5
+    const minAttempts = 1;
+    const maxAttempts = Math.max(2, 3 + Math.floor(characterLevel / 5));
+    const numberOfAttempts =
+      rollDice(1, maxAttempts - minAttempts + 1) + minAttempts - 1;
+
+    const allGeneratedEquipments: Equipment[] = [];
+    const attemptDetails: string[] = [];
+    const itemsForSteps: { name?: string; value: string }[] = [];
+
+    // Calcular número mínimo de itens baseado no nível
+    const minimumItems = Math.floor(characterLevel / 2);
+    let hasGeneratedArmor = false; // Track if we've already generated armor
+
+    // Check if there's already armor in existing bag
+    if (
+      existingBag?.equipments?.Armadura &&
+      existingBag.equipments.Armadura.length > 0
+    ) {
+      hasGeneratedArmor = true;
+    }
+
+    // Primary generation attempts
+    for (let attempt = 1; attempt <= numberOfAttempts; attempt += 1) {
+      const reward = rewardGenerator(rewardND);
+
+      if (reward.item) {
+        const equipments = generateEquipmentsByType(reward.item);
+        if (equipments.length > 0) {
+          // Filter out armors if we already have one
+          const filteredEquipments: Equipment[] = [];
+          let equipmentIndex = 0;
+          while (equipmentIndex < equipments.length) {
+            const eq = equipments[equipmentIndex];
+            if (!(eq.group === 'Armadura' && hasGeneratedArmor)) {
+              if (eq.group === 'Armadura') {
+                hasGeneratedArmor = true; // Mark that we now have armor
+              }
+              filteredEquipments.push(eq);
+            }
+            equipmentIndex += 1;
+          }
+
+          if (filteredEquipments.length > 0) {
+            allGeneratedEquipments.push(...filteredEquipments);
+            attemptDetails.push(
+              `Tentativa ${attempt}: ${
+                reward.item.reward?.type || 'Desconhecido'
+              } -> ${filteredEquipments.map((eq) => eq.nome).join(', ')}`
+            );
+
+            // Add items for character creation steps
+            filteredEquipments.forEach((eq) => {
+              itemsForSteps.push({
+                name: eq.nome,
+                value: `${eq.nome} (${eq.preco || 0} T$)`,
+              });
+            });
+          }
+        }
+      } else if (reward.money) {
+        // For money rewards, add as equipment for tracking
+        const moneyAmount = reward.money.reward?.qty
+          ? rollDice(reward.money.reward.qty, reward.money.reward.dice) *
+            (reward.money.reward.mult || 1)
+          : 0;
+        allGeneratedEquipments.push({
+          nome: `${moneyAmount} Moedas de Ouro`,
+          group: 'Item Geral',
+          preco: moneyAmount,
+          spaces: 0,
+        });
+
+        attemptDetails.push(
+          `Tentativa ${attempt}: Dinheiro -> ${moneyAmount} T$`
+        );
+        itemsForSteps.push({
+          value: `${moneyAmount} T$ (Dinheiro)`,
+        });
+      }
+    }
+
+    // Extra attempts to ensure minimum items (if needed)
+    let extraAttempts = 0;
+    while (allGeneratedEquipments.length < minimumItems && extraAttempts < 20) {
+      const reward = rewardGenerator(rewardND);
+
+      if (reward.item) {
+        const equipments = generateEquipmentsByType(reward.item);
+        if (equipments.length > 0) {
+          // Filter out armors if we already have one
+          const filteredEquipments: Equipment[] = [];
+          let equipmentIndex2 = 0;
+          while (equipmentIndex2 < equipments.length) {
+            const equipment = equipments[equipmentIndex2];
+            if (!(equipment.group === 'Armadura' && hasGeneratedArmor)) {
+              // Update flag if this is an armor
+              if (equipment.group === 'Armadura') {
+                hasGeneratedArmor = true;
+              }
+              filteredEquipments.push(equipment);
+            }
+            equipmentIndex2 += 1;
+          }
+
+          if (filteredEquipments.length > 0) {
+            allGeneratedEquipments.push(...filteredEquipments);
+            extraAttempts += 1;
+          }
+        }
+      }
+      extraAttempts += 1;
+    }
+
+    // Group equipment by type
+    const groupedEquipments: Partial<BagEquipments> = {};
+
+    allGeneratedEquipments.forEach((equipment) => {
+      const { group } = equipment;
+
+      switch (group) {
+        case 'Arma':
+          if (!groupedEquipments.Arma) groupedEquipments.Arma = [];
+          groupedEquipments.Arma.push(equipment);
+          break;
+
+        case 'Armadura':
+          if (!groupedEquipments.Armadura) groupedEquipments.Armadura = [];
+          groupedEquipments.Armadura.push(equipment as DefenseEquipment);
+          break;
+
+        case 'Escudo':
+          if (!groupedEquipments.Escudo) groupedEquipments.Escudo = [];
+          groupedEquipments.Escudo.push(equipment as DefenseEquipment);
+          break;
+
+        case 'Alquimía':
+          if (!groupedEquipments.Alquimía) groupedEquipments.Alquimía = [];
+          groupedEquipments.Alquimía.push(equipment);
+          break;
+
+        case 'Vestuário':
+          if (!groupedEquipments.Vestuário) groupedEquipments.Vestuário = [];
+          groupedEquipments.Vestuário.push(equipment);
+          break;
+
+        case 'Alimentação':
+          if (!groupedEquipments.Alimentação)
+            groupedEquipments.Alimentação = [];
+          groupedEquipments.Alimentação.push(equipment);
+          break;
+
+        default:
+          if (!groupedEquipments['Item Geral'])
+            groupedEquipments['Item Geral'] = [];
+          groupedEquipments['Item Geral'].push(equipment);
+          break;
+      }
+    });
+
+    // Calculate total cost
+    const totalCost = calculateEquipmentCost(groupedEquipments);
+
+    // Create generation details
+    const generationDetails = [
+      `Nível: ${characterLevel} (ND: ${rewardND})`,
+      `Tentativas realizadas: ${numberOfAttempts}`,
+      `Itens extras: ${extraAttempts}`,
+      `Total de itens: ${allGeneratedEquipments.length}`,
+      '',
+      ...attemptDetails,
+    ].join('\n');
+
+    return {
+      equipments: groupedEquipments,
+      totalCost,
+      generationDetails,
+      itemsForSteps,
+    };
+  } catch (error) {
+    return {
+      equipments: {},
+      totalCost: 0,
+      generationDetails: `Erro na geração: ${error}`,
+      itemsForSteps: [],
+    };
+  }
+}
+
+/**
+ * Função principal para gerar equipamentos baseado no nível do personagem
+ */
+export function generateEquipmentsByLevel(
+  characterLevel: number,
+  existingBag?: Bag
+): GeneratedEquipmentResult {
+  return generateEquipmentRewards(characterLevel, existingBag);
 }
