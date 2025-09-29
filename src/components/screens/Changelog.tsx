@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 24/08/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 29/09/2025.
       </p>
 
       <p>
@@ -45,6 +45,13 @@ const Changelog: React.FC = () => (
           &quot;Ofício (Qualquer)&quot; por ofícios específicos e temáticos
           baseados na classe do personagem (ex: Guerreiros recebem Armeiro,
           Druidas recebem Fazendeiro).
+        </li>
+        <li>
+          <strong>⚡ Golpe Pessoal do Guerreiro:</strong> Implementado o poder
+          &quot;Golpe Pessoal&quot; para a classe Guerreiro. Sistema completo
+          com 18 efeitos personalizáveis, permitindo criar ataques únicos.
+          Inclui geração aleatória inteligente respeitando limites de PM por
+          nível e interface manual para construção customizada do golpe.
         </li>
       </ul>
 
