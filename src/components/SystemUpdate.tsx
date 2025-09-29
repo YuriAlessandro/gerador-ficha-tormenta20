@@ -9,9 +9,9 @@ import {
 import React from 'react';
 
 const ls = window.localStorage;
-const CURRENT_ALERT_NAME = 'version33Alert';
+const CURRENT_ALERT_NAME = 'version34Alert';
 
-const DiscordInvite = () => {
+const SystemUpdate = () => {
   const doNotShow = ls.getItem(CURRENT_ALERT_NAME) === 'true';
   const [open, setOpen] = React.useState(!doNotShow);
 
@@ -31,17 +31,18 @@ const DiscordInvite = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Versão 3.3</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>Versão 3.4</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            Uma nova versão está entre nós! Ao selecionar um poder manualmente
-            na ficha como &quot;Aumento de Atributo&quot;, agora você pode
-            escolher o que o poder irá afetar.
+            Uma nova versão está entre nós! A versão 3.4 traz o poder
+            &quot;Golpe Pessoal&quot; para Guerreiros, com 18 efeitos
+            personalizáveis para criar ataques únicos.
           </p>
           <p>
-            Muitas melhorias foram feitas no editor de fichas em relação aos
-            poderes, e você pode conferir a lista comppleta de mudanças no
+            Além disso, o sistema de equipamentos foi expandido com 97 novos
+            itens e melhorias para Inventores. Confira a lista completa de
+            mudanças no
             <a href='https://fichasdenimb.com.br/#/changelog'> Changelog</a>
           </p>
         </DialogContentText>
@@ -58,4 +59,4 @@ const DiscordInvite = () => {
   );
 };
 
-export default DiscordInvite;
+export default SystemUpdate;

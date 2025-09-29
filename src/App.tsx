@@ -38,7 +38,7 @@ import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
-import DiscordInvite from './components/DiscordInvite';
+import SystemUpdate from './components/SystemUpdate';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
@@ -201,7 +201,7 @@ function App(): JSX.Element {
               data-testid='app-component'
               style={isDarkTheme ? darkTheme : lightTheme}
             >
-              <DiscordInvite />
+              <SystemUpdate />
               <PWAInstallPrompt />
               <div className='mainApp'>
                 <header className='App-header'>
