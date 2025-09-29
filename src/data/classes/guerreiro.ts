@@ -164,7 +164,12 @@ const GUERREIRO: ClassDescription = {
       text: 'Quando faz um ataque, você pode desferir seu Golpe Pessoal, uma técnica única, com efeitos determinados por você. Você constrói seu Golpe Pessoal escolhendo efeitos da lista na página 66. Cada efeito possui um custo; a soma deles será o custo do Golpe Pessoal (mínimo 1 PM). O Golpe Pessoal só pode ser usado com uma arma específica (por exemplo, apenas espadas longas). Quando sobe de nível, você pode reconstruir seu Golpe Pessoal e alterar a arma que ele usa. Você pode escolher este poder outras vezes para golpes diferentes e não pode gastar mais PM em golpes pessoais em uma mesma rodada do que seu limite de PM.',
       canRepeat: true,
       requirements: [[{ type: RequirementType.NIVEL, value: 5 }]],
-      // TODO: Gerar um golpe pessoal aleatório
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Golpe Pessoal' },
+          action: { type: 'buildGolpePessoal' },
+        },
+      ],
     },
     {
       name: 'Ímpeto',

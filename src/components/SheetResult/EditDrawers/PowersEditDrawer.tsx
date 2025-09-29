@@ -44,7 +44,9 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { GolpePessoalBuild, GOLPE_PESSOAL_EFFECTS } from '@/data/golpePessoal';
 import PowerSelectionDialog from './PowerSelectionDialog';
+import GolpePessoalBuilder from './GolpePessoalBuilder';
 
 interface PowersEditDrawerProps {
   open: boolean;
@@ -87,6 +89,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     requirements: null,
     powerToAdd: null,
     isClassPower: false,
+  });
+
+  // State for Golpe Pessoal Builder
+  const [golpePessoalDialog, setGolpePessoalDialog] = useState<{
+    open: boolean;
+    powerToAdd: ClassPower | null;
+  }>({
+    open: false,
+    powerToAdd: null,
   });
 
   useEffect(() => {
@@ -293,6 +304,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         const updated = { ...prev };
         delete updated[power.name];
         return updated;
+      });
+      return;
+    }
+
+    // Special handling for Golpe Pessoal
+    if (power.name === 'Golpe Pessoal') {
+      setGolpePessoalDialog({
+        open: true,
+        powerToAdd: power,
       });
       return;
     }
@@ -1400,6 +1420,58 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           onConfirm={handleSelectionConfirm}
           requirements={selectionDialog.requirements}
           sheet={sheet}
+        />
+      )}
+
+      {/* Golpe Pessoal Builder Dialog */}
+      {golpePessoalDialog.open && golpePessoalDialog.powerToAdd && (
+        <GolpePessoalBuilder
+          open={golpePessoalDialog.open}
+          sheet={sheet}
+          onClose={() =>
+            setGolpePessoalDialog({
+              open: false,
+              powerToAdd: null,
+            })
+          }
+          onConfirm={(build: GolpePessoalBuild) => {
+            // Add the Golpe Pessoal power with the build description
+            const powerToAdd = golpePessoalDialog.powerToAdd!;
+
+            // Create effect descriptions
+            const effectDescriptions = build.effects
+              .map((effectData) => {
+                const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+                if (!effect) return '';
+
+                let desc = `• ${effect.name}: ${effect.description}`;
+                if (effectData.repeats > 1) {
+                  desc += ` (${effectData.repeats}x)`;
+                }
+                if (effectData.choices && effectData.choices.length > 0) {
+                  desc += ` [${effectData.choices.join(', ')}]`;
+                }
+                return desc;
+              })
+              .join('\n');
+
+            const fullDescription = `${effectDescriptions}\n\n💠 Custo Total: ${build.totalCost} PM`;
+
+            const modifiedPower = {
+              ...powerToAdd,
+              name: `Golpe Pessoal (${build.weapon})`,
+              text: fullDescription,
+            };
+
+            // Add to selected powers
+            setSelectedClassPowers((prev) => [...prev, modifiedPower]);
+
+            // Close dialog
+            setGolpePessoalDialog({
+              open: false,
+              powerToAdd: null,
+            });
+          }}
         />
       )}
     </Drawer>
