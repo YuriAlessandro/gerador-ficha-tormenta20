@@ -44,9 +44,9 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { GolpePessoalBuild, GOLPE_PESSOAL_EFFECTS } from '@/data/golpePessoal';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
-import { GolpePessoalBuild, GOLPE_PESSOAL_EFFECTS } from '@/data/golpePessoal';
 
 interface PowersEditDrawerProps {
   open: boolean;
