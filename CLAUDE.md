@@ -6,20 +6,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gerador de Fichas de Tormenta 20 - A character sheet generator for the Brazilian tabletop RPG "Tormenta 20". The app generates random or customized character sheets with comprehensive RPG rules implementation.
 
-## Commands
+### Project Structure
 
-### Development
+- **Frontend (public)**: Main React application for character sheet generation (this repository)
+- **Backend (private submodule)**: Node.js backend for premium features and user authentication (located in `/backend`)
+
+## Git Submodules
+
+This project uses a git submodule for the backend. The backend repository is private and located at `git@github.com:YuriAlessandro/fichas-de-nimb-backend.git`.
+
+### Working with Submodules
 
 ```bash
-npm install          # Install dependencies
-npm start           # Start Vite dev server at localhost:5173
+# Clone repository with submodules
+git clone --recurse-submodules git@github.com:YuriAlessandro/gerador-ficha-tormenta20.git
+
+# If already cloned, initialize and update submodules
+git submodule init
+git submodule update
+
+# Pull latest changes from submodule
+cd backend
+git pull origin main
+cd ..
+git add backend
+git commit -m "Update backend submodule"
+
+# Working in the backend
+cd backend
+# Make changes, commit, push as normal
+git add .
+git commit -m "Your commit message"
+git push origin main
+# Then update parent repository
+cd ..
+git add backend
+git commit -m "Update backend submodule reference"
 ```
 
-### Build & Deploy
+## Commands
+
+### Frontend Development
 
 ```bash
+npm install          # Install frontend dependencies
+npm start           # Start Vite dev server at localhost:5173
 npm run build       # Build for production
 npm run deploy      # Deploy to GitHub Pages (builds first)
+```
+
+### Backend Development
+
+```bash
+cd backend
+npm install         # Install backend dependencies
+npm run dev        # Start backend dev server
+npm run build      # Build backend for production
+npm start          # Start production server
+```
+
+### Full Stack Development
+
+```bash
+# Terminal 1 - Frontend
+npm start
+
+# Terminal 2 - Backend
+cd backend && npm run dev
 ```
 
 
@@ -50,10 +103,17 @@ npx prettier --check <filename>  # Check if files are formatted
 
 ### Important Files
 
+**Frontend:**
 - `src/store/` - Redux store configuration and slices
 - `src/interfaces/` - All TypeScript type definitions for RPG entities
 - `src/data/` - Game content (races, classes, spells, equipment)
 - `src/functions/` - Business logic and utility functions
+
+**Backend (when present):**
+- `backend/src/` - Backend source code
+- `backend/src/api/` - API routes and controllers
+- `backend/src/models/` - Database models
+- `backend/src/services/` - Business logic services
 
 ### Deprecated - DO NOT USE
 
@@ -79,6 +139,14 @@ npx prettier --check <filename>  # Check if files are formatted
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
 - Deployed to GitHub Pages at https://yurialessandro.github.io/gerador-ficha-tormenta20/
+
+### Backend Integration Notes
+
+- **Backend Privacy**: The backend repository is PRIVATE and should never be pushed to public repositories
+- **API Communication**: Frontend communicates with backend via REST API (consider CORS configuration)
+- **Authentication**: Backend handles user authentication for premium features
+- **Environment Variables**: Keep all sensitive configuration in `.env` files (never commit these)
+- **Development**: Backend runs separately from frontend during development
 
 ### TODO: Future Development
 
