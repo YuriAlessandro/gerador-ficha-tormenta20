@@ -23,6 +23,8 @@ import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/S
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
 import Sidebar from './components/Sidebar';
+import UserMenu from './components/Auth/UserMenu';
+import { AuthProvider } from './contexts/AuthContext';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
 import Changelog from './components/screens/Changelog';
 import Database from './components/screens/Database';
@@ -196,7 +198,8 @@ function App(): JSX.Element {
       >
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
-            <div
+            <AuthProvider>
+              <div
               className='App'
               data-testid='app-component'
               style={isDarkTheme ? darkTheme : lightTheme}
@@ -248,20 +251,23 @@ function App(): JSX.Element {
                           Fichas de Nimb
                         </Typography>
 
-                        <FormGroup sx={{ ml: ['15px', 0, 0] }}>
-                          <FormControlLabel
-                            labelPlacement='end'
-                            control={
-                              <SwitchMUI
-                                checked={isDarkTheme}
-                                onChange={onChangeTheme}
-                                color='default'
-                                value='dark'
-                              />
-                            }
-                            label='Tema Escuro'
-                          />
-                        </FormGroup>
+                        <Stack direction='row' spacing={2} alignItems='center'>
+                          <FormGroup>
+                            <FormControlLabel
+                              labelPlacement='end'
+                              control={
+                                <SwitchMUI
+                                  checked={isDarkTheme}
+                                  onChange={onChangeTheme}
+                                  color='default'
+                                  value='dark'
+                                />
+                              }
+                              label='Tema Escuro'
+                            />
+                          </FormGroup>
+                          <UserMenu />
+                        </Stack>
                       </Stack>
                     </Box>
                   </Stack>
@@ -331,6 +337,7 @@ function App(): JSX.Element {
                 </div>
               </footer>
             </div>
+            </AuthProvider>
           </PersistGate>
         </Provider>
       </SnackbarProvider>

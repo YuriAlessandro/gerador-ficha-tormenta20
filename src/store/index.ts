@@ -14,6 +14,7 @@ import { sheetBuilderMiddleware } from './slices/sheetBuilder/sheetBuilderMiddle
 import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
 import threatStorageReducer from './slices/threatStorage';
+import authReducer from './slices/auth/authSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -26,6 +27,12 @@ export const threatPersistConfig = {
   storage,
 };
 
+export const authPersistConfig = {
+  key: 'auth',
+  storage,
+  whitelist: ['dbUser'], // Only persist dbUser, Firebase will handle its own state
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
   sheetStorageSlice.reducer
@@ -36,16 +43,30 @@ const persistedThreatReducer = persistReducer(
   threatStorageReducer
 );
 
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
     sheetStorage: persistedReducer,
     threatStorage: persistedThreatReducer,
+    auth: persistedAuthReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActions: [
+          FLUSH,
+          REHYDRATE,
+          PAUSE,
+          PERSIST,
+          PURGE,
+          REGISTER,
+          'auth/setFirebaseUser',
+          'auth/login/fulfilled',
+          'auth/register/fulfilled',
+        ],
+        ignoredPaths: ['auth.firebaseUser'],
       },
     })
       .prepend(sheetBuilderMiddleware.middleware)
