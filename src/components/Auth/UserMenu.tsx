@@ -17,15 +17,13 @@ import { useDispatch } from 'react-redux';
 import { useAuth } from '../../hooks/useAuth';
 import { AppDispatch } from '../../store';
 import { logout } from '../../store/slices/auth/authSlice';
-import LoginModal from './LoginModal';
-import RegisterModal from './RegisterModal';
+import AuthModal from './AuthModal';
 
 const UserMenu: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated, loading } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -46,16 +44,6 @@ const UserMenu: React.FC = () => {
     } finally {
       setLoggingOut(false);
     }
-  };
-
-  const handleSwitchToRegister = () => {
-    setLoginOpen(false);
-    setRegisterOpen(true);
-  };
-
-  const handleSwitchToLogin = () => {
-    setRegisterOpen(false);
-    setLoginOpen(true);
   };
 
   const getInitials = () => {
@@ -83,7 +71,7 @@ const UserMenu: React.FC = () => {
   if (loading || loggingOut) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <CircularProgress size={24} color="inherit" />
+        <CircularProgress size={24} color='inherit' />
       </Box>
     );
   }
@@ -92,23 +80,14 @@ const UserMenu: React.FC = () => {
     return (
       <>
         <Button
-          variant="outlined"
-          color="inherit"
-          onClick={() => setLoginOpen(true)}
+          variant='outlined'
+          color='inherit'
+          onClick={() => setAuthOpen(true)}
           sx={{ borderColor: 'white', color: 'white' }}
         >
           Entrar
         </Button>
-        <LoginModal
-          open={loginOpen}
-          onClose={() => setLoginOpen(false)}
-          onSwitchToRegister={handleSwitchToRegister}
-        />
-        <RegisterModal
-          open={registerOpen}
-          onClose={() => setRegisterOpen(false)}
-          onSwitchToLogin={handleSwitchToLogin}
-        />
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       </>
     );
   }
@@ -117,10 +96,10 @@ const UserMenu: React.FC = () => {
     <>
       <IconButton
         onClick={handleMenuOpen}
-        size="small"
+        size='small'
         sx={{ ml: 2 }}
         aria-controls={anchorEl ? 'account-menu' : undefined}
-        aria-haspopup="true"
+        aria-haspopup='true'
         aria-expanded={anchorEl ? 'true' : undefined}
       >
         <Avatar
@@ -138,7 +117,7 @@ const UserMenu: React.FC = () => {
 
       <Menu
         anchorEl={anchorEl}
-        id="account-menu"
+        id='account-menu'
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         onClick={handleMenuClose}
@@ -172,16 +151,16 @@ const UserMenu: React.FC = () => {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="subtitle2" fontWeight="bold">
+          <Typography variant='subtitle2' fontWeight='bold'>
             {getDisplayName()}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant='caption' color='text.secondary'>
             {user?.email}
           </Typography>
           {user?.isPremium && (
             <Typography
-              variant="caption"
-              display="block"
+              variant='caption'
+              display='block'
               sx={{ color: 'warning.main', fontWeight: 'bold' }}
             >
               ⭐ Premium
@@ -192,12 +171,12 @@ const UserMenu: React.FC = () => {
         <Divider />
 
         <MenuItem onClick={handleMenuClose}>
-          <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+          <PersonIcon fontSize='small' sx={{ mr: 1 }} />
           Perfil
         </MenuItem>
 
         <MenuItem onClick={handleLogout}>
-          <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+          <LogoutIcon fontSize='small' sx={{ mr: 1 }} />
           Sair
         </MenuItem>
       </Menu>

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User } from 'firebase/auth';
 import authService from '../../../services/auth.service';
-import { AuthState, DbUser, LoginCredentials, RegisterCredentials } from '../../../types/auth.types';
+import { AuthState, DbUser } from '../../../types/auth.types';
 
 const initialState: AuthState = {
   firebaseUser: null,
@@ -12,14 +12,10 @@ const initialState: AuthState = {
 };
 
 // Async thunks
-export const register = createAsyncThunk(
-  'auth/register',
-  async (credentials: RegisterCredentials) => {
-    const result = await authService.register(
-      credentials.email,
-      credentials.password,
-      credentials.fullName
-    );
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async () => {
+    const result = await authService.loginWithGoogle();
     return {
       firebaseUser: {
         uid: result.firebaseUser.uid,
@@ -32,43 +28,22 @@ export const register = createAsyncThunk(
   }
 );
 
-export const login = createAsyncThunk(
-  'auth/login',
-  async (credentials: LoginCredentials) => {
-    const result = await authService.login(
-      credentials.email,
-      credentials.password
-    );
-    return {
-      firebaseUser: {
-        uid: result.firebaseUser.uid,
-        email: result.firebaseUser.email,
-        displayName: result.firebaseUser.displayName,
-        photoURL: result.firebaseUser.photoURL,
-      },
-      dbUser: result.dbUser,
-    };
-  }
-);
+export const syncUser = createAsyncThunk('auth/syncUser', async () => {
+  const dbUser = await authService.syncUser();
+  return dbUser;
+});
 
-export const syncUser = createAsyncThunk(
-  'auth/syncUser',
-  async () => {
-    const dbUser = await authService.syncUser();
-    return dbUser;
-  }
-);
-
-export const logout = createAsyncThunk(
-  'auth/logout',
-  async () => {
-    await authService.logout();
-  }
-);
+export const logout = createAsyncThunk('auth/logout', async () => {
+  await authService.logout();
+});
 
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
-  async (updates: { username?: string; fullName?: string; photoURL?: string }) => {
+  async (updates: {
+    username?: string;
+    fullName?: string;
+    photoURL?: string;
+  }) => {
     const updatedUser = await authService.updateProfile(updates);
     return updatedUser;
   }
@@ -110,40 +85,22 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Register
+    // Google Login
     builder
-      .addCase(register.pending, (state) => {
+      .addCase(loginWithGoogle.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
         state.loading = false;
         state.firebaseUser = action.payload.firebaseUser as User;
         state.dbUser = action.payload.dbUser;
         state.isAuthenticated = true;
         state.error = null;
       })
-      .addCase(register.rejected, (state, action) => {
+      .addCase(loginWithGoogle.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Registration failed';
-      });
-
-    // Login
-    builder
-      .addCase(login.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(login.fulfilled, (state, action) => {
-        state.loading = false;
-        state.firebaseUser = action.payload.firebaseUser as User;
-        state.dbUser = action.payload.dbUser;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Login failed';
+        state.error = action.error.message || 'Google login failed';
       });
 
     // Sync User
@@ -160,28 +117,21 @@ const authSlice = createSlice({
       });
 
     // Logout
-    builder
-      .addCase(logout.fulfilled, (state) => {
-        state.firebaseUser = null;
-        state.dbUser = null;
-        state.isAuthenticated = false;
-        state.error = null;
-      });
+    builder.addCase(logout.fulfilled, (state) => {
+      state.firebaseUser = null;
+      state.dbUser = null;
+      state.isAuthenticated = false;
+      state.error = null;
+    });
 
     // Update Profile
-    builder
-      .addCase(updateProfile.fulfilled, (state, action) => {
-        state.dbUser = action.payload;
-      });
+    builder.addCase(updateProfile.fulfilled, (state, action) => {
+      state.dbUser = action.payload;
+    });
   },
 });
 
-export const {
-  setFirebaseUser,
-  setDbUser,
-  setLoading,
-  setError,
-  clearAuth,
-} = authSlice.actions;
+export const { setFirebaseUser, setDbUser, setLoading, setError, clearAuth } =
+  authSlice.actions;
 
 export default authSlice.reducer;

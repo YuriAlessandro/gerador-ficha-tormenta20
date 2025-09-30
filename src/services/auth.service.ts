@@ -1,10 +1,9 @@
 import {
   auth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  signInWithPopup,
+  googleProvider,
   signOut,
   updateProfile,
-  sendPasswordResetEmail,
   User,
 } from '../config/firebase';
 import api from './api';
@@ -16,6 +15,7 @@ export interface DbUser {
   username: string;
   fullName?: string;
   photoURL?: string;
+  emailVerified: boolean;
   isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -30,27 +30,14 @@ export interface AuthResponse {
 }
 
 class AuthService {
-  // Register new user with Firebase and sync with backend
-  async register(
-    email: string,
-    password: string,
-    fullName?: string
-  ): Promise<{ firebaseUser: User; dbUser: DbUser }> {
+  // Login/Register with Google and sync with backend
+  async loginWithGoogle(): Promise<{ firebaseUser: User; dbUser: DbUser }> {
     try {
-      // Create user in Firebase
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      // Sign in with Google popup
+      const userCredential = await signInWithPopup(auth, googleProvider);
       const firebaseUser = userCredential.user;
 
-      // Update display name if provided
-      if (fullName) {
-        await updateProfile(firebaseUser, { displayName: fullName });
-      }
-
-      // Sync with backend
+      // Sync with backend (creates user if doesn't exist)
       const { data } = await api.post<AuthResponse>('/api/auth/sync');
 
       return {
@@ -58,34 +45,7 @@ class AuthService {
         dbUser: data.user,
       };
     } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
-  }
-
-  // Login user with Firebase and sync with backend
-  async login(
-    email: string,
-    password: string
-  ): Promise<{ firebaseUser: User; dbUser: DbUser }> {
-    try {
-      // Sign in with Firebase
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const firebaseUser = userCredential.user;
-
-      // Sync with backend
-      const { data } = await api.post<AuthResponse>('/api/auth/sync');
-
-      return {
-        firebaseUser,
-        dbUser: data.user,
-      };
-    } catch (error) {
-      console.error('Login error:', error);
+      console.error('Google login error:', error);
       throw error;
     }
   }
@@ -132,7 +92,9 @@ class AuthService {
 
       // Update Firebase display name if fullName changed
       if (updates.fullName && auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: updates.fullName });
+        await updateProfile(auth.currentUser, {
+          displayName: updates.fullName,
+        });
       }
 
       return data.user;
@@ -148,16 +110,6 @@ class AuthService {
       await signOut(auth);
     } catch (error) {
       console.error('Logout error:', error);
-      throw error;
-    }
-  }
-
-  // Send password reset email
-  async resetPassword(email: string): Promise<void> {
-    try {
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error('Password reset error:', error);
       throw error;
     }
   }

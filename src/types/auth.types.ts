@@ -7,6 +7,7 @@ export interface DbUser {
   username: string;
   fullName?: string;
   photoURL?: string;
+  emailVerified: boolean;
   isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -20,15 +21,4 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
   isAuthenticated: boolean;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterCredentials {
-  email: string;
-  password: string;
-  fullName?: string;
 }
