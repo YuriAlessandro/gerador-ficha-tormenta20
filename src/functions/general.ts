@@ -2749,6 +2749,32 @@ export function generateEmptySheet(
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
 
+  // Process origin if selected
+  if (selectedOptions.origin) {
+    const selectedOrigin = Object.values(ORIGINS).find(
+      (origin) => origin.name === selectedOptions.origin
+    );
+    if (selectedOrigin) {
+      emptySheet.origin = {
+        name: selectedOrigin.name,
+        powers: selectedOrigin.poderes || [],
+      };
+    }
+  }
+
+  // Process deity if selected
+  if (selectedOptions.devocao && selectedOptions.devocao.value) {
+    const selectedDeity = Object.values(DivindadeEnum).find(
+      (deity) => deity.name === selectedOptions.devocao.value
+    );
+    if (selectedDeity) {
+      emptySheet.devoto = {
+        divindade: selectedDeity,
+        poderes: [],
+      };
+    }
+  }
+
   // Generate complete skills table with base values of 0
   emptySheet.completeSkills = Object.values(Skill)
     .map((skill) => {

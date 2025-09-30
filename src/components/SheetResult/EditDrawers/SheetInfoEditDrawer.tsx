@@ -20,7 +20,7 @@ import RACAS from '@/data/racas';
 import CLASSES from '@/data/classes';
 import { ORIGINS } from '@/data/origins';
 import { allDivindadeNames } from '@/interfaces/Divindade';
-import DIVINDADES_DATA from '@/data/divindades';
+import { DivindadeEnum } from '@/data/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -136,25 +136,33 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }));
   };
 
-  const recalculatePV = (level: number, className: string) => {
+  const recalculatePV = (
+    level: number,
+    className: string,
+    attributes = sheet.atributos
+  ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pv;
 
-    const conMod = sheet.atributos.Constituição.mod;
+    const conMod = attributes.Constituição.mod;
     const pvBase = classData.pv + conMod;
     const pvPerLevel = classData.addpv + conMod;
 
     return pvBase + pvPerLevel * (level - 1);
   };
 
-  const recalculatePM = (level: number, className: string) => {
+  const recalculatePM = (
+    level: number,
+    className: string,
+    attributes = sheet.atributos
+  ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pm;
 
     // Get the key attribute modifier for PM calculation
     let keyAttrMod = 0;
     if (classData.spellPath) {
-      const keyAttr = sheet.atributos[classData.spellPath.keyAttribute];
+      const keyAttr = attributes[classData.spellPath.keyAttribute];
       keyAttrMod = keyAttr ? keyAttr.mod : 0;
     }
 
@@ -280,11 +288,37 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.steps = [...sheet.steps, ...newSteps];
     }
 
+    // Check if attributes have changed
+    const attributesChanged =
+      JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos);
+
     // Recalculate level-dependent values if level changed
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
-      updates.pv = recalculatePV(editedData.nivel, editedData.className);
-      updates.pm = recalculatePM(editedData.nivel, editedData.className);
+      updates.pv = recalculatePV(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+      updates.pm = recalculatePM(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+    }
+
+    // Recalculate PV/PM if attributes changed (even if level didn't change)
+    if (attributesChanged && editedData.nivel === sheet.nivel) {
+      updates.pv = recalculatePV(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+      updates.pm = recalculatePM(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
     }
 
     // Find and update race if changed
@@ -301,8 +335,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (newClass) {
         updates.classe = newClass;
         // Recalculate PV and PM for the new class
-        updates.pv = recalculatePV(editedData.nivel, editedData.className);
-        updates.pm = recalculatePM(editedData.nivel, editedData.className);
+        updates.pv = recalculatePV(
+          editedData.nivel,
+          editedData.className,
+          editedData.attributes
+        );
+        updates.pm = recalculatePM(
+          editedData.nivel,
+          editedData.className,
+          editedData.attributes
+        );
       }
     }
 
@@ -326,7 +368,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName &&
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
-      const newDeity = Object.values(DIVINDADES_DATA).find(
+      const newDeity = Object.values(DivindadeEnum).find(
         (d) => d.name === editedData.deityName
       );
       if (newDeity) {
@@ -339,10 +381,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.devoto = undefined;
     }
 
-    // Use recalculation for full sheet update if attributes changed
-    if (
-      JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos)
-    ) {
+    // Use recalculation for full sheet update if attributes, race, or deity changed
+    const raceChanged = editedData.raceName !== sheet.raca.name;
+    const deityChanged =
+      editedData.deityName !== (sheet.devoto?.divindade.name || '');
+    const shouldUseRecalculateSheet =
+      attributesChanged || raceChanged || deityChanged;
+
+    if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
       const recalculatedSheet = recalculateSheet(updatedSheet);
       onSave(recalculatedSheet);
