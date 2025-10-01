@@ -30,11 +30,7 @@ import {
   createNewSheet,
   removeSheet,
   selectStoredSheets,
-  selectSheetsCount,
-  selectCanCreateNewSheet,
-  MAX_CHARACTERS_LIMIT,
 } from '@/store/slices/sheetStorage/sheetStorage';
-import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useAlert, useConfirm } from '../../hooks/useDialog';
 
 const SheetList = () => {
@@ -44,21 +40,11 @@ const SheetList = () => {
   const { showConfirm, ConfirmDialog } = useConfirm();
 
   const sheetsOnStore = useSelector(selectStoredSheets);
-  const sheetsCount = useSelector(selectSheetsCount);
-  const canCreateNewSheet = useSelector(selectCanCreateNewSheet);
   const sheets = Object.values(sheetsOnStore).filter(
     (sheet) => sheet.id !== ''
   );
 
   const onClickNewSheet = () => {
-    if (!canCreateNewSheet) {
-      showAlert(
-        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos. Remova uma ficha para criar uma nova.`,
-        'Limite Atingido'
-      );
-      return;
-    }
-
     const id = uuid();
     const sheet = new BuildingSheet();
     dispatch(createNewSheet({ id, sheet: sheet.serialize() }));
@@ -144,25 +130,18 @@ const SheetList = () => {
               </Box>
             </Box>
 
-            <Button
-              onClick={onClickNewSheet}
-              variant='contained'
-              disabled={!canCreateNewSheet}
-            >
+            <Button onClick={onClickNewSheet} variant='contained'>
               Criar nova ficha
             </Button>
           </Box>
 
-          <Stack direction='row' spacing={2} alignItems='center' mb={2}>
-            <CharacterLimitIndicator
-              current={sheetsCount}
-              max={MAX_CHARACTERS_LIMIT}
-            />
-            <Typography variant='body2' color='text.secondary'>
-              {sheetsCount} de {MAX_CHARACTERS_LIMIT} personagens salvos
+          {sheets.length > 0 && (
+            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              {sheets.length}{' '}
+              {sheets.length === 1 ? 'personagem' : 'personagens'} salvo
               localmente
             </Typography>
-          </Stack>
+          )}
         </Box>
 
         {(!sheets || sheets.length <= 0) && (

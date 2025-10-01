@@ -7,7 +7,7 @@ import {
 
 export type AttributesDefinitionType = 'dice' | 'points' | 'free';
 
-export const MAX_CHARACTERS_LIMIT = 10;
+export const MAX_CHARACTERS_LIMIT = 100;
 
 export type SavedSheet = {
   id: string;

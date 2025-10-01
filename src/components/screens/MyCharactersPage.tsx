@@ -48,6 +48,9 @@ import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { SheetData } from '../../services/sheets.service';
+import CharacterLimitIndicator from '../CharacterLimitIndicator';
+
+const MAX_CHARACTERS_LIMIT = 10; // Cloud storage limit
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -278,10 +281,10 @@ const MyCharactersPage: React.FC = () => {
             >
               Meus Personagens
             </Typography>
-            <Box
-              display='flex'
+            <Stack
+              direction='row'
+              spacing={2}
               alignItems='center'
-              gap={2}
               mt={1}
               flexWrap='wrap'
             >
@@ -291,6 +294,13 @@ const MyCharactersPage: React.FC = () => {
                   Sincronizado com a nuvem
                 </Typography>
               </Box>
+              <CharacterLimitIndicator
+                current={sheets.length}
+                max={MAX_CHARACTERS_LIMIT}
+              />
+              <Typography variant='body2' color='text.secondary'>
+                {sheets.length} de {MAX_CHARACTERS_LIMIT} personagens
+              </Typography>
               <Button
                 variant='outlined'
                 size='small'
@@ -303,7 +313,7 @@ const MyCharactersPage: React.FC = () => {
               >
                 Ver Histórico Local
               </Button>
-            </Box>
+            </Stack>
           </Box>
 
           <Button
