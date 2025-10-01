@@ -15,10 +15,17 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { History as HistoryIcon } from '@mui/icons-material';
+import {
+  History as HistoryIcon,
+  PictureAsPdf as PdfIcon,
+  CloudUpload as CloudUploadIcon,
+  CheckCircle as CheckCircleIcon,
+  Casino as CasinoIcon,
+} from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
@@ -147,6 +154,7 @@ const saveSheetToDatabase = async (
 
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const theme = useTheme();
+  const history = useHistory();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated } = useAuth();
@@ -167,6 +175,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [showHistoric, setShowHistoric] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
+  const [loadingSaveToCloud, setLoadingSaveToCloud] = React.useState(false);
   const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
 
   // Warn before leaving if sheet is not saved to cloud
@@ -248,8 +257,19 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   // Handle save to cloud (explicit user action)
   const handleSaveToCloud = async () => {
-    if (!randomSheet || !isAuthenticated) return;
+    if (!randomSheet) return;
 
+    // If not authenticated, redirect to login
+    if (!isAuthenticated) {
+      history.push('/');
+      showAlert(
+        'Faça login para salvar suas fichas na nuvem e acessá-las de qualquer dispositivo.',
+        'Login Necessário'
+      );
+      return;
+    }
+
+    setLoadingSaveToCloud(true);
     try {
       await saveSheetToDatabase(
         randomSheet,
@@ -263,6 +283,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       );
     } catch (error) {
       showAlert('Erro ao salvar ficha na nuvem. Tente novamente.', 'Erro');
+    } finally {
+      setLoadingSaveToCloud(false);
     }
   };
 
@@ -674,9 +696,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
-        onSaveToCloud={isAuthenticated ? handleSaveToCloud : undefined}
-        isAuthenticated={isAuthenticated}
-        isSavedToCloud={sheetSavedToCloud}
       />
     ));
 
@@ -1038,12 +1057,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
           {randomSheet && (
             <Card sx={{ p: 2, mb: 2 }}>
-              <Typography
-                variant='h6'
-                sx={{ mb: 2, fontSize: { xs: '16px', sm: '18px' } }}
-              >
-                Exportar Ficha
-              </Typography>
               <Stack
                 spacing={1}
                 direction={isMobile ? 'column' : 'row'}
@@ -1054,16 +1067,46 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   },
                 }}
               >
+                {/* Save to Cloud Button */}
+                <Button
+                  variant={sheetSavedToCloud ? 'contained' : 'outlined'}
+                  color={sheetSavedToCloud ? 'success' : 'primary'}
+                  onClick={handleSaveToCloud}
+                  fullWidth={isMobile}
+                  disabled={loadingSaveToCloud || sheetSavedToCloud}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={
+                    loadingSaveToCloud ? (
+                      <CircularProgress size={20} />
+                    ) : sheetSavedToCloud ? (
+                      <CheckCircleIcon />
+                    ) : (
+                      <CloudUploadIcon />
+                    )
+                  }
+                >
+                  {loadingSaveToCloud
+                    ? 'Salvando...'
+                    : sheetSavedToCloud
+                    ? 'Salvo na Nuvem'
+                    : 'Salvar na Conta'}
+                </Button>
+
+                {/* PDF Export Button */}
                 <Button
                   variant='outlined'
                   onClick={preparePrint}
                   fullWidth={isMobile}
                   disabled={loadingPDF}
                   sx={{ justifyContent: 'flex-start' }}
-                  startIcon={loadingPDF ? <CircularProgress size={20} /> : '📄'}
+                  startIcon={
+                    loadingPDF ? <CircularProgress size={20} /> : <PdfIcon />
+                  }
                 >
                   {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF da Ficha'}
                 </Button>
+
+                {/* Foundry Export Button */}
                 <Button
                   variant='outlined'
                   onClick={exportFoundry}
@@ -1071,7 +1114,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   disabled={loadingFoundry}
                   sx={{ justifyContent: 'flex-start' }}
                   startIcon={
-                    loadingFoundry ? <CircularProgress size={20} /> : '🎲'
+                    loadingFoundry ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <CasinoIcon />
+                    )
                   }
                 >
                   {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
