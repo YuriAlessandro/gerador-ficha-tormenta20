@@ -6,7 +6,7 @@ import { AuthState, DbUser } from '../../../types/auth.types';
 const initialState: AuthState = {
   firebaseUser: null,
   dbUser: null,
-  loading: false,
+  loading: true, // Start with loading true to prevent flash of unauthenticated content
   error: null,
   isAuthenticated: false,
 };

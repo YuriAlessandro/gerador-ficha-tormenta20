@@ -6,6 +6,7 @@ import {
   setFirebaseUser,
   syncUser,
   clearAuth,
+  setLoading,
 } from '../store/slices/auth/authSlice';
 import { AppDispatch } from '../store';
 
@@ -37,6 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // User is signed out
         dispatch(clearAuth());
       }
+
+      // Set loading to false after Firebase auth state is determined
+      dispatch(setLoading(false));
     });
 
     return () => unsubscribe();
