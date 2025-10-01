@@ -158,24 +158,26 @@ const MyCharactersPage: React.FC = () => {
     const parts: string[] = [];
     const { sheetData } = sheet;
 
-    // Race and Class
-    if (sheetData.race?.name) {
-      parts.push(Translator.getRaceTranslation(sheetData.race.name));
+    // Race and Class (using Portuguese field names from CharacterSheet)
+    if ((sheetData as any).raca?.name) {
+      parts.push(Translator.getRaceTranslation((sheetData as any).raca.name));
     }
-    if (sheetData.role?.name) {
-      parts.push(Translator.getRoleTranslation(sheetData.role.name));
+    if ((sheetData as any).classe?.name) {
+      parts.push(Translator.getRoleTranslation((sheetData as any).classe.name));
     }
 
     // Origin
-    if (sheetData.origin?.name) {
-      parts.push(Translator.getOriginTranslation(sheetData.origin.name));
+    if ((sheetData as any).origin?.name) {
+      parts.push(
+        Translator.getOriginTranslation((sheetData as any).origin.name)
+      );
     }
 
     // Devotion/Deity
-    if (sheetData.devotion?.devotion?.deity?.name) {
+    if ((sheetData as any).devoto?.divindade?.name) {
       parts.push(
         `Devoto de ${Translator.getTranslation(
-          sheetData.devotion.devotion.deity.name
+          (sheetData as any).devoto.divindade.name
         )}`
       );
     }
