@@ -157,20 +157,32 @@ const MyCharactersPage: React.FC = () => {
   const getDescription = (sheet: SheetData) => {
     if (sheet.description) return sheet.description;
 
-    let text = '';
+    const parts: string[] = [];
     const { sheetData } = sheet;
 
+    // Race and Class
     if (sheetData.race?.name) {
-      text += Translator.getRaceTranslation(sheetData.race.name);
+      parts.push(Translator.getRaceTranslation(sheetData.race.name));
     }
     if (sheetData.role?.name) {
-      text += ` ${Translator.getRoleTranslation(sheetData.role.name)}`;
-    }
-    if (sheetData.origin?.name) {
-      text += `, ${Translator.getOriginTranslation(sheetData.origin.name)}`;
+      parts.push(Translator.getRoleTranslation(sheetData.role.name));
     }
 
-    return text || 'Personagem de Tormenta 20';
+    // Origin
+    if (sheetData.origin?.name) {
+      parts.push(Translator.getOriginTranslation(sheetData.origin.name));
+    }
+
+    // Devotion/Deity
+    if (sheetData.devotion?.devotion?.deity?.name) {
+      parts.push(
+        `Devoto de ${Translator.getTranslation(
+          sheetData.devotion.devotion.deity.name
+        )}`
+      );
+    }
+
+    return parts.join(', ') || 'Personagem de Tormenta 20';
   };
 
   const getLevel = (sheet: SheetData) => sheet.sheetData?.level || 1;
