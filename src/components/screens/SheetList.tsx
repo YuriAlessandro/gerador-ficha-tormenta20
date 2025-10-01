@@ -56,23 +56,31 @@ const SheetList = () => {
   };
 
   const getDescription = (sheet: SerializedSheetInterface) => {
-    let text = '';
+    const parts: string[] = [];
+
+    // Race and Class
     if (sheet.race) {
-      text = text.concat(Translator.getRaceTranslation(sheet.race.name));
+      parts.push(Translator.getRaceTranslation(sheet.race.name));
     }
-    if (sheet.role)
-      text = text.concat(` ${Translator.getRoleTranslation(sheet.role.name)}`);
-    if (sheet.origin)
-      text = text.concat(
-        `, ${Translator.getOriginTranslation(sheet.origin.name)}`
-      );
-    if (sheet.devotion && sheet.devotion.devotion)
-      text = text.concat(
-        `, Devoto de ${Translator.getTranslation(
-          sheet.devotion.devotion?.deity.name
+    if (sheet.role) {
+      parts.push(Translator.getRoleTranslation(sheet.role.name));
+    }
+
+    // Origin
+    if (sheet.origin) {
+      parts.push(Translator.getOriginTranslation(sheet.origin.name));
+    }
+
+    // Devotion/Deity
+    if (sheet.devotion?.devotion?.deity?.name) {
+      parts.push(
+        `Devoto de ${Translator.getTranslation(
+          sheet.devotion.devotion.deity.name
         )}`
       );
-    return text;
+    }
+
+    return parts.join(', ') || 'Personagem de Tormenta 20';
   };
 
   const onClickDelete = async (id: string) => {
