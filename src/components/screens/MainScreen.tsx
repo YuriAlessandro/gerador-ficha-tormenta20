@@ -188,6 +188,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     string | null
   >(null);
 
+  // Warn before leaving if sheet is not saved to cloud (refresh/close tab)
+  // Note: Browser security forces native alert for beforeunload
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (randomSheet && !sheetSavedToCloud && !showHistoric) {
+        e.preventDefault();
+        e.returnValue =
+          'Você tem uma ficha não salva na nuvem. Deseja sair mesmo assim?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [randomSheet, sheetSavedToCloud, showHistoric]);
+
   const canGenerateEmptySheet =
     selectedOptions.classe &&
     selectedOptions.classe !== 'Golem' &&
