@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import {
+  Alert,
   Box,
   Card,
   Container,
@@ -146,7 +147,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated } = useAuth();
-  const { sheets, createSheet: createSheetAction } = useSheets();
+  const {
+    sheets,
+    createSheet: createSheetAction,
+    initialized: sheetsInitialized,
+  } = useSheets();
   const { showAlert, AlertDialog } = useAlert();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
@@ -164,6 +169,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
 
+  // Get local storage count for non-authenticated users
+  const getLocalStorageCount = () => {
+    const ls = localStorage;
+    const lsHistoric = ls.getItem('fdnHistoric');
+    const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
+    return historic.length;
+  };
+
+  // Verifica se o usuário pode criar novas fichas
+  // Para autenticados: verifica sheets do banco (ilimitado se premium, senão limite de 10)
+  // Para não autenticados: verifica histórico local
+  // IMPORTANTE: Se está carregando sheets do backend, assume que não pode criar até confirmar
+  const canCreateNewSheet = isAuthenticated
+    ? sheetsInitialized && sheets.length < MAX_CHARACTERS_LIMIT // Backend sheets (should check premium status eventually)
+    : getLocalStorageCount() < MAX_CHARACTERS_LIMIT; // Local storage sheets
+
   const canGenerateEmptySheet =
     selectedOptions.classe &&
     selectedOptions.classe !== 'Golem' &&
@@ -174,6 +195,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       selectedOptions.devocao.value === '**');
 
   const onClickGenerate = async () => {
+    // Verifica o limite ANTES de gerar a ficha
+    if (!canCreateNewSheet) {
+      const message = isAuthenticated
+        ? `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos na nuvem. Remova algumas fichas da sua lista para criar novas.`
+        : `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos localmente. Remova uma ficha do histórico para criar uma nova ou faça login para ter armazenamento ilimitado na nuvem.`;
+      showAlert(message, 'Limite Atingido');
+      return;
+    }
+
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -205,6 +235,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const onClickGenerateEmptySheet = async () => {
+    // Verifica o limite ANTES de gerar a ficha
+    if (!canCreateNewSheet) {
+      const message = isAuthenticated
+        ? `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos na nuvem. Remova algumas fichas da sua lista para criar novas.`
+        : `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos localmente. Remova uma ficha do histórico para criar uma nova ou faça login para ter armazenamento ilimitado na nuvem.`;
+      showAlert(message, 'Limite Atingido');
+      return;
+    }
+
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -917,6 +956,26 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
             </Grid>
 
+            {/* Limit Warning */}
+            {!canCreateNewSheet && (
+              <Alert severity='warning' sx={{ mt: 3 }}>
+                <Typography variant='body2'>
+                  <strong>Limite atingido!</strong> Você chegou ao limite de{' '}
+                  {MAX_CHARACTERS_LIMIT} personagens salvos{' '}
+                  {isAuthenticated ? 'na nuvem' : 'localmente'}.{' '}
+                  {!isAuthenticated ? (
+                    <>
+                      <strong>Faça login</strong> para ter armazenamento
+                      ilimitado na nuvem ou remova fichas do histórico para
+                      criar novas.
+                    </>
+                  ) : (
+                    <>Remova algumas fichas da sua lista para criar novas.</>
+                  )}
+                </Typography>
+              </Alert>
+            )}
+
             {/* Action Buttons */}
             <Box sx={{ mt: 3 }}>
               <Stack
@@ -927,6 +986,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 <Button
                   variant='contained'
                   onClick={onClickGenerate}
+                  disabled={!canCreateNewSheet}
                   size={isMobile ? 'large' : 'medium'}
                   fullWidth={isMobile}
                   sx={{
@@ -940,7 +1000,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 <Button
                   variant='contained'
                   onClick={onClickGenerateEmptySheet}
-                  disabled={!canGenerateEmptySheet}
+                  disabled={!canGenerateEmptySheet || !canCreateNewSheet}
                   size={isMobile ? 'large' : 'medium'}
                   fullWidth={isMobile}
                   sx={{
