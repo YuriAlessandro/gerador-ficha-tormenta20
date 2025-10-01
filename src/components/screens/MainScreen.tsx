@@ -12,7 +12,10 @@ import {
   useTheme,
   Typography,
   CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { History as HistoryIcon } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
@@ -739,15 +742,44 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             zIndex: 1,
           }}
         >
-          <Card sx={{ p: { xs: 2, sm: 3 }, mb: 2, overflow: 'visible' }}>
-            <Typography
-              variant={isSmall ? 'h6' : 'h5'}
-              component='h1'
-              gutterBottom
-              sx={{ mb: 3, fontWeight: 'bold' }}
+          <Card
+            sx={{
+              p: { xs: 2, sm: 3 },
+              mb: 2,
+              overflow: 'visible',
+              position: 'relative',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                mb: 3,
+              }}
             >
-              Gerador de Fichas
-            </Typography>
+              <Typography
+                variant={isSmall ? 'h6' : 'h5'}
+                component='h1'
+                sx={{ fontWeight: 'bold' }}
+              >
+                Gerador de Fichas
+              </Typography>
+              <Tooltip title='Ver Histórico Local'>
+                <IconButton
+                  onClick={onClickShowHistoric}
+                  size='small'
+                  sx={{
+                    color: 'text.secondary',
+                    '&:hover': {
+                      color: 'primary.main',
+                    },
+                  }}
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
 
             <Grid container spacing={2}>
               {/* Race Selection */}
@@ -989,21 +1021,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   Gerar Ficha Vazia
                 </Button>
               </Stack>
-
-              <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Button
-                  variant='text'
-                  onClick={onClickShowHistoric}
-                  size='small'
-                  sx={{
-                    textTransform: 'none',
-                    color: 'text.secondary',
-                    fontSize: '13px',
-                  }}
-                >
-                  Ver Histórico Local
-                </Button>
-              </Box>
 
               <Typography
                 variant='body2'
