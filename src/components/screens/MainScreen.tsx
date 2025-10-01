@@ -988,20 +988,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 >
                   Gerar Ficha Vazia
                 </Button>
+              </Stack>
 
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
                 <Button
-                  variant='contained'
+                  variant='text'
                   onClick={onClickShowHistoric}
-                  size={isMobile ? 'large' : 'medium'}
-                  fullWidth={isMobile}
+                  size='small'
                   sx={{
-                    minHeight: isMobile ? '48px' : 'auto',
-                    fontSize: isMobile ? '16px' : '14px',
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    fontSize: '13px',
                   }}
                 >
-                  Ver Histórico
+                  Ver Histórico Local
                 </Button>
-              </Stack>
+              </Box>
 
               <Typography
                 variant='body2'
