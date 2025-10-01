@@ -40,6 +40,7 @@ import {
   FileCopy as DuplicateIcon,
   Person as PersonIcon,
   Dangerous as ThreatIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useHistory } from 'react-router-dom';
 import { Translator } from 't20-sheet-builder';
@@ -277,11 +278,31 @@ const MyCharactersPage: React.FC = () => {
             >
               Meus Personagens
             </Typography>
-            <Box display='flex' alignItems='center' gap={1} mt={1}>
-              <CloudIcon color='success' fontSize='small' />
-              <Typography variant='body2' color='text.secondary'>
-                Sincronizado com a nuvem
-              </Typography>
+            <Box
+              display='flex'
+              alignItems='center'
+              gap={2}
+              mt={1}
+              flexWrap='wrap'
+            >
+              <Box display='flex' alignItems='center' gap={1}>
+                <CloudIcon color='success' fontSize='small' />
+                <Typography variant='body2' color='text.secondary'>
+                  Sincronizado com a nuvem
+                </Typography>
+              </Box>
+              <Button
+                variant='outlined'
+                size='small'
+                startIcon={<HistoryIcon />}
+                onClick={() => history.push('/sheets')}
+                sx={{
+                  textTransform: 'none',
+                  borderRadius: 1,
+                }}
+              >
+                Ver Histórico Local
+              </Button>
             </Box>
           </Box>
 

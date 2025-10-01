@@ -9,7 +9,13 @@ import {
   CardMedia,
   Stack,
   Typography,
+  Container,
+  Chip,
 } from '@mui/material';
+import {
+  Storage as StorageIcon,
+  CloudOff as CloudOffIcon,
+} from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
 import {
@@ -99,25 +105,99 @@ const SheetList = () => {
     <>
       <AlertDialog />
       <ConfirmDialog />
-      <Box m={3}>
-        <Stack direction='row' spacing={2} alignItems='center' mb={2}>
-          <Button
-            onClick={onClickNewSheet}
-            variant='contained'
-            disabled={!canCreateNewSheet}
+      <Container maxWidth='lg' sx={{ py: 4 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Box
+            display='flex'
+            justifyContent='space-between'
+            alignItems='center'
+            flexWrap='wrap'
+            gap={2}
+            mb={2}
           >
-            Criar nova ficha
-          </Button>
-          <CharacterLimitIndicator
-            current={sheetsCount}
-            max={MAX_CHARACTERS_LIMIT}
-          />
-          <Typography variant='body2' color='text.secondary'>
-            {sheetsCount} de {MAX_CHARACTERS_LIMIT} personagens
-          </Typography>
-        </Stack>
+            <Box>
+              <Typography
+                variant='h3'
+                component='h1'
+                sx={{
+                  fontFamily: 'Tfont',
+                  fontWeight: 'bold',
+                  fontSize: { xs: '2rem', md: '3rem' },
+                  color: 'primary.main',
+                }}
+              >
+                Histórico Local
+              </Typography>
+              <Box display='flex' alignItems='center' gap={1} mt={1}>
+                <StorageIcon color='action' fontSize='small' />
+                <Typography variant='body2' color='text.secondary'>
+                  Salvo no navegador
+                </Typography>
+                <Chip
+                  icon={<CloudOffIcon />}
+                  label='Offline'
+                  size='small'
+                  variant='outlined'
+                  sx={{ ml: 1 }}
+                />
+              </Box>
+            </Box>
 
-        {(!sheets || sheets.length <= 0) && <p>Não possui fichas salvas!</p>}
+            <Button
+              onClick={onClickNewSheet}
+              variant='contained'
+              disabled={!canCreateNewSheet}
+            >
+              Criar nova ficha
+            </Button>
+          </Box>
+
+          <Stack direction='row' spacing={2} alignItems='center' mb={2}>
+            <CharacterLimitIndicator
+              current={sheetsCount}
+              max={MAX_CHARACTERS_LIMIT}
+            />
+            <Typography variant='body2' color='text.secondary'>
+              {sheetsCount} de {MAX_CHARACTERS_LIMIT} personagens salvos
+              localmente
+            </Typography>
+          </Stack>
+        </Box>
+
+        {(!sheets || sheets.length <= 0) && (
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 8,
+              px: 2,
+            }}
+          >
+            <StorageIcon
+              sx={{
+                fontSize: { xs: 80, md: 120 },
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            />
+            <Typography
+              variant='h5'
+              sx={{
+                mb: 2,
+                color: 'text.primary',
+              }}
+            >
+              Nenhuma ficha salva localmente
+            </Typography>
+            <Typography variant='body1' color='text.secondary' sx={{ mb: 3 }}>
+              As fichas salvas localmente ficam armazenadas apenas neste
+              navegador.
+            </Typography>
+            <Button variant='contained' onClick={onClickNewSheet}>
+              Criar Primeira Ficha
+            </Button>
+          </Box>
+        )}
         <Stack spacing={2} mt={2} direction='row' flexWrap='wrap' useFlexGap>
           {Object.values(sheets).map((sheet) => (
             <Card sx={{ width: 545 }} key={sheet.id}>
@@ -172,7 +252,7 @@ const SheetList = () => {
             </Card>
           ))}
         </Stack>
-      </Box>
+      </Container>
     </>
   );
 };

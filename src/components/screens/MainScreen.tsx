@@ -147,11 +147,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated } = useAuth();
-  const {
-    sheets,
-    createSheet: createSheetAction,
-    initialized: sheetsInitialized,
-  } = useSheets();
+  const { sheets, createSheet: createSheetAction } = useSheets();
   const { showAlert, AlertDialog } = useAlert();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
@@ -168,22 +164,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [showHistoric, setShowHistoric] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
+  const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
 
-  // Get local storage count for non-authenticated users
-  const getLocalStorageCount = () => {
-    const ls = localStorage;
-    const lsHistoric = ls.getItem('fdnHistoric');
-    const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
-    return historic.length;
-  };
+  // Warn before leaving if sheet is not saved to cloud
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isAuthenticated && randomSheet && !sheetSavedToCloud) {
+        e.preventDefault();
+        e.returnValue =
+          'Você tem uma ficha não salva na nuvem. Deseja sair mesmo assim?';
+        return e.returnValue;
+      }
+    };
 
-  // Verifica se o usuário pode criar novas fichas
-  // Para autenticados: verifica sheets do banco (ilimitado se premium, senão limite de 10)
-  // Para não autenticados: verifica histórico local
-  // IMPORTANTE: Se está carregando sheets do backend, assume que não pode criar até confirmar
-  const canCreateNewSheet = isAuthenticated
-    ? sheetsInitialized && sheets.length < MAX_CHARACTERS_LIMIT // Backend sheets (should check premium status eventually)
-    : getLocalStorageCount() < MAX_CHARACTERS_LIMIT; // Local storage sheets
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isAuthenticated, randomSheet, sheetSavedToCloud]);
 
   const canGenerateEmptySheet =
     selectedOptions.classe &&
@@ -195,15 +191,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       selectedOptions.devocao.value === '**');
 
   const onClickGenerate = async () => {
-    // Verifica o limite ANTES de gerar a ficha
-    if (!canCreateNewSheet) {
-      const message = isAuthenticated
-        ? `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos na nuvem. Remova algumas fichas da sua lista para criar novas.`
-        : `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos localmente. Remova uma ficha do histórico para criar uma nova ou faça login para ter armazenamento ilimitado na nuvem.`;
-      showAlert(message, 'Limite Atingido');
-      return;
-    }
-
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -213,37 +200,25 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
+
+    // Always save to local storage (historic)
     saveSheetOnHistoric(
       anotherRandomSheet,
       isAuthenticated,
       sheets.length,
       () =>
         showAlert(
-          `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos. Remova uma ficha do histórico para salvar uma nova.`,
+          `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
           'Limite Atingido'
         )
     );
 
-    // Also save to database if user is authenticated
-    await saveSheetToDatabase(
-      anotherRandomSheet,
-      isAuthenticated,
-      createSheetAction
-    );
-
+    // Don't save to cloud automatically - user will decide
     setRandomSheet(anotherRandomSheet);
+    setSheetSavedToCloud(false); // Mark as not saved to cloud yet
   };
 
   const onClickGenerateEmptySheet = async () => {
-    // Verifica o limite ANTES de gerar a ficha
-    if (!canCreateNewSheet) {
-      const message = isAuthenticated
-        ? `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos na nuvem. Remova algumas fichas da sua lista para criar novas.`
-        : `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos localmente. Remova uma ficha do histórico para criar uma nova ou faça login para ter armazenamento ilimitado na nuvem.`;
-      showAlert(message, 'Limite Atingido');
-      return;
-    }
-
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -254,17 +229,38 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
     const emptySheet = generateEmptySheet(selectedOptions);
     emptySheet.bag = new Bag(emptySheet.bag.equipments);
+
+    // Always save to local storage (historic)
     saveSheetOnHistoric(emptySheet, isAuthenticated, sheets.length, () =>
       showAlert(
-        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos. Remova uma ficha do histórico para salvar uma nova.`,
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
         'Limite Atingido'
       )
     );
 
-    // Also save to database if user is authenticated
-    await saveSheetToDatabase(emptySheet, isAuthenticated, createSheetAction);
-
+    // Don't save to cloud automatically - user will decide
     setRandomSheet(emptySheet);
+    setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+  };
+
+  // Handle save to cloud (explicit user action)
+  const handleSaveToCloud = async () => {
+    if (!randomSheet || !isAuthenticated) return;
+
+    try {
+      await saveSheetToDatabase(
+        randomSheet,
+        isAuthenticated,
+        createSheetAction
+      );
+      setSheetSavedToCloud(true);
+      showAlert(
+        'Ficha salva na nuvem com sucesso! Você pode acessá-la em "Meus Personagens".',
+        'Sucesso'
+      );
+    } catch (error) {
+      showAlert('Erro ao salvar ficha na nuvem. Tente novamente.', 'Erro');
+    }
   };
 
   const onClickSeeSheet = (sheet: CharacterSheet) => {
@@ -675,6 +671,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
+        onSaveToCloud={isAuthenticated ? handleSaveToCloud : undefined}
+        isAuthenticated={isAuthenticated}
+        isSavedToCloud={sheetSavedToCloud}
       />
     ));
 
@@ -956,26 +955,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
             </Grid>
 
-            {/* Limit Warning */}
-            {!canCreateNewSheet && (
-              <Alert severity='warning' sx={{ mt: 3 }}>
-                <Typography variant='body2'>
-                  <strong>Limite atingido!</strong> Você chegou ao limite de{' '}
-                  {MAX_CHARACTERS_LIMIT} personagens salvos{' '}
-                  {isAuthenticated ? 'na nuvem' : 'localmente'}.{' '}
-                  {!isAuthenticated ? (
-                    <>
-                      <strong>Faça login</strong> para ter armazenamento
-                      ilimitado na nuvem ou remova fichas do histórico para
-                      criar novas.
-                    </>
-                  ) : (
-                    <>Remova algumas fichas da sua lista para criar novas.</>
-                  )}
-                </Typography>
-              </Alert>
-            )}
-
             {/* Action Buttons */}
             <Box sx={{ mt: 3 }}>
               <Stack
@@ -986,7 +965,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 <Button
                   variant='contained'
                   onClick={onClickGenerate}
-                  disabled={!canCreateNewSheet}
                   size={isMobile ? 'large' : 'medium'}
                   fullWidth={isMobile}
                   sx={{
@@ -1000,7 +978,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 <Button
                   variant='contained'
                   onClick={onClickGenerateEmptySheet}
-                  disabled={!canGenerateEmptySheet || !canCreateNewSheet}
+                  disabled={!canGenerateEmptySheet}
                   size={isMobile ? 'large' : 'medium'}
                   fullWidth={isMobile}
                   sx={{
