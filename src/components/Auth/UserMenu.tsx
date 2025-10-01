@@ -10,7 +10,6 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useDispatch } from 'react-redux';
@@ -39,8 +38,6 @@ const UserMenu: React.FC = () => {
     setLoggingOut(true);
     try {
       await dispatch(logout()).unwrap();
-    } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       setLoggingOut(false);
     }
@@ -64,9 +61,8 @@ const UserMenu: React.FC = () => {
     return 'U';
   };
 
-  const getDisplayName = () => {
-    return user?.fullName || user?.username || user?.email || 'Usuário';
-  };
+  const getDisplayName = () =>
+    user?.fullName || user?.username || user?.email || 'Usuário';
 
   if (loading || loggingOut) {
     return (

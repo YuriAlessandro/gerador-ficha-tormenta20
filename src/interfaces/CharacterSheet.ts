@@ -267,6 +267,7 @@ export default interface CharacterSheet {
   completeSkills?: CompleteSkill[];
   sentidos?: string[];
   dinheiro?: number;
+  isThreat?: boolean;
 }
 
 export interface Step {

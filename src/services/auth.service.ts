@@ -31,104 +31,87 @@ export interface AuthResponse {
 
 class AuthService {
   // Login/Register with Google and sync with backend
-  async loginWithGoogle(): Promise<{ firebaseUser: User; dbUser: DbUser }> {
-    try {
-      // Sign in with Google popup
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = userCredential.user;
+  static async loginWithGoogle(): Promise<{
+    firebaseUser: User;
+    dbUser: DbUser;
+  }> {
+    // Sign in with Google popup
+    const userCredential = await signInWithPopup(auth, googleProvider);
+    const { user: firebaseUser } = userCredential;
 
-      // Sync with backend (creates user if doesn't exist)
-      const { data } = await api.post<AuthResponse>('/api/auth/sync');
+    // Sync with backend (creates user if doesn't exist)
+    const { data } = await api.post<AuthResponse>('/api/auth/sync');
 
-      return {
-        firebaseUser,
-        dbUser: data.user,
-      };
-    } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    }
+    return {
+      firebaseUser,
+      dbUser: data.user,
+    };
   }
 
   // Sync current Firebase user with backend
-  async syncUser(): Promise<DbUser | null> {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) return null;
+  static async syncUser(): Promise<DbUser | null> {
+    const { currentUser } = auth;
+    if (!currentUser) return null;
 
+    try {
       const { data } = await api.post<AuthResponse>('/api/auth/sync');
       return data.user;
-    } catch (error) {
-      console.error('Sync error:', error);
+    } catch {
       return null;
     }
   }
 
   // Get current user from backend
-  async getCurrentUser(): Promise<DbUser | null> {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) return null;
+  static async getCurrentUser(): Promise<DbUser | null> {
+    const { currentUser } = auth;
+    if (!currentUser) return null;
 
+    try {
       const { data } = await api.get<{ user: DbUser }>('/api/auth/me');
       return data.user;
-    } catch (error) {
-      console.error('Get user error:', error);
+    } catch {
       return null;
     }
   }
 
   // Update user profile
-  async updateProfile(updates: {
+  static async updateProfile(updates: {
     username?: string;
     fullName?: string;
     photoURL?: string;
   }): Promise<DbUser> {
-    try {
-      const { data } = await api.put<{ user: DbUser; message: string }>(
-        '/api/auth/profile',
-        updates
-      );
+    const { data } = await api.put<{ user: DbUser; message: string }>(
+      '/api/auth/profile',
+      updates
+    );
 
-      // Update Firebase display name if fullName changed
-      if (updates.fullName && auth.currentUser) {
-        await updateProfile(auth.currentUser, {
-          displayName: updates.fullName,
-        });
-      }
-
-      return data.user;
-    } catch (error) {
-      console.error('Update profile error:', error);
-      throw error;
+    // Update Firebase display name if fullName changed
+    const { currentUser } = auth;
+    if (updates.fullName && currentUser) {
+      await updateProfile(currentUser, {
+        displayName: updates.fullName,
+      });
     }
+
+    return data.user;
   }
 
   // Logout user
-  async logout(): Promise<void> {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
-    }
+  static async logout(): Promise<void> {
+    await signOut(auth);
   }
 
   // Delete user account
-  async deleteAccount(): Promise<void> {
-    try {
-      // Delete from backend first
-      await api.delete('/api/auth/account');
+  static async deleteAccount(): Promise<void> {
+    // Delete from backend first
+    await api.delete('/api/auth/account');
 
-      // Then delete from Firebase
-      if (auth.currentUser) {
-        await auth.currentUser.delete();
-      }
-    } catch (error) {
-      console.error('Delete account error:', error);
-      throw error;
+    // Then delete from Firebase
+    const { currentUser } = auth;
+    if (currentUser) {
+      await currentUser.delete();
     }
   }
 }
 
-export default new AuthService();
+export default AuthService;

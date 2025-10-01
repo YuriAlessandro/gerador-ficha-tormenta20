@@ -10,12 +10,14 @@ import {
   useTheme,
 } from '@mui/material';
 import React from 'react';
+import { useAuth } from '../../hooks/useAuth';
 
 const LandingPage: React.FC<{
   onClickButton: (link: string) => void;
 }> = ({ onClickButton }) => {
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
+  const { isAuthenticated } = useAuth();
 
   const onOpenLink = (link: string) => {
     window.open(link);
@@ -72,10 +74,14 @@ const LandingPage: React.FC<{
         {/* Main Tools - 3 Big Cards - Modern Edition */}
         <Box sx={{ mb: 6 }}>
           <Grid container spacing={3}>
-            {/* Random Sheet - Hero Card */}
+            {/* Main Hero Card - Changes based on authentication */}
             <Grid item xs={12} md={6}>
               <Card
-                onClick={() => onClickButton('ficha-aleatoria')}
+                onClick={() =>
+                  onClickButton(
+                    isAuthenticated ? 'meus-personagens' : 'ficha-aleatoria'
+                  )
+                }
                 sx={{
                   cursor: 'pointer',
                   height: { xs: '280px', md: '350px' },
@@ -127,7 +133,7 @@ const LandingPage: React.FC<{
                     pointerEvents: 'none',
                   }}
                 >
-                  🎲
+                  {isAuthenticated ? '👥' : '🎲'}
                 </Box>
 
                 <Box
@@ -149,7 +155,7 @@ const LandingPage: React.FC<{
                       textAlign: 'left',
                     }}
                   >
-                    🎲
+                    {isAuthenticated ? '👥' : '🎲'}
                   </Typography>
 
                   <Typography
@@ -164,7 +170,7 @@ const LandingPage: React.FC<{
                       lineHeight: 1.1,
                     }}
                   >
-                    Ficha Aleatória
+                    {isAuthenticated ? 'Meus Personagens' : 'Ficha Aleatória'}
                   </Typography>
 
                   <Typography
@@ -176,8 +182,9 @@ const LandingPage: React.FC<{
                       maxWidth: '300px',
                     }}
                   >
-                    Gere personagens completos instantaneamente com todas as
-                    regras oficiais
+                    {isAuthenticated
+                      ? 'Acesse todos seus personagens salvos na nuvem com sincronização automática'
+                      : 'Gere personagens completos instantaneamente com todas as regras oficiais'}
                   </Typography>
                 </Box>
               </Card>

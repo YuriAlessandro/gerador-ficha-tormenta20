@@ -15,7 +15,7 @@ import {
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
-import Select from 'react-select';
+import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
@@ -38,6 +38,11 @@ import roles from '../../data/roles';
 import getSelectTheme from '../../functions/style';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import { HistoricI } from '../../interfaces/Historic';
+import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStorage';
+import { useAuth } from '../../hooks/useAuth';
+import { useSheets } from '../../hooks/useSheets';
+import { useAlert } from '../../hooks/useDialog';
+import { CreateSheetRequest } from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 
@@ -47,18 +52,45 @@ type MainScreenProps = {
   isDarkMode: boolean;
 };
 
-const saveSheetOnHistoric = (sheet: CharacterSheet) => {
+const saveSheetOnHistoric = (
+  sheet: CharacterSheet,
+  isAuthenticated: boolean,
+  cloudSheetsCount: number,
+  onLimitReached?: () => void
+) => {
   const ls = localStorage;
   const lsHistoric = ls.getItem('fdnHistoric');
   const historic: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
 
-  if (historic.length === 100) historic.shift();
+  // Verifica se já existe no histórico (atualização)
+  const existingIndex = historic.findIndex((item) => item.id === sheet.id);
 
-  historic.push({
-    sheet,
-    date: new Date().toLocaleDateString('pt-BR'),
-    id: sheet.id,
-  });
+  if (existingIndex !== -1) {
+    // Atualiza ficha existente
+    historic[existingIndex] = {
+      sheet,
+      date: new Date().toLocaleDateString('pt-BR'),
+      id: sheet.id,
+    };
+  } else {
+    // Se usuário autenticado, verifica limite na nuvem; caso contrário, verifica localStorage
+    const currentCount = isAuthenticated ? cloudSheetsCount : historic.length;
+
+    // Se usuário autenticado, a verificação de limite será feita no backend
+    // Apenas verifica no frontend se não estiver autenticado
+    if (!isAuthenticated && currentCount >= MAX_CHARACTERS_LIMIT) {
+      if (onLimitReached) {
+        onLimitReached();
+      }
+      return;
+    }
+
+    historic.push({
+      sheet,
+      date: new Date().toLocaleDateString('pt-BR'),
+      id: sheet.id,
+    });
+  }
 
   ls.setItem('fdnHistoric', JSON.stringify(historic));
 };
@@ -82,10 +114,40 @@ const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
   }
 };
 
+// Save sheet to database if user is authenticated
+const saveSheetToDatabase = async (
+  sheet: CharacterSheet,
+  isAuthenticated: boolean,
+  createSheetAction: (request: CreateSheetRequest) => Promise<unknown>
+) => {
+  if (!isAuthenticated) return;
+
+  try {
+    // Convert CharacterSheet to the format expected by the backend
+    // Note: Using type assertion as CharacterSheet has similar structure to SerializedSheetInterface
+    const sheetRequest: CreateSheetRequest = {
+      name: sheet.nome || 'Personagem Gerado',
+      sheetData: {
+        ...sheet,
+        isThreat: false, // Generated characters are players, not threats
+      } as unknown as CreateSheetRequest['sheetData'],
+      description: `Personagem gerado automaticamente (Nível ${sheet.nivel})`,
+    };
+
+    // Use Redux action instead of direct service call
+    await createSheetAction(sheetRequest);
+  } catch {
+    // Silently fail - historic save still works
+  }
+};
+
 const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const { isAuthenticated } = useAuth();
+  const { sheets, createSheet: createSheetAction } = useSheets();
+  const { showAlert, AlertDialog } = useAlert();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -111,7 +173,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     (selectedOptions.devocao.label !== 'Padrão' ||
       selectedOptions.devocao.value === '**');
 
-  const onClickGenerate = () => {
+  const onClickGenerate = async () => {
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -121,11 +183,28 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
-    saveSheetOnHistoric(anotherRandomSheet);
+    saveSheetOnHistoric(
+      anotherRandomSheet,
+      isAuthenticated,
+      sheets.length,
+      () =>
+        showAlert(
+          `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos. Remova uma ficha do histórico para salvar uma nova.`,
+          'Limite Atingido'
+        )
+    );
+
+    // Also save to database if user is authenticated
+    await saveSheetToDatabase(
+      anotherRandomSheet,
+      isAuthenticated,
+      createSheetAction
+    );
+
     setRandomSheet(anotherRandomSheet);
   };
 
-  const onClickGenerateEmptySheet = () => {
+  const onClickGenerateEmptySheet = async () => {
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -136,7 +215,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
     const emptySheet = generateEmptySheet(selectedOptions);
     emptySheet.bag = new Bag(emptySheet.bag.equipments);
-    saveSheetOnHistoric(emptySheet);
+    saveSheetOnHistoric(emptySheet, isAuthenticated, sheets.length, () =>
+      showAlert(
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens salvos. Remova uma ficha do histórico para salvar uma nova.`,
+        'Limite Atingido'
+      )
+    );
+
+    // Also save to database if user is authenticated
+    await saveSheetToDatabase(emptySheet, isAuthenticated, createSheetAction);
+
     setRandomSheet(emptySheet);
   };
 
@@ -508,31 +596,26 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     : getSelectTheme('default');
 
   // Shared styles for react-select to fix z-index issues
-  const selectStyles = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    container: (provided: any) => ({
+  const selectStyles: Partial<StylesConfig<SelectedOption, false>> = {
+    container: (provided) => ({
       ...provided,
       width: '100%',
     }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    control: (provided: any) => ({
+    control: (provided) => ({
       ...provided,
       minHeight: isMobile ? '44px' : '38px',
       fontSize: isMobile ? '16px' : '14px',
     }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    option: (provided: any) => ({
+    option: (provided) => ({
       ...provided,
       fontSize: isMobile ? '16px' : '14px',
       padding: isMobile ? '12px' : '8px 12px',
     }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    menu: (provided: any) => ({
+    menu: (provided) => ({
       ...provided,
       zIndex: 9999,
     }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    menuPortal: (provided: any) => ({
+    menuPortal: (provided) => ({
       ...provided,
       zIndex: 9999,
     }),
@@ -586,8 +669,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       link.click();
       URL.revokeObjectURL(link.href);
     } catch (error) {
-      // eslint-disable-next-line no-alert
-      alert(`Erro ao gerar PDF.`);
+      showAlert('Erro ao gerar PDF.', 'Erro');
     } finally {
       setLoadingPDF(false);
     }
@@ -608,324 +690,350 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   return (
-    <div id='main-screen'>
-      <Container
-        maxWidth='xl'
-        sx={{
-          px: { xs: 1, sm: 2 },
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <Card sx={{ p: { xs: 2, sm: 3 }, mb: 2, overflow: 'visible' }}>
-          <Typography
-            variant={isSmall ? 'h6' : 'h5'}
-            component='h1'
-            gutterBottom
-            sx={{ mb: 3, fontWeight: 'bold' }}
-          >
-            Gerador de Fichas
-          </Typography>
-
-          <Grid container spacing={2}>
-            {/* Race Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Raça
-              </Typography>
-              <Select
-                options={[{ value: '', label: 'Todas as raças' }, ...racas]}
-                placeholder='Todas as raças'
-                onChange={onSelectRaca}
-                isSearchable
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Class Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Classe / Role
-              </Typography>
-              <Select
-                options={[
-                  {
-                    label: 'Classes',
-                    options: [
-                      { value: '', label: 'Todas as Classes' },
-                      ...classesopt,
-                    ],
-                  },
-                  {
-                    label: 'Roles',
-                    options: [
-                      { value: '', label: 'Todas as Roles' },
-                      ...rolesopt,
-                    ],
-                  },
-                ]}
-                placeholder='Classes e Roles'
-                formatGroupLabel={fmtGroupLabel}
-                onChange={onSelectClasse}
-                isSearchable
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Origin Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Origem
-              </Typography>
-              <Select
-                placeholder='Todas as Origens'
-                options={[{ value: '', label: 'Todas as Origens' }, ...origens]}
-                isSearchable
-                onChange={onSelectOrigin}
-                isDisabled={selectedOptions.raca === 'Golem'}
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Divinity Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Divindade
-              </Typography>
-              <Select
-                placeholder='Divindades'
-                options={[
-                  {
-                    label: '',
-                    options: [
-                      { value: '', label: 'Padrão' },
-                      { value: '**', label: 'Qualquer divindade' },
-                      { value: '--', label: 'Não devoto' },
-                    ],
-                  },
-                  {
-                    label: `Permitidas (${selectedOptions.classe || 'Todas'})`,
-                    options: divindades,
-                  },
-                ]}
-                isSearchable
-                value={selectedOptions.devocao}
-                onChange={inSelectDivindade}
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Level Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Nível
-              </Typography>
-              <CreatableSelect
-                placeholder='Nível 1'
-                options={niveis}
-                isSearchable
-                formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
-                onChange={onSelectNivel}
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Generate Items Selection */}
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-                Gerar Itens
-              </Typography>
-              <Select
-                placeholder='Não gerar'
-                options={opcoesGerarItens}
-                value={opcoesGerarItens.find(
-                  (opt) => opt.value === selectedOptions.gerarItens
-                )}
-                onChange={onSelectGerarItens}
-                styles={selectStyles}
-                menuPortalTarget={document.body}
-                theme={(selectTheme) => ({
-                  ...selectTheme,
-                  colors: {
-                    ...formThemeColors,
-                  },
-                })}
-              />
-            </Grid>
-
-            {/* Simple Sheet Checkbox */}
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={4}
-              sx={{ display: 'flex', alignItems: 'flex-end' }}
-            >
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    value={simpleSheet}
-                    onChange={() => setSimpleSheet(!simpleSheet)}
-                    size={isMobile ? 'medium' : 'small'}
-                  />
-                }
-                label='Ficha simplificada'
-                sx={{ fontSize: isMobile ? '16px' : '14px' }}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Action Buttons */}
-          <Box sx={{ mt: 3 }}>
-            <Stack
-              spacing={2}
-              direction={isMobile ? 'column' : 'row'}
-              sx={{ mb: 2 }}
-            >
-              <Button
-                variant='contained'
-                onClick={onClickGenerate}
-                size={isMobile ? 'large' : 'medium'}
-                fullWidth={isMobile}
-                sx={{
-                  minHeight: isMobile ? '48px' : 'auto',
-                  fontSize: isMobile ? '16px' : '14px',
-                }}
-              >
-                Gerar Ficha Aleatória
-              </Button>
-
-              <Button
-                variant='contained'
-                onClick={onClickGenerateEmptySheet}
-                disabled={!canGenerateEmptySheet}
-                size={isMobile ? 'large' : 'medium'}
-                fullWidth={isMobile}
-                sx={{
-                  minHeight: isMobile ? '48px' : 'auto',
-                  fontSize: isMobile ? '16px' : '14px',
-                }}
-              >
-                Gerar Ficha Vazia
-              </Button>
-
-              <Button
-                variant='contained'
-                onClick={onClickShowHistoric}
-                size={isMobile ? 'large' : 'medium'}
-                fullWidth={isMobile}
-                sx={{
-                  minHeight: isMobile ? '48px' : 'auto',
-                  fontSize: isMobile ? '16px' : '14px',
-                }}
-              >
-                Ver Histórico
-              </Button>
-            </Stack>
-
+    <>
+      <AlertDialog />
+      <div id='main-screen'>
+        <Container
+          maxWidth='xl'
+          sx={{
+            px: { xs: 1, sm: 2 },
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <Card sx={{ p: { xs: 2, sm: 3 }, mb: 2, overflow: 'visible' }}>
             <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{
-                fontSize: { xs: '14px', sm: '13px' },
-                lineHeight: 1.4,
-              }}
+              variant={isSmall ? 'h6' : 'h5'}
+              component='h1'
+              gutterBottom
+              sx={{ mb: 3, fontWeight: 'bold' }}
             >
-              Para gerar uma ficha vazia, sem poderes, magias e atributos, você
-              deve selecionar todas as informações no formulário acima.
+              Gerador de Fichas
             </Typography>
-          </Box>
-        </Card>
 
-        {randomSheet && (
-          <Card sx={{ p: 2, mb: 2 }}>
-            <Typography
-              variant='h6'
-              sx={{ mb: 2, fontSize: { xs: '16px', sm: '18px' } }}
-            >
-              Exportar Ficha
-            </Typography>
-            <Stack
-              spacing={1}
-              direction={isMobile ? 'column' : 'row'}
-              sx={{
-                '& button': {
-                  minHeight: isMobile ? '44px' : 'auto',
-                  fontSize: isMobile ? '16px' : '14px',
-                },
-              }}
-            >
-              <Button
-                variant='outlined'
-                onClick={preparePrint}
-                fullWidth={isMobile}
-                disabled={loadingPDF}
-                sx={{ justifyContent: 'flex-start' }}
-                startIcon={loadingPDF ? <CircularProgress size={20} /> : '📄'}
+            <Grid container spacing={2}>
+              {/* Race Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Raça
+                </Typography>
+                <Select
+                  options={[{ value: '', label: 'Todas as raças' }, ...racas]}
+                  placeholder='Todas as raças'
+                  onChange={onSelectRaca}
+                  isSearchable
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Class Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Classe / Role
+                </Typography>
+                <Select
+                  options={[
+                    {
+                      label: 'Classes',
+                      options: [
+                        { value: '', label: 'Todas as Classes' },
+                        ...classesopt,
+                      ],
+                    },
+                    {
+                      label: 'Roles',
+                      options: [
+                        { value: '', label: 'Todas as Roles' },
+                        ...rolesopt,
+                      ],
+                    },
+                  ]}
+                  placeholder='Classes e Roles'
+                  formatGroupLabel={fmtGroupLabel}
+                  onChange={onSelectClasse}
+                  isSearchable
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Origin Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Origem
+                </Typography>
+                <Select
+                  placeholder='Todas as Origens'
+                  options={[
+                    { value: '', label: 'Todas as Origens' },
+                    ...origens,
+                  ]}
+                  isSearchable
+                  onChange={onSelectOrigin}
+                  isDisabled={selectedOptions.raca === 'Golem'}
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Divinity Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Divindade
+                </Typography>
+                <Select
+                  placeholder='Divindades'
+                  options={[
+                    {
+                      label: '',
+                      options: [
+                        { value: '', label: 'Padrão' },
+                        { value: '**', label: 'Qualquer divindade' },
+                        { value: '--', label: 'Não devoto' },
+                      ],
+                    },
+                    {
+                      label: `Permitidas (${
+                        selectedOptions.classe || 'Todas'
+                      })`,
+                      options: divindades,
+                    },
+                  ]}
+                  isSearchable
+                  value={selectedOptions.devocao}
+                  onChange={inSelectDivindade}
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Level Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Nível
+                </Typography>
+                <CreatableSelect
+                  placeholder='Nível 1'
+                  options={niveis}
+                  isSearchable
+                  formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
+                  onChange={onSelectNivel}
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Generate Items Selection */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, fontWeight: 'medium' }}
+                >
+                  Gerar Itens
+                </Typography>
+                <Select
+                  placeholder='Não gerar'
+                  options={opcoesGerarItens}
+                  value={opcoesGerarItens.find(
+                    (opt) => opt.value === selectedOptions.gerarItens
+                  )}
+                  onChange={onSelectGerarItens}
+                  styles={selectStyles}
+                  menuPortalTarget={document.body}
+                  theme={(selectTheme) => ({
+                    ...selectTheme,
+                    colors: {
+                      ...formThemeColors,
+                    },
+                  })}
+                />
+              </Grid>
+
+              {/* Simple Sheet Checkbox */}
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                sx={{ display: 'flex', alignItems: 'flex-end' }}
               >
-                {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF da Ficha'}
-              </Button>
-              <Button
-                variant='outlined'
-                onClick={exportFoundry}
-                fullWidth={isMobile}
-                disabled={loadingFoundry}
-                sx={{ justifyContent: 'flex-start' }}
-                startIcon={
-                  loadingFoundry ? <CircularProgress size={20} /> : '🎲'
-                }
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      value={simpleSheet}
+                      onChange={() => setSimpleSheet(!simpleSheet)}
+                      size={isMobile ? 'medium' : 'small'}
+                    />
+                  }
+                  label='Ficha simplificada'
+                  sx={{ fontSize: isMobile ? '16px' : '14px' }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Action Buttons */}
+            <Box sx={{ mt: 3 }}>
+              <Stack
+                spacing={2}
+                direction={isMobile ? 'column' : 'row'}
+                sx={{ mb: 2 }}
               >
-                {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
-              </Button>
-            </Stack>
+                <Button
+                  variant='contained'
+                  onClick={onClickGenerate}
+                  size={isMobile ? 'large' : 'medium'}
+                  fullWidth={isMobile}
+                  sx={{
+                    minHeight: isMobile ? '48px' : 'auto',
+                    fontSize: isMobile ? '16px' : '14px',
+                  }}
+                >
+                  Gerar Ficha Aleatória
+                </Button>
+
+                <Button
+                  variant='contained'
+                  onClick={onClickGenerateEmptySheet}
+                  disabled={!canGenerateEmptySheet}
+                  size={isMobile ? 'large' : 'medium'}
+                  fullWidth={isMobile}
+                  sx={{
+                    minHeight: isMobile ? '48px' : 'auto',
+                    fontSize: isMobile ? '16px' : '14px',
+                  }}
+                >
+                  Gerar Ficha Vazia
+                </Button>
+
+                <Button
+                  variant='contained'
+                  onClick={onClickShowHistoric}
+                  size={isMobile ? 'large' : 'medium'}
+                  fullWidth={isMobile}
+                  sx={{
+                    minHeight: isMobile ? '48px' : 'auto',
+                    fontSize: isMobile ? '16px' : '14px',
+                  }}
+                >
+                  Ver Histórico
+                </Button>
+              </Stack>
+
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{
+                  fontSize: { xs: '14px', sm: '13px' },
+                  lineHeight: 1.4,
+                }}
+              >
+                Para gerar uma ficha vazia, sem poderes, magias e atributos,
+                você deve selecionar todas as informações no formulário acima.
+              </Typography>
+            </Box>
           </Card>
-        )}
 
-        {showHistoric && (
-          <Historic
-            isDarkTheme={isDarkMode}
-            onClickSeeSheet={onClickSeeSheet}
-          />
-        )}
-      </Container>
+          {randomSheet && (
+            <Card sx={{ p: 2, mb: 2 }}>
+              <Typography
+                variant='h6'
+                sx={{ mb: 2, fontSize: { xs: '16px', sm: '18px' } }}
+              >
+                Exportar Ficha
+              </Typography>
+              <Stack
+                spacing={1}
+                direction={isMobile ? 'column' : 'row'}
+                sx={{
+                  '& button': {
+                    minHeight: isMobile ? '44px' : 'auto',
+                    fontSize: isMobile ? '16px' : '14px',
+                  },
+                }}
+              >
+                <Button
+                  variant='outlined'
+                  onClick={preparePrint}
+                  fullWidth={isMobile}
+                  disabled={loadingPDF}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={loadingPDF ? <CircularProgress size={20} /> : '📄'}
+                >
+                  {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF da Ficha'}
+                </Button>
+                <Button
+                  variant='outlined'
+                  onClick={exportFoundry}
+                  fullWidth={isMobile}
+                  disabled={loadingFoundry}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={
+                    loadingFoundry ? <CircularProgress size={20} /> : '🎲'
+                  }
+                >
+                  {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
+                </Button>
+              </Stack>
+            </Card>
+          )}
 
-      {randomSheet && !showHistoric && sheetComponent}
-    </div>
+          {showHistoric && (
+            <Historic
+              isDarkTheme={isDarkMode}
+              onClickSeeSheet={onClickSeeSheet}
+            />
+          )}
+        </Container>
+
+        {randomSheet && !showHistoric && sheetComponent}
+      </div>
+    </>
   );
 };
 

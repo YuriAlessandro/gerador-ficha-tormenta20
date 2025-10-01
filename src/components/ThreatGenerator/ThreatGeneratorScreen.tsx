@@ -19,6 +19,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import HistoryIcon from '@mui/icons-material/History';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useAlert } from '../../hooks/useDialog';
 import {
   ThreatSheet,
   TreasureLevel,
@@ -53,6 +54,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const history = useHistory();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { showAlert, AlertDialog } = useAlert();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -127,8 +129,10 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const handleFinish = () => {
     const errors = validateThreat(threat);
     if (errors.length > 0) {
-      // eslint-disable-next-line no-alert
-      alert(`Erro na validação:\n${errors.join('\n')}`);
+      showAlert(
+        `Erro na validação:\n${errors.join('\n')}`,
+        'Erro de Validação'
+      );
       return;
     }
 
@@ -214,134 +218,139 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   };
 
   return (
-    <Container maxWidth='lg' sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-        {/* Header */}
-        <Box
-          sx={{
-            background: (muiTheme) =>
-              `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
-            color: 'white',
-            p: 3,
-          }}
-        >
+    <>
+      <AlertDialog />
+      <Container maxWidth='lg' sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+          {/* Header */}
           <Box
-            display='flex'
-            justifyContent='space-between'
-            alignItems='center'
-          >
-            <Box>
-              <Typography
-                variant={isMobile ? 'h5' : 'h4'}
-                component='h1'
-                gutterBottom
-              >
-                {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
-              </Typography>
-              <Typography variant='body1' sx={{ opacity: 0.9 }}>
-                Crie inimigos e NPCs seguindo as regras do Tormenta 20
-              </Typography>
-            </Box>
-            <IconButton
-              onClick={handleViewHistory}
-              sx={{ color: 'white' }}
-              title='Ver Histórico'
-            >
-              <HistoryIcon />
-            </IconButton>
-          </Box>
-        </Box>
-
-        {/* Stepper */}
-        <Box sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
-          <Stepper
-            activeStep={activeStep}
-            orientation={isMobile ? 'vertical' : 'horizontal'}
             sx={{
-              '& .MuiStepLabel-label': {
-                fontSize: isMobile ? '0.875rem' : '1rem',
-              },
+              background: (muiTheme) =>
+                `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
+              color: 'white',
+              p: 3,
             }}
           >
-            {steps.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    cursor: 'pointer',
-                    '&:hover': {
-                      '& .MuiStepLabel-label': {
-                        color: theme.palette.primary.main,
-                      },
-                    },
-                  }}
-                  onClick={() => handleStepClick(index)}
+            <Box
+              display='flex'
+              justifyContent='space-between'
+              alignItems='center'
+            >
+              <Box>
+                <Typography
+                  variant={isMobile ? 'h5' : 'h4'}
+                  component='h1'
+                  gutterBottom
                 >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Box>
+                  {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
+                </Typography>
+                <Typography variant='body1' sx={{ opacity: 0.9 }}>
+                  Crie inimigos e NPCs seguindo as regras do Tormenta 20
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={handleViewHistory}
+                sx={{ color: 'white' }}
+                title='Ver Histórico'
+              >
+                <HistoryIcon />
+              </IconButton>
+            </Box>
+          </Box>
 
-        {/* Step Content */}
-        <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
-
-        {/* Navigation */}
-        <Box
-          sx={{
-            p: 3,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Stack
-            direction='row'
-            justifyContent='space-between'
-            alignItems='center'
+          {/* Stepper */}
+          <Box
+            sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}
           >
-            <Button
-              variant='outlined'
-              onClick={handleBack}
-              disabled={activeStep === 0}
-              startIcon={<ArrowBackIcon />}
-              size={isMobile ? 'small' : 'medium'}
+            <Stepper
+              activeStep={activeStep}
+              orientation={isMobile ? 'vertical' : 'horizontal'}
+              sx={{
+                '& .MuiStepLabel-label': {
+                  fontSize: isMobile ? '0.875rem' : '1rem',
+                },
+              }}
             >
-              Anterior
-            </Button>
+              {steps.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        '& .MuiStepLabel-label': {
+                          color: theme.palette.primary.main,
+                        },
+                      },
+                    }}
+                    onClick={() => handleStepClick(index)}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
 
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{ display: { xs: 'none', sm: 'block' } }}
+          {/* Step Content */}
+          <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
+
+          {/* Navigation */}
+          <Box
+            sx={{
+              p: 3,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Stack
+              direction='row'
+              justifyContent='space-between'
+              alignItems='center'
             >
-              Etapa {activeStep + 1} de {steps.length}
-            </Typography>
-
-            {isLastStep ? (
               <Button
-                variant='contained'
-                onClick={handleFinish}
-                disabled={!canProceed}
-                startIcon={<CheckIcon />}
+                variant='outlined'
+                onClick={handleBack}
+                disabled={activeStep === 0}
+                startIcon={<ArrowBackIcon />}
                 size={isMobile ? 'small' : 'medium'}
               >
-                {isEditing ? 'Salvar Alterações' : 'Finalizar'}
+                Anterior
               </Button>
-            ) : (
-              <Button
-                variant='contained'
-                onClick={handleNext}
-                disabled={!canProceed}
-                endIcon={<ArrowForwardIcon />}
-                size={isMobile ? 'small' : 'medium'}
+
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ display: { xs: 'none', sm: 'block' } }}
               >
-                Próximo
-              </Button>
-            )}
-          </Stack>
-        </Box>
-      </Paper>
-    </Container>
+                Etapa {activeStep + 1} de {steps.length}
+              </Typography>
+
+              {isLastStep ? (
+                <Button
+                  variant='contained'
+                  onClick={handleFinish}
+                  disabled={!canProceed}
+                  startIcon={<CheckIcon />}
+                  size={isMobile ? 'small' : 'medium'}
+                >
+                  {isEditing ? 'Salvar Alterações' : 'Finalizar'}
+                </Button>
+              ) : (
+                <Button
+                  variant='contained'
+                  onClick={handleNext}
+                  disabled={!canProceed}
+                  endIcon={<ArrowForwardIcon />}
+                  size={isMobile ? 'small' : 'medium'}
+                >
+                  Próximo
+                </Button>
+              )}
+            </Stack>
+          </Box>
+        </Paper>
+      </Container>
+    </>
   );
 };
 

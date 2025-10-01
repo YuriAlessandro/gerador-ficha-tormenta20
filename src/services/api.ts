@@ -23,26 +23,18 @@ class ApiService {
             const token = await user.getIdToken();
             config.headers.Authorization = `Bearer ${token}`;
           }
-        } catch (error) {
-          console.error('Error getting Firebase token:', error);
+        } catch {
+          // Silent failure - user may not be authenticated
         }
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     // Response interceptor for error handling
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid
-          console.error('Authentication error');
-        }
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
   }
 

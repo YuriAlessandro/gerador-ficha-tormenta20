@@ -31,11 +31,11 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       if (onSuccess) {
         onSuccess();
       }
-    } catch (err: any) {
-      console.error('Google login error:', err);
-      if (err.message?.includes('popup-closed-by-user')) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('popup-closed-by-user')) {
         setError('Login cancelado pelo usuário');
-      } else if (err.message?.includes('popup-blocked')) {
+      } else if (errorMessage.includes('popup-blocked')) {
         setError('Popup bloqueado. Permita popups para este site');
       } else {
         setError('Erro ao fazer login com Google. Tente novamente');

@@ -14,7 +14,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import CodeIcon from '@mui/icons-material/Code';
 import NotesIcon from '@mui/icons-material/Notes';
 import AttachMoney from '@mui/icons-material/AttachMoney';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import GroupIcon from '@mui/icons-material/Group';
+import HistoryIcon from '@mui/icons-material/History';
 import StorageIcon from '@mui/icons-material/Storage';
 import ArchitectureIcon from '@mui/icons-material/Architecture';
 import LinkIcon from '@mui/icons-material/Link';
@@ -33,6 +34,7 @@ import { Book } from '@mui/icons-material';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
+import { useAuth } from '../hooks/useAuth';
 
 type SidebarProps = RouteComponentProps & {
   visible: boolean;
@@ -60,6 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
+  const { isAuthenticated } = useAuth();
 
   // Disable/enable page scroll when sidebar is open/closed
   useEffect(() => {
@@ -101,7 +104,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const onClickSheets = () => {
-    history.push('/ficha-aleatoria');
+    // Authenticated users go to their characters, non-authenticated to local sheets
+    history.push(isAuthenticated ? '/meus-personagens' : '/sheets');
     onCloseSidebar();
   };
 
@@ -172,9 +176,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <Divider />
           <StyledMenuItem onClick={onClickSheets}>
             <ListItemIcon>
-              <PersonAddIcon />
+              {isAuthenticated ? <GroupIcon /> : <HistoryIcon />}
             </ListItemIcon>
-            <Typography variant='inherit'>Ficha Aleatória</Typography>
+            <Typography variant='inherit'>
+              {isAuthenticated ? 'Meus Personagens' : 'Histórico Local'}
+            </Typography>
           </StyledMenuItem>
           <StyledMenuItem onClick={onClickMap}>
             <ListItemIcon>

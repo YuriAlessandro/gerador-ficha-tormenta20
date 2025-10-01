@@ -2,7 +2,11 @@ import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useDispatch } from 'react-redux';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { setFirebaseUser, syncUser, clearAuth } from '../store/slices/auth/authSlice';
+import {
+  setFirebaseUser,
+  syncUser,
+  clearAuth,
+} from '../store/slices/auth/authSlice';
 import { AppDispatch } from '../store';
 
 interface AuthContextType {
@@ -26,8 +30,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Sync with backend
         try {
           await dispatch(syncUser()).unwrap();
-        } catch (error) {
-          console.error('Failed to sync user with backend:', error);
+        } catch {
+          // Silent failure - backend sync failed but user is authenticated with Firebase
         }
       } else {
         // User is signed out

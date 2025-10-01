@@ -15,6 +15,7 @@ import { sheetBuilderReducer } from './slices/sheetBuilder/sheetBuilderSlice';
 import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
 import threatStorageReducer from './slices/threatStorage';
 import authReducer from './slices/auth/authSlice';
+import sheetsReducer from './slices/sheets/sheetsSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -51,6 +52,7 @@ const store = configureStore({
     sheetStorage: persistedReducer,
     threatStorage: persistedThreatReducer,
     auth: persistedAuthReducer,
+    sheets: sheetsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
