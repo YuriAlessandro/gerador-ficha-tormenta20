@@ -156,33 +156,32 @@ const MyCharactersPage: React.FC = () => {
 
   const getDescription = (sheet: SheetData) => {
     const parts: string[] = [];
-    const { sheetData } = sheet;
+    const data = sheet.sheetData as any;
 
-    // Race and Class (using Portuguese field names from CharacterSheet)
-    if ((sheetData as any).raca?.name) {
-      parts.push(Translator.getRaceTranslation((sheetData as any).raca.name));
+    // Debug: log the structure to understand what fields exist
+    console.log('Sheet data structure:', data);
+
+    // Try both English and Portuguese field names
+    const raceName = data.raca?.name || data.race?.name;
+    const className = data.classe?.name || data.role?.name;
+    const originName = data.origin?.name;
+    const deityName =
+      data.devoto?.divindade?.name || data.devotion?.devotion?.deity?.name;
+
+    if (raceName) {
+      parts.push(Translator.getRaceTranslation(raceName));
     }
-    if ((sheetData as any).classe?.name) {
-      parts.push(Translator.getRoleTranslation((sheetData as any).classe.name));
+    if (className) {
+      parts.push(Translator.getRoleTranslation(className));
+    }
+    if (originName) {
+      parts.push(Translator.getOriginTranslation(originName));
+    }
+    if (deityName) {
+      parts.push(`Devoto de ${Translator.getTranslation(deityName)}`);
     }
 
-    // Origin
-    if ((sheetData as any).origin?.name) {
-      parts.push(
-        Translator.getOriginTranslation((sheetData as any).origin.name)
-      );
-    }
-
-    // Devotion/Deity
-    if ((sheetData as any).devoto?.divindade?.name) {
-      parts.push(
-        `Devoto de ${Translator.getTranslation(
-          (sheetData as any).devoto.divindade.name
-        )}`
-      );
-    }
-
-    return parts.join(', ') || 'Personagem de Tormenta 20';
+    return parts.length > 0 ? parts.join(', ') : 'Personagem de Tormenta 20';
   };
 
   const getLevel = (sheet: SheetData) => sheet.sheetData?.level || 1;
