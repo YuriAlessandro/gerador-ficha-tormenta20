@@ -155,8 +155,6 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const getDescription = (sheet: SheetData) => {
-    if (sheet.description) return sheet.description;
-
     const parts: string[] = [];
     const { sheetData } = sheet;
 
