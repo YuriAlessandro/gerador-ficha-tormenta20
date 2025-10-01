@@ -21,11 +21,12 @@ import {
   CloudUpload as CloudUploadIcon,
   CheckCircle as CheckCircleIcon,
   Casino as CasinoIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Prompt } from 'react-router-dom';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
@@ -752,6 +753,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   return (
     <>
       <AlertDialog />
+      <Prompt
+        when={randomSheet !== undefined && !sheetSavedToCloud && !showHistoric}
+        message='Você tem uma ficha não salva na nuvem. Deseja sair mesmo assim?'
+      />
       <div id='main-screen'>
         <Container
           maxWidth='xl'
@@ -1070,18 +1075,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 {/* Save to Cloud Button */}
                 <Button
                   variant={sheetSavedToCloud ? 'contained' : 'outlined'}
-                  color={sheetSavedToCloud ? 'success' : 'primary'}
+                  color={sheetSavedToCloud ? 'success' : 'warning'}
                   onClick={handleSaveToCloud}
                   fullWidth={isMobile}
                   disabled={loadingSaveToCloud || sheetSavedToCloud}
-                  sx={{ justifyContent: 'flex-start' }}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    borderWidth: sheetSavedToCloud ? 1 : 2,
+                    fontWeight: sheetSavedToCloud ? 'normal' : 'bold',
+                  }}
                   startIcon={
                     loadingSaveToCloud ? (
                       <CircularProgress size={20} />
                     ) : sheetSavedToCloud ? (
                       <CheckCircleIcon />
                     ) : (
-                      <CloudUploadIcon />
+                      <WarningIcon />
                     )
                   }
                 >
@@ -1089,7 +1098,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                     ? 'Salvando...'
                     : sheetSavedToCloud
                     ? 'Salvo na Nuvem'
-                    : 'Salvar na Conta'}
+                    : 'Não Salvo - Clique para Salvar'}
                 </Button>
 
                 {/* PDF Export Button */}
