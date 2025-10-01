@@ -40,7 +40,6 @@ import {
   FileCopy as DuplicateIcon,
   Person as PersonIcon,
   Dangerous as ThreatIcon,
-  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useHistory } from 'react-router-dom';
 import { Translator } from 't20-sheet-builder';
@@ -263,7 +262,7 @@ const MyCharactersPage: React.FC = () => {
         <Box
           display='flex'
           justifyContent='space-between'
-          alignItems='center'
+          alignItems='flex-start'
           flexWrap='wrap'
           gap={2}
           mb={3}
@@ -281,19 +280,39 @@ const MyCharactersPage: React.FC = () => {
             >
               Meus Personagens
             </Typography>
-            <Stack
-              direction='row'
-              spacing={2}
-              alignItems='center'
-              mt={1}
-              flexWrap='wrap'
+            <Box display='flex' alignItems='center' gap={1} mt={1}>
+              <CloudIcon color='success' fontSize='small' />
+              <Typography variant='body2' color='text.secondary'>
+                Sincronizado com a nuvem
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box
+            display='flex'
+            flexDirection='column'
+            alignItems='flex-end'
+            gap={1}
+          >
+            <Button
+              variant='contained'
+              startIcon={<AddIcon />}
+              onClick={handleCreateNewSheet}
+              size={isMobile ? 'medium' : 'large'}
+              sx={{
+                borderRadius: 2,
+                px: 3,
+              }}
             >
-              <Box display='flex' alignItems='center' gap={1}>
-                <CloudIcon color='success' fontSize='small' />
-                <Typography variant='body2' color='text.secondary'>
-                  Sincronizado com a nuvem
-                </Typography>
-              </Box>
+              {(() => {
+                const isPlayerTab = activeTab === 0;
+                if (isMobile) {
+                  return isPlayerTab ? 'Nova Ficha' : 'Nova Ameaça';
+                }
+                return isPlayerTab ? 'Criar Nova Ficha' : 'Criar Nova Ameaça';
+              })()}
+            </Button>
+            <Stack direction='row' spacing={1} alignItems='center'>
               <CharacterLimitIndicator
                 current={sheets.length}
                 max={MAX_CHARACTERS_LIMIT}
@@ -301,39 +320,8 @@ const MyCharactersPage: React.FC = () => {
               <Typography variant='body2' color='text.secondary'>
                 {sheets.length} de {MAX_CHARACTERS_LIMIT} personagens
               </Typography>
-              <Button
-                variant='outlined'
-                size='small'
-                startIcon={<HistoryIcon />}
-                onClick={() => history.push('/sheets')}
-                sx={{
-                  textTransform: 'none',
-                  borderRadius: 1,
-                }}
-              >
-                Ver Histórico Local
-              </Button>
             </Stack>
           </Box>
-
-          <Button
-            variant='contained'
-            startIcon={<AddIcon />}
-            onClick={handleCreateNewSheet}
-            size={isMobile ? 'medium' : 'large'}
-            sx={{
-              borderRadius: 2,
-              px: 3,
-            }}
-          >
-            {(() => {
-              const isPlayerTab = activeTab === 0;
-              if (isMobile) {
-                return isPlayerTab ? 'Nova Ficha' : 'Nova Ameaça';
-              }
-              return isPlayerTab ? 'Criar Nova Ficha' : 'Criar Nova Ameaça';
-            })()}
-          </Button>
         </Box>
 
         {/* Tabs */}
