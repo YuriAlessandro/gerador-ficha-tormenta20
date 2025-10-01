@@ -158,27 +158,17 @@ const MyCharactersPage: React.FC = () => {
     const parts: string[] = [];
     const data = sheet.sheetData as any;
 
-    // Debug: log the structure to understand what fields exist
-    console.log('Sheet data structure:', data);
-
-    // Try both English and Portuguese field names
-    const raceName = data.raca?.name || data.race?.name;
-    const className = data.classe?.name || data.role?.name;
-    const originName = data.origin?.name;
-    const deityName =
-      data.devoto?.divindade?.name || data.devotion?.devotion?.deity?.name;
-
-    if (raceName) {
-      parts.push(Translator.getRaceTranslation(raceName));
+    if (data.raca?.name) {
+      parts.push(data.raca.name);
     }
-    if (className) {
-      parts.push(Translator.getRoleTranslation(className));
+    if (data.classe?.name) {
+      parts.push(data.classe.name);
     }
-    if (originName) {
-      parts.push(Translator.getOriginTranslation(originName));
+    if (data.origin?.name) {
+      parts.push(data.origin.name);
     }
-    if (deityName) {
-      parts.push(`Devoto de ${Translator.getTranslation(deityName)}`);
+    if (data.devoto?.divindade?.name) {
+      parts.push(`Devoto de ${data.devoto.divindade.name}`);
     }
 
     return parts.length > 0 ? parts.join(', ') : 'Personagem de Tormenta 20';
