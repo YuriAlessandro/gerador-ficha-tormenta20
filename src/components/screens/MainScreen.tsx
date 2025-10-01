@@ -14,6 +14,11 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
 import {
   History as HistoryIcon,
@@ -178,6 +183,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingSaveToCloud, setLoadingSaveToCloud] = React.useState(false);
   const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = React.useState(false);
+  const [pendingNavigation, setPendingNavigation] = React.useState<
+    string | null
+  >(null);
 
   // Warn before leaving if sheet is not saved to cloud
   React.useEffect(() => {
@@ -750,13 +759,70 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }, 300);
   };
 
+  // Handle navigation blocking with custom dialog
+  const handleNavigationAttempt = React.useCallback(
+    (location: any) => {
+      if (randomSheet && !sheetSavedToCloud && !showHistoric) {
+        setShowUnsavedDialog(true);
+        setPendingNavigation(location.pathname);
+        return false; // Block navigation
+      }
+      return true; // Allow navigation
+    },
+    [randomSheet, sheetSavedToCloud, showHistoric]
+  );
+
+  const handleCancelNavigation = () => {
+    setShowUnsavedDialog(false);
+    setPendingNavigation(null);
+  };
+
+  const handleConfirmNavigation = () => {
+    setShowUnsavedDialog(false);
+    if (pendingNavigation) {
+      // Temporarily allow navigation by marking as saved
+      setSheetSavedToCloud(true);
+      history.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
   return (
     <>
       <AlertDialog />
       <Prompt
         when={randomSheet !== undefined && !sheetSavedToCloud && !showHistoric}
-        message='Você tem uma ficha não salva na nuvem. Deseja sair mesmo assim?'
+        message={handleNavigationAttempt as any}
       />
+
+      {/* Unsaved Changes Dialog */}
+      <Dialog
+        open={showUnsavedDialog}
+        onClose={handleCancelNavigation}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Ficha Não Salva</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Você tem uma ficha não salva na nuvem. Se você sair agora, ela
+            ficará salva apenas localmente no seu navegador. Deseja continuar?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelNavigation} variant='outlined'>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmNavigation}
+            variant='contained'
+            color='warning'
+          >
+            Sair Sem Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <div id='main-screen'>
         <Container
           maxWidth='xl'
