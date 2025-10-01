@@ -354,12 +354,7 @@ function App(): JSX.Element {
                           </ProtectedRoute>
                         </Route>
                         <Route path='/sheets'>
-                          <ProtectedRoute
-                            requireAuth={false}
-                            redirectTo='/meus-personagens'
-                          >
-                            <SheetList />
-                          </ProtectedRoute>
+                          <SheetList />
                         </Route>
                         <Route path='/sheet-builder/:id'>
                           <SheetBuilderPage />
