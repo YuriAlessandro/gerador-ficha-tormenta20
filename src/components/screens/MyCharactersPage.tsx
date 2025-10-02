@@ -119,17 +119,23 @@ const MyCharactersPage: React.FC = () => {
     setSearchTerm(''); // Clear search when switching tabs
   };
 
-  const handleEditSheet = (sheet: SheetData) => {
+  const handleViewSheet = (sheet: SheetData) => {
     // Check if it's a threat or character
     const isThreat = sheet.sheetData?.isThreat;
 
     if (isThreat) {
-      // For threats, navigate to threat generator (will implement editing later)
+      // For threats, navigate to threat view (not implemented yet, use generator for now)
       history.push('/gerador-ameacas');
     } else {
-      // For characters, load the cloud sheet in MainScreen for editing
+      // For characters, load the cloud sheet in MainScreen
       history.push('/ficha-aleatoria', { cloudSheet: sheet });
     }
+  };
+
+  const handleEditSheet = (sheet: SheetData) => {
+    // For now, edit and view are the same
+    // In the future, we can implement a separate edit mode
+    handleViewSheet(sheet);
   };
 
   const handleDeleteClick = (sheet: SheetData) => {
@@ -459,7 +465,7 @@ const MyCharactersPage: React.FC = () => {
                 }}
               >
                 <CardActionArea
-                  onClick={() => handleEditSheet(sheet)}
+                  onClick={() => handleViewSheet(sheet)}
                   sx={{ flexGrow: 1 }}
                 >
                   <CardMedia
