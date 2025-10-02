@@ -1,4 +1,5 @@
 import { User } from 'firebase/auth';
+import { SupplementId } from './supplement.types';
 
 export interface DbUser {
   _id: string;
@@ -13,6 +14,7 @@ export interface DbUser {
   updatedAt: Date;
   lastLogin?: Date;
   savedSheets: string[];
+  enabledSupplements?: SupplementId[];
 }
 
 export interface AuthState {
