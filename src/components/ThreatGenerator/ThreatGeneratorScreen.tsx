@@ -20,6 +20,8 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAlert } from '../../hooks/useDialog';
+import { useAuth } from '../../hooks/useAuth';
+import { useSheets } from '../../hooks/useSheets';
 import {
   ThreatSheet,
   TreasureLevel,
@@ -55,6 +57,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { showAlert, AlertDialog } = useAlert();
+  const { isAuthenticated } = useAuth();
+  const { createSheet: createSheetAction } = useSheets();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -64,6 +68,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSavedToCloud, setIsSavedToCloud] = useState(false);
+  const [cloudThreatId, setCloudThreatId] = useState<string | null>(null);
   const [threat, setThreat] = useState<Partial<ThreatSheet>>({
     id: generateThreatId(),
     attributes: createDefaultAttributes(),
@@ -136,7 +142,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
       return;
     }
 
-    // Save threat to storage
+    // Save threat to localStorage automatically (discreto)
     const completeThreat = {
       ...threat,
       updatedAt: new Date(),
@@ -144,6 +150,36 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
     dispatch(saveThreat(completeThreat));
     setShowResult(true);
+  };
+
+  const handleSaveToCloud = async () => {
+    if (!isAuthenticated || !threat || isSavedToCloud) return;
+
+    try {
+      const completeThreat = threat as ThreatSheet;
+
+      // Create sheet in cloud with isThreat flag
+      const result = await createSheetAction({
+        name: completeThreat.name,
+        sheetData: {
+          ...completeThreat,
+          isThreat: true,
+        } as any,
+      });
+
+      if (result.type.endsWith('/fulfilled')) {
+        const cloudSheet = result.payload as any;
+        setCloudThreatId(cloudSheet.id);
+        setIsSavedToCloud(true);
+        showAlert('Ameaça salva na nuvem com sucesso!', 'Sucesso');
+      }
+    } catch (error) {
+      console.error('Failed to save threat to cloud:', error);
+      showAlert(
+        'Não foi possível salvar a ameaça na nuvem. Ela permanece salva localmente.',
+        'Erro ao Salvar'
+      );
+    }
   };
 
   const handleEdit = () => {
@@ -190,7 +226,14 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   // Show result if threat is complete
   if (showResult && threat) {
-    return <ThreatResult threat={threat as ThreatSheet} onEdit={handleEdit} />;
+    return (
+      <ThreatResult
+        threat={threat as ThreatSheet}
+        onEdit={handleEdit}
+        isSavedToCloud={isSavedToCloud}
+        onSaveToCloud={handleSaveToCloud}
+      />
+    );
   }
 
   // Renderizar componente da etapa atual

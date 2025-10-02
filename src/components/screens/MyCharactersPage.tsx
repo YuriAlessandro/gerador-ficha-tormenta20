@@ -42,7 +42,6 @@ import {
   Dangerous as ThreatIcon,
 } from '@mui/icons-material';
 import { useHistory } from 'react-router-dom';
-import { Translator } from 't20-sheet-builder';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
@@ -121,8 +120,16 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleEditSheet = (sheet: SheetData) => {
-    // Load the cloud sheet in MainScreen for editing
-    history.push('/ficha-aleatoria', { cloudSheet: sheet });
+    // Check if it's a threat or character
+    const isThreat = sheet.sheetData?.isThreat;
+
+    if (isThreat) {
+      // For threats, navigate to threat generator (will implement editing later)
+      history.push('/gerador-ameacas');
+    } else {
+      // For characters, load the cloud sheet in MainScreen for editing
+      history.push('/ficha-aleatoria', { cloudSheet: sheet });
+    }
   };
 
   const handleDeleteClick = (sheet: SheetData) => {
@@ -159,6 +166,16 @@ const MyCharactersPage: React.FC = () => {
     const parts: string[] = [];
     const data = sheet.sheetData as any;
 
+    // Check if it's a threat
+    if (data.isThreat) {
+      if (data.type) parts.push(data.type);
+      if (data.size) parts.push(data.size);
+      if (data.role) parts.push(data.role);
+      if (data.challengeLevel) parts.push(`ND ${data.challengeLevel}`);
+      return parts.length > 0 ? parts.join(', ') : 'Ameaça de Tormenta 20';
+    }
+
+    // Character description
     if (data.raca?.name) {
       parts.push(data.raca.name);
     }
@@ -175,7 +192,15 @@ const MyCharactersPage: React.FC = () => {
     return parts.length > 0 ? parts.join(', ') : 'Personagem de Tormenta 20';
   };
 
-  const getLevel = (sheet: SheetData) => sheet.sheetData?.level || 1;
+  const getLevel = (sheet: SheetData) => {
+    const data = sheet.sheetData as any;
+    // For threats, show challenge level
+    if (data?.isThreat) {
+      return `ND ${data.challengeLevel || '?'}`;
+    }
+    // For characters, show level
+    return data?.level || 1;
+  };
 
   const EmptyState = () => {
     const isPlayers = activeTab === 0;

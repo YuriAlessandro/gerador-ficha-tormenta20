@@ -1,9 +1,32 @@
 import React from 'react';
 import ReactToPrint from 'react-to-print';
-import { Card, Container } from '@mui/material';
+import {
+  Box,
+  Button,
+  Card,
+  Container,
+  CircularProgress,
+  Stack,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  PictureAsPdf as PdfIcon,
+  CloudUpload as CloudUploadIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Casino as CasinoIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  History as HistoryIcon,
+  Home as HomeIcon,
+  Dangerous as ThreatIcon,
+} from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useAlert, useConfirm } from '../../hooks/useDialog';
+import { useAuth } from '../../hooks/useAuth';
+import { useSheets } from '../../hooks/useSheets';
 import { convertThreatToFoundry } from '../../2foundry';
 import { ThreatSheet } from '../../interfaces/ThreatSheet';
 import {
@@ -12,24 +35,34 @@ import {
 } from '../../functions/threatGenerator';
 import { Atributo } from '../../data/atributos';
 import { saveThreat, deleteThreat } from '../../store/slices/threatStorage';
+import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 
 interface ThreatResultProps {
   threat: ThreatSheet;
   onEdit?: () => void;
   isFromHistory?: boolean;
+  isSavedToCloud?: boolean;
+  onSaveToCloud?: () => Promise<void>;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
   threat,
   onEdit,
   isFromHistory = false,
+  isSavedToCloud = false,
+  onSaveToCloud,
 }) => {
   const dispatch = useDispatch();
   const history = useHistory();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showAlert, AlertDialog } = useAlert();
   const { showConfirm, ConfirmDialog } = useConfirm();
+  const { isAuthenticated } = useAuth();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
+  const [loadingPDF, setLoadingPDF] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const resultRef = React.createRef<HTMLDivElement>();
 
@@ -43,9 +76,17 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     return `${threat.id}-${elementId}`;
   }
 
-  const handleSave = () => {
-    dispatch(saveThreat(threat));
-    showAlert('Ameaça salva no histórico!', 'Sucesso');
+  const handleSaveToCloud = async () => {
+    if (!onSaveToCloud || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await onSaveToCloud();
+    } catch (error) {
+      console.error('Error saving to cloud:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -57,20 +98,12 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     );
     if (confirmDelete) {
       dispatch(deleteThreat(threat.id));
-      history.push('/threat-generator');
+      history.push('/meus-personagens');
     }
   };
 
-  const handleBack = () => {
-    if (isFromHistory) {
-      history.push('/threat-history');
-    } else {
-      history.push('/threat-generator');
-    }
-  };
-
-  const handleViewHistory = () => {
-    history.push('/threat-history');
+  const handleViewMyCharacters = () => {
+    history.push('/meus-personagens');
   };
 
   const handleExport = () => resultRef.current;
@@ -124,94 +157,148 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     return `${attr.substring(0, 3).toUpperCase()} ${value}`;
   };
 
+  // Breadcrumb items
+  const breadcrumbItems: BreadcrumbItem[] = isSavedToCloud
+    ? [
+        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+        { label: 'Meus Personagens', href: '/meus-personagens' },
+        { label: threat.name, icon: <ThreatIcon fontSize='small' /> },
+      ]
+    : [
+        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+        { label: 'Gerador de Ameaças', href: '/gerador-ameacas' },
+        { label: 'Resultado' },
+      ];
+
   return (
     <>
       <AlertDialog />
       <ConfirmDialog />
-      <Container maxWidth='xl'>
-        <div className='exportButtonsContainer'>
-          <div
-            style={{
-              display: showExportButton ? 'flex' : 'none',
-              gap: '10px',
-              marginBottom: '10px',
-            }}
-          >
-            <ReactToPrint
-              trigger={() => (
-                <button className='exportBtn' type='button'>
-                  📄 Exportar ou imprimir PDF
-                </button>
-              )}
-              content={handleExport}
-              documentTitle={`${threat.name} - ${threat.type} ND ${threat.challengeLevel}`}
-            />
+      <Container maxWidth='xl' sx={{ py: 2 }}>
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNav items={breadcrumbItems} />
 
-            <button
-              className='exportBtn'
-              type='button'
-              onClick={handleFoundryExport}
-              disabled={loadingFoundry}
-              style={{
-                backgroundColor: loadingFoundry ? '#6c757d' : '#9c27b0',
-                opacity: loadingFoundry ? 0.7 : 1,
+        {/* Action Buttons */}
+        {showExportButton && (
+          <Card sx={{ p: 2, mb: 2 }}>
+            <Stack
+              spacing={1}
+              direction={isMobile ? 'column' : 'row'}
+              sx={{
+                '& button': {
+                  minHeight: isMobile ? '44px' : 'auto',
+                  fontSize: isMobile ? '16px' : '14px',
+                },
               }}
             >
-              {loadingFoundry ? '⏳ Exportando...' : '🎲 Exportar para Foundry'}
-            </button>
+              {/* Save to Cloud Button */}
+              {isAuthenticated && onSaveToCloud && (
+                <Button
+                  variant={isSavedToCloud ? 'contained' : 'outlined'}
+                  color={isSavedToCloud ? 'success' : 'warning'}
+                  onClick={handleSaveToCloud}
+                  fullWidth={isMobile}
+                  disabled={isSaving || isSavedToCloud}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    borderWidth: isSavedToCloud ? 1 : 2,
+                    fontWeight: isSavedToCloud ? 'normal' : 'bold',
+                  }}
+                  startIcon={
+                    isSaving ? (
+                      <CircularProgress size={20} />
+                    ) : isSavedToCloud ? (
+                      <CheckCircleIcon />
+                    ) : (
+                      <WarningIcon />
+                    )
+                  }
+                >
+                  {isSaving
+                    ? 'Salvando...'
+                    : isSavedToCloud
+                    ? 'Salvo na Nuvem'
+                    : 'Não Salvo - Clique para Salvar'}
+                </Button>
+              )}
 
-            <button
-              className='exportBtn'
-              type='button'
-              onClick={handleBack}
-              style={{ backgroundColor: '#6c757d' }}
-            >
-              Voltar
-            </button>
+              {/* PDF Export Button */}
+              <ReactToPrint
+                trigger={() => (
+                  <Button
+                    variant='outlined'
+                    fullWidth={isMobile}
+                    disabled={loadingPDF}
+                    sx={{ justifyContent: 'flex-start' }}
+                    startIcon={
+                      loadingPDF ? <CircularProgress size={20} /> : <PdfIcon />
+                    }
+                  >
+                    {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF'}
+                  </Button>
+                )}
+                content={handleExport}
+                documentTitle={`${threat.name} - ${threat.type} ND ${threat.challengeLevel}`}
+              />
 
-            {!isFromHistory && (
-              <button
-                className='exportBtn'
-                type='button'
-                onClick={handleSave}
-                style={{ backgroundColor: '#28a745' }}
+              {/* Foundry Export Button */}
+              <Button
+                variant='outlined'
+                onClick={handleFoundryExport}
+                fullWidth={isMobile}
+                disabled={loadingFoundry}
+                sx={{ justifyContent: 'flex-start' }}
+                startIcon={
+                  loadingFoundry ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <CasinoIcon />
+                  )
+                }
               >
-                Salvar no Histórico
-              </button>
-            )}
+                {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
+              </Button>
 
-            <button
-              className='exportBtn'
-              type='button'
-              onClick={handleViewHistory}
-              style={{ backgroundColor: '#17a2b8' }}
-            >
-              Ver Histórico
-            </button>
+              {/* Edit Button */}
+              {onEdit && (
+                <Button
+                  variant='outlined'
+                  onClick={onEdit}
+                  fullWidth={isMobile}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={<EditIcon />}
+                >
+                  Editar
+                </Button>
+              )}
 
-            {onEdit && (
-              <button
-                className='exportBtn'
-                type='button'
-                onClick={onEdit}
-                style={{ backgroundColor: '#007bff' }}
+              {/* View My Characters Button */}
+              <Button
+                variant='outlined'
+                onClick={handleViewMyCharacters}
+                fullWidth={isMobile}
+                sx={{ justifyContent: 'flex-start' }}
+                startIcon={<HistoryIcon />}
               >
-                Editar
-              </button>
-            )}
+                Meus Personagens
+              </Button>
 
-            {isFromHistory && (
-              <button
-                className='exportBtn'
-                type='button'
-                onClick={handleDelete}
-                style={{ backgroundColor: '#dc3545' }}
-              >
-                Excluir
-              </button>
-            )}
-          </div>
-        </div>
+              {/* Delete Button */}
+              {isFromHistory && (
+                <Button
+                  variant='outlined'
+                  color='error'
+                  onClick={handleDelete}
+                  fullWidth={isMobile}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={<DeleteIcon />}
+                >
+                  Excluir
+                </Button>
+              )}
+            </Stack>
+          </Card>
+        )}
 
         <Card ref={resultRef} sx={{ p: 2, mt: 2 }}>
           <div className='simpleSeetName'>{threat.name}</div>

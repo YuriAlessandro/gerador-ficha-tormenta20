@@ -3,6 +3,8 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HomeIcon from '@mui/icons-material/Home';
+import PersonIcon from '@mui/icons-material/Person';
 import {
   Box,
   Card,
@@ -36,6 +38,7 @@ import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
+import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -392,9 +395,25 @@ const Result: React.FC<ResultProps> = (props) => {
     margin-bottom: -20px;
   `;
 
+  // Breadcrumb items
+  const breadcrumbItems: BreadcrumbItem[] = isSavedToCloud
+    ? [
+        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+        { label: 'Meus Personagens', href: '/meus-personagens' },
+        { label: nome, icon: <PersonIcon fontSize='small' /> },
+      ]
+    : [
+        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+        { label: 'Gerador de Fichas', href: '/ficha-aleatoria' },
+        { label: 'Resultado' },
+      ];
+
   return (
     <BackgroundBox sx={{ p: 2 }}>
       <Container maxWidth='xl'>
+        {/* Breadcrumb Navigation */}
+        <BreadcrumbNav items={breadcrumbItems} />
+
         {/* Save to Cloud Button */}
         {isAuthenticated && onSaveToCloud && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
