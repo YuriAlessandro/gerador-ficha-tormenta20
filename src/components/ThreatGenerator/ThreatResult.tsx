@@ -59,6 +59,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const { isAuthenticated } = useAuth();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
+  const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const resultRef = React.createRef<HTMLDivElement>();
