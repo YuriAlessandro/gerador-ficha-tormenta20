@@ -133,9 +133,16 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleEditSheet = (sheet: SheetData) => {
-    // For now, edit and view are the same
-    // In the future, we can implement a separate edit mode
-    handleViewSheet(sheet);
+    // Check if it's a threat or character
+    const isThreat = sheet.sheetData?.isThreat;
+
+    if (isThreat) {
+      // For threats, go to wizard with cloudThreat data
+      history.push('/gerador-ameacas', { cloudThreat: sheet });
+    } else {
+      // For characters, load in MainScreen (same as view for now)
+      history.push('/ficha-aleatoria', { cloudSheet: sheet });
+    }
   };
 
   const handleDeleteClick = (sheet: SheetData) => {
