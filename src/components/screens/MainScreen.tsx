@@ -215,7 +215,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         if (baseClass?.setup) {
           // For classes with setup functions, recreate spellPath based on class
-          const setupClass = baseClass.setup(sheet);
+          const setupClass = baseClass.setup(sheet.classe);
           sheet.classe.spellPath = setupClass.spellPath;
         }
       }
