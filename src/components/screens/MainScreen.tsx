@@ -600,8 +600,18 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     // If this is a cloud sheet, update it in the database
     if (cloudSheetId) {
+      // Create a serializable version of the sheet (remove Bag methods)
+      const serializableSheet = {
+        ...updatedSheet,
+        bag: {
+          equipments: updatedSheet.bag.equipments,
+          spaces: updatedSheet.bag.spaces,
+          armorPenalty: updatedSheet.bag.armorPenalty,
+        },
+      };
+
       SheetsService.updateSheet(cloudSheetId, {
-        sheetData: updatedSheet,
+        sheetData: serializableSheet as any,
       }).catch((error) => {
         console.error('Failed to update cloud sheet:', error);
         showAlert(
