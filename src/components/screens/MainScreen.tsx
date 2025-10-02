@@ -194,8 +194,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   React.useEffect(() => {
     if (location.state?.cloudSheet) {
       const cloudSheet = location.state.cloudSheet;
-      // Convert cloud sheet data to CharacterSheet format
-      setRandomSheet(cloudSheet.sheetData as CharacterSheet);
+      const sheet = cloudSheet.sheetData as CharacterSheet;
+
+      // Restore Bag class methods
+      sheet.bag = new Bag(sheet.bag.equipments);
+
+      // Restore spellPath functions if the class has spellcasting
+      if (sheet.classe.spellPath) {
+        const baseClass = CLASSES.find((c) => c.name === sheet.classe.name);
+
+        if (baseClass?.setup) {
+          // For classes with setup functions, recreate spellPath based on class
+          const setupClass = baseClass.setup(sheet);
+          sheet.classe.spellPath = setupClass.spellPath;
+        }
+      }
+
+      setRandomSheet(sheet);
       setSheetSavedToCloud(true); // It came from cloud, so it's already saved
       // Clear the state to prevent reloading on subsequent renders
       history.replace('/ficha-aleatoria', {});
