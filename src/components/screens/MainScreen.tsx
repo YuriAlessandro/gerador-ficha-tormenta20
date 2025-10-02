@@ -166,7 +166,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated } = useAuth();
-  const { sheets, createSheet: createSheetAction } = useSheets();
+  const {
+    sheets,
+    createSheet: createSheetAction,
+    updateSheet: updateSheetAction,
+  } = useSheets();
   const { showAlert, AlertDialog } = useAlert();
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
@@ -610,14 +614,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         },
       };
 
-      SheetsService.updateSheet(cloudSheetId, {
+      // Update in Redux state (for immediate UI update)
+      updateSheetAction(cloudSheetId, {
+        name: updatedSheet.nome,
         sheetData: serializableSheet as any,
-      }).catch((error) => {
-        console.error('Failed to update cloud sheet:', error);
-        showAlert(
-          'Não foi possível atualizar a ficha na nuvem. Suas alterações foram salvas localmente.',
-          'Erro ao Atualizar'
-        );
       });
     }
   };
