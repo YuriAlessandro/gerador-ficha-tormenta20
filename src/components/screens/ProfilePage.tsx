@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import {
   Box,
   Container,
@@ -29,7 +30,6 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
-import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store';
 import { updateProfile } from '../../store/slices/auth/authSlice';
 
@@ -68,9 +68,9 @@ const ProfilePage: React.FC = () => {
         setError(null);
         const profileData = await ProfileService.getProfileByUsername(username);
         setProfile(profileData);
-      } catch (err: any) {
-        console.error('Error fetching profile:', err);
-        if (err.response?.status === 404) {
+      } catch (err) {
+        const fetchError = err as { response?: { status?: number } };
+        if (fetchError.response?.status === 404) {
           setError('Usuário não encontrado');
         } else {
           setError('Erro ao carregar perfil');
@@ -133,9 +133,9 @@ const ProfilePage: React.FC = () => {
       }
 
       handleEditClose();
-    } catch (err: any) {
-      console.error('Error updating profile:', err);
-      if (err.message?.includes('Username already in use')) {
+    } catch (err) {
+      const updateError = err as { message?: string };
+      if (updateError.message?.includes('Username already in use')) {
         setEditError('Este nome de usuário já está em uso');
       } else {
         setEditError('Erro ao atualizar perfil');
