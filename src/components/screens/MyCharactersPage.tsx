@@ -41,7 +41,7 @@ import {
   Person as PersonIcon,
   Dangerous as ThreatIcon,
 } from '@mui/icons-material';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
@@ -54,6 +54,7 @@ const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const history = useHistory();
+  const location = useLocation();
   useAuth(); // Hook needs to be called but user is not used
   const {
     sheets,
@@ -64,11 +65,29 @@ const MyCharactersPage: React.FC = () => {
     clearError,
   } = useSheets();
 
-  const [activeTab, setActiveTab] = useState(0);
+  // Get initial tab from URL query param
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'ameacas') return 1;
+    return 0; // default to personagens
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab());
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'level'>('date');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sheetToDelete, setSheetToDelete] = useState<SheetData | null>(null);
+
+  // Sync tab with URL on location change (browser back/forward)
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    const newTab = tab === 'ameacas' ? 1 : 0;
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.search]); // Only depend on location.search, not activeTab to avoid loops
 
   // Separate sheets by type (for now, all are player characters)
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
@@ -117,6 +136,10 @@ const MyCharactersPage: React.FC = () => {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     setSearchTerm(''); // Clear search when switching tabs
+
+    // Update URL with tab parameter
+    const tabName = newValue === 0 ? 'personagens' : 'ameacas';
+    history.push(`/meus-personagens?tab=${tabName}`);
   };
 
   const handleViewSheet = (sheet: SheetData) => {

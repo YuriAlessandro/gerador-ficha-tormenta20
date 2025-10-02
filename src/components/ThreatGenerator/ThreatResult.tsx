@@ -103,7 +103,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleViewMyCharacters = () => {
-    history.push('/meus-personagens');
+    history.push('/meus-personagens?tab=ameacas');
   };
 
   const handleExport = () => resultRef.current;
@@ -161,7 +161,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const breadcrumbItems: BreadcrumbItem[] = isSavedToCloud
     ? [
         { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-        { label: 'Meus Personagens', href: '/meus-personagens' },
+        {
+          label: 'Meus Personagens',
+          href: '/meus-personagens?tab=ameacas',
+        },
         { label: threat.name, icon: <ThreatIcon fontSize='small' /> },
       ]
     : [
