@@ -22,6 +22,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import MapIcon from '@mui/icons-material/Map';
 import SecurityIcon from '@mui/icons-material/Security';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import PersonIcon from '@mui/icons-material/Person';
 import Slide from '@mui/material/Slide';
 import {
   Divider,
@@ -62,7 +63,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   // Disable/enable page scroll when sidebar is open/closed
   useEffect(() => {
@@ -134,6 +135,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     onCloseSidebar();
   };
 
+  const onClickProfile = () => {
+    if (user?.username) {
+      history.push(`/perfil/${user.username}`);
+      onCloseSidebar();
+    }
+  };
+
   const onClickMap = () => {
     window.open('https://mapadearton.fichasdenimb.com.br/', '_blank');
   };
@@ -182,6 +190,14 @@ const Sidebar: React.FC<SidebarProps> = ({
               {isAuthenticated ? 'Meus Personagens' : 'Histórico Local'}
             </Typography>
           </StyledMenuItem>
+          {isAuthenticated && (
+            <StyledMenuItem onClick={onClickProfile}>
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Meu Perfil</Typography>
+            </StyledMenuItem>
+          )}
           <StyledMenuItem onClick={onClickMap}>
             <ListItemIcon>
               <MapIcon />

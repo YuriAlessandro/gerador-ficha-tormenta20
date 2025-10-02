@@ -42,6 +42,7 @@ import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorS
 import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
+import ProfilePage from './components/screens/ProfilePage';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import SystemUpdate from './components/SystemUpdate';
@@ -376,6 +377,12 @@ function App(): JSX.Element {
                           </Route>
                           <Route path='/threat/:id'>
                             <ThreatViewWrapper />
+                          </Route>
+                          <Route path='/perfil/:username'>
+                            <ProfilePage />
+                          </Route>
+                          <Route path='/u/:username'>
+                            <ProfilePage />
                           </Route>
                           {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />

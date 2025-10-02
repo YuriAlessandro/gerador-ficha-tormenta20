@@ -13,6 +13,7 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AppDispatch } from '../../store';
 import { logout } from '../../store/slices/auth/authSlice';
@@ -20,6 +21,7 @@ import AuthModal from './AuthModal';
 
 const UserMenu: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const history = useHistory();
   const { user, isAuthenticated, loading } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [authOpen, setAuthOpen] = useState(false);
@@ -31,6 +33,13 @@ const UserMenu: React.FC = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleProfileClick = () => {
+    handleMenuClose();
+    if (user?.username) {
+      history.push(`/perfil/${user.username}`);
+    }
   };
 
   const handleLogout = async () => {
@@ -166,7 +175,7 @@ const UserMenu: React.FC = () => {
 
         <Divider />
 
-        <MenuItem onClick={handleMenuClose}>
+        <MenuItem onClick={handleProfileClick}>
           <PersonIcon fontSize='small' sx={{ mr: 1 }} />
           Perfil
         </MenuItem>
