@@ -59,7 +59,9 @@ import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStora
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
-import { CreateSheetRequest } from '../../services/sheets.service';
+import SheetsService, {
+  CreateSheetRequest,
+} from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 
@@ -183,6 +185,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingSaveToCloud, setLoadingSaveToCloud] = React.useState(false);
   const [sheetSavedToCloud, setSheetSavedToCloud] = React.useState(false);
+  const [cloudSheetId, setCloudSheetId] = React.useState<string | null>(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = React.useState(false);
   const [pendingNavigation, setPendingNavigation] = React.useState<
     string | null
@@ -215,6 +218,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
       setRandomSheet(sheet);
       setSheetSavedToCloud(true); // It came from cloud, so it's already saved
+      setCloudSheetId(cloudSheet.id); // Store the cloud sheet ID for updates
       // Clear the state to prevent reloading on subsequent renders
       history.replace('/ficha-aleatoria', {});
     }
@@ -593,6 +597,19 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
     setRandomSheet(updatedSheet);
     updateSheetInHistoric(updatedSheet);
+
+    // If this is a cloud sheet, update it in the database
+    if (cloudSheetId) {
+      SheetsService.updateSheet(cloudSheetId, {
+        sheetData: updatedSheet,
+      }).catch((error) => {
+        console.error('Failed to update cloud sheet:', error);
+        showAlert(
+          'Não foi possível atualizar a ficha na nuvem. Suas alterações foram salvas localmente.',
+          'Erro ao Atualizar'
+        );
+      });
+    }
   };
 
   const onClickShowHistoric = () => {
