@@ -31,7 +31,7 @@ import {
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
-import { useHistory, Prompt } from 'react-router-dom';
+import { useHistory, useLocation, Prompt } from 'react-router-dom';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import { formatGroupLabel } from 'react-select/src/builtins';
@@ -187,6 +187,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [pendingNavigation, setPendingNavigation] = React.useState<
     string | null
   >(null);
+
+  const location = useLocation<{ cloudSheet?: any }>();
+
+  // Load cloud sheet on mount if passed via navigation state
+  React.useEffect(() => {
+    if (location.state?.cloudSheet) {
+      const cloudSheet = location.state.cloudSheet;
+      // Convert cloud sheet data to CharacterSheet format
+      setRandomSheet(cloudSheet.sheetData as CharacterSheet);
+      setSheetSavedToCloud(true); // It came from cloud, so it's already saved
+      // Clear the state to prevent reloading on subsequent renders
+      history.replace('/ficha-aleatoria', {});
+    }
+  }, [location.state]);
 
   // Warn before leaving if sheet is not saved to cloud (refresh/close tab)
   // Note: Browser security forces native alert for beforeunload

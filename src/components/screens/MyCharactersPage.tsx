@@ -121,7 +121,8 @@ const MyCharactersPage: React.FC = () => {
   };
 
   const handleEditSheet = (sheet: SheetData) => {
-    history.push(`/sheet-builder/${sheet.id}`);
+    // Load the cloud sheet in MainScreen for editing
+    history.push('/ficha-aleatoria', { cloudSheet: sheet });
   };
 
   const handleDeleteClick = (sheet: SheetData) => {

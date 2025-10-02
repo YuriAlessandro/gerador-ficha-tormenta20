@@ -140,7 +140,7 @@ const SheetBuilderPage: React.FC = () => {
 
       <Breadcrumbs aria-label='breadcrumb' sx={{ p: 2 }}>
         <Link to='/sheets' color='inherit' href='/sheets'>
-          Meus Personagens
+          Histórico Local
         </Link>
         <Typography color='text.primary'>Gerenciar Personagem</Typography>
       </Breadcrumbs>
