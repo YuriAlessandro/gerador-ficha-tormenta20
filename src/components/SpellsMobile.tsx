@@ -1,6 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
-import { manaExpenseByCircle } from '../data/magias/generalSpells';
+import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';

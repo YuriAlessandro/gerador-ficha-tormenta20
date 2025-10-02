@@ -6,8 +6,10 @@ import { SupplementId } from '../types/supplement.types';
 import { dataRegistry } from './registry';
 
 /**
- * @deprecated Use dataRegistry.getClassesBySupplements([SupplementId.CORE])
+ * @deprecated Use dataRegistry.getClassesBySupplements([SupplementId.TORMENTA20_CORE])
  */
-const CLASSES = dataRegistry.getClassesBySupplements([SupplementId.CORE]);
+const CLASSES = dataRegistry.getClassesBySupplements([
+  SupplementId.TORMENTA20_CORE,
+]);
 
 export default CLASSES;

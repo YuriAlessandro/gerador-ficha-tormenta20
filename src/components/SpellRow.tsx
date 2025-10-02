@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { manaExpenseByCircle } from '../data/magias/generalSpells';
+import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { Spell } from '../interfaces/Spells';
 
 interface SpellProps {

@@ -1,8 +1,8 @@
 import { GeneralPowerType } from '../../interfaces/Poderes';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { Atributo } from '../../data/atributos';
-import { spellsCircle1 } from '../../data/magias/generalSpells';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { spellsCircle1 } from '../../data/systems/tormenta20/magias/generalSpells';
 import Race from '../../interfaces/Race';
 import Bag from '../../interfaces/Bag';
 

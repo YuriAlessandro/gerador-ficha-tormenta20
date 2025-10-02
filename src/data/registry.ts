@@ -1,29 +1,30 @@
 /**
- * Data Registry - Sistema Central de Gerenciamento de Suplementos
+ * Data Registry - Sistema Central de Gerenciamento Multi-Sistema
  *
  * Este registry é responsável por combinar dados de múltiplos suplementos
- * de acordo com as preferências do usuário.
+ * de diferentes sistemas de RPG de acordo com as preferências do usuário.
  */
 import _ from 'lodash';
+import { SystemId } from '../types/system.types';
 import { SupplementId } from '../types/supplement.types';
-import { SupplementData, CORE_SUPPLEMENT } from './supplements/core';
-import { AMEACAS_ARTON_SUPPLEMENT } from './supplements/ameacas-de-arton';
+import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
 import Race from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
 
 /**
- * Mapa de todos os suplementos disponíveis
+ * Mapa de todos os sistemas disponíveis
  */
-const SUPPLEMENTS_MAP: Record<SupplementId, SupplementData> = {
-  [SupplementId.CORE]: CORE_SUPPLEMENT,
-  [SupplementId.AMEACAS_ARTON]: AMEACAS_ARTON_SUPPLEMENT,
+const SYSTEMS_MAP: Record<SystemId, SystemData> = {
+  [SystemId.TORMENTA20]: TORMENTA20_SYSTEM,
+  // Future systems will be added here
 };
 
 /**
  * Cache para evitar recalcular combinações
  */
 interface CacheEntry<T> {
+  system: SystemId;
   supplements: SupplementId[];
   data: T;
 }
@@ -35,52 +36,107 @@ class DataRegistry {
 
   private powersCache: CacheEntry<GeneralPowers> | null = null;
 
+  private currentSystem: SystemId = SystemId.TORMENTA20;
+
+  /**
+   * Define o sistema atual
+   */
+  setCurrentSystem(systemId: SystemId): void {
+    if (this.currentSystem !== systemId) {
+      this.currentSystem = systemId;
+      this.clearCache();
+    }
+  }
+
+  /**
+   * Retorna o sistema atual
+   */
+  getCurrentSystem(): SystemId {
+    return this.currentSystem;
+  }
+
+  /**
+   * Retorna dados de um sistema específico
+   */
+  // eslint-disable-next-line class-methods-use-this
+  getSystemData(systemId: SystemId): SystemData | undefined {
+    return SYSTEMS_MAP[systemId];
+  }
+
   /**
    * Retorna raças de todos os suplementos ativos
    */
-  getRacesBySupplements(supplementIds: SupplementId[]): Race[] {
+  getRacesBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Race[] {
     // Garante que CORE está sempre incluído
-    const supplements = this.ensureCore(supplementIds);
+    const supplements = this.ensureCore(supplementIds, systemId);
 
     // Verifica cache
-    if (this.isCacheValid(this.racesCache, supplements)) {
+    if (this.isCacheValid(this.racesCache, supplements, systemId)) {
       return this.racesCache!.data;
     }
 
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return [];
+
     // Combina raças de todos os suplementos
-    const races = supplements.flatMap((id) => SUPPLEMENTS_MAP[id]?.races || []);
+    const races = supplements.flatMap(
+      (id) => systemData.supplements[id]?.races || []
+    );
 
     // Atualiza cache
-    this.racesCache = { supplements, data: races };
+    this.racesCache = { system: systemId, supplements, data: races };
     return races;
   }
 
   /**
    * Retorna classes de todos os suplementos ativos
    */
-  getClassesBySupplements(supplementIds: SupplementId[]): ClassDescription[] {
-    const supplements = this.ensureCore(supplementIds);
+  getClassesBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): ClassDescription[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
 
-    if (this.isCacheValid(this.classesCache, supplements)) {
+    if (this.isCacheValid(this.classesCache, supplements, systemId)) {
       return this.classesCache!.data;
     }
 
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return [];
+
     const classes = supplements.flatMap(
-      (id) => SUPPLEMENTS_MAP[id]?.classes || []
+      (id) => systemData.supplements[id]?.classes || []
     );
 
-    this.classesCache = { supplements, data: classes };
+    this.classesCache = { system: systemId, supplements, data: classes };
     return classes;
   }
 
   /**
    * Retorna poderes combinados de todos os suplementos ativos
    */
-  getPowersBySupplements(supplementIds: SupplementId[]): GeneralPowers {
-    const supplements = this.ensureCore(supplementIds);
+  getPowersBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): GeneralPowers {
+    const supplements = this.ensureCore(supplementIds, systemId);
 
-    if (this.isCacheValid(this.powersCache, supplements)) {
+    if (this.isCacheValid(this.powersCache, supplements, systemId)) {
       return this.powersCache!.data;
+    }
+
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) {
+      return {
+        COMBATE: [],
+        CONCEDIDOS: [],
+        DESTINO: [],
+        MAGIA: [],
+        TORMENTA: [],
+      };
     }
 
     // Combina poderes por categoria
@@ -93,7 +149,7 @@ class DataRegistry {
     };
 
     supplements.forEach((id) => {
-      const supplementPowers = SUPPLEMENTS_MAP[id]?.powers;
+      const supplementPowers = systemData.supplements[id]?.powers;
       if (supplementPowers) {
         combinedPowers.COMBATE.push(...supplementPowers.COMBATE);
         combinedPowers.CONCEDIDOS.push(...supplementPowers.CONCEDIDOS);
@@ -103,23 +159,30 @@ class DataRegistry {
       }
     });
 
-    this.powersCache = { supplements, data: combinedPowers };
+    this.powersCache = { system: systemId, supplements, data: combinedPowers };
     return combinedPowers;
   }
 
   /**
    * Retorna todos os poderes como array flat
    */
-  getAllPowersBySupplements(supplementIds: SupplementId[]): GeneralPower[] {
-    const powers = this.getPowersBySupplements(supplementIds);
+  getAllPowersBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): GeneralPower[] {
+    const powers = this.getPowersBySupplements(supplementIds, systemId);
     return Object.values(powers).flat();
   }
 
   /**
    * Busca uma raça por nome em todos os suplementos ativos
    */
-  getRaceByName(name: string, supplementIds: SupplementId[]): Race | undefined {
-    const races = this.getRacesBySupplements(supplementIds);
+  getRaceByName(
+    name: string,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Race | undefined {
+    const races = this.getRacesBySupplements(supplementIds, systemId);
     const race = races.find((r) => r.name === name);
 
     if (race && race.setup) {
@@ -134,9 +197,10 @@ class DataRegistry {
    */
   getClassByName(
     name: string,
-    supplementIds: SupplementId[]
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
   ): ClassDescription | undefined {
-    const classes = this.getClassesBySupplements(supplementIds);
+    const classes = this.getClassesBySupplements(supplementIds, systemId);
     return classes.find((c) => c.name === name);
   }
 
@@ -150,28 +214,42 @@ class DataRegistry {
   }
 
   /**
-   * Garante que CORE está sempre nos suplementos ativos
+   * Garante que CORE está sempre nos suplementos ativos (para cada sistema)
    */
   // eslint-disable-next-line class-methods-use-this
-  private ensureCore(supplementIds: SupplementId[]): SupplementId[] {
+  private ensureCore(
+    supplementIds: SupplementId[],
+    systemId: SystemId
+  ): SupplementId[] {
     const supplements = [...supplementIds];
-    if (!supplements.includes(SupplementId.CORE)) {
-      supplements.unshift(SupplementId.CORE);
+
+    // Define o ID do core baseado no sistema
+    const coreId =
+      systemId === SystemId.TORMENTA20
+        ? SupplementId.TORMENTA20_CORE
+        : SupplementId.TORMENTA20_CORE; // Default to Tormenta20
+
+    // Garante que o core está incluído
+    if (!supplements.includes(coreId)) {
+      supplements.unshift(coreId);
     }
+
     return supplements;
   }
 
   /**
-   * Verifica se o cache é válido para a combinação de suplementos
+   * Verifica se o cache é válido para a combinação de suplementos e sistema
    */
   // eslint-disable-next-line class-methods-use-this
   private isCacheValid<T>(
     cache: CacheEntry<T> | null,
-    supplements: SupplementId[]
+    supplements: SupplementId[],
+    system: SystemId
   ): boolean {
     if (!cache) return false;
 
     return (
+      cache.system === system &&
       cache.supplements.length === supplements.length &&
       cache.supplements.every((id) => supplements.includes(id))
     );

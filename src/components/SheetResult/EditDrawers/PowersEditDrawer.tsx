@@ -26,25 +26,28 @@ import {
   OriginPower,
 } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
-import { Atributo } from '@/data/atributos';
-import { ORIGINS } from '@/data/origins';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
   ManualPowerSelections,
   PowerSelectionRequirements,
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
-import combatPowers from '@/data/powers/combatPowers';
-import destinyPowers from '@/data/powers/destinyPowers';
-import spellPowers from '@/data/powers/spellPowers';
-import tormentaPowers from '@/data/powers/tormentaPowers';
-import GRANTED_POWERS from '@/data/powers/grantedPowers';
-import originPowers from '@/data/powers/originPowers';
+import combatPowers from '@/data/systems/tormenta20/powers/combatPowers';
+import destinyPowers from '@/data/systems/tormenta20/powers/destinyPowers';
+import spellPowers from '@/data/systems/tormenta20/powers/spellPowers';
+import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import GRANTED_POWERS from '@/data/systems/tormenta20/powers/grantedPowers';
+import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
-import { GolpePessoalBuild, GOLPE_PESSOAL_EFFECTS } from '@/data/golpePessoal';
+import {
+  GolpePessoalBuild,
+  GOLPE_PESSOAL_EFFECTS,
+} from '@/data/systems/tormenta20/golpePessoal';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
 

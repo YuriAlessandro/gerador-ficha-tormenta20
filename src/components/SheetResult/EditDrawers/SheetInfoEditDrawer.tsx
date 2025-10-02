@@ -18,13 +18,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import RACAS from '@/data/racas';
 import CLASSES from '@/data/classes';
-import { ORIGINS } from '@/data/origins';
+import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { allDivindadeNames } from '@/interfaces/Divindade';
-import DIVINDADES_DATA from '@/data/divindades';
+import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
-import { nomes, nameGenerators } from '@/data/nomes';
+import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
 
 interface SheetInfoEditDrawerProps {
   open: boolean;

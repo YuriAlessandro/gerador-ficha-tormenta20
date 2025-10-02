@@ -34,7 +34,7 @@ import {
   AutoFixHigh as MagicIcon,
 } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
-import EQUIPAMENTOS from '../../data/equipamentos';
+import EQUIPAMENTOS from '../../data/systems/tormenta20/equipamentos';
 import {
   armorEnchantments,
   weaponsEnchantments,

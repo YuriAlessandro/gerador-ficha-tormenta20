@@ -1,4 +1,4 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 
 export interface Aprimoramento {
   addPm: number;

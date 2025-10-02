@@ -6,7 +6,7 @@ import {
   ItemWeapons,
   ITEM_TYPE,
 } from '../../interfaces/Rewards';
-import { Armaduras, Armas, Escudos } from '../equipamentos';
+import { Armaduras, Armas, Escudos } from '../systems/tormenta20/equipamentos';
 
 export const itemsRewards: Items = {
   S4: [

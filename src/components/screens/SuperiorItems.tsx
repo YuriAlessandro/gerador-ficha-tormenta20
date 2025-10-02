@@ -34,7 +34,7 @@ import {
   Shuffle as ShuffleIcon,
 } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
-import EQUIPAMENTOS from '../../data/equipamentos';
+import EQUIPAMENTOS from '../../data/systems/tormenta20/equipamentos';
 import {
   armorsModifications,
   weaponsModifications,
@@ -51,7 +51,7 @@ import {
   calculateModificationCost,
   validateModificationCombination,
 } from '../../utils/superiorItemsValidation';
-import { getSpecialMaterialData } from '../../data/specialMaterials';
+import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 

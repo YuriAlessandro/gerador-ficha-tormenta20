@@ -2,7 +2,7 @@ import _ from 'lodash';
 import CharacterSheet, {
   SheetActionReceipt,
 } from '@/interfaces/CharacterSheet';
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
 import Skill from '@/interfaces/Skills';

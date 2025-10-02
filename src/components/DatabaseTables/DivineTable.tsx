@@ -25,7 +25,7 @@ import {
   allDivineSpellsCircle3,
   allDivineSpellsCircle4,
   allDivineSpellsCircle5,
-} from '../../data/magias/divine';
+} from '../../data/systems/tormenta20/magias/divine';
 
 import { Spell } from '../../interfaces/Spells';
 

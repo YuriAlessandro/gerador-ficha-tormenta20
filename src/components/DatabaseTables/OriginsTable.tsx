@@ -18,11 +18,11 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { ORIGINS } from '../../data/origins';
+import { ORIGINS } from '../../data/systems/tormenta20/origins';
 import Origin from '../../interfaces/Origin';
 
 import SearchInput from './SearchInput';
-import { ORIGIN_POWER_TYPE } from '../../data/powers/originPowers';
+import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 

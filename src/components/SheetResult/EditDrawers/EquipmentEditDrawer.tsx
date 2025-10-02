@@ -26,9 +26,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
-import EQUIPAMENTOS, { calcDefense } from '@/data/equipamentos';
+import EQUIPAMENTOS, {
+  calcDefense,
+} from '@/data/systems/tormenta20/equipamentos';
 import Bag from '@/interfaces/Bag';
-import { GENERAL_EQUIPMENT } from '@/data/equipamentos-gerais';
+import { GENERAL_EQUIPMENT } from '@/data/systems/tormenta20/equipamentos-gerais';
 
 interface EquipmentEditDrawerProps {
   open: boolean;

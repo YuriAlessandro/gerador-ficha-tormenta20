@@ -26,7 +26,7 @@ import {
   allArcaneSpellsCircle3,
   allArcaneSpellsCircle4,
   allArcaneSpellsCircle5,
-} from '../../data/magias/arcane';
+} from '../../data/systems/tormenta20/magias/arcane';
 
 import {
   allDivineSpellsCircle1,
@@ -34,7 +34,7 @@ import {
   allDivineSpellsCircle3,
   allDivineSpellsCircle4,
   allDivineSpellsCircle5,
-} from '../../data/magias/divine';
+} from '../../data/systems/tormenta20/magias/divine';
 
 import { Spell, spellsCircles } from '../../interfaces/Spells';
 import AdvancedSpellFilter from './AdvancedSpellFilter';

@@ -26,7 +26,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 interface SkillsEditDrawerProps {
   open: boolean;

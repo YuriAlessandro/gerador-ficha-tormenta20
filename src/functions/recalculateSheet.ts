@@ -4,9 +4,9 @@ import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
 } from '@/interfaces/Skills';
-import { Atributo } from '@/data/atributos';
-import { calcDefense } from '@/data/equipamentos';
-import { getRaceDisplacement } from '@/data/races/functions/functions';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
+import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
 import Equipment from '@/interfaces/Equipment';

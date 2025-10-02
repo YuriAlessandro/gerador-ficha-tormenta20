@@ -8,9 +8,11 @@ import { dataRegistry } from './registry';
 import Race from '../interfaces/Race';
 
 /**
- * @deprecated Use dataRegistry.getRacesBySupplements([SupplementId.CORE])
+ * @deprecated Use dataRegistry.getRacesBySupplements([SupplementId.TORMENTA20_CORE])
  */
-const RACAS = dataRegistry.getRacesBySupplements([SupplementId.CORE]);
+const RACAS = dataRegistry.getRacesBySupplements([
+  SupplementId.TORMENTA20_CORE,
+]);
 
 export default RACAS;
 
@@ -18,7 +20,7 @@ export default RACAS;
  * @deprecated Use dataRegistry.getRaceByName(name, supplementIds)
  */
 export function getRaceByName(name: string): Race {
-  const race = dataRegistry.getRaceByName(name, [SupplementId.CORE]);
+  const race = dataRegistry.getRaceByName(name, [SupplementId.TORMENTA20_CORE]);
 
   if (race) {
     return race;

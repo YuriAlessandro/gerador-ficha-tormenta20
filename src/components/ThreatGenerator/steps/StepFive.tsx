@@ -35,7 +35,7 @@ import { getRecommendedAbilityCount } from '../../../functions/threatGenerator';
 import {
   ABILITY_SUGGESTIONS,
   ABILITY_CATEGORIES,
-} from '../../../data/threats/abilitySuggestions';
+} from '../../../data/systems/tormenta20/threats/abilitySuggestions';
 
 interface StepFiveProps {
   threat: Partial<ThreatSheet>;

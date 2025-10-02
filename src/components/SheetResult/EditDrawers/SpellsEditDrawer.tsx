@@ -24,8 +24,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import { Spell } from '@/interfaces/Spells';
-import { getSpellsOfCircle } from '@/data/magias/generalSpells';
-import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
+import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
+import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 
 interface SpellsEditDrawerProps {
   open: boolean;

@@ -1,11 +1,11 @@
-import AGGELUS from '../../data/races/aggelus';
-import HUMANO from '../../data/races/humano';
+import AGGELUS from '../../data/systems/tormenta20/races/aggelus';
+import HUMANO from '../../data/systems/tormenta20/races/humano';
 import { modifyAttributesBasedOnRace } from '../general';
 import {
   CharacterAttribute,
   CharacterAttributes,
 } from '../../interfaces/Character';
-import { Atributo } from '../../data/atributos';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 
 const originalAttrs: CharacterAttributes = {
   Força: { value: 17, mod: 3, name: Atributo.FORCA },

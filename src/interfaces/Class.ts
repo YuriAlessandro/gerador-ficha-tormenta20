@@ -1,4 +1,4 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';

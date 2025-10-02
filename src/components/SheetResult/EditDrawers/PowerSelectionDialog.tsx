@@ -25,8 +25,8 @@ import {
   getFilteredAvailableOptions,
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
-import { FAMILIARS } from '@/data/familiars';
-import { ANIMAL_TOTEMS } from '@/data/animalTotems';
+import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
+import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 
 interface PowerSelectionDialogProps {
   open: boolean;

@@ -1,10 +1,13 @@
 import attributes from '../../__mocks__/attributes';
 import { inventor } from '../../__mocks__/classes/inventor';
-import INVENTOR from '../../data/classes/inventor';
-import { ORIGINS } from '../../data/origins';
-import { getClassBaseSkills, getRemainingSkills } from '../../data/pericias';
+import INVENTOR from '../../data/systems/tormenta20/classes/inventor';
+import { ORIGINS } from '../../data/systems/tormenta20/origins';
+import {
+  getClassBaseSkills,
+  getRemainingSkills,
+} from '../../data/systems/tormenta20/pericias';
 import RACAS from '../../data/racas';
-import HUMANO from '../../data/races/humano';
+import HUMANO from '../../data/systems/tormenta20/races/humano';
 import Skill from '../../interfaces/Skills';
 import {
   getAttributesSkills,

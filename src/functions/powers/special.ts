@@ -1,7 +1,7 @@
 import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
-import tormentaPowers from '@/data/powers/tormentaPowers';
-import HUMANO from '@/data/races/humano';
+import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import HUMANO from '@/data/systems/tormenta20/races/humano';
 import {
   getNotRepeatedRandom,
   getRandomItemFromArray,

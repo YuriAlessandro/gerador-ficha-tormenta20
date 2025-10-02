@@ -20,7 +20,7 @@ import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
-import { DIVINDADES } from '../../data/divindades';
+import { DIVINDADES } from '../../data/systems/tormenta20/divindades';
 import Divindade from '../../interfaces/Divindade';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';

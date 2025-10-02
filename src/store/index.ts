@@ -16,6 +16,7 @@ import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
 import threatStorageReducer from './slices/threatStorage';
 import authReducer from './slices/auth/authSlice';
 import sheetsReducer from './slices/sheets/sheetsSlice';
+import systemReducer from './slices/system/systemSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -34,6 +35,12 @@ export const authPersistConfig = {
   whitelist: ['dbUser'], // Only persist dbUser, Firebase will handle its own state
 };
 
+export const systemPersistConfig = {
+  key: 'system',
+  storage,
+  whitelist: ['selectedSystem'], // Persist user's system preference
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
   sheetStorageSlice.reducer
@@ -46,6 +53,11 @@ const persistedThreatReducer = persistReducer(
 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
+const persistedSystemReducer = persistReducer(
+  systemPersistConfig,
+  systemReducer
+);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
@@ -53,6 +65,7 @@ const store = configureStore({
     threatStorage: persistedThreatReducer,
     auth: persistedAuthReducer,
     sheets: sheetsReducer,
+    system: persistedSystemReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

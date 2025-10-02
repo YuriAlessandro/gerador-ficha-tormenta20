@@ -29,7 +29,7 @@ import {
   GolpePessoalEffect,
   ELEMENTAL_DAMAGE_TYPES,
   BASIC_SPELLS_1ST_2ND_CIRCLE,
-} from '../../../data/golpePessoal';
+} from '../../../data/systems/tormenta20/golpePessoal';
 import { validateGolpePessoalBuild } from '../../../functions/powers/golpePessoal';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 

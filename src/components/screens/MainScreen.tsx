@@ -44,7 +44,7 @@ import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
 import CLASSES from '../../data/classes';
-import { Atributo } from '../../data/atributos';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import RACAS from '../../data/racas';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Result from '../SheetResult/Result';
@@ -55,8 +55,8 @@ import generateRandomSheet, {
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
-import { ORIGINS } from '../../data/origins';
-import roles from '../../data/roles';
+import { ORIGINS } from '../../data/systems/tormenta20/origins';
+import roles from '../../data/systems/tormenta20/roles';
 import getSelectTheme from '../../functions/style';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import { HistoricI } from '../../interfaces/Historic';

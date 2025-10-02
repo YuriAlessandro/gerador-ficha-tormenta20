@@ -5,7 +5,7 @@ import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments } from './Equipment';
 
 export type SheetChangeSource =

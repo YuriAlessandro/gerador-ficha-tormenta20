@@ -1,20 +1,33 @@
 /**
- * Sistema de Suplementos para Tormenta 20
+ * Sistema de Suplementos Multi-Sistema
  * Permite que usuários ativem diferentes suplementos para adicionar
  * raças, classes, poderes, etc. ao gerador de fichas
  */
+import { SystemId } from './system.types';
 
 export enum SupplementId {
+  // Tormenta 20 supplements
   /** Livro básico do Tormenta 20 - sempre ativo */
-  CORE = 'tormenta20-core',
+  TORMENTA20_CORE = 'tormenta20-core',
   /** Suplemento: Ameaças de Arton */
-  AMEACAS_ARTON = 'ameacas-de-arton',
-  // Adicionar novos suplementos aqui conforme necessário
+  TORMENTA20_AMEACAS_ARTON = 'tormenta20-ameacas-de-arton',
+
+  // Future systems supplements can be added here:
+  // DND5E_CORE = 'dnd5e-core',
+  // DND5E_XANATHARS = 'dnd5e-xanathars',
 }
+
+// Legacy string constants for backwards compatibility
+/** @deprecated Use SupplementId.TORMENTA20_CORE instead */
+export const LEGACY_SUPPLEMENT_CORE = 'tormenta20-core';
+/** @deprecated Use SupplementId.TORMENTA20_AMEACAS_ARTON instead */
+export const LEGACY_SUPPLEMENT_AMEACAS_ARTON = 'tormenta20-ameacas-de-arton';
 
 export interface Supplement {
   /** ID único do suplemento */
   id: SupplementId;
+  /** Sistema ao qual o suplemento pertence */
+  systemId: SystemId;
   /** Nome de exibição do suplemento */
   name: string;
   /** Descrição curta do suplemento */
@@ -32,20 +45,22 @@ export interface Supplement {
 /**
  * Metadados dos suplementos disponíveis
  * Usado para exibir informações na UI
+ * Note: Legacy IDs map to same string values, so only new IDs are used
  */
-export const SUPPLEMENT_METADATA: Record<
-  SupplementId,
-  Omit<Supplement, 'enabled'>
+export const SUPPLEMENT_METADATA: Partial<
+  Record<SupplementId, Omit<Supplement, 'enabled'>>
 > = {
-  [SupplementId.CORE]: {
-    id: SupplementId.CORE,
+  [SupplementId.TORMENTA20_CORE]: {
+    id: SupplementId.TORMENTA20_CORE,
+    systemId: SystemId.TORMENTA20,
     name: 'Tormenta 20',
     description: 'Livro básico do sistema Tormenta 20',
     releaseDate: '2019',
     requiresPremium: false,
   },
-  [SupplementId.AMEACAS_ARTON]: {
-    id: SupplementId.AMEACAS_ARTON,
+  [SupplementId.TORMENTA20_AMEACAS_ARTON]: {
+    id: SupplementId.TORMENTA20_AMEACAS_ARTON,
+    systemId: SystemId.TORMENTA20,
     name: 'Ameaças de Arton',
     description: 'Novos monstros, raças jogáveis e desafios épicos',
     releaseDate: '2020',

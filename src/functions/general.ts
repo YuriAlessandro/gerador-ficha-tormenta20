@@ -1,25 +1,34 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import RACAS, { getRaceByName } from '../data/racas';
 import CLASSES from '../data/classes';
 import {
   getClassBaseSkills,
   getNotRepeatedSkillsByQtd,
   getRemainingSkills,
-} from '../data/pericias';
+} from '../data/systems/tormenta20/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
   Armaduras,
   Escudos,
   bardInstruments,
   Armas,
-} from '../data/equipamentos';
-import { FAMILIARS, FAMILIAR_NAMES } from '../data/familiars';
-import { ANIMAL_TOTEMS, ANIMAL_TOTEM_NAMES } from '../data/animalTotems';
-import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
-import { generateRandomName } from '../data/nomes';
+} from '../data/systems/tormenta20/equipamentos';
+import {
+  FAMILIARS,
+  FAMILIAR_NAMES,
+} from '../data/systems/tormenta20/familiars';
+import {
+  ANIMAL_TOTEMS,
+  ANIMAL_TOTEM_NAMES,
+} from '../data/systems/tormenta20/animalTotems';
+import {
+  standardFaithProbability,
+  DivindadeEnum,
+} from '../data/systems/tormenta20/divindades';
+import { generateRandomName } from '../data/systems/tormenta20/nomes';
 import {
   CharacterAttribute,
   CharacterAttributes,
@@ -37,17 +46,21 @@ import {
   pickFromArray,
   rollDice,
 } from './randomUtils';
-import todasProficiencias from '../data/proficiencias';
+import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
-import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
+import {
+  getOriginBenefits,
+  ORIGINS,
+  origins,
+} from '../data/systems/tormenta20/origins';
 import Equipment, {
   BagEquipments,
   DefenseEquipment,
 } from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
-import GRANTED_POWERS from '../data/powers/grantedPowers';
+import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
-import { GOLPE_PESSOAL_EFFECTS } from '../data/golpePessoal';
+import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
@@ -60,7 +73,7 @@ import {
   arcaneSpellsCircle4,
   arcaneSpellsCircle5,
   getArcaneSpellsOfCircle,
-} from '../data/magias/arcane';
+} from '../data/systems/tormenta20/magias/arcane';
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
@@ -72,12 +85,12 @@ import {
   divineSpellsCircle3,
   divineSpellsCircle4,
   divineSpellsCircle5,
-} from '../data/magias/divine';
+} from '../data/systems/tormenta20/magias/divine';
 import { Spell } from '../interfaces/Spells';
 import {
   getRaceDisplacement,
   getRaceSize,
-} from '../data/races/functions/functions';
+} from '../data/systems/tormenta20/races/functions/functions';
 import Origin from '../interfaces/Origin';
 import {
   GeneralPower,
@@ -96,7 +109,7 @@ import Skill, {
   SkillsWithArmorPenalty,
 } from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
-import roles from '../data/roles';
+import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
@@ -107,7 +120,7 @@ import {
   addOrCheapenRandomSpells,
   getSpellsOfCircle,
   spellsCircle1,
-} from '../data/magias/generalSpells';
+} from '../data/systems/tormenta20/magias/generalSpells';
 import {
   applyHumanoVersatil,
   applyLefouDeformidade,

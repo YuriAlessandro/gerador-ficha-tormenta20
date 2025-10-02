@@ -1,6 +1,6 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { Atributo } from '../../data/atributos';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Race from '../../interfaces/Race';
 import Bag from '../../interfaces/Bag';
 

@@ -1,4 +1,4 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import Divindade from './Divindade';
 import { GeneralPower } from './Poderes';
 

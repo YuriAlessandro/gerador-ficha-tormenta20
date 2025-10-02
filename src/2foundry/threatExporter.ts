@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 
 import { ThreatSheet, ThreatSize, ThreatType } from '../interfaces/ThreatSheet';
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DEFAULT_SKILLS } from './skills';
 
 // Size mapping for threats

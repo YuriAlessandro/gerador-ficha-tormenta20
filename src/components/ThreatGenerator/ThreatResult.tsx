@@ -32,7 +32,7 @@ import {
   getTierDisplayName,
   getTierByChallengeLevel,
 } from '../../functions/threatGenerator';
-import { Atributo } from '../../data/atributos';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 

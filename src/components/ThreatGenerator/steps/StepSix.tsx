@@ -15,7 +15,7 @@ import {
   Alert,
   useTheme,
 } from '@mui/material';
-import { Atributo } from '../../../data/atributos';
+import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import { ThreatSheet, ThreatAttributes } from '../../../interfaces/ThreatSheet';
 import { calculateAllSkills } from '../../../functions/threatGenerator';
 
