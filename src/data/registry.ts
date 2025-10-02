@@ -6,9 +6,8 @@
  */
 import _ from 'lodash';
 import { SupplementId } from '../types/supplement.types';
-import { SupplementData } from './supplements/core';
-import CORE_SUPPLEMENT from './supplements/core';
-import AMEACAS_ARTON_SUPPLEMENT from './supplements/ameacas-de-arton';
+import { SupplementData, CORE_SUPPLEMENT } from './supplements/core';
+import { AMEACAS_ARTON_SUPPLEMENT } from './supplements/ameacas-de-arton';
 import Race from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
@@ -31,7 +30,9 @@ interface CacheEntry<T> {
 
 class DataRegistry {
   private racesCache: CacheEntry<Race[]> | null = null;
+
   private classesCache: CacheEntry<ClassDescription[]> | null = null;
+
   private powersCache: CacheEntry<GeneralPowers> | null = null;
 
   /**
@@ -151,6 +152,7 @@ class DataRegistry {
   /**
    * Garante que CORE está sempre nos suplementos ativos
    */
+  // eslint-disable-next-line class-methods-use-this
   private ensureCore(supplementIds: SupplementId[]): SupplementId[] {
     const supplements = [...supplementIds];
     if (!supplements.includes(SupplementId.CORE)) {
@@ -162,6 +164,7 @@ class DataRegistry {
   /**
    * Verifica se o cache é válido para a combinação de suplementos
    */
+  // eslint-disable-next-line class-methods-use-this
   private isCacheValid<T>(
     cache: CacheEntry<T> | null,
     supplements: SupplementId[]

@@ -13,5 +13,3 @@ export const AMEACAS_ARTON_SUPPLEMENT: SupplementData = {
   classes: AMEACAS_ARTON_CLASSES,
   powers: AMEACAS_ARTON_POWERS,
 };
-
-export default AMEACAS_ARTON_SUPPLEMENT;

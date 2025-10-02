@@ -24,5 +24,3 @@ export const CORE_SUPPLEMENT: SupplementData = {
   classes: CORE_CLASSES,
   powers: CORE_POWERS,
 };
-
-export default CORE_SUPPLEMENT;
