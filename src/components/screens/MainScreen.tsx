@@ -194,7 +194,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   React.useEffect(() => {
     if (location.state?.cloudSheet) {
       const cloudSheet = location.state.cloudSheet;
-      const sheet = cloudSheet.sheetData as CharacterSheet;
+      // Create a deep copy to avoid read-only object issues
+      const sheet = JSON.parse(
+        JSON.stringify(cloudSheet.sheetData)
+      ) as CharacterSheet;
 
       // Restore Bag class methods
       sheet.bag = new Bag(sheet.bag.equipments);
