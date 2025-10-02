@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
+  Chip,
 } from '@mui/material';
 import {
   History as HistoryIcon,
@@ -69,6 +70,7 @@ import SheetsService, {
 } from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
+import { SUPPLEMENT_METADATA } from '../../types/supplement.types';
 
 type SelectedOption = { value: string; label: string };
 
@@ -170,7 +172,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const history = useHistory();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     sheets,
     createSheet: createSheetAction,
@@ -1144,6 +1146,45 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 />
               </Grid>
             </Grid>
+
+            {/* System & Supplements Indicator */}
+            {user?.enabledSupplements && user.enabledSupplements.length > 0 && (
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 1.5,
+                  borderRadius: 1,
+                  bgcolor: 'action.hover',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Stack spacing={1}>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ fontWeight: 'medium' }}
+                  >
+                    Sistema e Suplementos Ativos:
+                  </Typography>
+                  <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+                    {user.enabledSupplements.map((suppId) => {
+                      const supplement = SUPPLEMENT_METADATA[suppId];
+                      return supplement ? (
+                        <Chip
+                          key={suppId}
+                          label={supplement.name}
+                          size='small'
+                          color='primary'
+                          variant='outlined'
+                          sx={{ fontSize: '0.75rem' }}
+                        />
+                      ) : null;
+                    })}
+                  </Stack>
+                </Stack>
+              </Box>
+            )}
 
             {/* Action Buttons */}
             <Box sx={{ mt: 3 }}>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Route, Switch, useHistory } from 'react-router-dom';
+import { useDispatch, Provider } from 'react-redux';
 
 import {
   Box,
@@ -9,23 +10,25 @@ import {
   Stack,
   Switch as SwitchMUI,
   useMediaQuery,
+  IconButton,
+  Typography,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
 import MenuIcon from '@mui/icons-material/Menu';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 
 import { SnackbarProvider } from 'notistack';
-import { Provider } from 'react-redux';
+
 import { PersistGate } from 'redux-persist/integration/react';
 import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
+
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
+import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
 import Sidebar from './components/Sidebar';
 import UserMenu from './components/Auth/UserMenu';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import SystemSetupDialog from './components/SystemSetupDialog';
 import { AuthProvider } from './contexts/AuthContext';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
 import Changelog from './components/screens/Changelog';
@@ -38,17 +41,18 @@ import SheetBuilderPage from './components/screens/SheetBuilderPage';
 import SheetList from './components/screens/SheetList';
 import SuperiorItems from './components/screens/SuperiorItems';
 import MagicalItems from './components/screens/MagicalItems';
+import ProfilePage from './components/screens/ProfilePage';
 import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorScreen';
 import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
-import ProfilePage from './components/screens/ProfilePage';
-import store, { persistor } from './store';
-import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import SystemUpdate from './components/SystemUpdate';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
+import { saveSystemSetup } from './store/slices/auth/authSlice';
+import store, { persistor, AppDispatch } from './store';
+import { SupplementId } from './types/supplement.types';
 import tormentaLogo from './assets/images/tormenta-logo-eye.png';
 // import CreatureSheet from './components/screens/CreatureSheet';
 
@@ -80,7 +84,24 @@ const darkTheme = {
 
 // Component to show loading overlay while checking auth
 function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
-  const { loading } = useAuth();
+  const { loading, user, isAuthenticated } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const [showSetupDialog, setShowSetupDialog] = React.useState(false);
+
+  // Check if user needs initial setup
+  React.useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      // Se o usuário não completou o setup inicial, mostra o diálogo
+      if (!user.hasCompletedInitialSetup) {
+        setShowSetupDialog(true);
+      }
+    }
+  }, [loading, isAuthenticated, user]);
+
+  const handleSetupComplete = async (supplements: SupplementId[]) => {
+    await dispatch(saveSystemSetup(supplements)).unwrap();
+    setShowSetupDialog(false);
+  };
 
   if (loading) {
     return (
@@ -118,7 +139,18 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <SystemSetupDialog
+        open={showSetupDialog}
+        onComplete={handleSetupComplete}
+        currentSupplements={
+          user?.enabledSupplements || [SupplementId.TORMENTA20_CORE]
+        }
+      />
+      {children}
+    </>
+  );
 }
 
 function App(): JSX.Element {

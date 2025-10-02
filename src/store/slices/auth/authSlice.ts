@@ -49,6 +49,24 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
+export const saveSystemSetup = createAsyncThunk(
+  'auth/saveSystemSetup',
+  async (supplements: string[], { rejectWithValue }) => {
+    try {
+      const updatedUser = await authService.saveSystemSetup(
+        supplements as unknown as import('../../../types/supplement.types').SupplementId[],
+        true
+      );
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save system setup');
+    }
+  }
+);
+
 // Slice
 const authSlice = createSlice({
   name: 'auth',
@@ -128,6 +146,21 @@ const authSlice = createSlice({
     builder.addCase(updateProfile.fulfilled, (state, action) => {
       state.dbUser = action.payload;
     });
+
+    // Save System Setup
+    builder
+      .addCase(saveSystemSetup.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveSystemSetup.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dbUser = action.payload;
+      })
+      .addCase(saveSystemSetup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

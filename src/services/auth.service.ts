@@ -8,6 +8,8 @@ import {
 } from '../config/firebase';
 import api from './api';
 
+import { SupplementId } from '../types/supplement.types';
+
 export interface DbUser {
   _id: string;
   firebaseUid: string;
@@ -21,6 +23,8 @@ export interface DbUser {
   updatedAt: Date;
   lastLogin?: Date;
   savedSheets: string[];
+  enabledSupplements?: SupplementId[];
+  hasCompletedInitialSetup?: boolean;
 }
 
 export interface AuthResponse {
@@ -111,6 +115,27 @@ class AuthService {
     if (currentUser) {
       await currentUser.delete();
     }
+  }
+
+  // Save system setup (supplements selection)
+  static async saveSystemSetup(
+    supplements: SupplementId[],
+    completeSetup = true
+  ): Promise<DbUser> {
+    await api.put<{
+      supplements: SupplementId[];
+      hasCompletedInitialSetup: boolean;
+    }>('/api/supplements/user', {
+      supplements,
+      completeSetup,
+    });
+
+    // Retorna usuário atualizado
+    const user = await this.getCurrentUser();
+    if (!user) {
+      throw new Error('Failed to fetch updated user');
+    }
+    return user;
   }
 }
 

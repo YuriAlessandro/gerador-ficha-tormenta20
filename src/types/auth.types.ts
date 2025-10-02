@@ -17,6 +17,7 @@ export interface DbUser {
   savedSheets: string[];
   selectedSystem?: SystemId;
   enabledSupplements?: SupplementId[];
+  hasCompletedInitialSetup?: boolean;
 }
 
 export interface AuthState {

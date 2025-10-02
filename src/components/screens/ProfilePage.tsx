@@ -20,6 +20,11 @@ import {
   TextField,
   useTheme,
   useMediaQuery,
+  Tabs,
+  Tab,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -27,11 +32,41 @@ import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Description as SheetIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
 import { AppDispatch } from '../../store';
-import { updateProfile } from '../../store/slices/auth/authSlice';
+import {
+  updateProfile,
+  saveSystemSetup,
+} from '../../store/slices/auth/authSlice';
+import {
+  SupplementId,
+  SUPPLEMENT_METADATA,
+} from '../../types/supplement.types';
+import { SystemId } from '../../types/system.types';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index } = props;
+
+  return (
+    <div
+      role='tabpanel'
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -51,9 +86,22 @@ const ProfilePage: React.FC = () => {
   });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [currentTab, setCurrentTab] = useState(0);
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >(currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
+  const [supplementsLoading, setSupplementsLoading] = useState(false);
+  const [supplementsError, setSupplementsError] = useState<string | null>(null);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
+
+  // Atualiza suplementos selecionados quando o usuário muda
+  useEffect(() => {
+    if (currentUser?.enabledSupplements) {
+      setSelectedSupplements(currentUser.enabledSupplements);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -145,10 +193,48 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    // Não permite desativar o CORE
+    if (supplementId === SupplementId.TORMENTA20_CORE) {
+      return;
+    }
+
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        return prev.filter((id) => id !== supplementId);
+      }
+      return [...prev, supplementId];
+    });
+  };
+
+  const handleSaveSupplements = async () => {
+    try {
+      setSupplementsLoading(true);
+      setSupplementsError(null);
+      await dispatch(saveSystemSetup(selectedSupplements)).unwrap();
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar suplementos';
+      setSupplementsError(errorMessage);
+    } finally {
+      setSupplementsLoading(false);
+    }
+  };
+
   const formatDate = (date: Date) => {
     const d = new Date(date);
     return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   };
+
+  // Filtra apenas suplementos do Tormenta 20
+  const tormenta20Supplements = Object.values(SUPPLEMENT_METADATA).filter(
+    (s) => s.systemId === SystemId.TORMENTA20
+  );
+
+  // Verifica se há mudanças nos suplementos
+  const hasSupplementChanges =
+    JSON.stringify(selectedSupplements.sort()) !==
+    JSON.stringify((currentUser?.enabledSupplements || []).sort());
 
   if (loading) {
     return (
@@ -255,17 +341,182 @@ const ProfilePage: React.FC = () => {
 
       <Container maxWidth='md' sx={{ mt: -6, pb: 4 }}>
         <Stack spacing={3}>
-          {/* Edit Button */}
+          {/* Settings Card - Only for own profile */}
           {isOwnProfile && (
-            <Card sx={{ p: 2 }}>
-              <Button
-                variant='outlined'
-                startIcon={<EditIcon />}
-                onClick={handleEditClick}
-                fullWidth={isMobile}
-              >
-                Editar Perfil
-              </Button>
+            <Card>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs
+                  value={currentTab}
+                  onChange={(_, newValue) => setCurrentTab(newValue)}
+                  variant={isMobile ? 'fullWidth' : 'standard'}
+                >
+                  <Tab
+                    icon={<PersonIcon />}
+                    label='Perfil'
+                    iconPosition='start'
+                  />
+                  <Tab
+                    icon={<SettingsIcon />}
+                    label='Sistema'
+                    iconPosition='start'
+                  />
+                </Tabs>
+              </Box>
+
+              {/* Aba de Perfil */}
+              <TabPanel value={currentTab} index={0}>
+                <Box sx={{ p: 2 }}>
+                  <Stack spacing={2}>
+                    <Typography variant='h6' fontWeight='bold'>
+                      Informações do Perfil
+                    </Typography>
+                    <TextField
+                      label='Nome de Usuário'
+                      value={currentUser?.username || ''}
+                      disabled
+                      fullWidth
+                      helperText='Edite seu perfil para alterar'
+                    />
+                    <TextField
+                      label='Nome Completo'
+                      value={currentUser?.fullName || ''}
+                      disabled
+                      fullWidth
+                      helperText='Edite seu perfil para alterar'
+                    />
+                    <Button
+                      variant='contained'
+                      startIcon={<EditIcon />}
+                      onClick={handleEditClick}
+                      fullWidth={isMobile}
+                    >
+                      Editar Perfil
+                    </Button>
+                  </Stack>
+                </Box>
+              </TabPanel>
+
+              {/* Aba de Sistema e Suplementos */}
+              <TabPanel value={currentTab} index={1}>
+                <Box sx={{ p: 2 }}>
+                  <Stack spacing={3}>
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Sistema Atual
+                      </Typography>
+                      <Chip
+                        label='Tormenta 20'
+                        color='primary'
+                        sx={{ fontWeight: 'bold' }}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Suplementos
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ mb: 2, display: 'block' }}
+                      >
+                        Selecione os suplementos que deseja usar
+                      </Typography>
+
+                      {supplementsError && (
+                        <Alert severity='error' sx={{ mb: 2 }}>
+                          {supplementsError}
+                        </Alert>
+                      )}
+
+                      <FormGroup>
+                        {tormenta20Supplements.map((supplement) => {
+                          const isCore =
+                            supplement.id === SupplementId.TORMENTA20_CORE;
+                          const isSelected = selectedSupplements.includes(
+                            supplement.id
+                          );
+
+                          return (
+                            <Box
+                              key={supplement.id}
+                              sx={{
+                                p: 1.5,
+                                mb: 1,
+                                borderRadius: 1,
+                                border: '1px solid',
+                                borderColor: isSelected
+                                  ? 'primary.main'
+                                  : 'divider',
+                                backgroundColor: isSelected
+                                  ? 'action.selected'
+                                  : 'transparent',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onChange={() =>
+                                      handleToggleSupplement(supplement.id)
+                                    }
+                                    disabled={isCore || supplementsLoading}
+                                  />
+                                }
+                                label={
+                                  <Stack spacing={0.5}>
+                                    <Stack
+                                      direction='row'
+                                      spacing={1}
+                                      alignItems='center'
+                                    >
+                                      <Typography
+                                        variant='body1'
+                                        fontWeight='medium'
+                                      >
+                                        {supplement.name}
+                                      </Typography>
+                                      {isCore && (
+                                        <Chip
+                                          label='Obrigatório'
+                                          size='small'
+                                          color='primary'
+                                          sx={{ height: 20 }}
+                                        />
+                                      )}
+                                    </Stack>
+                                    <Typography
+                                      variant='caption'
+                                      color='text.secondary'
+                                    >
+                                      {supplement.description}
+                                    </Typography>
+                                  </Stack>
+                                }
+                              />
+                            </Box>
+                          );
+                        })}
+                      </FormGroup>
+
+                      <Button
+                        variant='contained'
+                        onClick={handleSaveSupplements}
+                        disabled={supplementsLoading || !hasSupplementChanges}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                      >
+                        {supplementsLoading ? (
+                          <CircularProgress size={24} color='inherit' />
+                        ) : (
+                          'Salvar Alterações'
+                        )}
+                      </Button>
+                    </Box>
+                  </Stack>
+                </Box>
+              </TabPanel>
             </Card>
           )}
 

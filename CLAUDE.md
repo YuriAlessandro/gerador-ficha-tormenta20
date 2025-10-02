@@ -75,7 +75,6 @@ npm start
 cd backend && npm run dev
 ```
 
-
 ### Code Quality
 
 ```bash
@@ -104,12 +103,14 @@ npx prettier --check <filename>  # Check if files are formatted
 ### Important Files
 
 **Frontend:**
+
 - `src/store/` - Redux store configuration and slices
 - `src/interfaces/` - All TypeScript type definitions for RPG entities
 - `src/data/` - Game content (races, classes, spells, equipment)
 - `src/functions/` - Business logic and utility functions
 
 **Backend (when present):**
+
 - `backend/src/` - Backend source code
 - `backend/src/api/` - API routes and controllers
 - `backend/src/models/` - Database models
@@ -139,6 +140,99 @@ npx prettier --check <filename>  # Check if files are formatted
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
 - Deployed to GitHub Pages at https://yurialessandro.github.io/gerador-ficha-tormenta20/
+
+### ESLint Rules - DO NOT VIOLATE
+
+This project uses strict ESLint rules. **Always follow these guidelines to avoid common errors:**
+
+#### ❌ NEVER Use:
+
+1. **`any` type** - Use specific types or proper type assertions
+
+   ```typescript
+   // ❌ BAD
+   const data = response as any;
+
+   // ✅ GOOD
+   const data = response as ResponseType;
+   // or
+   const data = response as unknown as ResponseType;
+   ```
+
+2. **`unknown` as direct type** - Use proper type guards or assertions
+
+   ```typescript
+   // ❌ BAD
+   supplements as unknown;
+
+   // ✅ GOOD
+   supplements as unknown as SupplementId[];
+   ```
+
+3. **Prop spreading (`{...other}`)** - Explicitly pass props
+
+   ```typescript
+   // ❌ BAD
+   const { children, ...other } = props;
+   return <div {...other}>{children}</div>;
+
+   // ✅ GOOD
+   const { children, className, onClick } = props;
+   return (
+     <div className={className} onClick={onClick}>
+       {children}
+     </div>
+   );
+   ```
+
+4. **Unused variables** - Remove or prefix with `_`
+
+   ```typescript
+   // ❌ BAD
+   const { data } = await api.get(); // 'data' is never used
+
+   // ✅ GOOD
+   await api.get(); // Don't destructure if not needed
+   // or
+   const { data: _data } = await api.get(); // Prefix with _ if intentionally unused
+   ```
+
+5. **Empty block statements** - Add comments or remove
+
+   ```typescript
+   // ❌ BAD
+   if (condition) {
+   }
+
+   // ✅ GOOD
+   if (condition) {
+     // Intentionally empty - handle in future
+   }
+   // or just remove the if block
+   ```
+
+6. **Unnecessary return statements**
+
+   ```typescript
+   // ❌ BAD
+   if (condition) {
+     return;
+   }
+
+   // ✅ GOOD
+   if (!condition) {
+     // Do something
+   }
+   ```
+
+#### ✅ Always Do:
+
+1. **Use specific types** - Import and use proper TypeScript interfaces/types
+2. **Type assertions with context** - Use `as unknown as Type` for complex conversions
+3. **Explicit prop passing** - List all props individually instead of spreading
+4. **Clean up unused code** - Remove unused variables or imports immediately
+5. **Add meaningful comments** - For intentionally empty blocks or complex logic
+6. **Run linter before commit** - `npx eslint <files> --max-warnings=0`
 
 ### Backend Integration Notes
 
