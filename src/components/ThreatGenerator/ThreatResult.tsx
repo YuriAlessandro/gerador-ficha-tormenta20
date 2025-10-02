@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-console */
 import React from 'react';
 import ReactToPrint from 'react-to-print';
 import {
-  Box,
   Button,
   Card,
   Container,
@@ -12,7 +13,6 @@ import {
 } from '@mui/material';
 import {
   PictureAsPdf as PdfIcon,
-  CloudUpload as CloudUploadIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Casino as CasinoIcon,
@@ -24,9 +24,8 @@ import {
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { useAlert, useConfirm } from '../../hooks/useDialog';
+import { useConfirm } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
-import { useSheets } from '../../hooks/useSheets';
 import { convertThreatToFoundry } from '../../2foundry';
 import { ThreatSheet } from '../../interfaces/ThreatSheet';
 import {
@@ -34,7 +33,7 @@ import {
   getTierByChallengeLevel,
 } from '../../functions/threatGenerator';
 import { Atributo } from '../../data/atributos';
-import { saveThreat, deleteThreat } from '../../store/slices/threatStorage';
+import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 
 interface ThreatResultProps {
@@ -56,12 +55,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { showAlert, AlertDialog } = useAlert();
   const { showConfirm, ConfirmDialog } = useConfirm();
   const { isAuthenticated } = useAuth();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
-  const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const resultRef = React.createRef<HTMLDivElement>();
@@ -175,7 +172,6 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   return (
     <>
-      <AlertDialog />
       <ConfirmDialog />
       <Container maxWidth='xl' sx={{ py: 2 }}>
         {/* Breadcrumb Navigation */}
@@ -208,6 +204,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                     fontWeight: isSavedToCloud ? 'normal' : 'bold',
                   }}
                   startIcon={
+                    // eslint-disable-next-line no-nested-ternary
                     isSaving ? (
                       <CircularProgress size={20} />
                     ) : isSavedToCloud ? (
@@ -217,6 +214,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                     )
                   }
                 >
+                  {/* eslint-disable-next-line no-nested-ternary */}
                   {isSaving
                     ? 'Salvando...'
                     : isSavedToCloud

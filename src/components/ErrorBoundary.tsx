@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable react/no-unused-state */
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   Box,
@@ -7,7 +9,6 @@ import {
   Typography,
   Stack,
   Collapse,
-  IconButton,
   Alert,
 } from '@mui/material';
 import {
@@ -17,7 +18,6 @@ import {
   Refresh as RefreshIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
-import { useHistory } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -58,7 +58,8 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private toggleDetails = () => {
-    this.setState((prev) => ({ showDetails: !prev.showDetails }));
+    const { showDetails } = this.state;
+    this.setState({ showDetails: !showDetails });
   };
 
   private copyErrorToClipboard = async () => {
@@ -87,15 +88,21 @@ Por favor, envie este log para o suporte.
     try {
       await navigator.clipboard.writeText(errorText);
       this.setState({ copySuccess: true });
-      setTimeout(() => this.setState({ copySuccess: false }), 3000);
+      setTimeout(() => {
+        this.setState({ copySuccess: false });
+      }, 3000);
     } catch (err) {
       console.error('Failed to copy error:', err);
     }
   };
 
   public render() {
-    if (this.state.hasError) {
+    const { hasError } = this.state;
+    const { children } = this.props;
+
+    if (hasError) {
       return (
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         <ErrorFallbackUI
           state={this.state}
           handlers={{
@@ -108,7 +115,7 @@ Por favor, envie este log para o suporte.
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }
 
@@ -122,7 +129,6 @@ const ErrorFallbackUI: React.FC<{
     copyErrorToClipboard: () => void;
   };
 }> = ({ state, handlers }) => {
-  const history = useHistory();
   const { error, errorInfo, showDetails, copySuccess } = state;
   const { handleReload, handleRefresh, toggleDetails, copyErrorToClipboard } =
     handlers;

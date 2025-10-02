@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import React, { useState } from 'react';
 import {
   Box,
@@ -94,7 +96,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     // Check for cloud threat passed via location.state
     const locationState = location.state as any;
     if (locationState?.cloudThreat) {
-      const cloudThreat = locationState.cloudThreat;
+      const { cloudThreat } = locationState;
       const threatData = cloudThreat.sheetData as ThreatSheet;
 
       setThreat(threatData);

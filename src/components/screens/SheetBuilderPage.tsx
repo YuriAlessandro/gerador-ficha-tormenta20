@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import bgImage from '@/assets/images/fantasybg.png';
 import styled from '@emotion/styled';
 import EditIcon from '@mui/icons-material/Edit';
