@@ -164,9 +164,11 @@ const Result: React.FC<ResultProps> = (props) => {
   let className = `${classe.name}`;
   if (classe.subname) className = `${className} (${classe.subname})`;
 
-  const periciasSorted = completeSkills?.sort((skillA, skillB) =>
-    skillA.name < skillB.name ? -1 : 1
-  );
+  const periciasSorted = completeSkills
+    ? [...completeSkills].sort((skillA, skillB) =>
+        skillA.name < skillB.name ? -1 : 1
+      )
+    : undefined;
 
   const periciasDiv = (
     <SkillTable sheet={currentSheet} skills={periciasSorted} />
