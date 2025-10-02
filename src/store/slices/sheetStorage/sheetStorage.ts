@@ -78,7 +78,10 @@ export const sheetStorageSlice = createSlice({
     },
     setActiveSheet: (state, action: PayloadAction<string>) => {
       state.activeSheetId = action.payload;
-      state.sheets[action.payload].date = new Date().getTime();
+      // Only update date if sheet exists in local storage
+      if (state.sheets[action.payload]) {
+        state.sheets[action.payload].date = new Date().getTime();
+      }
     },
     removeSheet: (state, action: PayloadAction<string>) => {
       state.activeSheetId = '';
