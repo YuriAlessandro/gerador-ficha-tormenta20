@@ -124,8 +124,8 @@ const MyCharactersPage: React.FC = () => {
     const isThreat = sheet.sheetData?.isThreat;
 
     if (isThreat) {
-      // For threats, navigate to threat view (not implemented yet, use generator for now)
-      history.push('/gerador-ameacas');
+      // For threats, pass cloudThreat via location.state
+      history.push('/threat-view', { cloudThreat: sheet });
     } else {
       // For characters, load the cloud sheet in MainScreen
       history.push('/ficha-aleatoria', { cloudSheet: sheet });

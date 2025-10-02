@@ -58,7 +58,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const dispatch = useDispatch();
   const { showAlert, AlertDialog } = useAlert();
   const { isAuthenticated } = useAuth();
-  const { createSheet: createSheetAction } = useSheets();
+  const { createSheet: createSheetAction, updateSheet: updateSheetAction } =
+    useSheets();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -90,6 +91,23 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   // Check for edit mode on component mount
   React.useEffect(() => {
+    // Check for cloud threat passed via location.state
+    const locationState = location.state as any;
+    if (locationState?.cloudThreat) {
+      const cloudThreat = locationState.cloudThreat;
+      const threatData = cloudThreat.sheetData as ThreatSheet;
+
+      setThreat(threatData);
+      setIsEditing(true);
+      setIsSavedToCloud(true);
+      setCloudThreatId(cloudThreat.id);
+
+      // Clear the state to prevent reloading
+      history.replace('/gerador-ameacas', {});
+      return;
+    }
+
+    // Check for local threat edit via query param
     const searchParams = new URLSearchParams(location.search);
     const editId = searchParams.get('edit');
 
@@ -102,7 +120,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         history.replace('/threat-generator');
       }
     }
-  }, [location.search, threats, history]);
+  }, [location.search, location.state, threats, history]);
 
   const steps = [
     'Tipo, Tamanho e Papel',
@@ -132,7 +150,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     setActiveStep(step);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const errors = validateThreat(threat);
     if (errors.length > 0) {
       showAlert(
@@ -149,6 +167,26 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     } as ThreatSheet;
 
     dispatch(saveThreat(completeThreat));
+
+    // If editing a cloud threat, update it in the cloud
+    if (cloudThreatId && isSavedToCloud) {
+      try {
+        await updateSheetAction(cloudThreatId, {
+          name: completeThreat.name,
+          sheetData: {
+            ...completeThreat,
+            isThreat: true,
+          } as any,
+        });
+      } catch (error) {
+        console.error('Failed to update cloud threat:', error);
+        showAlert(
+          'Não foi possível atualizar a ameaça na nuvem.',
+          'Erro ao Atualizar'
+        );
+      }
+    }
+
     setShowResult(true);
   };
 

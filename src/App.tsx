@@ -41,6 +41,7 @@ import MagicalItems from './components/screens/MagicalItems';
 import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorScreen';
 import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
+import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
 import store, { persistor } from './store';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import SystemUpdate from './components/SystemUpdate';
@@ -369,6 +370,9 @@ function App(): JSX.Element {
                           </Route>
                           <Route path='/threat-history'>
                             <ThreatHistory />
+                          </Route>
+                          <Route path='/threat-view'>
+                            <ThreatViewCloudWrapper />
                           </Route>
                           <Route path='/threat/:id'>
                             <ThreatViewWrapper />
