@@ -10,6 +10,7 @@ import FINTROLL from './fintroll';
 import GNOLL from './gnoll';
 import HARPIA from './harpia';
 import HOBGOBLIN from './hobgoblin';
+import KAIJIN from './kaijin';
 import KALLYANACH from './kallyanach';
 
 const AMEACAS_ARTON_RACES: Race[] = [
@@ -21,6 +22,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   GNOLL,
   HARPIA,
   HOBGOBLIN,
+  KAIJIN,
   KALLYANACH,
 ];
 
