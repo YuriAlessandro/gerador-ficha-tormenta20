@@ -257,6 +257,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     string | null
   >(null);
 
+  // Use ref to bypass navigation blocking immediately without waiting for state updates
+  const allowNavigationRef = React.useRef(false);
+
   const location = useLocation<{ cloudSheet?: any }>();
 
   // Get races and classes based on user's enabled supplements
@@ -902,6 +905,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   // Handle navigation blocking with custom dialog
   const handleNavigationAttempt = React.useCallback(
     (location: any) => {
+      // Check ref first for immediate bypass
+      if (allowNavigationRef.current) {
+        return true;
+      }
+
       if (randomSheet && !sheetSavedToCloud && !showHistoric) {
         setShowUnsavedDialog(true);
         setPendingNavigation(location.pathname);
@@ -920,10 +928,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleConfirmNavigation = () => {
     setShowUnsavedDialog(false);
     if (pendingNavigation) {
-      // Temporarily allow navigation by marking as saved
-      setSheetSavedToCloud(true);
+      // Set ref to true for immediate bypass of navigation blocking
+      allowNavigationRef.current = true;
+      // Navigate immediately
       history.push(pendingNavigation);
       setPendingNavigation(null);
+      // Reset ref after navigation
+      setTimeout(() => {
+        allowNavigationRef.current = false;
+      }, 100);
     }
   };
 
@@ -938,9 +951,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       {/* Unsaved Changes Dialog */}
       <Dialog
         open={showUnsavedDialog}
-        onClose={handleCancelNavigation}
         maxWidth='sm'
         fullWidth
+        disableEscapeKeyDown
       >
         <DialogTitle>Ficha Não Salva</DialogTitle>
         <DialogContent>
