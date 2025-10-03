@@ -29,16 +29,13 @@ import { ClassPower } from '@/interfaces/Class';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 import {
   ManualPowerSelections,
   PowerSelectionRequirements,
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
-import combatPowers from '@/data/systems/tormenta20/powers/combatPowers';
-import destinyPowers from '@/data/systems/tormenta20/powers/destinyPowers';
-import spellPowers from '@/data/systems/tormenta20/powers/spellPowers';
-import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
-import GRANTED_POWERS from '@/data/systems/tormenta20/powers/grantedPowers';
 import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import {
   getPowerSelectionRequirements,
@@ -120,6 +117,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   }, [sheet.generalPowers, sheet.classPowers, sheet.origin?.powers, open]);
 
   // Organize all powers by category
+  // Use all available supplements to show all powers in editor
+  const allSupplements = [
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_AMEACAS_ARTON,
+  ];
+  const allPowersByCategory =
+    dataRegistry.getPowersBySupplements(allSupplements);
+
   const powerCategories: PowerCategory[] = [
     {
       type: 'ORIGEM',
@@ -129,27 +134,27 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     {
       type: GeneralPowerType.COMBATE,
       name: 'Poderes de Combate',
-      powers: Object.values(combatPowers),
+      powers: allPowersByCategory.COMBATE,
     },
     {
       type: GeneralPowerType.DESTINO,
       name: 'Poderes de Destino',
-      powers: Object.values(destinyPowers),
+      powers: allPowersByCategory.DESTINO,
     },
     {
       type: GeneralPowerType.MAGIA,
       name: 'Poderes de Magia',
-      powers: Object.values(spellPowers),
+      powers: allPowersByCategory.MAGIA,
     },
     {
       type: GeneralPowerType.TORMENTA,
       name: 'Poderes de Tormenta',
-      powers: Object.values(tormentaPowers),
+      powers: allPowersByCategory.TORMENTA,
     },
     {
       type: GeneralPowerType.CONCEDIDOS,
       name: 'Poderes Concedidos',
-      powers: Object.values(GRANTED_POWERS),
+      powers: allPowersByCategory.CONCEDIDOS,
     },
   ];
 
