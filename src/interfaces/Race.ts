@@ -85,7 +85,8 @@ export type RaceNames =
   | 'Centauro'
   | 'Ceratops'
   | 'Elfo-do-Mar'
-  | 'Fintroll';
+  | 'Fintroll'
+  | 'Gnoll';
 
 export default interface Race {
   name: RaceNames;
