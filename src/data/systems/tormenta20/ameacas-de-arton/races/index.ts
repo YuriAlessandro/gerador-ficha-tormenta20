@@ -21,7 +21,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   GNOLL,
   HARPIA,
   HOBGOBLIN,
-  KALLYANACH,
+  ...KALLYANACH, // Array com 2 variantes de atributos (+2/+0 ou +1/+1)
 ];
 
 export default AMEACAS_ARTON_RACES;
