@@ -58,9 +58,9 @@ const faithProbability = {
   WYNNA: 1,
 };
 
-// Variante: +2 em um atributo
-const KALLYANACH_PLUS2: Race = {
+const KALLYANACH: Race = {
   name: 'Kallyanach',
+  // Atributos serão definidos pela função setup
   attributes: {
     attrs: [
       {
@@ -71,6 +71,42 @@ const KALLYANACH_PLUS2: Race = {
   },
   faithProbability,
   abilities: kallyanachAbilities,
+  // Setup escolhe aleatoriamente entre +2 em 1 atributo ou +1 em 2 atributos
+  setup: (race) => {
+    const useDoubleBonus = Math.random() < 0.5;
+
+    if (useDoubleBonus) {
+      // Variante: +2 em um atributo
+      return {
+        ...race,
+        attributes: {
+          attrs: [
+            {
+              attr: 'any',
+              mod: 2,
+            },
+          ],
+        },
+      };
+    }
+
+    // Variante: +1 em dois atributos
+    return {
+      ...race,
+      attributes: {
+        attrs: [
+          {
+            attr: 'any',
+            mod: 1,
+          },
+          {
+            attr: 'any',
+            mod: 1,
+          },
+        ],
+      },
+    };
+  },
 };
 
-export default KALLYANACH_PLUS2;
+export default KALLYANACH;
