@@ -1,6 +1,5 @@
 import Equipment from '../../../../../interfaces/Equipment';
 import Race from '../../../../../interfaces/Race';
-import { Atributo } from '../../atributos';
 import DRACONIC_BLESSINGS from '../powers/draconicBlessings';
 
 // Arma natural baseada na herança dracônica
@@ -20,14 +19,7 @@ const KALLYANACH: Race = {
       // Escolha flexível: +2 em um atributo OU +1 em dois
       // Por padrão, dando +2 em um atributo aleatório
       {
-        attr: [
-          Atributo.FORCA,
-          Atributo.DESTREZA,
-          Atributo.CONSTITUICAO,
-          Atributo.INTELIGENCIA,
-          Atributo.SABEDORIA,
-          Atributo.CARISMA,
-        ][Math.floor(Math.random() * 6)] as Atributo,
+        attr: 'any',
         mod: 2,
       },
     ],
