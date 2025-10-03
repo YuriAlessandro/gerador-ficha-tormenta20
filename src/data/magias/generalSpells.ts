@@ -67,6 +67,52 @@ export enum spellsCircle1Names {
   transmutarObjetos = 'transmutarObjetos',
   visaoMistica = 'visaoMistica',
   vitalidadeFantasma = 'vitalidadeFantasma',
+  acoiteFlamejante = "Açoite Flamejante",
+  dardoGelido = "Dardo Gélido",
+  jatoCorrosivo = "Jato Corrosivo",
+  detonacaoCongelante = "Detonação Congelante",
+  disparoGelido = "Disparo Gélido",
+  geiserCaustico = "Geiser Cáustico",
+  nuvemTempestuosa = "Nuvem Tempestuosa",
+  armaDeJade = "Arma de Jade",
+  arsenalDeAllihanna = "Arsenal de Allihanna",
+  bofetadaDeNimb = "Bofetada de Nimb",
+  escapatoriaDeHyninn = "Escapatória de Hyninn",
+  euforiaDeValkaria = "Euforia de Valkaria",
+  execucaoDeThwor = "Execução de Thwor",
+  flechaDeLuz = "Flecha de Luz",
+  frescorDeLena = "Frescor de Lena",
+  furiaDosAntepassados = "Fúria dos Antepassados",
+  futuroMelhor = "Futuro Melhor",
+  infortunioDeSszzaas = "Infortúnio de Sszzaas",
+  instanteEstoico = "Instante Estoico",
+  magiaDadivosa = "Magia Dadivosa",
+  orbeDoOceano = "Orbe do Oceano",
+  paixaoDeMarah = "Paixão de Marah",
+  percepcaoRubra = "Percepção Rubra",
+  perturbacaoSombria = "Perturbação Sombria",
+  poderDeKallyadranoch = "Poder de Kallyadranoch",
+  posseDeArsenal = "Posse de Arsenal",
+  protecaoDeTauron = "Proteção de Tauron",
+  sigiloDeSszzaas = "Sigilo de Sszzaas",
+  sirocoDeAzgher = "Siroco de Azgher",
+  sorrisoDaFortuna = "Sorriso da Fortuna",
+  toqueDeMegalokk = "Toque de Megalokk",
+  vozDaRazao = "Voz da Razão",
+  armaduraArdente = "Armadura Ardente",
+  assobioPerigoso = "Assobio Perigoso",
+  conjurarArmadilha = "Conjurar Armadilha",
+  desafioCorajoso = "Desafio Corajoso",
+  discricao = "Discrição",
+  distracaoFugaz = "Distração Fugaz",
+  emularMagia = "Emular Magia",
+  espiritoBalistico = "Espírito Balístico",
+  farejarFortuna = "Farejar Fortuna",
+  maaaisKlunc = "Maaais Klunc",
+  ossosDeAdamante = "Ossos de Adamante",
+  pontoFraco = "Ponto Fraco",
+  punhoDeMitral = "Punho de Mitral",
+  toqueDoHorizonte = "Toque do Horizonte",
 }
 
 export enum spellsCircle2Names {
@@ -118,6 +164,21 @@ export enum spellsCircle2Names {
   controlarMadeira = 'controlarMadeira',
   fisicoDivino = 'fisicoDivino',
   enxameDePestes = 'exameDePestes',
+  invocarFagulhaElemental = "Invocar Fagulha Elemental",
+  momentoDeTormenta = "Momento de Tormenta",
+  preparacaoDeBatalha = "Preparação de Batalha",
+  controlarAr = "Controlar Ar",
+  couracaDeAllihanna = "Couraça de Allihanna",
+  punicaoDoProfano = "Punição do Profano",
+  traicaoDaLamina = "Traição da Lâmina",
+  traicaoMagica = "Traição Mágica",
+  desfazerEngenhoca = "Desfazer Engenhoca",
+  evacuacao = "Evacuação",
+  maquinaDeCombate = "Máquina de Combate",
+  pocaoExplosiva = "Poção Explosiva",
+  piscar = "Piscar",
+  transposicao = "Transposição",
+  viagemOnirica = "Viagem Onírica",
 }
 
 export enum spellsCircle3Names {
@@ -161,6 +222,9 @@ export enum spellsCircle3Names {
   controlarAgua = 'controlarAgua',
   controlarTerra = 'controlarTerra',
   potenciaDivina = 'potenciaDivina',
+  halitoPeconhento = "Hálito Peçonhento",
+  impactoFulminante = "Impacto Fulminante",
+  toqueAlgido = "Toque Álgido",
 }
 
 export enum spellsCircle4Names {
@@ -194,6 +258,11 @@ export enum spellsCircle4Names {
   controlarAGravidade = 'controlarAGravidade',
   desintegrar = 'desintegrar',
   formaEterea = 'formaEterea',
+  transformacaoEmDragao = "Transformação em Dragão",
+  bencaoDaDragoaRainha = "Bênção da Dragoa Rainha",
+  pantanoVitriolico = "Pântano Vitriólico",
+  raioDePlasma = "Raio de Plasma",
+  velocidadeDoRelampago = "Velocidade do Relâmpago",
 }
 
 export enum spellsCircle5Names {
@@ -223,6 +292,7 @@ export enum spellsCircle5Names {
   furiaDoPanteao = 'furiaDoPanteao',
   segundaChance = 'segundaChance',
   reanimacaoImpura = 'reanimacaoImpura',
+  katanaCelestial = "Katana Celestial",
 }
 
 export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
@@ -1765,6 +1835,1177 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
     ],
   },
+  [spellsCircle1Names.acoiteFlamejante]: {
+    nome: "Açoite Flamejante",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Açoite de chamas criado em sua mão (veja texto)",
+    duracao: "Sustentada",
+    resistencia: "Reflexos reduz à metade",
+    school: "Conv",
+    description:
+      `Um açoite de fogo surge em uma de suas mãos com a qual possa empunhar uma arma (essa mão fica ocupada pela duração da magia).<br>Você pode usar uma ação padrão para causar 2d6 pontos de dano de fogo com o açoite em uma criatura em alcance curto.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `além do normal, se a criatura falhar no teste de Reflexos fica em chamas.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o dano para 4d6. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o dano para 6d6. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle1Names.dardoGelido]: {
+    nome: "Dardo Gélido",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Fortitude reduz à metade",
+    school: "Evoc",
+    description:
+      `Você dispara um dardo de gelo contra o alvo, que sofre 2d6 pontos de dano de frio.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d6.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda a resistência para Fortitude parcial. Se passar, a criatura reduz o dano à metade; se falhar, fica lenta até o final da cena.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle1Names.jatoCorrosivo]: {
+    nome: "Jato Corrosivo",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Linha de 9m",
+    duracao: "Instantânea",
+    resistencia: "Fortitude reduz à metade",
+    school: "Evoc",
+    description:
+      `Você dispara um jato, que causa 2d6 pontos de dano de ácido às criaturas na área. Contra construtos e objetos soltos, a magia causa +1 ponto de dano por dado.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d6.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda a resistência para Fortitude parcial. Se passar, a criatura reduz o dano à metade; se falhar, fica vulnerável.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle1Names.detonacaoCongelante]: {
+    nome: "Detonação Congelante",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Esfera de 6m de raio",
+    duracao: "Instantânea",
+    resistencia: "Fortitude parcial",
+    school: "Evoc",
+    description:
+      `Você emite uma onda de frio extremo que cobre a área de gelo. Criaturas na área sofrem 2d6 pontos de dano de frio e ficam enredadas e imóveis por 1d4 rodadas. Passar no teste de resistência reduz o dano pela metade e deixa a criatura enredada por uma rodada. Uma criatura voadora que fica imóvel começa a cair no início do seu turno.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d6.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda a duração para sustentada. Ao invés do normal, você emite uma aura de frio constante em alcance curto. Uma criatura que entre na área ou inicie seu turno dentro dela sofre 2d6 pontos de dano de frio e fica enredada e imóvel por uma rodada. Passar no teste de resistência reduz o dano pela metade, evita a condição imóvel e faz com que a criatura não possa mais ficar imóvel por esta magia nesta cena. Requer 2º círculo.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle1Names.disparoGelido]: {
+    nome: "Disparo Gélido",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Fortitude reduz à metade",
+    school: "Evoc",
+    description:
+      `Você dispara um dardo de neve e gelo contra o alvo, que causa 2d8+2 pontos de dano de frio.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d8+1.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda a resistência para Fortitude parcial. Se passar, a criatura reduz o dano à metade; se falhar, fica lenta até o final da cena.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle1Names.geiserCaustico]: {
+    nome: "Geiser Cáustico",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    area: "Cilindro de 3m de diâmetro e 3m de altura",
+    duracao: "Instantânea",
+    resistencia: "Fortitude reduz à metade",
+    school: "Evoc",
+    description:
+      `O solo explode em ácido corrosivo, causando 2d6 pontos de dano de ácido em todas as criaturas e objetos livres na área.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d6.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, o solo continua borbulhando em ácido venenoso até o final da cena, tornando-se terreno difícil. Qualquer criatura que entre na área ou comece o turno dentro dela sofre 2d6 pontos de dano de ácido (sem direito a teste de resistência).`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle1Names.nuvemTempestuosa]: {
+    nome: "Nuvem Tempestuosa",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    area: "Nuvem com 6m de raio",
+    duracao: "Sustentada",
+    resistencia: "Fortitude reduz à metade",
+    school: "Conv",
+    description:
+      `Você cria uma nuvem espessa carregada com eletricidade que causa 2d8 pontos de dano elétrico a qualquer criatura no mesmo espaço. Você pode gastar uma ação de movimento para fazer a nuvem voar 6m em qualquer direção. Uma criatura só pode sofrer dano da nuvem uma vez por rodada. A nuvem é imune a dano e conta como uma criatura Pequena para qualquer efeito de vento.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d8.`
+      }, 
+      {
+        addPM: 2,
+        text: `a nuvem também retumba com trovões. Além do normal, uma criatura que falhar no teste de Fortitude fica atordoada por 1 rodada. Se passar no teste, não pode mais ser atordoada por essa magia até o final da cena.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle1Names.armaDeJade]: {
+    nome: "Arma de Jade",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "1 arma",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia ofertada por Lin-Wu trasnfere temporariamente para uma arma as qualdades místicas do jade, um raro material de Tamu-ra. A arma é considerada mágica, pode ser sacada e guardada como ação livre e fornece +1 nos testes de ataque e rolagens de dano (isso conta como um bônus de encanto). Contra espíritos, os bônus fornecidos pela magia são dobrados.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `a arma causa +1d4 de dano de eletricidade.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o bônus de ataque e dano em +1 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o bônus de dano do aprimoramento acima para +2d4. <i>Apenas Devotos de LinWu.</i>.`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.arsenalDeAllihanna]: {
+    nome: "Arsenal de Allihanna",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Arma criada em sua mão",
+    duracao: "Cena",
+    school: "Conv",
+    description:
+      `Outrora chamada <i>Armamento de Allihanna</i>, esta magia recentemente recebeu um novo nome — com implicações curiosas. Utilizada pela primeira vez por Lisandra de Galrasia, diz-se que a verdadeira origem da magia estaria relacionada a seu pai, Arsenal, então mortal.<br>Você invoca uma arma a sua escolha, em uma versão de madeira mágica que fornece +1 nos testes de ataque e rolagens de dano (isso conta como um bônus de encanto) e conta como uma arma primitiva para efeitos como a magia <i>Armamento da Natureza</i>. Se for uma arma de disparo, ela produz sua própria munição (mas você pode usar munição normal, se quiser). <i>Arsenal de Allihanna</i> não cria armas complexas (como bestas ou armas de fogo) e seus efeitos só funcionam em suas mãos.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o bônus em +1 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `a arma, ou sua munição, é recoberta de espinhos. Ela causa +1d6 pontos de dano e o alvo do ataque fica sangrando.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o alvo para uma planta. A planta manifesta uma arma corpo a corpo simples de madeira de Tollon e uma armadura de couro batido reforçada. Alternativamente, se tiver o suplemento <i>Ameaças de Arton</i>, ela manifesta uma Espada Espinhenta ou um Fruto da Espada-Mãe (p. 245). Em ambos os casos, os itens permanecem pela duração da magia. Requer 2º círculo. <i>Apenas Devotos de Allihanna ou Dahllan.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.bofetadaDeNimb]: {
+    nome: "Bofetada de Nimb",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 humanoide",
+    duracao: "Instantânea",
+    resistencia: "Vontade parcial",
+    school: "Evoc",
+    description:
+      `Uma mão mágica surge diante do alvo e o esbofeteia na face, ou em outra parte vulnerável, desaparecendo em seguida. O golpe não causa dano, mas é bastante humilhante. Se o alvo falhar na resistência, fica desprevenido por uma rodada e vulnerável; se passar, fica apenas vulnerável por uma rodada.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `alvos que falhem na resistência ficam vulneráveis pela cena.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alvo para 1 criatura.`
+      }, 
+      {
+        addPM: 2,
+        text: `em vez do normal, a mão dá leves tapinhas que acalmam os alvos e anulam uma condição entre abalado, alquebrado, apavorado e frustrado. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `alvos que falhem na resistência ficam desprevenidos por 1d4+1 rodadas, em vez de apenas 1.`
+      }, 
+      {
+        addPM: 5,
+        text: `afeta todos os alvos válidos à sua escolha dentro do alcance. <i>Apenas Devotos de Nimb.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.escapatoriaDeHyninn]: {
+    nome: "Escapatória de Hyninn",
+    execucao: "Reação",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Instantânea",
+    school: "Abjur",
+    description:
+      `Por um breve instante, você adquire uma agilidade espantosa para se esquivar de algum perigo súbito. Você recebe +5 em Reflexos e em testes de Ladinagem para desarmar armadilhas.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda a execução para padrão e a duração para cena. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, o alvo pode usar a habilidade Evasão (Tormenta20, p. 73). <i>Apenas Devotos de Hyninn.</i>`
+      }, 
+      {
+        addPM: 4,
+        text: `como acima, mas o alvo pode usar Evasão Aprimorada (Tormenta20, p. 75). Requer 4° círculo. <i>Apenas Devotos de Hyninn.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.euforiaDeValkaria]: {
+    nome: "Euforia de Valkaria",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Encan",
+    description:
+      `Esta magia enche o alvo de disposição, apagando o medo (e bom senso) em seu coração e impedindo-o de ser intimidado por desafios difíceis.<br>O alvo se torna imune a medo e recebe +1 em testes de ataque quando luta em desvantagem (um encontro contra o dobro de inimigos que seu grupo, ou com ND maior que o do grupo).`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o bônus em testes de ataque em +1 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `muda a execução para reação e a duração para instantânea. Em vez do normal, você recebe imunidade a medo e +2 em Vontade até o início do seu próximo turno. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alvo para área de esfera com 3m de raio. Você e todos os aliados na área são afetados pela magia. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda o alcance para toque e o alvo para 1 criatura. <i>Apenas Devotos de Valkaria.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.execucaoDeThwor]: {
+    nome: "Execução de Thwor",
+    execucao: "Movimento",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 humanoide",
+    duracao: "1 rodada",
+    resistencia: "Vontade anula",
+    school: "Necro",
+    description:
+      `Esta magia afeta apenas criaturas sob um efeito de medo. O próximo ataque que acertar cada um dos alvos se transforma em um acerto crítico. Se o ataque for um acerto crítico naturalmente, seu multiplicador aumenta em +1.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `em vez do normal, afeta alvos sob qualquer condição mental. Requer 3º círculo.`
+      }, 
+      {
+        addPM: 6,
+        text: `em vez de acerto crítico, o ataque é considerado um golpe de misericórdia. Requer 5º círculo. <i>Apenas Devotos de Thwor</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.flechaDeLuz]: {
+    nome: "Flecha de Luz",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Reflexos parcial",
+    school: "Evoc",
+    description:
+      `Esta magia lança uma flecha luminosa contra o alvo, que sofre 2d8+2 pontos de dano de luz e fica ofuscado por 1 rodada. Passar no teste de resistência reduz o dano à metade e evita a condição.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alvo para uma criatura que tenha causado dano a você ou a seus aliados na última rodada. Cada dado de dano (incluindo de aprimoramentos) muda para d10.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o dano em +1d8+1.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o número de alvos em +1 (número de alvos adicionais limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `alvos que falhem na resistência ficam cegos por 1 rodada e então ofuscados. <i>Apenas Arcanos.</i>`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o alvo para seu arco arcano, a duração para sustentada e a resistência para nenhuma. Em vez do normal, transforma o alvo em uma arma luminosa que causa +2d8+2 pontos de dano de luz. Criaturas que sofram dano do arco ficam ofuscadas (veja Heróis de Arton, p. @@). <i>Apenas Arqueiros de Lenórienn.</i>`
+      }, 
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 duyshidakk, devoto de Aharadak ou devoto de Thwor. Muda os dados de dano para d10. <i>Apenas Devotos de Glórienn ou Elfos.</i>`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, para cada alvo que falhar na resistência, o próximo aliado que causar dano a ele recebe uma quantidade de PV temporários igual à metade do dano causado pela magia. <i>Apenas Divinos.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.frescorDeLena]: {
+    nome: "Frescor de Lena",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Raio de 9m",
+    duracao: "Instantânea",
+    school: "Abjur",
+    description:
+      `Você emana uma aura luminosa e refrescante, que envolve você e aliados ao seu redor. A aura purifica completamente o ar ao redor, eliminando todo tipo de fumaça, poeira, gás nocivo, nuvem ácida ou veneno respiratório, mundano ou mágico. Quaisquer destes efeitos que exijam um teste de Fortitude com CD 20 ou menor são dissipados.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta a CD dos efeitos dissipados em +5.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alcance para toque, o alvo para 1 criatura e a duração para cena. Em vez do normal, remove uma doença do alvo. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `como acima, mas o alvo rola dois dados para o teste de Fortitude e usa o melhor resultado. Requer 3° círculo. <i>Apenas Devotos de Lena.</i>`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alcance para toque e o alvo para 1 criatura. O alvo recupera 1 ponto de atributo perdido por uma doença. Requer 5° círculo. <i>Apenas Devotos de Lena.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.furiaDosAntepassados]: {
+    nome: "Fúria dos Antepassados",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 humanoide",
+    duracao: "Instantânea",
+    resistencia: "Vontade reduz à metade",
+    school: "Evoc",
+    description:
+      `Para aqueles devotados a Lin-Wu, respeito aos ancestrais é algo levado muito a sério — pois no além-vida, eles podem julgar suas ações e trazer fortuna ou desgraça. Esta magia invoca a alma e um antepassado da vítima para acusá-la de erros passados e trazer punição. O alvo sofre 1d6 pontos de dano psíquico e 1d6 pontos de dano de luz.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `além do normal, alvos que falhem na resistência ficam alquebrados.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o número de alvos em +1. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `aumenta o dano psíquico e de luz em +1d6 cada.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 criatura inteligente (Int –3 ou maior). <i>Apenas Devotos de Lin-Wu.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.futuroMelhor]: {
+    nome: "Futuro Melhor",
+    execucao: "Reação",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "1 rodada",
+    school: "Adiv",
+    description:
+      `Esta magia permite enxergar todas as possibilidades e consequências de um evento muito recente, ainda a tempo de escolher o melhor caminho. O alvo recebe +2 em um teste de perícia que recém tenha rolado, mas cujo resultado o mestre ainda não tenha declarado.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para curto e o alvo para uma criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 1,
+        text: `como acima, mas o bônus se torna 1d4+2. <i>Apenas Devotos de Thyatis.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.infortunioDeSszzaas]: {
+    nome: "Infortúnio de Sszzaas",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Cena",
+    resistencia: "Vontade anula",
+    school: "Necro",
+    description:
+      `Esta maldição menor reduz a resiliência de seus inimigos, tornando-os mais frágeis e suscetíveis a efeitos nocivos. O alvo sofre –2 em testes de sua resistência com menor valor.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `além do normal, criaturas afetadas perdem imunidade a venenos por uma rodada. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta a penalidade em –1 (penalidade máxima limitada pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 3,
+        text: `além do normal, quando o alvo morre, deixa para trás um pequeno cristal com memórias e segredos profundos. Uma vez por busca (Tormenta20, p. 278), você pode quebrar um desses cristais para receber +2 em um teste de perícia. Requer 3° círculo. <i>Apenas Devotos de Sszzaas.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.instanteEstoico]: {
+    nome: "Instante Estoico",
+    execucao: "Reação",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Instantânea",
+    school: "Abjur",
+    description:
+      `Invocando a proteção de Khalmyr, você resiste a agressões potencialmente perigosas. Quando sofre dano não mágico, você recebe RD 10 contra esse dano.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda a RD para 20. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, para cada 10 pontos de dano que a magia reduzir em um turno, sua próxima rolagem de dano feita até a próxima rodada causa +1d6 pontos de dano de essência.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda a execução para padrão e a duração para cena, até ser descarregada. Em vez do normal, quando sofre dano não mágico, você pode receber RD 10 contra esse dano. A magia é descarregada após você usar este efeito pela terceira vez. Requer 3º círculo. <i>Apenas Devotos de Khalmyr.</i>`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura. <i>Apenas Devotos de Khalmyr.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.magiaDadivosa]: {
+    nome: "Magia Dadivosa",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Conv",
+    description:
+      `Não é comum descrever uma divindade maior do Panteão como “maluquinha”. Contudo, há ocasiões em que Wynna faz por merecer. Como quando oferece estas dádivas caóticas. Pela duração da magia, a cada 1d8 rodadas, você recebe 1 PM temporário que só pode ser gasto em aprimoramentos de magias. A magia termina quando você recebe um total de 8 PM temporários.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alcance para curto e o alvo para 1 criatura. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 0,
+        text: `em vez do normal, você recebe 1 PM temporário a cada 1d6 rodadas. <i>Apenas Devotos de Wynna.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.orbeDoOceano]: {
+    nome: "Orbe do Oceano",
+    execucao: "Reação",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "1 turno",
+    school: "Abjur",
+    description:
+      `O suposto desaparecimento do Oceano mostra-se particularmente misterioso pelo fato de que seus devotos ainda podem lançar magias. Quando sofre um efeito hostil, você cria um globo de água salgada que o protege como se você estivesse submerso. Você recebe camuflagem leve e cobertura leve e armas de corte e perfuração que não sejam naturais lhe causam metade do dano. Além disso, ataques contra ele sofrem os efeitos de combate debaixo d'água.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda a duração para sustentada.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda a duração para cena. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alcance para curto, o alvo para uma criatura, a duração para sustentada e adiciona resistência (Reflexos evita). Em vez do normal, o alvo fica aprisionado dentro de um globo de água salgada; ele é considerado submerso e não pode respirar (a menos que possa respirar dentro d'água). Nenhuma criatura, objeto ou efeito de dano pode passar pelo globo. O alvo pode repetir o teste de Reflexos sempre que você se concentrar na magia. Requer 3º círculo. <i>Apenas Devotos de Oceano.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.paixaoDeMarah]: {
+    nome: "Paixão de Marah",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Encan",
+    description:
+      `Você é cercado por uma aura de magnetismo pessoal que o torna mais interessante e atraente aos olhos dos demais. O alvo recebe +2 em Atuação e Diplomacia.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alcance para curto e o alvo para 1 criatura.`
+      }, 
+      {
+        addPM: 1,
+        text: `além do normal, o alvo recebe +1 em Carisma. Esse aumento não oferece PV, PM ou perícias adicionais. <i>Apenas Devotos de Marah.</i>`
+      }, 
+      {
+        addPM: 3,
+        text: `muda a duração para 1 dia. Requer 2º círculo. <i>Apenas Devotos de Marah.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.percepcaoRubra]: {
+    nome: "Percepção Rubra",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Adiv",
+    description:
+      `Esta magia concedida por Aharadak faz o conjurador adquirir, por algum tempo, a estranha percepção de tempo dos lefeu — que permite ver alguns momentos no futuro. O alvo recebe +1 em testes de ataque, Reflexos e na Defesa.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alcance para curto e o alvo para 1 criatura.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o bônus em +1 (bônus máximo limitado por sua Sabedoria). <i>Apenas Devotos de Aharadak.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.perturbacaoSombria]: {
+    nome: "Perturbação Sombria",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Raio de 6m",
+    duracao: "Cena",
+    school: "Ilusão",
+    description:
+      `Invocando a proteção de Tenebra, você emana uma aura de sombras assustadora. A área é tomada por sombras que se movem de formas estranhas, rangidos e gemidos sem explicação, vultos fugidios nas janelas, faces macabras urrando para sumir no instante seguinte. Todas as demais criaturas na área sofrem –5 em testes de Percepção. Medo.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o efeito para aura de 9m.`
+      }, 
+      {
+        addPM: 2,
+        text: `adiciona resistência (Vontade parcial). Além do normal, criaturas que começam seu turno dentro da área ficam abaladas. Passar no teste de resistência evita a condição e impede que a criatura seja abalada por esta magia até o fim da cena. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, criaturas na área sofrem –2 em Vontade. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alcance para toque e o alvo para 1 criatura ou objeto.`
+      }, 
+      {
+        addPM: 5,
+        text: `você pode escolher quais criaturas são afetadas pela aura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 9,
+        text: `muda o alvo para área (esfera de 6m de raio), a execução para 1 hora, a duração para permanente e adiciona componente material (incenso e óleos no valor de T$ 1.000). Requer 5° círculo.`
+      }, 
+      {
+        addPM: 4,
+        text: `além do normal, a aura é tomada por escuridão que concede camuflagem leve a todos dentro dela. Mortos-vivos e devotos de Tenebra recebem +2 em testes de perícia dentro da área. <i>Apenas Devotos de Tenebra.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.poderDeKallyadranoch]: {
+    nome: "Poder de Kallyadranoch",
+    execucao: "Movimento",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "1 minuto",
+    school: "Evoc",
+    description:
+      `Por um breve momento, você manifesta uma pequena parte da força e majestade das grandes feras dracônicas: a capacidade de criar elementos em sua forma mais pura. Até o fim do seu turno, a CD para resistir às suas habilidades mágicas que causam dano de ácido, eletricidade, fogo ou frio aumenta em +2.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta a CD em +1, limitada pelo círculo máximo de magias que você pode lançar. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 1,
+        text: `além do normal, criaturas que falhem nos testes de resistência contra suas habilidades mágicas sofrem uma condição baseada no tipo de dano.<br><i>Ácido:</i> vulnerável até o fim da cena.<br><i>Eletricidade:</i> atordoado por 1 rodada (apenas uma vez por cena).<br><i>Fogo:</i> em chamas e vulnerável enquanto estiver em chamas.<br><i>Frio:</i> lento até o fim da cena.<br>Requer 2° círculo. <i>Apenas Devotos de Kallyadranoch.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.posseDeArsenal]: {
+    nome: "Posse de Arsenal",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "1 item empunhado",
+    duracao: "1 dia",
+    school: "Conv",
+    description:
+      `Esta magia cria um vínculo poderoso entre você e seus pertences, dificultando sua perda ou roubo. Você recebe +5 em testes opostos contra tentativas de desarmá-lo ou de quebrar o alvo, e recebe +5 em testes de Percepção contra testes de Ladinagem para roubar o item. Além disso, se o item estiver em alcance curto, você pode invocá-lo de volta às suas mãos como uma ação livre. Esta magia não afeta itens descartados ou entregues de forma voluntária (incluindo armas arremessadas).`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `afeta armas arremessadas. Após o ataque, se a arma estiver livre, ela volta voando para você; pegá-la é uma reação. <i>Apenas Devotos de Arsenal.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.protecaoDeTauron]: {
+    nome: "Proteção de Tauron",
+    execucao: "Movimento",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Cena",
+    school: "Abjur",
+    description:
+      `Esta antiga magia ofertada pelo Deus da Força ainda pode ser lançada mesmo após sua morte, preservada por divindades simpatizantes em honra a seu aspecto como protetor dos fracos. Quando a magia é lançada, luz sagrada envolve o alvo, que se torna um "protegido”; ele recebe +2 na Defesa e, quando se move em sua direção, o deslocamento dele é dobrado. Além disso, você sabe a direção e distância do alvo, e também se ele está ferido ou afetado por qualquer condição, independentemente da distância.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `além do normal, você pode usar habilidades mágicas com alcance de toque no alvo como se elas tivessem alcance curto.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o bônus na Defesa em +2 (bônus máximo limitado ao dobro do círculo máximo de magia que você pode lançar). Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, uma vez por rodada, quando uma criatura faz uma ação hostil contra o protegido, você pode fazer um ataque corpo a corpo contra ela, desde que ela esteja em seu alcance pessoal. <i>Apenas Minotauros ou Devotos de Tauron.<i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.sigiloDeSszzaas]: {
+    nome: "Sigilo de Sszzaas",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "1 dia",
+    school: "Abjur",
+    description:
+      `Ofertada pelo sombrio Deus dos Segredos, esta magia é utilizada por todos que buscam preservar a própria privacidade. Pela duração da magia, quaisquer criaturas que fizerem testes de perícia para obter alguma informação a seu respeito sofrem –5 nestes testes. Isso inclui testes de Percepção para notá-lo, Conhecimento e Investigação para descobrir algo sobre você, Intuição para discernir suas mentiras e disfarces, e assim por diante.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `adiciona resistência (Vontade parcial). Além do normal, criaturas que usem habilidades mágicas de detecção, como a magia Vidência, devem fazer um teste de Vontade. Se falharem, a habilidade não funciona e, pela duração da magia, novas tentativas de usar a mesma habilidade feitas pela mesma criatura falham automaticamente. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda a penalidade para –10. <i>Apenas Devotos de Sszzaas.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.sirocoDeAzgher]: {
+    nome: "Siroco de Azgher",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Reflexos reduz à metade",
+    school: "Evoc",
+    description:
+      `Invocando a fúria do Deus-Sol, você cria uma breve e focada tempestade de areia, capaz de esfolar a carne dos ossos! Cada alvo sofre dano de corte conforme seu grau de proteção: 3d6 para alvos sem armadura, 2d6 para alvos com armadura leve e 1d6 para alvos com armadura pesada.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o dano em +1d6.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o tipo de dano para luz.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o alcance para pessoal e o alvo para área (cone de 6m). Requer 2° círculo.`
+      }, 
+      {
+        addPM: 1,
+        text: `além do normal, criaturas que falhem na resistência ficam em chamas e sangrando. <i>Apenas Devotos de Azgher.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.sorrisoDaFortuna]: {
+    nome: "Sorriso da Fortuna",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "1 dia até ser descarregada",
+    school: "Evoc",
+    description:
+      `Variantes desta magia, com diferentes nomes, são concedidas por Nimb, Hyninn, Sszzaas, Valkaria e até Thyatis. O objetivo, contudo, é sempre o mesmo: trapacear em jogos.<br><i>Sorriso da Fortuna</i> permite manipular os resultados de um jogo de azar — como aqueles com dados, cartas ou roleta. Quando fizer um teste de Jogatina (ou relacionado a algum jogo, a critério do mestre) você pode rolar dois dados e usar o melhor resultado. A magia é descarregada após você usar esse efeito três vezes.<br>Esta magia afeta apenas jogos e itens mundanos, não mágicos. Embora funcione bem em pequenas tavernas ou festejos, grandes cassinos empregam vigilantes atentos ao uso desta magia e suas variações.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta em +1 o total deusos antes da magia ser descarregada.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda a execução para reação, o alcance para curto e o alvo para 1 criatura. Em vez do normal, a magia confunde um dos jogadores presentes, que rola seu teste de Jogatina com dois dados e usa o pior resultado.`
+      }, 
+      {
+        addPM: 3,
+        text: `além do normal, você pode escolher um “número da sorte”. Se o número da sorte for rolado em qualquer um dos dados, o resultado conta como um 20 natural. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda a execução para reação e a duração para instantânea. Em vez do normal, quando faz seu primeiro teste de uma perícia em uma cena, você pode rolar dois dados e usar o melhor resultado. <i>Apenas Devotos de Hyninn.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.toqueDeMegalokk]: {
+    nome: "Toque de Megalokk",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Criaturas naturais de Allihanna seguem leis naturais. Monstros existem apenas para violar essas leis. Após deformações horrendas, você se transforma em uma criatura do tipo monstro. Nesta forma, você recebe +5 em Intimidação, mas sofre –5 nas demais perícias baseadas em Carisma. Além disso, recebe uma arma natural de um tipo a sua escolha entre chifre, ferrão e mordida (dano 1d6, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com esta arma natural.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `a margem de ameaça de suas armas naturais aumenta em +1.`
+      }, 
+      {
+        addPM: 2,
+        text: `o dano de todas as suas armas naturais aumenta em um passo. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `além do normal, você recebe redução de dano 5. Requer 2º círculo. <i>Apenas Devotos de Megalokk.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.vozDaRazao]: {
+    nome: "Voz da Razão",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Encan",
+    description:
+      `Iluminada por Tanna-Toh, sua mente transborda de argumentos e informações. Você recebe +5 em Conhecimento, Diplomacia e Intimidação.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o bônus para +10. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, você recebe +5 em Intuição e em testes de Investigação para interrogar. <i>Apenas Devotos de Tanna-Toh.</i>`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle1Names.armaduraArdente]: {
+    nome: "Armadura Ardente",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Evoc",
+    description:
+      `Escolha um tipo de energia entre ácido, eletricidade, fogo ou frio. Uma aura faiscante dessa energia emana de seu corpo — sempre que uma criatura adjacente acertar um ataque corpo a corpo em você, ela sofre 2d6 pontos de dano do tipo escolhido.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o dano em +1d6 (total de dados limitado pelo círculo máximo de magia que você pode lançar). Requer 3º círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda a energia para essência. Requer 2º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.assobioPerigoso]: {
+    nome: "Assobio Perigoso",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Grupo de criaturas conjuradas",
+    duracao: "Veja texto",
+    school: "Conv",
+    description:
+      `Esta estranha magia conjura um grupo de criaturas agressivas que imediatamente ataca o conjurador e seus aliados. Sim, você leu direito.<br>As criaturas conjuradas são seres feitos de energia e representam um encontro, preparado pelo mestre, de ND igual ao nível do conjurador.<br>Elas surgem adjacentes aos personagens, atacando assim que invocadas. Lutam até a morte ou até que se passem 24 horas. Quando morrem, não deixam corpos nem tesouro.<br>A função original da magia é incerta. Estudiosos acreditam ser fruto de um experimento falho, ou uma tentativa de conjurar alguma criatura específica. De qualquer forma, nos dias de hoje é bastante utilizada para treinar novos aventureiros, ou causar distrações em situações muito específicas.<br>Quando utilizada em meio a um combate, as criaturas podem atacar aleatoriamente qualquer dos envolvidos.`,
+    aprimoramentos: [
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.conjurarArmadilha]: {
+    nome: "Conjurar Armadilha",
+    execucao: "Completa",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 armadilha conjurada",
+    duracao: "Permanente",
+    school: "Trans",
+    description:
+      `Esta magia modifica o terreno e/ou a arquitetura de um ponto no alcance, transformando-o em uma armadilha do caçador (Tormenta20, p. 50) à sua escolha. A armadilha criada segue as mesmas regras de armadilhas, exceto que a CD dos testes para encontrá-la e resistir à ela são a da magia.<br>Embora seja produzida por magia, a armadilha ainda pode ser superada por meios mundanos normais. Depois de ativada, seja bem-sucedida ou não, a armadilha não volta a reativar: fica inerte e inofensiva, devendo ser conjurada outra vez.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `reduz o tempo de execução para movimento.`
+      }, 
+      {
+        addPM: 1,
+        text: `seus poderes que afetam armadilhas também afetam a armadilha criada pela magia.`
+      }, 
+      {
+        addPM: 3,
+        text: `quando lança a magia, você pode escolher qualquer número de criaturas no alcance para não serem afetadas pela armadilha. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda a execução para padrão. A armadilha pode ser conjurada diretamente em uma área ocupada por uma criatura, o que a aciona imediatamente. Requer 3º círculo.`
+      }, 
+      {
+        addPM: 4,
+        text: `em vez do normal, você pode conjurar uma das suas armadilhas de armadilheiro mestre. <i>Apenas Armadilheiro Mestres.</i>`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.desafioCorajoso]: {
+    nome: "Desafio Corajoso",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura voluntária",
+    duracao: "Sustentada",
+    resistencia: "Vontade anula",
+    school: "Encan",
+    description:
+      `Esta magia cria uma aura de influência de em ao redor do alvo. Outras criaturas que iniciarem seus turnos dentro da aura devem fazer um teste de Vontade. Se falharem, suas ações hostis deste turno devem ser feitas contra o alvo.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda a aura para 18m. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o alvo para criatura ou objeto. O alvo tem direito a um teste de Vontade para impedir a criação da aura. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.discricao]: {
+    nome: "Discrição",
+    execucao: "Padrão",
+    alcance: "Pessoal ou toque",
+    alvo: "Você ou 1 objeto",
+    duracao: "Cena",
+    resistencia: "Vontade anula",
+    school: "Encan",
+    description:
+      `Esta magia torna a aparência do alvo desinteressante, como se este fosse parte da paisagem, algo perdido na bagunça, ou mais um na multidão. O alvo não se torna invisível, ainda é percebido como uma criatura ou objeto; o Encan apenas desvia a atenção dos observadores para outras pessoas ou elementos ao redor. Testes de Investigação e Percepção em relação ao alvo sofrem uma penalidade de –10.<br>Em combate, enquanto Discrição estiver ativa, todos os inimigos que iniciarem seus turnos em até 9m do alvo da magia devem fazer um teste de Vontade. Se falharem, qualquer ação hostil que realizarem ignora a criatura. Essa magia se dissipa se você causar dano a qualquer criatura.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta a penalidade em testes para –15. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `além do normal, o alvo não pode ser detectado por magias de Adiv. Requer 4° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.distracaoFugaz]: {
+    nome: "Distração Fugaz",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 humanóide",
+    duracao: "Instantânea",
+    resistencia: "Vontade anula",
+    school: "Ilusão",
+    description:
+      `Esta magia busca algo de grande interesse pessoal (seja uma pessoa, item, lembrança...) no coração do alvo e produz uma breve ilusão de acordo.<br>Não é necessário que você conheça esse objeto de apreço, a própria magia faz essa revelação. A magia, entretanto, não  capaz de revelar detalhes minuciosos (como o nome de uma pessoa ou item desejado), produzindo uma versão “genérica” do objeto de interesse.<br>Por exemplo, um bucaneiro ganancioso enxerga tibares de ouro caindo à sua frente. Um guerreiro se espanta ao notar o oponente usando uma arma muito cobiçada. Um bárbaro comilão fareja um delicioso sanduíche de presunto. Um gladiador libertino encanta-se com o surgimento súbito de uma ninfa deslumbrante, e assim por diante.<br>Não importando a natureza da distração, se falhar em seu teste de Vontade, o alvo fica desprevenido durante 1 rodada.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `além do normal, se falhar no teste de Vontade o alvo também sofre –5 em testes de Diplomacia e Intimidação até o fim da cena.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `em vez de desprevenido, o alvo fica atordoado (apenas uma vez por cena).`
+      }, 
+      {
+        addPM: 2,
+        text: `afeta todos os alvos válidos a sua escolha dentro do alcance. Requer 2º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.emularMagia]: {
+    nome: "Emular Magia",
+    execucao: "Movimento",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Evoc",
+    description:
+      `Pela duração da magia, você pode lançar uma magia que tenha visto ser lançada em alcance curto desde a última rodada. A magia deve ser de um tipo (arcana ou divina) e de um círculo a que você tenha acesso.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `a magia emulada pode ser de qualquer tipo, arcana ou divina.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.espiritoBalistico]: {
+    nome: "Espírito Balístico",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura conjurada",
+    duracao: "Sustentada",
+    school: "Conv",
+    description:
+      `Esta magia invoca uma criatura pequena, similar a <i>Conjurar Monstro</i>, mas limitada a uma única função. O espírito é fixo, permanecendo no lugar onde foi invocado, incapaz de se mover ou esquivar. Em cada um dos turnos do conjurador, o espírito dispara um projétil mágico contra o inimigo mais próximo em alcance médio, causando 1d6 pontos de dano de perfuração. O espírito não realiza outras ações, e ataca a cada rodada até que a magia termine, não existam mais inimigos no alcance, ou o espírito seja destruído.<br>O espírito tem tem For 2, Des 3 e todos os outros atributos nulos. Ele tem Defesa igual a sua, 20 pontos de vida e usa o seu bônus para teste de Reflexos. Ele é imune a efeitos que pedem um teste de Fortitude ou Vontade.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o número de espíritos para dois.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o dano em um dado do mesmo tipo (total de dados limitado pelo círculo máximo de magia que você pode lançar). Requer 2º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o número de espíritos para três. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o dado de dano para d8 e o tipo de dano para o seu tipo de energia. <i>Apenas Golem elementa, Qareen ou Kallyanach.</i>`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.farejarFortuna]: {
+    nome: "Farejar Fortuna",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Adiv",
+    description:
+      `Ao lançar esta magia, você sabe se existe algum tesouro em alcance longo. Para este efeito, é considerado  “tesouro” qualquer acúmulo de itens valiosos (acima do dinheiro inicial de um personagem de mesmo nível) que não estejam sendo vestidos por uma criatura inteligente.<br>Você sabe se há tesouros na área, mas não recebe nenhuma outra informação a respeito, como a direção do tesouro, valor exato do mesmo, obstáculos no caminho... nada disso é informado pela magia.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `você recebe +5 em testes de perícia para localizar o tesouro.`
+      }, 
+      {
+        addPM: 2,
+        text: `em vez do normal, quando você rola qualquer dado para definir um tesouro, pode rolar dois dados e escolher qual resultado usar.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alvo para um item recém-encontrado e a duração para instantânea. Você identifica todas as propriedades daquele item e seu histórico, se houver. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.maaaisKlunc]: {
+    nome: "Maaais Klunc",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia surgiu com o objetivo de invocar a força estupenda e estapafúrdia de certo bárbaro lendário, capaz de alcançar dimensões colossais. Infelizmente (ou talvez felizmente) seus efeitos reais são muito mais brandos, pouco se aproximando do poder descomunal e descabido do bruto em questão. Melhor assim. Ao conjurar a magia você adquire uma fantástica Força +10. Um relevante efeito colateral, contudo, é que sua Inteligência cai para acachapantes –2. Não, não uma penalidade de –2; um ATRIBUTO –2!<br>Pela duração de Maaais Klunc, você não poderá lançar magias, nem será capaz de interromper esta magia de forma voluntária — quem dirá soletrar essa palavra. O mestre pode (vai) exigir testes de Inteligência mesmo para as tarefas mentais mais simplórias, como achar a saída de um aposento vazio, diferenciar aliado de inimigo, ou determinar qual extremidade da arma vai na direção do adversário.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura voluntária (por que alguém seria voluntário?). Requer 2º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alcance para curto e o alvo para 1 criatura involuntária (Vontade evita). Requer 3º círculo. Espera, o quê?!`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.ossosDeAdamante]: {
+    nome: "Ossos de Adamante",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia confere resistência extraordinária ao esqueleto, evitando ataques que causam fraturas graves. O alvo recebe redução de impacto 5 e fortificação 25%.<br>Devido à rigidez do esqueleto, o corpo do alvo se torna incapaz de mudar de forma (como a magia Metamorfose ou a habilidade Forma Selvagem). Se sofrer um efeito de metamorfose, em vez de mudar de forma, o alvo perde 8d6 pontos de vida e fica debilitado. Nem a perda de vida nem a condição podem ser curados enquanto Ossos de Adamante estiver em efeito. Esta magia só pode ser lançada sobre criaturas vivas e não afeta construtos.`,
+    aprimoramentos: [
+      {
+        addPM: 0,
+        text: `como o normal, mas a magia pode ser lançada sobre um osteon. O alvo recebe redução de dano 5 e fortificação 50%. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura viva (exceto construtos).`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.pontoFraco]: {
+    nome: "Ponto Fraco",
+    execucao: "Movimento",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Vontade evita",
+    school: "Adiv",
+    description:
+      `Você analisa uma criatura em busca de pontos fracos e outras características. Como parte do efeito da magia, você faz um teste de Misticismo para identificar criatura contra o alvo (independentemente do tipo dele) com um bônus de +10.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o bônus no teste em +5.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, você recebe +2 em testes contra a criatura até o fim da cena. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, sua próxima rolagem de dano contra a criatura nesta cena ignora a redução de dano dela. Requer 2° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.punhoDeMitral]: {
+    nome: "Punho de Mitral",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia transforma uma de suas mãos em mitral, tornando-a prateada como esse metal. A mão continua capaz de realizar movimentos normais e segurar objetos — mas também poderá golpear ou esmagar. Se não estiver segurando nada com essa mão, você recebe +1 em testes de ataque e na margem de ameaça com ataques desarmados, e pode causar dano letal ou não letal com eles. Por fim, você pode manipular venenos com essa mão sem chance de se envenenar acidentalmente.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o bônus em teste de ataque e na margem de ameaça para 2.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura. Requer 2º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `além do normal, se estiver empunhando um item estérico com essa mão, ele recebe os benefícios da melhoria mitral (mesmo que já possua outro material especial). Requer 2° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle1Names.toqueDoHorizonte]: {
+    nome: "Toque do Horizonte",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "1 arma de ataque à distância",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `A magia melhora a acurácia da arma, aumentando seu alcance em um passo (de curto para médio, e de médio para longo). Se o alcance da arma já é longo, ele é dobrado. Este efeito conta como um bônus de encanto.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `a arma ignora camuflagem leve ou penalidades por cobertura.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, a arma fornece +1 em testes de ataque e rolagens de dano feitos dentro do seu alcance original (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `a margem de ameaça da arma aumenta em 1. Requer 2° círculo.`
+      }, 
+      {
+        addPM: 4,
+        text: `muda o alvo para uma arma de arremesso e a duração para sustentada. Em vez do normal, a arma recebe o benefício do encanto dançarina. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
 };
 
 export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
@@ -3031,6 +4272,350 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
     ],
   },
+  [spellsCircle2Names.invocarFagulhaElemental]: {
+    nome: "Invocar Fagulha Elemental",
+    execucao: "Completa",
+    alcance: "Curto (9m 6q)",
+    alvo: "Familiar elemental",
+    duracao: "Sustentada",
+    school: "Conv",
+    description:
+      `Você transforma uma porção de um elemento inerte em uma criatura elemental Pequena do tipo do elemento alvo. Por exemplo, lançar esta magia em um copo de água cria um elemental da água. Você pode criar elementais do ar, água, fogo e terra com essa magia. O elemental obedece a todos os seus comandos e funciona como um familiar comum (veja Familiares, em Tormenta20, p. 38) ou elemental (veja Elementais). O elemental auxilia apenas você e não conta em seu limite de parceiros.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `além do normal, o elemental fornece redução 10 contra o dano correspondente ao seu tipo.`
+      }, 
+      {
+        addPM: 2,
+        text: `em vez do normal, o elemental recebe a habilidade de dois familiares, um comum e um elemental.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle2Names.momentoDeTormenta]: {
+    nome: "Momento de Tormenta",
+    execucao: "Completa",
+    alcance: "Pessoal",
+    area: "Cubo de 30m de lado",
+    duracao: "Sustentada",
+    resistencia: "Veja texto",
+    school: "Conv",
+    description:
+      `Uma nuvem rubra surge acima do conjurador. Uma vez por turno, você pode gastar uma ação de movimento para fazer a nuvem manifestar um dos fenômenos a seguir.<br><i>Chuva ácida:</i> gotas corrosivas causam 6d4 pontos de dano de ácido em todas as criaturas na área.<br><i>Neblina venenosa:</i> uma neblina faz com que todas as criaturas na área percam 2d12 PV por veneno (Fortitude evita).<br><i>Raios escarlates:</i> Até 6 inimigos aleatórios na área sofrem 6d8 pontos de dano de eletricidade (Reflexos reduz à metade).<br><i>Pesadelos reais:</i> Cada criatura na área sofre 4d6 pontos de dano psíquico e perde 1d4 PM (Vontade reduz o dano à metade e evita a perda de PM).<br>Esta magia só pode ser aprendida e lançada por conjuradores que tenham observado uma área de Tormenta pelo menos uma vez. Sua divulgação é proibida e seu uso é permitido apenas em áreas controladas na Academia Arcana e outros lugares restritos, para estudar o fenômeno da Tormenta. Usar esta magia em qualquer outro ponto do Reinado é crime punido com a morte!`,
+    aprimoramentos: [
+      {
+        addPM: 3,
+        text: `aumenta o dano em +1 dado do mesmo tipo.`
+      }, 
+      {
+        addPM: 5,
+        text: `além do normal, criaturas na área ficam alquebradas enquanto permanecerem na área.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda a área para círculo de 1km de raio. <i>Requisito:</i> devotos de Aharadak.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle2Names.preparacaoDeBatalha]: {
+    nome: "Preparação de Batalha",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "Dois itens, entre arma e armadura",
+    duracao: "Permanente",
+    school: "Conv",
+    description:
+      `Essa magia é muito utilizada por clérigos e bardos que não precisam (ou não podem) estar o tempo todo trajando suas armaduras e carregando armas. A magia é lançada sobre uma armadura e uma arma, que se tornam vinculadas à você. A partir daí, em qualquer momento, você pode usar uma ação completa para convocar a armadura e a arma, que aparecem magicamente sobre seu corpo e em suas mãos, cobrindo qualquer roupa que esteja vestindo no momento. O efeito é bastante espalhafatoso, sendo praticamente impossível utilizá-lo sem chamar atenção. A magia funciona independente da distância ou situação do equipamento invocado, contanto que ele esteja no mesmo plano.<br><i>Custo Adicional:</i> sacrifício de 1 PM.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta o número de alvos em dois e o custo adicional em 1 PM`
+      }, 
+    ],
+    //publicacao: `Guia de NPCs`,
+  },
+  [spellsCircle2Names.controlarAr]: {
+    nome: "Controlar Ar",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    area: "Varia",
+    duracao: "Cena",
+    resistencia: "Veja texto",
+    school: "Trans",
+    description:
+      `Você pode controlar os movimentos e comportamentos de massas de ar. Ao lançar a magia, escolha um dos efeitos abaixo.<br><i>Ascender:</i> cria uma corrente de ar ascendente capaz de erguer do chão uma criatura ou objeto médio, fazendo o alvo ﬂutuar para cima e para baixo conforme sua vontade. Você pode gastar uma ação de movimento para subir ou descer o alvo até 6m por rodada, até um máximo de 30m de altura. Você não pode mover o alvo horizontalmente — mas o alvo pode, por exemplo, escalar uma colina ou se apoiar no teto para mover-se lateralmente (com metade de seu deslocamento normal). Uma criatura levitando fica vulnerável e sofre –2 nas jogadas de ataque. Alvos involuntários tem direito a um teste de Fortitude no início de seu turno para negar o efeito. Derrubar um alvo flutuando (simplesmente parando a corrente de ar) causa o dano normal de queda, mas um alvo que passe no teste pode “nadar” para o chão contra a corrente. Você pode usar essa opção para fazer uma manobra derrubar contra uma criatura voadora dentro do alcance, usando seu atributo-chave no lugar de Força.<br><i>Sopro:</i> cria uma lufada de vento a partir de suas mãos, que empurra qualquer criatura Média ou menor em um cone de 4,5m — faça uma manobra empurrar usando seu atributo-chave ao invés de força, usando o mesmo resultado de sua rolagem para todos os alvos. A lufada de vento também faz qualquer coisa que um vento forte e súbito faria, como levantar pó, dispersar vapores, apagar chamas, espalhar papéis ou mover uma embarcação. Manter o sopro ativo exige uma ação padrão.<br><i>Vento:</i> cria uma área de vento forte (Tormenta20 página 253) dentro do alcance da magia. Se lançada numa área que já esteja com algum efeito de vento, aumenta esse efeito em um passo. Manter o vento ativo requer uma ação de movimento. Você também pode usar essa opção para reduzir os efeitos de vento em uma área.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o limite de tamanho de criaturas e objetos afetados em um passo.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle2Names.couracaDeAllihanna]: {
+    nome: "Couraça de Allihanna",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "1 armadura ou vestuário",
+    duracao: "Cena",
+    school: "Abjur",
+    description:
+      `Lisandra de Galrasia foi a primeira a manifestar uma armadura fibrosa, mas hoje outros podem fazer o mesmo. Esta magia transforma o alvo em uma couraça arbórea. Se for uma armadura, seu bônus na Defesa aumenta em +2 e se for um vestuário, ele passa a fornecer +2 na Defesa (não cumulativo com armadura). Os efeitos dessa magia contam como um bônus de encanto e ela só pode ser lançada em terrenos naturais. Dahllan recebem 1 PM para usar em aprimoramentos ao lançá-la.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `aumenta a Defesa em +1 (bônus máximo limitado pelo círculo máximo de magia que você pode lançar).`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, suas magias de Evoc e Trans custam –1 PM.`
+      }, 
+      {
+        addPM: 2,
+        text: `o alvo é recoberto por folhas e galhos. Você recebe +5 em testes de furtividade e pode se esconder mesmo sem camuflagem ou cobertura disponível.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, o alvo fornece o mesmo bônus em testes de resistência. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 3,
+        text: `além do normal, o alvo é recoberto esporos de cogumelo. Quando uma criatura faz um ataque corpo a corpo contra você, ela deve fazer um teste de Fortitude (CD da magia). Se falhar, fica paralisada por 1 rodada (apenas uma vez por cena) e lenta. Se passar, fica lenta por 1 rodada. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle2Names.punicaoDoProfano]: {
+    nome: "Punição do Profano",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 humanoide",
+    duracao: "Instantânea",
+    resistencia: "Vontade reduz à metade",
+    school: "Evoc",
+    description:
+      `Por meio de um brado poderoso, entoando um dogma de sua religião, você inflige dano a devotos de divindades adversárias.<br>Esta magia causa 6d8 pontos de dano de impacto a devotos de deuses que canalizam energia oposta a seu deus. Assim, se sua divindade canaliza energia positiva, a magia afeta devotos de deuses que canalizem energia negativa, e vice-versa. Devotos de deuses que canalizam qualquer energia ou criaturas que não sejam devotas sofrem apenas metade do dano.<br>A magia afeta celestiais e abissais como se fossem devotos, respectivamente, de deuses de energia positiva e negativa, enquanto suraggel são afetados conforme sua herança. Nesses casos, a natureza planar se sobrepõe à devoção (um aggelus devoto de Tenebra ainda é considerado de energia positiva).`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 espírito ou morto-vivo.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o dano em +2d8.`
+      }, 
+      {
+        addPM: 3,
+        text: `muda o alvo para 1 criatura.`
+      }, 
+      {
+        addPM: 5,
+        text: `afeta todos os alvos dentro do alcance. Requer 3° círculo.`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle2Names.traicaoDaLamina]: {
+    nome: "Traição da Lâmina",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 arma em posse de uma criatura",
+    duracao: "Cena até ser descarregada",
+    resistencia: "Vontade (veja texto)",
+    school: "Abjur",
+    description:
+      `Provavelmente ofertada por Sszzaas (ou assim querem que você acredite), esta magia amaldiçoa uma arma contra seu usuário. Quando faz um ataque com a arma, o usuário deve passar em um teste de Vontade. Se falhar, a arma se retorce como uma serpente, ou muda sua trajetória em pleno voo; o agressor se torna o alvo do próprio ataque! Após este ataque, bem-sucedido ou não, a magia descarrega e a arma volta ao normal.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `em vez do usuário, a arma se volta para outra criatura em alcance curto, à sua escolha.`
+      }, 
+      {
+        addPM: 1,
+        text: `muda o alvo para 1 arma e a duração para 1 dia, até ser descarregada. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o número de alvos em +1.`
+      }, 
+      {
+        addPM: 2,
+        text: `adiciona componente material (uma dose de veneno). Além do normal, o ataque envenena o usuário com o veneno utilizado como componente (a CD desse veneno é a CD da própria magia).`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle2Names.traicaoMagica]: {
+    nome: "Traição Mágica",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Vontade reduz à metade",
+    school: "Abjur",
+    description:
+      `Esta magia desestabiliza outras magias ativas no alvo, fazendo com que elas causem uma súbita descarga de energia mística. Para cada círculo das magias afetando o alvo, ele sofre 1d8 pontos de dano de essência. Um alvo sob efeito de Velocidade e Voo, (2º e 3º círculos), sofre 5d8 pontos de dano.`,
+    aprimoramentos: [
+      {
+        addPM: 3,
+        text: `muda o alvo para criaturas escolhidas. Requer 3º círculo.`
+      }, 
+    ],
+    //publicacao: `Deuses de Arton v0.8`,
+  },
+  [spellsCircle2Names.desfazerEngenhoca]: {
+    nome: "Desfazer Engenhoca",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    alvo: "1 criatura ou 1 engenhaca ou esfera com 3 me de raio",
+    duracao: "Instantânea",
+    school: "Abjur",
+    description:
+      `Você desfaz os efeitos ativos de engenhocas, como se sua duração tivesse acabado (efeitos instantâneos não podem ser dissipados). Quando lançar essa magia em uma criatura ou área, faça um teste de Misticismo; você dissipa todas as engenhocas com a criatura ou na área com CD igual ou menor que o resultado do teste. Lançada diretamente contra uma engenhoca, faz com que ela enguice (veja Ativação, em Tormenta20, p. 71) sem teste de resistência. Lançada contra um construto, o teste é oposto à Vontade do alvo. Se você vencer, o construto fica fraco e vulnerável. A critério do mestre, esta magia pode afetar outras habilidades similares a engenhocas.<br>Dizem que <i>Desfazer Engenhoca</i> foi ofertada aos mortais pela própria Wynna, ressentida em relação a inventos mundanos que imitam seus milagres mágicos. Por outro lado, alguns isentam a deusa, atribuindo sua criação a algum arcanista extremamente incomodado com esses inventores do diacho!`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `além do padrão, você recebe +5 no seu teste de Misticismo para dissipar uma engenhoca específica para cada vez que ela foi usada na cena.`
+      }, 
+      {
+        addPM: 5,
+        text: `além do padrão, a magia ignora qualquer efeito ativo gerado por engenhocas (como por exemplo, um Campo Antimagia).`
+      }, 
+      {
+        addPM: 12,
+        text: `muda a área para esfera com 9m de raio. Em vez do normal, cria um efeito de disjunção. Todos os efeitos de engenhocas na área são automaticamente dissipados e todas as engenhocas na área, exceto aquelas que você estiver carregando, enguiçam por uma cena (Vontade evita). Requer 5º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.evacuacao]: {
+    nome: "Evacuação",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "Aliados voluntários",
+    duracao: "Instantânea",
+    school: "Conv",
+    description:
+      `Esta magia de teletransporte restrito funciona apenas no interior de masmorras, cavernas ou ruínas. Quando utilizada, transporta você e seus aliados de volta para um ponto seguro fora da estrutura.<br>Evacuação funciona apenas quando o caminho até a saída está livre e desimpedido — tipicamente quando a exploração até aquele ponto já foi concluída. Não pode ser utilizada para escapar de prisões, castelos e outros lugares trancados. Sua função é apenas encurtar o caminho para sair de uma masmorra que o conjurador esteja explorando.`,
+    aprimoramentos: [
+      {
+        addPM: 5,
+        text: `permite escapar de lugares fechados, mas a cada obstáculo, você deve fazer um teste de Misticismo (CD igual a do obstáculo). Por exemplo, se for uma porta trancada, precisa passar num teste de Misticismo com CD equivalente a Ladinagem para destrancar aquela porta. Se falhar em qualquer um desses testes, ou se um obstáculo não tiver uma CD para ser superado, a magia falha, mas os PM são gastos da mesma forma. Requer 4º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.maquinaDeCombate]: {
+    nome: "Máquina de Combate",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "1 construto",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia energiza a fonte de energia de um golem ou outro construto, sobrecarregando-a temporariamente. O alvo recebe +5 em Atletismo, Iniciativa e Luta, mas perde 1d4 pontos de vida ao final de cada turno em que executar uma ação padrão.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `além do normal, os ataques corpo a corpo do alvo causam +1d6 pontos de dano.`
+      }, 
+      {
+        addPM: 2,
+        text: `além do normal, o alvo recebe +2 na Defesa.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o bônus na Defesa em +1.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.pocaoExplosiva]: {
+    nome: "Poção Explosiva",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 poção",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Esta magia transforma o conteúdo de uma poção em uma substância volátil e altamente explosiva. Quando usada, em vez de seu efeito normal, a poção causa 2d6 pontos de dano de essência por círculo da magia que ela continha. Poção Explosiva afeta apenas o efeito da poção; suas outras características se mantêm; se a magia permitia algum teste de resistência, ele é aplicado ao dano causado.<br>Se conjurada sobre uma poção carregada por uma criatura involuntária, a criatura tem direito a um teste de Reflexos (CD da magia) para evitar o efeito. Reconhecer uma poção adulterada desta forma exige um teste de Misticismo ou Ofício (alquimista) com CD 20. Se ingerida por uma criatura, a poção causa dano máximo a esta criatura, sem direito a teste de resistência.`,
+    aprimoramentos: [
+      {
+        addPM: 5,
+        text: `você pode determinar uma palavra-chave que, se pronunciada por qualquer pessoa em alcance curto, faz a poção explodir. Requer 3° círculo.`
+      }, 
+      {
+        addPM: 7,
+        text: `muda o alvo para todas as poções no alcance. Requer 4° círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.piscar]: {
+    nome: "Piscar",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Trans",
+    description:
+      `Pela duração da magia, você fica “piscando” entre o plano material e o etéreo. Para quem o observa, é como se você ficasse visível e invisível várias vezes por segundo.<br>Quaisquer ataques e habilidades (incluindo efeitos benéficos) de outras criaturas têm 50% de chance de não afetá-lo. Você recebe +2 em testes de ataque, pois é difícil ver de onde você está atacando. Contudo, seus próprios ataques e habilidades têm 25% de chance de não afetar outras criaturas, pois você não tem controle total sobre quando está em qual plano. Você pode interagir com criaturas etéreas, com as mesmas chances de falha.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `muda o alcance para toque e o alvo para 1 criatura voluntária. Requer 3º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.transposicao]: {
+    nome: "Transposição",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "2 criaturas voluntárias",
+    duracao: "Instantânea",
+    school: "Conv",
+    description:
+      `Esta magia teletransporta duas criaturas, incluindo seu equipamento, fazendo com que troquem imediatamente de lugar.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o número de alvos em 2. Você determina com quais criaturas cada alvo troca de lugar.`
+      }, 
+      {
+        addPM: 5,
+        text: `a troca não exige linha de efeito, mas os alvos ainda devem estar dentro do alcance. Requer 3º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o alvo para 2 criaturas lacaio involuntárias e a resistência para Vontade anula. Requer 4º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
+  [spellsCircle2Names.viagemOnirica]: {
+    nome: "Viagem Onírica",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Cena",
+    school: "Adiv",
+    description:
+      `Conjurar esta magia faz você adormecer e abandonar seu corpo físico. Você se torna um espírito incorpóreo com deslocamento de voo 18m. Você pode ver e ouvir, mas não falar ou emitir qualquer som — nem realizar ataques, lançar magias ou interagir de qualquer forma com criaturas e objetos materiais. Você ainda pode ser visto, em forma translúcida, e pode ser afetado por qualquer coisa que afete criaturas incorpóreas.<br>Quando a magia é encerrada, você retorna imediatamente para seu corpo e desperta. A magia também é cancelada caso seu corpo físico seja perturbado de qualquer forma. Você sofre uma penalidade de –10 em testes de Percepção para notar ruídos próximos de seu corpo adormecido.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `você pode falar em sua forma incorpórea. Requer 3º círculo.`
+      }, 
+      {
+        addPM: 5,
+        text: `você pode conjurar magias em sua forma incorpórea. Requer 4º círculo.`
+      }, 
+    ],
+    //publicacao: `Heróis de Arton v0.8`,
+  },
 };
 
 export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
@@ -3966,6 +5551,68 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       },
     ],
   },
+  [spellsCircle3Names.halitoPeconhento]: {
+    nome: "Hálito Peçonhento",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Cone de 9m",
+    duracao: "Instantânea",
+    resistencia: "Fortitude parcial",
+    school: "Evoc",
+    description:
+      `Você sopra uma fumaça densa esverdeada de toxinas corrosivas que queima a pele e os olhos dos alvos. Criaturas na área sofrem 4d8 pontos de dano de ácido mais 4d8 pontos de dano de veneno e ficam cegas por 1d4+1 rodadas. Passar num teste de Fortitude reduz o dano pela metade e evita a cegueira.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano de ácido em +1d8 e o dano de veneno em +1d8.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle3Names.impactoFulminante]: {
+    nome: "Impacto Fulminante",
+    execucao: "Padrão",
+    alcance: "Curto (9m 6q)",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Fortitude parcial",
+    school: "Evoc",
+    description:
+      `Você evoca um poderoso relâmpago dos céus que acerta o alvo com um clarão estrondoso. O alvo sofre 4d6 pontos de dano elétrico mais 4d6 pontos de dano de impacto e fica caído e atordoado por uma rodada. Se passar no teste de resistência, o alvo sofre metade do dano, evita as condições e não pode mais ser atordoado por essa magia até o fim da cena.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano de eletricidade em +1d6 e o dano de impacto em +1d6.`
+      }, 
+      {
+        addPM: 4,
+        text: `muda o alvo para “criaturas escolhidas”. Requer 4º Círculo.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle3Names.toqueAlgido]: {
+    nome: "Toque Álgido",
+    execucao: "Padrão",
+    alcance: "Toque",
+    alvo: "1 criatura",
+    duracao: "Instantânea",
+    resistencia: "Fortitude parcial",
+    school: "Evoc",
+    description:
+      `Sua mão emite uma energia congelante que causa 6d8 pontos de dano de frio e recobre o alvo com uma camada de gelo, deixando-o paralisado por 1d4 rodadas. O alvo pode refazer o teste de Fortitude no final de seus turnos para quebrar o gelo e se livrar da condição. Passar no teste de resistência reduz o dano pela metade e deixa o alvo enredado por uma rodada.`,
+    aprimoramentos: [
+      {
+        addPM: 1,
+        text: `como parte da execução da magia, você pode fazer um ataque corpo a corpo contra o alvo. Se acertar, causa o dano do ataque e da magia.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o dano em +2d8.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
 };
 
 export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
@@ -4533,6 +6180,118 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
       },
     ],
   },
+  [spellsCircle4Names.transformacaoEmDragao]: {
+    nome: "Transformação em Dragão",
+    execucao: "Completa",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Sustentada",
+    school: "Trans",
+    description:
+      `Essa magia invoca o poder de um dragão, causando mutações no conjurador que o tornam semelhante a uma criatura dracônica. Você recebe +2 em Força, Constituição, Inteligência e Carisma (esse aumento não oferece PV, PM ou perícias adicionais), +5 na Defesa, e redução 30 contra o elemento do sopro do dragão do qual você utilizou o componente material. Uma vez por rodada, você pode gastar uma ação padrão para exalar um sopro que causa 8d6+8 pontos de dano do elemento correspondente em um cone de 9m (Reflexos reduz à metade).<br><i>Componente Material:</i> uma peça de couro de dragão ou uma escama de dragão no valor de T$ 1000.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano do sopro em +1d6+1.`
+      }, 
+      {
+        addPM: 2,
+        text: `aumenta o bônus na Defesa em +1.`
+      }, 
+      {
+        addPM: 6,
+        text: `além do normal, asas de couro brotam de suas costas. Você recebe deslocamento de voo 18m.`
+      }, 
+      {
+        addPM: 3,
+        text: `você recebe uma arma natural de mordida (1d6, crítico x2, corte). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida. Se já possuir uma mordida, em vez disso seu dano aumenta em dois passos.`
+      }, 
+      {
+        addPM: 3,
+        text: `o bônus em atributos se torna +4.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
+  },
+  [spellsCircle4Names.bencaoDaDragoaRainha]: {
+    nome: "Bênção da Dragoa Rainha",
+    execucao: "Completa",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Sustentada",
+    school: "Trans",
+    description:
+      `Sua pele se torna branca como a neve e você manifesta um par de asas e uma coroa feitas de gelo cristalino que flutuam rentes ao seu corpo. Você recebe deslocamento de voo 18m, imunidade a fogo e frio e resistência a dano não mágico 15. Suas magias que causam dano de frio têm seu dano maximizado, mas você fica impedido de lançar magias que causam dano de fogo.`,
+    aprimoramentos: [
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle4Names.pantanoVitriolico]: {
+    nome: "Pântano Vitriólico",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    area: "Círculo de 15m de raio",
+    duracao: "Cena",
+    resistencia: "Reflexos reduz à metade",
+    school: "Trans",
+    description:
+      `Você transforma o solo da área em um lodo viscoso ácido e pegajoso. Criaturas na área quando a magia é lançada sofrem 5d8 pontos de dano de ácido e ficam enredadas; passar no teste de resistência reduz o dano pela metade e evita a condição. Uma vítima presa pode usar uma ação padrão para fazer um teste de Atletismo (CD igual à da magia). Se passar, se liberta. Uma criatura sofre esse efeito novamente quando termina seu turno dentro da área afetada. O espaço ocupado pelo pântano é considerado terreno difícil e deslocar-se dentro da área causa 1d8 pontos de dano de ácido para cada 1,5m percorridos.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano inicial e o dano do deslocamento em +1d8`
+      }, 
+      {
+        addPM: 5,
+        text: `além do normal, o pântano exala gases com efeitos alucinógenos. Criaturas que falham no teste de Fortitude ficam confusas por uma rodada.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle4Names.raioDePlasma]: {
+    nome: "Raio de Plasma",
+    execucao: "Padrão",
+    alcance: "Médio (30m 20q)",
+    area: "Linha",
+    duracao: "Instantânea",
+    resistencia: "Fortitude reduz à metade",
+    school: "Evoc",
+    description:
+      `Você dispara uma rajada luminosa superaquecida que causa 10d8 pontos de dano de fogo em todas as criaturas e objetos livres na área. O raio é capaz de derreter qualquer barreira física, seja de madeira, pedra ou metal, atingindo mesmo alvos fora de sua linha de visão.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano em +2d8.`
+      }, 
+      {
+        addPM: 2,
+        text: `muda o alcance para pessoal, a área para “Efeito: espada de plasma”, a duração para sustentada e a resistência para “Reflexos reduz à metade”. Ao invés do normal, você condensa a rajada na forma de uma espada de plasma que emite luz (alcance curto) e calor intensos. Você pode usar uma ação padrão para atingir um alvo adjacente com a espada, que causa 10d8 pontos de dano de fogo e ignora a resistência a dano de objetos. Sua mão que “empunha” a espada é considerada ocupada.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
+  [spellsCircle4Names.velocidadeDoRelampago]: {
+    nome: "Velocidade do Relâmpago",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    alvo: "Você",
+    duracao: "Sustentada",
+    resistencia: "Reflexos reduz à metade",
+    school: "Trans",
+    description:
+      `Seus olhos passam a emanar luz branca e minúsculos raios de eletricidade. Enquanto esta magia durar, você pode usar uma ação de movimento para se teletransportar até 12m em linha reta para qualquer direção, deixando um “rastro” de eletricidade no caminho. Criaturas que você atravessar sofrem 6d8 pontos de dano de eletricidade.`,
+    aprimoramentos: [
+      {
+        addPM: 2,
+        text: `aumenta o dano em +2d8.`
+      }, 
+      {
+        addPM: 5,
+        text: `muda o deslocamento do teletransporte para 15m e você pode fazer curvas durante o movimento. Entretanto, você não pode passar duas vezes pelo mesmo espaço em cada ação de movimento.`
+      }, 
+    ],
+    //publicacao: `Dragão Brasil`,
+  },
 };
 
 export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
@@ -4992,6 +6751,28 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     school: 'Trans',
     description:
       'Esta é a mais poderosa das magias arcanas, permitindo alterar a realidade a seu bel-prazer. Consulte página 190 para mais informações.',
+  },
+  [spellsCircle5Names.katanaCelestial]: {
+    nome: "Katana Celestial",
+    execucao: "Padrão",
+    alcance: "Pessoal",
+    area: "Linha de 60m ou duas linhas de 30m",
+    duracao: "Instantânea",
+    resistencia: "Reflexos parcial",
+    school: "Evoc",
+    description:
+      `Um golpe vindo dos céus risca o campo de batalha. Se escolher duas linhas, cada uma deve seguir em uma direção diferente, criando um corte em “V”. Criaturas na área sofrem 12d8 pontos de dano de luz (ou 12d12, se forem mortos-vivos) e ficam cegas e surdas até o fim da cena (Reflexos reduz à metade e evita as condições).`,
+    aprimoramentos: [
+      {
+        addPM: 3,
+        text: `aumenta o dano em +2d8 (ou +2d12 em mortos-vivos).`
+      }, 
+      {
+        addPM: 6,
+        text: `muda a área para uma linha de 120m ou quatro linhas de 30m em direções opostas, formando um “X”.`
+      }, 
+    ],
+    //publicacao: `Ameaças de Arton 1.0`,
   },
 };
 
