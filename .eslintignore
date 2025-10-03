@@ -1,0 +1,10 @@
+# Backend submodule
+backend/
+
+# Build directories
+build/
+dist/
+node_modules/
+
+# Config files
+vite.config.ts.timestamp-*

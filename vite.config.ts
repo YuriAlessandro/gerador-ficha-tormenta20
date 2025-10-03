@@ -67,6 +67,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB limit (increased from default 2MB)
         runtimeCaching: [
           {
+            // eslint-disable-next-line no-restricted-globals
             urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'CacheFirst',
             options: {
