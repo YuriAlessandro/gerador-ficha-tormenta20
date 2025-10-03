@@ -610,6 +610,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             // Check class abilities
             return sheet.classe.abilities?.some((a) => a.name === req.name);
 
+          case RequirementType.RACA:
+            // Check if character is the required race
+            return sheet.raca.name === req.name;
+
+          case RequirementType.TIER_LIMIT: {
+            // Check if character can still pick this power in current tier
+            const category = req.name as string;
+            const currentTierPowers = selectedPowers.filter((p) =>
+              p.name.includes(category)
+            ).length;
+            const sheetTierPowers =
+              sheet.generalPowers?.filter((p) => p.name.includes(category))
+                .length || 0;
+            return currentTierPowers + sheetTierPowers < 1;
+          }
+
           default:
             // For unknown requirement types, assume they're met
             return true;
@@ -651,6 +667,18 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             return sheet.classe.proficiencias.includes(req.name as string);
           case RequirementType.HABILIDADE:
             return sheet.classe.abilities?.some((a) => a.name === req.name);
+          case RequirementType.RACA:
+            return sheet.raca.name === req.name;
+          case RequirementType.TIER_LIMIT: {
+            const category = req.name as string;
+            const currentTierPowers = selectedClassPowers.filter((p) =>
+              p.name.includes(category)
+            ).length;
+            const sheetTierPowers =
+              sheet.classPowers?.filter((p) => p.name.includes(category))
+                .length || 0;
+            return currentTierPowers + sheetTierPowers < 1;
+          }
           default:
             return true;
         }
