@@ -125,6 +125,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
 
+  // Separate Draconic Blessings from other Destiny powers
+  const draconicBlessings = allPowersByCategory.DESTINO.filter((power) =>
+    power.name.includes('Bênção Dracônica')
+  );
+  const otherDestinyPowers = allPowersByCategory.DESTINO.filter(
+    (power) => !power.name.includes('Bênção Dracônica')
+  );
+
   const powerCategories: PowerCategory[] = [
     {
       type: 'ORIGEM',
@@ -138,8 +146,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     },
     {
       type: GeneralPowerType.DESTINO,
+      name: 'Bênçãos Dracônicas (Kallyanach)',
+      powers: draconicBlessings,
+    },
+    {
+      type: GeneralPowerType.DESTINO,
       name: 'Poderes de Destino',
-      powers: allPowersByCategory.DESTINO,
+      powers: otherDestinyPowers,
     },
     {
       type: GeneralPowerType.MAGIA,
