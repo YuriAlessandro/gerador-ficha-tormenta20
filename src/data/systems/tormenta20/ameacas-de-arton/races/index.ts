@@ -8,6 +8,7 @@ import CERATOPS from './ceratops';
 import ELFO_DO_MAR from './elfo-do-mar';
 import FINTROLL from './fintroll';
 import GNOLL from './gnoll';
+import HARPIA from './harpia';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -16,6 +17,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   ELFO_DO_MAR,
   FINTROLL,
   GNOLL,
+  HARPIA,
 ];
 
 export default AMEACAS_ARTON_RACES;
