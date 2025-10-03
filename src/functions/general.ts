@@ -611,11 +611,8 @@ export function selectRace(selectedOptions: SelectedOptions): Race {
   }
 
   const randomRace = getRandomItemFromArray(races);
-  const foundRace = dataRegistry.getRaceByName(randomRace.name, supplements);
-  if (!foundRace) {
-    throw new Error(`Race ${randomRace.name} not found in dataRegistry`);
-  }
-  return foundRace;
+  // Use randomRace directly to support race variants with same name
+  return randomRace;
 }
 
 function getRaceAndName(
