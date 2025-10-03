@@ -88,7 +88,8 @@ export type RaceNames =
   | 'Fintroll'
   | 'Gnoll'
   | 'Harpia'
-  | 'Hobgoblin';
+  | 'Hobgoblin'
+  | 'Kallyanach';
 
 export default interface Race {
   name: RaceNames;

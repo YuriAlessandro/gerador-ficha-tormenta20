@@ -27,6 +27,8 @@ export enum RequirementType {
   MAGIA = 'MAGIA',
   DEVOTO = 'DEVOTO',
   TEXT = 'TEXT',
+  RACA = 'RACA',
+  TIER_LIMIT = 'TIER_LIMIT',
 }
 
 export interface Requirement {

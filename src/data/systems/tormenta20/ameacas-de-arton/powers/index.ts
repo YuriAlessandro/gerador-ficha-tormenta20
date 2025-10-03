@@ -1,13 +1,13 @@
 /**
  * Poderes do Suplemento: Ameaças de Arton
- * TODO: Adicionar poderes específicos deste suplemento
  */
 import { GeneralPowers } from '../../../../../interfaces/Poderes';
+import DRACONIC_BLESSINGS from './draconicBlessings';
 
 const AMEACAS_ARTON_POWERS: GeneralPowers = {
   COMBATE: [],
   CONCEDIDOS: [],
-  DESTINO: [],
+  DESTINO: [...DRACONIC_BLESSINGS],
   MAGIA: [],
   TORMENTA: [],
 };
