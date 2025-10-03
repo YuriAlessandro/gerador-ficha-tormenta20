@@ -6,7 +6,14 @@ import BUGBEAR from './bugbear';
 import CENTAURO from './centauro';
 import CERATOPS from './ceratops';
 import ELFO_DO_MAR from './elfo-do-mar';
+import FINTROLL from './fintroll';
 
-const AMEACAS_ARTON_RACES: Race[] = [BUGBEAR, CENTAURO, CERATOPS, ELFO_DO_MAR];
+const AMEACAS_ARTON_RACES: Race[] = [
+  BUGBEAR,
+  CENTAURO,
+  CERATOPS,
+  ELFO_DO_MAR,
+  FINTROLL,
+];
 
 export default AMEACAS_ARTON_RACES;
