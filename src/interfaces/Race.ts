@@ -90,7 +90,8 @@ export type RaceNames =
   | 'Harpia'
   | 'Hobgoblin'
   | 'Kaijin'
-  | 'Kallyanach';
+  | 'Kallyanach'
+  | 'Kappa';
 
 export default interface Race {
   name: RaceNames;
