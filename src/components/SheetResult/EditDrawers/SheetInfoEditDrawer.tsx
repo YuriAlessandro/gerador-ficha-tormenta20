@@ -13,11 +13,11 @@ import {
   IconButton,
   Divider,
   Autocomplete,
+  Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
-import RACAS from '@/data/racas';
-import CLASSES from '@/data/classes';
+import { dataRegistry } from '@/data/registry';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { allDivindadeNames } from '@/interfaces/Divindade';
 import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
@@ -25,6 +25,8 @@ import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
+import { useAuth } from '@/hooks/useAuth';
+import { SupplementId } from '@/types/supplement.types';
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -51,7 +53,11 @@ const calculateValueFromModifier = (modifier: number): number =>
   modifier * 2 + 11;
 
 // Helper function to get name suggestions based on race and gender
-const getNameSuggestions = (raceName: string, gender: string): string[] => {
+const getNameSuggestions = (
+  raceName: string,
+  gender: string,
+  supplements: SupplementId[]
+): string[] => {
   // Convert gender from display format to data format
   const genderKey = gender === 'Masculino' ? 'Homem' : 'Mulher';
 
@@ -61,7 +67,7 @@ const getNameSuggestions = (raceName: string, gender: string): string[] => {
   }
 
   // For special races like Lefou, Osteon, etc., try to get names from name generators
-  const race = RACAS.find((r) => r.name === raceName);
+  const race = dataRegistry.getRaceByName(raceName, supplements);
   if (race && nameGenerators[raceName]) {
     // For complex name generators, return a sample of generated names
     const sampleNames: string[] = [];
@@ -88,6 +94,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
+  const { user } = useAuth();
+  const userSupplements = user?.enabledSupplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+
+  // Get races and classes based on user's enabled supplements (with supplement info for badges)
+  const RACAS_WITH_INFO =
+    dataRegistry.getRacesWithSupplementInfo(userSupplements);
+  const CLASSES_WITH_INFO =
+    dataRegistry.getClassesWithSupplementInfo(userSupplements);
+
+  // Also keep simple arrays for backwards compatibility
+  const RACAS = dataRegistry.getRacesBySupplements(userSupplements);
+  const CLASSES = dataRegistry.getClassesBySupplements(userSupplements);
+
   const [editedData, setEditedData] = useState<EditedData>({
     nome: sheet.nome,
     nivel: sheet.nivel,
@@ -101,7 +122,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // State for name suggestions
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
-    getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+    getNameSuggestions(
+      sheet.raca.name,
+      sheet.sexo || 'Masculino',
+      userSupplements
+    )
   );
 
   useEffect(() => {
@@ -116,16 +141,20 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       attributes: { ...sheet.atributos },
     });
     setNameSuggestions(
-      getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+      getNameSuggestions(
+        sheet.raca.name,
+        sheet.sexo || 'Masculino',
+        userSupplements
+      )
     );
-  }, [sheet, open]);
+  }, [sheet, open, userSupplements]);
 
   // Update name suggestions when race or gender changes
   useEffect(() => {
     setNameSuggestions(
-      getNameSuggestions(editedData.raceName, editedData.sexo)
+      getNameSuggestions(editedData.raceName, editedData.sexo, userSupplements)
     );
-  }, [editedData.raceName, editedData.sexo]);
+  }, [editedData.raceName, editedData.sexo, userSupplements]);
 
   const recalculateSkills = (level: number) => {
     if (!sheet.completeSkills) return sheet.completeSkills;
@@ -365,7 +394,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       attributes: { ...sheet.atributos },
     });
     setNameSuggestions(
-      getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
+      getNameSuggestions(
+        sheet.raca.name,
+        sheet.sexo || 'Masculino',
+        userSupplements
+      )
     );
     onClose();
   };
@@ -457,9 +490,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 })
               }
             >
-              {RACAS.map((race) => (
+              {RACAS_WITH_INFO.map((race) => (
                 <MenuItem key={race.name} value={race.name}>
-                  {race.name}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      width: '100%',
+                    }}
+                  >
+                    <span>{race.name}</span>
+                    {race.supplementId !== SupplementId.TORMENTA20_CORE && (
+                      <Chip
+                        label={race.supplementName}
+                        size='small'
+                        sx={{
+                          height: '20px',
+                          fontSize: '0.7rem',
+                          ml: 'auto',
+                        }}
+                        color='primary'
+                      />
+                    )}
+                  </Box>
                 </MenuItem>
               ))}
             </Select>
@@ -474,9 +528,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 setEditedData({ ...editedData, className: e.target.value })
               }
             >
-              {CLASSES.map((cls) => (
+              {CLASSES_WITH_INFO.map((cls) => (
                 <MenuItem key={cls.name} value={cls.name}>
-                  {cls.name}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      width: '100%',
+                    }}
+                  >
+                    <span>{cls.name}</span>
+                    {cls.supplementId !== SupplementId.TORMENTA20_CORE && (
+                      <Chip
+                        label={cls.supplementName}
+                        size='small'
+                        sx={{
+                          height: '20px',
+                          fontSize: '0.7rem',
+                          ml: 'auto',
+                        }}
+                        color='primary'
+                      />
+                    )}
+                  </Box>
                 </MenuItem>
               ))}
             </Select>

@@ -81,7 +81,8 @@ export type RaceNames =
   | 'Trog'
   | 'Suraggel (Aggelus)'
   | 'Suraggel (Sulfure)'
-  | 'Bugbear';
+  | 'Bugbear'
+  | 'Centauro';
 
 export default interface Race {
   name: RaceNames;

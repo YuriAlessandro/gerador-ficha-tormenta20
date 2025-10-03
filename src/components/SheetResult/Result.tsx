@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HomeIcon from '@mui/icons-material/Home';
 import PersonIcon from '@mui/icons-material/Person';
 import {
@@ -15,8 +13,6 @@ import {
   Typography,
   useTheme,
   IconButton,
-  Button,
-  CircularProgress,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
@@ -51,36 +47,15 @@ interface ResultProps {
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const {
-    sheet,
-    isDarkMode,
-    onSheetUpdate,
-    onSaveToCloud,
-    isAuthenticated,
-    isSavedToCloud,
-  } = props;
+  const { sheet, isDarkMode, onSheetUpdate, isSavedToCloud } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
   const [equipmentDrawerOpen, setEquipmentDrawerOpen] = useState(false);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   const theme = useTheme();
-
-  const handleSaveToCloud = async () => {
-    if (!onSaveToCloud || isSaving) return;
-
-    setIsSaving(true);
-    try {
-      await onSaveToCloud();
-    } catch (error) {
-      console.error('Error saving to cloud:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   // Update currentSheet when sheet prop changes
   React.useEffect(() => {
@@ -415,38 +390,6 @@ const Result: React.FC<ResultProps> = (props) => {
         {/* Breadcrumb Navigation */}
         <BreadcrumbNav items={breadcrumbItems} />
 
-        {/* Save to Cloud Button */}
-        {isAuthenticated && onSaveToCloud && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-            {isSavedToCloud ? (
-              <Chip
-                icon={<CheckCircleIcon />}
-                label='Salvo na Nuvem'
-                color='success'
-                variant='filled'
-                sx={{ fontSize: '1rem', py: 2.5, px: 1 }}
-              />
-            ) : (
-              <Button
-                variant='contained'
-                color='primary'
-                size='large'
-                startIcon={
-                  isSaving ? (
-                    <CircularProgress size={20} color='inherit' />
-                  ) : (
-                    <CloudUploadIcon />
-                  )
-                }
-                onClick={handleSaveToCloud}
-                disabled={isSaving}
-                sx={{ fontSize: '1rem', py: 1.5, px: 3 }}
-              >
-                {isSaving ? 'Salvando...' : 'Salvar na Conta'}
-              </Button>
-            )}
-          </Box>
-        )}
         <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
           {/* LADO ESQUERDO, 60% */}
           <Box width={isMobile ? '100%' : '60%'}>
