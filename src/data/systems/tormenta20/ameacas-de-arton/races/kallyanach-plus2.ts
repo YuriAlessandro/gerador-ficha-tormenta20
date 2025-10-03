@@ -58,7 +58,7 @@ const faithProbability = {
   WYNNA: 1,
 };
 
-// Variante 1: +2 em um atributo
+// Variante: +2 em um atributo
 const KALLYANACH_PLUS2: Race = {
   name: 'Kallyanach',
   attributes: {
@@ -73,24 +73,4 @@ const KALLYANACH_PLUS2: Race = {
   abilities: kallyanachAbilities,
 };
 
-// Variante 2: +1 em dois atributos
-const KALLYANACH_PLUS1_PLUS1: Race = {
-  name: 'Kallyanach',
-  attributes: {
-    attrs: [
-      {
-        attr: 'any',
-        mod: 1,
-      },
-      {
-        attr: 'any',
-        mod: 1,
-      },
-    ],
-  },
-  faithProbability,
-  abilities: kallyanachAbilities,
-};
-
-// Exporta array com ambas as variantes para seleção aleatória
-export default [KALLYANACH_PLUS2, KALLYANACH_PLUS1_PLUS1];
+export default KALLYANACH_PLUS2;

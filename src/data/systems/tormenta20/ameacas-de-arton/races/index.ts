@@ -10,7 +10,8 @@ import FINTROLL from './fintroll';
 import GNOLL from './gnoll';
 import HARPIA from './harpia';
 import HOBGOBLIN from './hobgoblin';
-import KALLYANACH from './kallyanach';
+import KALLYANACH_PLUS2 from './kallyanach-plus2';
+import KALLYANACH_PLUS1 from './kallyanach-plus1';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -21,7 +22,8 @@ const AMEACAS_ARTON_RACES: Race[] = [
   GNOLL,
   HARPIA,
   HOBGOBLIN,
-  ...KALLYANACH, // Array com 2 variantes de atributos (+2/+0 ou +1/+1)
+  KALLYANACH_PLUS2, // Variante: +2 em um atributo
+  KALLYANACH_PLUS1, // Variante: +1 em dois atributos
 ];
 
 export default AMEACAS_ARTON_RACES;
