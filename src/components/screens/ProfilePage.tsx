@@ -233,8 +233,8 @@ const ProfilePage: React.FC = () => {
 
   // Verifica se há mudanças nos suplementos
   const hasSupplementChanges =
-    JSON.stringify(selectedSupplements.sort()) !==
-    JSON.stringify((currentUser?.enabledSupplements || []).sort());
+    JSON.stringify([...selectedSupplements].sort()) !==
+    JSON.stringify([...(currentUser?.enabledSupplements || [])].sort());
 
   if (loading) {
     return (
