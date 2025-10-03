@@ -2,8 +2,8 @@ import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/systems/tormenta20/atributos';
-import RACAS, { getRaceByName } from '../data/racas';
-import CLASSES from '../data/classes';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
 import {
   getClassBaseSkills,
   getNotRepeatedSkillsByQtd,
@@ -600,11 +600,22 @@ function generateFinalAttributes(
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  const races = dataRegistry.getRacesBySupplements(supplements);
+
   if (selectedOptions.raca) {
-    return getRaceByName(selectedOptions.raca);
+    const race = dataRegistry.getRaceByName(selectedOptions.raca, supplements);
+    if (race) return race;
   }
 
-  return getRaceByName(getRandomItemFromArray(RACAS).name);
+  const randomRace = getRandomItemFromArray(races);
+  const foundRace = dataRegistry.getRaceByName(randomRace.name, supplements);
+  if (!foundRace) {
+    throw new Error(`Race ${randomRace.name} not found in dataRegistry`);
+  }
+  return foundRace;
 }
 
 function getRaceAndName(
@@ -624,7 +635,12 @@ function classByName(classe: ClassDescription, classeName: string) {
 }
 
 function getClassByFilter(selectedOptions: SelectedOptions) {
-  const foundClass = CLASSES.find((classe) =>
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  const classes = dataRegistry.getClassesBySupplements(supplements);
+
+  const foundClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 
@@ -637,7 +653,7 @@ function getClassByFilter(selectedOptions: SelectedOptions) {
   if (foundRole) {
     const choosenClassName = getRandomItemFromArray(roles[foundRole]);
 
-    return CLASSES.find((classe) => classByName(classe, choosenClassName));
+    return classes.find((classe) => classByName(classe, choosenClassName));
   }
 
   return null;
@@ -646,15 +662,19 @@ function getClassByFilter(selectedOptions: SelectedOptions) {
 export function selectClass(
   selectedOptions: SelectedOptions
 ): ClassDescription {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  let allClasses = dataRegistry.getClassesBySupplements(supplements);
+
   let selectedClass: ClassDescription | undefined | null;
-  let allClasses = CLASSES;
   if (selectedOptions.classe) {
     selectedClass = getClassByFilter(selectedOptions);
   }
 
   const dv = selectedOptions.devocao.value;
   if (dv) {
-    allClasses = CLASSES.filter(
+    allClasses = allClasses.filter(
       (cl) => cl.faithProbability?.[dv as DivindadeNames] !== 0
     );
   }
@@ -2653,9 +2673,13 @@ export function generateEmptySheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
   // console.log(selectedOptions);
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const race = selectRace(selectedOptions);
   const size = getRaceSize(race);
-  const generatedClass = CLASSES.find((classe) =>
+  const classes = dataRegistry.getClassesBySupplements(supplements);
+  const generatedClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 

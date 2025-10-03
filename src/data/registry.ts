@@ -6,11 +6,24 @@
  */
 import _ from 'lodash';
 import { SystemId } from '../types/system.types';
-import { SupplementId } from '../types/supplement.types';
+import { SupplementId, SUPPLEMENT_METADATA } from '../types/supplement.types';
 import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
 import Race from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
+
+/**
+ * Tipos para dados com informação de origem do suplemento
+ */
+export interface RaceWithSupplement extends Race {
+  supplementId: SupplementId;
+  supplementName: string;
+}
+
+export interface ClassWithSupplement extends ClassDescription {
+  supplementId: SupplementId;
+  supplementName: string;
+}
 
 /**
  * Mapa de todos os sistemas disponíveis
@@ -92,6 +105,37 @@ class DataRegistry {
   }
 
   /**
+   * Retorna raças com informação do suplemento de origem
+   */
+  getRacesWithSupplementInfo(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): RaceWithSupplement[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return [];
+
+    // Combina raças com informação de origem
+    const racesWithInfo: RaceWithSupplement[] = [];
+
+    supplements.forEach((supplementId) => {
+      const races = systemData.supplements[supplementId]?.races || [];
+      const supplementName =
+        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+
+      races.forEach((race) => {
+        racesWithInfo.push({
+          ...race,
+          supplementId,
+          supplementName,
+        });
+      });
+    });
+
+    return racesWithInfo;
+  }
+
+  /**
    * Retorna classes de todos os suplementos ativos
    */
   getClassesBySupplements(
@@ -113,6 +157,37 @@ class DataRegistry {
 
     this.classesCache = { system: systemId, supplements, data: classes };
     return classes;
+  }
+
+  /**
+   * Retorna classes com informação do suplemento de origem
+   */
+  getClassesWithSupplementInfo(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): ClassWithSupplement[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return [];
+
+    // Combina classes com informação de origem
+    const classesWithInfo: ClassWithSupplement[] = [];
+
+    supplements.forEach((supplementId) => {
+      const classes = systemData.supplements[supplementId]?.classes || [];
+      const supplementName =
+        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+
+      classes.forEach((classDesc) => {
+        classesWithInfo.push({
+          ...classDesc,
+          supplementId,
+          supplementName,
+        });
+      });
+    });
+
+    return classesWithInfo;
   }
 
   /**

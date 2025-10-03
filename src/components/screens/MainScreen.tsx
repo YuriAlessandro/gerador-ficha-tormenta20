@@ -44,11 +44,19 @@ import { formatGroupLabel } from 'react-select/src/builtins';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 import Bag from '@/interfaces/Bag';
 import preparePDF from '@/functions/downloadSheetPdf';
-import CLASSES from '../../data/classes';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
-import RACAS from '../../data/racas';
+import {
+  dataRegistry,
+  RaceWithSupplement,
+  ClassWithSupplement,
+} from '../../data/registry';
 import SelectOptions from '../../interfaces/SelectedOptions';
+import Race from '../../interfaces/Race';
 import Result from '../SheetResult/Result';
+import {
+  SupplementId,
+  SUPPLEMENT_METADATA,
+} from '../../types/supplement.types';
 
 import generateRandomSheet, {
   generateEmptySheet,
@@ -70,13 +78,39 @@ import SheetsService, {
 } from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
-import { SUPPLEMENT_METADATA } from '../../types/supplement.types';
 
-type SelectedOption = { value: string; label: string };
+type SelectedOption = {
+  value: string;
+  label: string;
+  supplementId?: SupplementId;
+  supplementName?: string;
+};
 
 type MainScreenProps = {
   isDarkMode: boolean;
 };
+
+/**
+ * Componente customizado para renderizar opções do select com badge de suplemento
+ */
+const formatOptionLabel = (option: SelectedOption) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <span>{option.label}</span>
+    {option.supplementId &&
+      option.supplementId !== SupplementId.TORMENTA20_CORE && (
+        <Chip
+          label={option.supplementName}
+          size='small'
+          sx={{
+            height: '20px',
+            fontSize: '0.7rem',
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+          }}
+        />
+      )}
+  </div>
+);
 
 const saveSheetOnHistoric = (
   sheet: CharacterSheet,
@@ -111,6 +145,11 @@ const saveSheetOnHistoric = (
       return;
     }
 
+    // Se há mais de 100 fichas, remove a mais antiga para evitar QuotaExceededError
+    if (historic.length >= 100) {
+      historic.shift(); // Remove o primeiro item (mais antigo)
+    }
+
     historic.push({
       sheet,
       date: new Date().toLocaleDateString('pt-BR'),
@@ -118,7 +157,22 @@ const saveSheetOnHistoric = (
     });
   }
 
-  ls.setItem('fdnHistoric', JSON.stringify(historic));
+  try {
+    ls.setItem('fdnHistoric', JSON.stringify(historic));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      // Se ainda assim exceder a quota, remove mais fichas antigas até conseguir salvar
+      while (historic.length > 0) {
+        historic.shift();
+        try {
+          ls.setItem('fdnHistoric', JSON.stringify(historic));
+          break;
+        } catch {
+          // Continua removendo
+        }
+      }
+    }
+  }
 };
 
 const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
@@ -186,6 +240,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     origin: '',
     devocao: { label: 'Aleatória', value: '' },
     gerarItens: 'nao-gerar',
+    supplements: user?.enabledSupplements || [],
   });
 
   const [simpleSheet, setSimpleSheet] = React.useState(false);
@@ -203,6 +258,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   >(null);
 
   const location = useLocation<{ cloudSheet?: any }>();
+
+  // Get races and classes based on user's enabled supplements
+  const userSupplements = user?.enabledSupplements || [];
+  const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
+  const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
   // Load cloud sheet on mount if passed via navigation state
   React.useEffect(() => {
@@ -682,16 +742,26 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
   };
 
-  const racas = RACAS.map((raca) => ({ value: raca.name, label: raca.name }));
-  const rolesopt = Object.keys(roles).map((role) => ({
+  const racas: SelectedOption[] = RACAS.map((raca: RaceWithSupplement) => ({
+    value: raca.name,
+    label: raca.name,
+    supplementId: raca.supplementId,
+    supplementName: raca.supplementName,
+  }));
+
+  const rolesopt: SelectedOption[] = Object.keys(roles).map((role) => ({
     value: role,
     label: role,
   }));
 
-  const classesopt = CLASSES.map((classe) => ({
-    value: classe.name,
-    label: classe.name,
-  }));
+  const classesopt: SelectedOption[] = CLASSES.map(
+    (classe: ClassWithSupplement) => ({
+      value: classe.name,
+      label: classe.name,
+      supplementId: classe.supplementId,
+      supplementName: classe.supplementName,
+    })
+  );
 
   const niveis: { value: string; label: string }[] = [];
 
@@ -957,6 +1027,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   isSearchable
                   styles={selectStyles}
                   menuPortalTarget={document.body}
+                  formatOptionLabel={formatOptionLabel}
                   theme={(selectTheme) => ({
                     ...selectTheme,
                     colors: {
@@ -993,6 +1064,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   ]}
                   placeholder='Classes e Roles'
                   formatGroupLabel={fmtGroupLabel}
+                  formatOptionLabel={formatOptionLabel}
                   onChange={onSelectClasse}
                   isSearchable
                   styles={selectStyles}
