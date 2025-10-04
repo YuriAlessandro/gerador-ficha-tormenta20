@@ -291,7 +291,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (attrData.mod !== originalAttr.mod) {
         attrChanges.push({
           name: attrName,
-          value: `${attrData.mod >= 0 ? '+' : ''}${attrData.mod}`,
+          value: attrData.mod,
         });
       }
     });
@@ -322,7 +322,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           type: 'Atributos',
           value: editedData.raceAttributeChoices.map((attr) => ({
             name: attr,
-            value: '+1',
+            value: 1,
           })),
         });
       }

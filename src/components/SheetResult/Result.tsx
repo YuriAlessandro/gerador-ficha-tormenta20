@@ -263,6 +263,15 @@ const Result: React.FC<ResultProps> = (props) => {
     ? atributos[classe.spellPath.keyAttribute]
     : null;
 
+  // Helper function to format attribute modifiers correctly
+  const formatAttributeModifier = (value: number | string): string => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (Number.isNaN(numValue)) return String(value);
+    if (numValue === 0) return '0';
+    if (numValue > 0) return `+${numValue}`;
+    return String(numValue); // Negative values already have '-'
+  };
+
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
       return (
@@ -270,9 +279,9 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}: ${
-                (attr.value as number) > 0 ? '+' : '-'
-              }${attr.value}`}</li>
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${
+                attr.name
+              }: ${formatAttributeModifier(attr.value as number)}`}</li>
             ))}
           </ul>
         </li>
