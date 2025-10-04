@@ -125,12 +125,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
 
-  // Separate Draconic Blessings from other Destiny powers
+  // Separate race-specific powers from other Destiny powers
+  const isKallyanach = sheet.raca.name === 'Kallyanach';
+  const isKobolds = sheet.raca.name === 'Kobolds';
+
   const draconicBlessings = allPowersByCategory.DESTINO.filter((power) =>
     power.name.includes('Bênção Dracônica')
   );
+  const koboldsTalents = allPowersByCategory.DESTINO.filter((power) =>
+    power.name.includes('(Kobolds)')
+  );
   const otherDestinyPowers = allPowersByCategory.DESTINO.filter(
-    (power) => !power.name.includes('Bênção Dracônica')
+    (power) =>
+      !power.name.includes('Bênção Dracônica') &&
+      !power.name.includes('(Kobolds)')
   );
 
   const powerCategories: PowerCategory[] = [
@@ -144,11 +152,26 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       name: 'Poderes de Combate',
       powers: allPowersByCategory.COMBATE,
     },
-    {
-      type: GeneralPowerType.DESTINO,
-      name: 'Bênçãos Dracônicas (Kallyanach)',
-      powers: draconicBlessings,
-    },
+    // Only show Draconic Blessings if character is Kallyanach
+    ...(isKallyanach
+      ? [
+          {
+            type: GeneralPowerType.DESTINO,
+            name: 'Bênçãos Dracônicas (Kallyanach)',
+            powers: draconicBlessings,
+          },
+        ]
+      : []),
+    // Only show Kobolds Talents if character is Kobolds
+    ...(isKobolds
+      ? [
+          {
+            type: GeneralPowerType.DESTINO,
+            name: 'Talentos do Bando (Kobolds)',
+            powers: koboldsTalents,
+          },
+        ]
+      : []),
     {
       type: GeneralPowerType.DESTINO,
       name: 'Poderes de Destino',

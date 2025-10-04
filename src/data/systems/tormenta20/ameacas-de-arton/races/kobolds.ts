@@ -82,7 +82,7 @@ const koboldsAbilities: RaceAbility[] = [
   {
     name: 'Ajuntamento Escamoso',
     description:
-      'Embora sejam um grupo de kobolds, para todos os efeitos você é uma única criatura Média com dois braços. Entretanto, contam como Pequenos para efeitos dos espaços por onde podem passar e, quando fazem um teste de resistência contra um efeito que afeta apenas uma criatura e não causa dano, rolam dados e usam o melhor resultado. Por fim, têm vulnerabilidade a dano de área.',
+      'Embora sejam um grupo de kobolds, para todos os efeitos vocês são uma única criatura Média com dois braços. Entretanto, contam como Pequenos para efeitos dos espaços por onde podem passar e, quando fazem um teste de resistência contra um efeito que afeta apenas uma criatura e não causa dano, rolam dois dados e usam o melhor resultado. Por fim, têm vulnerabilidade a dano de área.',
   },
   {
     name: 'Praça Perigosa',
@@ -92,7 +92,7 @@ const koboldsAbilities: RaceAbility[] = [
   {
     name: 'Sensibilidade a Luz',
     description:
-      'Quando expostos à luz do sol ou luz mágica, vocês ficam ofuscados.',
+      'Quando expostos à luz do sol ou similar, vocês ficam ofuscados.',
   },
   {
     name: 'Talentos do Bando',
