@@ -267,6 +267,7 @@ export default interface CharacterSheet {
   completeSkills?: CompleteSkill[];
   sentidos?: string[];
   dinheiro?: number;
+  raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
 }
 
 export interface Step {

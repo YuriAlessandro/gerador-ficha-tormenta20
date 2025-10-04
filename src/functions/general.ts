@@ -480,17 +480,35 @@ export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
   priorityAttrs: Atributo[],
-  steps: Step[]
+  steps: Step[],
+  manualAttributeChoices?: Atributo[]
 ): CharacterAttributes {
   const values: { name: string; value: string | number }[] = [];
+  let manualChoiceIndex = 0; // Track which manual choice to use next
+
   const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
-      // Definir que atributo muda (se for any é um random)
-      const selectedAttrName = selectAttributeToChange(
-        nomesDosAtributosModificados,
-        attrDaRaca,
-        priorityAttrs
-      );
+      // Definir que atributo muda (se for any é um random ou escolha manual)
+      let selectedAttrName: Atributo;
+
+      if (attrDaRaca.attr === 'any' && manualAttributeChoices) {
+        // Use manual choice if available
+        selectedAttrName =
+          manualAttributeChoices[manualChoiceIndex] ||
+          selectAttributeToChange(
+            nomesDosAtributosModificados,
+            attrDaRaca,
+            priorityAttrs
+          );
+        manualChoiceIndex += 1;
+      } else {
+        // Use automatic selection (random or fixed)
+        selectedAttrName = selectAttributeToChange(
+          nomesDosAtributosModificados,
+          attrDaRaca,
+          priorityAttrs
+        );
+      }
 
       const atributoModificado = getModifiedAttribute(
         selectedAttrName,

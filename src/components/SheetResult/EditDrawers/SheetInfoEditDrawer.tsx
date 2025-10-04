@@ -7,12 +7,15 @@ import {
   Select,
   MenuItem,
   FormControl,
+  FormGroup,
+  FormControlLabel,
   InputLabel,
   Button,
   Stack,
   IconButton,
   Divider,
   Autocomplete,
+  Checkbox,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
@@ -42,6 +45,7 @@ interface EditedData {
   originName: string;
   deityName: string;
   attributes: CharacterAttributes;
+  raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
 }
 
 // Helper function to calculate the highest attribute value for a given modifier
@@ -101,6 +105,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ) || ''
       : '',
     attributes: { ...sheet.atributos },
+    raceAttributeChoices: sheet.raceAttributeChoices || [],
   });
 
   // State for name suggestions
@@ -123,6 +128,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ) || ''
         : '',
       attributes: { ...sheet.atributos },
+      raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
     setNameSuggestions(
       getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
@@ -135,6 +141,48 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       getNameSuggestions(editedData.raceName, editedData.sexo)
     );
   }, [editedData.raceName, editedData.sexo]);
+
+  // Get info about the currently selected race's attribute requirements
+  const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
+  const anyAttributeCount = selectedRace
+    ? selectedRace.attributes.attrs.filter((attr) => attr.attr === 'any').length
+    : 0;
+  const fixedAttributes = selectedRace
+    ? selectedRace.attributes.attrs.filter((attr) => attr.attr !== 'any')
+    : [];
+
+  // Reset race attribute choices when race changes
+  useEffect(() => {
+    setEditedData((prev) => ({
+      ...prev,
+      raceAttributeChoices: [],
+    }));
+  }, [editedData.raceName]);
+
+  // Handler for race attribute selection
+  const handleRaceAttributeSelection = (attribute: Atributo) => {
+    setEditedData((prev) => {
+      const currentChoices = prev.raceAttributeChoices;
+      const isSelected = currentChoices.includes(attribute);
+
+      let newChoices: Atributo[];
+      if (isSelected) {
+        // Deselect
+        newChoices = currentChoices.filter((attr) => attr !== attribute);
+      } else if (currentChoices.length < anyAttributeCount) {
+        // Select (only if under limit)
+        newChoices = [...currentChoices, attribute];
+      } else {
+        // Already at limit, don't add
+        return prev;
+      }
+
+      return {
+        ...prev,
+        raceAttributeChoices: newChoices,
+      };
+    });
+  };
 
   const recalculateSkills = (level: number) => {
     if (!sheet.completeSkills) return sheet.completeSkills;
@@ -208,6 +256,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: editedData.nivel,
       sexo: editedData.sexo,
       atributos: editedData.attributes,
+      raceAttributeChoices: editedData.raceAttributeChoices,
     };
 
     // Track manual edits in steps
@@ -261,6 +310,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         type: 'Edição Manual',
         value: [{ name: 'Raça', value: editedData.raceName }],
       });
+
+      // Add race attribute choices if applicable
+      if (
+        editedData.raceAttributeChoices &&
+        editedData.raceAttributeChoices.length > 0
+      ) {
+        newSteps.push({
+          label: 'Edição Manual - Atributos da Raça',
+          type: 'Atributos',
+          value: editedData.raceAttributeChoices.map((attr) => ({
+            name: attr,
+            value: '+1',
+          })),
+        });
+      }
     }
 
     // Check for class change
@@ -423,6 +487,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           ) || ''
         : '',
       attributes: { ...sheet.atributos },
+      raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
     setNameSuggestions(
       getNameSuggestions(sheet.raca.name, sheet.sexo || 'Masculino')
@@ -524,6 +589,84 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               ))}
             </Select>
           </FormControl>
+
+          {/* Race Attribute Selection - Show if race has 'any' attributes */}
+          {anyAttributeCount > 0 && (
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Atributos da Raça
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{ mb: 2, color: 'text.secondary' }}
+              >
+                {fixedAttributes.length > 0 && (
+                  <>
+                    Fixo:{' '}
+                    {fixedAttributes.map((attr, idx) => (
+                      <span key={`${attr.attr}-${attr.mod}`}>
+                        {attr.attr} {attr.mod >= 0 ? '+' : ''}
+                        {attr.mod}
+                        {idx < fixedAttributes.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                    <br />
+                  </>
+                )}
+                Escolha {anyAttributeCount} atributo
+                {anyAttributeCount > 1 ? 's' : ''} para receber +1:
+              </Typography>
+              <FormGroup>
+                <Stack direction='row' flexWrap='wrap' gap={1}>
+                  {Object.values(Atributo).map((atributo) => {
+                    const isSelected =
+                      editedData.raceAttributeChoices.includes(atributo);
+                    const isDisabled =
+                      !isSelected &&
+                      editedData.raceAttributeChoices.length >=
+                        anyAttributeCount;
+                    return (
+                      <FormControlLabel
+                        key={atributo}
+                        control={
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() =>
+                              handleRaceAttributeSelection(atributo)
+                            }
+                            disabled={isDisabled}
+                          />
+                        }
+                        label={atributo}
+                      />
+                    );
+                  })}
+                </Stack>
+              </FormGroup>
+              {editedData.raceAttributeChoices.length < anyAttributeCount && (
+                <Typography
+                  variant='caption'
+                  sx={{ mt: 1, display: 'block', color: 'warning.main' }}
+                >
+                  Selecione{' '}
+                  {anyAttributeCount - editedData.raceAttributeChoices.length}{' '}
+                  atributo
+                  {anyAttributeCount - editedData.raceAttributeChoices.length >
+                  1
+                    ? 's'
+                    : ''}{' '}
+                  ainda
+                </Typography>
+              )}
+            </Box>
+          )}
 
           <FormControl fullWidth>
             <InputLabel>Classe</InputLabel>
