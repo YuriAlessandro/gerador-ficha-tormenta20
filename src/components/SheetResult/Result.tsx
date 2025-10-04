@@ -55,8 +55,17 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
-  const handleSheetInfoUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
+  const handleSheetInfoUpdate = (
+    updates: Partial<CharacterSheet> | CharacterSheet
+  ) => {
+    // Check if it's a full sheet (has required properties) or partial updates
+    const isFullSheet =
+      'id' in updates && 'nome' in updates && 'atributos' in updates;
+
+    const updatedSheet = isFullSheet
+      ? (updates as CharacterSheet)
+      : { ...currentSheet, ...updates };
+
     setCurrentSheet(updatedSheet);
     if (onSheetUpdate) {
       onSheetUpdate(updatedSheet);

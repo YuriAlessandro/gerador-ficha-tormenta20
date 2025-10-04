@@ -95,7 +95,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceName: sheet.raca.name,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
-    deityName: sheet.devoto?.divindade.name || '',
+    deityName: sheet.devoto?.divindade.name
+      ? allDivindadeNames.find(
+          (d) => d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+        ) || ''
+      : '',
     attributes: { ...sheet.atributos },
   });
 
@@ -112,7 +116,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name || '',
+      deityName: sheet.devoto?.divindade.name
+        ? allDivindadeNames.find(
+            (d) =>
+              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+          ) || ''
+        : '',
       attributes: { ...sheet.atributos },
     });
     setNameSuggestions(
@@ -369,7 +378,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
       const newDeity = Object.values(DivindadeEnum).find(
-        (d) => d.name === editedData.deityName
+        (d) => d.name.toLowerCase() === editedData.deityName.toLowerCase()
       );
       if (newDeity) {
         updates.devoto = {
@@ -407,7 +416,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name || '',
+      deityName: sheet.devoto?.divindade.name
+        ? allDivindadeNames.find(
+            (d) =>
+              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+          ) || ''
+        : '',
       attributes: { ...sheet.atributos },
     });
     setNameSuggestions(

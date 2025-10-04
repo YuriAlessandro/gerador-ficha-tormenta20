@@ -2765,7 +2765,8 @@ export function generateEmptySheet(
   // Process deity if selected
   if (selectedOptions.devocao && selectedOptions.devocao.value) {
     const selectedDeity = Object.values(DivindadeEnum).find(
-      (deity) => deity.name === selectedOptions.devocao.value
+      (deity) =>
+        deity.name.toLowerCase() === selectedOptions.devocao.value.toLowerCase()
     );
     if (selectedDeity) {
       emptySheet.devoto = {
