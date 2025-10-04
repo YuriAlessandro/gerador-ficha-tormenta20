@@ -13,6 +13,7 @@ import HOBGOBLIN from './hobgoblin';
 import KAIJIN from './kaijin';
 import KALLYANACH from './kallyanach';
 import KAPPA from './kappa';
+import KOBOLDS from './kobolds';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -26,6 +27,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   KAIJIN,
   KALLYANACH,
   KAPPA,
+  KOBOLDS,
 ];
 
 export default AMEACAS_ARTON_RACES;
