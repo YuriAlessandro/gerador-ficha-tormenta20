@@ -27,6 +27,7 @@ import { DivindadeEnum } from '@/data/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { modifyAttributesBasedOnRace } from '@/functions/general';
 import { nomes, nameGenerators } from '@/data/nomes';
 
 interface SheetInfoEditDrawerProps {
@@ -399,6 +400,59 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       const newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
         updates.raca = newRace;
+
+        // Recalculate attributes based on the new race
+        // First, we need to remove old race modifiers and apply new ones
+        // We'll do this by reverting to base attributes and reapplying race modifiers
+
+        // Get base attributes (current attributes minus old race bonuses)
+        const oldRace = sheet.raca;
+        const baseAttributes = { ...editedData.attributes };
+
+        // Remove old race attribute modifiers
+        oldRace.attributes.attrs.forEach((attrMod) => {
+          if (attrMod.attr !== 'any') {
+            // Fixed attribute modifier - remove it
+            const currentAttr = baseAttributes[attrMod.attr];
+            const newMod = currentAttr.mod - attrMod.mod;
+            baseAttributes[attrMod.attr] = {
+              ...currentAttr,
+              mod: newMod,
+              value: newMod * 2 + 11,
+            };
+          }
+        });
+
+        // If there were 'any' attributes in old race, we need to remove those too
+        // We stored them in raceAttributeChoices, so we can reverse them
+        if (
+          sheet.raceAttributeChoices &&
+          sheet.raceAttributeChoices.length > 0
+        ) {
+          sheet.raceAttributeChoices.forEach((attr) => {
+            const currentAttr = baseAttributes[attr];
+            const newMod = currentAttr.mod - 1; // 'any' attributes always give +1
+            baseAttributes[attr] = {
+              ...currentAttr,
+              mod: newMod,
+              value: newMod * 2 + 11,
+            };
+          });
+        }
+
+        // Now apply new race modifiers using the manual choices if provided
+        const tempSteps: Step[] = [];
+        const modifiedAttributes = modifyAttributesBasedOnRace(
+          newRace,
+          baseAttributes,
+          sheet.classe.attrPriority || [],
+          tempSteps,
+          editedData.raceAttributeChoices.length > 0
+            ? editedData.raceAttributeChoices
+            : undefined
+        );
+
+        updates.atributos = modifiedAttributes;
       }
     }
 
