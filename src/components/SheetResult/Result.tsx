@@ -129,6 +129,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     spells,
     displacement,
+    size,
     maxSpaces,
     generalPowers = [],
     classPowers = [],
@@ -351,24 +352,23 @@ const Result: React.FC<ResultProps> = (props) => {
     }
   `;
 
-  const DefenseTitle = styled.h4`
+  const StatTitle = styled.h4`
     font-family: 'Tfont';
     position: relative;
+    font-size: 9px;
+    text-transform: uppercase;
+    margin: 0;
+    white-space: nowrap;
   `;
 
-  const DisplacementTitle = styled.h4`
-    font-family: 'Tfont';
-    position: relative;
-    font-size: 10px;
-  `;
-
-  const DefenseLabel = styled.div`
+  const StatLabel = styled.div`
     font-family: 'Tfont';
     text-align: center;
     width: 100%;
-    font-size: 50px;
+    font-size: 45px;
     color: ${theme.palette.primary.main};
-    margin-bottom: -20px;
+    line-height: 1;
+    margin: 0;
   `;
 
   return (
@@ -526,25 +526,11 @@ const Result: React.FC<ResultProps> = (props) => {
                 justifyContent='space-between'
                 alignItems='center'
               >
-                <Box width={isMobile ? '100%' : '33%'}>
+                <Box width={isMobile ? '100%' : '50%'}>
                   <BookTitle>Ataques</BookTitle>
                   {weaponsDiv}
                 </Box>
-                <Stack spacing={2} direction='row'>
-                  <FancyBox>
-                    <Box>
-                      <DefenseLabel>{displacement}</DefenseLabel>
-                      <DisplacementTitle>Deslocamento</DisplacementTitle>
-                    </Box>
-                  </FancyBox>
-                  <FancyBox>
-                    <Box>
-                      <DefenseLabel>{defesa}</DefenseLabel>
-                      <DefenseTitle>Defesa</DefenseTitle>
-                    </Box>
-                  </FancyBox>
-                </Stack>
-                <Box width={isMobile ? '100%' : '33%'}>
+                <Box width={isMobile ? '100%' : '50%'}>
                   <BookTitle>Defesa</BookTitle>
                   <DefenseEquipments
                     getKey={getKey}
@@ -566,6 +552,97 @@ const Result: React.FC<ResultProps> = (props) => {
                     </Typography>
                   </Box>
                 </Box>
+              </Stack>
+            </Card>
+
+            {/* Card de Estatísticas: Defesa, Deslocamento, Tamanho */}
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <StatLabel>{defesa}</StatLabel>
+                    <StatTitle>Defesa</StatTitle>
+                  </Box>
+                </FancyBox>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.3,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '35px',
+                        color: theme.palette.primary.main,
+                        textAlign: 'center',
+                        lineHeight: 1,
+                        margin: 0,
+                      }}
+                    >
+                      {displacement}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '11px',
+                        color: theme.palette.text.secondary,
+                        textAlign: 'center',
+                        margin: 0,
+                      }}
+                    >
+                      ({Math.floor(displacement / 1.5)}q)
+                    </Typography>
+                    <StatTitle>Deslocamento</StatTitle>
+                  </Box>
+                </FancyBox>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '28px',
+                        color: theme.palette.primary.main,
+                        textAlign: 'center',
+                        textTransform: 'uppercase',
+                        lineHeight: 1,
+                        margin: 0,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {size.name}
+                    </Typography>
+                    <StatTitle>Tamanho</StatTitle>
+                  </Box>
+                </FancyBox>
               </Stack>
             </Card>
             <Card
