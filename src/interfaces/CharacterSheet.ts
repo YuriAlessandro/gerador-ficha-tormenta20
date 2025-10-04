@@ -268,6 +268,7 @@ export default interface CharacterSheet {
   sentidos?: string[];
   dinheiro?: number;
   isThreat?: boolean;
+  raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
 }
 
 export interface Step {

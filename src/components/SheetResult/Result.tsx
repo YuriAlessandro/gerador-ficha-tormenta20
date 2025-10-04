@@ -4,6 +4,7 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import HomeIcon from '@mui/icons-material/Home';
 import PersonIcon from '@mui/icons-material/Person';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Box,
   Card,
@@ -13,6 +14,11 @@ import {
   Typography,
   useTheme,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Link,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
@@ -62,8 +68,17 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
-  const handleSheetInfoUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
+  const handleSheetInfoUpdate = (
+    updates: Partial<CharacterSheet> | CharacterSheet
+  ) => {
+    // Check if it's a full sheet (has required properties) or partial updates
+    const isFullSheet =
+      'id' in updates && 'nome' in updates && 'atributos' in updates;
+
+    const updatedSheet = isFullSheet
+      ? (updates as CharacterSheet)
+      : { ...currentSheet, ...updates };
+
     setCurrentSheet(updatedSheet);
     if (onSheetUpdate) {
       onSheetUpdate(updatedSheet);
@@ -127,6 +142,7 @@ const Result: React.FC<ResultProps> = (props) => {
     origin,
     spells,
     displacement,
+    size,
     maxSpaces,
     generalPowers = [],
     classPowers = [],
@@ -262,6 +278,15 @@ const Result: React.FC<ResultProps> = (props) => {
     ? atributos[classe.spellPath.keyAttribute]
     : null;
 
+  // Helper function to format attribute modifiers correctly
+  const formatAttributeModifier = (value: number | string): string => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (Number.isNaN(numValue)) return String(value);
+    if (numValue === 0) return '0';
+    if (numValue > 0) return `+${numValue}`;
+    return String(numValue); // Negative values already have '-'
+  };
+
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
       return (
@@ -269,9 +294,9 @@ const Result: React.FC<ResultProps> = (props) => {
           <strong>{step.label}:</strong>
           <ul className='stepAttrList'>
             {step.value.map((attr) => (
-              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${attr.name}: ${
-                (attr.value as number) > 0 ? '+' : '-'
-              }${attr.value}`}</li>
+              <li key={getKey(`${attr.name}-${attr.value}`)}>{`${
+                attr.name
+              }: ${formatAttributeModifier(attr.value as number)}`}</li>
             ))}
           </ul>
         </li>
@@ -351,24 +376,23 @@ const Result: React.FC<ResultProps> = (props) => {
     }
   `;
 
-  const DefenseTitle = styled.h4`
+  const StatTitle = styled.h4`
     font-family: 'Tfont';
     position: relative;
+    font-size: 9px;
+    text-transform: uppercase;
+    margin: 0;
+    white-space: nowrap;
   `;
 
-  const DisplacementTitle = styled.h4`
-    font-family: 'Tfont';
-    position: relative;
-    font-size: 10px;
-  `;
-
-  const DefenseLabel = styled.div`
+  const StatLabel = styled.div`
     font-family: 'Tfont';
     text-align: center;
     width: 100%;
-    font-size: 50px;
+    font-size: 45px;
     color: ${theme.palette.primary.main};
-    margin-bottom: -20px;
+    line-height: 1;
+    margin: 0;
   `;
 
   // Breadcrumb items
@@ -542,25 +566,11 @@ const Result: React.FC<ResultProps> = (props) => {
                 justifyContent='space-between'
                 alignItems='center'
               >
-                <Box width={isMobile ? '100%' : '33%'}>
+                <Box width={isMobile ? '100%' : '50%'}>
                   <BookTitle>Ataques</BookTitle>
                   {weaponsDiv}
                 </Box>
-                <Stack spacing={2} direction='row'>
-                  <FancyBox>
-                    <Box>
-                      <DefenseLabel>{displacement}</DefenseLabel>
-                      <DisplacementTitle>Deslocamento</DisplacementTitle>
-                    </Box>
-                  </FancyBox>
-                  <FancyBox>
-                    <Box>
-                      <DefenseLabel>{defesa}</DefenseLabel>
-                      <DefenseTitle>Defesa</DefenseTitle>
-                    </Box>
-                  </FancyBox>
-                </Stack>
-                <Box width={isMobile ? '100%' : '33%'}>
+                <Box width={isMobile ? '100%' : '50%'}>
                   <BookTitle>Defesa</BookTitle>
                   <DefenseEquipments
                     getKey={getKey}
@@ -582,6 +592,97 @@ const Result: React.FC<ResultProps> = (props) => {
                     </Typography>
                   </Box>
                 </Box>
+              </Stack>
+            </Card>
+
+            {/* Card de Estatísticas: Defesa, Deslocamento, Tamanho */}
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <StatLabel>{defesa}</StatLabel>
+                    <StatTitle>Defesa</StatTitle>
+                  </Box>
+                </FancyBox>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.3,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '35px',
+                        color: theme.palette.primary.main,
+                        textAlign: 'center',
+                        lineHeight: 1,
+                        margin: 0,
+                      }}
+                    >
+                      {displacement}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '11px',
+                        color: theme.palette.text.secondary,
+                        textAlign: 'center',
+                        margin: 0,
+                      }}
+                    >
+                      ({Math.floor(displacement / 1.5)}q)
+                    </Typography>
+                    <StatTitle>Deslocamento</StatTitle>
+                  </Box>
+                </FancyBox>
+                <FancyBox>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Tfont',
+                        fontSize: '28px',
+                        color: theme.palette.primary.main,
+                        textAlign: 'center',
+                        textTransform: 'uppercase',
+                        lineHeight: 1,
+                        margin: 0,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {size.name}
+                    </Typography>
+                    <StatTitle>Tamanho</StatTitle>
+                  </Box>
+                </FancyBox>
               </Stack>
             </Card>
             <Card
@@ -721,37 +822,38 @@ const Result: React.FC<ResultProps> = (props) => {
           </Box>
         </Stack>
 
-        <Stack
-          direction='row'
-          flexWrap='wrap'
-          alignItems='flex-start'
-          justifyContent='space-between'
-          width='100%'
-        >
-          <Card sx={{ mt: 2, p: 5, width: '30%' }}>
-            <p>
-              <small style={{ display: 'flex', alignItems: 'center' }}>
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginRight: '5px',
-                  }}
-                >
-                  <BugReportIcon /> Encontrou algum problema nessa ficha?
-                </span>
-                <a
-                  target='blank'
-                  href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
-                >
-                  Nos avise!
-                </a>
-              </small>
-            </p>
-          </Card>
+        <Box sx={{ mt: 2, width: '100%' }}>
+          {/* Bug Report Alert */}
+          <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
+            Encontrou algum problema nessa ficha?{' '}
+            <Link
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
+              target='_blank'
+              rel='noopener noreferrer'
+              sx={{ fontWeight: 'bold' }}
+            >
+              Nos avise!
+            </Link>
+          </Alert>
 
-          <Card sx={{ mt: 2, p: 5, width: '50%' }}>{changesDiv}</Card>
-        </Stack>
+          {/* Passo-a-passo Accordion */}
+          <Accordion defaultExpanded={false}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls='steps-content'
+              id='steps-header'
+            >
+              <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
+                Passo-a-passo da criação
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box component='ul' sx={{ pl: 2 }}>
+                {changesDiv}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
       </Container>
 
       <>

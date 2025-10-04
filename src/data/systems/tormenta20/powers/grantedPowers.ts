@@ -362,7 +362,6 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
             Skill.INVESTIGACAO,
             Skill.MISTICISMO,
             Skill.NOBREZA,
-            Skill.OFICIO,
           ],
           pick: 2,
         },

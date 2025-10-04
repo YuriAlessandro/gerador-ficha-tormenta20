@@ -9,9 +9,17 @@ import {
 import React from 'react';
 
 const ls = window.localStorage;
-const CURRENT_ALERT_NAME = 'version34Alert';
+const CURRENT_ALERT_NAME = 'version341Alert';
+const OLD_ALERT_NAME = 'version34Alert';
 
 const SystemUpdate = () => {
+  // Clean up old alert from localStorage
+  React.useEffect(() => {
+    if (ls.getItem(OLD_ALERT_NAME)) {
+      ls.removeItem(OLD_ALERT_NAME);
+    }
+  }, []);
+
   const doNotShow = ls.getItem(CURRENT_ALERT_NAME) === 'true';
   const [open, setOpen] = React.useState(!doNotShow);
 
@@ -31,18 +39,17 @@ const SystemUpdate = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Versão 3.4</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>Versão 3.4.1</DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            Uma nova versão está entre nós! A versão 3.4 traz o poder
-            &quot;Golpe Pessoal&quot; para Guerreiros, com 18 efeitos
-            personalizáveis para criar ataques únicos.
+            Nova atualização disponível! A versão 3.4.1 traz melhorias na
+            interface do passo-a-passo e diversas correções na edição de fichas.
           </p>
           <p>
-            Além disso, o sistema de equipamentos foi expandido com 97 novos
-            itens e melhorias para Inventores. Confira a lista completa de
-            mudanças no
+            Agora você pode visualizar tamanho e deslocamento diretamente na
+            ficha, além de uma interface aprimorada para seleção manual de
+            atributos ao editar raças. Confira a lista completa de mudanças no
             <a href='https://fichasdenimb.com.br/#/changelog'> Changelog</a>
           </p>
         </DialogContentText>

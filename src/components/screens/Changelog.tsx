@@ -7,7 +7,7 @@ const Changelog: React.FC = () => (
     <div style={{ padding: '0 30px' }}>
       <h1>Changelog</h1>
       <p>
-        Segue a lista de mudanças no projeto. Última atualização em 29/09/2025.
+        Segue a lista de mudanças no projeto. Última atualização em 04/10/2025.
       </p>
 
       <p>
@@ -24,6 +24,39 @@ const Changelog: React.FC = () => (
       </p>
 
       <h2>Versão 3</h2>
+
+      <h3>3.4.1</h3>
+      <ul>
+        <li>
+          <strong>🎨 Interface do Resultado Melhorada:</strong> Redesenhada a
+          seção de passo-a-passo e relatório de problemas na página de resultado
+          da ficha. O passo-a-passo agora utiliza um accordion expansível
+          (fechado por padrão) para economia de espaço, e o relatório de bugs
+          foi transformado em um alert compacto e discreto.
+        </li>
+        <li>
+          <strong>📏 Informações de Tamanho e Deslocamento:</strong> Adicionada
+          exibição de tamanho e deslocamento na ficha de resultado, permitindo
+          visualizar essas informações importantes diretamente.
+        </li>
+        <li>
+          <strong>🔧 Correções na Edição de Fichas:</strong> Corrigidos diversos
+          problemas na edição manual de fichas, incluindo seleção de divindades,
+          aplicação de bônus de armas ao editar equipamentos, e modificadores de
+          atributos ao trocar raça.
+        </li>
+        <li>
+          <strong>✏️ Seleção Manual de Atributos:</strong> Implementada
+          interface para seleção manual de atributos ao editar raça, permitindo
+          escolher exatamente quais atributos alterar quando a raça oferece
+          opções (&quot;any&quot;).
+        </li>
+        <li>
+          <strong>🐛 Melhorias no Passo-a-Passo:</strong> Corrigida formatação
+          de modificadores de atributos no passo-a-passo, garantindo exibição
+          correta de valores positivos, negativos e zero.
+        </li>
+      </ul>
 
       <h3>3.4.0</h3>
       <ul>

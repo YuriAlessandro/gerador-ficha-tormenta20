@@ -7,6 +7,8 @@ import {
   Select,
   MenuItem,
   FormControl,
+  FormGroup,
+  FormControlLabel,
   InputLabel,
   Button,
   Stack,
@@ -14,6 +16,7 @@ import {
   Divider,
   Autocomplete,
   Chip,
+  Checkbox,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
@@ -24,6 +27,7 @@ import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { modifyAttributesBasedOnRace } from '@/functions/general';
 import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
 import { useAuth } from '@/hooks/useAuth';
 import { SupplementId } from '@/types/supplement.types';
@@ -44,6 +48,7 @@ interface EditedData {
   originName: string;
   deityName: string;
   attributes: CharacterAttributes;
+  raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
 }
 
 // Helper function to calculate the highest attribute value for a given modifier
@@ -116,8 +121,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceName: sheet.raca.name,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
-    deityName: sheet.devoto?.divindade.name || '',
+    deityName: sheet.devoto?.divindade.name
+      ? allDivindadeNames.find(
+          (d) => d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+        ) || ''
+      : '',
     attributes: { ...sheet.atributos },
+    raceAttributeChoices: sheet.raceAttributeChoices || [],
   });
 
   // State for name suggestions
@@ -137,8 +147,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name || '',
+      deityName: sheet.devoto?.divindade.name
+        ? allDivindadeNames.find(
+            (d) =>
+              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+          ) || ''
+        : '',
       attributes: { ...sheet.atributos },
+      raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -156,6 +172,54 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     );
   }, [editedData.raceName, editedData.sexo, userSupplements]);
 
+  // Get info about the currently selected race's attribute requirements
+  const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
+  const anyAttributeCount = selectedRace
+    ? selectedRace.attributes.attrs.filter((attr) => attr.attr === 'any').length
+    : 0;
+  const fixedAttributes = selectedRace
+    ? selectedRace.attributes.attrs.filter((attr) => attr.attr !== 'any')
+    : [];
+
+  // Get list of attributes that can be selected (exclude fixed attributes)
+  const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
+  const availableAttributes = Object.values(Atributo).filter(
+    (attr) => !fixedAttributeNames.includes(attr)
+  );
+
+  // Reset race attribute choices when race changes
+  useEffect(() => {
+    setEditedData((prev) => ({
+      ...prev,
+      raceAttributeChoices: [],
+    }));
+  }, [editedData.raceName]);
+
+  // Handler for race attribute selection
+  const handleRaceAttributeSelection = (attribute: Atributo) => {
+    setEditedData((prev) => {
+      const currentChoices = prev.raceAttributeChoices;
+      const isSelected = currentChoices.includes(attribute);
+
+      let newChoices: Atributo[];
+      if (isSelected) {
+        // Deselect
+        newChoices = currentChoices.filter((attr) => attr !== attribute);
+      } else if (currentChoices.length < anyAttributeCount) {
+        // Select (only if under limit)
+        newChoices = [...currentChoices, attribute];
+      } else {
+        // Already at limit, don't add
+        return prev;
+      }
+
+      return {
+        ...prev,
+        raceAttributeChoices: newChoices,
+      };
+    });
+  };
+
   const recalculateSkills = (level: number) => {
     if (!sheet.completeSkills) return sheet.completeSkills;
 
@@ -165,25 +229,33 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }));
   };
 
-  const recalculatePV = (level: number, className: string) => {
+  const recalculatePV = (
+    level: number,
+    className: string,
+    attributes = sheet.atributos
+  ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pv;
 
-    const conMod = sheet.atributos.Constituição.mod;
+    const conMod = attributes.Constituição.mod;
     const pvBase = classData.pv + conMod;
     const pvPerLevel = classData.addpv + conMod;
 
     return pvBase + pvPerLevel * (level - 1);
   };
 
-  const recalculatePM = (level: number, className: string) => {
+  const recalculatePM = (
+    level: number,
+    className: string,
+    attributes = sheet.atributos
+  ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pm;
 
     // Get the key attribute modifier for PM calculation
     let keyAttrMod = 0;
     if (classData.spellPath) {
-      const keyAttr = sheet.atributos[classData.spellPath.keyAttribute];
+      const keyAttr = attributes[classData.spellPath.keyAttribute];
       keyAttrMod = keyAttr ? keyAttr.mod : 0;
     }
 
@@ -220,6 +292,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: editedData.nivel,
       sexo: editedData.sexo,
       atributos: editedData.attributes,
+      raceAttributeChoices: editedData.raceAttributeChoices,
     };
 
     // Track manual edits in steps
@@ -253,7 +326,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (attrData.mod !== originalAttr.mod) {
         attrChanges.push({
           name: attrName,
-          value: `${attrData.mod >= 0 ? '+' : ''}${attrData.mod}`,
+          value: attrData.mod,
         });
       }
     });
@@ -273,6 +346,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         type: 'Edição Manual',
         value: [{ name: 'Raça', value: editedData.raceName }],
       });
+
+      // Add race attribute choices if applicable
+      if (
+        editedData.raceAttributeChoices &&
+        editedData.raceAttributeChoices.length > 0
+      ) {
+        newSteps.push({
+          label: 'Edição Manual - Atributos da Raça',
+          type: 'Atributos',
+          value: editedData.raceAttributeChoices.map((attr) => ({
+            name: attr,
+            value: 1,
+          })),
+        });
+      }
     }
 
     // Check for class change
@@ -309,11 +397,37 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.steps = [...sheet.steps, ...newSteps];
     }
 
+    // Check if attributes have changed
+    const attributesChanged =
+      JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos);
+
     // Recalculate level-dependent values if level changed
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
-      updates.pv = recalculatePV(editedData.nivel, editedData.className);
-      updates.pm = recalculatePM(editedData.nivel, editedData.className);
+      updates.pv = recalculatePV(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+      updates.pm = recalculatePM(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+    }
+
+    // Recalculate PV/PM if attributes changed (even if level didn't change)
+    if (attributesChanged && editedData.nivel === sheet.nivel) {
+      updates.pv = recalculatePV(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
+      updates.pm = recalculatePM(
+        editedData.nivel,
+        editedData.className,
+        editedData.attributes
+      );
     }
 
     // Find and update race if changed
@@ -321,6 +435,59 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       const newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
         updates.raca = newRace;
+
+        // Recalculate attributes based on the new race
+        // First, we need to remove old race modifiers and apply new ones
+        // We'll do this by reverting to base attributes and reapplying race modifiers
+
+        // Get base attributes (current attributes minus old race bonuses)
+        const oldRace = sheet.raca;
+        const baseAttributes = { ...editedData.attributes };
+
+        // Remove old race attribute modifiers
+        oldRace.attributes.attrs.forEach((attrMod) => {
+          if (attrMod.attr !== 'any') {
+            // Fixed attribute modifier - remove it
+            const currentAttr = baseAttributes[attrMod.attr];
+            const newMod = currentAttr.mod - attrMod.mod;
+            baseAttributes[attrMod.attr] = {
+              ...currentAttr,
+              mod: newMod,
+              value: newMod * 2 + 11,
+            };
+          }
+        });
+
+        // If there were 'any' attributes in old race, we need to remove those too
+        // We stored them in raceAttributeChoices, so we can reverse them
+        if (
+          sheet.raceAttributeChoices &&
+          sheet.raceAttributeChoices.length > 0
+        ) {
+          sheet.raceAttributeChoices.forEach((attr) => {
+            const currentAttr = baseAttributes[attr];
+            const newMod = currentAttr.mod - 1; // 'any' attributes always give +1
+            baseAttributes[attr] = {
+              ...currentAttr,
+              mod: newMod,
+              value: newMod * 2 + 11,
+            };
+          });
+        }
+
+        // Now apply new race modifiers using the manual choices if provided
+        const tempSteps: Step[] = [];
+        const modifiedAttributes = modifyAttributesBasedOnRace(
+          newRace,
+          baseAttributes,
+          sheet.classe.attrPriority || [],
+          tempSteps,
+          editedData.raceAttributeChoices.length > 0
+            ? editedData.raceAttributeChoices
+            : undefined
+        );
+
+        updates.atributos = modifiedAttributes;
       }
     }
 
@@ -330,8 +497,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       if (newClass) {
         updates.classe = newClass;
         // Recalculate PV and PM for the new class
-        updates.pv = recalculatePV(editedData.nivel, editedData.className);
-        updates.pm = recalculatePM(editedData.nivel, editedData.className);
+        updates.pv = recalculatePV(
+          editedData.nivel,
+          editedData.className,
+          editedData.attributes
+        );
+        updates.pm = recalculatePM(
+          editedData.nivel,
+          editedData.className,
+          editedData.attributes
+        );
       }
     }
 
@@ -355,8 +530,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName &&
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
-      const newDeity = Object.values(DIVINDADES_DATA).find(
-        (d) => d.name === editedData.deityName
+      const newDeity = DIVINDADES_DATA.find(
+        (d) => d.name.toLowerCase() === editedData.deityName.toLowerCase()
       );
       if (newDeity) {
         updates.devoto = {
@@ -368,10 +543,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.devoto = undefined;
     }
 
-    // Use recalculation for full sheet update if attributes changed
-    if (
-      JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos)
-    ) {
+    // Use recalculation for full sheet update if attributes, race, or deity changed
+    const raceChanged = editedData.raceName !== sheet.raca.name;
+    const deityChanged =
+      editedData.deityName !== (sheet.devoto?.divindade.name || '');
+    const shouldUseRecalculateSheet =
+      attributesChanged || raceChanged || deityChanged;
+
+    if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
       const recalculatedSheet = recalculateSheet(updatedSheet);
       onSave(recalculatedSheet);
@@ -390,8 +569,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name || '',
+      deityName: sheet.devoto?.divindade.name
+        ? allDivindadeNames.find(
+            (d) =>
+              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
+          ) || ''
+        : '',
       attributes: { ...sheet.atributos },
+      raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -518,6 +703,89 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               ))}
             </Select>
           </FormControl>
+
+          {/* Race Attribute Selection - Show if race has 'any' attributes */}
+          {anyAttributeCount > 0 && (
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Atributos da Raça
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{ mb: 2, color: 'text.secondary' }}
+              >
+                {fixedAttributes.length > 0 && (
+                  <>
+                    Fixo:{' '}
+                    {fixedAttributes.map((attr, idx) => (
+                      <span key={`${attr.attr}-${attr.mod}`}>
+                        {attr.attr} {attr.mod >= 0 ? '+' : ''}
+                        {attr.mod}
+                        {idx < fixedAttributes.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                    <br />
+                  </>
+                )}
+                Escolha {anyAttributeCount} atributo
+                {anyAttributeCount > 1 ? 's' : ''}
+                {fixedAttributes.length > 0 ? ' diferente' : ''}
+                {anyAttributeCount > 1 && fixedAttributes.length > 0
+                  ? 's'
+                  : ''}{' '}
+                para receber +1:
+              </Typography>
+              <FormGroup>
+                <Stack direction='row' flexWrap='wrap' gap={1}>
+                  {availableAttributes.map((atributo) => {
+                    const isSelected =
+                      editedData.raceAttributeChoices.includes(atributo);
+                    const isDisabled =
+                      !isSelected &&
+                      editedData.raceAttributeChoices.length >=
+                        anyAttributeCount;
+                    return (
+                      <FormControlLabel
+                        key={atributo}
+                        control={
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={() =>
+                              handleRaceAttributeSelection(atributo)
+                            }
+                            disabled={isDisabled}
+                          />
+                        }
+                        label={atributo}
+                      />
+                    );
+                  })}
+                </Stack>
+              </FormGroup>
+              {editedData.raceAttributeChoices.length < anyAttributeCount && (
+                <Typography
+                  variant='caption'
+                  sx={{ mt: 1, display: 'block', color: 'warning.main' }}
+                >
+                  Selecione{' '}
+                  {anyAttributeCount - editedData.raceAttributeChoices.length}{' '}
+                  atributo
+                  {anyAttributeCount - editedData.raceAttributeChoices.length >
+                  1
+                    ? 's'
+                    : ''}{' '}
+                  ainda
+                </Typography>
+              )}
+            </Box>
+          )}
 
           <FormControl fullWidth>
             <InputLabel>Classe</InputLabel>

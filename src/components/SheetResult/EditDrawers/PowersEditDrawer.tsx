@@ -616,8 +616,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           case RequirementType.CLASSE:
             return sheet.classe.name === req.name;
 
-          case RequirementType.DEVOTO:
-            return !!sheet.devoto;
+          case RequirementType.DEVOTO: {
+            const godName = req.name;
+            const result = godName
+              ? sheet.devoto?.divindade.name.toLowerCase() ===
+                godName.toLowerCase()
+              : !!sheet.devoto;
+            if (req.not) return !result;
+            return result;
+          }
 
           case RequirementType.HABILIDADE:
             // Check class abilities
@@ -722,7 +729,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               case RequirementType.CLASSE:
                 return `Classe: ${req.name}`;
               case RequirementType.DEVOTO:
-                return 'Ser devoto';
+                return req.name ? `Devoto de ${req.name}` : 'Ser devoto';
               case RequirementType.HABILIDADE:
                 return `Habilidade: ${req.name}`;
               default:

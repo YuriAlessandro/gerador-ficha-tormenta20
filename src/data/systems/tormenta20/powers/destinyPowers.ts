@@ -4,6 +4,7 @@ import {
   RequirementType,
 } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
+import { SKILLS_WITHOUT_OFICIO_QUALQUER } from '../pericias';
 import { Atributo } from '../atributos';
 
 export const DestinyPowers: Record<string, GeneralPower> = {
@@ -304,7 +305,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         },
         action: {
           type: 'learnSkill',
-          availableSkills: Object.values(Skill),
+          availableSkills: SKILLS_WITHOUT_OFICIO_QUALQUER,
           pick: 1,
         },
       },

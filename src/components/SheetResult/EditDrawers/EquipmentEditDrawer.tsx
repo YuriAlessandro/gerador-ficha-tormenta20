@@ -31,6 +31,7 @@ import EQUIPAMENTOS, {
 } from '@/data/systems/tormenta20/equipamentos';
 import Bag from '@/interfaces/Bag';
 import { GENERAL_EQUIPMENT } from '@/data/systems/tormenta20/equipamentos-gerais';
+import { recalculateSheet } from '@/functions/recalculateSheet';
 
 interface EquipmentEditDrawerProps {
   open: boolean;
@@ -363,8 +364,12 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     // Create a new Bag instance with updated equipment
     const updatedBag = new Bag(updatedBagEquipments);
 
-    // Create updated sheet with new bag
-    const updatedSheet = { ...sheet, bag: updatedBag };
+    // Create updated sheet with new bag and dinheiro
+    const sheetWithNewBag = { ...sheet, bag: updatedBag, dinheiro };
+
+    // Recalculate sheet to apply weapon bonuses and other effects
+    // This ensures powers like "Arsenal das Profundezas" apply to newly added weapons
+    const recalculatedSheet = recalculateSheet(sheetWithNewBag, sheet);
 
     // Track equipment changes in steps
     const originalWeapons = sheet.bag.getEquipments().Arma || [];
@@ -587,35 +592,23 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       }
     }
 
+    // If armor or shield changed, recalculate defense
+    let finalSheet = recalculatedSheet;
     if (armorChanged || shieldChanged) {
-      // Reset to base defense (10) before recalculation
-      const sheetWithBaseDefense = { ...updatedSheet, defesa: 10 };
-      const recalculatedSheet = calcDefense(sheetWithBaseDefense);
-
-      const updates: Partial<CharacterSheet> = {
-        bag: updatedBag,
-        defesa: recalculatedSheet.defesa,
-        dinheiro,
-      };
-
-      if (newSteps.length > 0) {
-        updates.steps = [...sheet.steps, ...newSteps];
-      }
-
-      onSave(updates);
-    } else {
-      const updates: Partial<CharacterSheet> = {
-        bag: updatedBag,
-        dinheiro,
-      };
-
-      if (newSteps.length > 0) {
-        updates.steps = [...sheet.steps, ...newSteps];
-      }
-
-      onSave(updates);
+      const sheetWithBaseDefense = { ...finalSheet, defesa: 10 };
+      finalSheet = calcDefense(sheetWithBaseDefense);
     }
 
+    // Add equipment change steps to the recalculated sheet's steps
+    if (newSteps.length > 0) {
+      finalSheet = {
+        ...finalSheet,
+        steps: [...finalSheet.steps, ...newSteps],
+      };
+    }
+
+    // Save the fully recalculated sheet
+    onSave(finalSheet);
     onClose();
   };
 

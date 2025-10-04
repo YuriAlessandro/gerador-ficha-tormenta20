@@ -493,17 +493,35 @@ export function modifyAttributesBasedOnRace(
   raca: Race,
   atributosRolados: CharacterAttributes,
   priorityAttrs: Atributo[],
-  steps: Step[]
+  steps: Step[],
+  manualAttributeChoices?: Atributo[]
 ): CharacterAttributes {
   const values: { name: string; value: string | number }[] = [];
+  let manualChoiceIndex = 0; // Track which manual choice to use next
+
   const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
-      // Definir que atributo muda (se for any é um random)
-      const selectedAttrName = selectAttributeToChange(
-        nomesDosAtributosModificados,
-        attrDaRaca,
-        priorityAttrs
-      );
+      // Definir que atributo muda (se for any é um random ou escolha manual)
+      let selectedAttrName: Atributo;
+
+      if (attrDaRaca.attr === 'any' && manualAttributeChoices) {
+        // Use manual choice if available
+        selectedAttrName =
+          manualAttributeChoices[manualChoiceIndex] ||
+          selectAttributeToChange(
+            nomesDosAtributosModificados,
+            attrDaRaca,
+            priorityAttrs
+          );
+        manualChoiceIndex += 1;
+      } else {
+        // Use automatic selection (random or fixed)
+        selectedAttrName = selectAttributeToChange(
+          nomesDosAtributosModificados,
+          attrDaRaca,
+          priorityAttrs
+        );
+      }
 
       const atributoModificado = getModifiedAttribute(
         selectedAttrName,
@@ -2782,6 +2800,33 @@ export function generateEmptySheet(
 
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
+
+  // Process origin if selected
+  if (selectedOptions.origin) {
+    const selectedOrigin = Object.values(ORIGINS).find(
+      (origin) => origin.name === selectedOptions.origin
+    );
+    if (selectedOrigin) {
+      emptySheet.origin = {
+        name: selectedOrigin.name,
+        powers: selectedOrigin.poderes || [],
+      };
+    }
+  }
+
+  // Process deity if selected
+  if (selectedOptions.devocao && selectedOptions.devocao.value) {
+    const selectedDeity = Object.values(DivindadeEnum).find(
+      (deity) =>
+        deity.name.toLowerCase() === selectedOptions.devocao.value.toLowerCase()
+    );
+    if (selectedDeity) {
+      emptySheet.devoto = {
+        divindade: selectedDeity,
+        poderes: [],
+      };
+    }
+  }
 
   // Generate complete skills table with base values of 0
   emptySheet.completeSkills = Object.values(Skill)
