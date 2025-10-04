@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Box,
   Card,
@@ -10,6 +11,11 @@ import {
   Typography,
   useTheme,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Link,
 } from '@mui/material';
 import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
@@ -791,37 +797,38 @@ const Result: React.FC<ResultProps> = (props) => {
           </Box>
         </Stack>
 
-        <Stack
-          direction='row'
-          flexWrap='wrap'
-          alignItems='flex-start'
-          justifyContent='space-between'
-          width='100%'
-        >
-          <Card sx={{ mt: 2, p: 5, width: '30%' }}>
-            <p>
-              <small style={{ display: 'flex', alignItems: 'center' }}>
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginRight: '5px',
-                  }}
-                >
-                  <BugReportIcon /> Encontrou algum problema nessa ficha?
-                </span>
-                <a
-                  target='blank'
-                  href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
-                >
-                  Nos avise!
-                </a>
-              </small>
-            </p>
-          </Card>
+        <Box sx={{ mt: 2, width: '100%' }}>
+          {/* Bug Report Alert */}
+          <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
+            Encontrou algum problema nessa ficha?{' '}
+            <Link
+              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
+              target='_blank'
+              rel='noopener noreferrer'
+              sx={{ fontWeight: 'bold' }}
+            >
+              Nos avise!
+            </Link>
+          </Alert>
 
-          <Card sx={{ mt: 2, p: 5, width: '50%' }}>{changesDiv}</Card>
-        </Stack>
+          {/* Passo-a-passo Accordion */}
+          <Accordion defaultExpanded={false}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls='steps-content'
+              id='steps-header'
+            >
+              <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
+                Passo-a-passo da criação
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box component='ul' sx={{ pl: 2 }}>
+                {changesDiv}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
       </Container>
 
       <>
