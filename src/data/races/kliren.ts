@@ -2,6 +2,7 @@ import Skill from '@/interfaces/Skills';
 import Race from '../../interfaces/Race';
 import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
+import { SKILLS_WITHOUT_OFICIO_QUALQUER } from '../pericias';
 
 const KLIREN: Race = {
   name: 'Kliren',
@@ -30,7 +31,7 @@ const KLIREN: Race = {
           },
           action: {
             type: 'learnSkill',
-            availableSkills: Object.values(Skill),
+            availableSkills: SKILLS_WITHOUT_OFICIO_QUALQUER,
             pick: 1,
           },
         },

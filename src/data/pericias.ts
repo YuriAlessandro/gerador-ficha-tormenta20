@@ -5,6 +5,13 @@ import {
 import { ClassDescription } from '../interfaces/Class';
 import Skill from '../interfaces/Skills';
 
+// Skills without "Ofício (Qualquer)" - used for random/manual selections
+// This avoids the generic "Ofício (Qualquer)" appearing in skill picks,
+// as it gets automatically replaced by specific crafts during sheet generation
+export const SKILLS_WITHOUT_OFICIO_QUALQUER: Skill[] = Object.values(
+  Skill
+).filter((skill) => skill !== Skill.OFICIO);
+
 export function getNotUsedSkillsFromAllowed(
   usedSkills: Skill[],
   allowedSkills?: Skill[]

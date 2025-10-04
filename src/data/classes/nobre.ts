@@ -143,7 +143,6 @@ const NOBRE: ClassDescription = {
               Skill.JOGATINA,
               Skill.LUTA,
               Skill.NOBREZA,
-              Skill.OFICIO,
               Skill.PERCEPCAO,
               Skill.PONTARIA,
             ],
