@@ -152,6 +152,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     ? selectedRace.attributes.attrs.filter((attr) => attr.attr !== 'any')
     : [];
 
+  // Get list of attributes that can be selected (exclude fixed attributes)
+  const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
+  const availableAttributes = Object.values(Atributo).filter(
+    (attr) => !fixedAttributeNames.includes(attr)
+  );
+
   // Reset race attribute choices when race changes
   useEffect(() => {
     setEditedData((prev) => ({
@@ -675,11 +681,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                   </>
                 )}
                 Escolha {anyAttributeCount} atributo
-                {anyAttributeCount > 1 ? 's' : ''} para receber +1:
+                {anyAttributeCount > 1 ? 's' : ''}
+                {fixedAttributes.length > 0 ? ' diferente' : ''}
+                {anyAttributeCount > 1 && fixedAttributes.length > 0
+                  ? 's'
+                  : ''}{' '}
+                para receber +1:
               </Typography>
               <FormGroup>
                 <Stack direction='row' flexWrap='wrap' gap={1}>
-                  {Object.values(Atributo).map((atributo) => {
+                  {availableAttributes.map((atributo) => {
                     const isSelected =
                       editedData.raceAttributeChoices.includes(atributo);
                     const isDisabled =
