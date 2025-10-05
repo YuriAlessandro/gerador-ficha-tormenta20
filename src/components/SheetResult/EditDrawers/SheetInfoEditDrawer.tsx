@@ -172,6 +172,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     );
   }, [editedData.raceName, editedData.sexo, userSupplements]);
 
+  // Force female gender for female-only races
+  useEffect(() => {
+    if (editedData.raceName === 'Voracis' && editedData.sexo !== 'Feminino') {
+      setEditedData((prev) => ({ ...prev, sexo: 'Feminino' }));
+    }
+  }, [editedData.raceName, editedData.sexo]);
+
   // Get info about the currently selected race's attribute requirements
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
   const anyAttributeCount = selectedRace
@@ -656,6 +663,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               onChange={(e) =>
                 setEditedData({ ...editedData, sexo: e.target.value })
               }
+              disabled={editedData.raceName === 'Voracis'}
             >
               <MenuItem value='Masculino'>Masculino</MenuItem>
               <MenuItem value='Feminino'>Feminino</MenuItem>

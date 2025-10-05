@@ -639,10 +639,17 @@ function getRaceAndName(
 ) {
   // Passo 2.2: Escolher raça
   const race = selectRace(selectedOptions);
-  // Passo 2.3: Definir nome
-  const nome = generateRandomName(race, sex);
 
-  return { nome, race };
+  // Forçar sexo feminino para raças exclusivamente femininas
+  let finalSex = sex;
+  if (race.name === 'Voracis') {
+    finalSex = 'Mulher';
+  }
+
+  // Passo 2.3: Definir nome
+  const nome = generateRandomName(race, finalSex);
+
+  return { nome, race, sex: finalSex };
 }
 
 function classByName(classe: ClassDescription, classeName: string) {
@@ -2375,13 +2382,13 @@ export default function generateRandomSheet(
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
-  // Passo 2: Definir raça
-  const { race, nome } = getRaceAndName(selectedOptions, sexo);
+  // Passo 2: Definir raça (pode sobrescrever o sexo para raças exclusivas)
+  const { race, nome, sex: finalSex } = getRaceAndName(selectedOptions, sexo);
 
   if (race.name !== 'Golem') {
     steps.push({
       label: 'Gênero',
-      value: [{ value: `${sexo === 'Homem' ? 'Masculino' : 'Feminino'}` }],
+      value: [{ value: `${finalSex === 'Homem' ? 'Masculino' : 'Feminino'}` }],
     });
   }
 
@@ -2558,7 +2565,7 @@ export default function generateRandomSheet(
   let charSheet: CharacterSheet = {
     id: uuid(),
     nome,
-    sexo: sexo === 'Homem' ? 'Masculino' : 'Feminino',
+    sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
     maxSpaces,
