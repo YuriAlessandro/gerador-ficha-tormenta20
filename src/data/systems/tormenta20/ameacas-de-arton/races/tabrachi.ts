@@ -1,7 +1,6 @@
 import Equipment from '../../../../../interfaces/Equipment';
 import Race, { RaceAbility } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
-import Skill from '../../../../../interfaces/Skills';
 
 const lingua: Equipment = {
   group: 'Arma',
@@ -41,13 +40,6 @@ const tabrachiAbilities: RaceAbility[] = [
   {
     name: 'Saltador',
     description: 'Você recebe +10 em testes de Atletismo para saltar.',
-    sheetBonuses: [
-      {
-        source: { type: 'power', name: 'Saltador' },
-        target: { type: 'Skill', name: Skill.ATLETISMO },
-        modifier: { type: 'Fixed', value: 10 },
-      },
-    ],
   },
 ];
 
