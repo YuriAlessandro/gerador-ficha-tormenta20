@@ -2683,6 +2683,7 @@ export const nameGenerators: Record<
 
     return nameGenerators.default(randomRace, sex);
   },
+  'Trog Anão': (race, sex) => getRandomItemFromArray(nomes.Trog[sex]),
   Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
     const firstName = getRandomItemFromArray(lefouNames);
     const lastName = getRandomItemFromArray(lefouSurnames[sex]);
