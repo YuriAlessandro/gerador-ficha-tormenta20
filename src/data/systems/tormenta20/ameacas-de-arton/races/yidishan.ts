@@ -22,7 +22,7 @@ const yidishanAbilities: RaceAbility[] = [
         source: { type: 'power', name: 'Natureza Orgânica' },
         action: {
           type: 'special',
-          specialAction: 'osteonMemoriaPostuma',
+          specialAction: 'yidishanNaturezaOrganica',
         },
       },
     ],

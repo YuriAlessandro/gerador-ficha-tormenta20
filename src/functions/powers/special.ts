@@ -137,3 +137,66 @@ export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
 
   return subSteps;
 }
+
+export function applyYidishanNaturezaOrganica(
+  _sheet: CharacterSheet
+): SubStep[] {
+  function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
+    const shouldGetSkill = Math.random() > 0.5;
+
+    if (shouldGetSkill) {
+      const randomSkill = getNotRepeatedRandom(
+        sheet.skills,
+        Object.values(Skill)
+      );
+      sheet.skills.push(randomSkill);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `Perícia treinada (${randomSkill})`,
+      });
+    } else {
+      const allowedPowers = getPowersAllowedByRequirements(sheet);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `Poder geral recebido (${randomPower.name})`,
+      });
+    }
+  }
+
+  function getAndApplyRandomOldRaceAbility(
+    sheet: CharacterSheet,
+    substeps: SubStep[]
+  ) {
+    if (sheet.raca.oldRace?.abilities) {
+      const randomAbility = getRandomItemFromArray(
+        sheet.raca.oldRace.abilities
+      );
+      sheet.raca.abilities?.push(randomAbility);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `${sheet.raca.oldRace.name} (${randomAbility.name})`,
+      });
+
+      applyPower(sheet, randomAbility);
+    }
+
+    return sheet;
+  }
+
+  const subSteps: SubStep[] = [];
+
+  if (_sheet.raca.oldRace) {
+    if (_sheet.raca.oldRace.name === HUMANO.name) {
+      addSkillOrGeneralPower(_sheet, subSteps);
+    } else if (_sheet.raca.oldRace.abilities) {
+      _sheet = getAndApplyRandomOldRaceAbility(_sheet, subSteps);
+    }
+  }
+
+  return subSteps;
+}

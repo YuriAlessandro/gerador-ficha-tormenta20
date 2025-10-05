@@ -125,6 +125,7 @@ import {
   applyHumanoVersatil,
   applyLefouDeformidade,
   applyOsteonMemoriaPostuma,
+  applyYidishanNaturezaOrganica,
 } from './powers/special';
 import { addOtherBonusToSkill } from './skills/general';
 import {
@@ -1648,6 +1649,10 @@ export const applyPower = (
           sheetAction.action.specialAction === 'osteonMemoriaPostuma'
         ) {
           currentSteps = applyOsteonMemoriaPostuma(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
+        ) {
+          currentSteps = applyYidishanNaturezaOrganica(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
