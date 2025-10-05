@@ -102,7 +102,8 @@ export type RaceNames =
   | 'Tabrachi'
   | 'Tengu'
   | 'Trog Anão'
-  | 'Velocis';
+  | 'Velocis'
+  | 'Voracis';
 
 export default interface Race {
   name: RaceNames;
