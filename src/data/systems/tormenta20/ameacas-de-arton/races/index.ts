@@ -18,6 +18,7 @@ import MEIO_ORC from './meio-orc';
 import MINAURO from './minauro';
 import OGRO from './ogro';
 import ORC from './orc';
+import PTEROS from './pteros';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -36,6 +37,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   MINAURO,
   OGRO,
   ORC,
+  PTEROS,
 ];
 
 export default AMEACAS_ARTON_RACES;
