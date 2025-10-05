@@ -731,72 +731,6 @@ export const nomes: {
       'Trozza',
     ],
   },
-  Yidishan: {
-    Homem: [
-      'Ban-X',
-      'Zuvrulk-9',
-      'Ghordork-7',
-      'Ghatur-3',
-      'Duggar-5',
-      'Dik-12',
-      'Brorrolk-8',
-      'Chrark-4',
-      'Tozzonk-6',
-      'Thith-11',
-      'Grok-2',
-      'Morzul-Prime',
-      'Grommash-Alpha',
-      'Thrusk-Beta',
-      'Krull-Gamma',
-      'Durnak-Delta',
-      'Ghrazz-Omega',
-      'Skarr-Zero',
-      'Vorgath-One',
-      'Grukk-Two',
-      'Throk-Unit',
-      'Brak-Core',
-      'Zorgul-Mark',
-      'Kragath-Model',
-      'Drusk-Type',
-      'Ghorr-Version',
-      'Muzgul-Series',
-      'Thrall-Prototype',
-      'Rusk-Construct',
-      'Groth-Automaton',
-    ],
-    Mulher: [
-      'Grika-X',
-      'Thara-9',
-      'Zuva-7',
-      'Drukka-3',
-      'Maza-5',
-      'Ghora-12',
-      'Skarra-8',
-      'Vorna-4',
-      'Krulla-6',
-      'Grizka-11',
-      'Throkka-2',
-      'Brakka-Prime',
-      'Morza-Alpha',
-      'Durna-Beta',
-      'Ghrazza-Gamma',
-      'Muzga-Delta',
-      'Vorga-Omega',
-      'Thrukka-Zero',
-      'Grukka-One',
-      'Ruka-Two',
-      'Zakka-Unit',
-      'Draka-Core',
-      'Ghaza-Mark',
-      'Skorza-Model',
-      'Krozza-Type',
-      'Thazza-Version',
-      'Gromma-Series',
-      'Vrakka-Prototype',
-      'Skurra-Construct',
-      'Trozza-Automaton',
-    ],
-  },
   Centauro: {
     Homem: [
       'Adonis',
@@ -2885,6 +2819,34 @@ export const nameGenerators: Record<
   },
   'Trog Anão': (race, sex) => getRandomItemFromArray(nomes.Trog[sex]),
   Voracis: () => getRandomItemFromArray(nomes.Voracis.Mulher),
+  Yidishan: (race, sex) => {
+    if (race.oldRace) {
+      if (nameGenerators[race.oldRace.name]) {
+        return nameGenerators[race.oldRace.name](race.oldRace, sex);
+      }
+
+      return nameGenerators.default(race.oldRace, sex);
+    }
+
+    const allRaces = [...Object.keys(nomes), 'Lefou'];
+    const validRaces = allRaces.filter(
+      (element) =>
+        element !== 'Golem' &&
+        element !== 'Osteon' &&
+        element !== 'Soterrado' &&
+        element !== 'Yidishan'
+    );
+    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRace = RACAS.find(
+      (element) => element.name === randomRaceName
+    ) as Race;
+
+    if (nameGenerators[randomRaceName]) {
+      return nameGenerators[randomRaceName](randomRace, sex);
+    }
+
+    return nameGenerators.default(randomRace, sex);
+  },
   Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
     const firstName = getRandomItemFromArray(lefouNames);
     const lastName = getRandomItemFromArray(lefouSurnames[sex]);

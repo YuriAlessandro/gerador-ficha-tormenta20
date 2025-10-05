@@ -1,14 +1,11 @@
 import Race, { RaceAbility } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
-import CORE_POWERS from '../../core/powers';
-import AMEACAS_ARTON_POWERS from '../powers';
-import Skill from '../../../../../interfaces/Skills';
-
-// Combine all powers from Core and Ameaças de Arton for Natureza Orgânica
-const ALL_GENERAL_POWERS = [
-  ...Object.values(CORE_POWERS).flat(),
-  ...Object.values(AMEACAS_ARTON_POWERS).flat(),
-];
+import {
+  getRaceDisplacement,
+  getRaceSize,
+} from '../../races/functions/functions';
+import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import HUMANO from '../../races/humano';
 
 const yidishanAbilities: RaceAbility[] = [
   {
@@ -24,9 +21,8 @@ const yidishanAbilities: RaceAbility[] = [
       {
         source: { type: 'power', name: 'Natureza Orgânica' },
         action: {
-          type: 'getGeneralPower',
-          availablePowers: ALL_GENERAL_POWERS,
-          pick: 1,
+          type: 'special',
+          specialAction: 'osteonMemoriaPostuma',
         },
       },
     ],
@@ -59,6 +55,40 @@ const YIDISHAN: Race = {
     ARSENAL: 1,
     MEGALOKK: 1,
     NIMB: 1,
+  },
+  setup: (race, allRaces) => {
+    const validRaces = allRaces.filter(
+      (element) =>
+        element.name !== 'Golem' &&
+        element.name !== 'Osteon' &&
+        element.name !== 'Soterrado' &&
+        element.name !== 'Yidishan'
+    );
+
+    const randomNumber = Math.random();
+    let oldRace = HUMANO;
+    if (randomNumber < 0.2) {
+      oldRace = getRandomItemFromArray(validRaces);
+    }
+
+    return {
+      ...race,
+      oldRace,
+    };
+  },
+  getDisplacement(race) {
+    if (race.oldRace) {
+      return getRaceDisplacement(race.oldRace);
+    }
+
+    return getRaceDisplacement(race);
+  },
+  getSize(race) {
+    if (race.oldRace) {
+      return getRaceSize(race.oldRace);
+    }
+
+    return getRaceSize(race);
   },
   abilities: yidishanAbilities,
 };
