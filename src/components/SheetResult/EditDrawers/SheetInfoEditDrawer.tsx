@@ -181,12 +181,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // Get info about the currently selected race's attribute requirements
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
-  const anyAttributeCount = selectedRace
-    ? selectedRace.attributes.attrs.filter((attr) => attr.attr === 'any').length
-    : 0;
-  const fixedAttributes = selectedRace
-    ? selectedRace.attributes.attrs.filter((attr) => attr.attr !== 'any')
-    : [];
+
+  // Get race attributes (considering sex-dependent races like Nagah)
+  const raceAttributes =
+    selectedRace?.getAttributes && editedData.sexo
+      ? selectedRace.getAttributes(editedData.sexo as 'Masculino' | 'Feminino')
+      : selectedRace?.attributes.attrs || [];
+
+  const anyAttributeCount = raceAttributes.filter(
+    (attr) => attr.attr === 'any'
+  ).length;
+  const fixedAttributes = raceAttributes.filter((attr) => attr.attr !== 'any');
 
   // Get list of attributes that can be selected (exclude fixed attributes)
   const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
@@ -194,13 +199,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     (attr) => !fixedAttributeNames.includes(attr)
   );
 
-  // Reset race attribute choices when race changes
+  // Reset race attribute choices when race or sex changes (for sex-dependent races like Nagah)
   useEffect(() => {
     setEditedData((prev) => ({
       ...prev,
       raceAttributeChoices: [],
     }));
-  }, [editedData.raceName]);
+  }, [editedData.raceName, editedData.sexo]);
 
   // Handler for race attribute selection
   const handleRaceAttributeSelection = (attribute: Atributo) => {
@@ -370,6 +375,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     }
 
+    // Check for sex change that affects attributes (for sex-dependent races like Nagah)
+    if (
+      editedData.sexo !== sheet.sexo &&
+      selectedRace?.getAttributes &&
+      editedData.raceName === sheet.raca.name
+    ) {
+      newSteps.push({
+        label: 'Edição Manual - Gênero (Recalculando Atributos da Raça)',
+        type: 'Edição Manual',
+        value: [{ name: 'Gênero', value: editedData.sexo }],
+      });
+    }
+
     // Check for class change
     if (editedData.className !== sheet.classe.name) {
       newSteps.push({
@@ -437,8 +455,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
-    // Find and update race if changed
-    if (editedData.raceName !== sheet.raca.name) {
+    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah)
+    const raceOrSexChanged =
+      editedData.raceName !== sheet.raca.name ||
+      (editedData.sexo !== sheet.sexo && selectedRace?.getAttributes);
+
+    if (raceOrSexChanged) {
       const newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
         updates.raca = newRace;
@@ -451,8 +473,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         const oldRace = sheet.raca;
         const baseAttributes = { ...editedData.attributes };
 
+        // Get old race attributes (considering sex-dependent races)
+        const oldRaceAttributes =
+          oldRace.getAttributes && sheet.sexo
+            ? oldRace.getAttributes(sheet.sexo as 'Masculino' | 'Feminino')
+            : oldRace.attributes.attrs;
+
         // Remove old race attribute modifiers
-        oldRace.attributes.attrs.forEach((attrMod) => {
+        oldRaceAttributes.forEach((attrMod) => {
           if (attrMod.attr !== 'any') {
             // Fixed attribute modifier - remove it
             const currentAttr = baseAttributes[attrMod.attr];
@@ -712,6 +740,32 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               ))}
             </Select>
           </FormControl>
+
+          {/* Race Fixed Attributes - Always show if race has fixed attributes */}
+          {fixedAttributes.length > 0 && anyAttributeCount === 0 && (
+            <Box
+              sx={{
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                bgcolor: 'background.default',
+              }}
+            >
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Modificadores de Atributos da Raça
+              </Typography>
+              <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                {fixedAttributes.map((attr, idx) => (
+                  <span key={`${attr.attr}-${attr.mod}`}>
+                    {attr.attr} {attr.mod >= 0 ? '+' : ''}
+                    {attr.mod}
+                    {idx < fixedAttributes.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </Typography>
+            </Box>
+          )}
 
           {/* Race Attribute Selection - Show if race has 'any' attributes */}
           {anyAttributeCount > 0 && (
