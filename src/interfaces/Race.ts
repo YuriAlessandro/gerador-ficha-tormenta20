@@ -94,7 +94,8 @@ export type RaceNames =
   | 'Kappa'
   | 'Kobolds'
   | 'Meio-Orc'
-  | 'Minauro';
+  | 'Minauro'
+  | 'Ogro';
 
 export default interface Race {
   name: RaceNames;
