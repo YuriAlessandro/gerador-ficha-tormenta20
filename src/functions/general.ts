@@ -132,6 +132,7 @@ import {
   applyMoreauEspertezaVulpina,
 } from './powers/moreau-special';
 import { MOREAU_HERITAGES } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { applyGolemDespertoSagrada } from './powers/golem-desperto-special';
 import { addOtherBonusToSkill } from './skills/general';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -1672,6 +1673,10 @@ export const applyPower = (
           sheetAction.action.specialAction === 'moreauEspertezaVulpina'
         ) {
           currentSteps = applyMoreauEspertezaVulpina(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'golemDespertoSagrada'
+        ) {
+          currentSteps = applyGolemDespertoSagrada(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`

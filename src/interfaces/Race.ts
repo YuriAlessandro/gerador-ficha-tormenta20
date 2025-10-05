@@ -96,6 +96,7 @@ export type RaceNames =
   | 'Meio-Orc'
   | 'Minauro'
   | 'Moreau'
+  | 'Golem Desperto'
   | 'Nagah'
   | 'Ogro'
   | 'Orc'
@@ -116,6 +117,9 @@ export default interface Race {
   abilities: RaceAbility[];
   oldRace?: Race;
   heritage?: string; // For races with heritages (like Moreau)
+  chassis?: string; // For Golem Desperto
+  energySource?: string; // For Golem Desperto
+  sizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;

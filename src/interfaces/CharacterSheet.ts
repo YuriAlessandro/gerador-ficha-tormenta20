@@ -86,7 +86,8 @@ export type SheetActionStep =
         | 'osteonMemoriaPostuma'
         | 'yidishanNaturezaOrganica'
         | 'moreauSapiencia'
-        | 'moreauEspertezaVulpina';
+        | 'moreauEspertezaVulpina'
+        | 'golemDespertoSagrada';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -273,6 +274,9 @@ export default interface CharacterSheet {
   isThreat?: boolean;
   raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
   raceHeritage?: string; // For races with heritages (like Moreau)
+  raceChassis?: string; // For Golem Desperto
+  raceEnergySource?: string; // For Golem Desperto
+  raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
 }
 
 export interface Step {
