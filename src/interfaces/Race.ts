@@ -95,6 +95,7 @@ export type RaceNames =
   | 'Kobolds'
   | 'Meio-Orc'
   | 'Minauro'
+  | 'Moreau'
   | 'Nagah'
   | 'Ogro'
   | 'Orc'
@@ -114,6 +115,7 @@ export default interface Race {
   };
   abilities: RaceAbility[];
   oldRace?: Race;
+  heritage?: string; // For races with heritages (like Moreau)
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;

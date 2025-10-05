@@ -127,6 +127,11 @@ import {
   applyOsteonMemoriaPostuma,
   applyYidishanNaturezaOrganica,
 } from './powers/special';
+import {
+  applyMoreauSapiencia,
+  applyMoreauEspertezaVulpina,
+} from './powers/moreau-special';
+import { MOREAU_HERITAGES } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { addOtherBonusToSkill } from './skills/general';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -1661,6 +1666,12 @@ export const applyPower = (
           sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
         ) {
           currentSteps = applyYidishanNaturezaOrganica(sheet);
+        } else if (sheetAction.action.specialAction === 'moreauSapiencia') {
+          currentSteps = applyMoreauSapiencia(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'moreauEspertezaVulpina'
+        ) {
+          currentSteps = applyMoreauEspertezaVulpina(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
@@ -2405,16 +2416,26 @@ export default function generateRandomSheet(
     });
   }
 
-  steps.push(
-    {
-      label: 'Raça',
-      value: [{ value: race.name }],
-    },
-    {
-      label: 'Nome',
-      value: [{ value: nome }],
+  steps.push({
+    label: 'Raça',
+    value: [{ value: race.name }],
+  });
+
+  // Add heritage step if race has heritage (e.g., Moreau)
+  if (race.heritage) {
+    const heritage = MOREAU_HERITAGES[race.heritage];
+    if (heritage) {
+      steps.push({
+        label: 'Herança',
+        value: [{ value: heritage.name }],
+      });
     }
-  );
+  }
+
+  steps.push({
+    label: 'Nome',
+    value: [{ value: nome }],
+  });
 
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
@@ -2590,6 +2611,7 @@ export default function generateRandomSheet(
     atributos,
     maxSpaces,
     raca: race,
+    raceHeritage: race.heritage,
     classe,
     pv: summedPV,
     pm: initialPM,

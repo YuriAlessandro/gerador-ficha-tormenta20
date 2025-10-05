@@ -24,6 +24,10 @@ import styled from '@emotion/styled';
 import bgImage from '@/assets/images/fantasybg.png';
 import bigBoxDark from '@/assets/images/bigBoxDark.svg';
 import bigBox from '@/assets/images/bigBox.svg';
+import {
+  MOREAU_HERITAGES,
+  MoreauHeritageName,
+} from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -132,6 +136,7 @@ const Result: React.FC<ResultProps> = (props) => {
     nivel,
     atributos,
     raca,
+    raceHeritage,
     classe,
     pv,
     pm,
@@ -454,7 +459,14 @@ const Result: React.FC<ResultProps> = (props) => {
                 <Box sx={{ flexGrow: 1 }}>
                   <LabelDisplay text={nome} size='large' />
                   <LabelDisplay
-                    text={`${raca.name} ${className} (${sexo})`}
+                    text={`${raca.name}${
+                      raca.name === 'Moreau' && raceHeritage
+                        ? ` (${
+                            MOREAU_HERITAGES[raceHeritage as MoreauHeritageName]
+                              ?.name || raceHeritage
+                          })`
+                        : ''
+                    } ${className} (${sexo})`}
                     size='medium'
                   />
                   <LabelDisplay title='Nível' text={`${nivel}`} size='small' />

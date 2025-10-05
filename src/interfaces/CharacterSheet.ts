@@ -84,7 +84,9 @@ export type SheetActionStep =
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
-        | 'yidishanNaturezaOrganica';
+        | 'yidishanNaturezaOrganica'
+        | 'moreauSapiencia'
+        | 'moreauEspertezaVulpina';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -270,6 +272,7 @@ export default interface CharacterSheet {
   dinheiro?: number;
   isThreat?: boolean;
   raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
+  raceHeritage?: string; // For races with heritages (like Moreau)
 }
 
 export interface Step {

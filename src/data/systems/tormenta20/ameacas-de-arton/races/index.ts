@@ -16,6 +16,7 @@ import KAPPA from './kappa';
 import KOBOLDS from './kobolds';
 import MEIO_ORC from './meio-orc';
 import MINAURO from './minauro';
+import MOREAU from './moreau';
 import NAGAH from './nagah';
 import OGRO from './ogro';
 import ORC from './orc';
@@ -43,6 +44,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   KOBOLDS,
   MEIO_ORC,
   MINAURO,
+  MOREAU,
   NAGAH,
   OGRO,
   ORC,

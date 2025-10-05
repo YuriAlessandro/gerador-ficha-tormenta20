@@ -31,6 +31,11 @@ import { modifyAttributesBasedOnRace } from '@/functions/general';
 import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
 import { useAuth } from '@/hooks/useAuth';
 import { SupplementId } from '@/types/supplement.types';
+import {
+  MOREAU_HERITAGES,
+  MoreauHeritageName,
+  MOREAU_HERITAGE_NAMES,
+} from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -44,6 +49,7 @@ interface EditedData {
   nivel: number;
   sexo: string;
   raceName: string;
+  raceHeritage: string | undefined; // For races with heritages (like Moreau)
   className: string;
   originName: string;
   deityName: string;
@@ -119,6 +125,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     nivel: sheet.nivel,
     sexo: sheet.sexo || 'Masculino',
     raceName: sheet.raca.name,
+    raceHeritage: sheet.raceHeritage,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name
@@ -145,6 +152,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: sheet.nivel,
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
+      raceHeritage: sheet.raceHeritage,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -182,11 +190,27 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // Get info about the currently selected race's attribute requirements
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
 
-  // Get race attributes (considering sex-dependent races like Nagah)
-  const raceAttributes =
-    selectedRace?.getAttributes && editedData.sexo
-      ? selectedRace.getAttributes(editedData.sexo as 'Masculino' | 'Feminino')
-      : selectedRace?.attributes.attrs || [];
+  // Get race attributes (considering sex-dependent races like Nagah and heritage-based races like Moreau)
+  const raceAttributes = (() => {
+    // For Moreau, use heritage attributes if heritage is selected
+    if (editedData.raceName === 'Moreau' && editedData.raceHeritage) {
+      const heritage =
+        MOREAU_HERITAGES[editedData.raceHeritage as MoreauHeritageName];
+      if (heritage) {
+        return heritage.attributes;
+      }
+    }
+
+    // For sex-dependent races (like Nagah)
+    if (selectedRace?.getAttributes && editedData.sexo) {
+      return selectedRace.getAttributes(
+        editedData.sexo as 'Masculino' | 'Feminino'
+      );
+    }
+
+    // Default: use race attributes
+    return selectedRace?.attributes.attrs || [];
+  })();
 
   const anyAttributeCount = raceAttributes.filter(
     (attr) => attr.attr === 'any'
@@ -199,13 +223,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     (attr) => !fixedAttributeNames.includes(attr)
   );
 
-  // Reset race attribute choices when race or sex changes (for sex-dependent races like Nagah)
+  // Reset race attribute choices when race, sex, or heritage changes
   useEffect(() => {
     setEditedData((prev) => ({
       ...prev,
       raceAttributeChoices: [],
     }));
-  }, [editedData.raceName, editedData.sexo]);
+  }, [editedData.raceName, editedData.sexo, editedData.raceHeritage]);
 
   // Handler for race attribute selection
   const handleRaceAttributeSelection = (attribute: Atributo) => {
@@ -305,6 +329,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: editedData.sexo,
       atributos: editedData.attributes,
       raceAttributeChoices: editedData.raceAttributeChoices,
+      raceHeritage: editedData.raceHeritage,
     };
 
     // Track manual edits in steps
@@ -373,6 +398,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           })),
         });
       }
+    }
+
+    // Check for heritage change (for races like Moreau)
+    if (
+      editedData.raceHeritage !== sheet.raceHeritage &&
+      editedData.raceName === 'Moreau'
+    ) {
+      const heritageName = editedData.raceHeritage
+        ? MOREAU_HERITAGES[editedData.raceHeritage as MoreauHeritageName]?.name
+        : 'Removida';
+
+      newSteps.push({
+        label: 'Edição Manual - Herança',
+        type: 'Edição Manual',
+        value: [{ name: 'Herança', value: heritageName }],
+      });
     }
 
     // Check for sex change that affects attributes (for sex-dependent races like Nagah)
@@ -455,14 +496,32 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
-    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah)
-    const raceOrSexChanged =
+    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau)
+    const raceOrSexOrHeritageChanged =
       editedData.raceName !== sheet.raca.name ||
-      (editedData.sexo !== sheet.sexo && selectedRace?.getAttributes);
+      (editedData.sexo !== sheet.sexo && selectedRace?.getAttributes) ||
+      (editedData.raceName === 'Moreau' &&
+        editedData.raceHeritage !== sheet.raceHeritage);
 
-    if (raceOrSexChanged) {
-      const newRace = RACAS.find((r) => r.name === editedData.raceName);
+    if (raceOrSexOrHeritageChanged) {
+      let newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
+        // For Moreau, update race with heritage attributes and abilities
+        if (editedData.raceName === 'Moreau' && editedData.raceHeritage) {
+          const heritage =
+            MOREAU_HERITAGES[editedData.raceHeritage as MoreauHeritageName];
+          if (heritage) {
+            newRace = {
+              ...newRace,
+              heritage: editedData.raceHeritage,
+              attributes: {
+                attrs: heritage.attributes,
+              },
+              abilities: heritage.abilities,
+            };
+          }
+        }
+
         updates.raca = newRace;
 
         // Recalculate attributes based on the new race
@@ -603,6 +662,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: sheet.nivel,
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
+      raceHeritage: sheet.raceHeritage,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -705,12 +765,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             <Select
               value={editedData.raceName}
               label='Raça'
-              onChange={(e) =>
+              onChange={(e) => {
+                const newRaceName = e.target.value as string;
                 setEditedData({
                   ...editedData,
-                  raceName: e.target.value as string,
-                })
-              }
+                  raceName: newRaceName,
+                  // Reset heritage if changing from a race with heritage
+                  raceHeritage:
+                    newRaceName === 'Moreau'
+                      ? editedData.raceHeritage
+                      : undefined,
+                });
+              }}
             >
               {RACAS_WITH_INFO.map((race) => (
                 <MenuItem key={race.name} value={race.name}>
@@ -740,6 +806,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               ))}
             </Select>
           </FormControl>
+
+          {/* Heritage Selector - Only show for races with heritages (like Moreau) */}
+          {editedData.raceName === 'Moreau' && (
+            <FormControl fullWidth>
+              <InputLabel>Herança</InputLabel>
+              <Select
+                value={editedData.raceHeritage || ''}
+                label='Herança'
+                onChange={(e) =>
+                  setEditedData({
+                    ...editedData,
+                    raceHeritage: e.target.value as string,
+                  })
+                }
+              >
+                {MOREAU_HERITAGE_NAMES.map((heritageName) => (
+                  <MenuItem key={heritageName} value={heritageName}>
+                    {MOREAU_HERITAGES[heritageName].name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           {/* Race Fixed Attributes - Always show if race has fixed attributes */}
           {fixedAttributes.length > 0 && anyAttributeCount === 0 && (
