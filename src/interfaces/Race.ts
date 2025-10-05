@@ -98,7 +98,8 @@ export type RaceNames =
   | 'Ogro'
   | 'Orc'
   | 'Pteros'
-  | 'Soterrado';
+  | 'Soterrado'
+  | 'Tabrachi';
 
 export default interface Race {
   name: RaceNames;

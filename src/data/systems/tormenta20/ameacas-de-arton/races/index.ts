@@ -20,6 +20,7 @@ import OGRO from './ogro';
 import ORC from './orc';
 import PTEROS from './pteros';
 import SOTERRADO from './soterrado';
+import TABRACHI from './tabrachi';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -40,6 +41,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   ORC,
   PTEROS,
   SOTERRADO,
+  TABRACHI,
 ];
 
 export default AMEACAS_ARTON_RACES;

@@ -6,7 +6,6 @@ import {
 } from '../../races/functions/functions';
 import { Atributo } from '../../atributos';
 import HUMANO from '../../races/humano';
-import Skill from '../../../../../interfaces/Skills';
 
 const SOTERRADO: Race = {
   name: 'Soterrado',
@@ -61,13 +60,6 @@ const SOTERRADO: Race = {
       name: 'Abraço Gélido',
       description:
         'Você recebe +2 em testes para agarrar. Além disso, seus ataques desarmados e com armas naturais causam 2 pontos de dano de frio extras.',
-      sheetBonuses: [
-        {
-          source: { type: 'power', name: 'Abraço Gélido' },
-          target: { type: 'Skill', name: Skill.LUTA },
-          modifier: { type: 'Fixed', value: 2 },
-        },
-      ],
     },
     {
       name: 'Esquife de Gelo',
