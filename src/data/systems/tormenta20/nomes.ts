@@ -2527,6 +2527,30 @@ export const nameGenerators: Record<
 
     return nameGenerators.default(randomRace, sex);
   },
+  Soterrado: (race, sex) => {
+    if (race.oldRace) {
+      if (nameGenerators[race.oldRace.name]) {
+        return nameGenerators[race.oldRace.name](race.oldRace, sex);
+      }
+
+      return nameGenerators.default(race.oldRace, sex);
+    }
+
+    const allRaces = [...Object.keys(nomes), 'Lefou'];
+    const validRaces = allRaces.filter(
+      (element) => element !== 'Golem' && element !== 'Osteon'
+    );
+    const randomRaceName = getRandomItemFromArray(validRaces);
+    const randomRace = RACAS.find(
+      (element) => element.name === randomRaceName
+    ) as Race;
+
+    if (nameGenerators[randomRaceName]) {
+      return nameGenerators[randomRaceName](randomRace, sex);
+    }
+
+    return nameGenerators.default(randomRace, sex);
+  },
   Lefou: (race: Race, sex: 'Homem' | 'Mulher') => {
     const firstName = getRandomItemFromArray(lefouNames);
     const lastName = getRandomItemFromArray(lefouSurnames[sex]);
