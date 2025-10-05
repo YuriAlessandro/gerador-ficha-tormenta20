@@ -25,6 +25,7 @@ import TENGU from './tengu';
 import TROG_ANAO from './trog-anao';
 import VELOCIS from './velocis';
 import VORACIS from './voracis';
+import YIDISHAN from './yidishan';
 
 const AMEACAS_ARTON_RACES: Race[] = [
   BUGBEAR,
@@ -50,6 +51,7 @@ const AMEACAS_ARTON_RACES: Race[] = [
   TROG_ANAO,
   VELOCIS,
   VORACIS,
+  YIDISHAN,
 ];
 
 export default AMEACAS_ARTON_RACES;
