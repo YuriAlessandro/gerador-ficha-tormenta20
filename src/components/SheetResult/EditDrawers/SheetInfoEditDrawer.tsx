@@ -491,7 +491,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           tempSteps,
           editedData.raceAttributeChoices.length > 0
             ? editedData.raceAttributeChoices
-            : undefined
+            : undefined,
+          editedData.sexo as 'Masculino' | 'Feminino'
         );
 
         updates.atributos = modifiedAttributes;

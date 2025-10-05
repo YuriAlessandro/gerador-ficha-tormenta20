@@ -95,6 +95,7 @@ export type RaceNames =
   | 'Kobolds'
   | 'Meio-Orc'
   | 'Minauro'
+  | 'Nagah'
   | 'Ogro'
   | 'Orc'
   | 'Pteros'
@@ -116,6 +117,7 @@ export default interface Race {
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;
+  getAttributes?: (sex: 'Masculino' | 'Feminino') => RaceAttributeAbility[];
   faithProbability?: FaithProbability;
   size?: RaceSize;
 }

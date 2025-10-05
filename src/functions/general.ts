@@ -495,12 +495,17 @@ export function modifyAttributesBasedOnRace(
   atributosRolados: CharacterAttributes,
   priorityAttrs: Atributo[],
   steps: Step[],
-  manualAttributeChoices?: Atributo[]
+  manualAttributeChoices?: Atributo[],
+  sex?: 'Masculino' | 'Feminino'
 ): CharacterAttributes {
   const values: { name: string; value: string | number }[] = [];
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
-  const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
+  // Use getAttributes if available (for sex-dependent attributes like Nagah)
+  const raceAttributes =
+    raca.getAttributes && sex ? raca.getAttributes(sex) : raca.attributes.attrs;
+
+  const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random ou escolha manual)
       let selectedAttrName: Atributo;
@@ -564,7 +569,8 @@ export function modifyAttributesBasedOnRace(
 function generateFinalAttributes(
   classe: ClassDescription,
   race: Race,
-  steps: Step[]
+  steps: Step[],
+  sex?: 'Masculino' | 'Feminino'
 ) {
   const atributosNumericos = rollAttributeValues();
   let freeAttrs = Object.values(Atributo);
@@ -614,7 +620,9 @@ function generateFinalAttributes(
     race,
     sortedAttributes,
     classe.attrPriority,
-    steps
+    steps,
+    undefined,
+    sex
   );
 }
 
@@ -2521,7 +2529,14 @@ export default function generateRandomSheet(
   }
 
   // Passo 6: Gerar atributos finais
-  const atributos = generateFinalAttributes(classe, race, steps);
+  const sexForAttributes: 'Masculino' | 'Feminino' =
+    finalSex === 'Homem' ? 'Masculino' : 'Feminino';
+  const atributos = generateFinalAttributes(
+    classe,
+    race,
+    steps,
+    sexForAttributes
+  );
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces =
