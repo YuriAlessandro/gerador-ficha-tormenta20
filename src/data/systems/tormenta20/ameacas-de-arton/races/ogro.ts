@@ -1,6 +1,7 @@
 import Race, { RaceAbility } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
 import Skill from '../../../../../interfaces/Skills';
+import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
 
 const ogroAbilities: RaceAbility[] = [
   {
@@ -47,6 +48,7 @@ const OGRO: Race = {
     MEGALOKK: 1,
     TENEBRA: 1,
   },
+  size: RACE_SIZES.GRANDE,
   abilities: ogroAbilities,
 };
 
