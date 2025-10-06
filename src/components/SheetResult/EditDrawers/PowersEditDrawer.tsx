@@ -1141,9 +1141,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   Habilidades de Raça ({sheet.raca.abilities.length}):
                 </Typography>
                 <Stack direction='row' spacing={1} flexWrap='wrap'>
-                  {sheet.raca.abilities.map((ability, index) => (
+                  {sheet.raca.abilities.map((ability) => (
                     <Chip
-                      key={`race-${ability.name}-${index}`}
+                      key={`race-${
+                        ability.name
+                      }-${ability.description.substring(0, 20)}`}
                       label={ability.name}
                       size='small'
                       color='warning'
@@ -1167,9 +1169,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={2}>
-                  {sheet.raca.abilities.map((ability, index) => (
+                  {sheet.raca.abilities.map((ability) => (
                     <Box
-                      key={`race-ability-${ability.name}-${index}`}
+                      key={`race-ability-${
+                        ability.name
+                      }-${ability.description.substring(0, 20)}`}
                       sx={{
                         p: 2,
                         border: 2,
