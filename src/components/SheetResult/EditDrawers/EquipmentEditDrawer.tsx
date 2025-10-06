@@ -153,7 +153,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     userSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.armors) {
-        Object.entries(supplement.equipment.armors).forEach(([key, armor]) => {
+        Object.entries(supplement.equipment.armors).forEach(([, armor]) => {
           const armorWithSupplement = { ...armor, supplementId };
 
           if (armor.group === 'Escudo') {
