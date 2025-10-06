@@ -13,7 +13,7 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
 
 import { SnackbarProvider } from 'notistack';
@@ -21,6 +21,8 @@ import { SnackbarProvider } from 'notistack';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AttackResult, CharacterAttack } from 't20-sheet-builder';
 import { SkillRollResult } from 't20-sheet-builder/build/domain/entities/Skill/SheetSkill';
+import { CssVarsProvider } from './theme/CssVarsProvider';
+import { createTormentaTheme } from './theme/theme';
 
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
@@ -162,79 +164,10 @@ function App(): JSX.Element {
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
   const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
-  const theme = createTheme({
-    palette: {
-      mode: isDarkTheme ? 'dark' : 'light',
-      primary: {
-        main: '#d13235',
-        dark: '#922325',
-        light: '#da5b5d',
-      },
-    },
-    components: {
-      MuiRadio: {
-        styleOverrides: {
-          root: {
-            color: isDarkTheme ? '#d13235' : '#616160',
-          },
-        },
-      },
-      MuiTab: {
-        styleOverrides: {
-          root: {
-            '&.Mui-selected': {
-              color: isDarkTheme ? '#FAFAFA' : '#d13235',
-            },
-            '&.Mui-focusVisible': {
-              background: isDarkTheme ? '#FAFAFA' : 'rgba(209, 50, 53, 0.12)',
-            },
-          },
-        },
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: {
-            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
-            color: isDarkTheme ? '#FFF' : 'auto',
-          },
-        },
-      },
-      MuiList: {
-        styleOverrides: {
-          root: {
-            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
-            color: isDarkTheme ? '#FFF' : 'auto',
-          },
-        },
-      },
-      MuiListSubheader: {
-        styleOverrides: {
-          root: {
-            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
-            color: isDarkTheme ? '#FFF' : 'auto',
-          },
-        },
-      },
-      MuiListItemButton: {
-        styleOverrides: {
-          root: {
-            backgroundColor: isDarkTheme ? 'rgb(54 54 54)' : '#FFF',
-            color: isDarkTheme ? '#FFF' : 'auto',
-            '&:hover': {
-              color: '#d13235',
-            },
-          },
-        },
-      },
-      MuiTableCell: {
-        styleOverrides: {
-          root: {
-            color: isDarkTheme ? '#FFF' : 'auto',
-          },
-        },
-      },
-    },
-  });
+  const theme = React.useMemo(
+    () => createTormentaTheme(isDarkTheme ? 'dark' : 'light'),
+    [isDarkTheme]
+  );
 
   const onClickMenu = () => {
     setSidebarVisibility(!sidebarVisibility);
@@ -268,185 +201,194 @@ function App(): JSX.Element {
   return (
     <ErrorBoundary>
       <ThemeProvider theme={theme}>
-        <SnackbarProvider
-          autoHideDuration={null}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          Components={{
-            diceRoll: DiceRollResult,
-            attackRoll: AttackRollResult,
-            attributeRoll: AttributeRollResult,
-          }}
-        >
-          <Provider store={store}>
-            <PersistGate loading={null} persistor={persistor}>
-              <AuthProvider>
-                <AuthLoadingWrapper>
-                  <div
-                    className='App'
-                    data-testid='app-component'
-                    style={isDarkTheme ? darkTheme : lightTheme}
-                  >
-                    <SystemUpdate />
-                    <PWAInstallPrompt />
-                    <div className='mainApp'>
-                      <header className='App-header'>
-                        <Sidebar
-                          visible={sidebarVisibility}
-                          onCloseSidebar={onCloseSidebar}
-                          isDarkTheme={isDarkTheme}
-                          onChangeTheme={onChangeTheme}
-                        />
-                        <Stack
-                          alignItems='center'
-                          sx={{ width: '100%', position: 'absolute' }}
-                        >
-                          <Box
-                            sx={{
-                              width: isMb ? '90%' : '50%',
-                              m: 2,
-                              p: 2,
-                              backgroundColor: '#d13235',
-                              borderRadius: '0.75rem',
-                              color: '#FFFFFF',
-                              zIndex: 2,
-                            }}
+        <CssVarsProvider>
+          <SnackbarProvider
+            autoHideDuration={null}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            Components={{
+              diceRoll: DiceRollResult,
+              attackRoll: AttackRollResult,
+              attributeRoll: AttributeRollResult,
+            }}
+          >
+            <Provider store={store}>
+              <PersistGate loading={null} persistor={persistor}>
+                <AuthProvider>
+                  <AuthLoadingWrapper>
+                    <div
+                      className='App'
+                      data-testid='app-component'
+                      style={isDarkTheme ? darkTheme : lightTheme}
+                    >
+                      <SystemUpdate />
+                      <PWAInstallPrompt />
+                      <div className='mainApp'>
+                        <header className='App-header'>
+                          <Sidebar
+                            visible={sidebarVisibility}
+                            onCloseSidebar={onCloseSidebar}
+                            isDarkTheme={isDarkTheme}
+                            onChangeTheme={onChangeTheme}
+                          />
+                          <Stack
+                            alignItems='center'
+                            sx={{ width: '100%', position: 'absolute' }}
                           >
-                            <Stack
-                              width='100%'
-                              direction='row'
-                              justifyContent='space-between'
-                              alignItems='center'
+                            <Box
+                              sx={{
+                                width: isMb ? '90%' : '50%',
+                                m: 2,
+                                p: 2,
+                                backgroundColor: 'primary.main',
+                                borderRadius: '0.75rem',
+                                color: 'primary.contrastText',
+                                zIndex: 2,
+                              }}
                             >
-                              <IconButton
-                                onClick={onClickMenu}
-                                edge='start'
-                                color='inherit'
-                                aria-label='menu'
-                              >
-                                <MenuIcon />
-                              </IconButton>
-                              <Typography
-                                sx={{ cursor: 'pointer', fontFamily: 'Tfont' }}
-                                variant='h6'
-                                onClick={() => onClickToLink('')}
-                              >
-                                Fichas de Nimb
-                              </Typography>
-
                               <Stack
+                                width='100%'
                                 direction='row'
-                                spacing={2}
+                                justifyContent='space-between'
                                 alignItems='center'
                               >
-                                <FormGroup>
-                                  <FormControlLabel
-                                    labelPlacement='end'
-                                    control={
-                                      <SwitchMUI
-                                        checked={isDarkTheme}
-                                        onChange={onChangeTheme}
-                                        color='default'
-                                        value='dark'
-                                      />
-                                    }
-                                    label='Tema Escuro'
-                                  />
-                                </FormGroup>
-                                <UserMenu />
+                                <IconButton
+                                  onClick={onClickMenu}
+                                  edge='start'
+                                  color='inherit'
+                                  aria-label='menu'
+                                >
+                                  <MenuIcon />
+                                </IconButton>
+                                <Typography
+                                  sx={{
+                                    cursor: 'pointer',
+                                    fontFamily: 'Tfont',
+                                  }}
+                                  variant='h6'
+                                  onClick={() => onClickToLink('')}
+                                >
+                                  Fichas de Nimb
+                                </Typography>
+
+                                <Stack
+                                  direction='row'
+                                  spacing={2}
+                                  alignItems='center'
+                                >
+                                  <FormGroup>
+                                    <FormControlLabel
+                                      labelPlacement='end'
+                                      control={
+                                        <SwitchMUI
+                                          checked={isDarkTheme}
+                                          onChange={onChangeTheme}
+                                          color='default'
+                                          value='dark'
+                                        />
+                                      }
+                                      label='Tema Escuro'
+                                    />
+                                  </FormGroup>
+                                  <UserMenu />
+                                </Stack>
                               </Stack>
-                            </Stack>
-                          </Box>
-                        </Stack>
-                      </header>
-                      <Box className='mainArea' sx={{ mt: 15 }}>
-                        <Switch>
-                          <Route path='/changelog'>
-                            <Changelog />
-                          </Route>
-                          <Route path='/recompensas'>
-                            <Rewards isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/itens-superiores'>
-                            <SuperiorItems isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/itens-magicos'>
-                            <MagicalItems isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/ficha-aleatoria'>
-                            <MainScreen isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/database'>
-                            <Database isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/caverna-do-saber'>
-                            <CavernaDoSaber />
-                          </Route>
-                          <Route path='/meus-personagens'>
-                            <ProtectedRoute requireAuth redirectTo='/'>
-                              <MyCharactersPage />
-                            </ProtectedRoute>
-                          </Route>
-                          <Route path='/sheets'>
-                            <SheetList />
-                          </Route>
-                          <Route path='/sheet-builder/:id'>
-                            <SheetBuilderPage />
-                          </Route>
-                          <Route path='/gerador-ameacas'>
-                            <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/threat-generator'>
-                            <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
-                          </Route>
-                          <Route path='/threat-history'>
-                            <ThreatHistory />
-                          </Route>
-                          <Route path='/threat-view'>
-                            <ThreatViewCloudWrapper />
-                          </Route>
-                          <Route path='/threat/:id'>
-                            <ThreatViewWrapper />
-                          </Route>
-                          <Route path='/perfil/:username'>
-                            <ProfilePage />
-                          </Route>
-                          <Route path='/u/:username'>
-                            <ProfilePage />
-                          </Route>
-                          {/* <Route path='/ficha-criatura'>
+                            </Box>
+                          </Stack>
+                        </header>
+                        <Box className='mainArea' sx={{ mt: 15 }}>
+                          <Switch>
+                            <Route path='/changelog'>
+                              <Changelog />
+                            </Route>
+                            <Route path='/recompensas'>
+                              <Rewards isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/itens-superiores'>
+                              <SuperiorItems isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/itens-magicos'>
+                              <MagicalItems isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/ficha-aleatoria'>
+                              <MainScreen isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/database'>
+                              <Database isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/caverna-do-saber'>
+                              <CavernaDoSaber />
+                            </Route>
+                            <Route path='/meus-personagens'>
+                              <ProtectedRoute requireAuth redirectTo='/'>
+                                <MyCharactersPage />
+                              </ProtectedRoute>
+                            </Route>
+                            <Route path='/sheets'>
+                              <SheetList />
+                            </Route>
+                            <Route path='/sheet-builder/:id'>
+                              <SheetBuilderPage />
+                            </Route>
+                            <Route path='/gerador-ameacas'>
+                              <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/threat-generator'>
+                              <ThreatGeneratorScreen isDarkMode={isDarkTheme} />
+                            </Route>
+                            <Route path='/threat-history'>
+                              <ThreatHistory />
+                            </Route>
+                            <Route path='/threat-view'>
+                              <ThreatViewCloudWrapper />
+                            </Route>
+                            <Route path='/threat/:id'>
+                              <ThreatViewWrapper />
+                            </Route>
+                            <Route path='/perfil/:username'>
+                              <ProfilePage />
+                            </Route>
+                            <Route path='/u/:username'>
+                              <ProfilePage />
+                            </Route>
+                            {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />
               </Route> */}
-                          <Route>
-                            <LandingPage onClickButton={onClickToLink} />
-                          </Route>
-                        </Switch>
-                      </Box>
-                    </div>
-                    <footer id='bottom'>
-                      <div>
-                        <p>
-                          Tormenta 20 é um produto da Jambô Editora e seus
-                          respectivos criadores, todos os direitos reservados.
-                        </p>
-                        <p>
-                          <a href='https://jamboeditora.com.br/' target='blank'>
-                            https://jamboeditora.com.br/
-                          </a>
-                        </p>
-                        <p>
-                          Este é um projeto de fãs e não possui fins lucrativos
-                        </p>
+                            <Route>
+                              <LandingPage onClickButton={onClickToLink} />
+                            </Route>
+                          </Switch>
+                        </Box>
                       </div>
-                    </footer>
-                  </div>
-                </AuthLoadingWrapper>
-              </AuthProvider>
-            </PersistGate>
-          </Provider>
-        </SnackbarProvider>
+                      <footer id='bottom'>
+                        <div>
+                          <p>
+                            Tormenta 20 é um produto da Jambô Editora e seus
+                            respectivos criadores, todos os direitos reservados.
+                          </p>
+                          <p>
+                            <a
+                              href='https://jamboeditora.com.br/'
+                              target='blank'
+                            >
+                              https://jamboeditora.com.br/
+                            </a>
+                          </p>
+                          <p>
+                            Este é um projeto de fãs e não possui fins
+                            lucrativos
+                          </p>
+                        </div>
+                      </footer>
+                    </div>
+                  </AuthLoadingWrapper>
+                </AuthProvider>
+              </PersistGate>
+            </Provider>
+          </SnackbarProvider>
+        </CssVarsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

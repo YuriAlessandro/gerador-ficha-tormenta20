@@ -5,12 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 @font-face {
-  font-family: "Tfont";   /*Can be any text*/
-  src: local("AirbnbCerealLight"),
-    url("../fonts/Tormenta20x.ttf") format("truetype");
+  font-family: 'Tfont'; /*Can be any text*/
+  src: local('AirbnbCerealLight'),
+    url('../fonts/Tormenta20x.ttf') format('truetype');
 }
 
 body {
@@ -40,8 +38,8 @@ code {
 
 #bottom {
   bottom: 0;
-  background: rgb(209, 50, 53);
-  color: #fff;
+  background: var(--primary-main, rgb(209, 50, 53));
+  color: var(--primary-contrast, #fff);
   width: 100%;
   display: flex;
   box-sizing: border-box;

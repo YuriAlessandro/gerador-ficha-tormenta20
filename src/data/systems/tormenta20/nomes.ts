@@ -3176,7 +3176,24 @@ export const nameGenerators: Record<
 
     return `${firstName} ${lastName}`;
   },
-  default: (race: Race, sex) => getRandomItemFromArray(nomes[race.name][sex]),
+  default: (race: Race, sex) => {
+    if (!race || !race.name) {
+      // eslint-disable-next-line no-console
+      console.error(
+        'Race is undefined or has no name in nameGenerators.default'
+      );
+      return 'Nome Desconhecido';
+    }
+    if (!nomes[race.name]) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Race "${race.name}" not found in nomes object. Available races:`,
+        Object.keys(nomes)
+      );
+      return 'Nome Desconhecido';
+    }
+    return getRandomItemFromArray(nomes[race.name][sex]);
+  },
 };
 
 export function generateRandomName(
