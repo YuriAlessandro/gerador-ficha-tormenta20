@@ -613,11 +613,16 @@ const LandingPage: React.FC<{
                       backgroundColor: isDarkTheme
                         ? theme.palette.grey[900]
                         : theme.palette.background.paper,
-                      color: theme.palette.text.primary,
+                      color: isDarkTheme
+                        ? '#000000'
+                        : theme.palette.text.primary,
                       '&:hover': {
                         backgroundColor: isDarkTheme
                           ? theme.palette.grey[900]
                           : theme.palette.background.paper,
+                        color: isDarkTheme
+                          ? '#000000'
+                          : theme.palette.text.primary,
                       },
                     }}
                   >
@@ -646,8 +651,11 @@ const LandingPage: React.FC<{
                       backfaceVisibility: 'hidden',
                       pointerEvents: 'none',
                       bgcolor: 'secondary.main',
-                      color: 'white',
+                      color: isDarkTheme ? '#000000' : 'white',
                       p: 1,
+                      '&:hover': {
+                        color: isDarkTheme ? '#000000' : 'white',
+                      },
                     }}
                   >
                     <Typography
