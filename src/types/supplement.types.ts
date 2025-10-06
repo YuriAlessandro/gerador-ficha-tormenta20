@@ -30,6 +30,8 @@ export interface Supplement {
   systemId: SystemId;
   /** Nome de exibição do suplemento */
   name: string;
+  /** Abreviação do suplemento (ex: "T20", "AdA") */
+  abbreviation?: string;
   /** Descrição curta do suplemento */
   description: string;
   /** Se o suplemento está ativo para o usuário */
@@ -54,6 +56,7 @@ export const SUPPLEMENT_METADATA: Partial<
     id: SupplementId.TORMENTA20_CORE,
     systemId: SystemId.TORMENTA20,
     name: 'Tormenta 20',
+    abbreviation: 'T20',
     description: 'Livro básico do sistema Tormenta 20',
     releaseDate: '2019',
     requiresPremium: false,
@@ -62,6 +65,7 @@ export const SUPPLEMENT_METADATA: Partial<
     id: SupplementId.TORMENTA20_AMEACAS_ARTON,
     systemId: SystemId.TORMENTA20,
     name: 'Ameaças de Arton',
+    abbreviation: 'AdA',
     description: 'Novos monstros, raças jogáveis e desafios épicos',
     releaseDate: '2020',
     requiresPremium: false,
