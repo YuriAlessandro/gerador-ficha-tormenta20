@@ -335,7 +335,7 @@ export const ORIGINS: Record<origins, Origin> = {
         equipment: 'Instrumentos de ofício (qualquer)',
       },
       {
-        equipment: 'Um item que você possa fabricar de até T$ 50',
+        equipment: 'Um que você possa fabricar de até T$ 50',
       },
     ],
     pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
@@ -792,7 +792,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Refugiado',
     getItems: (): Items[] => [
       {
-        equipment: 'Um item estrangeiro de até T$ 100.',
+        equipment: 'Um estrangeiro de até T$ 100.',
       },
     ],
     pericias: [Skill.FORTITUDE, Skill.REFLEXOS, Skill.VONTADE],
@@ -802,7 +802,7 @@ export const ORIGINS: Record<origins, Origin> = {
     name: 'Seguidor',
     getItems: (): Items[] => [
       {
-        equipment: 'Um item recebido de seu mestre de até T$ 100.',
+        equipment: 'Um recebido de seu mestre de até T$ 100.',
       },
     ],
     pericias: [Skill.ADESTRAMENTO, Skill.OFICIO],

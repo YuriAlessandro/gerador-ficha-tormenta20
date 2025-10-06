@@ -118,7 +118,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
 
       <Grid container spacing={3}>
         {/* Attributes Section */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Atributos (Modificadores)
@@ -183,7 +183,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
             </Box>
             <Grid container spacing={2}>
               {Object.values(Atributo).map((attribute) => (
-                <Grid item xs={6} key={attribute}>
+                <Grid size={6} key={attribute}>
                   <TextField
                     fullWidth
                     label={attribute}
@@ -205,7 +205,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Training Summary */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Perícias Treinadas

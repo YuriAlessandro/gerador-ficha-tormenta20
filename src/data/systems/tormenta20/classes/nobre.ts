@@ -58,7 +58,7 @@ const NOBRE: ClassDescription = {
     },
     {
       name: 'Espólio',
-      text: 'Você recebe um item a sua escolha com preço de até T$ 2.000.',
+      text: 'Você recebe um a sua escolha com preço de até T$ 2.000.',
       nivel: 1,
     },
     {

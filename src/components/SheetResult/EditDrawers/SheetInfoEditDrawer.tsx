@@ -36,6 +36,15 @@ import {
   MoreauHeritageName,
   MOREAU_HERITAGE_NAMES,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import {
+  GOLEM_DESPERTO_CHASSIS,
+  GOLEM_DESPERTO_CHASSIS_NAMES,
+  GOLEM_DESPERTO_ENERGY_SOURCES,
+  GOLEM_DESPERTO_SIZE_NAMES,
+  GOLEM_DESPERTO_SIZES,
+  getCompatibleEnergySources,
+} from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
+import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -50,6 +59,9 @@ interface EditedData {
   sexo: string;
   raceName: string;
   raceHeritage: string | undefined; // For races with heritages (like Moreau)
+  raceChassis: string | undefined; // For Golem Desperto
+  raceEnergySource: string | undefined; // For Golem Desperto
+  raceSizeCategory: string | undefined; // For Golem Desperto
   className: string;
   originName: string;
   deityName: string;
@@ -126,6 +138,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     sexo: sheet.sexo || 'Masculino',
     raceName: sheet.raca.name,
     raceHeritage: sheet.raceHeritage,
+    raceChassis: sheet.raceChassis,
+    raceEnergySource: sheet.raceEnergySource,
+    raceSizeCategory: sheet.raceSizeCategory,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name
@@ -153,6 +168,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      raceChassis: sheet.raceChassis,
+      raceEnergySource: sheet.raceEnergySource,
+      raceSizeCategory: sheet.raceSizeCategory,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -190,7 +208,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // Get info about the currently selected race's attribute requirements
   const selectedRace = RACAS.find((r) => r.name === editedData.raceName);
 
-  // Get race attributes (considering sex-dependent races like Nagah and heritage-based races like Moreau)
+  // Get race attributes (considering sex-dependent races like Nagah, heritage-based races like Moreau, and Golem Desperto)
   const raceAttributes = (() => {
     // For Moreau, use heritage attributes if heritage is selected
     if (editedData.raceName === 'Moreau' && editedData.raceHeritage) {
@@ -198,6 +216,25 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         MOREAU_HERITAGES[editedData.raceHeritage as MoreauHeritageName];
       if (heritage) {
         return heritage.attributes;
+      }
+    }
+
+    // For Golem Desperto, accumulate base + chassis + size attributes
+    if (
+      editedData.raceName === 'Golem Desperto' &&
+      editedData.raceChassis &&
+      editedData.raceEnergySource &&
+      editedData.raceSizeCategory
+    ) {
+      const baseRace = selectedRace;
+      if (baseRace) {
+        const customizedRace = applyGolemDespertoCustomization(
+          baseRace,
+          editedData.raceChassis,
+          editedData.raceEnergySource,
+          editedData.raceSizeCategory
+        );
+        return customizedRace.attributes.attrs;
       }
     }
 
@@ -229,7 +266,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       ...prev,
       raceAttributeChoices: [],
     }));
-  }, [editedData.raceName, editedData.sexo, editedData.raceHeritage]);
+  }, [
+    editedData.raceName,
+    editedData.sexo,
+    editedData.raceHeritage,
+    editedData.raceChassis,
+    editedData.raceEnergySource,
+    editedData.raceSizeCategory,
+  ]);
 
   // Handler for race attribute selection
   const handleRaceAttributeSelection = (attribute: Atributo) => {
@@ -330,6 +374,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       atributos: editedData.attributes,
       raceAttributeChoices: editedData.raceAttributeChoices,
       raceHeritage: editedData.raceHeritage,
+      raceChassis: editedData.raceChassis,
+      raceEnergySource: editedData.raceEnergySource,
+      raceSizeCategory: editedData.raceSizeCategory,
     };
 
     // Track manual edits in steps
@@ -416,6 +463,55 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       });
     }
 
+    // Check for Golem Desperto customization changes
+    if (
+      editedData.raceName === 'Golem Desperto' &&
+      (editedData.raceChassis !== sheet.raceChassis ||
+        editedData.raceEnergySource !== sheet.raceEnergySource ||
+        editedData.raceSizeCategory !== sheet.raceSizeCategory)
+    ) {
+      const customizationChanges: SubStep[] = [];
+
+      if (editedData.raceChassis !== sheet.raceChassis) {
+        const chassisName = editedData.raceChassis
+          ? GOLEM_DESPERTO_CHASSIS[editedData.raceChassis]?.name
+          : 'Removido';
+        customizationChanges.push({
+          name: 'Chassi',
+          value: chassisName,
+        });
+      }
+
+      if (editedData.raceEnergySource !== sheet.raceEnergySource) {
+        const energyName = editedData.raceEnergySource
+          ? GOLEM_DESPERTO_ENERGY_SOURCES[editedData.raceEnergySource]
+              ?.displayName
+          : 'Removida';
+        customizationChanges.push({
+          name: 'Fonte de Energia',
+          value: energyName,
+        });
+      }
+
+      if (editedData.raceSizeCategory !== sheet.raceSizeCategory) {
+        const sizeName = editedData.raceSizeCategory
+          ? GOLEM_DESPERTO_SIZES[editedData.raceSizeCategory]?.displayName
+          : 'Removido';
+        customizationChanges.push({
+          name: 'Tamanho',
+          value: sizeName,
+        });
+      }
+
+      if (customizationChanges.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - Customização do Golem Desperto',
+          type: 'Edição Manual',
+          value: customizationChanges,
+        });
+      }
+    }
+
     // Check for sex change that affects attributes (for sex-dependent races like Nagah)
     if (
       editedData.sexo !== sheet.sexo &&
@@ -496,14 +592,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
-    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau)
-    const raceOrSexOrHeritageChanged =
+    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau) OR Golem Desperto customization changed
+    const raceOrSexOrHeritageOrGolemChanged =
       editedData.raceName !== sheet.raca.name ||
       (editedData.sexo !== sheet.sexo && selectedRace?.getAttributes) ||
       (editedData.raceName === 'Moreau' &&
-        editedData.raceHeritage !== sheet.raceHeritage);
+        editedData.raceHeritage !== sheet.raceHeritage) ||
+      (editedData.raceName === 'Golem Desperto' &&
+        (editedData.raceChassis !== sheet.raceChassis ||
+          editedData.raceEnergySource !== sheet.raceEnergySource ||
+          editedData.raceSizeCategory !== sheet.raceSizeCategory));
 
-    if (raceOrSexOrHeritageChanged) {
+    if (raceOrSexOrHeritageOrGolemChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
         // For Moreau, update race with heritage attributes and abilities
@@ -519,6 +619,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               },
               abilities: heritage.abilities,
             };
+          }
+        }
+
+        // For Golem Desperto, apply customization
+        if (
+          editedData.raceName === 'Golem Desperto' &&
+          editedData.raceChassis &&
+          editedData.raceEnergySource &&
+          editedData.raceSizeCategory
+        ) {
+          newRace = applyGolemDespertoCustomization(
+            newRace,
+            editedData.raceChassis,
+            editedData.raceEnergySource,
+            editedData.raceSizeCategory
+          );
+
+          // Update displacement and size based on customization
+          if (newRace.getDisplacement) {
+            updates.displacement = newRace.getDisplacement(newRace);
+          }
+          if (newRace.size) {
+            updates.size = newRace.size;
           }
         }
 
@@ -663,6 +786,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      raceChassis: sheet.raceChassis,
+      raceEnergySource: sheet.raceEnergySource,
+      raceSizeCategory: sheet.raceSizeCategory,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -775,6 +901,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     newRaceName === 'Moreau'
                       ? editedData.raceHeritage
                       : undefined,
+                  // Reset Golem Desperto customizations if changing from/to Golem Desperto
+                  raceChassis:
+                    newRaceName === 'Golem Desperto'
+                      ? editedData.raceChassis
+                      : undefined,
+                  raceEnergySource:
+                    newRaceName === 'Golem Desperto'
+                      ? editedData.raceEnergySource
+                      : undefined,
+                  raceSizeCategory:
+                    newRaceName === 'Golem Desperto'
+                      ? editedData.raceSizeCategory
+                      : undefined,
                 });
               }}
             >
@@ -828,6 +967,85 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 ))}
               </Select>
             </FormControl>
+          )}
+
+          {/* Golem Desperto Customizations - Only show for Golem Desperto */}
+          {editedData.raceName === 'Golem Desperto' && (
+            <>
+              <FormControl fullWidth>
+                <InputLabel>Chassi</InputLabel>
+                <Select
+                  value={editedData.raceChassis || 'ferro'}
+                  label='Chassi'
+                  onChange={(e) => {
+                    const newChassis = e.target.value as string;
+                    const compatibleEnergies =
+                      getCompatibleEnergySources(newChassis);
+
+                    // If current energy source is incompatible, reset to first compatible one
+                    const newEnergySource = compatibleEnergies.includes(
+                      editedData.raceEnergySource || ''
+                    )
+                      ? editedData.raceEnergySource
+                      : compatibleEnergies[0];
+
+                    setEditedData({
+                      ...editedData,
+                      raceChassis: newChassis,
+                      raceEnergySource: newEnergySource,
+                    });
+                  }}
+                >
+                  {GOLEM_DESPERTO_CHASSIS_NAMES.map((chassisId) => (
+                    <MenuItem key={chassisId} value={chassisId}>
+                      {GOLEM_DESPERTO_CHASSIS[chassisId].name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Fonte de Energia</InputLabel>
+                <Select
+                  value={editedData.raceEnergySource || 'alquimica'}
+                  label='Fonte de Energia'
+                  onChange={(e) =>
+                    setEditedData({
+                      ...editedData,
+                      raceEnergySource: e.target.value as string,
+                    })
+                  }
+                >
+                  {getCompatibleEnergySources(
+                    editedData.raceChassis || 'ferro'
+                  ).map((energyId) => (
+                    <MenuItem key={energyId} value={energyId}>
+                      {GOLEM_DESPERTO_ENERGY_SOURCES[energyId].displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl fullWidth>
+                <InputLabel>Tamanho</InputLabel>
+                <Select
+                  value={editedData.raceSizeCategory || 'medio'}
+                  label='Tamanho'
+                  onChange={(e) =>
+                    setEditedData({
+                      ...editedData,
+                      raceSizeCategory: e.target.value as string,
+                    })
+                  }
+                >
+                  {GOLEM_DESPERTO_SIZE_NAMES.map((sizeId) => (
+                    <MenuItem key={sizeId} value={sizeId}>
+                      {GOLEM_DESPERTO_SIZES[sizeId].displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </>
           )}
 
           {/* Race Fixed Attributes - Always show if race has fixed attributes */}

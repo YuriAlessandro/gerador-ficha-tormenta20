@@ -75,7 +75,7 @@ const LandingPage: React.FC<{
         <Box sx={{ mb: 6 }}>
           <Grid container spacing={3}>
             {/* Main Hero Card - Changes based on authentication */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card
                 onClick={() =>
                   onClickButton(
@@ -191,10 +191,10 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Right Side - Modern Stacked Cards */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Grid container spacing={3} sx={{ height: '100%' }}>
                 {/* Map Card - Modern */}
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Card
                     onClick={() =>
                       onOpenLink('https://mapadearton.fichasdenimb.com.br/')
@@ -312,7 +312,7 @@ const LandingPage: React.FC<{
                 </Grid>
 
                 {/* Threat Generator Card - Modern */}
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Card
                     onClick={() => onClickButton('gerador-ameacas')}
                     sx={{
@@ -467,7 +467,7 @@ const LandingPage: React.FC<{
         <Box sx={{ mb: 6 }}>
           <Grid container spacing={3}>
             {/* Caverna do Saber */}
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box
                 onClick={() => onClickButton('caverna-do-saber')}
                 sx={{
@@ -549,7 +549,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Enciclopédia */}
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box
                 onClick={() => onClickButton('database/raças')}
                 sx={{
@@ -635,7 +635,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Rolador de Recompensas */}
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box
                 onClick={() => onClickButton('recompensas')}
                 sx={{
@@ -721,7 +721,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Criar Item Superior */}
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box
                 onClick={() => onClickButton('itens-superiores')}
                 sx={{
@@ -807,7 +807,7 @@ const LandingPage: React.FC<{
             </Grid>
 
             {/* Criar Item Mágico */}
-            <Grid item xs={12} sm={6} md={2.4}>
+            <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box sx={{ position: 'relative' }}>
                 {/* New Badge */}
                 <Box
@@ -1053,7 +1053,7 @@ const LandingPage: React.FC<{
 
             <Grid container spacing={3}>
               {/* Utilities Section */}
-              <Grid item xs={12} lg={6}>
+              <Grid size={{ xs: 12, lg: 6 }}>
                 <Paper
                   elevation={3}
                   sx={{
@@ -1100,7 +1100,7 @@ const LandingPage: React.FC<{
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Button
                         variant='contained'
                         onClick={() => onClickButton('changelog')}
@@ -1138,7 +1138,7 @@ const LandingPage: React.FC<{
                         </Box>
                       </Button>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Button
                         variant='contained'
                         onClick={() =>
@@ -1185,7 +1185,7 @@ const LandingPage: React.FC<{
               </Grid>
 
               {/* Community Projects Section */}
-              <Grid item xs={12} lg={6}>
+              <Grid size={{ xs: 12, lg: 6 }}>
                 <Paper
                   elevation={3}
                   sx={{
@@ -1248,7 +1248,7 @@ const LandingPage: React.FC<{
                   </Typography>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Button
                         variant='outlined'
                         onClick={() =>
@@ -1295,7 +1295,7 @@ const LandingPage: React.FC<{
                         </Box>
                       </Button>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Button
                         variant='outlined'
                         onClick={() =>

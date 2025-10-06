@@ -143,7 +143,7 @@ const ThreatHistory: React.FC = () => {
             );
 
             return (
-              <Grid item xs={12} sm={6} md={4} key={threat.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={threat.id}>
                 <Card>
                   <CardContent>
                     <Typography variant='h6' gutterBottom>

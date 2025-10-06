@@ -56,7 +56,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
 
       <Grid container spacing={3}>
         {/* Name Input */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Nome da Ameaça
@@ -73,13 +73,13 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Basic Info Summary */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Resumo das Características
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Typography variant='body2' color='text.secondary'>
                   Tipo
                 </Typography>
@@ -87,7 +87,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                   {threat.type || 'Não definido'}
                 </Typography>
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Typography variant='body2' color='text.secondary'>
                   Tamanho
                 </Typography>
@@ -95,7 +95,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                   {threat.size || 'Não definido'}
                 </Typography>
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Typography variant='body2' color='text.secondary'>
                   Papel
                 </Typography>
@@ -103,7 +103,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                   {threat.role || 'Não definido'}
                 </Typography>
               </Grid>
-              <Grid item xs={6} sm={3}>
+              <Grid size={{ xs: 6, sm: 3 }}>
                 <Typography variant='body2' color='text.secondary'>
                   ND
                 </Typography>
@@ -224,7 +224,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
       {/* Attacks and Abilities */}
       <Grid container spacing={3} sx={{ mt: 1 }}>
         {/* Attacks */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Ataques ({threat.attacks?.length || 0})
@@ -253,7 +253,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Abilities */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Habilidades ({threat.abilities?.length || 0})
@@ -301,7 +301,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
             Equipamentos e Tesouro
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={9}>
+            <Grid size={{ xs: 12, md: 9 }}>
               <Typography variant='body2' color='text.secondary' gutterBottom>
                 Equipamentos:
               </Typography>
@@ -309,7 +309,7 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                 {threat.equipment || 'Nenhum equipamento especificado'}
               </Typography>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Typography variant='body2' color='text.secondary' gutterBottom>
                 Nível de Tesouro:
               </Typography>

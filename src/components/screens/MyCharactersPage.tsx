@@ -482,7 +482,7 @@ const MyCharactersPage: React.FC = () => {
       {currentSheets.length > 0 && (
         <Grid container spacing={3}>
           {filteredSheets.map((sheet) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={sheet.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
               <Card
                 sx={{
                   height: '100%',

@@ -42,12 +42,12 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Protótipo',
-      text: 'Você começa o jogo com um item superior, ou com 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
+      text: 'Você começa o jogo com um superior, ou com 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
       nivel: 1,
     },
     {
       name: 'Fabricar Item Superior',
-      text: 'No 2º nível, você recebe um item superior com preço de até T$ 2.000 e passa a poder fabricar itens superiores com uma melhoria. Veja o Capítulo 3: Equipamento para a lista de melhorias. Nos níveis 5, 8 e 11, você pode substituir esse item por um item superior com duas, três e quatro melhorias, respectivamente, e passa a poder fabricar itens superiores com essa quantidade de melhorias. Considera-se que você estava trabalhando nos itens e você não gasta dinheiro ou tempo neles (mas gasta em itens que fabricar futuramente).',
+      text: 'No 2º nível, você recebe um superior com preço de até T$ 2.000 e passa a poder fabricar itens superiores com uma melhoria. Veja o Capítulo 3: Equipamento para a lista de melhorias. Nos níveis 5, 8 e 11, você pode substituir esse por um superior com duas, três e quatro melhorias, respectivamente, e passa a poder fabricar itens superiores com essa quantidade de melhorias. Considera-se que você estava trabalhando nos itens e você não gasta dinheiro ou tempo neles (mas gasta em itens que fabricar futuramente).',
       nivel: 2,
     },
     {
@@ -62,24 +62,24 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Fabricar Item Mágico',
-      text: 'No 9º nível, você recebe um item mágico menor e passa a poder fabricar itens mágicos menores. Veja o Capítulo 8: Recompensas para as regras de itens mágicos. Nos níveis 13 e 17, você pode substituir esse item por um item mágico médio e maior, respectivamente, e passa a poder fabricar itens mágicos dessas categorias. Considera-se que você estava trabalhando nos itens que recebe e você não gasta dinheiro, tempo ou pontos de mana neles (mas gasta em itens que fabricar futuramente).',
+      text: 'No 9º nível, você recebe um mágico menor e passa a poder fabricar itens mágicos menores. Veja o Capítulo 8: Recompensas para as regras de itens mágicos. Nos níveis 13 e 17, você pode substituir esse por um mágico médio e maior, respectivamente, e passa a poder fabricar itens mágicos dessas categorias. Considera-se que você estava trabalhando nos itens que recebe e você não gasta dinheiro, tempo ou pontos de mana neles (mas gasta em itens que fabricar futuramente).',
       nivel: 9,
     },
     {
       name: 'Olho do Dragão',
-      text: 'A partir do 10º nível, você pode gastar uma ação completa para analisar um item. Você automaticamente descobre se o item é mágico, suas propriedades e como utilizá-las.',
+      text: 'A partir do 10º nível, você pode gastar uma ação completa para analisar um item. Você automaticamente descobre se o é mágico, suas propriedades e como utilizá-las.',
       nivel: 11,
     },
     {
       name: 'Obra-Prima',
-      text: 'No 20º nível, você fabrica sua obra-prima, aquela pela qual seu nome será lembrado em eras futuras. Você é livre para criar as regras do item, mas ele deve ser aprovado pelo mestre. Como linha geral, ele pode ter benefícios equivalentes a de um item com cinco melhorias e quatro encantos. Considera-se que você estava trabalhando no item e você não gasta dinheiro, tempo ou PM nele.',
+      text: 'No 20º nível, você fabrica sua obra-prima, aquela pela qual seu nome será lembrado em eras futuras. Você é livre para criar as regras do item, mas ele deve ser aprovado pelo mestre. Como linha geral, ele pode ter benefícios equivalentes a de um com cinco melhorias e quatro encantos. Considera-se que você estava trabalhando no e você não gasta dinheiro, tempo ou PM nele.',
       nivel: 20,
     },
   ],
   powers: [
     {
       name: 'Agite Antes de Usar',
-      text: 'Quando usa um preparado alquímico que cause dano, você pode gastar uma quantidade de PM a sua escolha (limitado por sua Inteligência). Para cada PM que gastar, o item causa um dado extra de dano do mesmo tipo.',
+      text: 'Quando usa um preparado alquímico que cause dano, você pode gastar uma quantidade de PM a sua escolha (limitado por sua Inteligência). Para cada PM que gastar, o causa um dado extra de dano do mesmo tipo.',
       requirements: [
         [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ALQUIMIA }],
       ],
@@ -197,7 +197,7 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Catalisador Instável',
-      text: 'Você pode gastar uma ação completa e 3 PM para fabricar um preparado alquímico ou poção cuja fórmula conheça instantaneamente. O custo do item é reduzido à metade e você não precisa fazer o teste de Ofício (alquimista), mas ele só dura até o fim da cena.',
+      text: 'Você pode gastar uma ação completa e 3 PM para fabricar um preparado alquímico ou poção cuja fórmula conheça instantaneamente. O custo do é reduzido à metade e você não precisa fazer o teste de Ofício (alquimista), mas ele só dura até o fim da cena.',
       requirements: [
         [{ type: RequirementType.PODER, name: 'Alquimista Iniciado' }],
       ],
@@ -234,7 +234,7 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Farmacêutico',
-      text: 'Quando usa um item alquímico que cure pontos de vida, você pode gastar uma quantidade de PM a sua escolha (limitado por sua Inteligência). Para cada PM que gastar, o item cura um dado extra do mesmo tipo.',
+      text: 'Quando usa um alquímico que cure pontos de vida, você pode gastar uma quantidade de PM a sua escolha (limitado por sua Inteligência). Para cada PM que gastar, o cura um dado extra do mesmo tipo.',
       requirements: [
         [
           { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
@@ -268,7 +268,7 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Invenção Potente',
-      text: 'Quando usa um item ou engenhoca fabricado por você mesmo, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ele.',
+      text: 'Quando usa um ou engenhoca fabricado por você mesmo, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ele.',
       requirements: [[]],
     },
     {
@@ -307,7 +307,7 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Mistura Fervilhante',
-      text: 'Quando usa um item alquímico ou poção, você pode gastar 2 PM para dobrar a área de efeito dele.',
+      text: 'Quando usa um alquímico ou poção, você pode gastar 2 PM para dobrar a área de efeito dele.',
       requirements: [
         [
           { type: RequirementType.PODER, name: 'Alquimista Iniciado' },
@@ -329,7 +329,7 @@ const INVENTOR: ClassDescription = {
     },
     {
       name: 'Síntese Rápida',
-      text: 'Quando fabrica um item alquímico ou poção, você pode fabricar o dobro de doses no mesmo tempo (pagando o custo de matéria-prima de cada uma).',
+      text: 'Quando fabrica um alquímico ou poção, você pode fabricar o dobro de doses no mesmo tempo (pagando o custo de matéria-prima de cada uma).',
       requirements: [
         [{ type: RequirementType.PODER, name: 'Alquimista Iniciado' }],
       ],

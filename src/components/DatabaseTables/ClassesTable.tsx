@@ -21,15 +21,16 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import CLASSES from '../../data/classes';
 import SearchInput from './SearchInput';
-import { ClassDescription } from '../../interfaces/Class';
 import { Requirement, RequirementType } from '../../interfaces/Poderes';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, ClassWithSupplement } from '../../data/registry';
 
 interface IProps {
-  classe: ClassDescription;
+  classe: ClassWithSupplement;
   defaultOpen: boolean;
 }
 
@@ -131,19 +132,38 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
             <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
-                {classe.name}
-                {classe.subname && ` (${classe.subname})`}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                >
+                  {classe.name}
+                  {classe.subname && ` (${classe.subname})`}
+                </Typography>
+                <Chip
+                  label={classe.supplementName}
+                  size='small'
+                  variant='outlined'
+                  color={
+                    classe.supplementId === SupplementId.TORMENTA20_CORE
+                      ? 'default'
+                      : 'secondary'
+                  }
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
 
               {/* Basic Stats */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: 2,
@@ -167,7 +187,7 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: 2,
@@ -369,14 +389,20 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
 
 const ClassesTable: React.FC = () => {
   const [value, setValue] = useState('');
-  const [classes, setClasses] = useState<ClassDescription[]>(CLASSES);
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
+  const [classes, setClasses] = useState<ClassWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
+    const allClasses =
+      dataRegistry.getClassesWithSupplementInfo(selectedSupplements);
+
     if (search.length > 0) {
-      const filteredRaces = CLASSES.filter((classe) => {
+      const filteredClasses = allClasses.filter((classe) => {
         if (
           classe.name.toLowerCase().includes(search) ||
           classe.subname?.toLowerCase().includes(search)
@@ -395,12 +421,22 @@ const ClassesTable: React.FC = () => {
         return false;
       });
 
-      if (filteredRaces.length > 1) history.push('/database/classes');
+      if (filteredClasses.length > 1) history.push('/database/classes');
 
-      setClasses(filteredRaces);
+      setClasses(filteredClasses);
     } else {
-      setClasses(CLASSES);
+      setClasses(allClasses);
     }
+  };
+
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      return [...prev, supplementId];
+    });
   };
 
   useEffect(() => {
@@ -408,8 +444,10 @@ const ClassesTable: React.FC = () => {
     if (selectedClass) {
       setValue(selectedClass);
       filter(selectedClass);
+    } else {
+      filter('');
     }
-  }, [params]);
+  }, [params, selectedSupplements]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
@@ -426,6 +464,16 @@ const ClassesTable: React.FC = () => {
       <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
         Classes e Poderes de Classe
       </TormentaTitle>
+
+      {/* Supplement Filter */}
+      <SupplementFilter
+        selectedSupplements={selectedSupplements}
+        availableSupplements={[
+          SupplementId.TORMENTA20_CORE,
+          SupplementId.TORMENTA20_AMEACAS_ARTON,
+        ]}
+        onToggleSupplement={handleToggleSupplement}
+      />
 
       {/* Search Input */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>

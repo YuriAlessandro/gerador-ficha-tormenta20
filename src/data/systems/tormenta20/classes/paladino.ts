@@ -232,7 +232,7 @@ const PALADINO: ClassDescription = {
     },
     {
       name: 'Virtude Paladinesca: Temperança',
-      text: 'Quando ingere um alimento, item alquímico ou poção, você consome apenas metade do item. Na prática, cada item desses rende duas “doses” para você.',
+      text: 'Quando ingere um alimento, alquímico ou poção, você consome apenas metade do item. Na prática, cada desses rende duas “doses” para você.',
       requirements: [],
     },
   ],

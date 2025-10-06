@@ -926,7 +926,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </List>
                 ) : (
                   <Typography variant='body2' color='text.secondary'>
-                    Nenhum item geral equipado
+                    Nenhum geral equipado
                   </Typography>
                 )}
               </Box>
@@ -1032,7 +1032,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </List>
                 ) : (
                   <Typography variant='body2' color='text.secondary'>
-                    Nenhum item de alquimia equipado
+                    Nenhum de alquimia equipado
                   </Typography>
                 )}
               </Box>
@@ -1085,7 +1085,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </List>
                 ) : (
                   <Typography variant='body2' color='text.secondary'>
-                    Nenhum item de alimentação equipado
+                    Nenhum de alimentação equipado
                   </Typography>
                 )}
               </Box>

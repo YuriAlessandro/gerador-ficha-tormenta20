@@ -60,6 +60,7 @@ import {
 
 import generateRandomSheet, {
   generateEmptySheet,
+  applyPower,
 } from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -78,6 +79,8 @@ import SheetsService, {
 } from '../../services/sheets.service';
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
+import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal';
+import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 
 type SelectedOption = {
   value: string;
@@ -147,7 +150,7 @@ const saveSheetOnHistoric = (
 
     // Se há mais de 100 fichas, remove a mais antiga para evitar QuotaExceededError
     if (historic.length >= 100) {
-      historic.shift(); // Remove o primeiro item (mais antigo)
+      historic.shift(); // Remove o primeiro (mais antigo)
     }
 
     historic.push({
@@ -256,6 +259,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [pendingNavigation, setPendingNavigation] = React.useState<
     string | null
   >(null);
+  const [showGolemDespertoModal, setShowGolemDespertoModal] =
+    React.useState(false);
+  const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
+    React.useState<CharacterSheet | null>(null);
 
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
@@ -333,6 +340,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
     const anotherRandomSheet = generateRandomSheet(selectedOptions);
+
+    // Check if it's a Golem Desperto and show customization modal
+    if (anotherRandomSheet.raca.name === 'Golem Desperto') {
+      setPendingGolemDespertoSheet(anotherRandomSheet);
+      setShowGolemDespertoModal(true);
+      return; // Don't set the sheet yet - wait for modal confirmation
+    }
 
     // Always save to local storage (historic)
     saveSheetOnHistoric(
@@ -846,8 +860,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sheet={randomSheet}
         isDarkMode={isDarkMode}
         onSheetUpdate={handleSheetUpdate}
-        onSaveToCloud={handleSaveToCloud}
-        isAuthenticated={isAuthenticated}
         isSavedToCloud={sheetSavedToCloud}
       />
     ));
@@ -940,6 +952,85 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
   };
 
+  // Golem Desperto modal handlers
+  const handleGolemDespertoConfirm = (
+    chassisId: string,
+    energySourceId: string,
+    sizeId: string
+  ) => {
+    if (!pendingGolemDespertoSheet) return;
+
+    // Get base race and apply customization
+    const baseRace = RACAS.find((r) => r.name === 'Golem Desperto');
+    if (!baseRace) return;
+
+    // Check if customization changed from what was originally generated
+    const customizationChanged =
+      chassisId !== pendingGolemDespertoSheet.raca.chassis ||
+      energySourceId !== pendingGolemDespertoSheet.raca.energySource ||
+      sizeId !== pendingGolemDespertoSheet.raca.sizeCategory;
+
+    const customizedRace = applyGolemDespertoCustomization(
+      baseRace,
+      chassisId,
+      energySourceId,
+      sizeId
+    );
+
+    let finalSheet: CharacterSheet = {
+      ...pendingGolemDespertoSheet,
+      raca: customizedRace,
+      raceChassis: chassisId,
+      raceEnergySource: energySourceId,
+      raceSizeCategory: sizeId,
+      displacement: customizedRace.getDisplacement
+        ? customizedRace.getDisplacement(customizedRace)
+        : pendingGolemDespertoSheet.displacement,
+      size: customizedRace.size || pendingGolemDespertoSheet.size,
+    };
+
+    // If customization changed, we need to reprocess the abilities
+    // to execute their sheetActions (like adding spells for Fonte Sagrada)
+    if (customizationChanged) {
+      // Get the new chassis and energy source abilities
+      const newAbilities = customizedRace.abilities.filter(
+        (a) =>
+          a.name.startsWith('Chassi') || a.name.startsWith('Fonte de Energia')
+      );
+
+      // Process each new ability's sheetActions
+      newAbilities.forEach((ability) => {
+        if (ability.sheetActions) {
+          const [updatedSheet] = applyPower(finalSheet, ability);
+          finalSheet = {
+            ...updatedSheet,
+            raceChassis: chassisId,
+            raceEnergySource: energySourceId,
+            raceSizeCategory: sizeId,
+          };
+        }
+      });
+    }
+
+    // Save to historic
+    saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
+      showAlert(
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
+        'Limite Atingido'
+      )
+    );
+
+    setRandomSheet(finalSheet);
+    setSheetSavedToCloud(false);
+    setShowGolemDespertoModal(false);
+    setPendingGolemDespertoSheet(null);
+  };
+
+  const handleGolemDespertoCancel = () => {
+    setShowGolemDespertoModal(false);
+    setPendingGolemDespertoSheet(null);
+  };
+
   return (
     <>
       <AlertDialog />
@@ -975,6 +1066,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Golem Desperto Customization Modal */}
+      {pendingGolemDespertoSheet && (
+        <GolemDespertoCustomizationModal
+          open={showGolemDespertoModal}
+          initialChassis={pendingGolemDespertoSheet.raca.chassis || 'ferro'}
+          initialEnergySource={
+            pendingGolemDespertoSheet.raca.energySource || 'alquimica'
+          }
+          initialSize={pendingGolemDespertoSheet.raca.sizeCategory || 'medio'}
+          onConfirm={handleGolemDespertoConfirm}
+          onCancel={handleGolemDespertoCancel}
+        />
+      )}
 
       <div id='main-screen'>
         <Container
@@ -1026,7 +1131,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
             <Grid container spacing={2}>
               {/* Race Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1051,7 +1156,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
 
               {/* Class Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1092,7 +1197,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
 
               {/* Origin Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1120,7 +1225,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
 
               {/* Divinity Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1160,7 +1265,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
 
               {/* Level Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1185,7 +1290,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Grid>
 
               {/* Generate Items Selection */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Typography
                   variant='body2'
                   sx={{ mb: 1, fontWeight: 'medium' }}
@@ -1212,10 +1317,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
               {/* Simple Sheet Checkbox */}
               <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
+                size={{ xs: 12, sm: 6, md: 4 }}
                 sx={{ display: 'flex', alignItems: 'flex-end' }}
               >
                 <FormControlLabel

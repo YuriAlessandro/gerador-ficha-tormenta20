@@ -101,11 +101,7 @@ export function applyGolemDespertoCustomization(
   const size = GOLEM_DESPERTO_SIZES[sizeId];
 
   if (!chassis || !energySource || !size) {
-    console.error('Invalid Golem Desperto customization:', {
-      chassisId,
-      energySourceId,
-      sizeId,
-    });
+    // Invalid customization - return base race unchanged
     return baseRace;
   }
 
@@ -168,9 +164,8 @@ const GOLEM_DESPERTO: Race = {
   ],
 
   /**
-   * setup() gera escolhas aleatórias iniciais
-   * IMPORTANTE: Não finaliza a customização
-   * Modal vai permitir alteração antes de aplicar
+   * setup() gera escolhas aleatórias e aplica customização
+   * Modal permitirá alteração após geração
    */
   setup: (race) => {
     // Gerar escolhas aleatórias
@@ -180,16 +175,14 @@ const GOLEM_DESPERTO: Race = {
     const randomEnergyId = getRandomCompatibleEnergySource(randomChassisId);
     const randomSizeId = getRandomItemFromArray(GOLEM_DESPERTO_SIZE_NAMES);
 
-    // Retornar race com customizações PROVISÓRIAS
-    // Modal vai pedir confirmação/alteração
-    return {
-      ...race,
-      chassis: randomChassisId,
-      energySource: randomEnergyId,
-      sizeCategory: randomSizeId,
-      // NÃO aplicar atributos/habilidades ainda
-      // Isso será feito após confirmação do modal
-    };
+    // Aplicar customização completa
+    // Isso garante que as habilidades corretas (com sheetActions) sejam aplicadas
+    return applyGolemDespertoCustomization(
+      race,
+      randomChassisId,
+      randomEnergyId,
+      randomSizeId
+    );
   },
 
   /**

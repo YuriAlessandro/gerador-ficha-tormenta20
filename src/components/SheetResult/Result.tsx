@@ -51,8 +51,6 @@ interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
-  onSaveToCloud?: () => Promise<void>;
-  isAuthenticated?: boolean;
   isSavedToCloud?: boolean;
 }
 

@@ -122,14 +122,14 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
 
         <Grid container spacing={3}>
           {/* Add New Attack Form */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper variant='outlined' sx={{ p: 3 }}>
               <Typography variant='subtitle1' gutterBottom>
                 Adicionar Novo Ataque
               </Typography>
 
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth
                     label='Nome do Ataque'
@@ -140,7 +140,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                     placeholder='Ex: Garra, Mordida, Espada Longa'
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <TextField
                     fullWidth
                     type='number'
@@ -158,7 +158,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                     } (pode ser alterado)`}
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <TextField
                     fullWidth
                     label='Dados de Dano'
@@ -174,7 +174,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                     }
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <TextField
                     fullWidth
                     type='number'
@@ -194,7 +194,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                 {/* Damage Comparison */}
                 {newAttack.damageDice.trim() !== '' &&
                   validateDiceString(newAttack.damageDice) && (
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Box
                         sx={{
                           p: 2,
@@ -268,7 +268,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                     </Grid>
                   )}
 
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Button
                     variant='contained'
                     fullWidth
@@ -288,7 +288,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
           </Grid>
 
           {/* Current Attacks List */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper variant='outlined' sx={{ p: 3, height: 'fit-content' }}>
               <Typography variant='subtitle1' gutterBottom>
                 Ataques Configurados ({threat.attacks?.length || 0})
@@ -343,7 +343,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
             Dicas para Ataques
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Paper variant='outlined' sx={{ p: 2 }}>
                 <Typography variant='subtitle2' gutterBottom>
                   <strong>Dados de Dano</strong>
@@ -354,7 +354,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                 </Typography>
               </Paper>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Paper variant='outlined' sx={{ p: 2 }}>
                 <Typography variant='subtitle2' gutterBottom>
                   <strong>Dano Bônus</strong>
@@ -365,7 +365,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                 </Typography>
               </Paper>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Paper variant='outlined' sx={{ p: 2 }}>
                 <Typography variant='subtitle2' gutterBottom>
                   <strong>Bônus de Ataque</strong>

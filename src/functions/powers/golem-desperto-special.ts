@@ -1,6 +1,6 @@
 import CharacterSheet, { SubStep } from '../../interfaces/CharacterSheet';
 import { getRandomItemFromArray } from '../randomUtils';
-import { getSpellsOfCircle } from '../../data/systems/tormenta20/magias/generalSpells';
+import { getDivineSpellsOfCircle } from '../../data/systems/tormenta20/magias/divine';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { Spell } from '../../interfaces/Spells';
 
@@ -12,7 +12,7 @@ export function applyGolemDespertoSagrada(_sheet: CharacterSheet): SubStep[] {
   const subSteps: SubStep[] = [];
 
   // Obter todas as magias divinas de 1º círculo
-  const circle1Spells = getSpellsOfCircle(1);
+  const circle1Spells = getDivineSpellsOfCircle(1);
 
   if (circle1Spells.length > 0) {
     // Filtrar magias já conhecidas

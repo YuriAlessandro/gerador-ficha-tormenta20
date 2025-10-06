@@ -93,6 +93,7 @@ export type RaceNames =
   | 'Kallyanach'
   | 'Kappa'
   | 'Kobolds'
+  | 'Mashin'
   | 'Meio-Orc'
   | 'Minauro'
   | 'Moreau'

@@ -153,14 +153,14 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
 
       <Grid container spacing={3}>
         {/* Add New Ability Form */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Adicionar Nova Habilidade
             </Typography>
 
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button
                   variant='outlined'
                   fullWidth
@@ -171,10 +171,10 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   Escolher das Sugestões
                 </Button>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Divider>OU</Divider>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   label='Nome da Habilidade'
@@ -185,7 +185,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   placeholder='Ex: Resistência a Fogo, Regeneração, Voo'
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   multiline
@@ -201,7 +201,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   placeholder='Descreva o efeito da habilidade...'
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button
                   variant='contained'
                   fullWidth
@@ -217,7 +217,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Current Abilities List */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper variant='outlined' sx={{ p: 3, height: 'fit-content' }}>
             <Box display='flex' alignItems='center' gap={2} mb={2}>
               <Typography variant='subtitle1'>
@@ -312,7 +312,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
 
           <Grid container spacing={2}>
             {filteredSuggestions.map((suggestion) => (
-              <Grid item xs={12} md={6} key={suggestion.name}>
+              <Grid size={{ xs: 12, md: 6 }} key={suggestion.name}>
                 <Card variant='outlined'>
                   <CardContent>
                     <Typography variant='h6' gutterBottom>

@@ -8,12 +8,14 @@ import CERATOPS from './ceratops';
 import ELFO_DO_MAR from './elfo-do-mar';
 import FINTROLL from './fintroll';
 import GNOLL from './gnoll';
+import GOLEM_DESPERTO from './golem-desperto';
 import HARPIA from './harpia';
 import HOBGOBLIN from './hobgoblin';
 import KAIJIN from './kaijin';
 import KALLYANACH from './kallyanach';
 import KAPPA from './kappa';
 import KOBOLDS from './kobolds';
+import MASHIN from './mashin';
 import MEIO_ORC from './meio-orc';
 import MINAURO from './minauro';
 import MOREAU from './moreau';
@@ -36,12 +38,14 @@ const AMEACAS_ARTON_RACES: Race[] = [
   ELFO_DO_MAR,
   FINTROLL,
   GNOLL,
+  GOLEM_DESPERTO,
   HARPIA,
   HOBGOBLIN,
   KAIJIN,
   KALLYANACH,
   KAPPA,
   KOBOLDS,
+  MASHIN,
   MEIO_ORC,
   MINAURO,
   MOREAU,

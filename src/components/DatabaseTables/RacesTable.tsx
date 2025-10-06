@@ -20,11 +20,13 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import GroupIcon from '@mui/icons-material/Group';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import RACAS from '../../data/racas';
 import Race from '../../interfaces/Race';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, RaceWithSupplement } from '../../data/registry';
 
 interface ProcessedAttribute {
   label: string;
@@ -73,7 +75,7 @@ const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
   return result;
 };
 
-const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
+const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
   race,
   defaultOpen,
 }) => {
@@ -128,14 +130,33 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
             <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
-                {race.name}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                >
+                  {race.name}
+                </Typography>
+                <Chip
+                  label={race.supplementName}
+                  size='small'
+                  variant='outlined'
+                  color={
+                    race.supplementId === SupplementId.TORMENTA20_CORE
+                      ? 'default'
+                      : 'secondary'
+                  }
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
 
               {/* Attribute Bonuses */}
               <Box sx={{ mb: 2 }}>
@@ -204,14 +225,20 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
 
 const RacesTable: React.FC = () => {
   const [value, setValue] = useState('');
-  const [races, setRaces] = useState<Race[]>(RACAS);
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
+  const [races, setRaces] = useState<RaceWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedRace?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
+    const allRaces =
+      dataRegistry.getRacesWithSupplementInfo(selectedSupplements);
+
     if (search.length > 0) {
-      const filteredRaces = RACAS.filter((race) => {
+      const filteredRaces = allRaces.filter((race) => {
         if (race.name.toLowerCase().includes(search)) {
           return true;
         }
@@ -227,8 +254,19 @@ const RacesTable: React.FC = () => {
 
       setRaces(filteredRaces);
     } else {
-      setRaces(RACAS);
+      setRaces(allRaces);
     }
+  };
+
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        // Don't allow deselecting all supplements
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      return [...prev, supplementId];
+    });
   };
 
   useEffect(() => {
@@ -236,8 +274,10 @@ const RacesTable: React.FC = () => {
     if (selectedRace) {
       setValue(selectedRace);
       filter(selectedRace);
+    } else {
+      filter(''); // Load all races on mount
     }
-  }, [params]);
+  }, [params, selectedSupplements]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
@@ -254,6 +294,16 @@ const RacesTable: React.FC = () => {
       <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
         Raças e Habilidades Raciais
       </TormentaTitle>
+
+      {/* Supplement Filter */}
+      <SupplementFilter
+        selectedSupplements={selectedSupplements}
+        availableSupplements={[
+          SupplementId.TORMENTA20_CORE,
+          SupplementId.TORMENTA20_AMEACAS_ARTON,
+        ]}
+        onToggleSupplement={handleToggleSupplement}
+      />
 
       {/* Search Input */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>

@@ -370,7 +370,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     resistencia: 'Reflexos (veja texto)',
     school: 'Conv',
     description:
-      'Esta magia recobre uma superfície com uma substância gordurosa e escorregadia. Criaturas na área devem passar na resistência para não cair. Nas rodadas seguintes, criaturas que tentem movimentar-se pela área devem fazer testes de Acrobacia para equilíbrio (CD 10). Área Escorregadia pode tornar um item escorregadio. Uma criatura segurando um objeto afetado deve passar na resistência para não deixar o item cair cada vez que usá-lo.',
+      'Esta magia recobre uma superfície com uma substância gordurosa e escorregadia. Criaturas na área devem passar na resistência para não cair. Nas rodadas seguintes, criaturas que tentem movimentar-se pela área devem fazer testes de Acrobacia para equilíbrio (CD 10). Área Escorregadia pode tornar um escorregadio. Uma criatura segurando um objeto afetado deve passar na resistência para não deixar o cair cada vez que usá-lo.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -1632,7 +1632,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Permanente',
     school: 'Abjur',
     description:
-      'Esta magia tranca uma porta ou outro item que possa ser aberto ou fechado (como um baú, caixa etc.), aumentando a CD de testes de Força ou Ladinagem para abri-lo em +10. Você pode abrir livremente sua própria tranca sem problemas.',
+      'Esta magia tranca uma porta ou outro que possa ser aberto ou fechado (como um baú, caixa etc.), aumentando a CD de testes de Força ou Ladinagem para abri-lo em +10. Você pode abrir livremente sua própria tranca sem problemas.',
     aprimoramentos: [
       {
         addPm: 0,
@@ -1868,7 +1868,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     resistencia: '',
     school: 'Abjur',
     description:
-      'Você dissipa outras magias que estejam ativas, como se sua duração tivesse acabado. Note que efeitos de magias instantâneas não podem ser dissipados (não se pode dissipar uma Bola de Fogo ou Relâmpago depois que já causaram dano...). Se lançar essa magia em uma criatura ou área, faça um teste de Misticismo; você dissipa as magias com CD igual ou menor que o resultado do teste. Se lançada contra um item mágico, o transforma em um item mundano por 1d6 rodadas (Vontade anula).',
+      'Você dissipa outras magias que estejam ativas, como se sua duração tivesse acabado. Note que efeitos de magias instantâneas não podem ser dissipados (não se pode dissipar uma Bola de Fogo ou Relâmpago depois que já causaram dano...). Se lançar essa magia em uma criatura ou área, faça um teste de Misticismo; você dissipa as magias com CD igual ou menor que o resultado do teste. Se lançada contra um mágico, o transforma em um mundano por 1d6 rodadas (Vontade anula).',
     aprimoramentos: [
       {
         addPm: 12,
@@ -2190,7 +2190,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'além do normal, se o alvo coberto pelo muco ácido estiver usando armadura ou escudo, o item é corroído. Isso reduz o bônus na Defesa do item em 1 ponto permanentemente. O item pode ser consertado, restaurando seu bônus (veja Ofício, na página 121).',
+        text: 'além do normal, se o alvo coberto pelo muco ácido estiver usando armadura ou escudo, o é corroído. Isso reduz o bônus na Defesa do em 1 ponto permanentemente. O pode ser consertado, restaurando seu bônus (veja Ofício, na página 121).',
       },
       {
         addPm: 2,
@@ -2314,7 +2314,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     resistencia: '',
     school: 'Ilusão',
     description:
-      'O alvo fica invisível (incluindo seu equipamento). Um personagem invisível recebe camuflagem total, +10 em testes de Furtividade contra ouvir e criaturas que não possam vê-lo ficam desprevenidas contra seus ataques. A magia termina se o alvo faz uma ação hostil contra uma criatura. Ações contra objetos livres não dissipam a Invisibilidade (você pode tocar ou apanhar objetos que não estejam sendo segurados por outras criaturas). Causar dano indiretamente — por exemplo, acendendo o pavio de um barril de pólvora que vai detonar mais tarde — não é considerado um ataque. Objetos soltos pelo alvo voltam a ser visíveis e objetos apanhados por ele ficam invisíveis. Qualquer parte de um item carregado que se estenda além de seu alcance corpo a corpo natural se torna visível. Uma luz nunca fica invisível (mesmo que sua fonte seja).',
+      'O alvo fica invisível (incluindo seu equipamento). Um personagem invisível recebe camuflagem total, +10 em testes de Furtividade contra ouvir e criaturas que não possam vê-lo ficam desprevenidas contra seus ataques. A magia termina se o alvo faz uma ação hostil contra uma criatura. Ações contra objetos livres não dissipam a Invisibilidade (você pode tocar ou apanhar objetos que não estejam sendo segurados por outras criaturas). Causar dano indiretamente — por exemplo, acendendo o pavio de um barril de pólvora que vai detonar mais tarde — não é considerado um ataque. Objetos soltos pelo alvo voltam a ser visíveis e objetos apanhados por ele ficam invisíveis. Qualquer parte de um carregado que se estenda além de seu alcance corpo a corpo natural se torna visível. Uma luz nunca fica invisível (mesmo que sua fonte seja).',
     aprimoramentos: [
       {
         addPm: 1,
@@ -2416,7 +2416,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     duracao: '1 dia',
     resistencia: '',
     description:
-      'Esta magia aumenta ou diminui o tamanho de um item mundano em até três categorias (um objeto Enorme vira Pequeno, por exemplo). Você também pode mudar a consistência do item, deixando-o rígido como pedra ou flexível como seda (isso não altera sua RD ou PV, apenas suas propriedades físicas). Se lançar a magia num objeto de uma criatura involuntária, ela pode fazer um teste de Vontade para anulá-la.',
+      'Esta magia aumenta ou diminui o tamanho de um mundano em até três categorias (um objeto Enorme vira Pequeno, por exemplo). Você também pode mudar a consistência do item, deixando-o rígido como pedra ou flexível como seda (isso não altera sua RD ou PV, apenas suas propriedades físicas). Se lançar a magia num objeto de uma criatura involuntária, ela pode fazer um teste de Vontade para anulá-la.',
     school: 'Trans',
     aprimoramentos: [
       {
@@ -2825,7 +2825,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'também permite que o alvo solte qualquer item amaldiçoado que esteja segurando (mas não remove a maldição do item em si).',
+        text: 'também permite que o alvo solte qualquer amaldiçoado que esteja segurando (mas não remove a maldição do em si).',
       },
       {
         addPm: 7,
@@ -3174,7 +3174,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     resistencia: '',
     school: 'Conv',
     description:
-      'Você invoca um objeto de qualquer lugar para sua mão. O item deve ter sido previamente preparado com uma runa pessoal sua (ao custo de T$ 5). A magia não funciona se o objeto estiver com outra criatura, mas você saberá onde ele está e quem o está carregando (ou sua descrição física, caso não conheça a criatura).',
+      'Você invoca um objeto de qualquer lugar para sua mão. O deve ter sido previamente preparado com uma runa pessoal sua (ao custo de T$ 5). A magia não funciona se o objeto estiver com outra criatura, mas você saberá onde ele está e quem o está carregando (ou sua descrição física, caso não conheça a criatura).',
     aprimoramentos: [
       {
         addPm: 1,
@@ -3586,7 +3586,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     resistencia: 'Vontade Parcial',
     school: 'Abjur',
     description:
-      'Você expulsa uma criatura não nativa de Arton. Um alvo nativo de outro mundo (como muitos espíritos), é teletransportado de volta para um lugar aleatório de seu mundo de origem. Já um alvo morto-vivo tem sua conexão com as energias negativas rompidas, sendo reduzido a 0 PV. Se passar na resistência, em vez dos efeitos acima, o alvo fica enjoado por 1d4 rodadas. Se você tiver um ou mais itens que se oponham ao alvo de alguma maneira, a CD do teste de resistência aumenta em +2 por item. Por exemplo, se lançar a magia contra demônios do frio (vulneráveis a água benta e que odeiam luz e calor) enquanto segura um frasco de água benta e uma tocha acesa, a CD aumenta em +4. O mestre decide se determinado item é forte o bastante contra a criatura para isso.',
+      'Você expulsa uma criatura não nativa de Arton. Um alvo nativo de outro mundo (como muitos espíritos), é teletransportado de volta para um lugar aleatório de seu mundo de origem. Já um alvo morto-vivo tem sua conexão com as energias negativas rompidas, sendo reduzido a 0 PV. Se passar na resistência, em vez dos efeitos acima, o alvo fica enjoado por 1d4 rodadas. Se você tiver um ou mais itens que se oponham ao alvo de alguma maneira, a CD do teste de resistência aumenta em +2 por item. Por exemplo, se lançar a magia contra demônios do frio (vulneráveis a água benta e que odeiam luz e calor) enquanto segura um frasco de água benta e uma tocha acesa, a CD aumenta em +4. O mestre decide se determinado é forte o bastante contra a criatura para isso.',
     aprimoramentos: [
       {
         addPm: 0,
@@ -3979,7 +3979,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     resistencia: '',
     school: 'Abjur',
     description:
-      'Você é cercado por uma barreira invisível com 3m de raio que o acompanha. Qualquer habilidade mágica ou item mágico que entre na área da barreira é suprimida enquanto estiver lá. Criaturas convocadas que entrem em um Campo Antimagia desaparecem. Elas reaparecem na mesma posição quando a duração do Campo termina — supondo que a duração da magia que as convocou ainda não tenha terminado. Criaturas mágicas ou imbuídas com magia durante sua criação não são diretamente afetadas pelo Campo Antimagia. Entretanto, como qualquer criatura, não poderão usar magias ou habilidades mágicas dentro dele. Uma magia que dissipa outras não dissipa um Campo Antimagia, e dois Campos na mesma área não se neutralizam. Artefatos e deuses maiores não são afetados por um Campo Antimagia.',
+      'Você é cercado por uma barreira invisível com 3m de raio que o acompanha. Qualquer habilidade mágica ou mágico que entre na área da barreira é suprimida enquanto estiver lá. Criaturas convocadas que entrem em um Campo Antimagia desaparecem. Elas reaparecem na mesma posição quando a duração do Campo termina — supondo que a duração da magia que as convocou ainda não tenha terminado. Criaturas mágicas ou imbuídas com magia durante sua criação não são diretamente afetadas pelo Campo Antimagia. Entretanto, como qualquer criatura, não poderão usar magias ou habilidades mágicas dentro dele. Uma magia que dissipa outras não dissipa um Campo Antimagia, e dois Campos na mesma área não se neutralizam. Artefatos e deuses maiores não são afetados por um Campo Antimagia.',
   },
   [spellsCircle4Names.libertacao]: {
     spellCircle: spellsCircles.c4,

@@ -319,12 +319,12 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
             segundo é para determinar o valor dela.
           </li>
           <li>
-            Para itens diversos, o valor determina qual item foi selecionado.
+            Para itens diversos, o valor determina qual foi selecionado.
           </li>
           <li>
             Para armas e armaduras e (inclusive com modificações), o primeiro
-            valor é 1d6 para determinar se o item é uma arma (1 a 4) ou armadura
-            (5 ou 6). O segundo valor determina qual item foi selecionado.
+            valor é 1d6 para determinar se o é uma arma (1 a 4) ou armadura
+            (5 ou 6). O segundo valor determina qual foi selecionado.
           </li>
           <li>Para poções, é o valor correspondente à poção selecionada.</li>
           <li>

@@ -131,7 +131,7 @@ const Database: React.FC<IProps> = () => {
               // Welcome screen with beautiful card grid
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 {menuItems.map((item, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={item.id}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
                     <Card
                       onClick={() => onSelectMenu(item.id, item.route)}
                       sx={{
@@ -216,7 +216,7 @@ const Database: React.FC<IProps> = () => {
                   // Mobile: 2x3 Grid layout
                   <Grid container spacing={2} sx={{ mb: 3 }}>
                     {menuItems.map((item) => (
-                      <Grid item xs={4} key={item.id}>
+                      <Grid size={4} key={item.id}>
                         <Card
                           onClick={() => onSelectMenu(item.id, item.route)}
                           sx={{

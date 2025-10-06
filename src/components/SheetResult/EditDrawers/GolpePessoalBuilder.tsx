@@ -473,21 +473,21 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
 
         {/* Effect Categories */}
         <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant='h6' gutterBottom sx={{ color: '#f44336' }}>
               ⚔️ Efeitos Ofensivos
             </Typography>
             {offensiveEffects.map(renderEffectCard)}
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant='h6' gutterBottom sx={{ color: '#2196f3' }}>
               🎯 Efeitos Utilitários
             </Typography>
             {utilityEffects.map(renderEffectCard)}
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant='h6' gutterBottom sx={{ color: '#ff9800' }}>
               ⚠️ Limitações (Reduzem Custo)
             </Typography>

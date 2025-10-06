@@ -1504,7 +1504,7 @@ export const armorEnchantments: ItemE[] = [
     min: 57,
     max: 58,
     enchantment: 'Ilusório',
-    effect: 'Camufla-se como item comum',
+    effect: 'Camufla-se como comum',
   },
   {
     min: 59,

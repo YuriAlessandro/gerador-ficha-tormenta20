@@ -98,7 +98,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
   COSTAS_LARGAS: {
     name: 'Costas Largas',
     description:
-      'Seu limite de carga aumenta em 5 espaços e você pode se beneficiar de um item vestido adicional.',
+      'Seu limite de carga aumenta em 5 espaços e você pode se beneficiar de um vestido adicional.',
     type: GeneralPowerType.DESTINO,
     requirements: [
       [

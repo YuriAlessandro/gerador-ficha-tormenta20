@@ -2509,7 +2509,7 @@ export default function generateRandomSheet(
         value: `${equipmentResult.generationDetails} (Custo total: ${equipmentGenerationCost} T$)`,
       });
 
-      // Adicionar cada item gerado como substep
+      // Adicionar cada gerado como substep
       equipmentGenerationStep.push(...equipmentResult.itemsForSteps);
     }
   }
@@ -2840,7 +2840,7 @@ export function generateEmptySheet(
         value: `${equipmentResult.generationDetails} (Custo total: ${equipmentResult.totalCost} T$)`,
       });
 
-      // Adicionar cada item gerado como substep
+      // Adicionar cada gerado como substep
       equipmentSteps.push(...equipmentResult.itemsForSteps);
 
       // Adicionar step ao histórico

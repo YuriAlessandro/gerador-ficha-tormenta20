@@ -200,5 +200,5 @@ export const BASIC_SPELLS_1ST_2ND_CIRCLE = [
   'Web',
 ] as const;
 
-export type ElementalDamageType = typeof ELEMENTAL_DAMAGE_TYPES[number];
-export type SpellChoice = typeof BASIC_SPELLS_1ST_2ND_CIRCLE[number];
+export type ElementalDamageType = (typeof ELEMENTAL_DAMAGE_TYPES)[number];
+export type SpellChoice = (typeof BASIC_SPELLS_1ST_2ND_CIRCLE)[number];

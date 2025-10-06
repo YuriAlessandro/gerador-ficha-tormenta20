@@ -152,7 +152,7 @@ const originPowers: Record<string, OriginPower> = {
   HERANCA: {
     name: 'Herança',
     description:
-      'Você herdou um item de preço de até T$ 1.000. Você pode escolher este poder duas vezes, para um item de até T$ 2.000.',
+      'Você herdou um de preço de até T$ 1.000. Você pode escolher este poder duas vezes, para um de até T$ 2.000.',
     type: ORIGIN_POWER_TYPE,
   },
   CORACAO_HEROICO: {
@@ -206,7 +206,7 @@ const originPowers: Record<string, OriginPower> = {
   QUEBRA_GALHO: {
     name: 'Quebra-galho',
     description:
-      'Em cidades ou metrópoles, você pode comprar qualquer item mundano não superior por metade do preço normal. Esses itens não podem ser matérias-primas e não podem ser revendidos (são velhos, sujos, furtados...).',
+      'Em cidades ou metrópoles, você pode comprar qualquer mundano não superior por metade do preço normal. Esses itens não podem ser matérias-primas e não podem ser revendidos (são velhos, sujos, furtados...).',
     type: ORIGIN_POWER_TYPE,
   },
   ESTOICO: {

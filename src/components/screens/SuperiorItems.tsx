@@ -322,7 +322,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
   const generateRandomItem = () => {
     if (!state.selectedItemType || !state.selectedItem) {
-      setAlertMessage('Selecione o tipo e o item antes de gerar.');
+      setAlertMessage('Selecione o tipo e o antes de gerar.');
       return;
     }
 
@@ -391,7 +391,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
   const generateManualItem = () => {
     if (!state.selectedItemType || !state.selectedItem) {
-      setAlertMessage('Selecione o tipo e o item antes de gerar.');
+      setAlertMessage('Selecione o tipo e o antes de gerar.');
       return;
     }
 
@@ -523,7 +523,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -537,7 +537,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
             />
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth>
               <InputLabel>Tipo do Item</InputLabel>
               <Select
@@ -553,7 +553,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
           </Grid>
 
           {state.selectedItemType && state.selectedItemType !== 'shield' && (
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <FormControl fullWidth>
                 <InputLabel>Subtipo</InputLabel>
                 <Select
@@ -581,7 +581,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
             </Grid>
           )}
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Autocomplete
               options={availableItems}
               getOptionLabel={(option) => option.label}
@@ -609,7 +609,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
           {state.generationMode === 'random' && (
             <>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography gutterBottom>
                   Mínimo de Modificações: {state.minModificationCount}
                 </Typography>
@@ -622,7 +622,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                   valueLabelDisplay='auto'
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography gutterBottom>
                   Máximo de Modificações: {state.maxModificationCount}
                 </Typography>
@@ -640,7 +640,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
           {state.generationMode === 'manual' && (
             <>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Autocomplete
                   multiple
                   options={availableModifications}
@@ -731,7 +731,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
               {state.selectedModifications.some(
                 (mod) => mod.mod === 'Material especial'
               ) && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Autocomplete
                     options={materialOptions}
                     getOptionLabel={(option) => option.label}
@@ -757,7 +757,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
               )}
 
               {selectedMaterial && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   {(() => {
                     const materialData =
                       getSpecialMaterialData(selectedMaterial);
@@ -782,7 +782,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
               )}
 
               {state.selectedModifications.length > 0 && (
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant='body2' color='text.secondary'>
                     Custo total:{' '}
                     {calculateModificationCost(state.selectedModifications)}{' '}
@@ -793,7 +793,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
             </>
           )}
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Button
               variant='contained'
               size='large'

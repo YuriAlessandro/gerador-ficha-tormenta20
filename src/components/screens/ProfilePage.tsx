@@ -526,7 +526,7 @@ const ProfilePage: React.FC = () => {
               Estatísticas
             </Typography>
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Stack direction='row' spacing={1.5} alignItems='center'>
                   <SheetIcon color='primary' />
                   <Box>
@@ -539,7 +539,7 @@ const ProfilePage: React.FC = () => {
                   </Box>
                 </Stack>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Stack direction='row' spacing={1.5} alignItems='center'>
                   <CalendarIcon color='primary' />
                   <Box>

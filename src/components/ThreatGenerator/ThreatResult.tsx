@@ -347,12 +347,13 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
             {threat.displacement}
           </div>
           <div className='simpleSheetDivisor' />
-          {threat.combatStats.manaPoints && threat.combatStats.manaPoints > 0 && (
-            <div>
-              <span className='simpleSheetText'>Pontos de Mana</span>{' '}
-              {threat.combatStats.manaPoints}
-            </div>
-          )}
+          {threat.combatStats.manaPoints &&
+            threat.combatStats.manaPoints > 0 && (
+              <div>
+                <span className='simpleSheetText'>Pontos de Mana</span>{' '}
+                {threat.combatStats.manaPoints}
+              </div>
+            )}
           <div>
             <span className='simpleSheetText'>Ataques</span>
           </div>

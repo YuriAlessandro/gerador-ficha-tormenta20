@@ -2,10 +2,8 @@ import {
   RaceAbility,
   RaceAttributeAbility,
   RaceSize,
-  raceSize,
 } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
-import Skill from '../../../../../interfaces/Skills';
 import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
 
 // Interfaces para as customizações do Golem Desperto
@@ -217,7 +215,7 @@ export const GOLEM_DESPERTO_ENERGY_SOURCES: Record<
     ability: {
       name: 'Fonte de Energia: Alquímica',
       description:
-        'Uma mistura alquímica gera a energia necessária à sua vida. Você pode gastar uma ação padrão para ingerir um item alquímico qualquer; se fizer isso, recupera 1 PM.',
+        'Uma mistura alquímica gera a energia necessária à sua vida. Você pode gastar uma ação padrão para ingerir um alquímico qualquer; se fizer isso, recupera 1 PM.',
     },
   },
 

@@ -25,12 +25,16 @@ import { useHistory, useRouteMatch } from 'react-router-dom';
 import generalPowers from '../../data/poderes';
 import {
   GeneralPower,
+  GeneralPowers,
   Requirement,
   RequirementType,
 } from '../../interfaces/Poderes';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry } from '../../data/registry';
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
   let reqText = '';
@@ -186,12 +190,18 @@ const Row: React.FC<{ power: GeneralPower; defaultOpen: boolean }> = ({
 };
 
 const PowersTable: React.FC = () => {
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
+  const [allPowersByCategory, setAllPowersByCategory] =
+    useState<GeneralPowers>(generalPowers);
+
   const allPowers = [
-    ...generalPowers.COMBATE,
-    ...generalPowers.CONCEDIDOS,
-    ...generalPowers.DESTINO,
-    ...generalPowers.MAGIA,
-    ...generalPowers.TORMENTA,
+    ...allPowersByCategory.COMBATE,
+    ...allPowersByCategory.CONCEDIDOS,
+    ...allPowersByCategory.DESTINO,
+    ...allPowersByCategory.MAGIA,
+    ...allPowersByCategory.TORMENTA,
   ];
 
   const [value, setValue] = useState('');
@@ -204,6 +214,13 @@ const PowersTable: React.FC = () => {
   const destinyRef = useRef<null | HTMLDivElement>(null);
   const magicRef = useRef<null | HTMLDivElement>(null);
   const tormentaRef = useRef<null | HTMLDivElement>(null);
+
+  // Update powers when supplements change
+  useEffect(() => {
+    const combinedPowers =
+      dataRegistry.getPowersBySupplements(selectedSupplements);
+    setAllPowersByCategory(combinedPowers);
+  }, [selectedSupplements]);
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
@@ -218,6 +235,16 @@ const PowersTable: React.FC = () => {
     } else {
       setPowers([]);
     }
+  };
+
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      return [...prev, supplementId];
+    });
   };
 
   useEffect(() => {
@@ -296,6 +323,16 @@ const PowersTable: React.FC = () => {
       <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
         Poderes Gerais
       </TormentaTitle>
+
+      {/* Supplement Filter */}
+      <SupplementFilter
+        selectedSupplements={selectedSupplements}
+        availableSupplements={[
+          SupplementId.TORMENTA20_CORE,
+          SupplementId.TORMENTA20_AMEACAS_ARTON,
+        ]}
+        onToggleSupplement={handleToggleSupplement}
+      />
 
       {/* Search Input */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
@@ -377,27 +414,27 @@ const PowersTable: React.FC = () => {
               <>
                 {renderPowerSection(
                   'Poderes de Combate',
-                  generalPowers.COMBATE,
+                  allPowersByCategory.COMBATE,
                   combatRef
                 )}
                 {renderPowerSection(
                   'Poderes Concedidos',
-                  generalPowers.CONCEDIDOS,
+                  allPowersByCategory.CONCEDIDOS,
                   concedidoRef
                 )}
                 {renderPowerSection(
                   'Poderes de Destino',
-                  generalPowers.DESTINO,
+                  allPowersByCategory.DESTINO,
                   destinyRef
                 )}
                 {renderPowerSection(
                   'Poderes de Magia',
-                  generalPowers.MAGIA,
+                  allPowersByCategory.MAGIA,
                   magicRef
                 )}
                 {renderPowerSection(
                   'Poderes da Tormenta',
-                  generalPowers.TORMENTA,
+                  allPowersByCategory.TORMENTA,
                   tormentaRef
                 )}
               </>

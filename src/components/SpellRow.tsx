@@ -30,7 +30,7 @@ const SpellRow: React.FC<SpellProps> = (props) => {
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} id={spell.nome}>
         <Grid container spacing={2}>
-          <Grid item xs={4}>
+          <Grid size={4}>
             <Typography
               sx={{
                 flexShrink: 0,
@@ -44,16 +44,16 @@ const SpellRow: React.FC<SpellProps> = (props) => {
           </Grid>
           {!isMobile && (
             <>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography>{spell.school}</Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography>{spell.execucao}</Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography>{spell.alcance}</Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid size={2}>
                 <Typography>{spell.resistencia || '-'}</Typography>
               </Grid>
             </>
@@ -63,25 +63,25 @@ const SpellRow: React.FC<SpellProps> = (props) => {
       <AccordionDetails>
         {isMobile && (
           <Grid container spacing={2} marginBottom={2}>
-            <Grid item xs={3}>
+            <Grid size={3}>
               <Typography>{spell.school}</Typography>
             </Grid>
-            <Grid item xs={3}>
+            <Grid size={3}>
               <Typography>{spell.execucao}</Typography>
             </Grid>
-            <Grid item xs={3}>
+            <Grid size={3}>
               <Typography>{spell.alcance}</Typography>
             </Grid>
-            <Grid item xs={3}>
+            <Grid size={3}>
               <Typography>{spell.resistencia || '-'}</Typography>
             </Grid>
           </Grid>
         )}
         <Grid container>
-          <Grid item xs={10}>
+          <Grid size={10}>
             <Typography fontWeight='bold'>{spell.spellCircle}</Typography>
           </Grid>
-          <Grid item xs={2}>
+          <Grid size={2}>
             <Typography
               sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}
             >

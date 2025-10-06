@@ -70,7 +70,7 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     type: GeneralPowerType.DESTINO,
     name: 'Organizadinhos (Kobolds)',
     description:
-      'Vocês podem usar Destreza para estabelecer seu limite de carga (em vez de Força) e podem se beneficiar de um item vestido adicional.',
+      'Vocês podem usar Destreza para estabelecer seu limite de carga (em vez de Força) e podem se beneficiar de um vestido adicional.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
   },
   {
