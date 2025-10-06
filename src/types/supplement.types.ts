@@ -11,6 +11,8 @@ export enum SupplementId {
   TORMENTA20_CORE = 'tormenta20-core',
   /** Suplemento: Ameaças de Arton */
   TORMENTA20_AMEACAS_ARTON = 'tormenta20-ameacas-de-arton',
+  /** Suplemento: Atlas de Arton */
+  TORMENTA20_ATLAS_ARTON = 'tormenta20-atlas-de-arton',
 
   // Future systems supplements can be added here:
   // DND5E_CORE = 'dnd5e-core',
@@ -68,6 +70,15 @@ export const SUPPLEMENT_METADATA: Partial<
     abbreviation: 'AdA',
     description: '29 novas raças; 67 novos equipamentos; 7 novas magias',
     releaseDate: '2020',
+    requiresPremium: false,
+  },
+  [SupplementId.TORMENTA20_ATLAS_ARTON]: {
+    id: SupplementId.TORMENTA20_ATLAS_ARTON,
+    systemId: SystemId.TORMENTA20,
+    name: 'Atlas de Arton',
+    abbreviation: 'AA',
+    description: 'Origens regionais de Arton',
+    releaseDate: '2021',
     requiresPremium: false,
   },
 };
