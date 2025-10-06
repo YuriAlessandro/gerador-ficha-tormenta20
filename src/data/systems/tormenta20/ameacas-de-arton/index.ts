@@ -7,6 +7,7 @@ import AMEACAS_ARTON_RACES from './races';
 import AMEACAS_ARTON_CLASSES from './classes';
 import AMEACAS_ARTON_POWERS from './powers';
 import { AMEACAS_ARTON_EQUIPMENT } from './equipment';
+import AMEACAS_ARTON_SPELLS from './spells';
 
 export const TORMENTA20_AMEACAS_ARTON_SUPPLEMENT: SupplementData = {
   id: SupplementId.TORMENTA20_AMEACAS_ARTON,
@@ -14,6 +15,7 @@ export const TORMENTA20_AMEACAS_ARTON_SUPPLEMENT: SupplementData = {
   classes: AMEACAS_ARTON_CLASSES,
   powers: AMEACAS_ARTON_POWERS,
   equipment: AMEACAS_ARTON_EQUIPMENT,
+  spells: AMEACAS_ARTON_SPELLS,
 };
 
 // Legacy export for backwards compatibility

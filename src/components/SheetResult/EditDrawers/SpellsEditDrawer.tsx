@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -23,9 +23,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import { Spell } from '@/interfaces/Spells';
+import { Spell, spellsCircles } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
+import { useAuth } from '@/hooks/useAuth';
+import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
+import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 
 interface SpellsEditDrawerProps {
   open: boolean;
@@ -40,12 +43,40 @@ interface SpellCategory {
   circle: number;
 }
 
+interface SpellWithSupplement {
+  spell: Spell;
+  supplementId: SupplementId;
+}
+
+// Helper function to convert spellsCircles enum to number
+const getCircleNumber = (spellCircle: spellsCircles): number => {
+  switch (spellCircle) {
+    case spellsCircles.c1:
+      return 1;
+    case spellsCircles.c2:
+      return 2;
+    case spellsCircles.c3:
+      return 3;
+    case spellsCircles.c4:
+      return 4;
+    case spellsCircles.c5:
+      return 5;
+    default:
+      return 1;
+  }
+};
+
 const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   open,
   onClose,
   sheet,
   onSave,
 }) => {
+  const { user } = useAuth();
+  const userSupplements = user?.enabledSupplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCircle, setFilterCircle] = useState<number | 'all'>('all');
@@ -58,6 +89,42 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       setSelectedSpells([...sheet.spells]);
     }
   }, [sheet.spells, open]);
+
+  // Get spells from active supplements
+  const getSupplementSpells = useMemo(() => {
+    const spells: SpellWithSupplement[] = [];
+
+    userSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.spells) {
+        // For arcane or both types
+        if (spellType === 'arcane' || spellType === 'both') {
+          supplement.spells.arcane?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+          // Universal spells appear in arcane list
+          supplement.spells.universal?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+        }
+
+        // For divine or both types
+        if (spellType === 'divine' || spellType === 'both') {
+          supplement.spells.divine?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+          // Universal spells appear in divine list (only add if not 'both' to avoid duplicates)
+          if (spellType === 'divine') {
+            supplement.spells.universal?.forEach((spell) => {
+              spells.push({ spell, supplementId });
+            });
+          }
+        }
+      }
+    });
+
+    return spells;
+  }, [userSupplements, spellType]);
 
   // Get all available spells based on type and circle
   const getAllSpells = (): SpellCategory[] => {
@@ -78,6 +145,13 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       if (spellType === 'divine' || spellType === 'both') {
         spells = [...spells, ...getSpellsOfCircle(circle)];
       }
+
+      // Add supplement spells for this circle
+      const supplementSpellsForCircle = getSupplementSpells.filter(
+        ({ spell }) => getCircleNumber(spell.spellCircle) === circle
+      );
+
+      spells = [...spells, ...supplementSpellsForCircle.map((s) => s.spell)];
 
       // Remove duplicates (some spells might be in both arcane and divine)
       const uniqueSpells = spells.filter(
@@ -315,70 +389,99 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                   <Stack spacing={2}>
                     {filteredSpells
                       .sort((a, b) => a.nome.localeCompare(b.nome))
-                      .map((spell) => (
-                        <Box
-                          key={spell.nome}
-                          sx={{
-                            p: 2,
-                            border: 2,
-                            borderColor: canCast
-                              ? 'success.main'
-                              : 'error.main',
-                            borderRadius: 1,
-                            backgroundColor: (() => {
-                              if (isSpellSelected(spell)) {
+                      .map((spell) => {
+                        // Find if this spell is from a supplement
+                        const supplementSpell = getSupplementSpells.find(
+                          (s) => s.spell.nome === spell.nome
+                        );
+
+                        return (
+                          <Box
+                            key={spell.nome}
+                            sx={{
+                              p: 2,
+                              border: 2,
+                              borderColor: canCast
+                                ? 'success.main'
+                                : 'error.main',
+                              borderRadius: 1,
+                              backgroundColor: (() => {
+                                if (isSpellSelected(spell)) {
+                                  return canCast
+                                    ? 'success.light'
+                                    : 'error.light';
+                                }
                                 return canCast
-                                  ? 'success.light'
-                                  : 'error.light';
+                                  ? 'success.50'
+                                  : 'background.paper';
+                              })(),
+                              opacity: canCast ? 1 : 0.7,
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={isSpellSelected(spell)}
+                                  onChange={() => handleSpellToggle(spell)}
+                                  size='small'
+                                />
                               }
-                              return canCast
-                                ? 'success.50'
-                                : 'background.paper';
-                            })(),
-                            opacity: canCast ? 1 : 0.7,
-                          }}
-                        >
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={isSpellSelected(spell)}
-                                onChange={() => handleSpellToggle(spell)}
-                                size='small'
-                              />
-                            }
-                            label={
-                              <Box sx={{ width: '100%' }}>
-                                <Typography
-                                  variant='body1'
-                                  fontWeight='bold'
-                                  color={
-                                    canCast ? 'text.primary' : 'error.main'
-                                  }
-                                >
-                                  {spell.nome}
-                                </Typography>
-                                <Typography
-                                  variant='caption'
-                                  color='text.secondary'
-                                  sx={{ display: 'block', mb: 1 }}
-                                >
-                                  {spell.school} • {spell.execucao} •{' '}
-                                  {spell.alcance} • {spell.duracao}
-                                  {spell.manaExpense &&
-                                    ` • ${spell.manaExpense} PM`}
-                                </Typography>
-                                <Typography
-                                  variant='body2'
-                                  color='text.secondary'
-                                >
-                                  {spell.description}
-                                </Typography>
-                              </Box>
-                            }
-                            sx={{ alignItems: 'flex-start', width: '100%' }}
-                          />
-                        </Box>
-                      ))}
+                              label={
+                                <Box sx={{ width: '100%' }}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant='body1'
+                                      fontWeight='bold'
+                                      color={
+                                        canCast ? 'text.primary' : 'error.main'
+                                      }
+                                    >
+                                      {spell.nome}
+                                    </Typography>
+                                    {supplementSpell &&
+                                      supplementSpell.supplementId !==
+                                        SupplementId.TORMENTA20_CORE && (
+                                        <Chip
+                                          label={
+                                            SUPPLEMENT_METADATA[
+                                              supplementSpell.supplementId
+                                            ]?.abbreviation || ''
+                                          }
+                                          size='small'
+                                          color='primary'
+                                          variant='outlined'
+                                        />
+                                      )}
+                                  </Box>
+                                  <Typography
+                                    variant='caption'
+                                    color='text.secondary'
+                                    sx={{ display: 'block', mb: 1 }}
+                                  >
+                                    {spell.school} • {spell.execucao} •{' '}
+                                    {spell.alcance} • {spell.duracao}
+                                    {spell.manaExpense &&
+                                      ` • ${spell.manaExpense} PM`}
+                                  </Typography>
+                                  <Typography
+                                    variant='body2'
+                                    color='text.secondary'
+                                  >
+                                    {spell.description}
+                                  </Typography>
+                                </Box>
+                              }
+                              sx={{ alignItems: 'flex-start', width: '100%' }}
+                            />
+                          </Box>
+                        );
+                      })}
                   </Stack>
                 </AccordionDetails>
               </Accordion>

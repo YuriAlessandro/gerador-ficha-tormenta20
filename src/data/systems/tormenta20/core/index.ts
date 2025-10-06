@@ -9,6 +9,7 @@ import Race from '../../../../interfaces/Race';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
+import { Spell } from '../../../../interfaces/Spells';
 
 export interface SupplementEquipment {
   weapons?: Record<string, Equipment>;
@@ -19,14 +20,20 @@ export interface SupplementEquipment {
   food?: Equipment[];
 }
 
+export interface SupplementSpells {
+  arcane?: Spell[];
+  divine?: Spell[];
+  universal?: Spell[];
+}
+
 export interface SupplementData {
   id: SupplementId;
   races: Race[];
   classes: ClassDescription[];
   powers: GeneralPowers;
   equipment?: SupplementEquipment;
+  spells?: SupplementSpells;
   // origins: Origin[]; // TODO: adicionar depois
-  // spells: Spell[]; // TODO: adicionar depois
 }
 
 export const TORMENTA20_CORE_SUPPLEMENT: SupplementData = {

@@ -41,13 +41,22 @@ import AdvancedSpellFilter from './AdvancedSpellFilter';
 import TormentaTitle from './TormentaTitle';
 import SearchInput from '../DatabaseTables/SearchInput';
 import CopyUrlButton from './CopyUrlButton';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  SupplementId,
+  SUPPLEMENT_METADATA,
+} from '../../types/supplement.types';
+import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
+import SupplementFilter from '../DatabaseTables/SupplementFilter';
 
 interface ExtendedSpell extends Spell {
   spellType: 'arcane' | 'divine';
+  supplementId?: SupplementId;
 }
 
 interface MergedSpell extends Spell {
   spellTypes: ('arcane' | 'divine')[];
+  supplementId?: SupplementId;
 }
 
 // Helper function to convert circle number to spellsCircles enum
@@ -111,6 +120,7 @@ const mergeSpells = (spells: ExtendedSpell[]): MergedSpell[] => {
       spellMap[key] = {
         ...spell,
         spellTypes: [spell.spellType],
+        supplementId: spell.supplementId,
       };
     }
   });
@@ -175,6 +185,18 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
                 }}
               />
             ))}
+            {spell.supplementId &&
+              spell.supplementId !== SupplementId.TORMENTA20_CORE && (
+                <Chip
+                  label={
+                    SUPPLEMENT_METADATA[spell.supplementId]?.abbreviation || ''
+                  }
+                  size='small'
+                  color='primary'
+                  variant='outlined'
+                  sx={{ ml: 1 }}
+                />
+              )}
             <CopyUrlButton
               itemName={spell.nome}
               itemType='magia'
@@ -290,6 +312,55 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
 };
 
 const UnifiedSpellsTable: React.FC = () => {
+  const { user } = useAuth();
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >(user?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
+
+  // Function to get supplement spells
+  const getSupplementSpells = (): ExtendedSpell[] => {
+    const spells: ExtendedSpell[] = [];
+
+    selectedSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.spells) {
+        // Add arcane spells
+        supplement.spells.arcane?.forEach((spell) => {
+          spells.push({
+            ...spell,
+            spellType: 'arcane',
+            supplementId,
+          });
+        });
+
+        // Add divine spells
+        supplement.spells.divine?.forEach((spell) => {
+          spells.push({
+            ...spell,
+            spellType: 'divine',
+            supplementId,
+          });
+        });
+
+        // Add universal spells (they appear in both lists)
+        supplement.spells.universal?.forEach((spell) => {
+          spells.push({
+            ...spell,
+            spellType: 'arcane',
+            supplementId,
+          });
+          spells.push({
+            ...spell,
+            spellType: 'divine',
+            supplementId,
+          });
+        });
+      }
+    });
+
+    return spells;
+  };
+
   // Combine and merge all spells with type indicators
   const allSpells: MergedSpell[] = useMemo(() => {
     const arcaneSpells = [
@@ -308,9 +379,14 @@ const UnifiedSpellsTable: React.FC = () => {
       ...allDivineSpellsCircle5,
     ].map((spell) => ({ ...spell, spellType: 'divine' as const }));
 
-    const combinedSpells = [...arcaneSpells, ...divineSpells];
+    const combinedSpells = [
+      ...arcaneSpells,
+      ...divineSpells,
+      ...getSupplementSpells(),
+    ];
     return mergeSpells(combinedSpells);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSupplements]);
 
   const [filters, setFilters] = useState<SpellFilters>({
     search: '',
@@ -451,6 +527,22 @@ const UnifiedSpellsTable: React.FC = () => {
           />
         </Box>
       </Box>
+
+      {/* Supplement Filter */}
+      <SupplementFilter
+        selectedSupplements={selectedSupplements}
+        availableSupplements={[
+          SupplementId.TORMENTA20_CORE,
+          SupplementId.TORMENTA20_AMEACAS_ARTON,
+        ]}
+        onToggleSupplement={(supplementId) => {
+          setSelectedSupplements((prev) =>
+            prev.includes(supplementId)
+              ? prev.filter((id) => id !== supplementId)
+              : [...prev, supplementId]
+          );
+        }}
+      />
 
       {/* Advanced Filters */}
       <AdvancedSpellFilter
