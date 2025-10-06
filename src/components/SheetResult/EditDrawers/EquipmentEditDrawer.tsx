@@ -1209,17 +1209,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armasSimples.map((weapon) => (
-                      <FormControlLabel
+                      <Box
                         key={weapon.nome}
-                        control={
-                          <Checkbox
-                            checked={isWeaponSelected(weapon)}
-                            onChange={() => handleWeaponToggle(weapon)}
-                            size='small'
-                          />
-                        }
-                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement simple weapons */}
                     {getCategorizedWeapons.simple.map((weapon) => (
@@ -1269,17 +1278,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armasMarciais.map((weapon) => (
-                      <FormControlLabel
+                      <Box
                         key={weapon.nome}
-                        control={
-                          <Checkbox
-                            checked={isWeaponSelected(weapon)}
-                            onChange={() => handleWeaponToggle(weapon)}
-                            size='small'
-                          />
-                        }
-                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement martial weapons */}
                     {getCategorizedWeapons.martial.map((weapon) => (
@@ -1329,17 +1347,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armasExoticas.map((weapon) => (
-                      <FormControlLabel
+                      <Box
                         key={weapon.nome}
-                        control={
-                          <Checkbox
-                            checked={isWeaponSelected(weapon)}
-                            onChange={() => handleWeaponToggle(weapon)}
-                            size='small'
-                          />
-                        }
-                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement exotic weapons */}
                     {getCategorizedWeapons.exotic.map((weapon) => (
@@ -1389,17 +1416,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armasDeFogo.map((weapon) => (
-                      <FormControlLabel
+                      <Box
                         key={weapon.nome}
-                        control={
-                          <Checkbox
-                            checked={isWeaponSelected(weapon)}
-                            onChange={() => handleWeaponToggle(weapon)}
-                            size='small'
-                          />
-                        }
-                        label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement firearms */}
                     {getCategorizedWeapons.firearms.map((weapon) => (
@@ -1469,17 +1505,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armadurasLeves.map((armor) => (
-                      <FormControlLabel
+                      <Box
                         key={armor.nome}
-                        control={
-                          <Checkbox
-                            checked={isArmorSelected(armor)}
-                            onChange={() => handleArmorToggle(armor)}
-                            size='small'
-                          />
-                        }
-                        label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isArmorSelected(armor)}
+                              onChange={() => handleArmorToggle(armor)}
+                              size='small'
+                            />
+                          }
+                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement light armors */}
                     {getCategorizedArmors.light.map((armor) => (
@@ -1529,17 +1574,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.armaduraPesada.map((armor) => (
-                      <FormControlLabel
+                      <Box
                         key={armor.nome}
-                        control={
-                          <Checkbox
-                            checked={isArmorSelected(armor)}
-                            onChange={() => handleArmorToggle(armor)}
-                            size='small'
-                          />
-                        }
-                        label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isArmorSelected(armor)}
+                              onChange={() => handleArmorToggle(armor)}
+                              size='small'
+                            />
+                          }
+                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement heavy armors */}
                     {getCategorizedArmors.heavy.map((armor) => (
@@ -1601,17 +1655,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {EQUIPAMENTOS.escudos.map((shield) => (
-                      <FormControlLabel
+                      <Box
                         key={shield.nome}
-                        control={
-                          <Checkbox
-                            checked={isShieldSelected(shield)}
-                            onChange={() => handleShieldToggle(shield)}
-                            size='small'
-                          />
-                        }
-                        label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isShieldSelected(shield)}
+                              onChange={() => handleShieldToggle(shield)}
+                              size='small'
+                            />
+                          }
+                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                     {/* Supplement shields */}
                     {getCategorizedArmors.shields.map((shield) => (
@@ -1684,17 +1747,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.adventurerEquipment.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isGeneralItemSelected(item)}
-                            onChange={() => handleGeneralItemToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isGeneralItemSelected(item)}
+                              onChange={() => handleGeneralItemToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1708,17 +1780,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.tools.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isGeneralItemSelected(item)}
-                            onChange={() => handleGeneralItemToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isGeneralItemSelected(item)}
+                              onChange={() => handleGeneralItemToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1732,17 +1813,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.esoteric.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isGeneralItemSelected(item)}
-                            onChange={() => handleGeneralItemToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isGeneralItemSelected(item)}
+                              onChange={() => handleGeneralItemToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1768,17 +1858,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.clothing.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isClothingSelected(item)}
-                            onChange={() => handleClothingToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isClothingSelected(item)}
+                              onChange={() => handleClothingToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1814,17 +1913,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.alchemyPrepared.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isAlchemySelected(item)}
-                            onChange={() => handleAlchemyToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1838,17 +1946,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.alchemyCatalysts.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isAlchemySelected(item)}
-                            onChange={() => handleAlchemyToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1862,17 +1979,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.alchemyPoisons.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isAlchemySelected(item)}
-                            onChange={() => handleAlchemyToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1898,17 +2024,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {GENERAL_EQUIPMENT.food.map((item) => (
-                      <FormControlLabel
+                      <Box
                         key={item.nome}
-                        control={
-                          <Checkbox
-                            checked={isFoodSelected(item)}
-                            onChange={() => handleFoodToggle(item)}
-                            size='small'
-                          />
-                        }
-                        label={`${item.nome} (T$ ${item.preco || 0})`}
-                      />
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isFoodSelected(item)}
+                              onChange={() => handleFoodToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                      </Box>
                     ))}
                   </Stack>
 
