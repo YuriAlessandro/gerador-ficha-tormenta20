@@ -1126,7 +1126,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       .filter((ability) => ability.nivel <= sheet.nivel)
                       .map((ability) => (
                         <Chip
-                          key={ability.name}
+                          key={`class-${ability.name}-${ability.nivel}`}
                           label={`${ability.name} (Nv.${ability.nivel})`}
                           size='small'
                           color='info'
@@ -1141,9 +1141,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                   Habilidades de Raça ({sheet.raca.abilities.length}):
                 </Typography>
                 <Stack direction='row' spacing={1} flexWrap='wrap'>
-                  {sheet.raca.abilities.map((ability) => (
+                  {sheet.raca.abilities.map((ability, index) => (
                     <Chip
-                      key={ability.name}
+                      key={`race-${ability.name}-${index}`}
                       label={ability.name}
                       size='small'
                       color='warning'
@@ -1167,9 +1167,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={2}>
-                  {sheet.raca.abilities.map((ability) => (
+                  {sheet.raca.abilities.map((ability, index) => (
                     <Box
-                      key={ability.name}
+                      key={`race-ability-${ability.name}-${index}`}
                       sx={{
                         p: 2,
                         border: 2,
@@ -1211,7 +1211,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     .sort((a, b) => a.nivel - b.nivel)
                     .map((ability) => (
                       <Box
-                        key={ability.name}
+                        key={`class-ability-${ability.name}-${ability.nivel}`}
                         sx={{
                           p: 2,
                           border: 2,
