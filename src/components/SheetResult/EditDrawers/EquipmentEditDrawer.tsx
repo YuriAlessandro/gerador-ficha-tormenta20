@@ -175,6 +175,102 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     return categorized;
   }, [userSupplements]);
 
+  // Get supplement general items categorized
+  const getCategorizedGeneralItems = useMemo(() => {
+    const categorized = {
+      adventurerEquipment: [] as EquipmentWithSupplement[],
+      esoteric: [] as EquipmentWithSupplement[],
+    };
+
+    userSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.generalItems) {
+        supplement.equipment.generalItems.forEach((item) => {
+          const itemWithSupplement = { ...item, supplementId };
+          // Categorize based on item name
+          // Esoteric items: Ankh solar, Tomo de guerra, Tomo do rancor
+          if (item.nome.includes('Ankh') || item.nome.includes('Tomo')) {
+            categorized.esoteric.push(itemWithSupplement);
+          } else {
+            // Everything else goes to adventurer equipment (animals + equipment)
+            categorized.adventurerEquipment.push(itemWithSupplement);
+          }
+        });
+      }
+    });
+
+    return categorized;
+  }, [userSupplements]);
+
+  // Get supplement clothing
+  const getSupplementClothing = useMemo(() => {
+    const items: EquipmentWithSupplement[] = [];
+
+    userSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.clothing) {
+        supplement.equipment.clothing.forEach((item) => {
+          items.push({ ...item, supplementId });
+        });
+      }
+    });
+
+    return items;
+  }, [userSupplements]);
+
+  // Get supplement alchemy items categorized
+  const getCategorizedAlchemy = useMemo(() => {
+    const categorized = {
+      prepared: [] as EquipmentWithSupplement[],
+      catalysts: [] as EquipmentWithSupplement[],
+      poisons: [] as EquipmentWithSupplement[],
+    };
+
+    userSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.alchemy) {
+        supplement.equipment.alchemy.forEach((item) => {
+          const itemWithSupplement = { ...item, supplementId };
+          // Categorize based on item name keywords
+          if (
+            item.nome.includes('Corrosivo') ||
+            item.nome.includes('Gelo') ||
+            item.nome.includes('Pedaço') ||
+            item.nome.includes('Raio')
+          ) {
+            categorized.catalysts.push(itemWithSupplement);
+          } else if (
+            item.nome.includes('Esporos') ||
+            item.nome.includes('Peçonha') ||
+            item.nome.includes('Veneno')
+          ) {
+            categorized.poisons.push(itemWithSupplement);
+          } else {
+            categorized.prepared.push(itemWithSupplement);
+          }
+        });
+      }
+    });
+
+    return categorized;
+  }, [userSupplements]);
+
+  // Get supplement food
+  const getSupplementFood = useMemo(() => {
+    const items: EquipmentWithSupplement[] = [];
+
+    userSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.food) {
+        supplement.equipment.food.forEach((item) => {
+          items.push({ ...item, supplementId });
+        });
+      }
+    });
+
+    return items;
+  }, [userSupplements]);
+
   // Refs for accordion auto-scroll
   const weaponsAccordionRef = useRef<HTMLDivElement>(null);
   const armorAccordionRef = useRef<HTMLDivElement>(null);
@@ -1746,6 +1842,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     Equipamentos de Aventureiro
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.adventurerEquipment.map((item) => (
                       <Box
                         key={item.nome}
@@ -1768,6 +1865,44 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         />
                       </Box>
                     ))}
+                    {/* Supplement items */}
+                    {getCategorizedGeneralItems.adventurerEquipment.map(
+                      (item) => (
+                        <Box
+                          key={item.nome}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                        >
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={isGeneralItemSelected(item)}
+                                onChange={() => handleGeneralItemToggle(item)}
+                                size='small'
+                              />
+                            }
+                            label={`${item.nome} (T$ ${item.preco || 0})`}
+                            sx={{ flex: 1, minWidth: 0 }}
+                          />
+                          {item.supplementId &&
+                            item.supplementId !==
+                              SupplementId.TORMENTA20_CORE && (
+                              <Chip
+                                label={
+                                  SUPPLEMENT_METADATA[item.supplementId]
+                                    ?.abbreviation || ''
+                                }
+                                size='small'
+                                color='primary'
+                                variant='outlined'
+                              />
+                            )}
+                        </Box>
+                      )
+                    )}
                   </Stack>
 
                   {/* Tools */}
@@ -1812,6 +1947,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     Itens Esotéricos
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.esoteric.map((item) => (
                       <Box
                         key={item.nome}
@@ -1832,6 +1968,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           label={`${item.nome} (T$ ${item.preco || 0})`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
+                      </Box>
+                    ))}
+                    {/* Supplement items */}
+                    {getCategorizedGeneralItems.esoteric.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isGeneralItemSelected(item)}
+                              onChange={() => handleGeneralItemToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
                       </Box>
                     ))}
                   </Stack>
@@ -1857,6 +2029,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               <AccordionDetails>
                 <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.clothing.map((item) => (
                       <Box
                         key={item.nome}
@@ -1877,6 +2050,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           label={`${item.nome} (T$ ${item.preco || 0})`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
+                      </Box>
+                    ))}
+                    {/* Supplement items */}
+                    {getSupplementClothing.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isClothingSelected(item)}
+                              onChange={() => handleClothingToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
                       </Box>
                     ))}
                   </Stack>
@@ -1912,6 +2121,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     Preparados Alquímicos
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.alchemyPrepared.map((item) => (
                       <Box
                         key={item.nome}
@@ -1934,6 +2144,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         />
                       </Box>
                     ))}
+                    {/* Supplement items */}
+                    {getCategorizedAlchemy.prepared.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Catalysts */}
@@ -1945,6 +2191,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     Catalisadores
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.alchemyCatalysts.map((item) => (
                       <Box
                         key={item.nome}
@@ -1967,6 +2214,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         />
                       </Box>
                     ))}
+                    {/* Supplement items */}
+                    {getCategorizedAlchemy.catalysts.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Poisons */}
@@ -1978,6 +2261,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     Venenos
                   </Typography>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.alchemyPoisons.map((item) => (
                       <Box
                         key={item.nome}
@@ -1998,6 +2282,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           label={`${item.nome} (T$ ${item.preco || 0})`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
+                      </Box>
+                    ))}
+                    {/* Supplement items */}
+                    {getCategorizedAlchemy.poisons.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isAlchemySelected(item)}
+                              onChange={() => handleAlchemyToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
                       </Box>
                     ))}
                   </Stack>
@@ -2023,6 +2343,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               <AccordionDetails>
                 <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
                     {GENERAL_EQUIPMENT.food.map((item) => (
                       <Box
                         key={item.nome}
@@ -2043,6 +2364,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           label={`${item.nome} (T$ ${item.preco || 0})`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
+                      </Box>
+                    ))}
+                    {/* Supplement items */}
+                    {getSupplementFood.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isFoodSelected(item)}
+                              onChange={() => handleFoodToggle(item)}
+                              size='small'
+                            />
+                          }
+                          label={`${item.nome} (T$ ${item.preco || 0})`}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
                       </Box>
                     ))}
                   </Stack>

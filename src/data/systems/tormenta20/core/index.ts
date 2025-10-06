@@ -13,6 +13,10 @@ import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 export interface SupplementEquipment {
   weapons?: Record<string, Equipment>;
   armors?: Record<string, DefenseEquipment>;
+  generalItems?: Equipment[];
+  clothing?: Equipment[];
+  alchemy?: Equipment[];
+  food?: Equipment[];
 }
 
 export interface SupplementData {
