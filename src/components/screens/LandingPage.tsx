@@ -613,16 +613,11 @@ const LandingPage: React.FC<{
                       backgroundColor: isDarkTheme
                         ? theme.palette.grey[900]
                         : theme.palette.background.paper,
-                      color: isDarkTheme
-                        ? '#000000'
-                        : theme.palette.text.primary,
+                      color: theme.palette.text.primary,
                       '&:hover': {
                         backgroundColor: isDarkTheme
                           ? theme.palette.grey[900]
                           : theme.palette.background.paper,
-                        color: isDarkTheme
-                          ? '#000000'
-                          : theme.palette.text.primary,
                       },
                     }}
                   >
