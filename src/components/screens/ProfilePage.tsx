@@ -92,16 +92,10 @@ const ProfilePage: React.FC = () => {
   >(currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
+  const [supplementsSuccess, setSupplementsSuccess] = useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
-
-  // Atualiza suplementos selecionados quando o usuário muda
-  useEffect(() => {
-    if (currentUser?.enabledSupplements) {
-      setSelectedSupplements(currentUser.enabledSupplements);
-    }
-  }, [currentUser]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -211,7 +205,11 @@ const ProfilePage: React.FC = () => {
     try {
       setSupplementsLoading(true);
       setSupplementsError(null);
+      setSupplementsSuccess(false);
       await dispatch(saveSystemSetup(selectedSupplements)).unwrap();
+      setSupplementsSuccess(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSupplementsSuccess(false), 3000);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Erro ao salvar suplementos';
@@ -426,6 +424,12 @@ const ProfilePage: React.FC = () => {
                       {supplementsError && (
                         <Alert severity='error' sx={{ mb: 2 }}>
                           {supplementsError}
+                        </Alert>
+                      )}
+
+                      {supplementsSuccess && (
+                        <Alert severity='success' sx={{ mb: 2 }}>
+                          Suplementos salvos com sucesso!
                         </Alert>
                       )}
 
