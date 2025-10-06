@@ -519,6 +519,15 @@ const LandingPage: React.FC<{
                       borderWidth: 2,
                       backfaceVisibility: 'hidden',
                       pointerEvents: 'none',
+                      backgroundColor: isDarkTheme
+                        ? theme.palette.grey[900]
+                        : theme.palette.background.paper,
+                      color: theme.palette.text.primary,
+                      '&:hover': {
+                        backgroundColor: isDarkTheme
+                          ? theme.palette.grey[900]
+                          : theme.palette.background.paper,
+                      },
                     }}
                   >
                     <Typography variant='h5'>📚</Typography>
@@ -601,6 +610,15 @@ const LandingPage: React.FC<{
                       borderWidth: 2,
                       backfaceVisibility: 'hidden',
                       pointerEvents: 'none',
+                      backgroundColor: isDarkTheme
+                        ? theme.palette.grey[900]
+                        : theme.palette.background.paper,
+                      color: theme.palette.text.primary,
+                      '&:hover': {
+                        backgroundColor: isDarkTheme
+                          ? theme.palette.grey[900]
+                          : theme.palette.background.paper,
+                      },
                     }}
                   >
                     <Typography variant='h5'>📖</Typography>
@@ -687,6 +705,15 @@ const LandingPage: React.FC<{
                       borderWidth: 2,
                       backfaceVisibility: 'hidden',
                       pointerEvents: 'none',
+                      backgroundColor: isDarkTheme
+                        ? theme.palette.grey[900]
+                        : theme.palette.background.paper,
+                      color: theme.palette.text.primary,
+                      '&:hover': {
+                        backgroundColor: isDarkTheme
+                          ? theme.palette.grey[900]
+                          : theme.palette.background.paper,
+                      },
                     }}
                   >
                     <Typography variant='h5'>💰</Typography>
@@ -773,6 +800,15 @@ const LandingPage: React.FC<{
                       borderWidth: 2,
                       backfaceVisibility: 'hidden',
                       pointerEvents: 'none',
+                      backgroundColor: isDarkTheme
+                        ? theme.palette.grey[900]
+                        : theme.palette.background.paper,
+                      color: theme.palette.text.primary,
+                      '&:hover': {
+                        backgroundColor: isDarkTheme
+                          ? theme.palette.grey[900]
+                          : theme.palette.background.paper,
+                      },
                     }}
                   >
                     <Typography variant='h5'>✨</Typography>
@@ -887,6 +923,15 @@ const LandingPage: React.FC<{
                         borderWidth: 2,
                         backfaceVisibility: 'hidden',
                         pointerEvents: 'none',
+                        backgroundColor: isDarkTheme
+                          ? theme.palette.grey[900]
+                          : theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        '&:hover': {
+                          backgroundColor: isDarkTheme
+                            ? theme.palette.grey[900]
+                            : theme.palette.background.paper,
+                        },
                       }}
                     >
                       <Typography variant='h5'>🔮</Typography>
