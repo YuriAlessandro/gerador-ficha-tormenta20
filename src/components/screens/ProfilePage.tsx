@@ -89,7 +89,7 @@ const ProfilePage: React.FC = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
-  >(currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
+  >(() => currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
   const [supplementsSuccess, setSupplementsSuccess] = useState(false);
