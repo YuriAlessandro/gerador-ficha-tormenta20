@@ -204,16 +204,24 @@ const LandingPage: React.FC<{
                       height: { xs: '135px', md: '162px' },
                       display: 'flex',
                       alignItems: 'center',
-                      background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-                      border: `2px solid ${theme.palette.secondary.main}`,
+                      background: isDarkTheme
+                        ? `linear-gradient(135deg, ${theme.palette.grey[800]} 0%, ${theme.palette.grey[900]} 100%)`
+                        : `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+                      border: isDarkTheme
+                        ? `2px solid ${theme.palette.grey[700]}`
+                        : `2px solid ${theme.palette.secondary.main}`,
                       borderRadius: 3,
                       position: 'relative',
                       overflow: 'hidden',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       '&:hover': {
                         transform: 'translateY(-4px) translateX(4px)',
-                        boxShadow: `0 12px 28px ${theme.palette.secondary.main}25`,
-                        borderColor: `${theme.palette.secondary.main}40`,
+                        boxShadow: isDarkTheme
+                          ? `0 12px 28px ${theme.palette.grey[900]}80`
+                          : `0 12px 28px ${theme.palette.secondary.main}25`,
+                        borderColor: isDarkTheme
+                          ? theme.palette.grey[600]
+                          : `${theme.palette.secondary.main}40`,
                         '& .map-icon': {
                           transform: 'scale(1.1)',
                         },
@@ -254,7 +262,9 @@ const LandingPage: React.FC<{
                           minWidth: 60,
                           height: 60,
                           borderRadius: 3,
-                          backgroundColor: `${theme.palette.secondary.main}20`,
+                          backgroundColor: isDarkTheme
+                            ? `${theme.palette.grey[700]}80`
+                            : `${theme.palette.secondary.main}20`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
