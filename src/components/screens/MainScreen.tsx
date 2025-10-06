@@ -830,18 +830,42 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       minHeight: isMobile ? '44px' : '38px',
       fontSize: isMobile ? '16px' : '14px',
     }),
-    option: (provided) => ({
+    option: (provided, state) => ({
       ...provided,
       fontSize: isMobile ? '16px' : '14px',
       padding: isMobile ? '12px' : '8px 12px',
+      color: isDarkMode ? '#FAFAFA' : '#333333',
+      backgroundColor: state.isSelected
+        ? isDarkMode
+          ? '#d13235'
+          : '#deebff'
+        : state.isFocused
+        ? isDarkMode
+          ? '#363636'
+          : '#f2f2f2'
+        : isDarkMode
+        ? '#3D3D3D'
+        : '#ffffff',
+      ':active': {
+        backgroundColor: isDarkMode ? '#d13235' : '#b2d4ff',
+      },
     }),
     menu: (provided) => ({
       ...provided,
       zIndex: 9999,
+      backgroundColor: isDarkMode ? '#3D3D3D' : '#ffffff',
     }),
     menuPortal: (provided) => ({
       ...provided,
       zIndex: 9999,
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: isDarkMode ? '#FAFAFA' : '#333333',
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: isDarkMode ? '#FAFAFA' : '#333333',
     }),
   };
 
