@@ -1,6 +1,6 @@
 import { SupplementEquipment } from '../../core';
-import AMEACAS_ARTON_WEAPONS from './weapons';
-import AMEACAS_ARTON_ARMORS from './armors';
+import { AMEACAS_ARTON_WEAPONS } from './weapons';
+import { AMEACAS_ARTON_ARMORS } from './armors';
 
 /**
  * Exporta todos os equipamentos (armas e armaduras) do suplemento Ameaças de Arton
