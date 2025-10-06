@@ -4,6 +4,7 @@ import {
   getRaceDisplacement,
   getRaceSize,
   getDefaultSize,
+  getDefaultDisplacement,
 } from '../../races/functions/functions';
 import { Atributo } from '../../atributos';
 import HUMANO from '../../races/humano';
@@ -47,7 +48,7 @@ const SOTERRADO: Race = {
       return getRaceDisplacement(race.oldRace);
     }
 
-    return getRaceDisplacement(race);
+    return getDefaultDisplacement(race);
   },
   getSize(race) {
     if (race.oldRace) {

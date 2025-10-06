@@ -4,6 +4,7 @@ import {
   getRaceDisplacement,
   getRaceSize,
   getDefaultSize,
+  getDefaultDisplacement,
 } from '../../races/functions/functions';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import HUMANO from '../../races/humano';
@@ -82,7 +83,7 @@ const YIDISHAN: Race = {
       return getRaceDisplacement(race.oldRace);
     }
 
-    return getRaceDisplacement(race);
+    return getDefaultDisplacement(race);
   },
   getSize(race) {
     if (race.oldRace) {

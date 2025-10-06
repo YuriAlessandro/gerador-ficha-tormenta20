@@ -12,11 +12,9 @@ export function getDefaultSize(race: Race): RaceSize {
   return DEFAULT_RACE_SIZE;
 }
 
-export function getDefaultDisplacement(race: Race): number {
-  if (race.getDisplacement) {
-    return race.getDisplacement(race);
-  }
-
+export function getDefaultDisplacement(_race: Race): number {
+  // Races don't have a displacement property, only getDisplacement method
+  // This function always returns the default value
   return DEFAULT_RACE_DISPLACEMENT;
 }
 

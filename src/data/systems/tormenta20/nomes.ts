@@ -3106,9 +3106,15 @@ export const nameGenerators: Record<
     const allRaces = [...Object.keys(nomes), 'Lefou'];
     const validRaces = allRaces.filter((element) => element !== 'Golem');
     const randomRaceName = getRandomItemFromArray(validRaces);
-    const randomRace = RACAS.find(
-      (element) => element.name === randomRaceName
-    ) as Race;
+    const randomRace = RACAS.find((element) => element.name === randomRaceName);
+
+    if (!randomRace) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Race "${randomRaceName}" not found in RACAS array for Osteon name generation`
+      );
+      return getRandomItemFromArray(nomes.Humano[sex]);
+    }
 
     if (nameGenerators[randomRaceName]) {
       return nameGenerators[randomRaceName](randomRace, sex);
@@ -3130,9 +3136,15 @@ export const nameGenerators: Record<
       (element) => element !== 'Golem' && element !== 'Osteon'
     );
     const randomRaceName = getRandomItemFromArray(validRaces);
-    const randomRace = RACAS.find(
-      (element) => element.name === randomRaceName
-    ) as Race;
+    const randomRace = RACAS.find((element) => element.name === randomRaceName);
+
+    if (!randomRace) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Race "${randomRaceName}" not found in RACAS array for Soterrado name generation`
+      );
+      return getRandomItemFromArray(nomes.Humano[sex]);
+    }
 
     if (nameGenerators[randomRaceName]) {
       return nameGenerators[randomRaceName](randomRace, sex);
@@ -3160,9 +3172,15 @@ export const nameGenerators: Record<
         element !== 'Yidishan'
     );
     const randomRaceName = getRandomItemFromArray(validRaces);
-    const randomRace = RACAS.find(
-      (element) => element.name === randomRaceName
-    ) as Race;
+    const randomRace = RACAS.find((element) => element.name === randomRaceName);
+
+    if (!randomRace) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Race "${randomRaceName}" not found in RACAS array for Yidishan name generation`
+      );
+      return getRandomItemFromArray(nomes.Humano[sex]);
+    }
 
     if (nameGenerators[randomRaceName]) {
       return nameGenerators[randomRaceName](randomRace, sex);

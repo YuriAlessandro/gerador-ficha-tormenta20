@@ -4,6 +4,7 @@ import {
   getRaceDisplacement,
   getRaceSize,
   getDefaultSize,
+  getDefaultDisplacement,
 } from './functions/functions';
 import { Atributo } from '../atributos';
 import HUMANO from './humano';
@@ -88,7 +89,7 @@ const OSTEON: Race = {
       return getRaceDisplacement(race.oldRace);
     }
 
-    return getRaceDisplacement(race);
+    return getDefaultDisplacement(race);
   },
   getSize(race) {
     if (race.oldRace) {
