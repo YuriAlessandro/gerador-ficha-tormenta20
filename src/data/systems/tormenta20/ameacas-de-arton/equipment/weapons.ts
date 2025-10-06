@@ -1,0 +1,178 @@
+import Equipment from '../../../../../interfaces/Equipment';
+
+/**
+ * Novas armas do suplemento Ameaças de Arton - Tormenta 20
+ * Apenas disponíveis quando o suplemento está ativo
+ */
+
+export const AMEACAS_ARTON_WEAPONS: Record<string, Equipment> = {
+  // ===== ARMAS SIMPLES =====
+  PORRETE: {
+    nome: 'Porrete',
+    dano: '1d6',
+    critico: 'x2',
+    spaces: 1,
+    tipo: 'Impacto',
+    alcance: '-',
+    group: 'Arma',
+    preco: 2,
+  },
+  ZARABATANA: {
+    nome: 'Zarabatana',
+    dano: '1d3',
+    critico: 'x2',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: 'Curto',
+    group: 'Arma',
+    preco: 5,
+  },
+
+  // ===== ARMAS MARCIAIS =====
+  NEKO_TE: {
+    nome: 'Neko-te',
+    dano: '1d4',
+    critico: '19',
+    spaces: 1,
+    tipo: 'Corte',
+    alcance: '-',
+    group: 'Arma',
+    preco: 10,
+  },
+  GLADIO: {
+    nome: 'Gládio',
+    dano: '1d6',
+    critico: '19/x3',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: '-',
+    group: 'Arma',
+    preco: 12,
+  },
+  TETSUBO: {
+    nome: 'Tetsubo',
+    dano: '1d10',
+    critico: 'x2',
+    spaces: 2,
+    tipo: 'Impacto',
+    alcance: '-',
+    group: 'Arma',
+    preco: 20,
+  },
+
+  // ===== ARMAS DE FOGO =====
+  TRAQUE: {
+    nome: 'Traque',
+    dano: '2d6',
+    critico: '19/x3',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: 'Curto',
+    group: 'Arma',
+    preco: 75,
+  },
+  ARCABUZ: {
+    nome: 'Arcabuz',
+    dano: '2d10',
+    critico: '19/x3',
+    spaces: 2,
+    tipo: 'Perfuração',
+    alcance: 'Médio',
+    group: 'Arma',
+    preco: 800,
+  },
+  BACAMARTE: {
+    nome: 'Bacamarte',
+    dano: '4d6',
+    critico: '19/x3',
+    spaces: 2,
+    tipo: 'Perfuração',
+    alcance: 'Especial',
+    group: 'Arma',
+    preco: 450,
+  },
+
+  // ===== ARMAS EXÓTICAS =====
+  ACOITE_FINNTROLL: {
+    nome: 'Açoite finntroll',
+    dano: '1d8',
+    critico: 'x2',
+    spaces: 1,
+    tipo: 'Corte',
+    alcance: '-',
+    group: 'Arma',
+    preco: 30,
+  },
+  ESPADA_VESPA: {
+    nome: 'Espada vespa',
+    dano: '2d4',
+    critico: '18',
+    spaces: 1,
+    tipo: 'Corte ou Perfuração',
+    alcance: '-',
+    group: 'Arma',
+    preco: 75,
+  },
+  PISTOLA_PUNHAL: {
+    nome: 'Pistola-punhal',
+    dano: '**',
+    critico: '**',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: '**',
+    group: 'Arma',
+    preco: 300,
+  },
+  MORDIDA_DO_DIABO: {
+    nome: 'Mordida do diabo',
+    dano: '1d4',
+    critico: 'x2',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: '-',
+    group: 'Arma',
+    preco: 30,
+  },
+  PRESA_DE_SERPENTE: {
+    nome: 'Presa de serpente',
+    dano: '1d8',
+    critico: '17',
+    spaces: 1,
+    tipo: 'Corte',
+    alcance: '-',
+    group: 'Arma',
+    preco: 1000,
+  },
+  LANCA_DE_FOGO: {
+    nome: 'Lança de fogo',
+    dano: '**',
+    critico: '**',
+    spaces: 2,
+    tipo: 'Perfuração',
+    alcance: '**',
+    group: 'Arma',
+    preco: 1000,
+  },
+  SHURIKEN: {
+    nome: 'Shuriken',
+    dano: '1d4',
+    critico: 'x2',
+    spaces: 0.5,
+    tipo: 'Perfuração',
+    alcance: 'Curto',
+    group: 'Arma',
+    preco: 1,
+  },
+  ARPAO: {
+    nome: 'Arpão',
+    dano: '1d10',
+    critico: 'x3',
+    spaces: 1,
+    tipo: 'Perfuração',
+    alcance: 'Curto',
+    group: 'Arma',
+    preco: 30,
+  },
+};
+
+export default AMEACAS_ARTON_WEAPONS;

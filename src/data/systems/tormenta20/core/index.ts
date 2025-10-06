@@ -8,12 +8,19 @@ import CORE_POWERS from './powers';
 import Race from '../../../../interfaces/Race';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { GeneralPowers } from '../../../../interfaces/Poderes';
+import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
+
+export interface SupplementEquipment {
+  weapons?: Record<string, Equipment>;
+  armors?: Record<string, DefenseEquipment>;
+}
 
 export interface SupplementData {
   id: SupplementId;
   races: Race[];
   classes: ClassDescription[];
   powers: GeneralPowers;
+  equipment?: SupplementEquipment;
   // origins: Origin[]; // TODO: adicionar depois
   // spells: Spell[]; // TODO: adicionar depois
 }
