@@ -66,7 +66,7 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Ameaças de Arton',
     abbreviation: 'AdA',
-    description: '28 novas raças; 67 novos equipamentos; 7 novas magias',
+    description: '29 novas raças; 67 novos equipamentos; 7 novas magias',
     releaseDate: '2020',
     requiresPremium: false,
   },

@@ -99,6 +99,7 @@ export type RaceNames =
   | 'Moreau'
   | 'Golem Desperto'
   | 'Nagah'
+  | 'Nezumi'
   | 'Ogro'
   | 'Orc'
   | 'Pteros'
