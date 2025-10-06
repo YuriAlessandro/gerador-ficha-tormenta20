@@ -385,8 +385,7 @@ const UnifiedSpellsTable: React.FC = () => {
       ...getSupplementSpells(),
     ];
     return mergeSpells(combinedSpells);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSupplements]);
+  }, [selectedSupplements, getSupplementSpells]);
 
   const [filters, setFilters] = useState<SpellFilters>({
     search: '',
