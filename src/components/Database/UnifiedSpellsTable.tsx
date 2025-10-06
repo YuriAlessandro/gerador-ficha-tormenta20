@@ -317,8 +317,8 @@ const UnifiedSpellsTable: React.FC = () => {
     SupplementId[]
   >(user?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
 
-  // Function to get supplement spells
-  const getSupplementSpells = (): ExtendedSpell[] => {
+  // Get supplement spells memoized
+  const supplementSpells = useMemo((): ExtendedSpell[] => {
     const spells: ExtendedSpell[] = [];
 
     selectedSupplements.forEach((supplementId) => {
@@ -359,7 +359,7 @@ const UnifiedSpellsTable: React.FC = () => {
     });
 
     return spells;
-  };
+  }, [selectedSupplements]);
 
   // Combine and merge all spells with type indicators
   const allSpells: MergedSpell[] = useMemo(() => {
@@ -382,10 +382,10 @@ const UnifiedSpellsTable: React.FC = () => {
     const combinedSpells = [
       ...arcaneSpells,
       ...divineSpells,
-      ...getSupplementSpells(),
+      ...supplementSpells,
     ];
     return mergeSpells(combinedSpells);
-  }, [selectedSupplements, getSupplementSpells]);
+  }, [supplementSpells]);
 
   const [filters, setFilters] = useState<SpellFilters>({
     search: '',
@@ -485,7 +485,7 @@ const UnifiedSpellsTable: React.FC = () => {
         return prev;
       });
     }
-  }, [params]);
+  }, [params, allSpells]);
 
   const handleFilterChange = (newFilters: Partial<SpellFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
