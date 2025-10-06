@@ -3,6 +3,7 @@ import { Atributo } from '../../atributos';
 import {
   getRaceDisplacement,
   getRaceSize,
+  getDefaultSize,
 } from '../../races/functions/functions';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import HUMANO from '../../races/humano';
@@ -88,7 +89,7 @@ const YIDISHAN: Race = {
       return getRaceSize(race.oldRace);
     }
 
-    return getRaceSize(race);
+    return getDefaultSize(race);
   },
   abilities: yidishanAbilities,
 };

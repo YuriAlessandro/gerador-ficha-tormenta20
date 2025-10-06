@@ -1,6 +1,10 @@
 import Race from '../../../../interfaces/Race';
 import { getRandomItemFromArray } from '../../../../functions/randomUtils';
-import { getRaceDisplacement, getRaceSize } from './functions/functions';
+import {
+  getRaceDisplacement,
+  getRaceSize,
+  getDefaultSize,
+} from './functions/functions';
 import { Atributo } from '../atributos';
 import HUMANO from './humano';
 
@@ -91,7 +95,7 @@ const OSTEON: Race = {
       return getRaceSize(race.oldRace);
     }
 
-    return getRaceSize(race);
+    return getDefaultSize(race);
   },
   abilities: [
     {

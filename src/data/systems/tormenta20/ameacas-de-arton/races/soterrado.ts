@@ -3,6 +3,7 @@ import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import {
   getRaceDisplacement,
   getRaceSize,
+  getDefaultSize,
 } from '../../races/functions/functions';
 import { Atributo } from '../../atributos';
 import HUMANO from '../../races/humano';
@@ -53,7 +54,7 @@ const SOTERRADO: Race = {
       return getRaceSize(race.oldRace);
     }
 
-    return getRaceSize(race);
+    return getDefaultSize(race);
   },
   abilities: [
     {
