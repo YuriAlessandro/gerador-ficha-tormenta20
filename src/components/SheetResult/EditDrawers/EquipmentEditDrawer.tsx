@@ -93,38 +93,86 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [showAddAlchemy, setShowAddAlchemy] = useState(false);
   const [showAddFood, setShowAddFood] = useState(false);
 
-  // Get all weapons from active supplements
-  const getAllWeapons = useMemo(() => {
-    const allWeapons: Record<string, EquipmentWithSupplement> = {};
+  // Categorize supplement weapons by type
+  const getCategorizedWeapons = useMemo(() => {
+    const categorized = {
+      simple: [] as EquipmentWithSupplement[],
+      martial: [] as EquipmentWithSupplement[],
+      exotic: [] as EquipmentWithSupplement[],
+      firearms: [] as EquipmentWithSupplement[],
+    };
 
     userSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.weapons) {
         Object.entries(supplement.equipment.weapons).forEach(
           ([key, weapon]) => {
-            allWeapons[key] = { ...weapon, supplementId };
+            const weaponWithSupplement = { ...weapon, supplementId };
+
+            // Categorize based on weapon key and properties
+            // Simple weapons
+            if (key === 'PORRETE' || key === 'ZARABATANA') {
+              categorized.simple.push(weaponWithSupplement);
+            }
+            // Firearms (must check before martial to avoid misclassification)
+            else if (
+              key === 'TRAQUE' ||
+              key === 'ARCABUZ' ||
+              key === 'BACAMARTE'
+            ) {
+              categorized.firearms.push(weaponWithSupplement);
+            }
+            // Martial weapons
+            else if (
+              key === 'NEKO_TE' ||
+              key === 'GLADIO' ||
+              key === 'TETSUBO'
+            ) {
+              categorized.martial.push(weaponWithSupplement);
+            }
+            // Everything else is exotic
+            else {
+              categorized.exotic.push(weaponWithSupplement);
+            }
           }
         );
       }
     });
 
-    return allWeapons;
+    return categorized;
   }, [userSupplements]);
 
-  // Get all armors from active supplements
-  const getAllArmors = useMemo(() => {
-    const allArmors: Record<string, DefenseEquipmentWithSupplement> = {};
+  // Categorize supplement armors and shields
+  const getCategorizedArmors = useMemo(() => {
+    const categorized = {
+      light: [] as DefenseEquipmentWithSupplement[],
+      heavy: [] as DefenseEquipmentWithSupplement[],
+      shields: [] as DefenseEquipmentWithSupplement[],
+    };
 
     userSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.armors) {
         Object.entries(supplement.equipment.armors).forEach(([key, armor]) => {
-          allArmors[key] = { ...armor, supplementId };
+          const armorWithSupplement = { ...armor, supplementId };
+
+          if (armor.group === 'Escudo') {
+            categorized.shields.push(armorWithSupplement);
+          } else if (armor.group === 'Armadura') {
+            // Light armor: defense bonus <= 4
+            if (armor.defenseBonus <= 4) {
+              categorized.light.push(armorWithSupplement);
+            }
+            // Heavy armor: defense bonus > 4
+            else {
+              categorized.heavy.push(armorWithSupplement);
+            }
+          }
         });
       }
     });
 
-    return allArmors;
+    return categorized;
   }, [userSupplements]);
 
   // Refs for accordion auto-scroll
@@ -1173,6 +1221,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${weapon.nome} (Dano: ${weapon.dano})`}
                       />
                     ))}
+                    {/* Supplement simple weapons */}
+                    {getCategorizedWeapons.simple.map((weapon) => (
+                      <Box
+                        key={weapon.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {weapon.supplementId &&
+                          weapon.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[weapon.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Martial Weapons */}
@@ -1196,6 +1280,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         }
                         label={`${weapon.nome} (Dano: ${weapon.dano})`}
                       />
+                    ))}
+                    {/* Supplement martial weapons */}
+                    {getCategorizedWeapons.martial.map((weapon) => (
+                      <Box
+                        key={weapon.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {weapon.supplementId &&
+                          weapon.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[weapon.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
                     ))}
                   </Stack>
 
@@ -1221,6 +1341,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${weapon.nome} (Dano: ${weapon.dano})`}
                       />
                     ))}
+                    {/* Supplement exotic weapons */}
+                    {getCategorizedWeapons.exotic.map((weapon) => (
+                      <Box
+                        key={weapon.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
+                            />
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {weapon.supplementId &&
+                          weapon.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[weapon.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Firearms */}
@@ -1245,57 +1401,43 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${weapon.nome} (Dano: ${weapon.dano})`}
                       />
                     ))}
-                  </Stack>
-
-                  {/* Supplement Weapons */}
-                  {Object.values(getAllWeapons).length > 0 && (
-                    <>
-                      <Typography
-                        variant='subtitle2'
-                        fontWeight='bold'
-                        sx={{ mb: 1 }}
+                    {/* Supplement firearms */}
+                    {getCategorizedWeapons.firearms.map((weapon) => (
+                      <Box
+                        key={weapon.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
                       >
-                        Armas de Suplementos
-                      </Typography>
-                      <Stack spacing={1} sx={{ mb: 2 }}>
-                        {Object.values(getAllWeapons).map((weapon) => (
-                          <Box
-                            key={weapon.nome}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                            }}
-                          >
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={isWeaponSelected(weapon)}
-                                  onChange={() => handleWeaponToggle(weapon)}
-                                  size='small'
-                                />
-                              }
-                              label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                              sx={{ flex: 1 }}
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isWeaponSelected(weapon)}
+                              onChange={() => handleWeaponToggle(weapon)}
+                              size='small'
                             />
-                            {weapon.supplementId &&
-                              weapon.supplementId !==
-                                SupplementId.TORMENTA20_CORE && (
-                                <Chip
-                                  label={
-                                    SUPPLEMENT_METADATA[weapon.supplementId]
-                                      ?.abbreviation || ''
-                                  }
-                                  size='small'
-                                  color='primary'
-                                  variant='outlined'
-                                />
-                              )}
-                          </Box>
-                        ))}
-                      </Stack>
-                    </>
-                  )}
+                          }
+                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {weapon.supplementId &&
+                          weapon.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[weapon.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
+                  </Stack>
 
                   <Button
                     variant='outlined'
@@ -1339,6 +1481,42 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
                       />
                     ))}
+                    {/* Supplement light armors */}
+                    {getCategorizedArmors.light.map((armor) => (
+                      <Box
+                        key={armor.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isArmorSelected(armor)}
+                              onChange={() => handleArmorToggle(armor)}
+                              size='small'
+                            />
+                          }
+                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {armor.supplementId &&
+                          armor.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[armor.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Heavy Armor */}
@@ -1363,61 +1541,43 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
                       />
                     ))}
-                  </Stack>
-
-                  {/* Supplement Armors */}
-                  {Object.values(getAllArmors).filter(
-                    (armor) => armor.group === 'Armadura'
-                  ).length > 0 && (
-                    <>
-                      <Typography
-                        variant='subtitle2'
-                        fontWeight='bold'
-                        sx={{ mb: 1 }}
+                    {/* Supplement heavy armors */}
+                    {getCategorizedArmors.heavy.map((armor) => (
+                      <Box
+                        key={armor.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
                       >
-                        Armaduras de Suplementos
-                      </Typography>
-                      <Stack spacing={1} sx={{ mb: 2 }}>
-                        {Object.values(getAllArmors)
-                          .filter((armor) => armor.group === 'Armadura')
-                          .map((armor) => (
-                            <Box
-                              key={armor.nome}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                              }}
-                            >
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={isArmorSelected(armor)}
-                                    onChange={() => handleArmorToggle(armor)}
-                                    size='small'
-                                  />
-                                }
-                                label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
-                                sx={{ flex: 1 }}
-                              />
-                              {armor.supplementId &&
-                                armor.supplementId !==
-                                  SupplementId.TORMENTA20_CORE && (
-                                  <Chip
-                                    label={
-                                      SUPPLEMENT_METADATA[armor.supplementId]
-                                        ?.abbreviation || ''
-                                    }
-                                    size='small'
-                                    color='primary'
-                                    variant='outlined'
-                                  />
-                                )}
-                            </Box>
-                          ))}
-                      </Stack>
-                    </>
-                  )}
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isArmorSelected(armor)}
+                              onChange={() => handleArmorToggle(armor)}
+                              size='small'
+                            />
+                          }
+                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {armor.supplementId &&
+                          armor.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[armor.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
+                  </Stack>
 
                   <Button
                     variant='outlined'
@@ -1453,61 +1613,43 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
                       />
                     ))}
-                  </Stack>
-
-                  {/* Supplement Shields */}
-                  {Object.values(getAllArmors).filter(
-                    (armor) => armor.group === 'Escudo'
-                  ).length > 0 && (
-                    <>
-                      <Typography
-                        variant='subtitle2'
-                        fontWeight='bold'
-                        sx={{ mb: 1 }}
+                    {/* Supplement shields */}
+                    {getCategorizedArmors.shields.map((shield) => (
+                      <Box
+                        key={shield.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
                       >
-                        Escudos de Suplementos
-                      </Typography>
-                      <Stack spacing={1} sx={{ mb: 2 }}>
-                        {Object.values(getAllArmors)
-                          .filter((armor) => armor.group === 'Escudo')
-                          .map((shield) => (
-                            <Box
-                              key={shield.nome}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                              }}
-                            >
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={isShieldSelected(shield)}
-                                    onChange={() => handleShieldToggle(shield)}
-                                    size='small'
-                                  />
-                                }
-                                label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
-                                sx={{ flex: 1 }}
-                              />
-                              {shield.supplementId &&
-                                shield.supplementId !==
-                                  SupplementId.TORMENTA20_CORE && (
-                                  <Chip
-                                    label={
-                                      SUPPLEMENT_METADATA[shield.supplementId]
-                                        ?.abbreviation || ''
-                                    }
-                                    size='small'
-                                    color='primary'
-                                    variant='outlined'
-                                  />
-                                )}
-                            </Box>
-                          ))}
-                      </Stack>
-                    </>
-                  )}
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={isShieldSelected(shield)}
+                              onChange={() => handleShieldToggle(shield)}
+                              size='small'
+                            />
+                          }
+                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          sx={{ flex: 1 }}
+                        />
+                        {shield.supplementId &&
+                          shield.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[shield.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
+                  </Stack>
 
                   <Button
                     variant='outlined'
