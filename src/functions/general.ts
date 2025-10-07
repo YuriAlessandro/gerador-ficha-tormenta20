@@ -48,11 +48,7 @@ import {
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
-import {
-  getOriginBenefits,
-  ORIGINS,
-  origins,
-} from '../data/systems/tormenta20/origins';
+import { getOriginBenefits, ORIGINS } from '../data/systems/tormenta20/origins';
 import Equipment, {
   BagEquipments,
   DefenseEquipment,
