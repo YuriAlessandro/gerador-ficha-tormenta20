@@ -2,25 +2,21 @@
  * DEPRECATED: Este arquivo mantém compatibilidade com código existente
  * Para novo código, use dataRegistry.getPowersBySupplements()
  */
-import { SupplementId } from '../types/supplement.types';
-import { dataRegistry } from './registry';
+import CORE_POWERS from './systems/tormenta20/core/powers';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
 
 /**
- * @deprecated Use dataRegistry.getPowersBySupplements([SupplementId.TORMENTA20_CORE])
+ * @deprecated Use CORE_POWERS diretamente
  */
-const generalPowers: GeneralPowers = dataRegistry.getPowersBySupplements([
-  SupplementId.TORMENTA20_CORE,
-]);
+const generalPowers: GeneralPowers = CORE_POWERS;
 
 export default generalPowers;
 
 /**
- * @deprecated Use dataRegistry com filtro de poderes Tormenta sem requisitos
+ * @deprecated Use CORE_POWERS.TORMENTA.filter() diretamente
  */
 export function getUnrestricedTormentaPowers(): GeneralPower[] {
-  const powers = dataRegistry.getPowersBySupplements([
-    SupplementId.TORMENTA20_CORE,
-  ]);
-  return powers.TORMENTA.filter((power) => power.requirements.length === 0);
+  return CORE_POWERS.TORMENTA.filter(
+    (power) => power.requirements.length === 0
+  );
 }

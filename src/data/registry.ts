@@ -11,6 +11,7 @@ import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
 import Race from '../interfaces/Race';
 import { ClassDescription } from '../interfaces/Class';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
+import Origin from '../interfaces/Origin';
 
 /**
  * Tipos para dados com informação de origem do suplemento
@@ -21,6 +22,11 @@ export interface RaceWithSupplement extends Race {
 }
 
 export interface ClassWithSupplement extends ClassDescription {
+  supplementId: SupplementId;
+  supplementName: string;
+}
+
+export interface OriginWithSupplement extends Origin {
   supplementId: SupplementId;
   supplementName: string;
 }
@@ -247,6 +253,36 @@ class DataRegistry {
   ): GeneralPower[] {
     const powers = this.getPowersBySupplements(supplementIds, systemId);
     return Object.values(powers).flat();
+  }
+
+  /**
+   * Retorna origens de todos os suplementos ativos
+   */
+  getOriginsBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): OriginWithSupplement[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return [];
+
+    const origins: OriginWithSupplement[] = [];
+
+    supplements.forEach((supplementId) => {
+      const supplementOrigins =
+        systemData.supplements[supplementId]?.origins || [];
+      const supplementMeta = SUPPLEMENT_METADATA[supplementId];
+
+      supplementOrigins.forEach((origin) => {
+        origins.push({
+          ...origin,
+          supplementId,
+          supplementName: supplementMeta?.name || '',
+        });
+      });
+    });
+
+    return origins;
   }
 
   /**

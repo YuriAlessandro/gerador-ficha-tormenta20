@@ -17,7 +17,7 @@ import {
   GeneralPowerType,
   PowerGetter,
 } from '../../../interfaces/Poderes';
-import generalPowers, { getUnrestricedTormentaPowers } from '../../poderes';
+import CORE_POWERS from './core/powers';
 import Skill from '../../../interfaces/Skills';
 import EQUIPAMENTOS, { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
@@ -76,7 +76,7 @@ function makeOriginGeneralPowerGetter(
   return (sheet: CharacterSheet, subSteps: SubStep[]) => {
     const originGeneralPowersbyOrigin =
       origin.name === 'Amnésico'
-        ? Object.values(generalPowers).flat()
+        ? Object.values(CORE_POWERS).flat()
         : originGeneralPowers;
     const allowedByRequirement = originGeneralPowersbyOrigin.filter((power) => {
       if (type && power.type !== type) {
@@ -234,7 +234,9 @@ function sortLabAssistentBenefits(
   skills: Skill[],
   origin: Origin
 ): OriginBenefits {
-  const allowedTormentaPowers = getUnrestricedTormentaPowers();
+  const allowedTormentaPowers = CORE_POWERS.TORMENTA.filter(
+    (power) => power.requirements.length === 0
+  );
   const choosenTormentaPowers = allowedTormentaPowers.length
     ? [getRandomItemFromArray(allowedTormentaPowers)]
     : [];
@@ -265,7 +267,7 @@ function getBenefitsWithRandomCombatPower(
   );
 
   const actualOriginPowers = origin ? origin.poderes : [];
-  const choosenCombatPower = getRandomItemFromArray(generalPowers.COMBATE);
+  const choosenCombatPower = getRandomItemFromArray(CORE_POWERS.COMBATE);
 
   const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
     [...notRepeatedSkills, ...actualOriginPowers, choosenCombatPower],

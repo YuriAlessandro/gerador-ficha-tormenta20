@@ -3,27 +3,28 @@
  * Para novo código, use dataRegistry.getRacesBySupplements()
  */
 import _ from 'lodash';
-import { SupplementId } from '../types/supplement.types';
-import { dataRegistry } from './registry';
+import CORE_RACES from './systems/tormenta20/core/races';
 import Race from '../interfaces/Race';
 
 /**
- * @deprecated Use dataRegistry.getRacesBySupplements([SupplementId.TORMENTA20_CORE])
+ * @deprecated Use CORE_RACES diretamente ou dataRegistry.getRacesBySupplements()
  */
-const RACAS = dataRegistry.getRacesBySupplements([
-  SupplementId.TORMENTA20_CORE,
-]);
+const RACAS = CORE_RACES;
 
 export default RACAS;
 
 /**
- * @deprecated Use dataRegistry.getRaceByName(name, supplementIds)
+ * @deprecated Use dataRegistry.getRaceByName() ou busque diretamente em CORE_RACES
  */
 export function getRaceByName(name: string): Race {
-  const race = dataRegistry.getRaceByName(name, [SupplementId.TORMENTA20_CORE]);
+  const race = CORE_RACES.find((r) => r.name === name);
 
   if (race) {
-    return race;
+    const clonedRace = _.cloneDeep(race);
+    if (clonedRace?.setup) {
+      return clonedRace.setup(clonedRace, CORE_RACES);
+    }
+    return clonedRace;
   }
 
   // Fallback para primeira raça

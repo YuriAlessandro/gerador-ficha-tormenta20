@@ -5,6 +5,7 @@ import { SupplementId } from '../../../../types/supplement.types';
 import CORE_RACES from './races';
 import CORE_CLASSES from './classes';
 import CORE_POWERS from './powers';
+import CORE_ORIGINS from '../origins';
 import Race from '../../../../interfaces/Race';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { GeneralPowers } from '../../../../interfaces/Poderes';
@@ -42,6 +43,7 @@ export const TORMENTA20_CORE_SUPPLEMENT: SupplementData = {
   races: CORE_RACES,
   classes: CORE_CLASSES,
   powers: CORE_POWERS,
+  origins: Object.values(CORE_ORIGINS),
 };
 
 // Legacy export for backwards compatibility

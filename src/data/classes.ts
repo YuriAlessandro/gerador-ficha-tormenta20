@@ -2,14 +2,11 @@
  * DEPRECATED: Este arquivo mantém compatibilidade com código existente
  * Para novo código, use dataRegistry.getClassesBySupplements()
  */
-import { SupplementId } from '../types/supplement.types';
-import { dataRegistry } from './registry';
+import CORE_CLASSES from './systems/tormenta20/core/classes';
 
 /**
- * @deprecated Use dataRegistry.getClassesBySupplements([SupplementId.TORMENTA20_CORE])
+ * @deprecated Use CORE_CLASSES diretamente ou dataRegistry.getClassesBySupplements()
  */
-const CLASSES = dataRegistry.getClassesBySupplements([
-  SupplementId.TORMENTA20_CORE,
-]);
+const CLASSES = CORE_CLASSES;
 
 export default CLASSES;

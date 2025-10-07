@@ -49,6 +49,7 @@ import {
   dataRegistry,
   RaceWithSupplement,
   ClassWithSupplement,
+  OriginWithSupplement,
 } from '../../data/registry';
 import SelectOptions from '../../interfaces/SelectedOptions';
 import Race from '../../interfaces/Race';
@@ -65,7 +66,6 @@ import generateRandomSheet, {
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
-import { ORIGINS } from '../../data/systems/tormenta20/origins';
 import roles from '../../data/systems/tormenta20/roles';
 import getSelectTheme from '../../functions/style';
 import { allDivindadeNames } from '../../interfaces/Divindade';
@@ -795,10 +795,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     { value: 'sem-gastar-dinheiro', label: 'Gerar sem gastar dinheiro' },
   ];
 
-  const origens = Object.keys(ORIGINS).map((origin) => ({
-    value: origin,
-    label: origin,
-  }));
+  // Combina origens do core com origens dos suplementos ativos
+  const allOrigins = React.useMemo(
+    () => dataRegistry.getOriginsBySupplements(userSupplements),
+    [userSupplements]
+  );
+
+  const origens: SelectedOption[] = allOrigins.map(
+    (origin: OriginWithSupplement) => ({
+      value: origin.name,
+      label: origin.name,
+      supplementId: origin.supplementId,
+      supplementName: origin.supplementName,
+    })
+  );
 
   const divindades = allDivindadeNames
     .filter((dv) => {
@@ -1239,6 +1249,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   isDisabled={selectedOptions.raca === 'Golem'}
                   styles={selectStyles}
                   menuPortalTarget={document.body}
+                  formatOptionLabel={formatOptionLabel}
                   theme={(selectTheme) => ({
                     ...selectTheme,
                     colors: {
