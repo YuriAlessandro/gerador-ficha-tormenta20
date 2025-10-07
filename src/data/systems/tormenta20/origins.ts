@@ -24,6 +24,18 @@ import combatPowers from './powers/combatPowers';
 import CharacterSheet, { SubStep } from '../../../interfaces/CharacterSheet';
 import { isPowerAvailable } from '../../../functions/powers';
 
+/**
+ * Raças que não possuem origem (construtos)
+ */
+export const RACES_WITHOUT_ORIGIN = ['Golem', 'Golem Desperto', 'Mashin'];
+
+/**
+ * Verifica se uma raça possui origem
+ */
+export function raceHasOrigin(raceName: string): boolean {
+  return !RACES_WITHOUT_ORIGIN.includes(raceName);
+}
+
 export type origins =
   | 'Acólito'
   | 'Amigo dos Animais'

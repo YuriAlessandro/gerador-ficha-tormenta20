@@ -48,7 +48,11 @@ import {
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
-import { getOriginBenefits, ORIGINS } from '../data/systems/tormenta20/origins';
+import {
+  getOriginBenefits,
+  ORIGINS,
+  raceHasOrigin,
+} from '../data/systems/tormenta20/origins';
 import Equipment, {
   BagEquipments,
   DefenseEquipment,
@@ -2416,7 +2420,7 @@ export default function generateRandomSheet(
   // Passo 2: Definir raça (pode sobrescrever o sexo para raças exclusivas)
   const { race, nome, sex: finalSex } = getRaceAndName(selectedOptions, sexo);
 
-  if (race.name !== 'Golem') {
+  if (raceHasOrigin(race.name)) {
     steps.push({
       label: 'Gênero',
       value: [{ value: `${finalSex === 'Homem' ? 'Masculino' : 'Feminino'}` }],
@@ -2455,7 +2459,7 @@ export default function generateRandomSheet(
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
 
-  if (race.name !== 'Golem') {
+  if (raceHasOrigin(race.name)) {
     if (selectedOptions.origin) {
       // Busca origem em todos os suplementos ativos
       const allOrigins = dataRegistry.getOriginsBySupplements(supplements);

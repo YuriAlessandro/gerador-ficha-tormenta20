@@ -67,6 +67,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
 import roles from '../../data/systems/tormenta20/roles';
+import { raceHasOrigin } from '../../data/systems/tormenta20/origins';
 import getSelectTheme from '../../functions/style';
 import { allDivindadeNames } from '../../interfaces/Divindade';
 import { HistoricI } from '../../interfaces/Historic';
@@ -323,9 +324,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
   const canGenerateEmptySheet =
     selectedOptions.classe &&
-    selectedOptions.classe !== 'Golem' &&
     selectedOptions.raca &&
-    selectedOptions.origin &&
+    (raceHasOrigin(selectedOptions.raca) ? selectedOptions.origin : true) &&
     selectedOptions.nivel &&
     (selectedOptions.devocao.label !== 'Padrão' ||
       selectedOptions.devocao.value === '**');
