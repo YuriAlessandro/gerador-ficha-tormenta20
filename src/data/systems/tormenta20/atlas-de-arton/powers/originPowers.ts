@@ -56,6 +56,36 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description: 'Você recebe +1 em um atributo à sua escolha.',
     type: ORIGIN_POWER_TYPE,
   },
+  ASSISTENTE_FORENSE: {
+    name: 'Assistente Forense',
+    description:
+      'Você é treinado em Investigação e pode usar esta perícia para necropsia, identificar itens alquímicos e rastrear. Além disso, pode identificar criaturas em uma cena de crime mesmo que não estejam presentes (penalidade de –1 por dia decorrido).',
+    type: ORIGIN_POWER_TYPE,
+  },
+  ARMEIRO_ARMADO: {
+    name: 'Armeiro Armado',
+    description:
+      'Você é treinado em Ofício (armeiro) e pode fabricar armas com uma melhoria. Se aprender a fabricar armas superiores por outra habilidade, gasta apenas 1/4 do preço das melhorias que aplica em armas.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  BANDOLEIRO_DA_FORTALEZA: {
+    name: 'Bandoleiro da Fortaleza',
+    description:
+      'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa, você recebe +2 em testes da mesma perícia até o final da cena.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  CATADOR_DA_CIDADE_VELHA: {
+    name: 'Catador da Cidade Velha',
+    description:
+      'Você é treinado em Fortitude e Percepção e pode gastar 1 PM para receber deslocamento de natação igual ao seu deslocamento básico (ou +3m se já tiver) por uma cena. Esse deslocamento dobra o limite de tempo em que você pode segurar sua respiração.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  BARAO_ARRUINADO: {
+    name: 'Barão Arruinado',
+    description:
+      'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa, você recebe +2 em testes da mesma perícia até o final da cena.',
+    type: ORIGIN_POWER_TYPE,
+  },
 };
 
 export default atlasOriginPowers;

@@ -8,6 +8,11 @@ import APRENDIZ_DE_DRAGOEIRO from './aprendiz-de-dragoeiro';
 import APRENDIZ_DE_DROGADORA from './aprendiz-de-drogadora';
 import ARISTOCRATA_DAIZENSHI from './aristocrata-daizenshi';
 import ASPIRANTE_A_HEROI from './aspirante-a-heroi';
+import ASSISTENTE_FORENSE from './assistente-forense';
+import ARMEIRO_ARMADO from './armeiro-armado';
+import BANDOLEIRO_DA_FORTALEZA from './bandoleiro-da-fortaleza';
+import BARAO_ARRUINADO from './barao-arruinado';
+import CATADOR_DA_CIDADE_VELHA from './catador-da-cidade-velha';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -19,6 +24,11 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   APRENDIZ_DE_DROGADORA,
   ARISTOCRATA_DAIZENSHI,
   ASPIRANTE_A_HEROI,
+  ASSISTENTE_FORENSE,
+  ARMEIRO_ARMADO,
+  BANDOLEIRO_DA_FORTALEZA,
+  BARAO_ARRUINADO,
+  CATADOR_DA_CIDADE_VELHA,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
