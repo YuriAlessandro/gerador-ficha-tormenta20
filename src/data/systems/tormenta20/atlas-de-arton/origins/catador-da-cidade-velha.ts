@@ -20,6 +20,7 @@ const CATADOR_DA_CIDADE_VELHA: Origin = {
   pericias: [Skill.FORTITUDE],
   poderes: [atlasOriginPowers.CATADOR_DA_CIDADE_VELHA],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: 'Luneta',

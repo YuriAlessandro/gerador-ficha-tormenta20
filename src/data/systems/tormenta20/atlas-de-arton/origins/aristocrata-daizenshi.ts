@@ -22,6 +22,7 @@ const ARISTOCRATA_DAIZENSHI: Origin = {
   pericias: [Skill.OFICIO_ARMEIRO],
   poderes: [atlasOriginPowers.ARISTOCRATA_DAIZENSHI],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => {
     const armasMarciais = [
       Armas.ALABARDA,

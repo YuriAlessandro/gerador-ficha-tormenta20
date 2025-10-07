@@ -5,36 +5,25 @@ import Origin, {
 import atlasOriginPowers from '../powers/originPowers';
 import { Armas } from '../../equipamentos';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
+import { DestinyPowers } from '../../powers/destinyPowers';
 
 function getAllRegionalBenefits(): OriginBenefits {
   return {
     skills: [],
     powers: {
-      origin: [atlasOriginPowers.APRENDIZ_DE_DRAGOEIRO],
-      general: [],
+      origin: [atlasOriginPowers.COMPETIDOR_DO_CIRCUITO],
+      general: [() => DestinyPowers.TORCIDA],
     },
   };
 }
 
-const APRENDIZ_DE_DRAGOEIRO: Origin = {
-  name: 'Aprendiz de Dragoeiro (Sckharshantallas)',
+const COMPETIDOR_DO_CIRCUITO: Origin = {
+  name: 'Competidor do Circuito (Trebuck)',
   pericias: [],
-  poderes: [atlasOriginPowers.APRENDIZ_DE_DRAGOEIRO],
+  poderes: [atlasOriginPowers.COMPETIDOR_DO_CIRCUITO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
   getItems: (): Items[] => {
-    const armasSimples = [
-      Armas.ADAGA,
-      Armas.AZAGAIA,
-      Armas.BORDO,
-      Armas.CAJADO,
-      Armas.CLAVA,
-      Armas.FOICE,
-      Armas.LANCA,
-      Armas.MACHADINHA,
-      Armas.MACA,
-    ];
-
     const armasMarciais = [
       Armas.ALABARDA,
       Armas.ARCO_CURTO,
@@ -61,22 +50,16 @@ const APRENDIZ_DE_DRAGOEIRO: Origin = {
       Armas.TRIDENTE,
     ];
 
-    const todasArmas = [...armasSimples, ...armasMarciais];
-    const armaSorteada = getRandomItemFromArray(todasArmas);
+    const armaSorteada = getRandomItemFromArray(armasMarciais);
 
     return [
       {
         equipment: armaSorteada,
-        description: 'Arma simples ou marcial',
-      },
-      {
-        equipment: 'Troféu de caça',
-      },
-      {
-        equipment: 'Treckod',
+        description: 'Arma marcial',
       },
     ];
   },
+  getMoney: () => 100,
 };
 
-export default APRENDIZ_DE_DRAGOEIRO;
+export default COMPETIDOR_DO_CIRCUITO;

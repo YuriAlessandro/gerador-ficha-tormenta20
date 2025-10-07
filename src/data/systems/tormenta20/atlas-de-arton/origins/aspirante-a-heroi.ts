@@ -21,6 +21,7 @@ const ASPIRANTE_A_HEROI: Origin = {
   pericias: [],
   poderes: [atlasOriginPowers.ASPIRANTE_A_HEROI],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: 'Essência de mana',

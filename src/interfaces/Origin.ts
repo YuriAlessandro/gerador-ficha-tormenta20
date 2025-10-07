@@ -30,6 +30,7 @@ interface Origin {
   getItems: () => Items[];
   getMoney?: () => number;
   getAttributeModifier?: (classPriority: Atributo[]) => AttributeModifier;
+  isRegional?: boolean; // true = origem regional que concede TODOS os benefícios automaticamente
 }
 
 export default Origin;

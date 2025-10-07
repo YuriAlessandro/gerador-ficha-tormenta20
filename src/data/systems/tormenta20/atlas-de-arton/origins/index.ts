@@ -13,6 +13,8 @@ import ARMEIRO_ARMADO from './armeiro-armado';
 import BANDOLEIRO_DA_FORTALEZA from './bandoleiro-da-fortaleza';
 import BARAO_ARRUINADO from './barao-arruinado';
 import CATADOR_DA_CIDADE_VELHA from './catador-da-cidade-velha';
+import CATIVO_DAS_FADAS from './cativo-das-fadas';
+import COMPETIDOR_DO_CIRCUITO from './competidor-do-circuito';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -29,6 +31,8 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   BANDOLEIRO_DA_FORTALEZA,
   BARAO_ARRUINADO,
   CATADOR_DA_CIDADE_VELHA,
+  CATIVO_DAS_FADAS,
+  COMPETIDOR_DO_CIRCUITO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

@@ -26,6 +26,7 @@ const AMOQUE_PURPURA: Origin = {
   pericias: [Skill.INTIMIDACAO],
   poderes: [atlasOriginPowers.AMOQUE_PURPURA],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => {
     // Escolhe arma simples aleatória
     const armasSimples = [

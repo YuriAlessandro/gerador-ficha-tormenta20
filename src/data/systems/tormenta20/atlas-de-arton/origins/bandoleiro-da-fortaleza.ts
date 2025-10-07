@@ -20,6 +20,7 @@ const BANDOLEIRO_DA_FORTALEZA: Origin = {
   pericias: [Skill.FURTIVIDADE, Skill.INTIMIDACAO],
   poderes: [atlasOriginPowers.BANDOLEIRO_DA_FORTALEZA],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: 'Anel com símbolo da família',

@@ -20,6 +20,7 @@ const BARAO_ARRUINADO: Origin = {
   pericias: [Skill.NOBREZA],
   poderes: [atlasOriginPowers.BARAO_ARRUINADO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: 'Anel com símbolo da família',

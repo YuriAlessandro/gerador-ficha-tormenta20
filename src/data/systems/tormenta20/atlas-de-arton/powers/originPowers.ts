@@ -1,4 +1,5 @@
 import { OriginPower } from '../../../../../interfaces/Poderes';
+import Skill from '../../../../../interfaces/Skills';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
@@ -38,6 +39,22 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +2 na Defesa contra criaturas maiores que você e +2 em Reflexos. Além disso, se passar em um teste de Reflexos, seus ataques contra a fonte do efeito causam +1d8 pontos de dano até o final da cena.',
     type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Aprendiz de Dragoeiro',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
   },
   APRENDIZ_DE_DROGADORA: {
     name: 'Aprendiz de Drogadora',
@@ -84,6 +101,33 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     name: 'Barão Arruinado',
     description:
       'Você é treinado em Nobreza. Sempre que falha em um teste de perícia e a falha acarreta uma consequência negativa, você recebe +2 em testes da mesma perícia até o final da cena.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  CATIVO_DAS_FADAS: {
+    name: 'Cativo das Fadas',
+    description:
+      'Você recebe resistência a espíritos e magia +2 e +1 PV por nível de personagem.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Cativo das Fadas',
+        },
+        target: {
+          type: 'PV',
+        },
+        modifier: {
+          type: 'LevelCalc',
+          formula: '{level}',
+        },
+      },
+    ],
+  },
+  COMPETIDOR_DO_CIRCUITO: {
+    name: 'Competidor do Circuito',
+    description:
+      'Você recebe o poder Torcida. Enquanto está sob efeito desse poder, sempre que reduz um inimigo a 0 PV com um ataque corpo a corpo, você recupera 1 PM.',
     type: ORIGIN_POWER_TYPE,
   },
 };

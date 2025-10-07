@@ -22,6 +22,7 @@ const ARMEIRO_ARMADO: Origin = {
   pericias: [Skill.OFICIO_ARMEIRO],
   poderes: [atlasOriginPowers.ARMEIRO_ARMADO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => {
     const armasMarciais = [
       Armas.ALABARDA,

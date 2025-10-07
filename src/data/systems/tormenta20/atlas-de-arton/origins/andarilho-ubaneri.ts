@@ -20,6 +20,7 @@ const ANDARILHO_UBANERI: Origin = {
   pericias: [],
   poderes: [atlasOriginPowers.ANDARILHO_UBANERI],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: Escudos.ESCUDO_PESADO,

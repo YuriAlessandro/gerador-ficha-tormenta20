@@ -945,25 +945,29 @@ function getInitialBag(origin: Origin | undefined): Bag {
     'Item Geral': [],
   };
 
-  const originItems = origin?.getItems();
+  // Apenas origens regionais (isRegional = true) adicionam itens automaticamente
+  // Origens do core não adicionam itens aqui (apenas se escolhidos nos 2 benefícios)
+  if (origin?.isRegional) {
+    const originItems = origin.getItems();
 
-  originItems?.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      const newEquip: Equipment = {
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      };
-      if (equipments['Item Geral']) {
-        equipments['Item Geral'].push(newEquip);
+    originItems?.forEach((equip) => {
+      if (typeof equip.equipment === 'string') {
+        const newEquip: Equipment = {
+          nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+          group: 'Item Geral',
+        };
+        if (equipments['Item Geral']) {
+          equipments['Item Geral'].push(newEquip);
+        }
+      } else if (equip.equipment) {
+        // É uma arma - inicializa array se necessário
+        if (!equipments.Arma) {
+          equipments.Arma = [];
+        }
+        equipments.Arma.push(equip.equipment);
       }
-    } else if (equip.equipment) {
-      // É uma arma - inicializa array se necessário
-      if (!equipments.Arma) {
-        equipments.Arma = [];
-      }
-      equipments.Arma.push(equip.equipment);
-    }
-  });
+    });
+  }
 
   return new Bag(equipments);
 }
@@ -2471,8 +2475,8 @@ export default function generateRandomSheet(
   const initialBag = getInitialBag(origin);
   let initialMoney = getInitialMoney(targetLevel);
 
-  // Adicionar dinheiro da origem, se houver
-  if (origin?.getMoney) {
+  // Adicionar dinheiro da origem, apenas se for origem regional
+  if (origin?.isRegional && origin?.getMoney) {
     initialMoney += origin.getMoney();
   }
 
@@ -2569,9 +2573,9 @@ export default function generateRandomSheet(
     sexForAttributes
   );
 
-  // Aplicar modificador de atributo da origem, se houver
+  // Aplicar modificador de atributo da origem, apenas se for origem regional
   let attributeModifierText: string | undefined;
-  if (origin?.getAttributeModifier) {
+  if (origin?.isRegional && origin?.getAttributeModifier) {
     const attributeModifier = origin.getAttributeModifier(classe.attrPriority);
     const currentAttr = atributos[attributeModifier.attribute];
     const newValue = currentAttr.value + attributeModifier.modifier;
@@ -2640,29 +2644,31 @@ export default function generateRandomSheet(
         });
       }
 
-      // Adicionar itens
-      const originItems = origin.getItems();
-      if (originItems && originItems.length > 0) {
-        const itemsList = originItems.map((item) => {
-          if (typeof item.equipment === 'string') {
-            const qtd = item.qtd ? `${item.qtd}x ` : '';
-            return `${qtd}${item.equipment}`;
-          }
-          return item.equipment.nome;
-        });
-        additionalSubsteps.push({
-          name: 'Itens',
-          value: itemsList.join(', '),
-        });
-      }
+      // Adicionar itens (apenas para origens regionais)
+      if (origin.isRegional) {
+        const originItems = origin.getItems();
+        if (originItems && originItems.length > 0) {
+          const itemsList = originItems.map((item) => {
+            if (typeof item.equipment === 'string') {
+              const qtd = item.qtd ? `${item.qtd}x ` : '';
+              return `${qtd}${item.equipment}`;
+            }
+            return item.equipment.nome;
+          });
+          additionalSubsteps.push({
+            name: 'Itens',
+            value: itemsList.join(', '),
+          });
+        }
 
-      // Adicionar dinheiro
-      if (origin.getMoney) {
-        const money = origin.getMoney();
-        additionalSubsteps.push({
-          name: 'Dinheiro adicional',
-          value: `T$ ${money}`,
-        });
+        // Adicionar dinheiro (apenas para origens regionais)
+        if (origin.getMoney) {
+          const money = origin.getMoney();
+          additionalSubsteps.push({
+            name: 'Dinheiro adicional',
+            value: `T$ ${money}`,
+          });
+        }
       }
 
       // Adicionar os novos substeps aos existentes

@@ -20,6 +20,7 @@ const ASSISTENTE_FORENSE: Origin = {
   pericias: [Skill.INVESTIGACAO],
   poderes: [atlasOriginPowers.ASSISTENTE_FORENSE],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [],
 };
 

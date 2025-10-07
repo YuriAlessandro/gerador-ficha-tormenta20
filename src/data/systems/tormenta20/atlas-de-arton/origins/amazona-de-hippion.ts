@@ -26,6 +26,7 @@ const AMAZONA_DE_HIPPION: Origin = {
   pericias: [Skill.CAVALGAR],
   poderes: [atlasOriginPowers.AMAZONA_DE_HIPPION],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => {
     // Escolhe arma simples ou marcial aleatória
     const armasSimples = [

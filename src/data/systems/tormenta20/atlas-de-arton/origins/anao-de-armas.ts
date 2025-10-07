@@ -26,6 +26,7 @@ const ANAO_DE_ARMAS: Origin = {
   pericias: [Skill.OFICIO_ARMEIRO],
   poderes: [atlasOriginPowers.ANAO_DE_ARMAS],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => {
     // Armas marciais tradicionais anãs (machados, martelos, marretas e picaretas)
     const armasTradicoinaisAnas = [

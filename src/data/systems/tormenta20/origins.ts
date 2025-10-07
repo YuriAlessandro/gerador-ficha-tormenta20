@@ -218,10 +218,17 @@ export function getOriginBenefits(
   usedSkills: Skill[],
   origin: Origin
 ): OriginBenefits {
+  // Origens regionais (Atlas de Arton) concedem TODOS os benefícios automaticamente
+  if (origin.isRegional && origin.getPowersAndSkills) {
+    return origin.getPowersAndSkills(usedSkills, origin);
+  }
+
+  // Origens customizadas (não regionais) que têm lógica específica
   if (origin.getPowersAndSkills) {
     return origin.getPowersAndSkills(usedSkills, origin);
   }
 
+  // Origens do core: escolher 2 benefícios entre perícias e poderes
   return sortDefaultBenefits(usedSkills, origin);
 }
 

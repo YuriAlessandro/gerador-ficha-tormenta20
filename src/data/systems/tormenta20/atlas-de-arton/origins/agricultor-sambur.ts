@@ -32,6 +32,7 @@ const AGRICULTOR_SAMBUR: Origin = {
     },
   ],
   getMoney: () => 100,
+  isRegional: true,
 };
 
 export default AGRICULTOR_SAMBUR;

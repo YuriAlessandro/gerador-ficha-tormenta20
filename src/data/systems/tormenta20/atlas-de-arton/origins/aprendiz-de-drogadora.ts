@@ -20,6 +20,7 @@ const APRENDIZ_DE_DROGADORA: Origin = {
   pericias: [Skill.CURA, Skill.OFICIO_ALQUIMIA],
   poderes: [atlasOriginPowers.APRENDIZ_DE_DROGADORA],
   getPowersAndSkills: () => getAllRegionalBenefits(),
+  isRegional: true,
   getItems: (): Items[] => [
     {
       equipment: 'Bálsamo restaurador',
