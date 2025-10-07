@@ -68,7 +68,7 @@ export default class Bag {
   public armorPenalty: number;
 
   constructor(equipments = {}) {
-    this.equipments = merge(equipments, cloneDeep(defaultEquipments));
+    this.equipments = merge(cloneDeep(defaultEquipments), equipments);
 
     this.spaces = calcBagSpaces(this.equipments);
     this.armorPenalty = calcArmorPenalty(this.equipments);

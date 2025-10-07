@@ -283,6 +283,7 @@ export interface Step {
   label: string;
   type?: string;
   value: SubStep[];
+  subSteps?: SubStep[];
 }
 
 export interface SubStep {

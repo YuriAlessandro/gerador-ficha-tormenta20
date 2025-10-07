@@ -1,6 +1,7 @@
 import Equipment from './Equipment';
 import { OriginPower, GeneralPower, PowerGetter } from './Poderes';
 import Skill from './Skills';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 
 export interface OriginBenefits {
   powers: {
@@ -16,12 +17,19 @@ export interface Items {
   description?: string;
 }
 
+export interface AttributeModifier {
+  attribute: Atributo;
+  modifier: number;
+}
+
 interface Origin {
   name: string;
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
   getPowersAndSkills?: (usedSkills: Skill[], origin: Origin) => OriginBenefits;
   getItems: () => Items[];
+  getMoney?: () => number;
+  getAttributeModifier?: (classPriority: Atributo[]) => AttributeModifier;
 }
 
 export default Origin;

@@ -30,11 +30,8 @@ const AGRICULTOR_SAMBUR: Origin = {
       equipment: Armas.LANCA,
       description: 'Ferramenta agrícola (mesmas estatísticas de uma lança)',
     },
-    {
-      equipment: 'T$ 100',
-      description: 'Um presente de despedida da sua família',
-    },
   ],
+  getMoney: () => 100,
 };
 
 export default AGRICULTOR_SAMBUR;

@@ -939,16 +939,10 @@ function getClassEquipments(
   };
 }
 
-function getInitialBag(origin: Origin | undefined, level: number = 1): Bag {
+function getInitialBag(origin: Origin | undefined): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const initialMoney = getInitialMoney(level);
   const equipments: Partial<BagEquipments> = {
-    'Item Geral': [
-      {
-        nome: `T$ ${initialMoney}`,
-        group: 'Item Geral',
-      },
-    ],
+    'Item Geral': [],
   };
 
   const originItems = origin?.getItems();
@@ -2471,16 +2465,17 @@ export default function generateRandomSheet(
     }
   }
 
-  if (origin) {
-    steps.push({
-      label: 'Origem',
-      value: [{ value: origin?.name }],
-    });
-  }
+  // Nada aqui - o step de origem será criado em getSkillsAndPowersByClassAndOrigin
 
   // Passo 5: itens, feitiços, e valores iniciais
-  const initialBag = getInitialBag(origin, targetLevel);
+  const initialBag = getInitialBag(origin);
   let initialMoney = getInitialMoney(targetLevel);
+
+  // Adicionar dinheiro da origem, se houver
+  if (origin?.getMoney) {
+    initialMoney += origin.getMoney();
+  }
+
   const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
   const initialSpells: Spell[] = [];
   const initialPV = classe.pv;
@@ -2574,6 +2569,23 @@ export default function generateRandomSheet(
     sexForAttributes
   );
 
+  // Aplicar modificador de atributo da origem, se houver
+  let attributeModifierText: string | undefined;
+  if (origin?.getAttributeModifier) {
+    const attributeModifier = origin.getAttributeModifier(classe.attrPriority);
+    const currentAttr = atributos[attributeModifier.attribute];
+    const newValue = currentAttr.value + attributeModifier.modifier;
+    atributos[attributeModifier.attribute] = {
+      ...currentAttr,
+      value: newValue,
+      mod: getModValue(newValue),
+    };
+
+    attributeModifierText = `+${attributeModifier.modifier} ${attributeModifier.attribute} (${currentAttr.value} → ${newValue})`;
+  }
+
+  // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
+
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces =
     atributos.Força.mod > 0
@@ -2609,6 +2621,56 @@ export default function generateRandomSheet(
   } = getSkillsAndPowersByClassAndOrigin(classe, origin, atributos, steps);
 
   powersGetters = generalGetters;
+
+  // Adicionar substeps faltantes ao step "Benefícios da origem"
+  if (origin) {
+    // Encontrar o step "Benefícios da origem"
+    const originStepIndex = steps.findIndex((step) =>
+      step.label.startsWith('Benefícios da origem')
+    );
+
+    if (originStepIndex >= 0) {
+      const additionalSubsteps: SubStep[] = [];
+
+      // Adicionar bônus de atributo
+      if (attributeModifierText) {
+        additionalSubsteps.push({
+          name: 'Bônus de Atributo',
+          value: attributeModifierText,
+        });
+      }
+
+      // Adicionar itens
+      const originItems = origin.getItems();
+      if (originItems && originItems.length > 0) {
+        const itemsList = originItems.map((item) => {
+          if (typeof item.equipment === 'string') {
+            const qtd = item.qtd ? `${item.qtd}x ` : '';
+            return `${qtd}${item.equipment}`;
+          }
+          return item.equipment.nome;
+        });
+        additionalSubsteps.push({
+          name: 'Itens',
+          value: itemsList.join(', '),
+        });
+      }
+
+      // Adicionar dinheiro
+      if (origin.getMoney) {
+        const money = origin.getMoney();
+        additionalSubsteps.push({
+          name: 'Dinheiro adicional',
+          value: `T$ ${money}`,
+        });
+      }
+
+      // Adicionar os novos substeps aos existentes
+      if (additionalSubsteps.length > 0) {
+        steps[originStepIndex].value.push(...additionalSubsteps);
+      }
+    }
+  }
 
   let sheetOrigin;
   if (origin) {
