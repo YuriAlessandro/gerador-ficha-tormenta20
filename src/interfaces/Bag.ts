@@ -37,6 +37,8 @@ function calcBagSpaces(bagEquipments: BagEquipments): number {
   let spaces = 0;
 
   equipments.forEach((equipment: Equipment) => {
+    // Ignora equipamentos undefined ou sem a propriedade spaces
+    if (!equipment) return;
     const equipamentSpaces = equipment.spaces || 0;
     spaces += equipamentSpaces;
   });
