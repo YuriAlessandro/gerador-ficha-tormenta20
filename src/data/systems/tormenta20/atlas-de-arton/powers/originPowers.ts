@@ -21,6 +21,12 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       'Você é treinado em Intimidação e, quando está sob efeito de Fúria, Fúria Divina ou Poder Oculto, recebe +2 em rolagens de dano.',
     type: ORIGIN_POWER_TYPE,
   },
+  ANAO_DE_ARMAS: {
+    name: 'Anão de Armas',
+    description:
+      'Você é treinado em Ofício (armeiro) e recebe +2 em rolagens de dano com armas tradicionais anãs (machados, martelos, marretas e picaretas).',
+    type: ORIGIN_POWER_TYPE,
+  },
 };
 
 export default atlasOriginPowers;
