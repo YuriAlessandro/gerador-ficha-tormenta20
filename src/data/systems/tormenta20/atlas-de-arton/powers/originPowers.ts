@@ -15,6 +15,12 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       'Você é treinada em Cavalgar e, se não estiver usando armadura pesada, soma seu Carisma nos PM, limitado pelo seu nível (apenas após um dia).',
     type: ORIGIN_POWER_TYPE,
   },
+  AMOQUE_PURPURA: {
+    name: 'Amoque Púrpura',
+    description:
+      'Você é treinado em Intimidação e, quando está sob efeito de Fúria, Fúria Divina ou Poder Oculto, recebe +2 em rolagens de dano.',
+    type: ORIGIN_POWER_TYPE,
+  },
 };
 
 export default atlasOriginPowers;
