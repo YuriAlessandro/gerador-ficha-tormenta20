@@ -64,8 +64,7 @@ const AMAZONA_DE_HIPPION: Origin = {
         description: 'Arma simples ou marcial',
       },
       {
-        equipment: 'Cavalo de guerra',
-        description: 'Montaria treinada para combate',
+        equipment: 'Cavalo de guerra (montaria)',
       },
     ];
   },
