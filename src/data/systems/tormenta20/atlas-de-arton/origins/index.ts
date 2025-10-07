@@ -15,6 +15,9 @@ import BARAO_ARRUINADO from './barao-arruinado';
 import CATADOR_DA_CIDADE_VELHA from './catador-da-cidade-velha';
 import CATIVO_DAS_FADAS from './cativo-das-fadas';
 import COMPETIDOR_DO_CIRCUITO from './competidor-do-circuito';
+import COSMOPOLITA from './cosmopolita';
+import CRIA_DA_FAVELA from './cria-da-favela';
+import CRIADO_PELAS_VORACIS from './criado-pelas-voracis';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -33,6 +36,9 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   CATADOR_DA_CIDADE_VELHA,
   CATIVO_DAS_FADAS,
   COMPETIDOR_DO_CIRCUITO,
+  COSMOPOLITA,
+  CRIA_DA_FAVELA,
+  CRIADO_PELAS_VORACIS,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

@@ -130,6 +130,66 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       'Você recebe o poder Torcida. Enquanto está sob efeito desse poder, sempre que reduz um inimigo a 0 PV com um ataque corpo a corpo, você recupera 1 PM.',
     type: ORIGIN_POWER_TYPE,
   },
+  COSMOPOLITA: {
+    name: 'Cosmopolita',
+    description:
+      'Escolha um poder geral ou de uma classe na qual você tenha pelo menos dois níveis, e cujos requisitos você cumpra (exceto poderes concedidos ou da Tormenta). Você recebe esse poder. Uma vez por aventura, após concluir um descanso (oito horas de sono), pode trocar esse poder por outro.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  CRIA_DA_FAVELA: {
+    name: 'Cria da Favela',
+    description:
+      'Você recebe +1 em Constituição e, por piores que sejam as condições de descanso, sua recuperação é sempre pelo menos normal.',
+    type: ORIGIN_POWER_TYPE,
+  },
+  CRIADO_PELAS_VORACIS: {
+    name: 'Criado pelas Voracis',
+    description:
+      'Você recebe +2 na Defesa e Sobrevivência e +3m em seu deslocamento.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Criado pelas Voracis',
+        },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Criado pelas Voracis',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.SOBREVIVENCIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Criado pelas Voracis',
+        },
+        target: {
+          type: 'Displacement',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
