@@ -2399,6 +2399,9 @@ const applyStatModifiers = (
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const targetLevel = selectedOptions.nivel;
   let powersGetters: PowersGetters = {
     Origem: [],
@@ -2455,7 +2458,9 @@ export default function generateRandomSheet(
 
   if (race.name !== 'Golem') {
     if (selectedOptions.origin) {
-      origin = ORIGINS[selectedOptions.origin as origins];
+      // Busca origem em todos os suplementos ativos
+      const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
+      origin = allOrigins.find((o) => o.name === selectedOptions.origin);
     } else {
       origin = getRandomItemFromArray(Object.values(ORIGINS));
     }
@@ -2857,7 +2862,9 @@ export function generateEmptySheet(
 
   // Process origin if selected
   if (selectedOptions.origin) {
-    const selectedOrigin = Object.values(ORIGINS).find(
+    // Busca origem em todos os suplementos ativos
+    const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
+    const selectedOrigin = allOrigins.find(
       (origin) => origin.name === selectedOptions.origin
     );
     if (selectedOrigin) {
