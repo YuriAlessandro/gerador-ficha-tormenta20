@@ -959,8 +959,10 @@ function getInitialBag(origin: Origin | undefined, level: number = 1): Bag {
         nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
         group: 'Item Geral',
       };
-      equipments['Item Geral']?.push(newEquip);
-    } else {
+      if (equipments['Item Geral']) {
+        equipments['Item Geral'].push(newEquip);
+      }
+    } else if (equip.equipment) {
       // É uma arma - inicializa array se necessário
       if (!equipments.Arma) {
         equipments.Arma = [];

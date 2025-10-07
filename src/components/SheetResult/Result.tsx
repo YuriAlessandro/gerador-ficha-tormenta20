@@ -63,6 +63,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
 
+  console.log(sheet);
+
   const theme = useTheme();
 
   // Update currentSheet when sheet prop changes
