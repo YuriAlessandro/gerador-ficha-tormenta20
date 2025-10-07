@@ -961,8 +961,11 @@ function getInitialBag(origin: Origin | undefined, level: number = 1): Bag {
       };
       equipments['Item Geral']?.push(newEquip);
     } else {
-      // É uma arma
-      equipments.Arma?.push(equip.equipment);
+      // É uma arma - inicializa array se necessário
+      if (!equipments.Arma) {
+        equipments.Arma = [];
+      }
+      equipments.Arma.push(equip.equipment);
     }
   });
 
