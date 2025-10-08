@@ -109,6 +109,11 @@ export type SheetActionStep =
     }
   | {
       type: 'buildGolpePessoal';
+    }
+  | {
+      type: 'learnClassAbility';
+      availableClasses: string[]; // List of class names to choose from
+      level: number; // Level of the ability (usually 1)
     };
 
 export type SheetActionReceipt =
@@ -145,6 +150,11 @@ export type SheetActionReceipt =
       type: 'AttributeIncreasedByAumentoDeAtributo';
       attribute: Atributo;
       plateau: number; // Plateau number for the increase
+    }
+  | {
+      type: 'ClassAbilityLearned';
+      className: string;
+      abilityName: string;
     };
 
 export type SheetActionHistoryEntry = {

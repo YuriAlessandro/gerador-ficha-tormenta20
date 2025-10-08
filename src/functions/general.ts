@@ -1620,6 +1620,95 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Adicionando ${alwaysActiveSpell.nome} à sua lista de magias.`,
         });
+      } else if (sheetAction.action.type === 'learnClassAbility') {
+        const { availableClasses: classNames, level } = sheetAction.action;
+
+        // Get all available classes
+        const allClasses = dataRegistry.getClassesBySupplements([
+          SupplementId.TORMENTA20_CORE,
+        ]);
+
+        // Filter classes by the available list and exclude current class
+        const availableClasses = allClasses.filter(
+          (cls) =>
+            classNames.includes(cls.name) && cls.name !== sheet.classe.name
+        );
+
+        let selectedClass: ClassDescription;
+        let selectedAbility: ClassDescription['abilities'][number];
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.classAbilities &&
+          manualSelections.classAbilities.length > 0
+        ) {
+          // Manual selection provides { className, abilityName }
+          const selection = manualSelections.classAbilities[0];
+          selectedClass =
+            availableClasses.find((cls) => cls.name === selection.className) ||
+            getRandomItemFromArray(availableClasses);
+        } else {
+          // Random selection
+          selectedClass = getRandomItemFromArray(availableClasses);
+        }
+
+        // Get abilities of the specified level
+        const levelAbilities = selectedClass.abilities.filter(
+          (ability) => ability.nivel === level
+        );
+
+        if (levelAbilities.length > 0) {
+          if (
+            manualSelections?.classAbilities &&
+            manualSelections.classAbilities.length > 0
+          ) {
+            const selection = manualSelections.classAbilities[0];
+            selectedAbility =
+              levelAbilities.find(
+                (ability) => ability.name === selection.abilityName
+              ) || getRandomItemFromArray(levelAbilities);
+          } else {
+            selectedAbility = getRandomItemFromArray(levelAbilities);
+          }
+
+          // Add the ability to classPowers array
+          if (!sheet.classPowers) {
+            sheet.classPowers = [];
+          }
+
+          // Convert ClassAbility to ClassPower format and add to classPowers
+          sheet.classPowers.push({
+            name: `${selectedAbility.name} (${selectedClass.name})`,
+            text: selectedAbility.text,
+            sheetActions: selectedAbility.sheetActions,
+            sheetBonuses: selectedAbility.sheetBonuses,
+          });
+
+          // Apply sheetBonuses from the learned ability
+          if (selectedAbility.sheetBonuses) {
+            sheet.sheetBonuses.push(...selectedAbility.sheetBonuses);
+          }
+
+          // Note: sheetActions from learned abilities are NOT automatically applied
+          // The user will need to manually trigger them or they will be shown in the power description
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassAbilityLearned',
+                className: selectedClass.name,
+                abilityName: selectedAbility.name,
+              },
+            ],
+          });
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprendeu ${selectedAbility.name} de ${selectedClass.name}`,
+          });
+        }
       } else if (sheetAction.action.type === 'buildGolpePessoal') {
         // For automatic generation, create a random Golpe Pessoal
         const golpePessoalBuild = generateRandomGolpePessoal(sheet);

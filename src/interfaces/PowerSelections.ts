@@ -13,6 +13,7 @@ export interface SelectionOptions {
   weapons?: string[]; // Weapon names for specialization
   familiars?: string[]; // Familiar names for selection
   animalTotems?: string[]; // Animal totem names for selection
+  classAbilities?: Array<{ className: string; abilityName: string }>; // Class ability selections
 }
 
 /**
@@ -46,7 +47,8 @@ export interface PowerSelectionRequirement {
     | 'selectWeaponSpecialization'
     | 'selectFamiliar'
     | 'selectAnimalTotem'
-    | 'buildGolpePessoal';
+    | 'buildGolpePessoal'
+    | 'learnClassAbility';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

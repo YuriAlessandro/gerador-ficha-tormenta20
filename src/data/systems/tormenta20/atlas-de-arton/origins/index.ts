@@ -18,6 +18,10 @@ import COMPETIDOR_DO_CIRCUITO from './competidor-do-circuito';
 import COSMOPOLITA from './cosmopolita';
 import CRIA_DA_FAVELA from './cria-da-favela';
 import CRIADO_PELAS_VORACIS from './criado-pelas-voracis';
+import DE_OUTRO_MUNDO from './de-outro-mundo';
+import DESCENDENTE_COLLENIANO from './descendente-colleniano';
+import DESERTOR_DA_SUPREMACIA from './desertor-da-supremacia';
+import DUPLO_FEERICO from './duplo-feerico';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -39,6 +43,10 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   COSMOPOLITA,
   CRIA_DA_FAVELA,
   CRIADO_PELAS_VORACIS,
+  DE_OUTRO_MUNDO,
+  DESCENDENTE_COLLENIANO,
+  DESERTOR_DA_SUPREMACIA,
+  DUPLO_FEERICO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

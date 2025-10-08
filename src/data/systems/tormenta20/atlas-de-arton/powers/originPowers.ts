@@ -1,7 +1,40 @@
+import { shuffle, cloneDeep } from 'lodash';
 import { OriginPower } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
+import { spellsCircle1 } from '../../magias/generalSpells';
+import { Atributo } from '../../atributos';
+import { Spell } from '../../../../../interfaces/Spells';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
+
+/**
+ * Prepara magias de 1º círculo com todas as variações de atributos
+ * para o poder "De Outro Mundo".
+ * Cada magia original é duplicada 3 vezes, uma para cada atributo mental.
+ * A lista é embaralhada para garantir variação nas gerações aleatórias.
+ * Usa cloneDeep para não modificar os objetos originais.
+ */
+function getDeOutroMundoSpells(): Spell[] {
+  const allAttributes = [
+    Atributo.INTELIGENCIA,
+    Atributo.SABEDORIA,
+    Atributo.CARISMA,
+  ];
+
+  const spellsWithVariations: Spell[] = [];
+
+  Object.values(spellsCircle1).forEach((spell) => {
+    allAttributes.forEach((attr) => {
+      spellsWithVariations.push({
+        ...cloneDeep(spell), // Clone profundo para não modificar o original
+        customKeyAttr: attr,
+      });
+    });
+  });
+
+  // Embaralha a lista para que as escolhas aleatórias tenham variação
+  return shuffle(spellsWithVariations);
+}
 
 const atlasOriginPowers: Record<string, OriginPower> = {
   AGRICULTOR_SAMBUR: {
@@ -186,6 +219,110 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         modifier: {
           type: 'Fixed',
           value: 3,
+        },
+      },
+    ],
+  },
+  DE_OUTRO_MUNDO: {
+    name: 'De Outro Mundo',
+    description:
+      'Você possui uma habilidade ou tecnologia especial de seu mundo de origem. Para representar esse efeito, escolha uma magia de 1º círculo e um atributo-chave para ela. Se for uma habilidade, você pode lançar essa magia. Se for uma tecnologia, você recebe um item Minúsculo (RD 10, PV iguais à metade dos seus) que ocupa 1 espaço e deve ser empunhado para lançar a magia, mas seu limite de PM para ela aumenta em +2. Por fim, escolha se o efeito será mágico ou mundano (nesse caso, não contará como uma magia, exceto para fins de acúmulo).',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'De Outro Mundo',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: getDeOutroMundoSpells(), // Cada magia tem um atributo aleatório
+          pick: 1,
+        },
+      },
+    ],
+  },
+  DESCENDENTE_COLLENIANO: {
+    name: 'Descendente Colleniano',
+    description:
+      'Você recebe +2 em Percepção e pode lançar a magia Visão Mística. Caso aprenda essa magia novamente, seu custo diminui em –1 PM.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Descendente Colleniano',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.PERCEPCAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Descendente Colleniano',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [spellsCircle1.visaoMistica],
+          pick: 1,
+        },
+      },
+    ],
+  },
+  DESERTOR_DA_SUPREMACIA: {
+    name: 'Desertor da Supremacia',
+    description:
+      'Você é treinado em Guerra e recebe proficiência com espadas bastardas e escudos. Se estiver empunhando uma espada bastarda e um escudo pesado, recebe +2 em testes de ataque.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Desertor da Supremacia',
+        },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: ['Espada Bastarda', 'Escudos'],
+          pick: 2,
+        },
+      },
+    ],
+  },
+  DUPLO_FEERICO: {
+    name: 'Duplo Feérico',
+    description:
+      'Escolha uma habilidade de classe de 1º nível de uma classe que não seja a sua. Você recebe essa habilidade e pode usá-la como se tivesse 1 nível naquela classe (se escolher a habilidade Magias, você aprende uma única magia e recebe +1 ponto de mana, mas não soma o atributo-chave da habilidade em seu total de PM).',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Duplo Feérico' },
+        action: {
+          type: 'learnClassAbility',
+          availableClasses: [
+            'Arcanista',
+            'Bárbaro',
+            'Bardo',
+            'Bucaneiro',
+            'Caçador',
+            'Cavaleiro',
+            'Clérigo',
+            'Druida',
+            'Guerreiro',
+            'Inventor',
+            'Ladino',
+            'Lutador',
+            'Nobre',
+            'Paladino',
+          ],
+          level: 1,
         },
       },
     ],
