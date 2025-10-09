@@ -1950,6 +1950,11 @@ export const applyPower = (
         }
         sheet.classPowers.push(selectedPower);
 
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Poder de classe adquirido: ${selectedPower.name}`,
+        });
+
         // Apply the selected power's sheetActions and sheetBonuses
         if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
           const [updatedSheet, powerSubSteps] = applyPower(
@@ -1959,8 +1964,13 @@ export const applyPower = (
           );
           // Update sheet reference with changes from applying the power
           Object.assign(sheet, updatedSheet);
-          // Add substeps from the power application
-          subSteps.push(...powerSubSteps);
+          // Add substeps from the power application with proper context
+          powerSubSteps.forEach((subStep) => {
+            subSteps.push({
+              name: subStep.name || selectedPower.name,
+              value: subStep.value,
+            });
+          });
         }
 
         sheet.sheetActionHistory.push({
@@ -1972,11 +1982,6 @@ export const applyPower = (
               powerName: selectedPower.name,
             },
           ],
-        });
-
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Poder de classe adquirido: ${selectedPower.name}`,
         });
       } else {
         throw new Error(
