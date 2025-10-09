@@ -1189,6 +1189,9 @@ export const applyPower = (
     if (source.type === 'levelUp') {
       return `Nível ${source.level}`;
     }
+    if (source.type === 'origin') {
+      return source.originName;
+    }
     return '';
   };
 
