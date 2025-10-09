@@ -36,6 +36,7 @@ import GINETE_DE_TUMARKHAN from './ginete-de-tumarkhan';
 import GRUMETE_PIRATA from './grumete-pirata';
 import GUARDIAO_GLACIAL from './guardiao-glacial';
 import INICIADO_DOS_CACA_MONSTROS from './iniciado-dos-caca-monstros';
+import INSURGENTE_TAPISTANO from './insurgente-tapistano';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -75,6 +76,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   GRUMETE_PIRATA,
   GUARDIAO_GLACIAL,
   INICIADO_DOS_CACA_MONSTROS,
+  INSURGENTE_TAPISTANO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

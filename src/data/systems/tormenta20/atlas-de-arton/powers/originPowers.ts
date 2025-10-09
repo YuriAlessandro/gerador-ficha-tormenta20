@@ -699,6 +699,69 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  INSURGENTE_TAPISTANO: {
+    name: 'Insurgente Tapistano',
+    description:
+      'Você recebe +1 em Fortitude, Reflexos e Vontade. Além disso, recebe +3 pontos de vida no 1º nível e +1 PV por nível seguinte.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Insurgente Tapistano (Império de Tauron)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Insurgente Tapistano (Império de Tauron)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Insurgente Tapistano (Império de Tauron)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.VONTADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Insurgente Tapistano (Império de Tauron)',
+        },
+        target: {
+          type: 'PV',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
