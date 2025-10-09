@@ -32,6 +32,7 @@ import ESTUDANTE_DO_COLEGIO_REAL from './estudante-do-colegio-real';
 import EXPLORADOR_DE_RUINAS from './explorador-de-ruinas';
 import FILHOTE_DA_REVOADA from './filhote-da-revoada';
 import FUTURA_LENDA from './futura-lenda';
+import GINETE_DE_TUMARKHAN from './ginete-de-tumarkhan';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -67,6 +68,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   EXPLORADOR_DE_RUINAS,
   FILHOTE_DA_REVOADA,
   FUTURA_LENDA,
+  GINETE_DE_TUMARKHAN,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

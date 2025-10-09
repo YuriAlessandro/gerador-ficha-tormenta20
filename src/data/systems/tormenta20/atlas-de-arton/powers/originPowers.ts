@@ -628,6 +628,28 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     ],
     sheetBonuses: [],
   },
+  GINETE_DE_TUMARKHAN: {
+    name: 'Ginete de Tumarkhân',
+    description:
+      'Você é treinado em Cavalgar e possui um parceiro tumarkhân iniciante, com quem recebe +2 em testes de Adestramento e Cavalgar. Se receber outra montaria especial (como pelos poderes Montaria ou Montaria Sagrada), você pode usar seu tumarkhân como essa montaria, acumulando o bônus em perícias com os benefícios da montaria especial.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Ginete de Tumarkhân (Khubar)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.CAVALGAR,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
