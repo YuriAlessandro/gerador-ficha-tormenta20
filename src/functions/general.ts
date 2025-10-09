@@ -35,7 +35,7 @@ import {
   CharacterReligion,
 } from '../interfaces/Character';
 import Race, { RaceAttributeAbility } from '../interfaces/Race';
-import { ClassDescription } from '../interfaces/Class';
+import { ClassDescription, ClassPower } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   countTormentaPowers,
@@ -97,6 +97,7 @@ import {
   OriginPower,
   PowerGetter,
   PowersGetters,
+  Requirement,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   SheetChangeSource,
@@ -1776,6 +1777,199 @@ export const applyPower = (
         }
 
         subSteps.push(...currentSteps);
+      } else if (sheetAction.action.type === 'getClassPower') {
+        const { minLevel = 2, ignoreOnlyLevelRequirement = true } =
+          sheetAction.action;
+
+        // Helper function to check if power meets requirements (ignoring level if specified)
+        const checkPowerRequirements = (power: ClassPower): boolean => {
+          if (!power.requirements || power.requirements.length === 0) {
+            return true;
+          }
+
+          return power.requirements.some((req: Requirement[]) =>
+            req.every((rule: Requirement) => {
+              // Skip level requirement check if ignoreOnlyLevelRequirement is true
+              if (ignoreOnlyLevelRequirement && rule.type === 'NIVEL') {
+                return true;
+              }
+
+              // Check all other requirements using the same logic as isPowerAvailable
+              switch (rule.type) {
+                case 'PODER': {
+                  const allPowers = [
+                    ...sheet.generalPowers,
+                    ...(sheet.origin?.powers || []),
+                    ...(sheet.classPowers || []),
+                  ];
+                  return allPowers.some(
+                    (currPower) => currPower.name === rule.name
+                  );
+                }
+                case 'ATRIBUTO': {
+                  const attr = rule.name as Atributo;
+                  return (
+                    rule.name && sheet.atributos[attr].mod >= (rule?.value || 0)
+                  );
+                }
+                case 'PERICIA': {
+                  const pericia = rule.name as Skill;
+                  return rule.name && sheet.skills.includes(pericia);
+                }
+                case 'HABILIDADE': {
+                  const result = sheet.classe.abilities.some(
+                    (ability) => ability.name === rule.name
+                  );
+                  if (rule.not) return !result;
+                  return result;
+                }
+                case 'PODER_TORMENTA': {
+                  const qtdPowers = rule.value as number;
+                  return (
+                    sheet.generalPowers.filter(
+                      (actualPower) => actualPower.type === 'TORMENTA'
+                    ).length >=
+                    qtdPowers + 1
+                  );
+                }
+                case 'PROFICIENCIA': {
+                  const proficiencia = rule.value as unknown as string;
+                  return (
+                    rule.name &&
+                    sheet.classe.proficiencias.includes(proficiencia)
+                  );
+                }
+                case 'NIVEL': {
+                  const nivel = rule.value as number;
+                  return sheet.nivel >= nivel;
+                }
+                case 'CLASSE': {
+                  const className = rule.value as unknown as string;
+                  return rule.name && sheet.classe.name === className;
+                }
+                case 'TIPO_ARCANISTA': {
+                  const classSubName = rule.name;
+                  return sheet.classe.subname === classSubName;
+                }
+                case 'MAGIA': {
+                  const spellName = rule.name;
+                  return (
+                    sheet.spells.filter((spell) => spell.nome === spellName)
+                      .length >= 1
+                  );
+                }
+                case 'DEVOTO': {
+                  const godName = rule.name;
+                  const result = sheet.devoto?.divindade.name === godName;
+                  if (rule.not) return !result;
+                  return result;
+                }
+                case 'RACA': {
+                  const raceName = rule.name;
+                  return sheet.raca.name === raceName;
+                }
+                case 'TIER_LIMIT': {
+                  const category = rule.name as string;
+                  // Count powers in the category
+                  const count = sheet.generalPowers.filter((p) =>
+                    p.name.includes(category)
+                  ).length;
+                  return count < 1;
+                }
+                default:
+                  return true;
+              }
+            })
+          );
+        };
+
+        // Filter class powers by minimum level and requirements
+        const availablePowers = sheet.classe.powers.filter((power) => {
+          // Check if power already exists and if it can be repeated
+          const existingClassPowers = sheet.classPowers || [];
+          const isRepeatedPower = existingClassPowers.find(
+            (existingPower) => existingPower.name === power.name
+          );
+
+          if (isRepeatedPower && !power.canRepeat) {
+            return false;
+          }
+
+          // Check minimum level requirement in power requirements
+          let meetsMinLevel = true;
+          if (power.requirements && power.requirements.length > 0) {
+            // Check if any requirement path has a level requirement >= minLevel
+            meetsMinLevel = power.requirements.some((req: Requirement[]) =>
+              req.some(
+                (rule: Requirement) =>
+                  rule.type === 'NIVEL' && (rule.value as number) >= minLevel
+              )
+            );
+
+            // If no level requirement found, check if it's a basic power (usually level 1)
+            if (
+              !meetsMinLevel &&
+              !power.requirements.some((req: Requirement[]) =>
+                req.some((rule: Requirement) => rule.type === 'NIVEL')
+              )
+            ) {
+              // Power has no level requirement, assume it's available from level 1
+              meetsMinLevel = minLevel <= 1;
+            }
+          } else {
+            // No requirements, assume level 1 power
+            meetsMinLevel = minLevel <= 1;
+          }
+
+          return meetsMinLevel && checkPowerRequirements(power);
+        });
+
+        if (availablePowers.length === 0) {
+          throw new Error(
+            `Nenhum poder de classe disponível com nível mínimo ${minLevel}`
+          );
+        }
+
+        // Select power (manual or random)
+        let selectedPower: ClassPower;
+        if (manualSelections?.powers && manualSelections.powers.length > 0) {
+          const manualPower = manualSelections.powers[0];
+          selectedPower =
+            availablePowers.find((p) => p.name === manualPower.name) ||
+            getRandomItemFromArray(availablePowers);
+        } else {
+          selectedPower = getRandomItemFromArray(availablePowers);
+        }
+
+        // Add power to classPowers array
+        if (!sheet.classPowers) {
+          sheet.classPowers = [];
+        }
+        sheet.classPowers.push(selectedPower);
+
+        // Apply sheetBonuses from the power
+        if (selectedPower.sheetBonuses) {
+          sheet.sheetBonuses.push(...selectedPower.sheetBonuses);
+        }
+
+        // Note: sheetActions from the selected power are NOT applied automatically
+        // They would need to be manually triggered or will be shown in the power description
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'PowerAdded',
+              powerName: selectedPower.name,
+            },
+          ],
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Poder de classe adquirido: ${selectedPower.name}`,
+        });
       } else {
         throw new Error(
           `Ação de ficha desconhecida: ${JSON.stringify(sheetAction)}`

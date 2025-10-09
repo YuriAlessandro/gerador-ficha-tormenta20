@@ -48,7 +48,8 @@ export interface PowerSelectionRequirement {
     | 'selectFamiliar'
     | 'selectAnimalTotem'
     | 'buildGolpePessoal'
-    | 'learnClassAbility';
+    | 'learnClassAbility'
+    | 'getClassPower';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

@@ -114,6 +114,11 @@ export type SheetActionStep =
       type: 'learnClassAbility';
       availableClasses: string[]; // List of class names to choose from
       level: number; // Level of the ability (usually 1)
+    }
+  | {
+      type: 'getClassPower';
+      minLevel?: number; // Minimum level of powers to choose from (default: 2)
+      ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
     };
 
 export type SheetActionReceipt =

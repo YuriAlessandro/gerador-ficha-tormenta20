@@ -611,6 +611,23 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  FUTURA_LENDA: {
+    name: 'Futura Lenda',
+    description:
+      'Escolha um dos poderes de sua classe, normalmente disponíveis a partir do 2º nível. Você recebe esse poder.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: { type: 'origin', originName: 'Futura Lenda (Nova Malpetrim)' },
+        action: {
+          type: 'getClassPower',
+          minLevel: 2,
+          ignoreOnlyLevelRequirement: true,
+        },
+      },
+    ],
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
