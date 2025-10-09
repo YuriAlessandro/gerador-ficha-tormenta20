@@ -2,8 +2,11 @@ import { shuffle, cloneDeep } from 'lodash';
 import { OriginPower } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { spellsCircle1 } from '../../magias/generalSpells';
+import { allArcaneSpellsCircle1 } from '../../magias/arcane';
 import { Atributo } from '../../atributos';
 import { Spell } from '../../../../../interfaces/Spells';
+import combatPowers from '../../powers/combatPowers';
+import tormentaPowers from '../../powers/tormentaPowers';
 
 export const ORIGIN_POWER_TYPE = 'ORIGEM';
 
@@ -326,6 +329,287 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
+  },
+  DUYSHID_AKK_INFILTRADO: {
+    name: 'Duyshid akk Infiltrado',
+    description:
+      'Você recebe +2 em Furtividade e Vontade e pode usar Sabedoria como atributo-chave de Enganação (em vez de Carisma).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Duyshid akk Infiltrado',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FURTIVIDADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Duyshid akk Infiltrado',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.VONTADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Duyshid akk Infiltrado',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.ENGANACAO,
+          attribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+    ],
+  },
+  EMISSARIO_UBANERI: {
+    name: 'Emissário Ubaneri',
+    description:
+      'Você recebe um alikunhá, um parceiro iniciante, e pode usar Sabedoria como atributo-chave de Misticismo (em vez de Inteligência).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Emissário Ubaneri',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.MISTICISMO,
+          attribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+    ],
+  },
+  ESCUDEIRO_DA_LUZ: {
+    name: 'Escudeiro da Luz',
+    description:
+      'Você é treinado em Nobreza. Além disso, recebe +2 na Defesa e +3 PM.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Escudeiro da Luz',
+        },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Escudeiro da Luz',
+        },
+        target: {
+          type: 'PM',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
+  },
+  ESCUDEIRO_SOLITARIO: {
+    name: 'Escudeiro Solitário',
+    description:
+      'Você é treinado em Enganação e Ladinagem e recebe +10 em testes de Enganação para se disfarçar como cavaleiro da Luz. Além disso, se tiver Código de Honra (ou outro semelhante), atacar pelas costas não faz com que você o viole.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Escudeiro Solitário',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ENGANACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 10,
+        },
+      },
+    ],
+  },
+  ESTANDARTE_VIVO: {
+    name: 'Estandarte Vivo',
+    description:
+      'Você recebe +2 em Sobrevivência e um poder de combate ou da Tormenta à sua escolha.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Estandarte Vivo',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.SOBREVIVENCIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Estandarte Vivo',
+        },
+        action: {
+          type: 'getGeneralPower',
+          availablePowers: [
+            ...Object.values(combatPowers),
+            ...Object.values(tormentaPowers),
+          ],
+          pick: 1,
+        },
+      },
+    ],
+  },
+  ESTUDANTE_DA_ACADEMIA: {
+    name: 'Estudante da Academia',
+    description:
+      'Você aprende e pode lançar uma magia arcana de 1º círculo a sua escolha (atributo-chave Inteligência). Além disso, pode fazer testes de Misticismo mesmo sem ser treinado nessa perícia. Se for treinado, recebe +2 em testes dela.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Estudante da Academia',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.MISTICISMO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Estudante da Academia',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: allArcaneSpellsCircle1,
+          pick: 1,
+          customAttribute: Atributo.INTELIGENCIA,
+        },
+      },
+    ],
+  },
+  ESTUDANTE_DO_COLEGIO_REAL: {
+    name: 'Estudante do Colégio Real',
+    description:
+      'Você é treinado em Cura. Além disso, seus efeitos de cura recuperam +2 PV por dado. Você perde esse benefício caso se torne um devoto de qualquer tipo.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
+  EXPLORADOR_DE_RUINAS: {
+    name: 'Explorador de Ruínas',
+    description:
+      'Você recebe +2 em Ladinagem, Percepção e Reflexos e +3m em seu deslocamento.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Explorador de Ruínas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.LADINAGEM,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Explorador de Ruínas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.PERCEPCAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Explorador de Ruínas',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Explorador de Ruínas',
+        },
+        target: {
+          type: 'Displacement',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
+  },
+  FILHOTE_DA_REVOADA: {
+    name: 'Filhote da Revoada',
+    description:
+      'Você é treinado em Acrobacia e Pilotagem. Quando faz um teste de uma dessas perícias, pode gastar 1 PM para rolar um dado adicional e usar o melhor resultado.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
   },
 };
 

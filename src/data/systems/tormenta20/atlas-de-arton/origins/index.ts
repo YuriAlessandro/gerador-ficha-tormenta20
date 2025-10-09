@@ -22,6 +22,15 @@ import DE_OUTRO_MUNDO from './de-outro-mundo';
 import DESCENDENTE_COLLENIANO from './descendente-colleniano';
 import DESERTOR_DA_SUPREMACIA from './desertor-da-supremacia';
 import DUPLO_FEERICO from './duplo-feerico';
+import DUYSHID_AKK_INFILTRADO from './duyshid-akk-infiltrado';
+import EMISSARIO_UBANERI from './emissario-ubaneri';
+import ESCUDEIRO_DA_LUZ from './escudeiro-da-luz';
+import ESCUDEIRO_SOLITARIO from './escudeiro-solitario';
+import ESTANDARTE_VIVO from './estandarte-vivo';
+import ESTUDANTE_DA_ACADEMIA from './estudante-da-academia';
+import ESTUDANTE_DO_COLEGIO_REAL from './estudante-do-colegio-real';
+import EXPLORADOR_DE_RUINAS from './explorador-de-ruinas';
+import FILHOTE_DA_REVOADA from './filhote-da-revoada';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -47,6 +56,15 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   DESCENDENTE_COLLENIANO,
   DESERTOR_DA_SUPREMACIA,
   DUPLO_FEERICO,
+  DUYSHID_AKK_INFILTRADO,
+  EMISSARIO_UBANERI,
+  ESCUDEIRO_DA_LUZ,
+  ESCUDEIRO_SOLITARIO,
+  ESTANDARTE_VIVO,
+  ESTUDANTE_DA_ACADEMIA,
+  ESTUDANTE_DO_COLEGIO_REAL,
+  EXPLORADOR_DE_RUINAS,
+  FILHOTE_DA_REVOADA,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
