@@ -692,6 +692,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     ],
     sheetBonuses: [],
   },
+  INICIADO_DOS_CACA_MONSTROS: {
+    name: 'Iniciado dos Caça-Monstros',
+    description:
+      'Você pode fazer testes para identificar criaturas com uma ação de movimento e, quando acerta um ataque em uma criatura não humanoide, pode gastar 1 PM para causar +1d8 pontos de dano.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
