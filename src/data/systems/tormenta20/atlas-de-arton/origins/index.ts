@@ -34,6 +34,7 @@ import FILHOTE_DA_REVOADA from './filhote-da-revoada';
 import FUTURA_LENDA from './futura-lenda';
 import GINETE_DE_TUMARKHAN from './ginete-de-tumarkhan';
 import GRUMETE_PIRATA from './grumete-pirata';
+import GUARDIAO_GLACIAL from './guardiao-glacial';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -71,6 +72,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   FUTURA_LENDA,
   GINETE_DE_TUMARKHAN,
   GRUMETE_PIRATA,
+  GUARDIAO_GLACIAL,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

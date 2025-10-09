@@ -672,6 +672,26 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  GUARDIAO_GLACIAL: {
+    name: 'Guardião Glacial',
+    description:
+      'Você recebe redução de frio 5 e proficiência em arco longo e machado de batalha. Caso já possua proficiência com essas armas, você recebe +2 em rolagens de dano com elas.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Guardião Glacial (Uivantes)',
+        },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: ['Arco Longo', 'Machado de Batalha'],
+          pick: 2,
+        },
+      },
+    ],
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
