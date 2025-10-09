@@ -650,6 +650,28 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  GRUMETE_PIRATA: {
+    name: 'Grumete Pirata',
+    description:
+      'Você é treinado em Acrobacia, Atletismo e Reflexos e, se estiver se equilibrando, escalando ou nadando, só cai ou afunda se falhar no teste de perícia por 10 ou mais (em vez de 5 ou mais).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Grumete Pirata (Três Mares)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INTIMIDACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
