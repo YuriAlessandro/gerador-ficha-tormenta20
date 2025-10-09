@@ -1950,13 +1950,18 @@ export const applyPower = (
         }
         sheet.classPowers.push(selectedPower);
 
-        // Apply sheetBonuses from the power
-        if (selectedPower.sheetBonuses) {
-          sheet.sheetBonuses.push(...selectedPower.sheetBonuses);
+        // Apply the selected power's sheetActions and sheetBonuses
+        if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
+          const [updatedSheet, powerSubSteps] = applyPower(
+            sheet,
+            selectedPower,
+            manualSelections
+          );
+          // Update sheet reference with changes from applying the power
+          Object.assign(sheet, updatedSheet);
+          // Add substeps from the power application
+          subSteps.push(...powerSubSteps);
         }
-
-        // Note: sheetActions from the selected power are NOT applied automatically
-        // They would need to be manually triggered or will be shown in the power description
 
         sheet.sheetActionHistory.push({
           source: sheetAction.source,
