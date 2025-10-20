@@ -762,6 +762,41 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  IRMAO_SEM_ESPORAS: {
+    name: 'Irmão sem Esporas',
+    description:
+      'Você possui um irmão cavalo, um cavalo de guerra parceiro iniciante que fornece +1 em testes de ataque e Reflexos. Se receber outra montaria especial (como aquela concedida pelos poderes Montaria ou Montaria Sagrada), você pode usar seu irmão cavalo como essa montaria, acumulando o bônus em perícias com os benefícios da montaria especial.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Irmão sem Esporas (Namalkah)',
+        },
+        target: {
+          type: 'WeaponAttack',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Irmão sem Esporas (Namalkah)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.REFLEXOS,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
