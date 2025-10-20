@@ -797,6 +797,26 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  LEGIONARIO: {
+    name: 'Legionário',
+    description:
+      'Você é treinado em Guerra e recebe proficiência com gládios e escudos. Se estiver empunhando um gládio e um escudo pesado, recebe +1 na margem de ameaça e +1 na Defesa.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Legionário (Império de Tauron)',
+        },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: ['Gládio', 'Escudos'],
+          pick: 2,
+        },
+      },
+    ],
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;

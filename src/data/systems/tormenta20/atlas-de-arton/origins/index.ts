@@ -38,6 +38,7 @@ import GUARDIAO_GLACIAL from './guardiao-glacial';
 import INICIADO_DOS_CACA_MONSTROS from './iniciado-dos-caca-monstros';
 import INSURGENTE_TAPISTANO from './insurgente-tapistano';
 import IRMAO_SEM_ESPORAS from './irmao-sem-esporas';
+import LEGIONARIO from './legionario';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -79,6 +80,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   INICIADO_DOS_CACA_MONSTROS,
   INSURGENTE_TAPISTANO,
   IRMAO_SEM_ESPORAS,
+  LEGIONARIO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
