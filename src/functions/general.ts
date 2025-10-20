@@ -961,11 +961,30 @@ function getInitialBag(origin: Origin | undefined): Bag {
           equipments['Item Geral'].push(newEquip);
         }
       } else if (equip.equipment) {
-        // É uma arma - inicializa array se necessário
-        if (!equipments.Arma) {
-          equipments.Arma = [];
+        // Verificar se é Armadura, Escudo ou Arma
+        const equipValue = equip.equipment;
+
+        // Verifica se é uma armadura
+        if (Object.values(Armaduras).includes(equipValue as any)) {
+          if (!equipments.Armadura) {
+            equipments.Armadura = [];
+          }
+          equipments.Armadura.push(equipValue as DefenseEquipment);
         }
-        equipments.Arma.push(equip.equipment);
+        // Verifica se é um escudo
+        else if (Object.values(Escudos).includes(equipValue as any)) {
+          if (!equipments.Escudo) {
+            equipments.Escudo = [];
+          }
+          equipments.Escudo.push(equipValue as DefenseEquipment);
+        }
+        // Se não for armadura nem escudo, é uma arma
+        else {
+          if (!equipments.Arma) {
+            equipments.Arma = [];
+          }
+          equipments.Arma.push(equipValue);
+        }
       }
     });
   }
