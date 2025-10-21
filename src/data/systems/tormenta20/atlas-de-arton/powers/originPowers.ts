@@ -1293,6 +1293,57 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  TRAPACEIRO_AHLENIENSE: {
+    name: 'Trapaceiro Ahleniense',
+    description:
+      'Você recebe +2 em Enganação e Furtividade e pode usar Carisma como atributo-chave de Ladinagem (em vez de Destreza).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Trapaceiro Ahleniense (Ahlen)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ENGANACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Trapaceiro Ahleniense (Ahlen)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FURTIVIDADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Trapaceiro Ahleniense (Ahlen)',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.LADINAGEM,
+          attribute: Atributo.CARISMA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;

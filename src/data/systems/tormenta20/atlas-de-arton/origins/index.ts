@@ -62,6 +62,7 @@ import TAMALU from './tamalu';
 import TOCADO_PELA_DAMA_ALTIVA from './tocado-pela-dama-altiva';
 import TOCADO_PELO_INDOMAVEL from './tocado-pelo-indomavel';
 import TRADICIONALISTA_SVALANO from './tradicionalista-svalano';
+import TRAPACEIRO_AHLENIENSE from './trapaceiro-ahleniense';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -127,6 +128,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   TOCADO_PELA_DAMA_ALTIVA,
   TOCADO_PELO_INDOMAVEL,
   TRADICIONALISTA_SVALANO,
+  TRAPACEIRO_AHLENIENSE,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
