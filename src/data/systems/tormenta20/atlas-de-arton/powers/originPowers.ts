@@ -889,6 +889,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  MEMBRO_DO_PRINCIPADO: {
+    name: 'Membro do Principado',
+    description:
+      'Você é treinado em Diplomacia e Intuição. Quando chega em uma cidade pela primeira vez em cada aventura, pode fazer um teste de Diplomacia (CD 20). Se passar, recebe 10% de desconto em todos os itens que comprar neste lugar (cumulativo com barganha).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
