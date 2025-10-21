@@ -1220,6 +1220,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  TOCADO_PELO_INDOMAVEL: {
+    name: 'Tocado pelo Indomável',
+    description:
+      'Você é treinado em Atletismo e recebe +2 em rolagens de dano com armas naturais e ataques desarmados.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
