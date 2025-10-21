@@ -959,6 +959,69 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  PESCADOR_PARRUDO: {
+    name: 'Pescador Parrudo',
+    description:
+      'Você recebe +2 em Atletismo, Fortitude e Sobrevivência e +3 PV. Além disso, quando faz um teste de Atletismo para nadar você avança seu deslocamento (em vez de apenas a metade).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Pescador Parrudo (Khubar)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ATLETISMO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Pescador Parrudo (Khubar)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Pescador Parrudo (Khubar)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.SOBREVIVENCIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Pescador Parrudo (Khubar)',
+        },
+        target: {
+          type: 'PV',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 3,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
