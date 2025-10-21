@@ -1043,6 +1043,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  PRISIONEIRO_DAS_CATACUMBAS: {
+    name: 'Prisioneiro das Catacumbas',
+    description:
+      'Você é treinado em Percepção e Reflexos e recebe resistência a armadilhas e efeitos de movimento +5.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
