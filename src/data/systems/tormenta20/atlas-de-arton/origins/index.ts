@@ -40,6 +40,7 @@ import INSURGENTE_TAPISTANO from './insurgente-tapistano';
 import IRMAO_SEM_ESPORAS from './irmao-sem-esporas';
 import LEGIONARIO from './legionario';
 import LENHADOR_DE_TOLLON from './lenhador-de-tollon';
+import LIRICISTA_DE_LENORIENN from './liricista-de-lenorienn';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -83,6 +84,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   IRMAO_SEM_ESPORAS,
   LEGIONARIO,
   LENHADOR_DE_TOLLON,
+  LIRICISTA_DE_LENORIENN,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

@@ -843,11 +843,48 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
         target: {
           type: 'Skill',
-          name: Skill.OFICIO,
+          name: Skill.OFICIO_ARTESANATO,
         },
         modifier: {
           type: 'Fixed',
           value: 5,
+        },
+      },
+    ],
+  },
+  LIRICISTA_DE_LENORIENN: {
+    name: 'Liricista de Lenórienn',
+    description:
+      'Você é treinado em Atuação e recebe +2 nessa perícia. Além disso, pode usar Carisma como atributo-chave de Misticismo (no lugar de Inteligência).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Liricista de Lenórienn (Lamnor)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.ATUACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Liricista de Lenórienn (Lamnor)',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.MISTICISMO,
+          attribute: Atributo.CARISMA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
         },
       },
     ],
