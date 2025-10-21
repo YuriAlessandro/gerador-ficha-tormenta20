@@ -1155,6 +1155,29 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  SABIO_MATEMATICO: {
+    name: 'Sábio Matemático',
+    description:
+      'Você é treinado em Conhecimento. Além disso, aprende e pode lançar Concentração de Combate e Orientação. Estes efeitos não contam como magias (exceto para fins de acúmulo) e não são mágicos — eles provêm de sua habilidade de calcular resultados a partir de uma mistura de geometria, análise de probabilidades e outros campos da matemática.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Sábio Matemático (Halak-Tûr)',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: [
+            spellsCircle1.concentracaoDeCombate,
+            spellsCircle1.orientacao,
+          ],
+          pick: 2,
+        },
+      },
+    ],
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
