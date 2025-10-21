@@ -1127,6 +1127,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  RECRUTA_ARCANO: {
+    name: 'Recruta Arcano',
+    description:
+      'A CD para resistir a suas magias arcanas aumenta em +1 e elas causam +1 ponto de dano.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
