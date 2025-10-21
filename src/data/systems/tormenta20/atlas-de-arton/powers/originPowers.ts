@@ -1344,6 +1344,27 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  TURISTA_DA_ACADEMIA: {
+    name: 'Turista da Academia',
+    description:
+      'Você recebe resistência a magia +2 e pode ativar pergaminhos de todas as magias arcanas de 1º círculo como se as conhecesse.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Turista da Academia (Academia Arcana)',
+        },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
