@@ -1113,6 +1113,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  REBELDE_AGITADOR: {
+    name: 'Rebelde Agitador',
+    description:
+      'Você é treinado em Iniciativa e, uma vez por aventura, pode gastar um dia para convencer pessoas comuns a ajudá-lo. Faça um teste de Diplomacia (CD 10). Se passar, você convence uma pessoa, mais uma para cada 10 pontos acima da CD. Cada pessoa pode ser usada como um parceiro iniciante de um tipo à sua escolha por uma cena.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
