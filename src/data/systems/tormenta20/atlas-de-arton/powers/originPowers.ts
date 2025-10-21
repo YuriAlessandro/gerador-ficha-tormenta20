@@ -817,6 +817,41 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     ],
     sheetBonuses: [],
   },
+  LENHADOR_DE_TOLLON: {
+    name: 'Lenhador de Tollon',
+    description:
+      'Você é treinado em Ofício (artesão) e recebe +5 em testes de perícias (exceto testes de ataque) relacionados a madeira. Além disso, você recebe proficiência com machadinhas e machados de batalha; caso já possua proficiência com essas armas, recebe +2 em rolagens de dano com elas.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Lenhador de Tollon (Tollon)',
+        },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: ['Machadinha', 'Machado de Batalha'],
+          pick: 2,
+        },
+      },
+    ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Lenhador de Tollon (Tollon)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.OFICIO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 5,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
