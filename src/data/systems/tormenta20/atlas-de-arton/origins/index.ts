@@ -50,6 +50,7 @@ import PLEBEU_ARCANO from './plebeu-arcano';
 import PRISIONEIRO_DAS_CATACUMBAS from './prisioneiro-das-catacumbas';
 import PROCURADO_VIVO_OU_MORTO from './procurado-vivo-ou-morto';
 import PROFETA_DO_AKZATH from './profeta-do-akzath';
+import QUERIDO_FILHO from './querido-filho';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -103,6 +104,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   PRISIONEIRO_DAS_CATACUMBAS,
   PROCURADO_VIVO_OU_MORTO,
   PROFETA_DO_AKZATH,
+  QUERIDO_FILHO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
