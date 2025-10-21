@@ -48,6 +48,7 @@ import NOMADE_SAR_ALLAN from './nomade-sar-allan';
 import PESCADOR_PARRUDO from './pescador-parrudo';
 import PLEBEU_ARCANO from './plebeu-arcano';
 import PRISIONEIRO_DAS_CATACUMBAS from './prisioneiro-das-catacumbas';
+import PROCURADO_VIVO_OU_MORTO from './procurado-vivo-ou-morto';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -99,6 +100,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   PESCADOR_PARRUDO,
   PLEBEU_ARCANO,
   PRISIONEIRO_DAS_CATACUMBAS,
+  PROCURADO_VIVO_OU_MORTO,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

@@ -1050,6 +1050,55 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  PROCURADO_VIVO_OU_MORTO: {
+    name: 'Procurado: Vivo ou Morto',
+    description:
+      'Você recebe proficiência com armas de fogo. Além disso, recebe +5 em testes de Intimidação e –5 em testes de Diplomacia contra qualquer um que, a critério do mestre, o reconheça e saiba de sua fama.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Procurado: Vivo ou Morto (Smokestone)',
+        },
+        action: {
+          type: 'addProficiency',
+          availableProficiencies: ['Armas de Fogo'],
+          pick: 1,
+        },
+      },
+    ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Procurado: Vivo ou Morto (Smokestone)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.INTIMIDACAO,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 5,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Procurado: Vivo ou Morto (Smokestone)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.DIPLOMACIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: -5,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
