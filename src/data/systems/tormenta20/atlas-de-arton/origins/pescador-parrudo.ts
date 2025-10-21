@@ -24,18 +24,16 @@ const PESCADOR_PARRUDO: Origin = {
   poderes: [atlasOriginPowers.PESCADOR_PARRUDO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    return [
-      {
-        equipment: 'Vara de pesca',
-        qtd: 1,
-      },
-      {
-        equipment: 'Peixes raros salgados para revenda',
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    {
+      equipment: 'Vara de pesca',
+      qtd: 1,
+    },
+    {
+      equipment: 'Peixes raros salgados para revenda',
+      qtd: 1,
+    },
+  ],
 };
 
 export default PESCADOR_PARRUDO;
