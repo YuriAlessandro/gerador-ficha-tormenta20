@@ -59,6 +59,7 @@ import SABIO_MATEMATICO from './sabio-matematico';
 import SELVAGEM_SANGUINARIO from './selvagem-sanguinario';
 import SUCATEIRO_DE_BATALHAS from './sucateiro-de-batalhas';
 import TAMALU from './tamalu';
+import TOCADO_PELA_DAMA_ALTIVA from './tocado-pela-dama-altiva';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -121,6 +122,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   SELVAGEM_SANGUINARIO,
   SUCATEIRO_DE_BATALHAS,
   TAMALU,
+  TOCADO_PELA_DAMA_ALTIVA,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
