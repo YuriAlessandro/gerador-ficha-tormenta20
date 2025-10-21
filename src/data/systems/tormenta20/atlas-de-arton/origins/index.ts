@@ -54,6 +54,7 @@ import QUERIDO_FILHO from './querido-filho';
 import REBELDE_AGITADOR from './rebelde-agitador';
 import RECEPTADOR_DAS_NUVENS from './receptador-das-nuvens';
 import RECRUTA_ARCANO from './recruta-arcano';
+import RECRUTA_DA_FENIX from './recruta-da-fenix';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -111,6 +112,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   REBELDE_AGITADOR,
   RECEPTADOR_DAS_NUVENS,
   RECRUTA_ARCANO,
+  RECRUTA_DA_FENIX,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

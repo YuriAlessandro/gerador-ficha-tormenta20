@@ -1134,6 +1134,27 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  RECRUTA_DA_FENIX: {
+    name: 'Recruta da Fênix',
+    description:
+      'Você recebe +1 PV por nível e redução de fogo 5, e é treinado em Cavalgar.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Recruta da Fênix (Triunphus)',
+        },
+        target: {
+          type: 'PV',
+        },
+        modifier: {
+          type: 'LevelCalc',
+          formula: '{level}',
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
