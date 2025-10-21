@@ -44,6 +44,7 @@ import LIRICISTA_DE_LENORIENN from './liricista-de-lenorienn';
 import MEMBRO_DO_PRINCIPADO from './membro-do-principado';
 import NITAMURANIANO from './nitamuraniano';
 import NOBRE_ZAKHAROVIANO from './nobre-zakharoviano';
+import NOMADE_SAR_ALLAN from './nomade-sar-allan';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -91,6 +92,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   MEMBRO_DO_PRINCIPADO,
   NITAMURANIANO,
   NOBRE_ZAKHAROVIANO,
+  NOMADE_SAR_ALLAN,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

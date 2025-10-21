@@ -923,6 +923,42 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  NOMADE_SAR_ALLAN: {
+    name: 'Nômade Sar-Allan',
+    description:
+      'Você recebe +2 em Fortitude e Sobrevivência e nas rolagens de dano com alfanges, arcos curtos e cimitarras.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Nômade Sar-Allan (Halak-Tûr)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Nômade Sar-Allan (Halak-Tûr)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.SOBREVIVENCIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
