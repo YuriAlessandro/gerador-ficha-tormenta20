@@ -1185,6 +1185,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  SUCATEIRO_DE_BATALHAS: {
+    name: 'Sucateiro de Batalhas',
+    description:
+      'Você é treinado em Guerra e Investigação. Além disso, quando rola na Tabela 8-1: Tesouro por Nível de Desafio (Tormenta20, p. 328), para cada tipo de tesouro (dinheiro ou item) você pode rolar novamente o resultado.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
