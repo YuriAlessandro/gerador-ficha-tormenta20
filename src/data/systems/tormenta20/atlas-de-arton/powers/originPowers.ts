@@ -1099,6 +1099,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  PROFETA_DO_AKZATH: {
+    name: 'Profeta do Akzath',
+    description:
+      'Você é treinado em Religião e pode lançar magias mesmo sob o efeito de Fúria Divina.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
