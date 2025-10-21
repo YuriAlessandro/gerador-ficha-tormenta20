@@ -24,18 +24,16 @@ const QUERIDO_FILHO: Origin = {
   poderes: [atlasOriginPowers.QUERIDO_FILHO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    return [
-      {
-        equipment: 'Essência de sombra',
-        qtd: 1,
-      },
-      {
-        equipment: 'Manto camuflado (urbano)',
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    {
+      equipment: 'Essência de sombra',
+      qtd: 1,
+    },
+    {
+      equipment: 'Manto camuflado (urbano)',
+      qtd: 1,
+    },
+  ],
 };
 
 export default QUERIDO_FILHO;
