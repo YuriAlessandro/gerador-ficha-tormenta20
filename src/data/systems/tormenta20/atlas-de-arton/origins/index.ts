@@ -52,6 +52,7 @@ import PROCURADO_VIVO_OU_MORTO from './procurado-vivo-ou-morto';
 import PROFETA_DO_AKZATH from './profeta-do-akzath';
 import QUERIDO_FILHO from './querido-filho';
 import REBELDE_AGITADOR from './rebelde-agitador';
+import RECEPTADOR_DAS_NUVENS from './receptador-das-nuvens';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -107,6 +108,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   PROFETA_DO_AKZATH,
   QUERIDO_FILHO,
   REBELDE_AGITADOR,
+  RECEPTADOR_DAS_NUVENS,
 ];
 
 export default ATLAS_ARTON_ORIGINS;

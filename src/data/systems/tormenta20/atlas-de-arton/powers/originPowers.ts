@@ -1120,6 +1120,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  RECEPTADOR_DAS_NUVENS: {
+    name: 'Receptador das Nuvens',
+    description:
+      'Você possui contatos em Vectora que lhe dão acesso a mercadorias. Se estiver em uma cidade ou outro lugar em que, a critério do mestre, possa acessar seus contatos, você pode gastar 1 dia para obter um aparato mágico: um item de 1 espaço que você (e apenas você) pode empunhar para lançar uma magia de 1º círculo (atributo-chave Inteligência), escolhida ao obter o aparato. Você pode ter até 2 aparatos ao mesmo tempo. Os aparatos não têm valor comercial.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
