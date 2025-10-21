@@ -1365,6 +1365,29 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  UM_COM_OS_KAMI: {
+    name: 'Um com os Kami',
+    description:
+      'Você pode usar Sabedoria como atributo-chave de Misticismo (em vez de Inteligência). Além disso, é acompanhado por um kami incorpóreo e invisível. Ele é um parceiro especial, que permite que você veja criaturas incorpóreas invisíveis e afete criaturas com seus ataques e habilidades como se fossem mágicos, e não conta em seu limite de parceiros. Além disso, uma vez por rodada você pode gastar 1 PM para executar o equivalente a uma ação de movimento que só pode ser usada para manipular um objeto solto em alcance curto. O kami não pode se afastar além de alcance curto de você. Se for destruído por qualquer efeito, o kami desaparece, retornando no início da próxima cena.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Um com os Kami (Tamu-ra)',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.MISTICISMO,
+          attribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;

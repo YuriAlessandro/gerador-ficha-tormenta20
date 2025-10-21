@@ -64,6 +64,7 @@ import TOCADO_PELO_INDOMAVEL from './tocado-pelo-indomavel';
 import TRADICIONALISTA_SVALANO from './tradicionalista-svalano';
 import TRAPACEIRO_AHLENIENSE from './trapaceiro-ahleniense';
 import TURISTA_DA_ACADEMIA from './turista-da-academia';
+import UM_COM_OS_KAMI from './um-com-os-kami';
 
 const ATLAS_ARTON_ORIGINS: Origin[] = [
   AGRICULTOR_SAMBUR,
@@ -131,6 +132,7 @@ const ATLAS_ARTON_ORIGINS: Origin[] = [
   TRADICIONALISTA_SVALANO,
   TRAPACEIRO_AHLENIENSE,
   TURISTA_DA_ACADEMIA,
+  UM_COM_OS_KAMI,
 ];
 
 export default ATLAS_ARTON_ORIGINS;
