@@ -1192,6 +1192,27 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  TAMALU: {
+    name: 'Tamalu',
+    description:
+      'Você é treinado em Diplomacia e Nobreza e recebe uma tatuagem mística à sua escolha.',
+    type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tamalu (Khubar)',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: Object.values(spellsCircle1),
+          pick: 1,
+          customAttribute: Atributo.CARISMA,
+        },
+      },
+    ],
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
