@@ -77,7 +77,7 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Atlas de Arton',
     abbreviation: 'AA',
-    description: 'Origens regionais de Arton',
+    description: '70 origens regionais de Arton',
     releaseDate: '2021',
     requiresPremium: false,
   },
