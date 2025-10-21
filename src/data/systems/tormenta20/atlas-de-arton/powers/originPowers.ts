@@ -1022,6 +1022,27 @@ const atlasOriginPowers: Record<string, OriginPower> = {
       },
     ],
   },
+  PLEBEU_ARCANO: {
+    name: 'Plebeu Arcano',
+    description:
+      'Você recebe +2 PM. Além disso, uma vez por rodada, quando falha em um teste de resistência contra um efeito mágico, você pode gastar 1 PM para rolar novamente esse teste.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Plebeu Arcano (Wynlla)',
+        },
+        target: {
+          type: 'PM',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
