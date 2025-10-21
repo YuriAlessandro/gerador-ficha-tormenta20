@@ -965,14 +965,22 @@ function getInitialBag(origin: Origin | undefined): Bag {
         const equipValue = equip.equipment;
 
         // Verifica se é uma armadura
-        if (Object.values(Armaduras).includes(equipValue as any)) {
+        if (
+          Object.values(Armaduras).includes(
+            equipValue as unknown as DefenseEquipment
+          )
+        ) {
           if (!equipments.Armadura) {
             equipments.Armadura = [];
           }
           equipments.Armadura.push(equipValue as DefenseEquipment);
         }
         // Verifica se é um escudo
-        else if (Object.values(Escudos).includes(equipValue as any)) {
+        else if (
+          Object.values(Escudos).includes(
+            equipValue as unknown as DefenseEquipment
+          )
+        ) {
           if (!equipments.Escudo) {
             equipments.Escudo = [];
           }
