@@ -1227,6 +1227,72 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     type: ORIGIN_POWER_TYPE,
     sheetBonuses: [],
   },
+  TRADICIONALISTA_SVALANO: {
+    name: 'Tradicionalista Svalano',
+    description:
+      'Você pode usar Sabedoria como atributo-chave de Conhecimento e Nobreza e pode fazer testes dessas perícias mesmo sem treinamento. Além disso, recebe +1 em Fortitude e Vontade.',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tradicionalista Svalano (Svalas)',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.CONHECIMENTO,
+          attribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tradicionalista Svalano (Svalas)',
+        },
+        target: {
+          type: 'ModifySkillAttribute',
+          skill: Skill.NOBREZA,
+          attribute: Atributo.SABEDORIA,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 0,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tradicionalista Svalano (Svalas)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.FORTITUDE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+      {
+        source: {
+          type: 'origin',
+          originName: 'Tradicionalista Svalano (Svalas)',
+        },
+        target: {
+          type: 'Skill',
+          name: Skill.VONTADE,
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 1,
+        },
+      },
+    ],
+  },
 };
 
 export default atlasOriginPowers;
