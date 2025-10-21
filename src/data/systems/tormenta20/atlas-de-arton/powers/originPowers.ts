@@ -916,6 +916,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     ],
     sheetBonuses: [],
   },
+  NOBRE_ZAKHAROVIANO: {
+    name: 'Nobre Zakharoviano',
+    description:
+      'Você é treinado em Ofício (armeiro) e recebe uma arma superior com uma melhoria (exceto material especial). Se estiver de posse dessa arma, recebe +2 PM por patamar (apenas após um dia).',
+    type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [],
+  },
 };
 
 export default atlasOriginPowers;
