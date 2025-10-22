@@ -654,15 +654,17 @@ export function recalculateSheet(
         const pmAfter = updatedSheet.pm;
 
         // Track PM bonus details
+        let sourceLabel = 'Unknown';
+        if (bonus.source?.type === 'power') {
+          sourceLabel = `Power: ${bonus.source.name}`;
+        } else if (bonus.source?.type === 'origin') {
+          sourceLabel = `Origin: ${bonus.source.originName}`;
+        } else if (bonus.source?.type === 'race') {
+          sourceLabel = `Race: ${bonus.source.raceName}`;
+        }
+
         pmDebug.bonuses.push({
-          source:
-            bonus.source?.type === 'power'
-              ? `Power: ${bonus.source.name}`
-              : bonus.source?.type === 'origin'
-              ? `Origin: ${bonus.source.originName}`
-              : bonus.source?.type === 'race'
-              ? `Race: ${bonus.source.raceName}`
-              : 'Unknown',
+          source: sourceLabel,
           bonusType: bonus.modifier.type,
           formula:
             'formula' in bonus.modifier ? bonus.modifier.formula : undefined,
