@@ -583,21 +583,28 @@ export function recalculateSheet(
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 7.5: Reset PV and PM to base values before applying bonuses (to avoid accumulation)
-  // PV base = classe.pv + (CON mod * level)
+  // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
   const basePV = updatedSheet.classe.pv || 0;
+  const addPVPerLevel = updatedSheet.classe.addpv || 0;
   const conMod = updatedSheet.atributos.Constituição?.mod || 0;
-  updatedSheet.pv = basePV + conMod * updatedSheet.nivel;
+  updatedSheet.pv =
+    basePV +
+    addPVPerLevel * (updatedSheet.nivel - 1) +
+    conMod * updatedSheet.nivel;
 
-  // PM base = classe.pm (base PM from class)
+  // PM base = classe.pm + (classe.addpm * (level - 1))
   const basePM = updatedSheet.classe.pm || 0;
-  updatedSheet.pm = basePM;
+  const addPMPerLevel = updatedSheet.classe.addpm || 0;
+  updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   // PM Debug - Initial state
   const pmDebug = {
-    initialPM: basePM,
-    classeBasePM: updatedSheet.classe.pm || 0,
+    initialPM: updatedSheet.pm, // After reset with level progression
+    classeBasePM: basePM,
+    classePMPerLevel: addPMPerLevel,
     nivel: updatedSheet.nivel,
+    pmFromLevels: addPMPerLevel * (updatedSheet.nivel - 1),
     atributos: {
       INT: updatedSheet.atributos.Inteligência?.mod || 0,
       CAR: updatedSheet.atributos.Carisma?.mod || 0,
@@ -730,8 +737,13 @@ export function recalculateSheet(
   );
   // eslint-disable-next-line no-console
   console.log('📊 Initial State:', {
-    'PM Inicial': pmDebug.initialPM,
-    'Classe Base PM': pmDebug.classeBasePM,
+    'PM Inicial (após reset)': pmDebug.initialPM,
+    'Classe Base PM (1º nível)': pmDebug.classeBasePM,
+    'PM por Nível': pmDebug.classePMPerLevel,
+    'PM de Níveis': `${pmDebug.classePMPerLevel} × ${pmDebug.nivel - 1} = ${
+      pmDebug.pmFromLevels
+    }`,
+    'Cálculo Base': `${pmDebug.classeBasePM} + ${pmDebug.pmFromLevels} = ${pmDebug.initialPM}`,
     Nível: pmDebug.nivel,
     'Atributo Mágico': pmDebug.spellKeyAttr,
     'Mod. Atributo Mágico': pmDebug.spellKeyAttrMod,
