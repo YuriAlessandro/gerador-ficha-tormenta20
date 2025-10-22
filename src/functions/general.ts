@@ -4,6 +4,7 @@ import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
+import { recalculateSheet } from './recalculateSheet';
 import {
   getClassBaseSkills,
   getNotRepeatedSkillsByQtd,
@@ -3186,7 +3187,7 @@ export function generateEmptySheet(
     generalPowers: [],
     classPowers: [],
     steps: [],
-    skills: [],
+    skills: getClassBaseSkills(generatedClass), // Add class base skills
     spells: [],
     dinheiro: getInitialMoney(selectedOptions.nivel),
   };
@@ -3256,6 +3257,18 @@ export function generateEmptySheet(
   // Apply race abilities (this adds sheetBonuses and abilities from race)
   emptySheet = applyRaceAbilities(emptySheet);
 
+  // Apply race attribute modifiers
+  const tempSteps: Step[] = [];
+  emptySheet.atributos = modifyAttributesBasedOnRace(
+    emptySheet.raca,
+    emptySheet.atributos,
+    emptySheet.classe.attrPriority || [],
+    tempSteps,
+    undefined, // No manual choices for empty sheet
+    undefined // Sex not defined in empty sheet yet
+  );
+  emptySheet.steps.push(...tempSteps);
+
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
 
@@ -3306,6 +3319,9 @@ export function generateEmptySheet(
         !skill.name.startsWith('Of') ||
         (skill.name.startsWith('Of') && skill.training > 0)
     );
+
+  // Recalculate sheet to apply all bonuses (attributes, PV/PM, defense, skills)
+  emptySheet = recalculateSheet(emptySheet);
 
   return emptySheet;
 }
