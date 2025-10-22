@@ -933,6 +933,102 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     onClose();
   };
 
+  // Calculate PV preview based on current edits
+  const calculatePVPreview = () =>
+    recalculatePV(
+      editedData.nivel,
+      editedData.className,
+      editedData.attributes,
+      editedData.customPVPerLevel,
+      editedData.bonusPV
+    );
+
+  // Calculate PM preview based on current edits
+  const calculatePMPreview = () =>
+    recalculatePM(
+      editedData.nivel,
+      editedData.className,
+      editedData.attributes,
+      editedData.customPMPerLevel,
+      editedData.bonusPM
+    );
+
+  // Generate PV calculation formula string
+  const getPVCalculationFormula = () => {
+    const classData = CLASSES.find((c) => c.name === editedData.className);
+    if (!classData) return '';
+
+    const conMod = editedData.attributes.Constituição.mod;
+    const pvPerLevel = editedData.customPVPerLevel ?? classData.addpv ?? 0;
+    const pvBase = classData.pv + conMod;
+    const pvFromLevels = (pvPerLevel + conMod) * (editedData.nivel - 1);
+    const bonus = editedData.bonusPV;
+
+    let formula = `${classData.pv} (base) + ${conMod} (CON)`;
+    if (editedData.nivel > 1) {
+      formula += ` + [${pvPerLevel} (por nível) + ${conMod} (CON)] × ${
+        editedData.nivel - 1
+      }`;
+    }
+    if (bonus !== 0) {
+      formula += ` + ${bonus} (bônus)`;
+    }
+    formula += ` = ${pvBase}`;
+    if (editedData.nivel > 1) {
+      formula += ` + ${pvFromLevels}`;
+    }
+    if (bonus !== 0) {
+      formula += ` + ${bonus}`;
+    }
+    formula += ` = ${calculatePVPreview()}`;
+
+    return formula;
+  };
+
+  // Generate PM calculation formula string
+  const getPMCalculationFormula = () => {
+    const classData = CLASSES.find((c) => c.name === editedData.className);
+    if (!classData) return '';
+
+    let keyAttrMod = 0;
+    let keyAttrName = '';
+    if (classData.spellPath) {
+      const keyAttr = editedData.attributes[classData.spellPath.keyAttribute];
+      keyAttrMod = keyAttr ? keyAttr.mod : 0;
+      keyAttrName = classData.spellPath.keyAttribute.substring(0, 3);
+    }
+
+    const pmPerLevel = editedData.customPMPerLevel ?? classData.addpm ?? 0;
+    const pmBase = classData.pm + keyAttrMod;
+    const pmFromLevels = (pmPerLevel + keyAttrMod) * (editedData.nivel - 1);
+    const bonus = editedData.bonusPM;
+
+    let formula = `${classData.pm} (base)`;
+    if (keyAttrMod !== 0) {
+      formula += ` + ${keyAttrMod} (${keyAttrName})`;
+    }
+    if (editedData.nivel > 1) {
+      formula += ` + [${pmPerLevel} (por nível)`;
+      if (keyAttrMod !== 0) {
+        formula += ` + ${keyAttrMod} (${keyAttrName})`;
+      }
+      formula += `] × ${editedData.nivel - 1}`;
+    }
+    if (bonus !== 0) {
+      formula += ` + ${bonus} (bônus)`;
+    }
+    formula += ` = ${pmBase}`;
+    if (editedData.nivel > 1) {
+      formula += ` + ${pmFromLevels}`;
+    }
+    if (bonus !== 0) {
+      formula += ` + ${bonus}`;
+    }
+    formula += ` = ${calculatePMPreview()}`;
+
+    return formula;
+  };
+
   return (
     <Drawer
       anchor='right'
@@ -1483,6 +1579,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       ? editedData.customPVPerLevel
                       : ''
                   }
+                  placeholder={
+                    CLASSES.find(
+                      (c) => c.name === editedData.className
+                    )?.addpv?.toString() || '0'
+                  }
                   onChange={(e) => {
                     const value = e.target.value;
                     setEditedData({
@@ -1506,6 +1607,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     editedData.customPMPerLevel !== undefined
                       ? editedData.customPMPerLevel
                       : ''
+                  }
+                  placeholder={
+                    CLASSES.find(
+                      (c) => c.name === editedData.className
+                    )?.addpm?.toString() || '0'
                   }
                   onChange={(e) => {
                     const value = e.target.value;
@@ -1551,6 +1657,59 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                   helperText='Bônus fixo adicionado ao PM total'
                   inputProps={{ min: -100, max: 500 }}
                 />
+
+                {/* Preview de Cálculo de PV/PM */}
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 2,
+                    bgcolor: 'background.default',
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography
+                    variant='subtitle2'
+                    sx={{ mb: 1, fontWeight: 'bold' }}
+                  >
+                    📊 Preview do Cálculo
+                  </Typography>
+
+                  {/* PV Calculation */}
+                  <Stack spacing={0.5} sx={{ mb: 2 }}>
+                    <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
+                      PV Total: {calculatePVPreview()}
+                    </Typography>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        fontFamily: 'monospace',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {getPVCalculationFormula()}
+                    </Typography>
+                  </Stack>
+
+                  {/* PM Calculation */}
+                  <Stack spacing={0.5}>
+                    <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
+                      PM Total: {calculatePMPreview()}
+                    </Typography>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        fontFamily: 'monospace',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {getPMCalculationFormula()}
+                    </Typography>
+                  </Stack>
+                </Box>
               </Stack>
             </AccordionDetails>
           </Accordion>
