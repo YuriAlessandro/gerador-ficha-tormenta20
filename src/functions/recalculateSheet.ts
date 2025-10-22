@@ -582,10 +582,20 @@ export function recalculateSheet(
   // Step 7: Recalculate skills first (resets others to 0)
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
+  // Step 7.5: Reset PV and PM to base values before applying bonuses (to avoid accumulation)
+  // PV base = classe.pv + (CON mod * level)
+  const basePV = updatedSheet.classe.pv || 0;
+  const conMod = updatedSheet.atributos.Constituição?.mod || 0;
+  updatedSheet.pv = basePV + conMod * updatedSheet.nivel;
+
+  // PM base = classe.pm (base PM from class)
+  const basePM = updatedSheet.classe.pm || 0;
+  updatedSheet.pm = basePM;
+
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   // PM Debug - Initial state
   const pmDebug = {
-    initialPM: updatedSheet.pm,
+    initialPM: basePM,
     classeBasePM: updatedSheet.classe.pm || 0,
     nivel: updatedSheet.nivel,
     atributos: {
