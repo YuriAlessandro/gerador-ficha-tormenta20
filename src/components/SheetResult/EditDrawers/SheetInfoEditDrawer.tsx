@@ -17,8 +17,12 @@ import {
   Autocomplete,
   Chip,
   Checkbox,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import { dataRegistry } from '@/data/registry';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
@@ -170,6 +174,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       userSupplements
     )
   );
+
+  // State for controlling which accordions are expanded
+  const [expandedAccordions, setExpandedAccordions] = useState<string[]>([
+    'info-basicas',
+  ]);
 
   useEffect(() => {
     setEditedData({
@@ -382,6 +391,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         },
       },
     }));
+  };
+
+  const handleAccordionChange = (panel: string) => {
+    setExpandedAccordions((prev) =>
+      prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
+    );
   };
 
   const handleSave = () => {
@@ -942,550 +957,603 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
         <Divider sx={{ mb: 3 }} />
 
-        <Stack spacing={3}>
-          <Autocomplete
-            freeSolo
-            options={nameSuggestions}
-            value={editedData.nome}
-            onChange={(event, newValue) => {
-              setEditedData({ ...editedData, nome: newValue || '' });
-            }}
-            onInputChange={(event, newInputValue) => {
-              setEditedData({ ...editedData, nome: newInputValue });
-            }}
-            renderInput={(params) => (
-              <TextField
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...params}
-                fullWidth
-                label='Nome'
-                helperText='Digite ou selecione um nome baseado na raça e gênero'
-              />
-            )}
-          />
+        <Stack spacing={2}>
+          {/* Accordion 1: Informações Básicas */}
+          <Accordion
+            expanded={expandedAccordions.includes('info-basicas')}
+            onChange={() => handleAccordionChange('info-basicas')}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant='subtitle1' fontWeight='medium'>
+                Informações Básicas
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={3}>
+                <Autocomplete
+                  freeSolo
+                  options={nameSuggestions}
+                  value={editedData.nome}
+                  onChange={(event, newValue) => {
+                    setEditedData({ ...editedData, nome: newValue || '' });
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    setEditedData({ ...editedData, nome: newInputValue });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      // eslint-disable-next-line react/jsx-props-no-spreading
+                      {...params}
+                      fullWidth
+                      label='Nome'
+                      helperText='Digite ou selecione um nome baseado na raça e gênero'
+                    />
+                  )}
+                />
 
-          <TextField
-            fullWidth
-            label='Nível'
-            type='number'
-            value={editedData.nivel}
-            onChange={(e) =>
-              setEditedData({
-                ...editedData,
-                nivel: parseInt(e.target.value, 10) || 1,
-              })
-            }
-            inputProps={{ min: 1, max: 20 }}
-          />
+                <TextField
+                  fullWidth
+                  label='Nível'
+                  type='number'
+                  value={editedData.nivel}
+                  onChange={(e) =>
+                    setEditedData({
+                      ...editedData,
+                      nivel: parseInt(e.target.value, 10) || 1,
+                    })
+                  }
+                  inputProps={{ min: 1, max: 20 }}
+                />
 
-          <FormControl fullWidth>
-            <InputLabel>Gênero</InputLabel>
-            <Select
-              value={editedData.sexo}
-              label='Gênero'
-              onChange={(e) =>
-                setEditedData({ ...editedData, sexo: e.target.value })
-              }
-              disabled={editedData.raceName === 'Voracis'}
-            >
-              <MenuItem value='Masculino'>Masculino</MenuItem>
-              <MenuItem value='Feminino'>Feminino</MenuItem>
-              <MenuItem value='Outro'>Outro</MenuItem>
-            </Select>
-          </FormControl>
+                <FormControl fullWidth>
+                  <InputLabel>Gênero</InputLabel>
+                  <Select
+                    value={editedData.sexo}
+                    label='Gênero'
+                    onChange={(e) =>
+                      setEditedData({ ...editedData, sexo: e.target.value })
+                    }
+                    disabled={editedData.raceName === 'Voracis'}
+                  >
+                    <MenuItem value='Masculino'>Masculino</MenuItem>
+                    <MenuItem value='Feminino'>Feminino</MenuItem>
+                    <MenuItem value='Outro'>Outro</MenuItem>
+                  </Select>
+                </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Raça</InputLabel>
-            <Select
-              value={editedData.raceName}
-              label='Raça'
-              onChange={(e) => {
-                const newRaceName = e.target.value as string;
-                setEditedData({
-                  ...editedData,
-                  raceName: newRaceName,
-                  // Reset heritage if changing from a race with heritage
-                  raceHeritage:
-                    newRaceName === 'Moreau'
-                      ? editedData.raceHeritage
-                      : undefined,
-                  // Reset Golem Desperto customizations if changing from/to Golem Desperto
-                  raceChassis:
-                    newRaceName === 'Golem Desperto'
-                      ? editedData.raceChassis
-                      : undefined,
-                  raceEnergySource:
-                    newRaceName === 'Golem Desperto'
-                      ? editedData.raceEnergySource
-                      : undefined,
-                  raceSizeCategory:
-                    newRaceName === 'Golem Desperto'
-                      ? editedData.raceSizeCategory
-                      : undefined,
-                });
-              }}
-            >
-              {RACAS_WITH_INFO.map((race) => (
-                <MenuItem key={race.name} value={race.name}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      width: '100%',
+                <FormControl fullWidth>
+                  <InputLabel>Raça</InputLabel>
+                  <Select
+                    value={editedData.raceName}
+                    label='Raça'
+                    onChange={(e) => {
+                      const newRaceName = e.target.value as string;
+                      setEditedData({
+                        ...editedData,
+                        raceName: newRaceName,
+                        // Reset heritage if changing from a race with heritage
+                        raceHeritage:
+                          newRaceName === 'Moreau'
+                            ? editedData.raceHeritage
+                            : undefined,
+                        // Reset Golem Desperto customizations if changing from/to Golem Desperto
+                        raceChassis:
+                          newRaceName === 'Golem Desperto'
+                            ? editedData.raceChassis
+                            : undefined,
+                        raceEnergySource:
+                          newRaceName === 'Golem Desperto'
+                            ? editedData.raceEnergySource
+                            : undefined,
+                        raceSizeCategory:
+                          newRaceName === 'Golem Desperto'
+                            ? editedData.raceSizeCategory
+                            : undefined,
+                      });
                     }}
                   >
-                    <span>{race.name}</span>
-                    {race.supplementId !== SupplementId.TORMENTA20_CORE && (
-                      <Chip
-                        label={race.supplementName}
-                        size='small'
-                        sx={{
-                          height: '20px',
-                          fontSize: '0.7rem',
-                          ml: 'auto',
-                        }}
-                        color='primary'
-                      />
-                    )}
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Heritage Selector - Only show for races with heritages (like Moreau) */}
-          {editedData.raceName === 'Moreau' && (
-            <FormControl fullWidth>
-              <InputLabel>Herança</InputLabel>
-              <Select
-                value={editedData.raceHeritage || ''}
-                label='Herança'
-                onChange={(e) =>
-                  setEditedData({
-                    ...editedData,
-                    raceHeritage: e.target.value as string,
-                  })
-                }
-              >
-                {MOREAU_HERITAGE_NAMES.map((heritageName) => (
-                  <MenuItem key={heritageName} value={heritageName}>
-                    {MOREAU_HERITAGES[heritageName].name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-
-          {/* Golem Desperto Customizations - Only show for Golem Desperto */}
-          {editedData.raceName === 'Golem Desperto' && (
-            <>
-              <FormControl fullWidth>
-                <InputLabel>Chassi</InputLabel>
-                <Select
-                  value={editedData.raceChassis || 'ferro'}
-                  label='Chassi'
-                  onChange={(e) => {
-                    const newChassis = e.target.value as string;
-                    const compatibleEnergies =
-                      getCompatibleEnergySources(newChassis);
-
-                    // If current energy source is incompatible, reset to first compatible one
-                    const newEnergySource = compatibleEnergies.includes(
-                      editedData.raceEnergySource || ''
-                    )
-                      ? editedData.raceEnergySource
-                      : compatibleEnergies[0];
-
-                    setEditedData({
-                      ...editedData,
-                      raceChassis: newChassis,
-                      raceEnergySource: newEnergySource,
-                    });
-                  }}
-                >
-                  {GOLEM_DESPERTO_CHASSIS_NAMES.map((chassisId) => (
-                    <MenuItem key={chassisId} value={chassisId}>
-                      {GOLEM_DESPERTO_CHASSIS[chassisId].name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel>Fonte de Energia</InputLabel>
-                <Select
-                  value={editedData.raceEnergySource || 'alquimica'}
-                  label='Fonte de Energia'
-                  onChange={(e) =>
-                    setEditedData({
-                      ...editedData,
-                      raceEnergySource: e.target.value as string,
-                    })
-                  }
-                >
-                  {getCompatibleEnergySources(
-                    editedData.raceChassis || 'ferro'
-                  ).map((energyId) => (
-                    <MenuItem key={energyId} value={energyId}>
-                      {GOLEM_DESPERTO_ENERGY_SOURCES[energyId].displayName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel>Tamanho</InputLabel>
-                <Select
-                  value={editedData.raceSizeCategory || 'medio'}
-                  label='Tamanho'
-                  onChange={(e) =>
-                    setEditedData({
-                      ...editedData,
-                      raceSizeCategory: e.target.value as string,
-                    })
-                  }
-                >
-                  {GOLEM_DESPERTO_SIZE_NAMES.map((sizeId) => (
-                    <MenuItem key={sizeId} value={sizeId}>
-                      {GOLEM_DESPERTO_SIZES[sizeId].displayName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </>
-          )}
-
-          {/* Race Fixed Attributes - Always show if race has fixed attributes */}
-          {fixedAttributes.length > 0 && anyAttributeCount === 0 && (
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-                bgcolor: 'background.default',
-              }}
-            >
-              <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                Modificadores de Atributos da Raça
-              </Typography>
-              <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                {fixedAttributes.map((attr, idx) => (
-                  <span key={`${attr.attr}-${attr.mod}`}>
-                    {attr.attr} {attr.mod >= 0 ? '+' : ''}
-                    {attr.mod}
-                    {idx < fixedAttributes.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Race Attribute Selection - Show if race has 'any' attributes */}
-          {anyAttributeCount > 0 && (
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 1,
-              }}
-            >
-              <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                Atributos da Raça
-              </Typography>
-              <Typography
-                variant='body2'
-                sx={{ mb: 2, color: 'text.secondary' }}
-              >
-                {fixedAttributes.length > 0 && (
-                  <>
-                    Fixo:{' '}
-                    {fixedAttributes.map((attr, idx) => (
-                      <span key={`${attr.attr}-${attr.mod}`}>
-                        {attr.attr} {attr.mod >= 0 ? '+' : ''}
-                        {attr.mod}
-                        {idx < fixedAttributes.length - 1 ? ', ' : ''}
-                      </span>
+                    {RACAS_WITH_INFO.map((race) => (
+                      <MenuItem key={race.name} value={race.name}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            width: '100%',
+                          }}
+                        >
+                          <span>{race.name}</span>
+                          {race.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={race.supplementName}
+                              size='small'
+                              sx={{
+                                height: '20px',
+                                fontSize: '0.7rem',
+                                ml: 'auto',
+                              }}
+                              color='primary'
+                            />
+                          )}
+                        </Box>
+                      </MenuItem>
                     ))}
-                    <br />
+                  </Select>
+                </FormControl>
+
+                {/* Heritage Selector - Only show for races with heritages (like Moreau) */}
+                {editedData.raceName === 'Moreau' && (
+                  <FormControl fullWidth>
+                    <InputLabel>Herança</InputLabel>
+                    <Select
+                      value={editedData.raceHeritage || ''}
+                      label='Herança'
+                      onChange={(e) =>
+                        setEditedData({
+                          ...editedData,
+                          raceHeritage: e.target.value as string,
+                        })
+                      }
+                    >
+                      {MOREAU_HERITAGE_NAMES.map((heritageName) => (
+                        <MenuItem key={heritageName} value={heritageName}>
+                          {MOREAU_HERITAGES[heritageName].name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+
+                {/* Golem Desperto Customizations - Only show for Golem Desperto */}
+                {editedData.raceName === 'Golem Desperto' && (
+                  <>
+                    <FormControl fullWidth>
+                      <InputLabel>Chassi</InputLabel>
+                      <Select
+                        value={editedData.raceChassis || 'ferro'}
+                        label='Chassi'
+                        onChange={(e) => {
+                          const newChassis = e.target.value as string;
+                          const compatibleEnergies =
+                            getCompatibleEnergySources(newChassis);
+
+                          // If current energy source is incompatible, reset to first compatible one
+                          const newEnergySource = compatibleEnergies.includes(
+                            editedData.raceEnergySource || ''
+                          )
+                            ? editedData.raceEnergySource
+                            : compatibleEnergies[0];
+
+                          setEditedData({
+                            ...editedData,
+                            raceChassis: newChassis,
+                            raceEnergySource: newEnergySource,
+                          });
+                        }}
+                      >
+                        {GOLEM_DESPERTO_CHASSIS_NAMES.map((chassisId) => (
+                          <MenuItem key={chassisId} value={chassisId}>
+                            {GOLEM_DESPERTO_CHASSIS[chassisId].name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                      <InputLabel>Fonte de Energia</InputLabel>
+                      <Select
+                        value={editedData.raceEnergySource || 'alquimica'}
+                        label='Fonte de Energia'
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            raceEnergySource: e.target.value as string,
+                          })
+                        }
+                      >
+                        {getCompatibleEnergySources(
+                          editedData.raceChassis || 'ferro'
+                        ).map((energyId) => (
+                          <MenuItem key={energyId} value={energyId}>
+                            {
+                              GOLEM_DESPERTO_ENERGY_SOURCES[energyId]
+                                .displayName
+                            }
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                      <InputLabel>Tamanho</InputLabel>
+                      <Select
+                        value={editedData.raceSizeCategory || 'medio'}
+                        label='Tamanho'
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            raceSizeCategory: e.target.value as string,
+                          })
+                        }
+                      >
+                        {GOLEM_DESPERTO_SIZE_NAMES.map((sizeId) => (
+                          <MenuItem key={sizeId} value={sizeId}>
+                            {GOLEM_DESPERTO_SIZES[sizeId].displayName}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </>
                 )}
-                Escolha {anyAttributeCount} atributo
-                {anyAttributeCount > 1 ? 's' : ''}
-                {fixedAttributes.length > 0 ? ' diferente' : ''}
-                {anyAttributeCount > 1 && fixedAttributes.length > 0
-                  ? 's'
-                  : ''}{' '}
-                para receber +1:
-              </Typography>
-              <FormGroup>
-                <Stack direction='row' flexWrap='wrap' gap={1}>
-                  {availableAttributes.map((atributo) => {
-                    const isSelected =
-                      editedData.raceAttributeChoices.includes(atributo);
-                    const isDisabled =
-                      !isSelected &&
-                      editedData.raceAttributeChoices.length >=
-                        anyAttributeCount;
-                    return (
-                      <FormControlLabel
-                        key={atributo}
-                        control={
-                          <Checkbox
-                            checked={isSelected}
-                            onChange={() =>
-                              handleRaceAttributeSelection(atributo)
-                            }
-                            disabled={isDisabled}
-                          />
-                        }
-                        label={atributo}
-                      />
-                    );
-                  })}
-                </Stack>
-              </FormGroup>
-              {editedData.raceAttributeChoices.length < anyAttributeCount && (
-                <Typography
-                  variant='caption'
-                  sx={{ mt: 1, display: 'block', color: 'warning.main' }}
-                >
-                  Selecione{' '}
-                  {anyAttributeCount - editedData.raceAttributeChoices.length}{' '}
-                  atributo
-                  {anyAttributeCount - editedData.raceAttributeChoices.length >
-                  1
-                    ? 's'
-                    : ''}{' '}
-                  ainda
-                </Typography>
-              )}
-            </Box>
-          )}
 
-          <FormControl fullWidth>
-            <InputLabel>Classe</InputLabel>
-            <Select
-              value={editedData.className}
-              label='Classe'
-              onChange={(e) =>
-                setEditedData({ ...editedData, className: e.target.value })
-              }
-            >
-              {CLASSES_WITH_INFO.map((cls) => (
-                <MenuItem key={cls.name} value={cls.name}>
+                {/* Race Fixed Attributes - Always show if race has fixed attributes */}
+                {fixedAttributes.length > 0 && anyAttributeCount === 0 && (
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      width: '100%',
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      bgcolor: 'background.default',
                     }}
                   >
-                    <span>{cls.name}</span>
-                    {cls.supplementId !== SupplementId.TORMENTA20_CORE && (
-                      <Chip
-                        label={cls.supplementName}
+                    <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                      Modificadores de Atributos da Raça
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      {fixedAttributes.map((attr, idx) => (
+                        <span key={`${attr.attr}-${attr.mod}`}>
+                          {attr.attr} {attr.mod >= 0 ? '+' : ''}
+                          {attr.mod}
+                          {idx < fixedAttributes.length - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Race Attribute Selection - Show if race has 'any' attributes */}
+                {anyAttributeCount > 0 && (
+                  <Box
+                    sx={{
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                      Atributos da Raça
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{ mb: 2, color: 'text.secondary' }}
+                    >
+                      {fixedAttributes.length > 0 && (
+                        <>
+                          Fixo:{' '}
+                          {fixedAttributes.map((attr, idx) => (
+                            <span key={`${attr.attr}-${attr.mod}`}>
+                              {attr.attr} {attr.mod >= 0 ? '+' : ''}
+                              {attr.mod}
+                              {idx < fixedAttributes.length - 1 ? ', ' : ''}
+                            </span>
+                          ))}
+                          <br />
+                        </>
+                      )}
+                      Escolha {anyAttributeCount} atributo
+                      {anyAttributeCount > 1 ? 's' : ''}
+                      {fixedAttributes.length > 0 ? ' diferente' : ''}
+                      {anyAttributeCount > 1 && fixedAttributes.length > 0
+                        ? 's'
+                        : ''}{' '}
+                      para receber +1:
+                    </Typography>
+                    <FormGroup>
+                      <Stack direction='row' flexWrap='wrap' gap={1}>
+                        {availableAttributes.map((atributo) => {
+                          const isSelected =
+                            editedData.raceAttributeChoices.includes(atributo);
+                          const isDisabled =
+                            !isSelected &&
+                            editedData.raceAttributeChoices.length >=
+                              anyAttributeCount;
+                          return (
+                            <FormControlLabel
+                              key={atributo}
+                              control={
+                                <Checkbox
+                                  checked={isSelected}
+                                  onChange={() =>
+                                    handleRaceAttributeSelection(atributo)
+                                  }
+                                  disabled={isDisabled}
+                                />
+                              }
+                              label={atributo}
+                            />
+                          );
+                        })}
+                      </Stack>
+                    </FormGroup>
+                    {editedData.raceAttributeChoices.length <
+                      anyAttributeCount && (
+                      <Typography
+                        variant='caption'
+                        sx={{ mt: 1, display: 'block', color: 'warning.main' }}
+                      >
+                        Selecione{' '}
+                        {anyAttributeCount -
+                          editedData.raceAttributeChoices.length}{' '}
+                        atributo
+                        {anyAttributeCount -
+                          editedData.raceAttributeChoices.length >
+                        1
+                          ? 's'
+                          : ''}{' '}
+                        ainda
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+
+                <FormControl fullWidth>
+                  <InputLabel>Classe</InputLabel>
+                  <Select
+                    value={editedData.className}
+                    label='Classe'
+                    onChange={(e) =>
+                      setEditedData({
+                        ...editedData,
+                        className: e.target.value,
+                      })
+                    }
+                  >
+                    {CLASSES_WITH_INFO.map((cls) => (
+                      <MenuItem key={cls.name} value={cls.name}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            width: '100%',
+                          }}
+                        >
+                          <span>{cls.name}</span>
+                          {cls.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={cls.supplementName}
+                              size='small'
+                              sx={{
+                                height: '20px',
+                                fontSize: '0.7rem',
+                                ml: 'auto',
+                              }}
+                              color='primary'
+                            />
+                          )}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>Origem</InputLabel>
+                  <Select
+                    value={editedData.originName}
+                    label='Origem'
+                    onChange={(e) =>
+                      setEditedData({
+                        ...editedData,
+                        originName: e.target.value,
+                      })
+                    }
+                  >
+                    <MenuItem value=''>Nenhuma</MenuItem>
+                    {ORIGINS_WITH_INFO.map((origin) => (
+                      <MenuItem key={origin.name} value={origin.name}>
+                        <Stack
+                          direction='row'
+                          spacing={1}
+                          alignItems='center'
+                          justifyContent='space-between'
+                          width='100%'
+                        >
+                          <span>{origin.name}</span>
+                          {origin.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={origin.supplementName}
+                              size='small'
+                              color='secondary'
+                              sx={{ fontSize: '0.7rem', height: '20px' }}
+                            />
+                          )}
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl fullWidth>
+                  <InputLabel>Divindade</InputLabel>
+                  <Select
+                    value={editedData.deityName}
+                    label='Divindade'
+                    onChange={(e) =>
+                      setEditedData({
+                        ...editedData,
+                        deityName: e.target.value,
+                      })
+                    }
+                  >
+                    <MenuItem value=''>Nenhuma</MenuItem>
+                    {allDivindadeNames.map((deity) => (
+                      <MenuItem key={deity} value={deity}>
+                        {deity}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Accordion 2: Atributos */}
+          <Accordion
+            expanded={expandedAccordions.includes('atributos')}
+            onChange={() => handleAccordionChange('atributos')}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant='subtitle1' fontWeight='medium'>
+                Atributos
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <Typography variant='body2' sx={{ mb: 1 }}>
+                  Ajuste os modificadores dos atributos. O valor será definido
+                  automaticamente.
+                </Typography>
+                {Object.values(Atributo).map((atributo) => {
+                  const attribute = editedData.attributes[atributo];
+                  return (
+                    <Stack
+                      key={atributo}
+                      direction='row'
+                      spacing={2}
+                      alignItems='center'
+                    >
+                      <Box sx={{ minWidth: '120px' }}>
+                        <Typography variant='body2'>{atributo}:</Typography>
+                      </Box>
+                      <TextField
                         size='small'
-                        sx={{
-                          height: '20px',
-                          fontSize: '0.7rem',
-                          ml: 'auto',
+                        type='number'
+                        value={attribute.mod}
+                        onChange={(e) => {
+                          const newMod = parseInt(e.target.value, 10) || 0;
+                          handleAttributeModifierChange(atributo, newMod);
                         }}
-                        color='primary'
+                        inputProps={{
+                          min: -5,
+                          max: 10,
+                        }}
+                        sx={{ width: '80px' }}
                       />
-                    )}
-                  </Box>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
-          <FormControl fullWidth>
-            <InputLabel>Origem</InputLabel>
-            <Select
-              value={editedData.originName}
-              label='Origem'
-              onChange={(e) =>
-                setEditedData({ ...editedData, originName: e.target.value })
-              }
-            >
-              <MenuItem value=''>Nenhuma</MenuItem>
-              {ORIGINS_WITH_INFO.map((origin) => (
-                <MenuItem key={origin.name} value={origin.name}>
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                    alignItems='center'
-                    justifyContent='space-between'
-                    width='100%'
-                  >
-                    <span>{origin.name}</span>
-                    {origin.supplementId !== SupplementId.TORMENTA20_CORE && (
-                      <Chip
-                        label={origin.supplementName}
-                        size='small'
-                        color='secondary'
-                        sx={{ fontSize: '0.7rem', height: '20px' }}
-                      />
-                    )}
-                  </Stack>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel>Divindade</InputLabel>
-            <Select
-              value={editedData.deityName}
-              label='Divindade'
-              onChange={(e) =>
-                setEditedData({ ...editedData, deityName: e.target.value })
-              }
-            >
-              <MenuItem value=''>Nenhuma</MenuItem>
-              {allDivindadeNames.map((deity) => (
-                <MenuItem key={deity} value={deity}>
-                  {deity}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Divider sx={{ my: 3 }} />
-
-          <Typography variant='h6' sx={{ mb: 2 }}>
-            Atributos
-          </Typography>
-
-          <Typography variant='body2' sx={{ mb: 2 }}>
-            Ajuste os modificadores dos atributos. O valor será definido
-            automaticamente.
-          </Typography>
-
-          <Stack spacing={2}>
-            {Object.values(Atributo).map((atributo) => {
-              const attribute = editedData.attributes[atributo];
-              return (
-                <Stack
-                  key={atributo}
-                  direction='row'
-                  spacing={2}
-                  alignItems='center'
+          {/* Accordion 3: PV e PM */}
+          <Accordion
+            expanded={expandedAccordions.includes('pv-pm')}
+            onChange={() => handleAccordionChange('pv-pm')}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant='subtitle1' fontWeight='medium'>
+                Pontos de Vida e Mana
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={2}>
+                <Typography
+                  variant='body2'
+                  sx={{ mb: 1, color: 'text.secondary' }}
                 >
-                  <Box sx={{ minWidth: '120px' }}>
-                    <Typography variant='body2'>{atributo}:</Typography>
-                  </Box>
-                  <TextField
-                    size='small'
-                    type='number'
-                    value={attribute.mod}
-                    onChange={(e) => {
-                      const newMod = parseInt(e.target.value, 10) || 0;
-                      handleAttributeModifierChange(atributo, newMod);
-                    }}
-                    inputProps={{
-                      min: -5,
-                      max: 10,
-                    }}
-                    sx={{ width: '80px' }}
-                  />
-                </Stack>
-              );
-            })}
-          </Stack>
+                  Customize os valores de PV e PM por nível. Deixe vazio para
+                  usar o padrão da classe.
+                </Typography>
+                <TextField
+                  fullWidth
+                  label='PV por Nível (após 1º nível)'
+                  type='number'
+                  value={
+                    editedData.customPVPerLevel !== undefined
+                      ? editedData.customPVPerLevel
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEditedData({
+                      ...editedData,
+                      customPVPerLevel:
+                        value === '' ? undefined : parseInt(value, 10),
+                    });
+                  }}
+                  helperText={`Padrão da classe ${editedData.className}: ${
+                    CLASSES.find((c) => c.name === editedData.className)
+                      ?.addpv || 0
+                  }`}
+                  inputProps={{ min: 0, max: 50 }}
+                />
 
-          <Divider sx={{ my: 3 }} />
+                <TextField
+                  fullWidth
+                  label='PM por Nível (após 1º nível)'
+                  type='number'
+                  value={
+                    editedData.customPMPerLevel !== undefined
+                      ? editedData.customPMPerLevel
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEditedData({
+                      ...editedData,
+                      customPMPerLevel:
+                        value === '' ? undefined : parseInt(value, 10),
+                    });
+                  }}
+                  helperText={`Padrão da classe ${editedData.className}: ${
+                    CLASSES.find((c) => c.name === editedData.className)
+                      ?.addpm || 0
+                  }`}
+                  inputProps={{ min: 0, max: 50 }}
+                />
 
-          <Typography variant='h6' sx={{ mb: 2 }}>
-            Pontos de Vida e Mana
-          </Typography>
+                <TextField
+                  fullWidth
+                  label='Bônus de PV'
+                  type='number'
+                  value={editedData.bonusPV}
+                  onChange={(e) =>
+                    setEditedData({
+                      ...editedData,
+                      bonusPV: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  helperText='Bônus fixo adicionado ao PV total'
+                  inputProps={{ min: -100, max: 500 }}
+                />
 
-          <Typography variant='body2' sx={{ mb: 2, color: 'text.secondary' }}>
-            Customize os valores de PV e PM por nível. Deixe vazio para usar o
-            padrão da classe.
-          </Typography>
-
-          <Stack spacing={2}>
-            <TextField
-              fullWidth
-              label='PV por Nível (após 1º nível)'
-              type='number'
-              value={
-                editedData.customPVPerLevel !== undefined
-                  ? editedData.customPVPerLevel
-                  : ''
-              }
-              onChange={(e) => {
-                const value = e.target.value;
-                setEditedData({
-                  ...editedData,
-                  customPVPerLevel:
-                    value === '' ? undefined : parseInt(value, 10),
-                });
-              }}
-              helperText={`Padrão da classe ${editedData.className}: ${
-                CLASSES.find((c) => c.name === editedData.className)?.addpv || 0
-              }`}
-              inputProps={{ min: 0, max: 50 }}
-            />
-
-            <TextField
-              fullWidth
-              label='PM por Nível (após 1º nível)'
-              type='number'
-              value={
-                editedData.customPMPerLevel !== undefined
-                  ? editedData.customPMPerLevel
-                  : ''
-              }
-              onChange={(e) => {
-                const value = e.target.value;
-                setEditedData({
-                  ...editedData,
-                  customPMPerLevel:
-                    value === '' ? undefined : parseInt(value, 10),
-                });
-              }}
-              helperText={`Padrão da classe ${editedData.className}: ${
-                CLASSES.find((c) => c.name === editedData.className)?.addpm || 0
-              }`}
-              inputProps={{ min: 0, max: 50 }}
-            />
-
-            <TextField
-              fullWidth
-              label='Bônus de PV'
-              type='number'
-              value={editedData.bonusPV}
-              onChange={(e) =>
-                setEditedData({
-                  ...editedData,
-                  bonusPV: parseInt(e.target.value, 10) || 0,
-                })
-              }
-              helperText='Bônus fixo adicionado ao PV total'
-              inputProps={{ min: -100, max: 500 }}
-            />
-
-            <TextField
-              fullWidth
-              label='Bônus de PM'
-              type='number'
-              value={editedData.bonusPM}
-              onChange={(e) =>
-                setEditedData({
-                  ...editedData,
-                  bonusPM: parseInt(e.target.value, 10) || 0,
-                })
-              }
-              helperText='Bônus fixo adicionado ao PM total'
-              inputProps={{ min: -100, max: 500 }}
-            />
-          </Stack>
+                <TextField
+                  fullWidth
+                  label='Bônus de PM'
+                  type='number'
+                  value={editedData.bonusPM}
+                  onChange={(e) =>
+                    setEditedData({
+                      ...editedData,
+                      bonusPM: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  helperText='Bônus fixo adicionado ao PM total'
+                  inputProps={{ min: -100, max: 500 }}
+                />
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
         </Stack>
 
         <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
