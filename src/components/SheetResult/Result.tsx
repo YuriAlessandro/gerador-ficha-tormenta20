@@ -409,7 +409,7 @@ const Result: React.FC<ResultProps> = (props) => {
       ]
     : [
         { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-        { label: 'Gerador de Fichas', href: '/ficha-aleatoria' },
+        { label: 'Criar Ficha', href: '/criar-ficha' },
         { label: 'Resultado' },
       ];
 

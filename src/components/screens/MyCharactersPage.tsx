@@ -127,7 +127,7 @@ const MyCharactersPage: React.FC = () => {
   const handleCreateNewSheet = () => {
     if (activeTab === 0) {
       // Players
-      history.push('/ficha-aleatoria');
+      history.push('/criar-ficha');
     } else {
       // Threats
       history.push('/gerador-ameacas');
@@ -152,7 +152,7 @@ const MyCharactersPage: React.FC = () => {
       history.push('/threat-view', { cloudThreat: sheet });
     } else {
       // For characters, load the cloud sheet in MainScreen
-      history.push('/ficha-aleatoria', { cloudSheet: sheet });
+      history.push('/criar-ficha', { cloudSheet: sheet });
     }
   };
 
@@ -165,7 +165,7 @@ const MyCharactersPage: React.FC = () => {
       history.push('/gerador-ameacas', { cloudThreat: sheet });
     } else {
       // For characters, load in MainScreen (same as view for now)
-      history.push('/ficha-aleatoria', { cloudSheet: sheet });
+      history.push('/criar-ficha', { cloudSheet: sheet });
     }
   };
 

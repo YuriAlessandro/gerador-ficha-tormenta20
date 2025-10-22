@@ -79,7 +79,7 @@ const LandingPage: React.FC<{
               <Card
                 onClick={() =>
                   onClickButton(
-                    isAuthenticated ? 'meus-personagens' : 'ficha-aleatoria'
+                    isAuthenticated ? 'meus-personagens' : 'criar-ficha'
                   )
                 }
                 sx={{
@@ -133,7 +133,7 @@ const LandingPage: React.FC<{
                     pointerEvents: 'none',
                   }}
                 >
-                  {isAuthenticated ? '👥' : '🎲'}
+                  {isAuthenticated ? '👥' : '✏️'}
                 </Box>
 
                 <Box
@@ -155,7 +155,7 @@ const LandingPage: React.FC<{
                       textAlign: 'left',
                     }}
                   >
-                    {isAuthenticated ? '👥' : '🎲'}
+                    {isAuthenticated ? '👥' : '✏️'}
                   </Typography>
 
                   <Typography
@@ -170,7 +170,7 @@ const LandingPage: React.FC<{
                       lineHeight: 1.1,
                     }}
                   >
-                    {isAuthenticated ? 'Meus Personagens' : 'Ficha Aleatória'}
+                    {isAuthenticated ? 'Meus Personagens' : 'Criar Personagem'}
                   </Typography>
 
                   <Typography
@@ -184,7 +184,7 @@ const LandingPage: React.FC<{
                   >
                     {isAuthenticated
                       ? 'Acesse todos seus personagens salvos na nuvem com sincronização automática'
-                      : 'Gere personagens completos instantaneamente com todas as regras oficiais'}
+                      : 'Crie seu personagem do zero com total controle sobre raça, classe, atributos e habilidades'}
                   </Typography>
                 </Box>
               </Card>

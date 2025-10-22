@@ -312,6 +312,9 @@ function App(): JSX.Element {
                             <Route path='/itens-magicos'>
                               <MagicalItems isDarkMode={isDarkTheme} />
                             </Route>
+                            <Route path='/criar-ficha'>
+                              <MainScreen isDarkMode={isDarkTheme} />
+                            </Route>
                             <Route path='/ficha-aleatoria'>
                               <MainScreen isDarkMode={isDarkTheme} />
                             </Route>

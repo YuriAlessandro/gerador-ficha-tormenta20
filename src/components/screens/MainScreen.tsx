@@ -302,7 +302,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       setSheetSavedToCloud(true); // It came from cloud, so it's already saved
       setCloudSheetId(cloudSheet.id); // Store the cloud sheet ID for updates
       // Clear the state to prevent reloading on subsequent renders
-      history.replace('/ficha-aleatoria', {});
+      history.replace('/criar-ficha', {});
     }
   }, [location.state]);
 
@@ -1145,7 +1145,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 component='h1'
                 sx={{ fontWeight: 'bold' }}
               >
-                Gerador de Fichas
+                Criar Nova Ficha
               </Typography>
               <Tooltip title='Ver Histórico Local'>
                 <IconButton
@@ -1173,8 +1173,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   Raça
                 </Typography>
                 <Select
-                  options={[{ value: '', label: 'Todas as raças' }, ...racas]}
-                  placeholder='Todas as raças'
+                  options={[{ value: '', label: 'Aleatória' }, ...racas]}
+                  placeholder='Selecione uma raça'
                   onChange={onSelectRaca}
                   isSearchable
                   styles={selectStyles}
@@ -1202,19 +1202,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                     {
                       label: 'Classes',
                       options: [
-                        { value: '', label: 'Todas as Classes' },
+                        { value: '', label: 'Aleatória' },
                         ...classesopt,
                       ],
                     },
                     {
                       label: 'Roles',
-                      options: [
-                        { value: '', label: 'Todas as Roles' },
-                        ...rolesopt,
-                      ],
+                      options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
                     },
                   ]}
-                  placeholder='Classes e Roles'
+                  placeholder='Selecione uma classe ou role'
                   formatGroupLabel={fmtGroupLabel}
                   formatOptionLabel={formatOptionLabel}
                   onChange={onSelectClasse}
@@ -1239,11 +1236,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   Origem
                 </Typography>
                 <Select
-                  placeholder='Todas as Origens'
-                  options={[
-                    { value: '', label: 'Todas as Origens' },
-                    ...origens,
-                  ]}
+                  placeholder='Selecione uma origem'
+                  options={[{ value: '', label: 'Aleatória' }, ...origens]}
                   isSearchable
                   onChange={onSelectOrigin}
                   isDisabled={selectedOptions.raca === 'Golem'}
@@ -1417,19 +1411,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               >
                 <Button
                   variant='contained'
-                  onClick={onClickGenerate}
-                  size={isMobile ? 'large' : 'medium'}
-                  fullWidth={isMobile}
-                  sx={{
-                    minHeight: isMobile ? '48px' : 'auto',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }}
-                >
-                  Gerar Ficha Aleatória
-                </Button>
-
-                <Button
-                  variant='contained'
                   onClick={onClickGenerateEmptySheet}
                   disabled={!canGenerateEmptySheet}
                   size={isMobile ? 'large' : 'medium'}
@@ -1439,7 +1420,22 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                     fontSize: isMobile ? '16px' : '14px',
                   }}
                 >
-                  Gerar Ficha Vazia
+                  Criar Nova Ficha
+                </Button>
+
+                <Button
+                  variant='outlined'
+                  color='secondary'
+                  onClick={onClickGenerate}
+                  size={isMobile ? 'large' : 'medium'}
+                  fullWidth={isMobile}
+                  sx={{
+                    minHeight: isMobile ? '48px' : 'auto',
+                    fontSize: isMobile ? '16px' : '14px',
+                  }}
+                  startIcon={<CasinoIcon />}
+                >
+                  Preencher Automaticamente
                 </Button>
               </Stack>
 
@@ -1449,10 +1445,24 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 sx={{
                   fontSize: { xs: '14px', sm: '13px' },
                   lineHeight: 1.4,
+                  mb: 1,
                 }}
               >
-                Para gerar uma ficha vazia, sem poderes, magias e atributos,
-                você deve selecionar todas as informações no formulário acima.
+                Preencha os campos acima para criar sua ficha personalizada.
+                Todos os campos são obrigatórios.
+              </Typography>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{
+                  fontSize: { xs: '13px', sm: '12px' },
+                  lineHeight: 1.4,
+                  fontStyle: 'italic',
+                }}
+              >
+                💡 Dica: Use &ldquo;Preencher Automaticamente&rdquo; para
+                agilizar o processo com escolhas aleatórias que você pode editar
+                depois.
               </Typography>
             </Box>
           </Card>
