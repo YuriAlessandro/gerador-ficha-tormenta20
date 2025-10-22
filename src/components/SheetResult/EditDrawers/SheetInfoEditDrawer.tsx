@@ -67,6 +67,10 @@ interface EditedData {
   deityName: string;
   attributes: CharacterAttributes;
   raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
+  customPVPerLevel: number | undefined; // Custom PV per level
+  customPMPerLevel: number | undefined; // Custom PM per level
+  bonusPV: number; // Bonus PV
+  bonusPM: number; // Bonus PM
 }
 
 // Helper function to calculate the highest attribute value for a given modifier
@@ -152,6 +156,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       : '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
+    customPVPerLevel: sheet.customPVPerLevel,
+    customPMPerLevel: sheet.customPMPerLevel,
+    bonusPV: sheet.bonusPV || 0,
+    bonusPM: sheet.bonusPM || 0,
   });
 
   // State for name suggestions
@@ -183,6 +191,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         : '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
+      customPVPerLevel: sheet.customPVPerLevel,
+      customPMPerLevel: sheet.customPMPerLevel,
+      bonusPV: sheet.bonusPV || 0,
+      bonusPM: sheet.bonusPM || 0,
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -314,22 +326,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const recalculatePV = (
     level: number,
     className: string,
-    attributes = sheet.atributos
+    attributes = sheet.atributos,
+    customPVPerLevel?: number,
+    bonusPV = 0
   ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pv;
 
     const conMod = attributes.Constituição.mod;
     const pvBase = classData.pv + conMod;
-    const pvPerLevel = classData.addpv + conMod;
+    const pvPerLevel = (customPVPerLevel ?? classData.addpv ?? 0) + conMod;
 
-    return pvBase + pvPerLevel * (level - 1);
+    return pvBase + pvPerLevel * (level - 1) + bonusPV;
   };
 
   const recalculatePM = (
     level: number,
     className: string,
-    attributes = sheet.atributos
+    attributes = sheet.atributos,
+    customPMPerLevel?: number,
+    bonusPM = 0
   ) => {
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pm;
@@ -342,9 +358,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }
 
     const pmBase = classData.pm + keyAttrMod;
-    const pmPerLevel = classData.addpm + keyAttrMod;
+    const pmPerLevel = (customPMPerLevel ?? classData.addpm ?? 0) + keyAttrMod;
 
-    return pmBase + pmPerLevel * (level - 1);
+    return pmBase + pmPerLevel * (level - 1) + bonusPM;
   };
 
   const handleAttributeModifierChange = (
@@ -379,6 +395,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceChassis: editedData.raceChassis,
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
+      customPVPerLevel: editedData.customPVPerLevel,
+      customPMPerLevel: editedData.customPMPerLevel,
+      bonusPV: editedData.bonusPV,
+      bonusPM: editedData.bonusPM,
     };
 
     // Track manual edits in steps
@@ -565,32 +585,95 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const attributesChanged =
       JSON.stringify(editedData.attributes) !== JSON.stringify(sheet.atributos);
 
+    // Check if custom PV/PM values changed
+    const customPVPMChanged =
+      editedData.customPVPerLevel !== sheet.customPVPerLevel ||
+      editedData.customPMPerLevel !== sheet.customPMPerLevel ||
+      editedData.bonusPV !== sheet.bonusPV ||
+      editedData.bonusPM !== sheet.bonusPM;
+
+    // Track custom PV/PM changes in steps
+    if (customPVPMChanged) {
+      const pvpmChanges: SubStep[] = [];
+
+      if (editedData.customPVPerLevel !== sheet.customPVPerLevel) {
+        const defaultValue = sheet.classe.addpv;
+        const newValue = editedData.customPVPerLevel ?? defaultValue;
+        pvpmChanges.push({
+          name: 'PV por Nível',
+          value: `${newValue} (padrão: ${defaultValue})`,
+        });
+      }
+
+      if (editedData.customPMPerLevel !== sheet.customPMPerLevel) {
+        const defaultValue = sheet.classe.addpm;
+        const newValue = editedData.customPMPerLevel ?? defaultValue;
+        pvpmChanges.push({
+          name: 'PM por Nível',
+          value: `${newValue} (padrão: ${defaultValue})`,
+        });
+      }
+
+      if (editedData.bonusPV !== (sheet.bonusPV || 0)) {
+        pvpmChanges.push({
+          name: 'Bônus de PV',
+          value: editedData.bonusPV,
+        });
+      }
+
+      if (editedData.bonusPM !== (sheet.bonusPM || 0)) {
+        pvpmChanges.push({
+          name: 'Bônus de PM',
+          value: editedData.bonusPM,
+        });
+      }
+
+      if (pvpmChanges.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - PV/PM Customizado',
+          type: 'Edição Manual',
+          value: pvpmChanges,
+        });
+      }
+    }
+
     // Recalculate level-dependent values if level changed
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
       updates.pv = recalculatePV(
         editedData.nivel,
         editedData.className,
-        editedData.attributes
+        editedData.attributes,
+        editedData.customPVPerLevel,
+        editedData.bonusPV
       );
       updates.pm = recalculatePM(
         editedData.nivel,
         editedData.className,
-        editedData.attributes
+        editedData.attributes,
+        editedData.customPMPerLevel,
+        editedData.bonusPM
       );
     }
 
-    // Recalculate PV/PM if attributes changed (even if level didn't change)
-    if (attributesChanged && editedData.nivel === sheet.nivel) {
+    // Recalculate PV/PM if attributes or custom values changed (even if level didn't change)
+    if (
+      (attributesChanged || customPVPMChanged) &&
+      editedData.nivel === sheet.nivel
+    ) {
       updates.pv = recalculatePV(
         editedData.nivel,
         editedData.className,
-        editedData.attributes
+        editedData.attributes,
+        editedData.customPVPerLevel,
+        editedData.bonusPV
       );
       updates.pm = recalculatePM(
         editedData.nivel,
         editedData.className,
-        editedData.attributes
+        editedData.attributes,
+        editedData.customPMPerLevel,
+        editedData.bonusPM
       );
     }
 
@@ -720,12 +803,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         updates.pv = recalculatePV(
           editedData.nivel,
           editedData.className,
-          editedData.attributes
+          editedData.attributes,
+          editedData.customPVPerLevel,
+          editedData.bonusPV
         );
         updates.pm = recalculatePM(
           editedData.nivel,
           editedData.className,
-          editedData.attributes
+          editedData.attributes,
+          editedData.customPMPerLevel,
+          editedData.bonusPM
         );
       }
     }
@@ -816,6 +903,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         : '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
+      customPVPerLevel: sheet.customPVPerLevel,
+      customPMPerLevel: sheet.customPMPerLevel,
+      bonusPV: sheet.bonusPV || 0,
+      bonusPM: sheet.bonusPM || 0,
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -1305,6 +1396,95 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 </Stack>
               );
             })}
+          </Stack>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant='h6' sx={{ mb: 2 }}>
+            Pontos de Vida e Mana
+          </Typography>
+
+          <Typography variant='body2' sx={{ mb: 2, color: 'text.secondary' }}>
+            Customize os valores de PV e PM por nível. Deixe vazio para usar o
+            padrão da classe.
+          </Typography>
+
+          <Stack spacing={2}>
+            <TextField
+              fullWidth
+              label='PV por Nível (após 1º nível)'
+              type='number'
+              value={
+                editedData.customPVPerLevel !== undefined
+                  ? editedData.customPVPerLevel
+                  : ''
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+                setEditedData({
+                  ...editedData,
+                  customPVPerLevel:
+                    value === '' ? undefined : parseInt(value, 10),
+                });
+              }}
+              helperText={`Padrão da classe ${editedData.className}: ${
+                CLASSES.find((c) => c.name === editedData.className)?.addpv || 0
+              }`}
+              inputProps={{ min: 0, max: 50 }}
+            />
+
+            <TextField
+              fullWidth
+              label='PM por Nível (após 1º nível)'
+              type='number'
+              value={
+                editedData.customPMPerLevel !== undefined
+                  ? editedData.customPMPerLevel
+                  : ''
+              }
+              onChange={(e) => {
+                const value = e.target.value;
+                setEditedData({
+                  ...editedData,
+                  customPMPerLevel:
+                    value === '' ? undefined : parseInt(value, 10),
+                });
+              }}
+              helperText={`Padrão da classe ${editedData.className}: ${
+                CLASSES.find((c) => c.name === editedData.className)?.addpm || 0
+              }`}
+              inputProps={{ min: 0, max: 50 }}
+            />
+
+            <TextField
+              fullWidth
+              label='Bônus de PV'
+              type='number'
+              value={editedData.bonusPV}
+              onChange={(e) =>
+                setEditedData({
+                  ...editedData,
+                  bonusPV: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              helperText='Bônus fixo adicionado ao PV total'
+              inputProps={{ min: -100, max: 500 }}
+            />
+
+            <TextField
+              fullWidth
+              label='Bônus de PM'
+              type='number'
+              value={editedData.bonusPM}
+              onChange={(e) =>
+                setEditedData({
+                  ...editedData,
+                  bonusPM: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              helperText='Bônus fixo adicionado ao PM total'
+              inputProps={{ min: -100, max: 500 }}
+            />
           </Stack>
         </Stack>
 

@@ -585,24 +585,38 @@ export function recalculateSheet(
   // Step 7.5: Reset PV and PM to base values before applying bonuses (to avoid accumulation)
   // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
   const basePV = updatedSheet.classe.pv || 0;
-  const addPVPerLevel = updatedSheet.classe.addpv || 0;
+  const addPVPerLevel =
+    updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
   const conMod = updatedSheet.atributos.Constituição?.mod || 0;
   updatedSheet.pv =
     basePV +
     addPVPerLevel * (updatedSheet.nivel - 1) +
     conMod * updatedSheet.nivel;
 
+  // Add bonus PV if defined
+  if (updatedSheet.bonusPV) {
+    updatedSheet.pv += updatedSheet.bonusPV;
+  }
+
   // PM base = classe.pm + (classe.addpm * (level - 1))
   const basePM = updatedSheet.classe.pm || 0;
-  const addPMPerLevel = updatedSheet.classe.addpm || 0;
+  const addPMPerLevel =
+    updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
   updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
+
+  // Add bonus PM if defined
+  if (updatedSheet.bonusPM) {
+    updatedSheet.pm += updatedSheet.bonusPM;
+  }
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   // PM Debug - Initial state
   const pmDebug = {
-    initialPM: updatedSheet.pm, // After reset with level progression
+    initialPM: updatedSheet.pm, // After reset with level progression and bonus
     classeBasePM: basePM,
     classePMPerLevel: addPMPerLevel,
+    customPMPerLevel: updatedSheet.customPMPerLevel,
+    bonusPM: updatedSheet.bonusPM,
     nivel: updatedSheet.nivel,
     pmFromLevels: addPMPerLevel * (updatedSheet.nivel - 1),
     atributos: {

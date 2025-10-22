@@ -292,6 +292,10 @@ export default interface CharacterSheet {
   raceChassis?: string; // For Golem Desperto
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
+  customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
+  customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
+  bonusPV?: number; // Bonus PV added to total
+  bonusPM?: number; // Bonus PM added to total
 }
 
 export interface Step {
