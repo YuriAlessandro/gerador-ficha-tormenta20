@@ -643,6 +643,7 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   const equipped: Equipment[] = [];
 
   const cloneSheet = _.cloneDeep(charSheet);
+  const initialDefense = cloneSheet.defesa; // Save initial defense for comparison
 
   let updatedDefense = Object.values(cloneSheet.bag.getEquipments())
     .flat()
@@ -650,16 +651,19 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
       if (isDefenseEquip(equip)) {
         equipped.push(equip);
 
-        cloneSheet.steps.push({
-          label: 'Incrementou Defesa',
-          value: [
-            {
-              value: `Bonus de ${equip.nome} (${acc} + ${
-                equip.defenseBonus
-              } = ${acc + equip.defenseBonus})`,
-            },
-          ],
-        });
+        // Only add step if defense actually changed (equipment bonus > 0)
+        if (equip.defenseBonus > 0) {
+          cloneSheet.steps.push({
+            label: 'Incrementou Defesa',
+            value: [
+              {
+                value: `Bonus de ${equip.nome} (${acc} + ${
+                  equip.defenseBonus
+                } = ${acc + equip.defenseBonus})`,
+              },
+            ],
+          });
+        }
 
         return acc + equip.defenseBonus;
       }
@@ -675,31 +679,39 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   if (!heavyArmor) {
     // Se for nobre
     if (cloneSheet.classe.name === 'Nobre') {
-      cloneSheet.steps.push({
-        label: 'Incrementou Defesa (+CAR)',
-        value: [
-          {
-            value: `${updatedDefense} + ${cloneSheet.atributos.Carisma.mod} = ${
-              updatedDefense + cloneSheet.atributos.Carisma.mod
-            }`,
-          },
-        ],
-      });
-      updatedDefense += cloneSheet.atributos.Carisma.mod;
+      const carismaMod = cloneSheet.atributos.Carisma.mod;
+      // Only add step if Carisma modifier is not 0
+      if (carismaMod !== 0) {
+        cloneSheet.steps.push({
+          label: 'Incrementou Defesa (+CAR)',
+          value: [
+            {
+              value: `${updatedDefense} + ${carismaMod} = ${
+                updatedDefense + carismaMod
+              }`,
+            },
+          ],
+        });
+      }
+      updatedDefense += carismaMod;
     }
     // Se não for Nobre
     else {
-      cloneSheet.steps.push({
-        label: 'Incrementou Defesa (+DES)',
-        value: [
-          {
-            value: `${updatedDefense} + ${
-              cloneSheet.atributos.Destreza.mod
-            } = ${updatedDefense + cloneSheet.atributos.Destreza.mod}`,
-          },
-        ],
-      });
-      updatedDefense += cloneSheet.atributos.Destreza.mod;
+      const destreza = cloneSheet.atributos.Destreza.mod;
+      // Only add step if Destreza modifier is not 0
+      if (destreza !== 0) {
+        cloneSheet.steps.push({
+          label: 'Incrementou Defesa (+DES)',
+          value: [
+            {
+              value: `${updatedDefense} + ${destreza} = ${
+                updatedDefense + destreza
+              }`,
+            },
+          ],
+        });
+      }
+      updatedDefense += destreza;
     }
   }
 

@@ -3253,6 +3253,9 @@ export function generateEmptySheet(
     }
   }
 
+  // Apply race abilities (this adds sheetBonuses and abilities from race)
+  emptySheet = applyRaceAbilities(emptySheet);
+
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
 

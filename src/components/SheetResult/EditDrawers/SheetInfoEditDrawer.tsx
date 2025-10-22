@@ -131,6 +131,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // Also keep simple arrays for backwards compatibility
   const RACAS = dataRegistry.getRacesBySupplements(userSupplements);
   const CLASSES = dataRegistry.getClassesBySupplements(userSupplements);
+  const ORIGINS_WITH_INFO =
+    dataRegistry.getOriginsBySupplements(userSupplements);
 
   const [editedData, setEditedData] = useState<EditedData>({
     nome: sheet.nome,
@@ -730,7 +732,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     // Find and update origin if changed
     if (editedData.originName && editedData.originName !== sheet.origin?.name) {
-      const newOrigin = Object.values(ORIGINS).find(
+      const newOrigin = ORIGINS_WITH_INFO.find(
         (o) => o.name === editedData.originName
       );
       if (newOrigin) {
@@ -756,9 +758,24 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           divindade: newDeity,
           poderes: [],
         };
+        // eslint-disable-next-line no-console
+        console.log('🔍 DEBUG - Divindade Adicionada:', {
+          editedName: editedData.deityName,
+          originalName: sheet.devoto?.divindade.name,
+          foundDeity: newDeity.name,
+          updates: updates.devoto,
+        });
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn('⚠️ DEBUG - Divindade não encontrada:', {
+          searchName: editedData.deityName,
+          availableDeities: DIVINDADES_DATA.map((d) => d.name),
+        });
       }
     } else if (!editedData.deityName && sheet.devoto) {
       updates.devoto = undefined;
+      // eslint-disable-next-line no-console
+      console.log('🔍 DEBUG - Divindade Removida');
     }
 
     // Use recalculation for full sheet update if attributes, race, or deity changed
@@ -1205,9 +1222,25 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               }
             >
               <MenuItem value=''>Nenhuma</MenuItem>
-              {Object.values(ORIGINS).map((origin) => (
+              {ORIGINS_WITH_INFO.map((origin) => (
                 <MenuItem key={origin.name} value={origin.name}>
-                  {origin.name}
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    alignItems='center'
+                    justifyContent='space-between'
+                    width='100%'
+                  >
+                    <span>{origin.name}</span>
+                    {origin.supplementId !== SupplementId.TORMENTA20_CORE && (
+                      <Chip
+                        label={origin.supplementName}
+                        size='small'
+                        color='secondary'
+                        sx={{ fontSize: '0.7rem', height: '20px' }}
+                      />
+                    )}
+                  </Stack>
                 </MenuItem>
               ))}
             </Select>
