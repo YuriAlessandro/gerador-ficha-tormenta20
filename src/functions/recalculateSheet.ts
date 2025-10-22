@@ -583,6 +583,31 @@ export function recalculateSheet(
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
+  // PM Debug - Initial state
+  const pmDebug = {
+    initialPM: updatedSheet.pm,
+    classeBasePM: updatedSheet.classe.pm || 0,
+    nivel: updatedSheet.nivel,
+    atributos: {
+      INT: updatedSheet.atributos.Inteligência?.mod || 0,
+      CAR: updatedSheet.atributos.Carisma?.mod || 0,
+      SAB: updatedSheet.atributos.Sabedoria?.mod || 0,
+    },
+    spellKeyAttr: updatedSheet.classe.spellPath?.keyAttribute || 'N/A',
+    spellKeyAttrMod: updatedSheet.classe.spellPath?.keyAttribute
+      ? updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute]
+          ?.mod || 0
+      : 0,
+    bonuses: [] as Array<{
+      source: string;
+      bonusType: string;
+      formula?: string;
+      calculatedValue: number;
+      pmBefore: number;
+      pmAfter: number;
+    }>,
+  };
+
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (
       bonus.target.type !== 'Defense' &&
@@ -593,7 +618,27 @@ export function recalculateSheet(
       if (bonus.target.type === 'PV') {
         updatedSheet.pv += bonusValue;
       } else if (bonus.target.type === 'PM') {
+        const pmBefore = updatedSheet.pm;
         updatedSheet.pm += bonusValue;
+        const pmAfter = updatedSheet.pm;
+
+        // Track PM bonus details
+        pmDebug.bonuses.push({
+          source:
+            bonus.source?.type === 'power'
+              ? `Power: ${bonus.source.name}`
+              : bonus.source?.type === 'origin'
+              ? `Origin: ${bonus.source.originName}`
+              : bonus.source?.type === 'race'
+              ? `Race: ${bonus.source.raceName}`
+              : 'Unknown',
+          bonusType: bonus.modifier.type,
+          formula:
+            'formula' in bonus.modifier ? bonus.modifier.formula : undefined,
+          calculatedValue: bonusValue,
+          pmBefore,
+          pmAfter,
+        });
       } else if (bonus.target.type === 'Skill') {
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
@@ -657,6 +702,59 @@ export function recalculateSheet(
 
   // Step 13: Apply weapon bonuses
   updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
+
+  // PM Debug - Final output
+  pmDebug.bonuses.push({
+    source: '=== FINAL PM ===',
+    bonusType: 'Total',
+    calculatedValue: updatedSheet.pm - pmDebug.initialPM,
+    pmBefore: pmDebug.initialPM,
+    pmAfter: updatedSheet.pm,
+  });
+
+  // eslint-disable-next-line no-console
+  console.group(
+    `🔮 PM CALCULATION DEBUG - ${updatedSheet.nome || 'Personagem'} (Level ${
+      updatedSheet.nivel
+    })`
+  );
+  // eslint-disable-next-line no-console
+  console.log('📊 Initial State:', {
+    'PM Inicial': pmDebug.initialPM,
+    'Classe Base PM': pmDebug.classeBasePM,
+    Nível: pmDebug.nivel,
+    'Atributo Mágico': pmDebug.spellKeyAttr,
+    'Mod. Atributo Mágico': pmDebug.spellKeyAttrMod,
+    'Modificadores de Atributos': pmDebug.atributos,
+  });
+
+  if (pmDebug.bonuses.length > 0) {
+    // eslint-disable-next-line no-console
+    console.log('\n📈 PM Bonuses Applied:');
+    pmDebug.bonuses.forEach((bonus, index) => {
+      // eslint-disable-next-line no-console
+      console.log(`  ${index + 1}. ${bonus.source}`, {
+        Tipo: bonus.bonusType,
+        ...(bonus.formula ? { Fórmula: bonus.formula } : {}),
+        'Valor Calculado':
+          bonus.calculatedValue > 0
+            ? `+${bonus.calculatedValue}`
+            : bonus.calculatedValue,
+        'PM Antes': bonus.pmBefore,
+        'PM Depois': bonus.pmAfter,
+        Diferença: bonus.pmAfter - bonus.pmBefore,
+      });
+    });
+  }
+
+  // eslint-disable-next-line no-console
+  console.log('\n✅ Final Result:', {
+    'PM Final': updatedSheet.pm,
+    'Total de Bônus': updatedSheet.pm - pmDebug.initialPM,
+    'Quantidade de Bônus Aplicados': pmDebug.bonuses.length - 1, // -1 para não contar o FINAL PM
+  });
+  // eslint-disable-next-line no-console
+  console.groupEnd();
 
   return updatedSheet;
 }
