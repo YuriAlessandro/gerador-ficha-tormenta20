@@ -25,7 +25,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import { dataRegistry } from '@/data/registry';
-import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { allDivindadeNames } from '@/interfaces/Divindade';
 import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
@@ -49,6 +48,10 @@ import {
   getCompatibleEnergySources,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+
+// Helper function to normalize deity names for comparison (removes hyphens and spaces)
+const normalizeDeityName = (name: string): string =>
+  name.toLowerCase().replace(/[-\s]/g, '');
 
 interface SheetInfoEditDrawerProps {
   open: boolean;
@@ -332,6 +335,48 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }));
   };
 
+  // Calculate bonus value from sheet bonuses (mirroring recalculateSheet logic)
+  const calculateBonusValue = (
+    bonus: {
+      type: string;
+      value?: number;
+      attribute?: string;
+      formula?: string;
+    },
+    nivel: number,
+    atributos: CharacterAttributes,
+    spellKeyAttribute?: Atributo
+  ): number => {
+    if (bonus.type === 'Level') {
+      return nivel;
+    }
+    if (bonus.type === 'HalfLevel') {
+      return Math.floor(nivel / 2);
+    }
+    if (bonus.type === 'Attribute') {
+      const attr = bonus.attribute as Atributo;
+      return atributos[attr]?.mod || 0;
+    }
+    if (bonus.type === 'SpecialAttribute') {
+      if (bonus.attribute === 'spellKeyAttr' && spellKeyAttribute) {
+        return atributos[spellKeyAttribute].mod;
+      }
+    }
+    if (bonus.type === 'LevelCalc' && bonus.formula) {
+      const formula = bonus.formula.replace(/{level}/g, nivel.toString());
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(formula);
+      } catch {
+        return 0;
+      }
+    }
+    if (bonus.type === 'Fixed') {
+      return bonus.value || 0;
+    }
+    return 0;
+  };
+
   const recalculatePV = (
     level: number,
     className: string,
@@ -345,8 +390,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const conMod = attributes.Constituição.mod;
     const pvBase = classData.pv + conMod;
     const pvPerLevel = (customPVPerLevel ?? classData.addpv ?? 0) + conMod;
+    let total = pvBase + pvPerLevel * (level - 1) + bonusPV;
 
-    return pvBase + pvPerLevel * (level - 1) + bonusPV;
+    // Add bonuses from powers/abilities
+    const pvBonuses = sheet.sheetBonuses.filter(
+      (bonus) => bonus.target.type === 'PV'
+    );
+    pvBonuses.forEach((bonus) => {
+      const bonusValue = calculateBonusValue(
+        bonus.modifier,
+        level,
+        attributes,
+        classData.spellPath?.keyAttribute
+      );
+      total += bonusValue;
+    });
+
+    return total;
   };
 
   const recalculatePM = (
@@ -368,8 +428,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     const pmBase = classData.pm + keyAttrMod;
     const pmPerLevel = (customPMPerLevel ?? classData.addpm ?? 0) + keyAttrMod;
+    let total = pmBase + pmPerLevel * (level - 1) + bonusPM;
 
-    return pmBase + pmPerLevel * (level - 1) + bonusPM;
+    // Add bonuses from powers/abilities
+    const pmBonuses = sheet.sheetBonuses.filter(
+      (bonus) => bonus.target.type === 'PM'
+    );
+    pmBonuses.forEach((bonus) => {
+      const bonusValue = calculateBonusValue(
+        bonus.modifier,
+        level,
+        attributes,
+        classData.spellPath?.keyAttribute
+      );
+      total += bonusValue;
+    });
+
+    return total;
   };
 
   const handleAttributeModifierChange = (
@@ -852,8 +927,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName &&
       editedData.deityName !== sheet.devoto?.divindade.name
     ) {
+      const normalizedSearch = normalizeDeityName(editedData.deityName);
       const newDeity = DIVINDADES_DATA.find(
-        (d) => d.name.toLowerCase() === editedData.deityName.toLowerCase()
+        (d) => normalizeDeityName(d.name) === normalizedSearch
       );
       if (newDeity) {
         updates.devoto = {
@@ -861,23 +937,27 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           poderes: [],
         };
         // eslint-disable-next-line no-console
-        console.log('🔍 DEBUG - Divindade Adicionada:', {
+        console.log('✅ Divindade adicionada à ficha (edit):', {
           editedName: editedData.deityName,
+          normalized: normalizedSearch,
           originalName: sheet.devoto?.divindade.name,
           foundDeity: newDeity.name,
-          updates: updates.devoto,
         });
       } else {
         // eslint-disable-next-line no-console
-        console.warn('⚠️ DEBUG - Divindade não encontrada:', {
+        console.warn('⚠️ Divindade não encontrada (edit):', {
           searchName: editedData.deityName,
-          availableDeities: DIVINDADES_DATA.map((d) => d.name),
+          normalized: normalizedSearch,
+          availableDeities: DIVINDADES_DATA.map((d) => ({
+            name: d.name,
+            normalized: normalizeDeityName(d.name),
+          })),
         });
       }
     } else if (!editedData.deityName && sheet.devoto) {
       updates.devoto = undefined;
       // eslint-disable-next-line no-console
-      console.log('🔍 DEBUG - Divindade Removida');
+      console.log('🗑️ Divindade removida');
     }
 
     // Use recalculation for full sheet update if attributes, race, or deity changed
@@ -964,18 +1044,51 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const pvFromLevels = (pvPerLevel + conMod) * (editedData.nivel - 1);
     const bonus = editedData.bonusPV;
 
+    // Calculate power bonuses
+    const pvBonuses = sheet.sheetBonuses.filter((b) => b.target.type === 'PV');
+    const powerBonusDetails = pvBonuses.map((b) => {
+      const value = calculateBonusValue(
+        b.modifier,
+        editedData.nivel,
+        editedData.attributes,
+        classData.spellPath?.keyAttribute
+      );
+      let sourceName = 'Desconhecido';
+      if (b.source?.type === 'power') {
+        sourceName = b.source.name;
+      } else if (b.source?.type === 'origin') {
+        sourceName = b.source.originName || 'Origem';
+      } else if (b.source?.type === 'race') {
+        sourceName = b.source.raceName || 'Raça';
+      }
+      return { value, source: sourceName };
+    });
+    const totalPowerBonuses = powerBonusDetails.reduce(
+      (sum, b) => sum + b.value,
+      0
+    );
+
     let formula = `${classData.pv} (base) + ${conMod} (CON)`;
     if (editedData.nivel > 1) {
       formula += ` + [${pvPerLevel} (por nível) + ${conMod} (CON)] × ${
         editedData.nivel - 1
       }`;
     }
+    // Add power bonuses to formula
+    powerBonusDetails.forEach((b) => {
+      if (b.value !== 0) {
+        formula += ` + ${b.value} (${b.source})`;
+      }
+    });
     if (bonus !== 0) {
-      formula += ` + ${bonus} (bônus)`;
+      formula += ` + ${bonus} (bônus manual)`;
     }
     formula += ` = ${pvBase}`;
     if (editedData.nivel > 1) {
       formula += ` + ${pvFromLevels}`;
+    }
+    if (totalPowerBonuses !== 0) {
+      formula += ` + ${totalPowerBonuses}`;
     }
     if (bonus !== 0) {
       formula += ` + ${bonus}`;
@@ -1003,6 +1116,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const pmFromLevels = (pmPerLevel + keyAttrMod) * (editedData.nivel - 1);
     const bonus = editedData.bonusPM;
 
+    // Calculate power bonuses
+    const pmBonuses = sheet.sheetBonuses.filter((b) => b.target.type === 'PM');
+    const powerBonusDetails = pmBonuses.map((b) => {
+      const value = calculateBonusValue(
+        b.modifier,
+        editedData.nivel,
+        editedData.attributes,
+        classData.spellPath?.keyAttribute
+      );
+      let sourceName = 'Desconhecido';
+      if (b.source?.type === 'power') {
+        sourceName = b.source.name;
+      } else if (b.source?.type === 'origin') {
+        sourceName = b.source.originName || 'Origem';
+      } else if (b.source?.type === 'race') {
+        sourceName = b.source.raceName || 'Raça';
+      }
+      return { value, source: sourceName };
+    });
+    const totalPowerBonuses = powerBonusDetails.reduce(
+      (sum, b) => sum + b.value,
+      0
+    );
+
     let formula = `${classData.pm} (base)`;
     if (keyAttrMod !== 0) {
       formula += ` + ${keyAttrMod} (${keyAttrName})`;
@@ -1014,12 +1151,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
       formula += `] × ${editedData.nivel - 1}`;
     }
+    // Add power bonuses to formula
+    powerBonusDetails.forEach((b) => {
+      if (b.value !== 0) {
+        formula += ` + ${b.value} (${b.source})`;
+      }
+    });
     if (bonus !== 0) {
-      formula += ` + ${bonus} (bônus)`;
+      formula += ` + ${bonus} (bônus manual)`;
     }
     formula += ` = ${pmBase}`;
     if (editedData.nivel > 1) {
       formula += ` + ${pmFromLevels}`;
+    }
+    if (totalPowerBonuses !== 0) {
+      formula += ` + ${totalPowerBonuses}`;
     }
     if (bonus !== 0) {
       formula += ` + ${bonus}`;
@@ -1585,7 +1731,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     )?.addpv?.toString() || '0'
                   }
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const { value } = e.target;
                     setEditedData({
                       ...editedData,
                       customPVPerLevel:
@@ -1614,7 +1760,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     )?.addpm?.toString() || '0'
                   }
                   onChange={(e) => {
-                    const value = e.target.value;
+                    const { value } = e.target;
                     setEditedData({
                       ...editedData,
                       customPMPerLevel:

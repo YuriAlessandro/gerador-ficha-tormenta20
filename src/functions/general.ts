@@ -141,6 +141,10 @@ import {
   getCurrentPlateau,
 } from './powers/general';
 
+// Helper function to normalize deity names for comparison (removes hyphens and spaces)
+const normalizeDeityName = (name: string): string =>
+  name.toLowerCase().replace(/[-\s]/g, '');
+
 // Inventor Specializations System
 export enum InventorSpecialization {
   ALQUIMISTA = 'ALQUIMISTA',
@@ -3289,15 +3293,31 @@ export function generateEmptySheet(
 
   // Process deity if selected
   if (selectedOptions.devocao && selectedOptions.devocao.value) {
+    const normalizedSearch = normalizeDeityName(selectedOptions.devocao.value);
     const selectedDeity = Object.values(DivindadeEnum).find(
-      (deity) =>
-        deity.name.toLowerCase() === selectedOptions.devocao.value.toLowerCase()
+      (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
       emptySheet.devoto = {
         divindade: selectedDeity,
         poderes: [],
       };
+      // eslint-disable-next-line no-console
+      console.log('✅ Divindade adicionada à ficha:', {
+        searched: selectedOptions.devocao.value,
+        normalized: normalizedSearch,
+        found: selectedDeity.name,
+      });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn('⚠️ Divindade não encontrada:', {
+        searched: selectedOptions.devocao.value,
+        normalized: normalizedSearch,
+        available: Object.values(DivindadeEnum).map((d) => ({
+          name: d.name,
+          normalized: normalizeDeityName(d.name),
+        })),
+      });
     }
   }
 
