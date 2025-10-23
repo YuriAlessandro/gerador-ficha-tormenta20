@@ -598,11 +598,24 @@ export function recalculateSheet(
     updatedSheet.pv += updatedSheet.bonusPV;
   }
 
-  // PM base = classe.pm + (classe.addpm * (level - 1))
+  // PM base = classe.pm + keyAttrMod + ((classe.addpm + keyAttrMod) * (level - 1))
   const basePM = updatedSheet.classe.pm || 0;
   const addPMPerLevel =
     updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
-  updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
+
+  // Get key attribute modifier for PM (spell casters use their key attribute)
+  let keyAttrMod = 0;
+  if (updatedSheet.classe.spellPath) {
+    const keyAttr =
+      updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute];
+    keyAttrMod = keyAttr?.mod || 0;
+  }
+
+  // Calculate PM: base + keyAttrMod + (perLevel + keyAttrMod) * (level - 1)
+  updatedSheet.pm =
+    basePM +
+    keyAttrMod +
+    (addPMPerLevel + keyAttrMod) * (updatedSheet.nivel - 1);
 
   // Add bonus PM if defined
   if (updatedSheet.bonusPM) {
@@ -615,10 +628,11 @@ export function recalculateSheet(
     initialPM: updatedSheet.pm, // After reset with level progression and bonus
     classeBasePM: basePM,
     classePMPerLevel: addPMPerLevel,
+    keyAttrMod,
     customPMPerLevel: updatedSheet.customPMPerLevel,
     bonusPM: updatedSheet.bonusPM,
     nivel: updatedSheet.nivel,
-    pmFromLevels: addPMPerLevel * (updatedSheet.nivel - 1),
+    pmFromLevels: (addPMPerLevel + keyAttrMod) * (updatedSheet.nivel - 1),
     atributos: {
       INT: updatedSheet.atributos.Inteligência?.mod || 0,
       CAR: updatedSheet.atributos.Carisma?.mod || 0,
@@ -709,8 +723,57 @@ export function recalculateSheet(
   });
 
   // Step 9: Reset defense to base and recalculate from ground up
-  updatedSheet.defesa = 10; // Reset to base defense
+  const baseDefense = updatedSheet.customDefenseBase ?? 10;
+  updatedSheet.defesa = baseDefense;
   updatedSheet = calcDefense(updatedSheet); // Calculate base + equipment + attributes
+
+  // Check if heavy armor is equipped
+  const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
+  const heavyArmor = equippedArmors.some(
+    (armor) =>
+      // Check if this is a heavy armor from the EQUIPAMENTOS list
+      armor.nome &&
+      [
+        'Brunea',
+        'Cota de Malha',
+        'Loriga Segmentada',
+        'Armadura de Placas',
+        'Armadura Completa',
+      ].includes(armor.nome)
+  );
+
+  // Apply custom attribute logic if defined
+  if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
+    // User explicitly disabled attribute, remove it
+    const defaultAttr =
+      updatedSheet.classe.name === 'Nobre'
+        ? updatedSheet.atributos.Carisma.mod
+        : updatedSheet.atributos.Destreza.mod;
+    updatedSheet.defesa -= defaultAttr;
+  } else if (
+    updatedSheet.customDefenseAttribute &&
+    updatedSheet.useDefenseAttribute !== false &&
+    !heavyArmor
+  ) {
+    // User specified a custom attribute (and didn't disable it)
+    const defaultAttr =
+      updatedSheet.classe.name === 'Nobre'
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA;
+
+    if (updatedSheet.customDefenseAttribute !== defaultAttr) {
+      // Remove default attribute mod and add custom
+      const defaultMod = updatedSheet.atributos[defaultAttr].mod;
+      const customMod =
+        updatedSheet.atributos[updatedSheet.customDefenseAttribute].mod;
+      updatedSheet.defesa = updatedSheet.defesa - defaultMod + customMod;
+    }
+  }
+
+  // Add manual bonus
+  if (updatedSheet.bonusDefense) {
+    updatedSheet.defesa += updatedSheet.bonusDefense;
+  }
 
   // Step 10: Apply defense bonuses from powers AFTER base calculation
   updatedSheet = applyDefenseBonuses(updatedSheet);
@@ -755,15 +818,16 @@ export function recalculateSheet(
   console.log('📊 Initial State:', {
     'PM Inicial (após reset)': pmDebug.initialPM,
     'Classe Base PM (1º nível)': pmDebug.classeBasePM,
-    'PM por Nível': pmDebug.classePMPerLevel,
-    'PM de Níveis': `${pmDebug.classePMPerLevel} × ${pmDebug.nivel - 1} = ${
-      pmDebug.pmFromLevels
-    }`,
-    'Cálculo Base': `${pmDebug.classeBasePM} + ${pmDebug.pmFromLevels} = ${pmDebug.initialPM}`,
-    Nível: pmDebug.nivel,
+    'PM por Nível (classe)': pmDebug.classePMPerLevel,
     'Atributo Mágico': pmDebug.spellKeyAttr,
-    'Mod. Atributo Mágico': pmDebug.spellKeyAttrMod,
-    'Modificadores de Atributos': pmDebug.atributos,
+    'Mod. Atributo Mágico': pmDebug.keyAttrMod,
+    'PM de Níveis': `[${pmDebug.classePMPerLevel} (classe) + ${
+      pmDebug.keyAttrMod
+    } (atributo)] × ${pmDebug.nivel - 1} = ${pmDebug.pmFromLevels}`,
+    'Cálculo Base': `${pmDebug.classeBasePM} (base) + ${pmDebug.keyAttrMod} (atributo) + ${pmDebug.pmFromLevels} (níveis) = ${pmDebug.initialPM}`,
+    Nível: pmDebug.nivel,
+    'Custom PM/Nível': pmDebug.customPMPerLevel ?? 'N/A',
+    'Bônus PM': pmDebug.bonusPM ?? 0,
   });
 
   if (pmDebug.bonuses.length > 0) {

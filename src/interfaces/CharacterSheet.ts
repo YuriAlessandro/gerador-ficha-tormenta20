@@ -296,6 +296,10 @@ export default interface CharacterSheet {
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
   bonusPM?: number; // Bonus PM added to total
+  customDefenseBase?: number; // Custom base defense (overrides 10 if defined)
+  customDefenseAttribute?: Atributo; // Custom attribute for defense (overrides DES/CAR)
+  useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
+  bonusDefense?: number; // Manual defense bonus
 }
 
 export interface Step {

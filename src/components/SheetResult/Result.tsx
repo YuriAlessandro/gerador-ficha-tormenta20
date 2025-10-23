@@ -45,6 +45,7 @@ import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
+import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 
 interface ResultProps {
@@ -62,6 +63,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [equipmentDrawerOpen, setEquipmentDrawerOpen] = useState(false);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
+  const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
 
   console.log(sheet);
 
@@ -610,13 +612,34 @@ const Result: React.FC<ResultProps> = (props) => {
             {/* Card de Estatísticas: Defesa, Deslocamento, Tamanho */}
             <Card
               sx={{
-                p: 3,
+                position: 'relative',
+                pt: 4,
+                pb: 3,
+                px: 3,
                 mb: 4,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                overflow: 'visible',
               }}
             >
+              <IconButton
+                size='small'
+                sx={{
+                  position: 'absolute',
+                  top: -16,
+                  right: 16,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
+                onClick={() => setDefenseDrawerOpen(true)}
+              >
+                <EditIcon />
+              </IconButton>
               <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
                 <FancyBox>
                   <Box
@@ -902,6 +925,13 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setSpellsDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSpellsUpdate}
+        />
+
+        <DefenseEditDrawer
+          open={defenseDrawerOpen}
+          onClose={() => setDefenseDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
         />
       </>
     </BackgroundBox>
