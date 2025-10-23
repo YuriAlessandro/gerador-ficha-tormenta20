@@ -643,7 +643,6 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   const equipped: Equipment[] = [];
 
   const cloneSheet = _.cloneDeep(charSheet);
-  const initialDefense = cloneSheet.defesa; // Save initial defense for comparison
 
   let updatedDefense = Object.values(cloneSheet.bag.getEquipments())
     .flat()

@@ -24,22 +24,20 @@ const PLEBEU_ARCANO: Origin = {
   poderes: [atlasOriginPowers.PLEBEU_ARCANO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    return [
-      {
-        equipment: 'Bandoleira de poções',
-        qtd: 1,
-      },
-      {
-        equipment: 'Gorro de ervas',
-        qtd: 1,
-      },
-      {
-        equipment: 'Poção arcana de 1º círculo',
-        qtd: 1,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    {
+      equipment: 'Bandoleira de poções',
+      qtd: 1,
+    },
+    {
+      equipment: 'Gorro de ervas',
+      qtd: 1,
+    },
+    {
+      equipment: 'Poção arcana de 1º círculo',
+      qtd: 1,
+    },
+  ],
 };
 
 export default PLEBEU_ARCANO;

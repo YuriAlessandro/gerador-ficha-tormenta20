@@ -68,7 +68,7 @@ const SUCATEIRO_DE_BATALHAS: Origin = {
 
     // Rola 4d6 para o dinheiro
     let dinheiro = 0;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4; i += 1) {
       dinheiro += Math.floor(Math.random() * 6) + 1;
     }
 

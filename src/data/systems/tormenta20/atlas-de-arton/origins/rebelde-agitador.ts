@@ -64,7 +64,7 @@ const REBELDE_AGITADOR: Origin = {
 
     // Rola 6d12 para os impostos não pagos
     let impostos = 0;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i += 1) {
       impostos += Math.floor(Math.random() * 12) + 1;
     }
 

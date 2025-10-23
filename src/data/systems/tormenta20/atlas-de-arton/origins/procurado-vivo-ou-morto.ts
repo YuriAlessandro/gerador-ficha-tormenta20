@@ -24,18 +24,16 @@ const PROCURADO_VIVO_OU_MORTO: Origin = {
   poderes: [atlasOriginPowers.PROCURADO_VIVO_OU_MORTO],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    return [
-      {
-        equipment: 'Pistola',
-        qtd: 1,
-      },
-      {
-        equipment: 'Balas cruéis',
-        qtd: 20,
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    {
+      equipment: 'Pistola',
+      qtd: 1,
+    },
+    {
+      equipment: 'Balas cruéis',
+      qtd: 20,
+    },
+  ],
 };
 
 export default PROCURADO_VIVO_OU_MORTO;

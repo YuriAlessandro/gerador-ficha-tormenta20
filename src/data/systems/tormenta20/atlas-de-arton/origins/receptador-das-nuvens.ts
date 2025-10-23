@@ -24,15 +24,13 @@ const RECEPTADOR_DAS_NUVENS: Origin = {
   poderes: [atlasOriginPowers.RECEPTADOR_DAS_NUVENS],
   getPowersAndSkills: () => getAllRegionalBenefits(),
   isRegional: true,
-  getItems: (): Items[] => {
-    return [
-      {
-        equipment: 'Mercadorias raras e variadas',
-        qtd: 1,
-        description: '2 espaços, T$ 300',
-      },
-    ];
-  },
+  getItems: (): Items[] => [
+    {
+      equipment: 'Mercadorias raras e variadas',
+      qtd: 1,
+      description: '2 espaços, T$ 300',
+    },
+  ],
 };
 
 export default RECEPTADOR_DAS_NUVENS;
