@@ -81,6 +81,7 @@ import SheetsService, {
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal';
+import CharacterCreationWizardModal from '../CharacterCreationWizard/CharacterCreationWizardModal';
 import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 
 type SelectedOption = {
@@ -264,6 +265,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     React.useState(false);
   const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
     React.useState<CharacterSheet | null>(null);
+  const [wizardModalOpen, setWizardModalOpen] = React.useState(false);
 
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
@@ -366,6 +368,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const onClickGenerateEmptySheet = async () => {
+    // Always show wizard for manual creation
+    // The wizard determines level 1 choices regardless of final level
+    setWizardModalOpen(true);
+  };
+
+  const handleWizardConfirm = (
+    wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
+  ) => {
+    setWizardModalOpen(false);
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -374,8 +385,17 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         presentation.style.display = 'none';
       }, 200);
     }
-    const emptySheet = generateEmptySheet(selectedOptions);
+
+    // Generate empty sheet with wizard selections
+    const emptySheet = generateEmptySheet(selectedOptions, wizardSelections);
     emptySheet.bag = new Bag(emptySheet.bag.equipments);
+
+    // Check if race is Golem Desperto - need customization modal
+    if (emptySheet.raca.name === 'Golem Desperto') {
+      setPendingGolemDespertoSheet(emptySheet);
+      setShowGolemDespertoModal(true);
+      return; // Wait for modal confirmation before finalizing
+    }
 
     // Always save to local storage (historic)
     saveSheetOnHistoric(emptySheet, isAuthenticated, sheets.length, () =>
@@ -1114,6 +1134,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           onCancel={handleGolemDespertoCancel}
         />
       )}
+
+      {/* Character Creation Wizard Modal */}
+      <CharacterCreationWizardModal
+        open={wizardModalOpen}
+        onClose={() => setWizardModalOpen(false)}
+        onConfirm={handleWizardConfirm}
+        selectedOptions={selectedOptions}
+      />
 
       <div id='main-screen'>
         <Container

@@ -3145,7 +3145,8 @@ export default function generateRandomSheet(
 }
 
 export function generateEmptySheet(
-  selectedOptions: SelectedOptions
+  selectedOptions: SelectedOptions,
+  wizardSelections?: import('../interfaces/WizardSelections').WizardSelections
 ): CharacterSheet {
   // console.log(selectedOptions);
   const supplements = selectedOptions.supplements || [
@@ -3191,10 +3192,173 @@ export function generateEmptySheet(
     generalPowers: [],
     classPowers: [],
     steps: [],
-    skills: getClassBaseSkills(generatedClass), // Add class base skills
+    skills: [
+      ...getClassBaseSkills(generatedClass),
+      ...(wizardSelections?.classSkills || []),
+    ], // Add class base skills + wizard selected skills
     spells: [],
     dinheiro: getInitialMoney(selectedOptions.nivel),
   };
+
+  // Apply wizard character name and gender if provided
+  if (wizardSelections?.characterName) {
+    emptySheet.nome = wizardSelections.characterName;
+  }
+  if (wizardSelections?.characterGender) {
+    emptySheet.sexo = wizardSelections.characterGender;
+  }
+
+  // Apply wizard base attribute values if provided
+  if (wizardSelections?.baseAttributes) {
+    Object.keys(wizardSelections.baseAttributes).forEach((attrKey) => {
+      const attr = attrKey as Atributo;
+      const value = wizardSelections.baseAttributes![attr];
+      emptySheet.atributos[attr].value = value;
+      emptySheet.atributos[attr].mod = Math.floor((value - 10) / 2);
+    });
+  }
+
+  // Apply wizard race attribute choices if provided
+  if (wizardSelections?.raceAttributes) {
+    emptySheet.raceAttributeChoices = wizardSelections.raceAttributes;
+  }
+
+  // Handle Arcanista subtype selection specially
+  if (
+    generatedClass.name === 'Arcanista' &&
+    wizardSelections?.arcanistaSubtype
+  ) {
+    // Manually apply Arcanista subtype based on wizard selection
+    // instead of calling the random setup() function
+    const modifiedClasse = _.cloneDeep(generatedClass);
+    const subtype = wizardSelections.arcanistaSubtype;
+    modifiedClasse.subname = subtype;
+
+    // Set spellPath based on subtype
+    if (subtype === 'Bruxo') {
+      modifiedClasse.spellPath = {
+        initialSpells: 3,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+        spellCircleAvailableAtLevel: (level: number) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.INTELIGENCIA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um bruxo, capaz de lançar magias através de um foco como uma varinha, cajado, chapéu, etc.',
+        nivel: 1,
+      });
+    } else if (subtype === 'Mago') {
+      modifiedClasse.spellPath = {
+        initialSpells: 4,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level) =>
+          [5, 9, 13, 17].includes(level) ? 2 : 1,
+        spellCircleAvailableAtLevel: (level) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.INTELIGENCIA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um mago, capaz de lançar magia através de todo o seu estudo mágico.',
+        nivel: 1,
+      });
+    } else if (subtype === 'Feiticeiro') {
+      modifiedClasse.attrPriority = [Atributo.CARISMA];
+      modifiedClasse.spellPath = {
+        initialSpells: 3,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level) => (level % 2 === 1 ? 1 : 0),
+        spellCircleAvailableAtLevel: (level) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.CARISMA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um feiticeiro, capaz de lançar magias através de um poder inato que corre no seu sangue.',
+        nivel: 1,
+      });
+
+      // Handle Feiticeiro linhagem
+      if (wizardSelections.feiticeiroLinhagem === 'Linhagem Dracônica') {
+        const damageType = getRandomItemFromArray([
+          'Ácido',
+          'Elétrico',
+          'Fogo',
+          'Frio',
+        ]);
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Dracônica',
+          text: `Um de seus antepassados foi um majestoso dragão. Tipo escolhido: ${damageType}. Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5.`,
+          nivel: 1,
+          sheetBonuses: [
+            {
+              source: { type: 'power', name: 'Linhagem Dracônica' },
+              target: { type: 'PV' },
+              modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
+            },
+          ],
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Feérica') {
+        modifiedClasse.periciasbasicas.push({
+          type: 'and',
+          list: ['Enganação' as any],
+        });
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Feérica',
+          text: 'Seu sangue foi tocado pelas fadas. Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão.',
+          nivel: 1,
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Rubra') {
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Rubra',
+          text: 'Seu sangue foi corrompido pela Tormenta. Você recebe um poder da Tormenta.',
+          nivel: 1,
+        });
+      }
+    }
+
+    emptySheet.classe = modifiedClasse;
+  } else if (wizardSelections?.spellSchools && generatedClass.setup) {
+    // Apply wizard spell school selections if provided (for Bardo/Druida)
+    // Execute setup first to initialize spellPath
+    const setupClass = generatedClass.setup(generatedClass);
+    // Override schools with wizard selections
+    if (setupClass.spellPath) {
+      setupClass.spellPath.schools = wizardSelections.spellSchools;
+      // Update emptySheet with the modified class
+      emptySheet.classe = setupClass;
+    }
+  } else if (generatedClass.setup) {
+    // No wizard selection, use random setup
+    emptySheet.classe = generatedClass.setup(generatedClass);
+  } else {
+    emptySheet.classe = generatedClass;
+  }
+
+  // Apply wizard initial spell selections if provided
+  if (
+    wizardSelections?.initialSpells &&
+    wizardSelections.initialSpells.length > 0
+  ) {
+    emptySheet.spells = [...wizardSelections.initialSpells];
+  }
 
   // Gerar equipamentos de recompensa para ficha vazia se solicitado
   if (
@@ -3284,9 +3448,43 @@ export function generateEmptySheet(
       (origin) => origin.name === selectedOptions.origin
     );
     if (selectedOrigin) {
+      let originPowers = selectedOrigin.poderes || [];
+
+      // Apply wizard origin benefit selections for non-regional origins
+      if (
+        wizardSelections?.originBenefits &&
+        wizardSelections.originBenefits.length > 0 &&
+        selectedOrigin.isRegional === false
+      ) {
+        // Apply selected benefits
+        wizardSelections.originBenefits.forEach((benefit) => {
+          if (benefit.type === 'skill') {
+            // Add skill if not already added
+            if (!emptySheet.skills.includes(benefit.name as Skill)) {
+              emptySheet.skills.push(benefit.name as Skill);
+            }
+          } else if (benefit.type === 'power') {
+            // Power is already in the origin powers list, no need to add
+          } else if (benefit.type === 'item') {
+            // TODO: Add item to bag (requires equipment lookup)
+          }
+        });
+
+        // Filter origin powers to only include selected ones
+        const selectedPowerNames = wizardSelections.originBenefits
+          .filter((b) => b.type === 'power')
+          .map((b) => b.name);
+
+        if (selectedPowerNames.length > 0) {
+          originPowers = originPowers.filter((p) =>
+            selectedPowerNames.includes(p.name)
+          );
+        }
+      }
+
       emptySheet.origin = {
         name: selectedOrigin.name,
-        powers: selectedOrigin.poderes || [],
+        powers: originPowers,
       };
     }
   }
@@ -3298,15 +3496,44 @@ export function generateEmptySheet(
       (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
+      // Determine which deity powers to add based on wizard selections
+      let deityPowers: import('../interfaces/Poderes').GeneralPower[] = [];
+
+      if (
+        wizardSelections?.deityPowers &&
+        wizardSelections.deityPowers.length > 0
+      ) {
+        // Use wizard selections
+        deityPowers = selectedDeity.poderes.filter((p) =>
+          wizardSelections.deityPowers?.includes(p.name)
+        );
+      } else {
+        // Use automatic selection (random or all)
+        const todosPoderes = generatedClass.qtdPoderesConcedidos === 'all';
+        const qtdPoderesConcedidos = isNumber(
+          generatedClass.qtdPoderesConcedidos
+        )
+          ? (generatedClass.qtdPoderesConcedidos as number)
+          : 1; // Default to 1 if undefined
+
+        deityPowers = getPoderesConcedidos(
+          selectedDeity,
+          todosPoderes,
+          generatedClass,
+          qtdPoderesConcedidos
+        );
+      }
+
       emptySheet.devoto = {
         divindade: selectedDeity,
-        poderes: [],
+        poderes: deityPowers,
       };
       // eslint-disable-next-line no-console
       console.log('✅ Divindade adicionada à ficha:', {
         searched: selectedOptions.devocao.value,
         normalized: normalizedSearch,
         found: selectedDeity.name,
+        powersAdded: deityPowers.length,
       });
     } else {
       // eslint-disable-next-line no-console
