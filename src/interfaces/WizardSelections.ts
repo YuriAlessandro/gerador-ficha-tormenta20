@@ -2,10 +2,26 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import Skill from './Skills';
 import { SelectionOptions } from './PowerSelections';
 import { Spell, SpellSchool } from './Spells';
+import { ClassPower } from './Class';
+import { GeneralPower } from './Poderes';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
   name: string;
+}
+
+export interface LevelUpSelections {
+  level: number;
+  // Escolha: poder de classe OU poder geral
+  powerChoice: 'class' | 'general';
+  selectedClassPower?: ClassPower;
+  selectedGeneralPower?: GeneralPower;
+  // Seleções manuais para ações de poderes (learnSkill, addProficiency, etc)
+  powerEffectSelections?: SelectionOptions;
+  // Seleções para habilidades automáticas com pick actions
+  abilityEffectSelections?: SelectionOptions;
+  // Magias aprendidas (se aplicável)
+  spellsLearned?: Spell[];
 }
 
 export interface WizardSelections {
@@ -59,4 +75,7 @@ export interface WizardSelections {
   golemChassis?: string;
   golemEnergySource?: string;
   golemSize?: string;
+
+  // Level up selections (for levels 2+)
+  levelUpSelections?: LevelUpSelections[];
 }

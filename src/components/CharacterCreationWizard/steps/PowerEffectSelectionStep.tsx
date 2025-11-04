@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
   Alert,
-  Paper,
   FormControl,
   FormGroup,
   FormControlLabel,
@@ -14,13 +13,17 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SearchIcon from '@mui/icons-material/Search';
 import Race from '@/interfaces/Race';
-import { ClassDescription } from '@/interfaces/Class';
+import { ClassDescription, ClassPower } from '@/interfaces/Class';
 import Origin from '@/interfaces/Origin';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
+import { GeneralPower } from '@/interfaces/Poderes';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -34,6 +37,11 @@ interface PowerEffectSelectionStepProps {
   origin?: Origin;
   selections: SelectionOptions;
   onChange: (selections: SelectionOptions) => void;
+  // Optional selected power for level-up wizard
+  selectedPower?: ClassPower | GeneralPower;
+  powerSource?: 'class' | 'general';
+  // Optional actual sheet for better filtering in level-up context
+  actualSheet?: CharacterSheet;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -42,7 +50,23 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   origin,
   selections,
   onChange,
+  selectedPower,
+  powerSource,
+  actualSheet,
 }) => {
+  // Search query state for each requirement (keyed by requirement index)
+  const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
+    {}
+  );
+
+  // Helper to update search query for a specific requirement
+  const updateSearchQuery = (requirementIndex: number, query: string) => {
+    setSearchQueries((prev) => ({
+      ...prev,
+      [requirementIndex]: query,
+    }));
+  };
+
   // Collect all powers that need manual selection
   const allRequirements: Array<{
     powerName: string;
@@ -71,6 +95,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       };
     }>;
   }> = [];
+
+  // Check selected power first (for level-up wizard)
+  if (selectedPower) {
+    const reqs = getPowerSelectionRequirements(selectedPower);
+    if (reqs) {
+      allRequirements.push({
+        powerName: selectedPower.name,
+        source: powerSource === 'general' ? 'origin' : 'class', // Map to existing source types
+        requirements: reqs.requirements,
+      });
+    }
+  }
 
   // Check race abilities
   race.abilities.forEach((ability) => {
@@ -130,26 +166,66 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     );
   }
 
-  // Create a mock sheet object for filtering available options
-  const mockSheet = {
-    skills: [],
-    completeSkills: [],
-    classe: {
-      proficiencias: [],
-      spellPath: classe.spellPath,
-    },
-    generalPowers: [],
-    spells: [],
-    nivel: 1,
-    atributos: {
-      Força: 10,
-      Destreza: 10,
-      Constituição: 10,
-      Inteligência: 10,
-      Sabedoria: 10,
-      Carisma: 10,
-    },
-  } as unknown as CharacterSheet;
+  // Use actual sheet if provided, otherwise create mock sheet
+  const sheetForFiltering =
+    actualSheet ||
+    ({
+      skills: [],
+      completeSkills: [],
+      classe: {
+        proficiencias: [],
+        spellPath: classe.spellPath,
+      },
+      generalPowers: [],
+      spells: [],
+      nivel: 1,
+      atributos: {
+        Força: 10,
+        Destreza: 10,
+        Constituição: 10,
+        Inteligência: 10,
+        Sabedoria: 10,
+        Carisma: 10,
+      },
+      sheetActionHistory: [],
+    } as unknown as CharacterSheet);
+
+  // Helper to get name from item (string or object)
+  const getItemName = (item: string | object): string => {
+    if (typeof item === 'string') {
+      return item;
+    }
+    if ('name' in item) {
+      return (item as { name: string }).name;
+    }
+    if ('nome' in item) {
+      return (item as { nome: string }).nome;
+    }
+    return '';
+  };
+
+  // Helper to filter options based on search query
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filterOptions = (options: any[], searchQuery: string): any[] => {
+    if (!searchQuery) return options;
+
+    const lowerQuery = searchQuery.toLowerCase();
+    return options.filter((option) => {
+      const name = getItemName(option).toLowerCase();
+      let description = '';
+
+      // Only check for description if option is an object (not a string or primitive)
+      if (typeof option === 'object' && option !== null) {
+        if ('description' in option) {
+          description = option.description.toLowerCase();
+        } else if ('descricao' in option) {
+          description = option.descricao.toLowerCase();
+        }
+      }
+
+      return name.includes(lowerQuery) || description.includes(lowerQuery);
+    });
+  };
 
   // Helper to handle single/multiple selection
   const handleSelection = (
@@ -215,22 +291,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     } else {
       // Remove item
       newItems = currentItems.filter((existing) => {
-        const existingName =
-          typeof existing === 'string'
-            ? existing
-            : 'name' in existing
-            ? (existing as { name: string }).name
-            : 'nome' in existing
-            ? (existing as { nome: string }).nome
-            : '';
-        const itemName =
-          typeof item === 'string'
-            ? item
-            : 'name' in item
-            ? (item as { name: string }).name
-            : 'nome' in item
-            ? (item as { nome: string }).nome
-            : '';
+        const existingName = getItemName(existing);
+        const itemName = getItemName(item);
         return existingName !== itemName;
       });
     }
@@ -279,24 +341,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         return false;
     }
 
-    const itemName =
-      typeof item === 'string'
-        ? item
-        : 'name' in item
-        ? (item as { name: string }).name
-        : 'nome' in item
-        ? (item as { nome: string }).nome
-        : '';
+    const itemName = getItemName(item);
 
     return currentItems.some((existing) => {
-      const existingName =
-        typeof existing === 'string'
-          ? existing
-          : 'name' in existing
-          ? (existing as { name: string }).name
-          : 'nome' in existing
-          ? (existing as { nome: string }).nome
-          : '';
+      const existingName = getItemName(existing);
       return existingName === itemName;
     });
   };
@@ -354,14 +402,24 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     requirementIndex: number
   ) => {
     const { type, pick, label } = requirement;
-    const availableOptions = getFilteredAvailableOptions(
+    const allAvailableOptions = getFilteredAvailableOptions(
       requirement,
-      mockSheet
+      sheetForFiltering
     );
+
+    // Get search query for this requirement
+    const searchQuery = searchQueries[requirementIndex] || '';
+
+    // Filter options if search query exists
+    const availableOptions = filterOptions(allAvailableOptions, searchQuery);
+
+    // Determine if we should show search (>15 options)
+    const shouldShowSearch = allAvailableOptions.length > 15;
+
     const isSingleSelection = pick === 1;
     const currentCount = getSelectionCount(type);
 
-    if (availableOptions.length === 0) {
+    if (allAvailableOptions.length === 0) {
       return (
         <Box key={requirementIndex} mb={2}>
           <Typography variant='subtitle1' gutterBottom>
@@ -458,36 +516,43 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
     // For items with descriptions (powers, spells)
     const hasDescriptions = availableOptions.some(
-      (opt) => 'description' in opt || 'descricao' in opt
+      (opt) =>
+        typeof opt === 'object' &&
+        opt !== null &&
+        ('description' in opt || 'descricao' in opt)
     );
 
     if (isSingleSelection) {
       // Single selection - use radio buttons
       const getValue = () => {
-        const firstItem =
-          type === 'learnSkill'
-            ? selections.skills?.[0]
-            : type === 'addProficiency'
-            ? selections.proficiencies?.[0]
-            : type === 'getGeneralPower'
-            ? selections.powers?.[0]
-            : type === 'learnSpell' || type === 'learnAnySpellFromHighestCircle'
-            ? selections.spells?.[0]
-            : type === 'increaseAttribute'
-            ? selections.attributes?.[0]
-            : type === 'selectWeaponSpecialization'
-            ? selections.weapons?.[0]
-            : undefined;
+        let firstItem: string | object | undefined;
+
+        switch (type) {
+          case 'learnSkill':
+            firstItem = selections.skills?.[0];
+            break;
+          case 'addProficiency':
+            firstItem = selections.proficiencies?.[0];
+            break;
+          case 'getGeneralPower':
+            firstItem = selections.powers?.[0];
+            break;
+          case 'learnSpell':
+          case 'learnAnySpellFromHighestCircle':
+            firstItem = selections.spells?.[0];
+            break;
+          case 'increaseAttribute':
+            firstItem = selections.attributes?.[0];
+            break;
+          case 'selectWeaponSpecialization':
+            firstItem = selections.weapons?.[0];
+            break;
+          default:
+            firstItem = undefined;
+        }
 
         if (!firstItem) return '';
-
-        return typeof firstItem === 'string'
-          ? firstItem
-          : 'name' in firstItem
-          ? (firstItem as { name: string }).name
-          : 'nome' in firstItem
-          ? (firstItem as { nome: string }).nome
-          : '';
+        return getItemName(firstItem);
       };
 
       return (
@@ -495,19 +560,58 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
+
+          {shouldShowSearch && (
+            <>
+              <TextField
+                fullWidth
+                size='small'
+                placeholder='Buscar por nome ou descrição...'
+                value={searchQuery}
+                onChange={(e) =>
+                  updateSearchQuery(requirementIndex, e.target.value)
+                }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 2 }}
+              />
+
+              {availableOptions.length === 0 && searchQuery && (
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 2 }}
+                >
+                  Nenhuma opção encontrada para &quot;{searchQuery}&quot;
+                </Typography>
+              )}
+
+              {searchQuery && availableOptions.length > 0 && (
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 2 }}
+                >
+                  {availableOptions.length}{' '}
+                  {availableOptions.length === 1
+                    ? 'opção encontrada'
+                    : 'opções encontradas'}
+                </Typography>
+              )}
+            </>
+          )}
+
           <FormControl component='fieldset' fullWidth>
             <RadioGroup
               value={getValue()}
               onChange={(e) => {
                 const selectedOption = availableOptions.find((opt) => {
-                  const optName =
-                    typeof opt === 'string'
-                      ? opt
-                      : 'name' in opt
-                      ? opt.name
-                      : 'nome' in opt
-                      ? opt.nome
-                      : '';
+                  const optName = getItemName(opt);
                   return optName === e.target.value;
                 });
                 if (selectedOption) {
@@ -516,20 +620,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               }}
             >
               {availableOptions.map((option) => {
-                const optionName =
-                  typeof option === 'string'
-                    ? option
-                    : 'name' in option
-                    ? option.name
-                    : 'nome' in option
-                    ? option.nome
-                    : '';
-                const optionDescription =
-                  typeof option !== 'string' && 'description' in option
-                    ? option.description
-                    : typeof option !== 'string' && 'descricao' in option
-                    ? option.descricao
-                    : null;
+                const optionName = getItemName(option);
+
+                let optionDescription: string | null = null;
+                if (typeof option !== 'string') {
+                  if ('description' in option) {
+                    optionDescription = (option as { description: string })
+                      .description;
+                  } else if ('descricao' in option) {
+                    optionDescription = (option as { descricao: string })
+                      .descricao;
+                  }
+                }
 
                 return (
                   <FormControlLabel
@@ -568,23 +670,59 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         <Typography variant='caption' color='text.secondary' display='block'>
           Selecionados: {currentCount} / {pick}
         </Typography>
+
+        {shouldShowSearch && (
+          <>
+            <TextField
+              fullWidth
+              size='small'
+              placeholder='Buscar por nome ou descrição...'
+              value={searchQuery}
+              onChange={(e) =>
+                updateSearchQuery(requirementIndex, e.target.value)
+              }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mt: 1, mb: 2 }}
+            />
+
+            {availableOptions.length === 0 && searchQuery && (
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+                Nenhuma opção encontrada para &quot;{searchQuery}&quot;
+              </Typography>
+            )}
+
+            {searchQuery && availableOptions.length > 0 && (
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+                {availableOptions.length}{' '}
+                {availableOptions.length === 1
+                  ? 'opção encontrada'
+                  : 'opções encontradas'}
+              </Typography>
+            )}
+          </>
+        )}
+
         <FormControl component='fieldset' fullWidth>
           <FormGroup>
             {availableOptions.map((option) => {
-              const optionName =
-                typeof option === 'string'
-                  ? option
-                  : 'name' in option
-                  ? option.name
-                  : 'nome' in option
-                  ? option.nome
-                  : '';
-              const optionDescription =
-                typeof option !== 'string' && 'description' in option
-                  ? option.description
-                  : typeof option !== 'string' && 'descricao' in option
-                  ? option.descricao
-                  : null;
+              const optionName = getItemName(option);
+
+              let optionDescription: string | null = null;
+              if (typeof option !== 'string') {
+                if ('description' in option) {
+                  optionDescription = (option as { description: string })
+                    .description;
+                } else if ('descricao' in option) {
+                  optionDescription = (option as { descricao: string })
+                    .descricao;
+                }
+              }
 
               const isSelected = isItemSelected(type, option);
               const isDisabled = !isSelected && currentCount >= pick;
@@ -646,7 +784,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
       {allRequirements.map((powerReq, powerIndex) => (
         <Accordion
-          key={`${powerReq.source}-${powerReq.powerName}-${powerIndex}`}
+          key={`${powerReq.source}-${powerReq.powerName}`}
           defaultExpanded={powerIndex === 0}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -662,7 +800,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </AccordionSummary>
           <AccordionDetails>
             {powerReq.requirements.map((requirement, reqIndex) => (
-              <React.Fragment key={`req-${reqIndex}`}>
+              <React.Fragment
+                key={`${powerReq.powerName}-req-${requirement.type}-${requirement.label}`}
+              >
                 {renderRequirement(requirement, reqIndex)}
                 {reqIndex < powerReq.requirements.length - 1 && (
                   <Divider sx={{ my: 2 }} />
@@ -672,36 +812,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </AccordionDetails>
         </Accordion>
       ))}
-
-      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-        <Typography variant='subtitle2' gutterBottom>
-          Resumo das Seleções:
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Perícias: {selections.skills?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Proficiências: {selections.proficiencies?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Poderes: {selections.powers?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Magias: {selections.spells?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Atributos: {selections.attributes?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Armas: {selections.weapons?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Familiares: {selections.familiars?.length || 0}
-        </Typography>
-        <Typography variant='body2' color='text.secondary'>
-          • Totens: {selections.animalTotems?.length || 0}
-        </Typography>
-      </Paper>
     </Box>
   );
 };

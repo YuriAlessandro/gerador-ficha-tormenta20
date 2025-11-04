@@ -50,27 +50,40 @@ const Spells: React.FC<SpellsProp> = (props) => {
       ) : (
         <Box>
           {!isMobile && (
-            <Grid container spacing={2} sx={{ fontSize: 12 }}>
-              <Grid size={4}>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                fontSize: 12,
+                px: 2,
+                py: 1,
+              }}
+            >
+              <Grid size={2}>
                 <span />
               </Grid>
               <Grid size={2}>
-                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Escola
                 </Typography>
               </Grid>
               <Grid size={2}>
-                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Execução
                 </Typography>
               </Grid>
               <Grid size={2}>
-                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Alcance
                 </Typography>
               </Grid>
               <Grid size={2}>
-                <Typography sx={{ ml: -0.5, fontSize: 12, fontWeight: 'bold' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
+                  Alvo/Área
+                </Typography>
+              </Grid>
+              <Grid size={2}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Resistência
                 </Typography>
               </Grid>

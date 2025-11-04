@@ -16,7 +16,7 @@ interface SpellSchoolSelectionStepProps {
   onChange: (schools: SpellSchool[]) => void;
   requiredCount: number;
   className: string;
-  spellType: 'Arcane' | 'Divine';
+  spellType: 'Arcane' | 'Divine' | 'Both';
 }
 
 // Descriptions for spell schools
@@ -55,13 +55,19 @@ const SpellSchoolSelectionStep: React.FC<SpellSchoolSelectionStepProps> = ({
 
   const isComplete = selectedSchools.length === requiredCount;
 
+  // Get spell type description
+  const getSpellTypeDescription = (): string => {
+    if (spellType === 'Arcane') return 'arcana';
+    if (spellType === 'Divine') return 'divina';
+    return 'arcana ou divina';
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Typography variant='body1' color='text.secondary'>
         A classe {className} requer que você escolha {requiredCount} escola
-        {requiredCount > 1 ? 's' : ''} de magia{' '}
-        {spellType === 'Arcane' ? 'arcana' : 'divina'}. Suas magias devem
-        pertencer a essas escolas.
+        {requiredCount > 1 ? 's' : ''} de magia {getSpellTypeDescription()}.
+        Suas magias devem pertencer a essas escolas.
       </Typography>
 
       <Typography variant='caption' color='text.secondary'>

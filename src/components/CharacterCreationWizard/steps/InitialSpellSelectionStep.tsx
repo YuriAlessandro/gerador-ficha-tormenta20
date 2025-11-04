@@ -23,7 +23,7 @@ interface InitialSpellSelectionStepProps {
   onChange: (spells: Spell[]) => void;
   requiredCount: number;
   className: string;
-  spellType: 'Arcane' | 'Divine';
+  spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
 }
 
@@ -49,17 +49,34 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
         // All arcane spells of circle 1
         spellList = (Object.values(arcaneSpellsCircle1) as Spell[][]).flat();
       }
-    } else {
-      // Divine
+    } else if (spellType === 'Divine') {
       if (schools && schools.length > 0) {
-        // Filter by schools
+        // Divine - Filter by schools
         spellList = schools.flatMap(
           (school) => divineSpellsCircle1[school] || []
         );
       } else {
-        // All divine spells of circle 1
+        // Divine - All schools
         spellList = (Object.values(divineSpellsCircle1) as Spell[][]).flat();
       }
+    } else if (spellType === 'Both') {
+      // Both arcane and divine
+      let arcaneList: Spell[] = [];
+      let divineList: Spell[] = [];
+
+      if (schools && schools.length > 0) {
+        arcaneList = schools.flatMap(
+          (school) => arcaneSpellsCircle1[school] || []
+        );
+        divineList = schools.flatMap(
+          (school) => divineSpellsCircle1[school] || []
+        );
+      } else {
+        arcaneList = (Object.values(arcaneSpellsCircle1) as Spell[][]).flat();
+        divineList = (Object.values(divineSpellsCircle1) as Spell[][]).flat();
+      }
+
+      spellList = [...arcaneList, ...divineList];
     }
 
     // Remove duplicates by nome

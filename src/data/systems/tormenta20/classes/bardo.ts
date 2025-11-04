@@ -248,7 +248,7 @@ const BARDO: ClassDescription = {
     const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {
       initialSpells: 2,
-      spellType: 'Arcane',
+      spellType: 'Both',
       qtySpellsLearnAtLevel: (level) => (level % 2 === 0 ? 1 : 0),
       schools: pickFromArray(allSpellSchools, 3),
       spellCircleAvailableAtLevel: (level) => {

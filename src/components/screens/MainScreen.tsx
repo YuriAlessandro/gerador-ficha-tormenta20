@@ -62,6 +62,7 @@ import {
 import generateRandomSheet, {
   generateEmptySheet,
   applyPower,
+  applyManualLevelUp,
 } from '../../functions/general';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -82,6 +83,7 @@ import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal';
 import CharacterCreationWizardModal from '../CharacterCreationWizard/CharacterCreationWizardModal';
+import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 
 type SelectedOption = {
@@ -266,6 +268,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
     React.useState<CharacterSheet | null>(null);
   const [wizardModalOpen, setWizardModalOpen] = React.useState(false);
+  const [levelUpWizardModalOpen, setLevelUpWizardModalOpen] =
+    React.useState(false);
+  const [pendingLevel1Sheet, setPendingLevel1Sheet] =
+    React.useState<CharacterSheet | null>(null);
 
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
@@ -373,6 +379,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setWizardModalOpen(true);
   };
 
+  const finalizeSheet = (sheet: CharacterSheet) => {
+    // Always save to local storage (historic)
+    saveSheetOnHistoric(sheet, isAuthenticated, sheets.length, () =>
+      showAlert(
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
+        'Limite Atingido'
+      )
+    );
+
+    // Don't save to cloud automatically - user will decide
+    setRandomSheet(sheet);
+    setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+  };
+
   const handleWizardConfirm = (
     wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
   ) => {
@@ -386,28 +406,49 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
 
-    // Generate empty sheet with wizard selections
-    const emptySheet = generateEmptySheet(selectedOptions, wizardSelections);
-    emptySheet.bag = new Bag(emptySheet.bag.equipments);
+    // Generate level 1 sheet with wizard selections
+    const level1Sheet = generateEmptySheet(selectedOptions, wizardSelections);
+    level1Sheet.bag = new Bag(level1Sheet.bag.equipments);
 
     // Check if race is Golem Desperto - need customization modal
-    if (emptySheet.raca.name === 'Golem Desperto') {
-      setPendingGolemDespertoSheet(emptySheet);
+    if (level1Sheet.raca.name === 'Golem Desperto') {
+      setPendingGolemDespertoSheet(level1Sheet);
       setShowGolemDespertoModal(true);
       return; // Wait for modal confirmation before finalizing
     }
 
-    // Always save to local storage (historic)
-    saveSheetOnHistoric(emptySheet, isAuthenticated, sheets.length, () =>
-      showAlert(
-        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
-        'Limite Atingido'
-      )
-    );
+    // If level > 1, open level up wizard modal
+    if (selectedOptions.nivel > 1) {
+      setPendingLevel1Sheet(level1Sheet);
+      setLevelUpWizardModalOpen(true);
+      return;
+    }
 
-    // Don't save to cloud automatically - user will decide
-    setRandomSheet(emptySheet);
-    setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+    // Level 1 character - finalize immediately
+    finalizeSheet(level1Sheet);
+  };
+
+  const handleLevelUpWizardConfirm = (
+    levelUpSelections: import('@/interfaces/WizardSelections').LevelUpSelections[]
+  ) => {
+    setLevelUpWizardModalOpen(false);
+
+    if (!pendingLevel1Sheet) return;
+
+    // Apply all level ups sequentially
+    let finalSheet = pendingLevel1Sheet;
+    levelUpSelections.forEach((levelSelection) => {
+      finalSheet = applyManualLevelUp(finalSheet, levelSelection);
+    });
+
+    // Finalize the sheet
+    finalizeSheet(finalSheet);
+    setPendingLevel1Sheet(null);
+  };
+
+  const handleLevelUpWizardCancel = () => {
+    setLevelUpWizardModalOpen(false);
+    setPendingLevel1Sheet(null);
   };
 
   // Handle save to cloud (explicit user action)
@@ -1142,6 +1183,17 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         onConfirm={handleWizardConfirm}
         selectedOptions={selectedOptions}
       />
+
+      {/* Level Up Wizard Modal */}
+      {pendingLevel1Sheet && (
+        <LevelUpWizardModal
+          open={levelUpWizardModalOpen}
+          initialSheet={pendingLevel1Sheet}
+          targetLevel={selectedOptions.nivel}
+          onConfirm={handleLevelUpWizardConfirm}
+          onCancel={handleLevelUpWizardCancel}
+        />
+      )}
 
       <div id='main-screen'>
         <Container

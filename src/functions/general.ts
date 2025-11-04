@@ -2508,6 +2508,234 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
+export function applyManualLevelUp(
+  sheet: CharacterSheet,
+  selections: import('../interfaces/WizardSelections').LevelUpSelections
+): CharacterSheet {
+  let updatedSheet = cloneDeep(sheet);
+  updatedSheet.nivel += 1;
+
+  // Check if there's an HP attribute replacement (Dom da Esperança)
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+
+  let hpAttribute = Atributo.CONSTITUICAO;
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    hpAttribute = hpReplacement.target.newAttribute;
+  }
+
+  let addPv =
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
+
+  if (addPv < 1) addPv = 1;
+
+  const newPvTotal = updatedSheet.pv + addPv;
+  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  const subSteps = [];
+
+  // Aumentar PV e PM
+  subSteps.push(
+    {
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível - ${hpAttribute})`,
+      value: newPvTotal,
+    },
+    {
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm} por nível)`,
+      value: newPmTotal,
+    }
+  );
+
+  updatedSheet.pv = newPvTotal;
+  updatedSheet.pm = newPmTotal;
+
+  // Recalcular valor das perícias
+  const skillTrainingMod = (trained: boolean, level: number) => {
+    if (!trained) return 0;
+
+    if (level >= 7 && level < 15) return 4;
+    if (level >= 15) return 6;
+
+    return 2;
+  };
+
+  const newCompleteSkills = updatedSheet.completeSkills?.map((sk) => ({
+    ...sk,
+    halfLevel: Math.floor(updatedSheet.nivel / 2),
+    training: skillTrainingMod(
+      Object.values(updatedSheet.skills).includes(sk.name),
+      updatedSheet.nivel
+    ),
+  }));
+
+  updatedSheet.completeSkills = newCompleteSkills;
+
+  // Aplicar magias selecionadas manualmente
+  if (selections.spellsLearned && selections.spellsLearned.length > 0) {
+    updatedSheet.spells.push(...selections.spellsLearned);
+
+    selections.spellsLearned.forEach((spell) => {
+      subSteps.push({
+        name: `Nova magia (${spell.spellCircle})`,
+        value: spell.nome,
+      });
+    });
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: [
+        {
+          type: 'SpellsLearned',
+          spellNames: selections.spellsLearned.map((spell) => spell.nome),
+        },
+      ],
+    });
+  }
+
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${updatedSheet.nivel}`,
+    value: subSteps,
+  });
+
+  // Aplicar poder escolhido (classe ou geral)
+  if (selections.powerChoice === 'class' && selections.selectedClassPower) {
+    const nSubSteps: SubStep[] = [];
+    const newPower = selections.selectedClassPower;
+
+    if (updatedSheet.classPowers) {
+      updatedSheet.classPowers.push(newPower);
+
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        newPower,
+        selections.powerEffectSelections
+      );
+      nSubSteps.push(...newSubSteps);
+      if (newSheet) updatedSheet = newSheet;
+
+      if (nSubSteps.length) {
+        updatedSheet.steps.push({
+          type: 'Poderes',
+          label: `Novo poder de ${updatedSheet.classe.name}`,
+          value: nSubSteps,
+        });
+      } else {
+        subSteps.push({
+          name: `Novo poder de ${updatedSheet.classe.name}`,
+          value: newPower.name,
+        });
+      }
+
+      updatedSheet.sheetActionHistory.push({
+        source: {
+          type: 'levelUp',
+          level: updatedSheet.nivel,
+        },
+        changes: [
+          {
+            type: 'PowerAdded',
+            powerName: newPower.name,
+          },
+        ],
+      });
+    }
+  } else if (
+    selections.powerChoice === 'general' &&
+    selections.selectedGeneralPower
+  ) {
+    const nSubSteps: SubStep[] = [];
+    const newPower = selections.selectedGeneralPower;
+    updatedSheet.generalPowers.push(newPower);
+
+    const [newSheet, newSubSteps] = applyPower(
+      updatedSheet,
+      newPower,
+      selections.powerEffectSelections
+    );
+    nSubSteps.push(...newSubSteps);
+    if (newSheet) updatedSheet = newSheet;
+
+    if (nSubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novo poder Geral`,
+        value: nSubSteps,
+      });
+    } else {
+      subSteps.push({
+        name: `Novo poder Geral`,
+        value: newPower.name,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: [
+        {
+          type: 'PowerAdded',
+          powerName: newPower.name,
+        },
+      ],
+    });
+  }
+
+  // Apply newly available class abilities for this level
+  const originalAbilities =
+    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
+  const newlyAvailableAbilities = originalAbilities.filter(
+    (ability) => ability.nivel === updatedSheet.nivel
+  );
+
+  if (newlyAvailableAbilities.length > 0) {
+    const abilitySubSteps: SubStep[] = [];
+
+    newlyAvailableAbilities.forEach((ability) => {
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        ability,
+        selections.abilityEffectSelections
+      );
+      updatedSheet = newSheet;
+      abilitySubSteps.push(...newSubSteps);
+    });
+
+    if (abilitySubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novas habilidades de classe (Nível ${updatedSheet.nivel})`,
+        value: abilitySubSteps,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: newlyAvailableAbilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })),
+    });
+
+    // Update displayed abilities to include newly available ones
+    const allAvailableAbilities = originalAbilities.filter(
+      (ability) => ability.nivel <= updatedSheet.nivel
+    );
+    updatedSheet.classe.abilities = allAvailableAbilities;
+  }
+
+  return updatedSheet;
+}
+
 const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   if (bonus.type === 'Attribute') {
     return sheet.atributos[bonus.attribute].mod;
@@ -3167,7 +3395,7 @@ export function generateEmptySheet(
     id: uuid(),
     nome: '',
     sexo: '',
-    nivel: selectedOptions.nivel,
+    nivel: 1,
     atributos: {
       Força: { name: Atributo.FORCA, mod: 0, value: 10 },
       Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
@@ -3318,7 +3546,7 @@ export function generateEmptySheet(
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Feérica') {
         modifiedClasse.periciasbasicas.push({
           type: 'and',
-          list: ['Enganação' as any],
+          list: [Skill.ENGANACAO],
         });
         modifiedClasse.abilities.push({
           name: 'Linhagem Feérica',

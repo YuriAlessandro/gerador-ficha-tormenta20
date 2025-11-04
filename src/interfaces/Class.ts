@@ -49,7 +49,7 @@ export type ClassPower = {
 
 export interface SpellPath {
   initialSpells: number;
-  spellType: 'Arcane' | 'Divine';
+  spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;

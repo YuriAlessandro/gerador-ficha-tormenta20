@@ -204,7 +204,7 @@ const CharacterCreationWizardModal: React.FC<
 
   // Helper to get spell info for classes without spellPath defined initially
   const getSpellInfo = (): {
-    spellType: 'Arcane' | 'Divine';
+    spellType: 'Arcane' | 'Divine' | 'Both';
     initialSpells: number;
   } | null => {
     if (!classe) return null;

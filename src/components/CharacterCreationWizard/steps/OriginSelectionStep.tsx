@@ -71,16 +71,24 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           {origin.getItems().length > 0 && (
             <Box>
               <Typography variant='subtitle2'>Itens:</Typography>
-              {origin.getItems().map((item, index) => (
-                <Typography
-                  key={index}
-                  variant='body2'
-                  color='text.secondary'
-                >
-                  • {typeof item.equipment === 'string' ? item.equipment : item.equipment.nome}
-                  {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
-                </Typography>
-              ))}
+              {origin.getItems().map((item) => {
+                const itemName =
+                  typeof item.equipment === 'string'
+                    ? item.equipment
+                    : item.equipment.nome;
+                const itemKey = `${itemName}-${item.qtd || 1}`;
+
+                return (
+                  <Typography
+                    key={itemKey}
+                    variant='body2'
+                    color='text.secondary'
+                  >
+                    • {itemName}
+                    {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
+                  </Typography>
+                );
+              })}
             </Box>
           )}
         </Paper>
