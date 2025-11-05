@@ -179,7 +179,7 @@ const SheetViewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth='lg'>
+      <Container maxWidth='xl'>
         <Box
           sx={{
             display: 'flex',
@@ -201,7 +201,7 @@ const SheetViewPage: React.FC = () => {
 
   if (error || !sheet) {
     return (
-      <Container maxWidth='lg'>
+      <Container maxWidth='xl'>
         <Box sx={{ mt: 4 }}>
           <Alert severity='error' sx={{ mb: 2 }}>
             {error || 'Ficha não encontrada'}
@@ -223,7 +223,7 @@ const SheetViewPage: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth='lg'>
+      <Container maxWidth='xl'>
         <Box sx={{ mt: 3, mb: 4, pb: 4 }}>
           {/* Breadcrumbs */}
           <Box
