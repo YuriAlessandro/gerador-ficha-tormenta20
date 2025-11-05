@@ -1,7 +1,7 @@
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion,
@@ -24,42 +24,50 @@ const PowerDisplay: React.FC<{
   power: ClassPower | RaceAbility | ClassAbility | OriginPower;
   type: string;
   count: number;
-}> = ({ sheetHistory, power, type, count }) => {
+}> = React.memo(({ sheetHistory, power, type, count }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const theme = useTheme();
 
-  const isMobile = window.innerWidth < 720;
+  const isMobile = useMemo(() => window.innerWidth < 720, []);
 
-  const historySources = sheetHistory
-    .filter((entry) =>
-      entry.changes.some(
-        (change) =>
-          change.type === 'PowerAdded' && change.powerName === power.name
-      )
-    )
-    .map((entry) => {
-      const { source } = entry;
-      if (source.type === 'levelUp') {
-        return `Nível ${source.level}`;
-      }
-      if (source.type === 'power') {
-        return source.name;
-      }
-      if (source.type === 'origin') {
-        return `${source.originName}`;
-      }
-      if (source.type === 'class') {
-        return `${source.className}`;
-      }
-      if (source.type === 'divinity') {
-        return `Devoto de ${source.divinityName}`;
-      }
-      if (source.type === 'race') {
-        return `${source.raceName}`;
-      }
-      return '';
-    })
-    .filter((source) => source !== '');
+  const historySources = useMemo(
+    () =>
+      sheetHistory
+        .filter((entry) =>
+          entry.changes.some(
+            (change) =>
+              change.type === 'PowerAdded' && change.powerName === power.name
+          )
+        )
+        .map((entry) => {
+          const { source } = entry;
+          if (source.type === 'levelUp') {
+            return `Nível ${source.level}`;
+          }
+          if (source.type === 'power') {
+            return source.name;
+          }
+          if (source.type === 'origin') {
+            return `${source.originName}`;
+          }
+          if (source.type === 'class') {
+            return `${source.className}`;
+          }
+          if (source.type === 'divinity') {
+            return `Devoto de ${source.divinityName}`;
+          }
+          if (source.type === 'race') {
+            return `${source.raceName}`;
+          }
+          return '';
+        })
+        .filter((source) => source !== ''),
+    [sheetHistory, power.name]
+  );
+
+  const handleToggle = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   // Check if this is a general power that was added manually
   const isManuallyAdded = type === 'Poder Geral' && historySources.length === 0;
@@ -69,10 +77,7 @@ const PowerDisplay: React.FC<{
     : historySources.join(', ');
 
   return (
-    <Accordion
-      expanded={isExpanded}
-      onChange={() => setIsExpanded(!isExpanded)}
-    >
+    <Accordion expanded={isExpanded} onChange={handleToggle}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />} id={power.name}>
         <Typography
           sx={{
@@ -99,5 +104,8 @@ const PowerDisplay: React.FC<{
       </AccordionDetails>
     </Accordion>
   );
-};
+});
+
+PowerDisplay.displayName = 'PowerDisplay';
+
 export default PowerDisplay;

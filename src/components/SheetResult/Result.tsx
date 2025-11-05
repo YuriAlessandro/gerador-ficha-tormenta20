@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import HomeIcon from '@mui/icons-material/Home';
@@ -48,6 +48,46 @@ import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 
+// Styled components defined outside to prevent recreation on every render
+const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
+  background-color: ${(props) => (props.isDarkMode ? '#212121' : '#f3f2f1')};
+`;
+
+const TextBox = styled.div<{ theme: any }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 50%;
+  &:first-of-type {
+    border-right: 1px solid ${(props) => props.theme.palette.primary.main};
+    padding-right: 10px;
+  }
+  &:last-child {
+    padding-left: 10px;
+  }
+`;
+
+const StatTitle = styled.h4`
+  font-family: 'Tfont';
+  position: relative;
+  font-size: 9px;
+  text-transform: uppercase;
+  margin: 0;
+  white-space: nowrap;
+`;
+
+const StatLabel = styled.div<{ theme: any }>`
+  font-family: 'Tfont';
+  text-align: center;
+  width: 100%;
+  font-size: 45px;
+  color: ${(props) => props.theme.palette.primary.main};
+  line-height: 1;
+  margin: 0;
+`;
+
 interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
@@ -72,63 +112,74 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
-  const handleSheetInfoUpdate = (
-    updates: Partial<CharacterSheet> | CharacterSheet
-  ) => {
-    // Check if it's a full sheet (has required properties) or partial updates
-    const isFullSheet =
-      'id' in updates && 'nome' in updates && 'atributos' in updates;
+  const handleSheetInfoUpdate = useCallback(
+    (updates: Partial<CharacterSheet> | CharacterSheet) => {
+      // Check if it's a full sheet (has required properties) or partial updates
+      const isFullSheet =
+        'id' in updates && 'nome' in updates && 'atributos' in updates;
 
-    const updatedSheet = isFullSheet
-      ? (updates as CharacterSheet)
-      : { ...currentSheet, ...updates };
+      const updatedSheet = isFullSheet
+        ? (updates as CharacterSheet)
+        : { ...currentSheet, ...updates };
 
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleSkillsUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleSkillsUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleEquipmentUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleEquipmentUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handlePowersUpdate = (
-    updates: Partial<CharacterSheet> | CharacterSheet
-  ) => {
-    // Check if it's a full sheet (has required properties) or partial updates
-    const isFullSheet =
-      'id' in updates && 'nome' in updates && 'atributos' in updates;
+  const handlePowersUpdate = useCallback(
+    (updates: Partial<CharacterSheet> | CharacterSheet) => {
+      // Check if it's a full sheet (has required properties) or partial updates
+      const isFullSheet =
+        'id' in updates && 'nome' in updates && 'atributos' in updates;
 
-    const updatedSheet = isFullSheet
-      ? (updates as CharacterSheet)
-      : { ...currentSheet, ...updates };
+      const updatedSheet = isFullSheet
+        ? (updates as CharacterSheet)
+        : { ...currentSheet, ...updates };
 
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleSpellsUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleSpellsUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
   const {
     nome,
@@ -170,24 +221,35 @@ const Result: React.FC<ResultProps> = (props) => {
       )
     : undefined;
 
-  const periciasDiv = (
-    <SkillTable sheet={currentSheet} skills={periciasSorted} />
+  const periciasDiv = useMemo(
+    () => <SkillTable sheet={currentSheet} skills={periciasSorted} />,
+    [currentSheet, periciasSorted]
   );
 
-  const proficienciasDiv = classe.proficiencias.map((proe) => (
-    <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
-  ));
+  const proficienciasDiv = useMemo(
+    () =>
+      classe.proficiencias.map((proe) => (
+        <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
+      )),
+    [classe.proficiencias]
+  );
 
-  let bagEquipments;
-  if (bag.getEquipments) {
-    bagEquipments = bag.getEquipments();
-  } else {
-    bagEquipments = bag.equipments;
-  }
+  const bagEquipments = useMemo(() => {
+    if (bag.getEquipments) {
+      return bag.getEquipments();
+    }
+    return bag.equipments;
+  }, [bag]);
 
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(bagEquipments)
-    .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
-    .flatMap((value) => value[1]);
+  const equipsEntriesNoWeapons: Equipment[] = useMemo(
+    () =>
+      Object.entries(bagEquipments)
+        .filter(
+          ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
+        )
+        .flatMap((value) => value[1]),
+    [bagEquipments]
+  );
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
     <Chip
@@ -262,19 +324,23 @@ const Result: React.FC<ResultProps> = (props) => {
     (rangeSkill?.others ?? 0) +
     (rangeSkill?.training ?? 0);
 
-  const weaponsDiv = (
-    <Weapons
-      getKey={getKey}
-      weapons={bagEquipments.Arma}
-      fightBonus={fightBonus}
-      rangeBonus={rangeBonus}
-      modFor={modFor}
-    />
+  const weaponsDiv = useMemo(
+    () => (
+      <Weapons
+        getKey={getKey}
+        weapons={bagEquipments.Arma}
+        fightBonus={fightBonus}
+        rangeBonus={rangeBonus}
+        modFor={modFor}
+      />
+    ),
+    [bagEquipments.Arma, fightBonus, rangeBonus, modFor]
   );
-  const defenseEquipments = [
-    ...bagEquipments.Armadura,
-    ...bagEquipments.Escudo,
-  ];
+
+  const defenseEquipments = useMemo(
+    () => [...bagEquipments.Armadura, ...bagEquipments.Escudo],
+    [bagEquipments.Armadura, bagEquipments.Escudo]
+  );
 
   // const uniqueGeneralPowers = filterUnique(generalPowers);
   // const uniqueClassPowers = filterUnique(classPowers);
@@ -284,13 +350,16 @@ const Result: React.FC<ResultProps> = (props) => {
     : null;
 
   // Helper function to format attribute modifiers correctly
-  const formatAttributeModifier = (value: number | string): string => {
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (Number.isNaN(numValue)) return String(value);
-    if (numValue === 0) return '0';
-    if (numValue > 0) return `+${numValue}`;
-    return String(numValue); // Negative values already have '-'
-  };
+  const formatAttributeModifier = useCallback(
+    (value: number | string): string => {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (Number.isNaN(numValue)) return String(value);
+      if (numValue === 0) return '0';
+      if (numValue > 0) return `+${numValue}`;
+      return String(numValue); // Negative values already have '-'
+    },
+    []
+  );
 
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
@@ -351,62 +420,27 @@ const Result: React.FC<ResultProps> = (props) => {
     );
   });
 
-  const isMobile = window.innerWidth <= 768;
-
-  const BackgroundBox = styled(Box)`
-    background-color: ${isDarkMode ? '#212121' : '#f3f2f1'};
-  `;
-
-  const TextBox = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 50%;
-    &:first-of-type {
-      border-right: 1px solid ${theme.palette.primary.main};
-      padding-right: 10px;
-    }
-    &:last-child {
-      padding-left: 10px;
-    }
-  `;
-
-  const StatTitle = styled.h4`
-    font-family: 'Tfont';
-    position: relative;
-    font-size: 9px;
-    text-transform: uppercase;
-    margin: 0;
-    white-space: nowrap;
-  `;
-
-  const StatLabel = styled.div`
-    font-family: 'Tfont';
-    text-align: center;
-    width: 100%;
-    font-size: 45px;
-    color: ${theme.palette.primary.main};
-    line-height: 1;
-    margin: 0;
-  `;
+  const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
   // Breadcrumb items
-  const breadcrumbItems: BreadcrumbItem[] = isSavedToCloud
-    ? [
-        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-        { label: 'Meus Personagens', href: '/meus-personagens' },
-        { label: nome, icon: <PersonIcon fontSize='small' /> },
-      ]
-    : [
-        { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-        { label: 'Criar Ficha', href: '/criar-ficha' },
-        { label: 'Resultado' },
-      ];
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(
+    () =>
+      isSavedToCloud
+        ? [
+            { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+            { label: 'Meus Personagens', href: '/meus-personagens' },
+            { label: nome, icon: <PersonIcon fontSize='small' /> },
+          ]
+        : [
+            { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
+            { label: 'Criar Ficha', href: '/criar-ficha' },
+            { label: 'Resultado' },
+          ],
+    [isSavedToCloud, nome]
+  );
 
   return (
-    <BackgroundBox sx={{ p: 2 }}>
+    <BackgroundBox isDarkMode={isDarkMode} sx={{ p: 2 }}>
       <Container maxWidth='xl'>
         {/* Breadcrumb Navigation */}
         <BreadcrumbNav items={breadcrumbItems} />
@@ -502,7 +536,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       fontFamily: 'Tfont',
                     }}
                   >
-                    <TextBox>
+                    <TextBox theme={theme}>
                       <Box
                         sx={{
                           fontSize: '50px',
@@ -513,7 +547,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       </Box>
                       <Box>PV</Box>
                     </TextBox>
-                    <TextBox>
+                    <TextBox theme={theme}>
                       <Box
                         sx={{
                           fontSize: '50px',
@@ -647,7 +681,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       gap: 0.5,
                     }}
                   >
-                    <StatLabel>{defesa}</StatLabel>
+                    <StatLabel theme={theme}>{defesa}</StatLabel>
                     <StatTitle>Defesa</StatTitle>
                   </Box>
                 </FancyBox>

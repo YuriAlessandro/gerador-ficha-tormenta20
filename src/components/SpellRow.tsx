@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -15,19 +15,20 @@ interface SpellProps {
   spell: Spell;
 }
 
-const SpellRow: React.FC<SpellProps> = (props) => {
+const SpellRow: React.FC<SpellProps> = React.memo((props) => {
   const { spell } = props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const theme = useTheme();
 
-  const isMobile = window.innerWidth < 720;
+  const isMobile = useMemo(() => window.innerWidth < 720, []);
+
+  const handleToggle = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
 
   return (
-    <Accordion
-      expanded={isExpanded}
-      onChange={() => setIsExpanded(!isExpanded)}
-    >
+    <Accordion expanded={isExpanded} onChange={handleToggle}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         id={spell.nome}
@@ -155,6 +156,8 @@ const SpellRow: React.FC<SpellProps> = (props) => {
       </AccordionDetails>
     </Accordion>
   );
-};
+});
+
+SpellRow.displayName = 'SpellRow';
 
 export default SpellRow;

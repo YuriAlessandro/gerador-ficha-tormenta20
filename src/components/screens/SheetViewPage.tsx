@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import {
   Container,
@@ -110,32 +110,35 @@ const SheetViewPage: React.FC = () => {
     }
   }, [id, firebaseUser]);
 
-  const handleSheetUpdate = async (updatedSheet: CharacterSheet) => {
-    if (!isOwner || !id) {
-      return;
-    }
+  const handleSheetUpdate = useCallback(
+    async (updatedSheet: CharacterSheet) => {
+      if (!isOwner || !id) {
+        return;
+      }
 
-    try {
-      // Update sheet in backend
-      await updateSheet(id, {
-        sheetData: updatedSheet as unknown as Parameters<
-          typeof updateSheet
-        >[1]['sheetData'],
-        name: updatedSheet.nome,
-      });
+      try {
+        // Update sheet in backend
+        await updateSheet(id, {
+          sheetData: updatedSheet as unknown as Parameters<
+            typeof updateSheet
+          >[1]['sheetData'],
+          name: updatedSheet.nome,
+        });
 
-      // Update local state
-      setSheet(updatedSheet);
+        // Update local state
+        setSheet(updatedSheet);
 
-      setSnackbarMessage('Ficha atualizada com sucesso!');
-      setSnackbarOpen(true);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Error updating sheet:', err);
-      setSnackbarMessage('Erro ao atualizar a ficha.');
-      setSnackbarOpen(true);
-    }
-  };
+        setSnackbarMessage('Ficha atualizada com sucesso!');
+        setSnackbarOpen(true);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error updating sheet:', err);
+        setSnackbarMessage('Erro ao atualizar a ficha.');
+        setSnackbarOpen(true);
+      }
+    },
+    [isOwner, id, updateSheet]
+  );
 
   const handleShareClick = () => {
     const url = window.location.href;
