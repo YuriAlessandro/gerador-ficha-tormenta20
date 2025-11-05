@@ -30,7 +30,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   if (origin.isRegional) {
     const originBenefits = origin.getPowersAndSkills
       ? origin.getPowersAndSkills(usedSkills, origin)
-      : { powers: { origin: [], general: [] }, skills: [] };
+      : {
+          powers: {
+            origin:
+              origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+            general: [],
+          },
+          skills: origin.pericias,
+        };
 
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -104,7 +111,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   // Get available benefits from the origin
   const originBenefits = origin.getPowersAndSkills
     ? origin.getPowersAndSkills(usedSkills, origin)
-    : { powers: { origin: [], general: [] }, skills: [] };
+    : {
+        powers: {
+          origin:
+            origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+          general: [],
+        },
+        skills: origin.pericias,
+      };
 
   const items = origin.getItems();
 

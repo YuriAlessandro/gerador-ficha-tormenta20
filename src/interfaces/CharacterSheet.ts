@@ -7,6 +7,7 @@ import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments } from './Equipment';
+import { OriginBenefit } from './WizardSelections';
 
 export type SheetChangeSource =
   | {
@@ -273,6 +274,7 @@ export default interface CharacterSheet {
     | {
         name: string;
         powers: OriginPower[];
+        selectedBenefits?: OriginBenefit[]; // Track which benefits were chosen (for editing)
       }
     | undefined;
   spells: Spell[];
