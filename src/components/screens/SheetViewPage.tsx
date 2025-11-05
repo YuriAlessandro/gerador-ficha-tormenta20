@@ -32,7 +32,6 @@ const SheetViewPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [sheetOwnerId, setSheetOwnerId] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -51,9 +50,6 @@ const SheetViewPage: React.FC = () => {
 
         const sheetData = await SheetsService.getSheetById(id);
 
-        // Store owner ID for permission check
-        setSheetOwnerId(sheetData.userId);
-
         // Check if current user is the owner using Firebase UID
         const ownerCheck =
           firebaseUser && sheetData.ownerFirebaseUid
@@ -62,7 +58,7 @@ const SheetViewPage: React.FC = () => {
         setIsOwner(ownerCheck);
 
         // Extract and restore the character sheet (deep copy to avoid read-only issues)
-        let restoredSheet = JSON.parse(
+        const restoredSheet = JSON.parse(
           JSON.stringify(sheetData.sheetData)
         ) as CharacterSheet;
 

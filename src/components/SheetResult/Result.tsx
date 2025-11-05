@@ -21,7 +21,6 @@ import {
   Link,
 } from '@mui/material';
 import styled from '@emotion/styled';
-import bgImage from '@/assets/images/fantasybg.png';
 import bigBoxDark from '@/assets/images/bigBoxDark.svg';
 import bigBox from '@/assets/images/bigBox.svg';
 import {
@@ -53,7 +52,17 @@ const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
   background-color: ${(props) => (props.isDarkMode ? '#212121' : '#f3f2f1')};
 `;
 
-const TextBox = styled.div<{ theme: any }>`
+interface ThemeProp {
+  theme: {
+    palette: {
+      primary: {
+        main: string;
+      };
+    };
+  };
+}
+
+const TextBox = styled.div<ThemeProp>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -78,7 +87,7 @@ const StatTitle = styled.h4`
   white-space: nowrap;
 `;
 
-const StatLabel = styled.div<{ theme: any }>`
+const StatLabel = styled.div<ThemeProp>`
   font-family: 'Tfont';
   text-align: center;
   width: 100%;
