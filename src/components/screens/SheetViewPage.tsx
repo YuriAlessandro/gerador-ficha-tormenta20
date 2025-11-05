@@ -35,6 +35,13 @@ const SheetViewPage: React.FC = () => {
   const [sheetOwnerId, setSheetOwnerId] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Load dark mode preference from localStorage
+  useEffect(() => {
+    const darkModePref = localStorage.getItem('dkmFdn') === 'true';
+    setIsDarkMode(darkModePref);
+  }, []);
 
   useEffect(() => {
     const loadSheet = async () => {
@@ -267,7 +274,7 @@ const SheetViewPage: React.FC = () => {
           {/* Sheet Result */}
           <Result
             sheet={sheet}
-            isDarkMode={false}
+            isDarkMode={isDarkMode}
             onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
             isSavedToCloud
           />
