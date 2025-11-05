@@ -426,23 +426,25 @@ const Result: React.FC<ResultProps> = (props) => {
                 overflow: 'visible', // Allow the button to show outside the card
               }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16, // Half the button height to position it on the edge
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1, // Makes it square with slightly rounded corners
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setSheetInfoDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16, // Half the button height to position it on the edge
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1, // Makes it square with slightly rounded corners
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSheetInfoDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Stack
                 direction='row'
                 spacing={2}
@@ -549,23 +551,25 @@ const Result: React.FC<ResultProps> = (props) => {
                 overflow: 'visible',
               }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setEquipmentDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setEquipmentDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Stack
                 direction={isMobile ? 'column' : 'row'}
                 spacing={2}
@@ -615,23 +619,25 @@ const Result: React.FC<ResultProps> = (props) => {
                 overflow: 'visible',
               }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setDefenseDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setDefenseDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
                 <FancyBox>
                   <Box
@@ -715,23 +721,25 @@ const Result: React.FC<ResultProps> = (props) => {
             <Card
               sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setPowersDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setPowersDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Box>
                 <BookTitle>Poderes</BookTitle>
                 <PowersDisplay
@@ -750,23 +758,25 @@ const Result: React.FC<ResultProps> = (props) => {
             <Card
               sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setSpellsDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSpellsDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Box>
                 <BookTitle>Magias</BookTitle>
                 <Spells
@@ -782,43 +792,47 @@ const Result: React.FC<ResultProps> = (props) => {
           <Box width={isMobile ? '100%' : '40%'}>
             <Stack spacing={4}>
               <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSkillsDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSkillsDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 {periciasDiv}
               </Card>
               <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setEquipmentDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setEquipmentDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box p={2}>
                   <BookTitle>Equipamentos</BookTitle>
                   <Stack
