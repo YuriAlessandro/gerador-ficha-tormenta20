@@ -19,6 +19,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSheets } from '@/hooks/useSheets';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
+import { dataRegistry } from '@/data/registry';
+import { ClassDescription } from '@/interfaces/Class';
 
 const SheetViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,25 +53,32 @@ const SheetViewPage: React.FC = () => {
           : false;
         setIsOwner(ownerCheck);
 
-        // Extract and restore the character sheet
-        let restoredSheet = sheetData.sheetData as unknown as CharacterSheet;
+        // Extract and restore the character sheet (deep copy to avoid read-only issues)
+        let restoredSheet = JSON.parse(
+          JSON.stringify(sheetData.sheetData)
+        ) as CharacterSheet;
+
+        // Get classes based on user's enabled supplements
+        const userSupplements = user?.enabledSupplements || [];
+        const CLASSES =
+          dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
         // Restore Bag class methods (same pattern as MainScreen)
         if (restoredSheet.bag) {
-          const bagData = restoredSheet.bag;
-          restoredSheet = {
-            ...restoredSheet,
-            bag: new Bag(bagData.equipments || {}),
-          };
+          restoredSheet.bag = new Bag(restoredSheet.bag.equipments || {});
         }
 
-        // Restore spellPath functions if class has spell path
+        // Restore spellPath functions if the class has spellcasting
         if (restoredSheet.classe?.spellPath) {
-          const { spellPath } = restoredSheet.classe;
-          // Restore functions from the class definition
-          // This requires importing the actual class and finding it
-          // For now, we'll keep the serialized version
-          // TODO: Implement proper spellPath restoration if needed
+          const baseClass = CLASSES.find(
+            (c: ClassDescription) => c.name === restoredSheet.classe.name
+          );
+
+          if (baseClass?.setup) {
+            // For classes with setup functions, recreate spellPath based on class
+            const setupClass = baseClass.setup(restoredSheet.classe);
+            restoredSheet.classe.spellPath = setupClass.spellPath;
+          }
         }
 
         setSheet(restoredSheet);
