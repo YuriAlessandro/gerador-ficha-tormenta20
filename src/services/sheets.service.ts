@@ -10,6 +10,7 @@ export interface SheetData {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  ownerFirebaseUid?: string;
 }
 
 export interface CreateSheetRequest {
@@ -47,6 +48,7 @@ interface MongoSheetData {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  ownerFirebaseUid?: string;
 }
 
 class SheetsService {
@@ -65,6 +67,7 @@ class SheetsService {
       description: sheet.description,
       createdAt: sheet.createdAt,
       updatedAt: sheet.updatedAt,
+      ownerFirebaseUid: sheet.ownerFirebaseUid,
     };
   }
 

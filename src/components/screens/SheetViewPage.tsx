@@ -54,10 +54,11 @@ const SheetViewPage: React.FC = () => {
         // Store owner ID for permission check
         setSheetOwnerId(sheetData.userId);
 
-        // Check if current user is the owner
-        const ownerCheck = firebaseUser
-          ? sheetData.userId === firebaseUser.uid
-          : false;
+        // Check if current user is the owner using Firebase UID
+        const ownerCheck =
+          firebaseUser && sheetData.ownerFirebaseUid
+            ? sheetData.ownerFirebaseUid === firebaseUser.uid
+            : false;
         setIsOwner(ownerCheck);
 
         // Extract and restore the character sheet (deep copy to avoid read-only issues)
