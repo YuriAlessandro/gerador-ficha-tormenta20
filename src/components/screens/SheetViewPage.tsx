@@ -215,69 +215,73 @@ const SheetViewPage: React.FC = () => {
   }
 
   return (
-    <Container maxWidth='lg'>
-      <Box sx={{ mt: 3, mb: 4 }}>
-        {/* Breadcrumbs */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
-          }}
-        >
-          <Breadcrumbs aria-label='breadcrumb'>
-            <Link
-              color='inherit'
-              href='/'
-              onClick={handleBreadcrumbClick}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <HomeIcon sx={{ mr: 0.5 }} fontSize='small' />
-              Home
-            </Link>
-            <Typography color='text.primary'>Ficha de {sheet.nome}</Typography>
-          </Breadcrumbs>
-
-          {/* Share Button */}
-          <IconButton
-            onClick={handleShareClick}
-            color='primary'
-            aria-label='compartilhar ficha'
-            title='Compartilhar ficha'
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Container maxWidth='lg'>
+        <Box sx={{ mt: 3, mb: 4, pb: 4 }}>
+          {/* Breadcrumbs */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3,
+            }}
           >
-            <ShareIcon />
-          </IconButton>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Link
+                color='inherit'
+                href='/'
+                onClick={handleBreadcrumbClick}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <HomeIcon sx={{ mr: 0.5 }} fontSize='small' />
+                Home
+              </Link>
+              <Typography color='text.primary'>
+                Ficha de {sheet.nome}
+              </Typography>
+            </Breadcrumbs>
+
+            {/* Share Button */}
+            <IconButton
+              onClick={handleShareClick}
+              color='primary'
+              aria-label='compartilhar ficha'
+              title='Compartilhar ficha'
+            >
+              <ShareIcon />
+            </IconButton>
+          </Box>
+
+          {/* Permission Info */}
+          {!isOwner && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Você está visualizando esta ficha em modo somente leitura.
+            </Alert>
+          )}
+
+          {/* Sheet Result */}
+          <Result
+            sheet={sheet}
+            isDarkMode={false}
+            onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
+            isSavedToCloud
+          />
         </Box>
 
-        {/* Permission Info */}
-        {!isOwner && (
-          <Alert severity='info' sx={{ mb: 2 }}>
-            Você está visualizando esta ficha em modo somente leitura.
-          </Alert>
-        )}
-
-        {/* Sheet Result */}
-        <Result
-          sheet={sheet}
-          isDarkMode={false}
-          onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
-          isSavedToCloud
+        {/* Snackbar for notifications */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setSnackbarOpen(false)}
+          message={snackbarMessage}
         />
-      </Box>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

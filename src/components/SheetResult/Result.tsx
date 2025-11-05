@@ -356,15 +356,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const isMobile = window.innerWidth <= 768;
 
   const BackgroundBox = styled(Box)`
-    background: linear-gradient(
-        to top,
-        rgba(255, 255, 255, 0) 20%,
-        ${isDarkMode ? '#212121' : '#f3f2f1'}
-      ),
-      url(${bgImage});
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
+    background-color: ${isDarkMode ? '#212121' : '#f3f2f1'};
   `;
 
   const TextBox = styled.div`
