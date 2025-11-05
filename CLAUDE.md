@@ -10,10 +10,16 @@ Gerador de Fichas de Tormenta 20 - A character sheet generator for the Brazilian
 
 - **Frontend (public)**: Main React application for character sheet generation (this repository)
 - **Backend (private submodule)**: Node.js backend for premium features and user authentication (located in `/backend`)
+- **Premium Features (private submodule)**: Premium frontend features (located in `/src/premium`)
 
 ## Git Submodules
 
-This project uses a git submodule for the backend. The backend repository is private and located at `git@github.com:YuriAlessandro/fichas-de-nimb-backend.git`.
+This project uses git submodules for backend and premium features:
+
+- **Backend**: `git@github.com:YuriAlessandro/fichas-de-nimb-backend.git` (located in `/backend`)
+- **Premium**: `git@github.com:YuriAlessandro/fichas-de-nimb-premium.git` (located in `/src/premium`)
+
+**IMPORTANT**: New features should be developed in the premium submodule (`/src/premium`) as they will be paid features. The main repository remains open-source with core functionality.
 
 ### Working with Submodules
 
@@ -25,12 +31,19 @@ git clone --recurse-submodules git@github.com:YuriAlessandro/gerador-ficha-torme
 git submodule init
 git submodule update
 
-# Pull latest changes from submodule
+# Pull latest changes from backend submodule
 cd backend
 git pull origin main
 cd ..
 git add backend
 git commit -m "Update backend submodule"
+
+# Pull latest changes from premium submodule
+cd src/premium
+git pull origin main
+cd ../..
+git add src/premium
+git commit -m "Update premium submodule"
 
 # Working in the backend
 cd backend
@@ -42,6 +55,17 @@ git push origin main
 cd ..
 git add backend
 git commit -m "Update backend submodule reference"
+
+# Working in premium features
+cd src/premium
+# Make changes, commit, push as normal
+git add .
+git commit -m "Your commit message"
+git push origin main
+# Then update parent repository
+cd ../..
+git add src/premium
+git commit -m "Update premium submodule reference"
 ```
 
 ## Commands
@@ -108,6 +132,7 @@ npx prettier --check <filename>  # Check if files are formatted
 - `src/interfaces/` - All TypeScript type definitions for RPG entities
 - `src/data/` - Game content (races, classes, spells, equipment)
 - `src/functions/` - Business logic and utility functions
+- `src/premium/` - Premium features submodule (PRIVATE)
 
 **Backend (when present):**
 
@@ -115,6 +140,12 @@ npx prettier --check <filename>  # Check if files are formatted
 - `backend/src/api/` - API routes and controllers
 - `backend/src/models/` - Database models
 - `backend/src/services/` - Business logic services
+
+**Premium (when present):**
+
+- `src/premium/` - Premium frontend features (PRIVATE)
+- New paid features should be developed here
+- Integrates with main app through exports
 
 ### Deprecated - DO NOT USE
 

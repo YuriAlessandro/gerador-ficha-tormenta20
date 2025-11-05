@@ -1,3 +1,6 @@
 [submodule "backend"]
 	path = backend
 	url = git@github.com:YuriAlessandro/fichas-de-nimb-backend.git
+[submodule "src/premium"]
+	path = src/premium
+	url = git@github.com:YuriAlessandro/fichas-de-nimb-premium.git
