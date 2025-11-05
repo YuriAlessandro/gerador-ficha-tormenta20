@@ -151,8 +151,8 @@ const MyCharactersPage: React.FC = () => {
       // For threats, pass cloudThreat via location.state
       history.push('/threat-view', { cloudThreat: sheet });
     } else {
-      // For characters, load the cloud sheet in MainScreen
-      history.push('/criar-ficha', { cloudSheet: sheet });
+      // For characters, navigate to the shareable sheet page
+      history.push(`/ficha/${sheet.id}`);
     }
   };
 

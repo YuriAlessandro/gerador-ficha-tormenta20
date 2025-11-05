@@ -48,6 +48,7 @@ import ThreatGeneratorScreen from './components/ThreatGenerator/ThreatGeneratorS
 import ThreatHistory from './components/ThreatGenerator/ThreatHistory';
 import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
+import SheetViewPage from './components/screens/SheetViewPage';
 import SystemUpdate from './components/SystemUpdate';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -328,6 +329,9 @@ function App(): JSX.Element {
                               <ProtectedRoute requireAuth redirectTo='/'>
                                 <MyCharactersPage />
                               </ProtectedRoute>
+                            </Route>
+                            <Route path='/ficha/:id'>
+                              <SheetViewPage />
                             </Route>
                             <Route path='/sheets'>
                               <SheetList />
