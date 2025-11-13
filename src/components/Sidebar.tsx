@@ -33,10 +33,12 @@ import {
   Switch,
 } from '@mui/material';
 import { Book } from '@mui/icons-material';
+import Casino from '@mui/icons-material/Casino';
 
 import logo from '../assets/images/tormenta-logo-eye.png';
 import '../assets/css/sidebar.css';
 import { useAuth } from '../hooks/useAuth';
+import { useDice3D } from '../contexts/Dice3DContext';
 
 type SidebarProps = RouteComponentProps & {
   visible: boolean;
@@ -65,6 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const history = useHistory();
   const { isAuthenticated, user } = useAuth();
+  const { settings, updateSettings } = useDice3D();
 
   // Disable/enable page scroll when sidebar is open/closed
   useEffect(() => {
@@ -155,6 +158,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const onClickMap = () => {
     window.open('https://mapadearton.fichasdenimb.com.br/', '_blank');
+  };
+
+  const onToggle3DDice = () => {
+    updateSettings({ enabled: !settings.enabled });
   };
 
   document.addEventListener('keydown', handleEscKeyPress, false);
@@ -348,6 +355,25 @@ const Sidebar: React.FC<SidebarProps> = ({
                   />
                 }
                 label='Tema Escuro'
+              />
+            </FormGroup>
+          </StyledMenuItem>
+          <StyledMenuItem>
+            <ListItemIcon>
+              <Casino />
+            </ListItemIcon>
+            <FormGroup>
+              <FormControlLabel
+                labelPlacement='end'
+                control={
+                  <Switch
+                    checked={settings.enabled}
+                    onChange={onToggle3DDice}
+                    color='default'
+                    value='3d-dice'
+                  />
+                }
+                label='Dados 3D'
               />
             </FormGroup>
           </StyledMenuItem>

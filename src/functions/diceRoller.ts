@@ -31,7 +31,7 @@ export function rollD20(): number {
  */
 export function rollDice(sides: number, count: number = 1): number[] {
   const rolls: number[] = [];
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i += 1) {
     rolls.push(Math.floor(Math.random() * sides) + 1);
   }
   return rolls;

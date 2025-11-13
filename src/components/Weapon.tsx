@@ -37,8 +37,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     const damageRollResult = rollDamage(damageString);
 
     if (!damageRollResult) {
-      // Fallback se o parse falhar
-      console.error('Failed to parse damage:', dano);
+      // Fallback se o parse falhar - não rola dano
       return;
     }
 

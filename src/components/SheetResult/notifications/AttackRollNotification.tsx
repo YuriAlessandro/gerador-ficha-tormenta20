@@ -40,7 +40,7 @@ const AttackRollNotification = forwardRef<HTMLDivElement, Props>(
     if (resultType === 'fumble') backgroundColor = theme.palette.error.main;
 
     const damageRollsSum = roll.damageRolls.reduce(
-      (sum, roll) => sum + roll,
+      (sum, diceRoll) => sum + diceRoll,
       0
     );
 
