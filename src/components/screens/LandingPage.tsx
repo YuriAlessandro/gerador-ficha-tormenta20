@@ -9,6 +9,7 @@ import {
   Paper,
   useTheme,
 } from '@mui/material';
+import { Psychology } from '@mui/icons-material';
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -349,39 +350,6 @@ const LandingPage: React.FC<{
                       },
                     }}
                   >
-                    {/* New Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: -8,
-                        right: 12,
-                        background:
-                          'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)',
-                        color: '#FFFFFF',
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 2,
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold',
-                        textTransform: 'uppercase',
-                        boxShadow: '0 2px 8px rgba(255, 107, 107, 0.4)',
-                        zIndex: 10,
-                        animation: 'pulse 2s infinite',
-                        '@keyframes pulse': {
-                          '0%': {
-                            boxShadow: '0 2px 8px rgba(255, 107, 107, 0.4)',
-                          },
-                          '50%': {
-                            boxShadow: '0 2px 16px rgba(255, 107, 107, 0.6)',
-                          },
-                          '100%': {
-                            boxShadow: '0 2px 8px rgba(255, 107, 107, 0.4)',
-                          },
-                        },
-                      }}
-                    >
-                      Novo
-                    </Box>
                     <Box
                       className='threat-bg'
                       sx={{
@@ -858,39 +826,6 @@ const LandingPage: React.FC<{
             {/* Criar Item Mágico */}
             <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
               <Box sx={{ position: 'relative' }}>
-                {/* New Badge */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: -8,
-                    right: 12,
-                    background:
-                      'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)',
-                    color: '#FFFFFF',
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 2,
-                    fontSize: '0.75rem',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
-                    zIndex: 10,
-                    animation: 'pulse 2s infinite',
-                    '@keyframes pulse': {
-                      '0%': {
-                        boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
-                      },
-                      '50%': {
-                        boxShadow: '0 2px 16px rgba(156, 39, 176, 0.6)',
-                      },
-                      '100%': {
-                        boxShadow: '0 2px 8px rgba(156, 39, 176, 0.4)',
-                      },
-                    },
-                  }}
-                >
-                  Novo
-                </Box>
                 <Box
                   onClick={() => onClickButton('itens-magicos')}
                   sx={{
@@ -979,6 +914,275 @@ const LandingPage: React.FC<{
               </Box>
             </Grid>
           </Grid>
+        </Box>
+
+        {/* Builds Section */}
+        <Box sx={{ mb: 6 }}>
+          <Typography
+            variant='h4'
+            component='h2'
+            sx={{
+              textAlign: 'center',
+              mb: 1,
+              fontFamily: 'Tfont',
+              color: theme.palette.primary.main,
+              fontWeight: 'bold',
+            }}
+          >
+            Guias de Construção
+          </Typography>
+          <Typography
+            variant='body1'
+            sx={{
+              textAlign: 'center',
+              mb: 4,
+              color: theme.palette.text.secondary,
+            }}
+          >
+            Explore builds criadas pela comunidade e crie suas próprias
+            estratégias de personagem
+          </Typography>
+
+          <Grid container spacing={3}>
+            {/* Build Card 1 */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card
+                onClick={() => onClickButton('builds')}
+                sx={{
+                  cursor: 'pointer',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: `linear-gradient(135deg, ${theme.palette.secondary.main}15 0%, ${theme.palette.secondary.main}05 100%)`,
+                  border: `1px solid ${theme.palette.secondary.main}30`,
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: `0 12px 24px ${theme.palette.secondary.main}20`,
+                    borderColor: theme.palette.secondary.main,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 4px 12px ${theme.palette.secondary.main}30`,
+                    }}
+                  >
+                    <Psychology sx={{ fontSize: 32, color: '#FFFFFF' }} />
+                  </Box>
+
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    Builds da Comunidade
+                  </Typography>
+
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      textAlign: 'center',
+                      color: theme.palette.text.secondary,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Descubra estratégias de progressão de personagem criadas por
+                    outros jogadores, desde builds iniciantes até
+                    especializações avançadas
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+
+            {/* Build Card 2 */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card
+                onClick={() =>
+                  onClickButton(isAuthenticated ? 'builds' : 'criar-ficha')
+                }
+                sx={{
+                  cursor: 'pointer',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+                  border: `1px solid ${theme.palette.primary.main}30`,
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: `0 12px 24px ${theme.palette.primary.main}20`,
+                    borderColor: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 4px 12px ${theme.palette.primary.main}30`,
+                    }}
+                  >
+                    <Psychology sx={{ fontSize: 32, color: '#FFFFFF' }} />
+                  </Box>
+
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    Crie Suas Builds
+                  </Typography>
+
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      textAlign: 'center',
+                      color: theme.palette.text.secondary,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {isAuthenticated
+                      ? 'Planeje a progressão do seu personagem nível por nível, escolhendo poderes, magias e equipamentos'
+                      : 'Faça login para criar e compartilhar suas próprias builds de personagem com a comunidade'}
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+
+            {/* Build Card 3 */}
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card
+                onClick={() => onClickButton('builds')}
+                sx={{
+                  cursor: 'pointer',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: `linear-gradient(135deg, ${theme.palette.success.main}15 0%, ${theme.palette.success.main}05 100%)`,
+                  border: `1px solid ${theme.palette.success.main}30`,
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: `0 12px 24px ${theme.palette.success.main}20`,
+                    borderColor: theme.palette.success.main,
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: `0 4px 12px ${theme.palette.success.main}30`,
+                    }}
+                  >
+                    <Psychology sx={{ fontSize: 32, color: '#FFFFFF' }} />
+                  </Box>
+
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    Compartilhe Estratégias
+                  </Typography>
+
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      textAlign: 'center',
+                      color: theme.palette.text.secondary,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    Compartilhe suas builds favoritas com outros jogadores e
+                    ajude a comunidade a descobrir novas formas de jogar
+                    Tormenta 20
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* CTA Button */}
+          <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Button
+              variant='contained'
+              size='large'
+              onClick={() => onClickButton('builds')}
+              sx={{
+                px: 4,
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                borderRadius: 3,
+                textTransform: 'none',
+                boxShadow: `0 4px 12px ${theme.palette.primary.main}30`,
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: `0 6px 16px ${theme.palette.primary.main}40`,
+                },
+              }}
+            >
+              Explorar Todas as Builds
+            </Button>
+          </Box>
         </Box>
 
         {/* Project Description */}

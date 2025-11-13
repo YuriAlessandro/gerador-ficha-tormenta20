@@ -23,6 +23,7 @@ import MapIcon from '@mui/icons-material/Map';
 import SecurityIcon from '@mui/icons-material/Security';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import PersonIcon from '@mui/icons-material/Person';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import Slide from '@mui/material/Slide';
 import {
   Divider,
@@ -142,6 +143,16 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const onClickBuilds = () => {
+    history.push('/builds');
+    onCloseSidebar();
+  };
+
+  const onClickMyBuilds = () => {
+    history.push('/my-builds');
+    onCloseSidebar();
+  };
+
   const onClickMap = () => {
     window.open('https://mapadearton.fichasdenimb.com.br/', '_blank');
   };
@@ -191,12 +202,26 @@ const Sidebar: React.FC<SidebarProps> = ({
             </Typography>
           </StyledMenuItem>
           {isAuthenticated && (
-            <StyledMenuItem onClick={onClickProfile}>
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <Typography variant='inherit'>Meu Perfil</Typography>
-            </StyledMenuItem>
+            <>
+              <StyledMenuItem onClick={onClickMyBuilds}>
+                <ListItemIcon>
+                  <AccountTreeIcon />
+                </ListItemIcon>
+                <Typography variant='inherit'>Minhas Builds</Typography>
+              </StyledMenuItem>
+              <StyledMenuItem onClick={onClickBuilds}>
+                <ListItemIcon>
+                  <AccountTreeIcon />
+                </ListItemIcon>
+                <Typography variant='inherit'>Explorar Builds</Typography>
+              </StyledMenuItem>
+              <StyledMenuItem onClick={onClickProfile}>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <Typography variant='inherit'>Meu Perfil</Typography>
+              </StyledMenuItem>
+            </>
           )}
           <StyledMenuItem onClick={onClickMap}>
             <ListItemIcon>
