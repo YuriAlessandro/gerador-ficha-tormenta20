@@ -40,6 +40,14 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
       return undefined;
     }
 
+    // Create container if it doesn't exist
+    let container = document.getElementById('dice-box-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'dice-box-container';
+      document.body.appendChild(container);
+    }
+
     let mounted = true;
 
     async function init() {

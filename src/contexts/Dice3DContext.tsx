@@ -81,10 +81,14 @@ export function Dice3DProvider({
   // Control container visibility
   useEffect(() => {
     const container = document.getElementById('dice-box-container');
+    console.log('Container found:', container);
+    console.log('isRolling:', isRolling);
     if (container) {
       if (isRolling) {
+        console.log('Adding visible class');
         container.classList.add('visible');
       } else {
+        console.log('Removing visible class');
         container.classList.remove('visible');
       }
     }
