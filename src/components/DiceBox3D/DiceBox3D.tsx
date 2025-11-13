@@ -23,12 +23,17 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '100%',
-          height: '100%',
+          width: '100vw',
+          height: '100vh',
           pointerEvents: visible ? 'auto' : 'none',
           opacity: visible ? 1 : 0,
           transition: 'opacity 0.3s ease',
           zIndex: 9999,
+          '& canvas': {
+            width: '100% !important',
+            height: '100% !important',
+            display: 'block',
+          },
         }}
       />
 
