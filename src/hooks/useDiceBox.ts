@@ -50,10 +50,12 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         const instance = new DiceBox({
           assetPath: '/assets/dice-box/',
           container: '#dice-box-container',
-          scale: config.scale ?? 15,
+          scale: config.scale ?? 6,
           theme: config.theme ?? 'default',
           gravity: config.gravity ?? 1,
           suspendSimulation: config.suspendSimulation ?? false,
+          width: window.innerWidth,
+          height: window.innerHeight,
           onRollComplete: () => {
             // Results are handled in the roll() promise
           },
