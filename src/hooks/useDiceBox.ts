@@ -50,7 +50,7 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         const instance = new DiceBox({
           assetPath: '/assets/dice-box/',
           container: '#dice-box-container',
-          scale: config.scale ?? 8,
+          scale: config.scale ?? 15,
           theme: config.theme ?? 'default',
           gravity: config.gravity ?? 1,
           suspendSimulation: config.suspendSimulation ?? false,
