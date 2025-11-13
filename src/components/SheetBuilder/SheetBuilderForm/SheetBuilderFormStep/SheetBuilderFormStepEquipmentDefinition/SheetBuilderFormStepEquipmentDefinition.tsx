@@ -59,7 +59,6 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
   };
 
   useEffect(() => {
-    // console.log(storedEquipment);
     if (storedEquipment) {
       setSelectedSimpleWeapon(storedEquipment.simpleWeapon?.name);
       setSelectedMartialWeapon(storedEquipment.martialWeapon?.name);

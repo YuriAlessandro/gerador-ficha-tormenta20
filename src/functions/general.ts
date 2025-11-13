@@ -3376,7 +3376,6 @@ export function generateEmptySheet(
   selectedOptions: SelectedOptions,
   wizardSelections?: import('../interfaces/WizardSelections').WizardSelections
 ): CharacterSheet {
-  // console.log(selectedOptions);
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
   ];
@@ -3756,23 +3755,6 @@ export function generateEmptySheet(
         divindade: selectedDeity,
         poderes: deityPowers,
       };
-      // eslint-disable-next-line no-console
-      console.log('✅ Divindade adicionada à ficha:', {
-        searched: selectedOptions.devocao.value,
-        normalized: normalizedSearch,
-        found: selectedDeity.name,
-        powersAdded: deityPowers.length,
-      });
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn('⚠️ Divindade não encontrada:', {
-        searched: selectedOptions.devocao.value,
-        normalized: normalizedSearch,
-        available: Object.values(DivindadeEnum).map((d) => ({
-          name: d.name,
-          normalized: normalizeDeityName(d.name),
-        })),
-      });
     }
   }
 

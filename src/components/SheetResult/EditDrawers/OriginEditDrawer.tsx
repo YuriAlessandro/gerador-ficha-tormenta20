@@ -42,13 +42,6 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
   // Reset selections when drawer opens or origin changes
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line no-console
-      console.log('🎨 OriginEditDrawer opened:', {
-        originName: origin.name,
-        isRegional: origin.isRegional,
-        hasExistingBenefits:
-          sheet.origin?.selectedBenefits && sheet.origin.name === origin.name,
-      });
       // If sheet has previously selected benefits for this origin, use them
       if (sheet.origin?.selectedBenefits && sheet.origin.name === origin.name) {
         setSelectedBenefits(sheet.origin.selectedBenefits);
@@ -212,17 +205,6 @@ const OriginEditDrawer: React.FC<OriginEditDrawerProps> = ({
       name: power.name,
     })
   );
-
-  // eslint-disable-next-line no-console
-  console.log('📋 Available benefits:', {
-    originName: origin.name,
-    skillCount: skillOptions.length,
-    itemCount: itemOptions.length,
-    powerCount: powerOptions.length,
-    skills: skillOptions.map((s) => s.name),
-    items: itemOptions.map((i) => i.name),
-    powers: powerOptions.map((p) => p.name),
-  });
 
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(

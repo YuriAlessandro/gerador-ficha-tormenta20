@@ -808,55 +808,5 @@ export function recalculateSheet(
     pmAfter: updatedSheet.pm,
   });
 
-  // eslint-disable-next-line no-console
-  console.group(
-    `🔮 PM CALCULATION DEBUG - ${updatedSheet.nome || 'Personagem'} (Level ${
-      updatedSheet.nivel
-    })`
-  );
-  // eslint-disable-next-line no-console
-  console.log('📊 Initial State:', {
-    'PM Inicial (após reset)': pmDebug.initialPM,
-    'Classe Base PM (1º nível)': pmDebug.classeBasePM,
-    'PM por Nível (classe)': pmDebug.classePMPerLevel,
-    'Atributo Mágico': pmDebug.spellKeyAttr,
-    'Mod. Atributo Mágico': pmDebug.keyAttrMod,
-    'PM de Níveis': `[${pmDebug.classePMPerLevel} (classe) + ${
-      pmDebug.keyAttrMod
-    } (atributo)] × ${pmDebug.nivel - 1} = ${pmDebug.pmFromLevels}`,
-    'Cálculo Base': `${pmDebug.classeBasePM} (base) + ${pmDebug.keyAttrMod} (atributo) + ${pmDebug.pmFromLevels} (níveis) = ${pmDebug.initialPM}`,
-    Nível: pmDebug.nivel,
-    'Custom PM/Nível': pmDebug.customPMPerLevel ?? 'N/A',
-    'Bônus PM': pmDebug.bonusPM ?? 0,
-  });
-
-  if (pmDebug.bonuses.length > 0) {
-    // eslint-disable-next-line no-console
-    console.log('\n📈 PM Bonuses Applied:');
-    pmDebug.bonuses.forEach((bonus, index) => {
-      // eslint-disable-next-line no-console
-      console.log(`  ${index + 1}. ${bonus.source}`, {
-        Tipo: bonus.bonusType,
-        ...(bonus.formula ? { Fórmula: bonus.formula } : {}),
-        'Valor Calculado':
-          bonus.calculatedValue > 0
-            ? `+${bonus.calculatedValue}`
-            : bonus.calculatedValue,
-        'PM Antes': bonus.pmBefore,
-        'PM Depois': bonus.pmAfter,
-        Diferença: bonus.pmAfter - bonus.pmBefore,
-      });
-    });
-  }
-
-  // eslint-disable-next-line no-console
-  console.log('\n✅ Final Result:', {
-    'PM Final': updatedSheet.pm,
-    'Total de Bônus': updatedSheet.pm - pmDebug.initialPM,
-    'Quantidade de Bônus Aplicados': pmDebug.bonuses.length - 1, // -1 para não contar o FINAL PM
-  });
-  // eslint-disable-next-line no-console
-  console.groupEnd();
-
   return updatedSheet;
 }

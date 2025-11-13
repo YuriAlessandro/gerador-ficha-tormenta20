@@ -927,18 +927,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       const newOrigin = ORIGINS_WITH_INFO.find(
         (o) => o.name === editedData.originName
       );
-      // eslint-disable-next-line no-console
-      console.log('🔍 Origin change detected:', {
-        oldOrigin: sheet.origin?.name,
-        newOrigin: editedData.originName,
-        found: !!newOrigin,
-        isRegional: newOrigin?.isRegional,
-      });
       if (newOrigin) {
         // Regional origins: auto-grant all benefits
         if (newOrigin.isRegional) {
-          // eslint-disable-next-line no-console
-          console.log('✅ Regional origin - auto-applying benefits');
           // Remove old origin benefits first
           let updatedSheet = removeOriginBenefits(sheet);
           // Apply new regional origin benefits
@@ -950,8 +941,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           updates.skills = updatedSheet.skills;
         } else {
           // Regular origins: need user to select benefits
-          // eslint-disable-next-line no-console
-          console.log('📝 Regular origin - opening benefit selection drawer');
           // Store pending updates and open drawer
           setPendingUpdates(updates);
           setPendingOrigin(newOrigin);
@@ -980,13 +969,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           divindade: newDeity,
           poderes: [],
         };
-        // eslint-disable-next-line no-console
-        console.log('✅ Divindade adicionada à ficha (edit):', {
-          editedName: editedData.deityName,
-          normalized: normalizedSearch,
-          originalName: sheet.devoto?.divindade.name,
-          foundDeity: newDeity.name,
-        });
       } else {
         // eslint-disable-next-line no-console
         console.warn('⚠️ Divindade não encontrada (edit):', {
@@ -1000,8 +982,6 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     } else if (!editedData.deityName && sheet.devoto) {
       updates.devoto = undefined;
-      // eslint-disable-next-line no-console
-      console.log('🗑️ Divindade removida');
     }
 
     // Use recalculation for full sheet update if attributes, race, or deity changed
