@@ -16,9 +16,8 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
 
   return (
     <>
-      {/* Container for the 3D canvas */}
+      {/* Wrapper for fullscreen positioning */}
       <Box
-        id='dice-box-container'
         sx={{
           position: 'fixed',
           top: 0,
@@ -30,7 +29,20 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
           transition: 'opacity 0.3s ease',
           zIndex: 9999,
         }}
-      />
+      >
+        {/* Container for the 3D canvas */}
+        <Box
+          id='dice-box-container'
+          sx={{
+            position: 'relative',
+            boxSizing: 'border-box',
+            width: '100%',
+            height: '100%',
+            backgroundImage: 'url(/assets/woodgrain2.jpg)',
+            backgroundSize: 'cover',
+          }}
+        />
+      </Box>
 
       {/* Loading overlay */}
       {loading && (
