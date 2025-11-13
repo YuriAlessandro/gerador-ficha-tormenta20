@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 import { useDiceBox, DiceBoxConfig } from '../../hooks/useDiceBox';
+import { createPortal } from 'react-dom';
 
 interface DiceBox3DProps {
   config: DiceBoxConfig;
@@ -10,40 +11,36 @@ interface DiceBox3DProps {
 export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
   const { loading, error, isReady } = useDiceBox(config);
 
+  useEffect(() => {
+    // Create the dice-box-container div if it doesn't exist
+    let container = document.getElementById('dice-box-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'dice-box-container';
+      document.body.appendChild(container);
+    }
+
+    // Apply visibility styles
+    if (visible) {
+      container.style.display = 'block';
+    } else {
+      container.style.display = 'none';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (container && document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+    };
+  }, [visible]);
+
   if (!config.enabled) {
     return null;
   }
 
   return (
     <>
-      {/* Wrapper for fullscreen positioning */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          pointerEvents: visible ? 'auto' : 'none',
-          opacity: visible ? 1 : 0,
-          transition: 'opacity 0.3s ease',
-          zIndex: 9999,
-        }}
-      >
-        {/* Container for the 3D canvas */}
-        <Box
-          id='dice-box-container'
-          sx={{
-            position: 'relative',
-            boxSizing: 'border-box',
-            width: '100%',
-            height: '100%',
-            backgroundImage: 'url(/assets/woodgrain2.jpg)',
-            backgroundSize: 'cover',
-          }}
-        />
-      </Box>
-
       {/* Loading overlay */}
       {loading && (
         <Box
