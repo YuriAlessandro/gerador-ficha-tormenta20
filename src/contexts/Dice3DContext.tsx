@@ -27,9 +27,9 @@ interface Dice3DContextValue {
 }
 
 const defaultSettings: Dice3DSettings = {
-  enabled: false, // Desabilitado por padrão
+  enabled: false,
   theme: 'default',
-  scale: 15, // Escala otimizada para visualização
+  scale: 15,
   gravity: 1,
   suspendSimulation: false,
 };
@@ -78,18 +78,6 @@ export function Dice3DProvider({
     setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
-  // Control container visibility
-  useEffect(() => {
-    const container = document.getElementById('dice-box-container');
-    if (container) {
-      if (isRolling) {
-        container.classList.add('visible');
-      } else {
-        container.classList.remove('visible');
-      }
-    }
-  }, [isRolling]);
-
   const roll3D = useCallback(
     async (notation: string): Promise<DiceRollResult[]> => {
       if (!settings.enabled || !isReady) {
@@ -101,7 +89,6 @@ export function Dice3DProvider({
         const results = await roll(notation);
         return results;
       } finally {
-        // Aguardar um pouco antes de remover o overlay para o usuário ver o resultado
         setTimeout(() => {
           setIsRolling(false);
         }, 2000);

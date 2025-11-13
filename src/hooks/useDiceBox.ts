@@ -40,14 +40,6 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
       return undefined;
     }
 
-    // Create container if it doesn't exist
-    let container = document.getElementById('dice-box-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'dice-box-container';
-      document.body.appendChild(container);
-    }
-
     let mounted = true;
 
     async function init() {
@@ -57,37 +49,16 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
 
         const instance = new DiceBox({
           assetPath: '/assets/dice-box/',
-          container: '#dice-box-container',
-          scale: config.scale ?? 6,
+          scale: config.scale ?? 15,
           theme: config.theme ?? 'default',
           gravity: config.gravity ?? 1,
           suspendSimulation: config.suspendSimulation ?? false,
-          width: window.innerWidth,
-          height: window.innerHeight,
-          onRollComplete: () => {
-            // Results are handled in the roll() promise
-          },
         });
 
         await instance.init();
 
         if (mounted) {
           diceBoxRef.current = instance;
-
-          // Force canvas to fullscreen after init
-          setTimeout(() => {
-            const canvas = document.querySelector(
-              '#dice-box-container canvas'
-            ) as HTMLCanvasElement;
-            if (canvas) {
-              canvas.style.position = 'fixed';
-              canvas.style.top = '0';
-              canvas.style.left = '0';
-              canvas.style.width = '100vw';
-              canvas.style.height = '100vh';
-            }
-          }, 100);
-
           setIsReady(true);
         }
       } catch (err) {

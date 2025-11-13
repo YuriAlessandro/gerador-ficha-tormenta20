@@ -1,39 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 import { useDiceBox, DiceBoxConfig } from '../../hooks/useDiceBox';
-import { createPortal } from 'react-dom';
 
 interface DiceBox3DProps {
   config: DiceBoxConfig;
-  visible: boolean;
 }
 
-export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
+export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config }) => {
   const { loading, error, isReady } = useDiceBox(config);
-
-  useEffect(() => {
-    // Create the dice-box-container div if it doesn't exist
-    let container = document.getElementById('dice-box-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'dice-box-container';
-      document.body.appendChild(container);
-    }
-
-    // Apply visibility styles
-    if (visible) {
-      container.style.display = 'block';
-    } else {
-      container.style.display = 'none';
-    }
-
-    // Cleanup on unmount
-    return () => {
-      if (container && document.body.contains(container)) {
-        document.body.removeChild(container);
-      }
-    };
-  }, [visible]);
 
   if (!config.enabled) {
     return null;
