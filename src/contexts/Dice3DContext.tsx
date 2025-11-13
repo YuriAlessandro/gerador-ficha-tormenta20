@@ -78,6 +78,18 @@ export function Dice3DProvider({
     setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
+  // Control container visibility
+  useEffect(() => {
+    const container = document.getElementById('dice-box-container');
+    if (container) {
+      if (isRolling) {
+        container.classList.add('visible');
+      } else {
+        container.classList.remove('visible');
+      }
+    }
+  }, [isRolling]);
+
   const roll3D = useCallback(
     async (notation: string): Promise<DiceRollResult[]> => {
       if (!settings.enabled || !isReady) {
@@ -109,7 +121,7 @@ export function Dice3DProvider({
   return (
     <Dice3DContext.Provider value={contextValue}>
       {children}
-      <DiceBox3D config={settings} visible={isRolling} />
+      <DiceBox3D config={settings} />
     </Dice3DContext.Provider>
   );
 }

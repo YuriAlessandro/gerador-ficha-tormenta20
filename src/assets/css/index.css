@@ -84,6 +84,12 @@ a:visited {
   width: 100vw !important;
   height: 100vh !important;
   z-index: 9999 !important;
+  pointer-events: none !important;
+  display: none;
+}
+
+#dice-box-container.visible {
+  display: block !important;
   pointer-events: auto !important;
 }
 
