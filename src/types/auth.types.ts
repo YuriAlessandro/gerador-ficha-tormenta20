@@ -18,6 +18,7 @@ export interface DbUser {
   selectedSystem?: SystemId;
   enabledSupplements?: SupplementId[];
   hasCompletedInitialSetup?: boolean;
+  dice3DEnabled?: boolean;
 }
 
 export interface AuthState {

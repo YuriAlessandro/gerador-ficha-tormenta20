@@ -4,9 +4,11 @@ import React, {
   useState,
   useCallback,
   ReactNode,
+  useEffect,
 } from 'react';
 import { DiceBox3D } from '../components/DiceBox3D';
 import { useDiceBox, DiceRollResult } from '../hooks/useDiceBox';
+import { useAuth } from '../hooks/useAuth';
 
 export interface Dice3DSettings {
   enabled: boolean;
@@ -51,6 +53,8 @@ export function Dice3DProvider({
   children,
   initialSettings = {},
 }: Dice3DProviderProps) {
+  const { user } = useAuth();
+
   const [settings, setSettings] = useState<Dice3DSettings>({
     ...defaultSettings,
     ...initialSettings,
@@ -59,6 +63,16 @@ export function Dice3DProvider({
   const [isRolling, setIsRolling] = useState(false);
 
   const { roll, isReady } = useDiceBox(settings);
+
+  // Sync with user settings from database
+  useEffect(() => {
+    if (user?.dice3DEnabled !== undefined) {
+      setSettings((prev) => ({
+        ...prev,
+        enabled: user.dice3DEnabled,
+      }));
+    }
+  }, [user?.dice3DEnabled]);
 
   const updateSettings = useCallback((newSettings: Partial<Dice3DSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));

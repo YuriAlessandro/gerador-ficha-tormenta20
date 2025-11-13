@@ -67,6 +67,21 @@ export const saveSystemSetup = createAsyncThunk(
   }
 );
 
+export const saveDice3DSettings = createAsyncThunk(
+  'auth/saveDice3DSettings',
+  async (enabled: boolean, { rejectWithValue }) => {
+    try {
+      const updatedUser = await authService.saveDice3DSettings(enabled);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save 3D dice settings');
+    }
+  }
+);
+
 // Slice
 const authSlice = createSlice({
   name: 'auth',
@@ -158,6 +173,21 @@ const authSlice = createSlice({
         state.dbUser = action.payload;
       })
       .addCase(saveSystemSetup.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Save Dice 3D Settings
+    builder
+      .addCase(saveDice3DSettings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveDice3DSettings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dbUser = action.payload;
+      })
+      .addCase(saveDice3DSettings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

@@ -40,6 +40,7 @@ import { AppDispatch } from '../../store';
 import {
   updateProfile,
   saveSystemSetup,
+  saveDice3DSettings,
 } from '../../store/slices/auth/authSlice';
 import {
   SupplementId,
@@ -93,9 +94,22 @@ const ProfilePage: React.FC = () => {
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
   const [supplementsSuccess, setSupplementsSuccess] = useState(false);
+  const [dice3DEnabled, setDice3DEnabled] = useState(
+    currentUser?.dice3DEnabled || false
+  );
+  const [dice3DLoading, setDice3DLoading] = useState(false);
+  const [dice3DError, setDice3DError] = useState<string | null>(null);
+  const [dice3DSuccess, setDice3DSuccess] = useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
+
+  // Sync dice3D state with user data
+  useEffect(() => {
+    if (currentUser?.dice3DEnabled !== undefined) {
+      setDice3DEnabled(currentUser.dice3DEnabled);
+    }
+  }, [currentUser?.dice3DEnabled]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -216,6 +230,27 @@ const ProfilePage: React.FC = () => {
       setSupplementsError(errorMessage);
     } finally {
       setSupplementsLoading(false);
+    }
+  };
+
+  const handleToggleDice3D = async (checked: boolean) => {
+    try {
+      setDice3DLoading(true);
+      setDice3DError(null);
+      setDice3DSuccess(false);
+      setDice3DEnabled(checked);
+      await dispatch(saveDice3DSettings(checked)).unwrap();
+      setDice3DSuccess(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setDice3DSuccess(false), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar configuração';
+      setDice3DError(errorMessage);
+      // Revert on error
+      setDice3DEnabled(!checked);
+    } finally {
+      setDice3DLoading(false);
     }
   };
 
@@ -407,6 +442,72 @@ const ProfilePage: React.FC = () => {
                         color='primary'
                         sx={{ fontWeight: 'bold' }}
                       />
+                    </Box>
+
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Configurações Visuais
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ mb: 2, display: 'block' }}
+                      >
+                        Personalize sua experiência visual
+                      </Typography>
+
+                      {dice3DError && (
+                        <Alert severity='error' sx={{ mb: 2 }}>
+                          {dice3DError}
+                        </Alert>
+                      )}
+
+                      {dice3DSuccess && (
+                        <Alert severity='success' sx={{ mb: 2 }}>
+                          Configuração salva com sucesso!
+                        </Alert>
+                      )}
+
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: dice3DEnabled
+                            ? 'primary.main'
+                            : 'divider',
+                          backgroundColor: dice3DEnabled
+                            ? 'action.selected'
+                            : 'transparent',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={dice3DEnabled}
+                              onChange={(e) =>
+                                handleToggleDice3D(e.target.checked)
+                              }
+                              disabled={dice3DLoading}
+                            />
+                          }
+                          label={
+                            <Stack spacing={0.5}>
+                              <Typography variant='body1' fontWeight='medium'>
+                                Dados 3D
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                              >
+                                Ativa animações 3D ao rolar dados na ficha de
+                                personagem
+                              </Typography>
+                            </Stack>
+                          }
+                        />
+                      </Box>
                     </Box>
 
                     <Box>

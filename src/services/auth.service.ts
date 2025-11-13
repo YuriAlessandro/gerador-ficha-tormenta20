@@ -25,6 +25,7 @@ export interface DbUser {
   savedSheets: string[];
   enabledSupplements?: SupplementId[];
   hasCompletedInitialSetup?: boolean;
+  dice3DEnabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -136,6 +137,18 @@ class AuthService {
       throw new Error('Failed to fetch updated user');
     }
     return user;
+  }
+
+  // Save 3D dice settings
+  static async saveDice3DSettings(enabled: boolean): Promise<DbUser> {
+    const { data } = await api.put<{ user: DbUser; message: string }>(
+      '/api/auth/profile',
+      {
+        dice3DEnabled: enabled,
+      }
+    );
+
+    return data.user;
   }
 }
 
