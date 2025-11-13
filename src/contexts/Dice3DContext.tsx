@@ -27,7 +27,7 @@ interface Dice3DContextValue {
 const defaultSettings: Dice3DSettings = {
   enabled: false, // Desabilitado por padrão
   theme: 'default',
-  scale: 60, // 10x maior para melhor visibilidade
+  scale: 30, // Escala ajustada para tela inteira
   gravity: 1,
   suspendSimulation: false,
 };
