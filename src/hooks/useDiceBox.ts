@@ -66,6 +66,17 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
 
         if (mounted) {
           diceBoxRef.current = instance;
+
+          // Force canvas to use full viewport
+          const canvas = document.querySelector(
+            '#dice-box-container canvas'
+          ) as HTMLCanvasElement;
+          if (canvas) {
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.display = 'block';
+          }
+
           setIsReady(true);
         }
       } catch (err) {
