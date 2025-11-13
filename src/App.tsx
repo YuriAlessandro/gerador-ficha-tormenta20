@@ -27,6 +27,15 @@ import { createTormentaTheme } from './theme/theme';
 import AttackRollResult from './components/SheetBuilder/common/AttackRollResult';
 import AttributeRollResult from './components/SheetBuilder/common/AttributeRollResult';
 import DiceRollResult from './components/SheetBuilder/common/DiceRollResult';
+import SkillRollNotification, {
+  SkillRollData,
+} from './components/SheetResult/notifications/SkillRollNotification';
+import AttributeRollNotification, {
+  AttributeRollData,
+} from './components/SheetResult/notifications/AttributeRollNotification';
+import AttackRollNotification, {
+  AttackRollData,
+} from './components/SheetResult/notifications/AttackRollNotification';
 import Sidebar from './components/Sidebar';
 import UserMenu from './components/Auth/UserMenu';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
@@ -80,6 +89,15 @@ declare module 'notistack' {
     attributeRoll: {
       rollResult: number;
       bonus: number;
+    };
+    skillRoll: {
+      roll: SkillRollData;
+    };
+    attributeCheck: {
+      roll: AttributeRollData;
+    };
+    weaponAttack: {
+      roll: AttackRollData;
     };
   }
 }
@@ -221,6 +239,9 @@ function App(): JSX.Element {
               diceRoll: DiceRollResult,
               attackRoll: AttackRollResult,
               attributeRoll: AttributeRollResult,
+              skillRoll: SkillRollNotification,
+              attributeCheck: AttributeRollNotification,
+              weaponAttack: AttackRollNotification,
             }}
           >
             <Provider store={store}>
