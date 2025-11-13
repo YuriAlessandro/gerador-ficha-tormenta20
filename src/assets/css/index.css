@@ -78,19 +78,19 @@ a:visited {
 
 /* 3D Dice Container */
 #dice-box-container {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 9999 !important;
-  pointer-events: none !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  pointer-events: none;
   display: none;
 }
 
 #dice-box-container.visible {
-  display: block !important;
-  pointer-events: auto !important;
+  display: block;
+  pointer-events: auto;
 }
 
 #dice-box-container canvas {
