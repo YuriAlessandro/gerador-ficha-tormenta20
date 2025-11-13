@@ -29,11 +29,6 @@ export const DiceBox3D: React.FC<DiceBox3DProps> = ({ config, visible }) => {
           opacity: visible ? 1 : 0,
           transition: 'opacity 0.3s ease',
           zIndex: 9999,
-          '& canvas': {
-            width: '100% !important',
-            height: '100% !important',
-            display: 'block',
-          },
         }}
       />
 
