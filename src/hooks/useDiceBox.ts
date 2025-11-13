@@ -54,9 +54,6 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
           theme: config.theme ?? 'default',
           gravity: config.gravity ?? 1,
           suspendSimulation: config.suspendSimulation ?? false,
-          // Force full viewport size
-          width: window.innerWidth,
-          height: window.innerHeight,
           onRollComplete: () => {
             // Results are handled in the roll() promise
           },
@@ -66,17 +63,6 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
 
         if (mounted) {
           diceBoxRef.current = instance;
-
-          // Force canvas to use full viewport
-          const canvas = document.querySelector(
-            '#dice-box-container canvas'
-          ) as HTMLCanvasElement;
-          if (canvas) {
-            canvas.style.width = '100vw';
-            canvas.style.height = '100vh';
-            canvas.style.display = 'block';
-          }
-
           setIsReady(true);
         }
       } catch (err) {
