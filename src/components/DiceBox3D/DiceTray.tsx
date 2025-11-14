@@ -16,9 +16,9 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
 }) => {
   const trayRef = useRef<HTMLDivElement>(null);
 
-  // Create container in the tray when component mounts
+  // Create container as soon as component mounts (not waiting for visible)
   useEffect(() => {
-    if (config.enabled && trayRef.current && visible) {
+    if (config.enabled && trayRef.current) {
       // Remove any existing container first
       const existing = document.getElementById('dice-box-container');
       if (existing) {
@@ -42,32 +42,34 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
         diceContainer.remove();
       }
     };
-  }, [config.enabled, visible]);
+  }, [config.enabled]);
 
   const { loading, error, isReady } = useDiceBox(config);
 
-  if (!config.enabled || !visible) {
+  if (!config.enabled) {
     return null;
   }
 
   return (
     <>
       {/* Overlay escuro */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          zIndex: 9998,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onClick={onClose}
-      />
+      {visible && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            zIndex: 9998,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={onClose}
+        />
+      )}
 
       {/* Dice Tray */}
       <Box
@@ -86,6 +88,7 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
           zIndex: 9999,
           overflow: 'hidden',
+          display: visible ? 'block' : 'none',
         }}
         onClick={(e) => e.stopPropagation()}
       >
