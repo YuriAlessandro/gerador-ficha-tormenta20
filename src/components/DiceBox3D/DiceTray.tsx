@@ -14,29 +14,35 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
   visible,
   onClose,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const trayRef = useRef<HTMLDivElement>(null);
 
-  // Ensure container exists before useDiceBox initializes
+  // Create container in the tray when component mounts
   useEffect(() => {
-    if (config.enabled && containerRef.current) {
-      let diceContainer = document.getElementById('dice-box-container');
-      if (!diceContainer) {
-        diceContainer = document.createElement('div');
-        diceContainer.id = 'dice-box-container';
-        diceContainer.style.width = '100%';
-        diceContainer.style.height = '100%';
-        diceContainer.style.position = 'relative';
-        containerRef.current.appendChild(diceContainer);
+    if (config.enabled && trayRef.current && visible) {
+      // Remove any existing container first
+      const existing = document.getElementById('dice-box-container');
+      if (existing) {
+        existing.remove();
       }
+
+      // Create new container inside tray
+      const diceContainer = document.createElement('div');
+      diceContainer.id = 'dice-box-container';
+      diceContainer.style.width = '100%';
+      diceContainer.style.height = '100%';
+      diceContainer.style.position = 'absolute';
+      diceContainer.style.top = '0';
+      diceContainer.style.left = '0';
+      trayRef.current.appendChild(diceContainer);
     }
 
     return () => {
       const diceContainer = document.getElementById('dice-box-container');
-      if (diceContainer && diceContainer.parentNode) {
-        diceContainer.parentNode.removeChild(diceContainer);
+      if (diceContainer) {
+        diceContainer.remove();
       }
     };
-  }, [config.enabled]);
+  }, [config.enabled, visible]);
 
   const { loading, error, isReady } = useDiceBox(config);
 
@@ -103,7 +109,7 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
 
         {/* Container para o canvas 3D */}
         <Box
-          ref={containerRef}
+          ref={trayRef}
           sx={{
             width: '100%',
             height: '100%',

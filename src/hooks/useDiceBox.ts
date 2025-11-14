@@ -47,6 +47,26 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         setLoading(true);
         setError(null);
 
+        // Wait for container to exist
+        const checkContainer = () =>
+          new Promise<void>((resolve) => {
+            const check = () => {
+              const container = document.getElementById('dice-box-container');
+              // eslint-disable-next-line no-console
+              console.log('Checking for container:', container);
+              if (container) {
+                resolve();
+              } else {
+                setTimeout(check, 100);
+              }
+            };
+            check();
+          });
+
+        await checkContainer();
+        // eslint-disable-next-line no-console
+        console.log('Container found, initializing DiceBox');
+
         const instance = new DiceBox({
           assetPath: '/assets/dice-box/',
           container: '#dice-box-container',
@@ -56,13 +76,18 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
           suspendSimulation: config.suspendSimulation ?? false,
         });
 
+        // eslint-disable-next-line no-console
+        console.log('DiceBox instance created, calling init()');
         await instance.init();
+        // eslint-disable-next-line no-console
+        console.log('DiceBox initialized successfully');
 
         if (mounted) {
           diceBoxRef.current = instance;
           setIsReady(true);
         }
       } catch (err) {
+        console.error('DiceBox init error:', err);
         if (mounted) {
           setError(err as Error);
           setIsReady(false);
