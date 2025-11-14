@@ -33,7 +33,11 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
       diceContainer.style.position = 'absolute';
       diceContainer.style.top = '0';
       diceContainer.style.left = '0';
+      diceContainer.style.zIndex = '1';
       trayRef.current.appendChild(diceContainer);
+
+      // eslint-disable-next-line no-console
+      console.log('Container created:', diceContainer);
     }
 
     return () => {

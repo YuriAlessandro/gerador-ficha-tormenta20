@@ -82,6 +82,18 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         // eslint-disable-next-line no-console
         console.log('DiceBox initialized successfully');
 
+        // Check canvas after init
+        setTimeout(() => {
+          const container = document.getElementById('dice-box-container');
+          const canvas = container?.querySelector('canvas');
+          // eslint-disable-next-line no-console
+          console.log('Canvas after init:', canvas);
+          // eslint-disable-next-line no-console
+          console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
+          // eslint-disable-next-line no-console
+          console.log('Canvas style:', canvas?.style.cssText);
+        }, 500);
+
         if (mounted) {
           diceBoxRef.current = instance;
           setIsReady(true);
