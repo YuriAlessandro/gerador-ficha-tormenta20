@@ -48,7 +48,34 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
     };
   }, [config.enabled]);
 
-  const { loading, error, isReady } = useDiceBox(config);
+  const { loading, error, isReady, diceBox } = useDiceBox(config);
+
+  // Resize canvas when tray becomes visible
+  useEffect(() => {
+    if (visible && isReady && diceBox && trayRef.current) {
+      setTimeout(() => {
+        const container = document.getElementById('dice-box-container');
+        const canvas = container?.querySelector('canvas') as HTMLCanvasElement;
+
+        if (canvas && container) {
+          const rect = container.getBoundingClientRect();
+
+          // eslint-disable-next-line no-console
+          console.log('Resizing canvas on visible, container rect:', rect);
+
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+          canvas.style.display = 'block';
+
+          if (diceBox.resize) {
+            diceBox.resize();
+          }
+        }
+      }, 50);
+    }
+  }, [visible, isReady, diceBox]);
 
   if (!config.enabled) {
     return null;
