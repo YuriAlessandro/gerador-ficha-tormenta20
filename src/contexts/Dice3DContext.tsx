@@ -69,7 +69,7 @@ export function Dice3DProvider({
     if (user?.dice3DEnabled !== undefined) {
       setSettings((prev) => ({
         ...prev,
-        enabled: user.dice3DEnabled,
+        enabled: user.dice3DEnabled ?? false,
       }));
     }
   }, [user?.dice3DEnabled]);
