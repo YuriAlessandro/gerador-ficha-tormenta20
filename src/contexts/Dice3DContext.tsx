@@ -6,7 +6,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import { DiceBox3D } from '../components/DiceBox3D';
+import { DiceTray } from '../components/DiceBox3D/DiceTray';
 import { useDiceBox, DiceRollResult } from '../hooks/useDiceBox';
 import { useAuth } from '../hooks/useAuth';
 
@@ -29,7 +29,7 @@ interface Dice3DContextValue {
 const defaultSettings: Dice3DSettings = {
   enabled: false,
   theme: 'default',
-  scale: 15,
+  scale: 10,
   gravity: 1,
   suspendSimulation: false,
 };
@@ -105,10 +105,18 @@ export function Dice3DProvider({
     isRolling,
   };
 
+  const handleCloseTray = useCallback(() => {
+    setIsRolling(false);
+  }, []);
+
   return (
     <Dice3DContext.Provider value={contextValue}>
       {children}
-      <DiceBox3D config={settings} />
+      <DiceTray
+        config={settings}
+        visible={isRolling}
+        onClose={handleCloseTray}
+      />
     </Dice3DContext.Provider>
   );
 }
