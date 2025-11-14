@@ -82,17 +82,35 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         // eslint-disable-next-line no-console
         console.log('DiceBox initialized successfully');
 
-        // Check canvas after init
+        // Force canvas to full container size
         setTimeout(() => {
           const container = document.getElementById('dice-box-container');
-          const canvas = container?.querySelector('canvas');
-          // eslint-disable-next-line no-console
-          console.log('Canvas after init:', canvas);
-          // eslint-disable-next-line no-console
-          console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
-          // eslint-disable-next-line no-console
-          console.log('Canvas style:', canvas?.style.cssText);
-        }, 500);
+          const canvas = container?.querySelector(
+            'canvas'
+          ) as HTMLCanvasElement;
+
+          if (canvas && container) {
+            // Get container dimensions
+            const rect = container.getBoundingClientRect();
+
+            // Set canvas attributes (actual rendering size)
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Set canvas style (display size)
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.display = 'block';
+
+            // eslint-disable-next-line no-console
+            console.log('Canvas resized to:', rect.width, 'x', rect.height);
+
+            // Force DiceBox to resize
+            if (instance.resize) {
+              instance.resize();
+            }
+          }
+        }, 100);
 
         if (mounted) {
           diceBoxRef.current = instance;
