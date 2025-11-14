@@ -14,20 +14,31 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
   visible,
   onClose,
 }) => {
-  const { loading, error, isReady } = useDiceBox(config);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Ensure container exists before useDiceBox initializes
   useEffect(() => {
-    // Create the dice-box-container if it doesn't exist
-    if (visible && containerRef.current) {
+    if (config.enabled && containerRef.current) {
       let diceContainer = document.getElementById('dice-box-container');
       if (!diceContainer) {
         diceContainer = document.createElement('div');
         diceContainer.id = 'dice-box-container';
+        diceContainer.style.width = '100%';
+        diceContainer.style.height = '100%';
+        diceContainer.style.position = 'relative';
         containerRef.current.appendChild(diceContainer);
       }
     }
-  }, [visible]);
+
+    return () => {
+      const diceContainer = document.getElementById('dice-box-container');
+      if (diceContainer && diceContainer.parentNode) {
+        diceContainer.parentNode.removeChild(diceContainer);
+      }
+    };
+  }, [config.enabled]);
+
+  const { loading, error, isReady } = useDiceBox(config);
 
   if (!config.enabled || !visible) {
     return null;
