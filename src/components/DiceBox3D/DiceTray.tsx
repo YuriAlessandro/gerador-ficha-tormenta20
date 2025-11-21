@@ -1,18 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, IconButton, CircularProgress, Alert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useDiceBox, DiceBoxConfig } from '../../hooks/useDiceBox';
+import { DiceBoxConfig } from '../../hooks/useDiceBox';
 
 interface DiceTrayProps {
   config: DiceBoxConfig;
   visible: boolean;
   onClose: () => void;
+  loading: boolean;
+  error: Error | null;
+  isReady: boolean;
 }
 
 export const DiceTray: React.FC<DiceTrayProps> = ({
   config,
   visible,
   onClose,
+  loading,
+  error,
+  isReady,
 }) => {
   const trayRef = useRef<HTMLDivElement>(null);
 
@@ -25,19 +31,30 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
         existing.remove();
       }
 
-      // Create new container inside tray
+      // Get the tray dimensions to set proper container size
+      const trayRect = trayRef.current.getBoundingClientRect();
+      const containerWidth = trayRect.width || 600;
+      const containerHeight = trayRect.height || 400;
+
+      // Create new container inside tray with fixed dimensions
       const diceContainer = document.createElement('div');
       diceContainer.id = 'dice-box-container';
-      diceContainer.style.width = '100%';
-      diceContainer.style.height = '100%';
+      diceContainer.style.width = `${containerWidth}px`;
+      diceContainer.style.height = `${containerHeight}px`;
       diceContainer.style.position = 'absolute';
       diceContainer.style.top = '0';
       diceContainer.style.left = '0';
       diceContainer.style.zIndex = '1';
+      diceContainer.style.overflow = 'visible';
       trayRef.current.appendChild(diceContainer);
 
       // eslint-disable-next-line no-console
-      console.log('Container created:', diceContainer);
+      console.log(
+        'Container created with dimensions:',
+        containerWidth,
+        'x',
+        containerHeight
+      );
     }
 
     return () => {
@@ -47,35 +64,6 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
       }
     };
   }, [config.enabled]);
-
-  const { loading, error, isReady, diceBox } = useDiceBox(config);
-
-  // Resize canvas when tray becomes visible
-  useEffect(() => {
-    if (visible && isReady && diceBox && trayRef.current) {
-      setTimeout(() => {
-        const container = document.getElementById('dice-box-container');
-        const canvas = container?.querySelector('canvas') as HTMLCanvasElement;
-
-        if (canvas && container) {
-          const rect = container.getBoundingClientRect();
-
-          // eslint-disable-next-line no-console
-          console.log('Resizing canvas on visible, container rect:', rect);
-
-          canvas.width = rect.width;
-          canvas.height = rect.height;
-          canvas.style.width = '100%';
-          canvas.style.height = '100%';
-          canvas.style.display = 'block';
-
-          if (diceBox.resize) {
-            diceBox.resize();
-          }
-        }
-      }, 50);
-    }
-  }, [visible, isReady, diceBox]);
 
   if (!config.enabled) {
     return null;
@@ -106,9 +94,8 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
       <Box
         sx={{
           position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          bottom: 16,
+          right: 16,
           width: { xs: '90vw', sm: '600px' },
           height: { xs: '60vh', sm: '400px' },
           backgroundColor: '#2d1810',
@@ -117,9 +104,10 @@ export const DiceTray: React.FC<DiceTrayProps> = ({
           borderRadius: '16px',
           border: '4px solid #8b6914',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-          zIndex: 9999,
+          zIndex: visible ? 9999 : -1,
           overflow: 'hidden',
-          display: visible ? 'block' : 'none',
+          opacity: visible ? 1 : 0,
+          pointerEvents: visible ? 'auto' : 'none',
         }}
         onClick={(e) => e.stopPropagation()}
       >

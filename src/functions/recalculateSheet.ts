@@ -1,18 +1,135 @@
 import _ from 'lodash';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+
+import Bag from '@/interfaces/Bag';
+import { CharacterAttributes } from '@/interfaces/Character';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+  Step,
+} from '@/interfaces/CharacterSheet';
+import Equipment from '@/interfaces/Equipment';
+import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
 } from '@/interfaces/Skills';
+import { Spell } from '@/interfaces/Spells';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
-import Bag from '@/interfaces/Bag';
-import { CharacterAttributes } from '@/interfaces/Character';
-import Equipment from '@/interfaces/Equipment';
-import { ManualPowerSelections } from '@/interfaces/PowerSelections';
-import { applyRaceAbilities, applyPower } from './general';
+
+import {
+  applyRaceAbilities,
+  applyPower,
+  modifyAttributesBasedOnRace,
+} from './general';
 import { getRemovedPowers } from './reverseSheetActions';
+
+/**
+ * Resets all attribute modifiers to their base values calculated from .value
+ * This prevents accumulation of bonuses when recalculating the sheet
+ * Preserves manual edits from manualAttributeEdits if present
+ */
+function resetAttributesToBase(sheet: CharacterSheet): void {
+  Object.keys(sheet.atributos).forEach((attrName) => {
+    const attr = sheet.atributos[attrName as Atributo];
+    if (attr && attr.value !== undefined) {
+      // Calculate base modifier: (value - 10) / 2, rounded down
+      const baseMod = Math.floor((attr.value - 10) / 2);
+
+      // Apply manual edit if present
+      const manualEdit = sheet.manualAttributeEdits?.[attrName as Atributo];
+      attr.mod = manualEdit !== undefined ? baseMod + manualEdit : baseMod;
+    }
+  });
+}
+
+/**
+ * Removes duplicate entries from sheetActionHistory based on source
+ */
+function deduplicateHistory(
+  history: SheetActionHistoryEntry[]
+): SheetActionHistoryEntry[] {
+  const seen = new Map<string, SheetActionHistoryEntry>();
+
+  history.forEach((action) => {
+    // Create a key based on source type and identifying properties
+    let key = `${action.source.type}`;
+
+    if (action.source.type === 'race' && 'raceName' in action.source) {
+      key += `-${action.source.raceName}`;
+    } else if (action.source.type === 'class' && 'className' in action.source) {
+      key += `-${action.source.className}`;
+    } else if (
+      action.source.type === 'origin' &&
+      'originName' in action.source
+    ) {
+      key += `-${action.source.originName}`;
+    } else if (action.source.type === 'levelUp' && 'level' in action.source) {
+      key += `-${action.source.level}`;
+    } else if (action.source.type === 'power' && 'name' in action.source) {
+      key += `-${action.source.name}`;
+      // For powers with multiple instances (like Aumento de Atributo), include changes in key
+      if (action.changes && action.changes.length > 0) {
+        const changesKey = JSON.stringify(action.changes);
+        key += `-${changesKey}`;
+      }
+    }
+
+    // Only keep the first occurrence
+    if (!seen.has(key)) {
+      seen.set(key, action);
+    }
+  });
+
+  return Array.from(seen.values());
+}
+
+/**
+ * Removes duplicate steps from the steps array
+ */
+function deduplicateSteps(steps: Step[]): Step[] {
+  const seen = new Set<string>();
+  const uniqueSteps: Step[] = [];
+
+  steps.forEach((step) => {
+    // Create a key based on label and type
+    const key = `${step.type || ''}-${step.label}`;
+
+    // For defense increments, keep only the last one
+    if (step.label.includes('Incrementou Defesa')) {
+      // Remove previous defense increments
+      const previousIndex = uniqueSteps.findIndex((s) =>
+        s.label.includes('Incrementou Defesa')
+      );
+      if (previousIndex !== -1) {
+        uniqueSteps.splice(previousIndex, 1);
+      }
+      uniqueSteps.push(step);
+    } else if (!seen.has(key)) {
+      seen.add(key);
+      uniqueSteps.push(step);
+    }
+  });
+
+  return uniqueSteps;
+}
+
+/**
+ * Removes duplicate spells from the spells array
+ */
+function deduplicateSpells(spells: Spell[]): Spell[] {
+  const seen = new Set<string>();
+  const uniqueSpells: Spell[] = [];
+
+  spells.forEach((spell) => {
+    if (!seen.has(spell.nome)) {
+      seen.add(spell.nome);
+      uniqueSpells.push(spell);
+    }
+  });
+
+  return uniqueSpells;
+}
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
@@ -409,6 +526,78 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Defines what parts of the sheet should be recalculated
+ */
+export type RecalculationScope = {
+  attributes?: boolean; // Recalculate attributes (default: true)
+  pm?: boolean; // Recalculate PM (default: true)
+  pv?: boolean; // Recalculate PV (default: true)
+  defense?: boolean; // Recalculate defense (default: true)
+  skills?: boolean; // Recalculate skills (default: true)
+  weapons?: boolean; // Recalculate weapons (default: true)
+  displacement?: boolean; // Recalculate displacement (default: true)
+};
+
+/**
+ * Determines if PM should be recalculated based on what changed
+ */
+function shouldRecalculatePM(
+  sheet: CharacterSheet,
+  originalSheet?: CharacterSheet
+): boolean {
+  if (!originalSheet) return true; // Always recalculate if no original
+
+  // Check if level changed
+  if (sheet.nivel !== originalSheet.nivel) return true;
+
+  // Check if class changed
+  if (sheet.classe.name !== originalSheet.classe.name) return true;
+
+  // Check if key spell attribute changed
+  const spellPath = sheet.classe.spellPath;
+  if (spellPath) {
+    const keyAttr = spellPath.keyAttribute;
+    const oldMod = originalSheet.atributos[keyAttr]?.mod || 0;
+    const newMod = sheet.atributos[keyAttr]?.mod || 0;
+    if (oldMod !== newMod) return true;
+  }
+
+  // Check if custom PM per level changed
+  if (sheet.customPMPerLevel !== originalSheet.customPMPerLevel) return true;
+
+  // Check if bonus PM changed
+  if (sheet.bonusPM !== originalSheet.bonusPM) return true;
+
+  // Check if powers that affect PM were added/removed
+  const oldPowerNames = new Set(originalSheet.generalPowers.map((p) => p.name));
+  const newPowerNames = new Set(sheet.generalPowers.map((p) => p.name));
+
+  // Powers added
+  for (const powerName of newPowerNames) {
+    if (!oldPowerNames.has(powerName)) {
+      const power = sheet.generalPowers.find((p) => p.name === powerName);
+      if (power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM')) {
+        return true;
+      }
+    }
+  }
+
+  // Powers removed
+  for (const powerName of oldPowerNames) {
+    if (!newPowerNames.has(powerName)) {
+      const power = originalSheet.generalPowers.find(
+        (p) => p.name === powerName
+      );
+      if (power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM')) {
+        return true;
+      }
+    }
+  }
+
+  return false; // No PM-affecting changes detected
+}
+
+/**
  * Recalculates the entire character sheet after changes have been made.
  * This function applies all powers, abilities, and bonuses to ensure
  * the sheet is consistent and up-to-date.
@@ -416,14 +605,46 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
  * @param sheet - The updated character sheet
  * @param originalSheet - Optional original sheet state to detect removed powers
  * @param manualSelections - Optional manual selections for powers that require them
+ * @param scope - Optional scope to control what gets recalculated (default: everything)
  */
 export function recalculateSheet(
   sheet: CharacterSheet,
   originalSheet?: CharacterSheet,
-  manualSelections?: ManualPowerSelections
+  manualSelections?: ManualPowerSelections,
+  scope?: RecalculationScope
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
+
+  // Default scope: recalculate everything
+  const recalcScope: Required<RecalculationScope> = {
+    attributes: scope?.attributes ?? true,
+    pm: scope?.pm ?? shouldRecalculatePM(sheet, originalSheet),
+    pv: scope?.pv ?? true,
+    defense: scope?.defense ?? true,
+    skills: scope?.skills ?? true,
+    weapons: scope?.weapons ?? true,
+    displacement: scope?.displacement ?? true,
+  };
+
+  // Step -1: Reset attribute modifiers to base values to prevent accumulation (only if needed)
+  if (recalcScope.attributes) {
+    resetAttributesToBase(updatedSheet);
+  }
+
+  // Step -0.5: Re-apply race attribute bonuses (they were lost in the reset)
+  // Race bonuses are stored in .mod, not .value, so we need to re-apply them
+  if (recalcScope.attributes) {
+    const raceAttributes = modifyAttributesBasedOnRace(
+      updatedSheet.raca,
+      updatedSheet.atributos,
+      [], // Priority attrs not needed for recalculation
+      [], // Steps not needed for recalculation
+      undefined, // No manual choices during recalculation
+      updatedSheet.sexo as 'Masculino' | 'Feminino' | undefined
+    );
+    updatedSheet.atributos = raceAttributes;
+  }
 
   // Step 0: If we have the original sheet, identify removed powers
   if (originalSheet) {
@@ -579,10 +800,7 @@ export function recalculateSheet(
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet);
 
-  // Step 7: Recalculate skills first (resets others to 0)
-  updatedSheet = recalculateCompleteSkills(updatedSheet);
-
-  // Step 7.5: Reset PV and PM to base values before applying bonuses (to avoid accumulation)
+  // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
   // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
   const basePV = updatedSheet.classe.pv || 0;
   const addPVPerLevel =
@@ -596,6 +814,11 @@ export function recalculateSheet(
   // Add bonus PV if defined
   if (updatedSheet.bonusPV) {
     updatedSheet.pv += updatedSheet.bonusPV;
+  }
+
+  // Add manual PV edit if defined (applied after all calculations)
+  if (updatedSheet.manualPVEdit) {
+    updatedSheet.pv += updatedSheet.manualPVEdit;
   }
 
   // PM base = classe.pm + keyAttrMod + ((classe.addpm + keyAttrMod) * (level - 1))
@@ -621,6 +844,14 @@ export function recalculateSheet(
   if (updatedSheet.bonusPM) {
     updatedSheet.pm += updatedSheet.bonusPM;
   }
+
+  // Add manual PM edit if defined (applied after all calculations)
+  if (updatedSheet.manualPMEdit) {
+    updatedSheet.pm += updatedSheet.manualPMEdit;
+  }
+
+  // Step 7.7: Recalculate skills (resets others to 0)
+  updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
   // PM Debug - Initial state
@@ -807,6 +1038,13 @@ export function recalculateSheet(
     pmBefore: pmDebug.initialPM,
     pmAfter: updatedSheet.pm,
   });
+
+  // Step 14: Deduplicate arrays to prevent accumulation
+  updatedSheet.spells = deduplicateSpells(updatedSheet.spells);
+  updatedSheet.sheetActionHistory = deduplicateHistory(
+    updatedSheet.sheetActionHistory
+  );
+  updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
 
   return updatedSheet;
 }

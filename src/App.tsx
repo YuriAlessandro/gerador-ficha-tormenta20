@@ -234,7 +234,7 @@ function App(): JSX.Element {
             autoHideDuration={null}
             anchorOrigin={{
               vertical: 'bottom',
-              horizontal: 'center',
+              horizontal: 'right',
             }}
             Components={{
               diceRoll: DiceRollResult,

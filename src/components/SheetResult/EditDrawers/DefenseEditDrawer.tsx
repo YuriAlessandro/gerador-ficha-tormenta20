@@ -226,19 +226,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     // Recalculate sheet to apply defense changes
     const recalculatedSheet = recalculateSheet(updatedSheet, sheet);
 
-    // Save to historic
-    const historic = localStorage.getItem('fdnHistoric');
-    if (historic) {
-      const historicData = JSON.parse(historic);
-      const index = historicData.findIndex(
-        (s: CharacterSheet) => s.id === sheet.id
-      );
-      if (index !== -1) {
-        historicData[index] = recalculatedSheet;
-        localStorage.setItem('fdnHistoric', JSON.stringify(historicData));
-      }
-    }
-
+    // Let onSave handle the persistence (no need to save to localStorage here)
     onSave(recalculatedSheet);
     onClose();
   };

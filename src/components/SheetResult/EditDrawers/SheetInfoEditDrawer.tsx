@@ -529,18 +529,34 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       });
     }
 
-    // Check for attribute changes
+    // Check for attribute changes and calculate manual edits
     const attrChanges: SubStep[] = [];
+    const manualAttributeEdits: Partial<Record<Atributo, number>> = {};
+
     Object.entries(editedData.attributes).forEach(([attrName, attrData]) => {
       const originalAttr =
         sheet.atributos[attrName as keyof CharacterAttributes];
       if (attrData.mod !== originalAttr.mod) {
+        // Calculate the base modifier from the attribute value
+        const baseMod = Math.floor((attrData.value - 10) / 2);
+        // The manual edit is the difference between edited mod and base mod
+        const manualEdit = attrData.mod - baseMod;
+
+        if (manualEdit !== 0) {
+          manualAttributeEdits[attrName as Atributo] = manualEdit;
+        }
+
         attrChanges.push({
           name: attrName,
           value: attrData.mod,
         });
       }
     });
+
+    // Add manual edits to updates
+    if (Object.keys(manualAttributeEdits).length > 0) {
+      updates.manualAttributeEdits = manualAttributeEdits;
+    }
 
     if (attrChanges.length > 0) {
       newSteps.push({
