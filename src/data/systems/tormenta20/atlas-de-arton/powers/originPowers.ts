@@ -1,4 +1,5 @@
 import { shuffle, cloneDeep } from 'lodash';
+import { v4 as uuid } from 'uuid';
 import { OriginPower } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
 import { spellsCircle1 } from '../../magias/generalSpells';
@@ -45,6 +46,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você é treinado em Adestramento e Sobrevivência e, uma vez por cena, pode gastar 1 PM para receber +1d6 em um teste de perícia.',
     type: ORIGIN_POWER_TYPE,
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Bônus em Perícia',
+        dice: '1d6',
+      },
+    ],
   },
   AMAZONA_DE_HIPPION: {
     name: 'Amazona de Hippion',
@@ -75,6 +83,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +2 na Defesa contra criaturas maiores que você e +2 em Reflexos. Além disso, se passar em um teste de Reflexos, seus ataques contra a fonte do efeito causam +1d8 pontos de dano até o final da cena.',
     type: ORIGIN_POWER_TYPE,
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Extra (após passar em Reflexos)',
+        dice: '1d8',
+      },
+    ],
     sheetBonuses: [
       {
         source: {
@@ -697,6 +712,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você pode fazer testes para identificar criaturas com uma ação de movimento e, quando acerta um ataque em uma criatura não humanoide, pode gastar 1 PM para causar +1d8 pontos de dano.',
     type: ORIGIN_POWER_TYPE,
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Extra vs Não-Humanoide',
+        dice: '1d8',
+      },
+    ],
     sheetBonuses: [],
   },
   INSURGENTE_TAPISTANO: {
