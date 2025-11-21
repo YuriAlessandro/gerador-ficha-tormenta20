@@ -3,6 +3,7 @@
  * Os Kobolds escolhem 2 desses poderes inicialmente
  * Uma vez por patamar, podem escolher outro no lugar de um poder de classe
  */
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -65,6 +66,13 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Uma vez por cena, vocês podem gastar 1 PM e uma ação de movimento para que um membro do bando se afaste e aja sozinho. Ele age a partir da sua próxima rodada, tem deslocamento 9m e pode gastar uma ação padrão para causar 2d4 pontos de dano de corte em uma criatura adjacente (a cada patamar além de iniciante, cada dado desse dano aumenta em um passo). Ele é Pequeno, tem as mesmas características do restante do bando, 1 PV, e retorna ao bando quando "morto" ou ao fim da cena. Usos criativos para o ousado ficam a critério do mestre.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano do Ousado (base)',
+        dice: '2d4',
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
@@ -91,6 +99,13 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Uma vez por rodada, quando causam dano em uma criatura que já sofreu dano nessa rodada, vocês causam +1d6 pontos de dano do mesmo tipo. A cada patamar além de iniciante, esse dano extra aumenta em um passo.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Oportunista (base)',
+        dice: '1d6',
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
@@ -98,6 +113,13 @@ const KOBOLDS_TALENTS: GeneralPower[] = [
     description:
       'Vocês podem gastar uma ação completa, 1 PM e uma quantidade de PV (limitado pelo seu nível) para arremessar um kobold explosivo em um ponto em alcance curto. Criaturas a até 3m desse ponto sofrem 1d6 pontos de dano de impacto por PV gasto (Ref CD Des reduz à metade). Sempre que rolar o valor máximo em um dos dados de dano, o dano aumenta em +1d6.',
     requirements: [[{ type: RequirementType.RACA, name: 'Kobolds' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Explosivo (por PV gasto)',
+        dice: '1d6',
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,

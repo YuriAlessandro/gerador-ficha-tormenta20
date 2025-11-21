@@ -3,6 +3,7 @@
  * Regra: Apenas 1 bênção por patamar de nível
  * Patamares: Iniciante (1-4), Veterano (5-10), Campeão (11-16), Herói (17-20)
  */
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -57,6 +58,13 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
     ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Adicional (Sopro)',
+        dice: '1d12',
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
@@ -79,6 +87,13 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
         { type: RequirementType.RACA, name: 'Kallyanach' },
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano do Sopro (base)',
+        dice: '1d12',
+      },
     ],
   },
 ];

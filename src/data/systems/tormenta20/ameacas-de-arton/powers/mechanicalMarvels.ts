@@ -3,6 +3,7 @@
  * Regra: Apenas 1 maravilha por patamar de nível
  * Patamares: Iniciante (1-4), Veterano (5-10), Campeão (11-16), Herói (17-20)
  */
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -46,6 +47,13 @@ const MECHANICAL_MARVELS: GeneralPower[] = [
         { type: RequirementType.TIER_LIMIT, name: 'Maravilha Mecânica' },
         { type: RequirementType.TEXT, name: 'Fonte de Energia (elemental)' },
       ],
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Elemental',
+        dice: '1d6',
+      },
     ],
   },
   {
