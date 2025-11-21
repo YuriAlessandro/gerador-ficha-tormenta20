@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -70,6 +71,13 @@ const NOBRE: ClassDescription = {
       name: 'Palavras Afiadas',
       text: 'Você pode gastar uma ação padrão e 1 PM para fazer um teste de Diplomacia ou Intimidação oposto ao teste de Vontade de uma criatura inteligente (Int –3 ou maior) em alcance curto. Se vencer, você causa 2d6 pontos de dano psíquico não letal à criatura. Se perder, causa metade deste dano. Se a criatura for reduzida a 0 ou menos PV, em vez de cair inconsciente, ela se rende (se você usou Diplomacia) ou fica apavorada e foge de você da maneira mais eficiente possível (se usou Intimidação). A cada quatro níveis, você pode gastar +1 PM para aumentar o dano (veja a tabela da classe). Mental.',
       nivel: 2,
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Psíquico (base)',
+          dice: '2d6',
+        },
+      ],
     },
     {
       name: 'Riqueza',
@@ -175,6 +183,13 @@ const NOBRE: ClassDescription = {
           { type: RequirementType.PODER, name: 'Estrategista' },
           { type: RequirementType.NIVEL, value: 12 },
         ],
+      ],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'PM Temporários',
+          dice: '1d4',
+        },
       ],
     },
     {

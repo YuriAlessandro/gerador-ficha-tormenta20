@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -71,11 +72,25 @@ const PALADINO: ClassDescription = {
       name: 'Golpe Divino',
       text: 'Quando faz um ataque corpo a corpo, você pode gastar 2 PM para desferir um golpe destruidor. Você soma seu Carisma no teste de ataque e +1d8 na rolagem de dano. A cada quatro níveis, pode gastar +1 PM para aumentar o dano em +1d8.',
       nivel: 1,
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Divino (base)',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Cura pelas Mãos',
       text: 'A partir do 2º nível, você pode gastar uma ação de movimento e 1 PM para curar 1d8+1 pontos de vida de um alvo em alcance corpo a corpo (incluindo você). A cada quatro níveis, você pode gastar +1 PM para aumentar os PV curados em +1d8+1. Esta habilidade pode causar dano de luz a mortos-vivos, exigindo um ataque desarmado. A partir do 6º nível, você pode gastar +1 PM quando usa Cura pelas Mãos para anular uma condição afetando o alvo, entre abalado, apavorado, atordoado, cego, doente, exausto, fatigado ou surdo.',
       nivel: 2,
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura (por PM gasto)',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Aura Sagrada',
@@ -185,6 +200,13 @@ const PALADINO: ClassDescription = {
       name: 'Julgamento Divino: Vindicação',
       text: 'Você pode gastar 2 PM para marcar um inimigo que tenha causado dano a você ou a seus aliados na cena. Você recebe +1 em testes de ataque e +1d8 em rolagens de dano contra o inimigo escolhido, mas sofre –5 em testes de ataque contra quaisquer outros alvos. No 5º nível, e a cada cinco níveis seguintes, você pode pagar +1 PM para aumentar o bônus de ataque em +1 e o bônus de dano em +1d8. O efeito termina caso o alvo fique inconsciente.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (Vindicação)',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Julgamento Divino: Zelo',
@@ -224,6 +246,13 @@ const PALADINO: ClassDescription = {
       name: 'Virtude Paladinesca: Compaixão',
       text: 'Você pode usar Cura pelas Mãos em alcance curto e, para cada PM que gastar, cura 2d6+1 (em vez de 1d8+1).',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura Aprimorada',
+          dice: '2d6',
+        },
+      ],
     },
     {
       name: 'Virtude Paladinesca: Humildade',

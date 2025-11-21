@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { v4 as uuid } from 'uuid';
 import { pickFromArray } from '../../../../functions/randomUtils';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
@@ -151,6 +152,13 @@ const BARDO: ClassDescription = {
       name: 'Golpe Elemental',
       text: 'Enquanto estiver sob efeito de Inspiração, sempre que você acertar um ataque corpo a corpo, pode gastar 1 PM para causar 1d6 de dano adicional de ácido, eletricidade, fogo ou frio, a sua escolha. Para cada quatro níveis que possuir, pode gastar +1 PM para aumentar o dano em +1d6.',
       requirements: [[{ type: RequirementType.PODER, name: 'Golpe Mágico' }]],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Elemental (base)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Golpe Mágico',
@@ -201,6 +209,13 @@ const BARDO: ClassDescription = {
       name: 'Música: Melodia Curativa',
       text: '(Ver regras de música, pag 45) Criaturas a sua escolha no alcance recuperam 1d6 PV. Quando usa esta habilidade, você pode gastar mais pontos de mana. Para cada PM extra, aumente a cura em +1d6 PV',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura (por PM gasto)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Melodia Restauradora',

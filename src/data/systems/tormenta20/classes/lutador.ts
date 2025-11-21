@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -38,6 +39,13 @@ const LUTADOR: ClassDescription = {
       name: 'Briga',
       text: 'Seus ataques desarmados causam 1d6 pontos de dano e podem causar dano letal ou não letal (sem penalidades). A cada quatro níveis, seu dano desarmado aumenta, conforme a tabela. O dano na tabela é para criaturas Pequenas e Médias. Criaturas Minúsculas diminuem esse dano em um passo, Grandes e Enormes aumentam em um passo e Colossais aumentam em dois passos.',
       nivel: 1,
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Desarmado (base)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Golpe Relâmpago',
@@ -250,6 +258,13 @@ const LUTADOR: ClassDescription = {
       name: 'Voadora',
       text: 'Quando faz uma investida desarmada, você pode gastar 2 PM. Se fizer isso, recebe +1d6 no dano para cada 3m que se deslocar até chegar ao oponente, limitado pelo seu nível.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (por 3m)',
+          dice: '1d6',
+        },
+      ],
     },
   ],
   probDevoto: 0.3,

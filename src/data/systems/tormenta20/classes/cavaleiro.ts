@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -144,11 +145,25 @@ const CAVALEIRO: ClassDescription = {
       name: 'Investida Destruidora',
       text: 'Quando faz a ação investida, você pode gastar 2 PM. Se fizer isso, causa +2d8 pontos de dano. Você deve usar esta habilidade antes de rolar o ataque.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Adicional (Investida)',
+          dice: '2d8',
+        },
+      ],
     },
     {
       name: 'Montaria Corajosa',
       text: 'Sua montaria concede +1d6 em rolagens de dano corpo a corpo (cumulativo com qualquer bônus que ela já forneça como parceiro).',
       requirements: [[{ type: RequirementType.PODER, name: 'Montaria' }]],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (Montaria)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Pajem',
@@ -159,6 +174,13 @@ const CAVALEIRO: ClassDescription = {
       name: 'Postura de Combate: Aríete Implacável',
       text: 'Ao assumir esta postura, você aumenta o bônus de ataque em investidas em +2. Para cada 2 PM adicionais que gastar quando assumir a postura, aumenta o bônus de ataque em +1. Além disso, se fizer uma investida contra um construto ou objeto, causa +2d8 de dano. Você precisa se deslocar todos os turnos para manter esta postura ativa.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano vs Construto/Objeto',
+          dice: '2d8',
+        },
+      ],
     },
     {
       name: 'Postura de Combate: Castigo de Ferro',

@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -98,6 +99,13 @@ const CLERIGO: ClassDescription = {
       name: 'Canalizar Energia Positiva/Negativa',
       text: 'Você pode gastar uma ação padrão e PM para liberar uma onda de luz (se sua divindade canaliza energia positiva) ou trevas (se canaliza energia negativa) que afeta criaturas a sua escolha em alcance curto. Para cada PM que gastar, luz cura 1d6 PV em criaturas vivas e causa 1d6 pontos de dano de luz em mortos-vivos (Vontade CD Sab reduz o dano à metade). Trevas tem o efeito inverso — causa dano de trevas a criaturas vivas e cura mortos-vivos.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura/Dano (por PM gasto)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Canalizar Amplo',
@@ -192,6 +200,13 @@ const CLERIGO: ClassDescription = {
       name: 'Missa: Superar as Limitações',
       text: 'Cada participante recebe +1d6 num único teste a sua escolha e pode usá-lo mesmo após rolar o dado.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Bônus no Teste',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Prece de Combate',

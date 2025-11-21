@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { v4 as uuid } from 'uuid';
 import { pickFromArray } from '../../../../functions/randomUtils';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
@@ -146,6 +147,13 @@ const DRUIDA: ClassDescription = {
       name: 'Aspecto do Verão',
       text: 'Você aprende e pode lançar uma magia de transmutação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para cobrir uma de suas armas com chamas até o fim da cena. A arma causa +1d6 pontos de dano de fogo. Sempre que você acertar um ataque com ela, recebe 1 PM temporário. Você pode ganhar um máximo de PM temporários por cena igual ao seu nível e eles desaparecem no final da cena.',
       requirements: [[]],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano de Fogo (arma em chamas)',
+          dice: '1d6',
+        },
+      ],
       sheetActions: [
         {
           source: {
