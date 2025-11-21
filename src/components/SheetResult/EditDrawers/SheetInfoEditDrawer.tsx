@@ -86,6 +86,8 @@ interface EditedData {
   customPMPerLevel: number | undefined; // Custom PM per level
   bonusPV: number; // Bonus PV
   bonusPM: number; // Bonus PM
+  manualMaxPV: number | undefined; // Manual max PV override
+  manualMaxPM: number | undefined; // Manual max PM override
 }
 
 // Helper function to calculate the highest attribute value for a given modifier
@@ -175,6 +177,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     customPMPerLevel: sheet.customPMPerLevel,
     bonusPV: sheet.bonusPV || 0,
     bonusPM: sheet.bonusPM || 0,
+    manualMaxPV: sheet.manualMaxPV,
+    manualMaxPM: sheet.manualMaxPM,
   });
 
   // State for name suggestions
@@ -222,6 +226,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       customPMPerLevel: sheet.customPMPerLevel,
       bonusPV: sheet.bonusPV || 0,
       bonusPM: sheet.bonusPM || 0,
+      manualMaxPV: sheet.manualMaxPV,
+      manualMaxPM: sheet.manualMaxPM,
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -504,6 +510,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       customPMPerLevel: editedData.customPMPerLevel,
       bonusPV: editedData.bonusPV,
       bonusPM: editedData.bonusPM,
+      manualMaxPV: editedData.manualMaxPV,
+      manualMaxPM: editedData.manualMaxPM,
     };
 
     // Track manual edits in steps
@@ -1042,6 +1050,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       customPMPerLevel: sheet.customPMPerLevel,
       bonusPV: sheet.bonusPV || 0,
       bonusPM: sheet.bonusPM || 0,
+      manualMaxPV: sheet.manualMaxPV,
+      manualMaxPM: sheet.manualMaxPM,
     });
     setNameSuggestions(
       getNameSuggestions(
@@ -1882,6 +1892,58 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     }
                     helperText='Bônus fixo adicionado ao PM total'
                     inputProps={{ min: -100, max: 500 }}
+                  />
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Typography
+                    variant='body2'
+                    sx={{ mb: 1, color: 'text.secondary' }}
+                  >
+                    PV/PM Máximo Manual (sobrescreve o cálculo automático). Use
+                    para ajustar o valor final exibido na ficha.
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    label='PV Máximo Manual'
+                    type='number'
+                    value={
+                      editedData.manualMaxPV !== undefined
+                        ? editedData.manualMaxPV
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const { value } = e.target;
+                      setEditedData({
+                        ...editedData,
+                        manualMaxPV:
+                          value === '' ? undefined : parseInt(value, 10),
+                      });
+                    }}
+                    helperText='Se definido, substitui o valor calculado de PV'
+                    inputProps={{ min: 1, max: 9999 }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    label='PM Máximo Manual'
+                    type='number'
+                    value={
+                      editedData.manualMaxPM !== undefined
+                        ? editedData.manualMaxPM
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const { value } = e.target;
+                      setEditedData({
+                        ...editedData,
+                        manualMaxPM:
+                          value === '' ? undefined : parseInt(value, 10),
+                      });
+                    }}
+                    helperText='Se definido, substitui o valor calculado de PM'
+                    inputProps={{ min: 0, max: 9999 }}
                   />
 
                   {/* Preview de Cálculo de PV/PM */}

@@ -27,6 +27,11 @@ import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { DiceRoll } from '@/interfaces/DiceRoll';
+import { Spell } from '@/interfaces/Spells';
+import { ClassAbility, ClassPower } from '@/interfaces/Class';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import { RaceAbility } from '@/interfaces/Race';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -46,6 +51,7 @@ import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
+import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
 const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
@@ -182,6 +188,103 @@ const Result: React.FC<ResultProps> = (props) => {
   const handleSpellsUpdate = useCallback(
     (updates: Partial<CharacterSheet>) => {
       const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleSpellRollsUpdate = useCallback(
+    (spell: Spell, newRolls: DiceRoll[]) => {
+      const updatedSpells = currentSheet.spells?.map((s) =>
+        s.nome === spell.nome ? { ...s, rolls: newRolls } : s
+      );
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePowerRollsUpdate = useCallback(
+    (
+      power:
+        | ClassPower
+        | RaceAbility
+        | ClassAbility
+        | OriginPower
+        | GeneralPower,
+      newRolls: DiceRoll[]
+    ) => {
+      // Update in all possible power arrays
+      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+
+      const updatedSheet = {
+        ...currentSheet,
+        generalPowers: updatedGeneralPowers,
+        classPowers: updatedClassPowers,
+        origin:
+          currentSheet.origin && updatedOriginPowers
+            ? { ...currentSheet.origin, powers: updatedOriginPowers }
+            : currentSheet.origin,
+      };
+
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVCurrentUpdate = useCallback(
+    (newCurrent: number) => {
+      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVIncrementUpdate = useCallback(
+    (newIncrement: number) => {
+      const updatedSheet = { ...currentSheet, pvIncrement: newIncrement };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMCurrentUpdate = useCallback(
+    (newCurrent: number) => {
+      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMIncrementUpdate = useCallback(
+    (newIncrement: number) => {
+      const updatedSheet = { ...currentSheet, pmIncrement: newIncrement };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -523,51 +626,31 @@ const Result: React.FC<ResultProps> = (props) => {
                   )}
                 </Box>
                 <Stack
-                  justifyContent='space-between'
+                  justifyContent='space-around'
                   alignItems='center'
-                  direction={isMobile ? 'column' : 'row'}
+                  direction='row'
+                  spacing={3}
                 >
-                  <Box
-                    sx={{
-                      backgroundImage: `url(${
-                        isDarkMode ? bigBoxDark : bigBox
-                      })`,
-                      backgroundPosition: 'center',
-                      backgroundSize: 'fill',
-                      backgroundRepeat: 'no-repeat',
-                      width: '100px',
-                      // ml: 2,
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      p: 5,
-                      fontFamily: 'Tfont',
-                    }}
-                  >
-                    <TextBox theme={theme}>
-                      <Box
-                        sx={{
-                          fontSize: '50px',
-                          color: theme.palette.primary.main,
-                        }}
-                      >
-                        {pv}
-                      </Box>
-                      <Box>PV</Box>
-                    </TextBox>
-                    <TextBox theme={theme}>
-                      <Box
-                        sx={{
-                          fontSize: '50px',
-                          color: theme.palette.primary.main,
-                        }}
-                      >
-                        {pm}
-                      </Box>
-                      <Box>PM</Box>
-                    </TextBox>
-                  </Box>
+                  <StatControl
+                    type='PV'
+                    current={currentSheet.currentPV ?? pv}
+                    max={pv}
+                    calculatedMax={pv}
+                    increment={currentSheet.pvIncrement ?? 1}
+                    onUpdateCurrent={handlePVCurrentUpdate}
+                    onUpdateIncrement={handlePVIncrementUpdate}
+                    disabled={!onSheetUpdate}
+                  />
+                  <StatControl
+                    type='PM'
+                    current={currentSheet.currentPM ?? pm}
+                    max={pm}
+                    calculatedMax={pm}
+                    increment={currentSheet.pmIncrement ?? 1}
+                    onUpdateCurrent={handlePMCurrentUpdate}
+                    onUpdateIncrement={handlePMIncrementUpdate}
+                    disabled={!onSheetUpdate}
+                  />
                 </Stack>
               </Stack>
             </Card>
@@ -793,6 +876,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   generalPowers={generalPowers}
                   className={classe.name}
                   raceName={raca.name}
+                  onUpdateRolls={
+                    onSheetUpdate ? handlePowerRollsUpdate : undefined
+                  }
                 />
               </Box>
             </Card>
@@ -825,6 +911,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   spellPath={classe.spellPath}
                   keyAttr={keyAttr}
                   nivel={nivel}
+                  onUpdateRolls={
+                    onSheetUpdate ? handleSpellRollsUpdate : undefined
+                  }
                 />
               </Box>
             </Card>

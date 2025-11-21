@@ -306,6 +306,13 @@ export default interface CharacterSheet {
   manualAttributeEdits?: Partial<Record<Atributo, number>>; // Manual mods to preserve
   manualPMEdit?: number; // Manual PM adjustment (added after calculation)
   manualPVEdit?: number; // Manual PV adjustment (added after calculation)
+  // Manual PM/PV control (for gameplay tracking and manual overrides)
+  currentPM?: number; // Current PM during gameplay (consumed resources)
+  currentPV?: number; // Current PV during gameplay (damage taken)
+  manualMaxPM?: number; // Manual override for maximum PM (replaces calculated value if set)
+  manualMaxPV?: number; // Manual override for maximum PV (replaces calculated value if set)
+  pmIncrement?: number; // Increment value for PM +/- buttons (default: 1)
+  pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
 }
 
 export interface Step {

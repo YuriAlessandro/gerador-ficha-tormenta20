@@ -850,6 +850,37 @@ export function recalculateSheet(
     updatedSheet.pm += updatedSheet.manualPMEdit;
   }
 
+  // Store calculated values before applying manual overrides
+  const calculatedPV = updatedSheet.pv;
+  const calculatedPM = updatedSheet.pm;
+
+  // Apply manual max overrides if defined (replaces calculated values)
+  if (updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0) {
+    updatedSheet.pv = updatedSheet.manualMaxPV;
+  }
+  if (updatedSheet.manualMaxPM !== undefined && updatedSheet.manualMaxPM > 0) {
+    updatedSheet.pm = updatedSheet.manualMaxPM;
+  }
+
+  // Initialize current PM/PV if not set (first time or reset)
+  if (updatedSheet.currentPV === undefined) {
+    updatedSheet.currentPV = updatedSheet.pv;
+  }
+  if (updatedSheet.currentPM === undefined) {
+    updatedSheet.currentPM = updatedSheet.pm;
+  }
+
+  // Note: We allow current values to exceed maximums for temporary bonuses
+  // (buffs, magic items, etc.). No validation needed here.
+
+  // Initialize increments if not set
+  if (updatedSheet.pvIncrement === undefined) {
+    updatedSheet.pvIncrement = 1;
+  }
+  if (updatedSheet.pmIncrement === undefined) {
+    updatedSheet.pmIncrement = 1;
+  }
+
   // Step 7.7: Recalculate skills (resets others to 0)
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
