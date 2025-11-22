@@ -32,13 +32,29 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         onSuccess();
       }
     } catch (err: unknown) {
+      // eslint-disable-next-line no-console
+      console.error('Google login error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const errorString =
+        typeof err === 'string' ? err : JSON.stringify(err, null, 2);
+
       if (errorMessage.includes('popup-closed-by-user')) {
         setError('Login cancelado pelo usuário');
       } else if (errorMessage.includes('popup-blocked')) {
         setError('Popup bloqueado. Permita popups para este site');
+      } else if (
+        errorString.includes('403') ||
+        errorString.includes('EMAIL_NOT_VERIFIED')
+      ) {
+        setError(
+          'Erro na verificação do email. Por favor, tente novamente ou entre em contato com o suporte.'
+        );
+      } else if (errorString.includes('Network')) {
+        setError('Erro de conexão. Verifique sua internet e tente novamente');
       } else {
-        setError('Erro ao fazer login com Google. Tente novamente');
+        setError(
+          `Erro ao fazer login com Google: ${errorMessage}. Tente novamente`
+        );
       }
     } finally {
       setLoading(false);

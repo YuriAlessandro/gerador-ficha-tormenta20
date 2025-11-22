@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useDispatch } from 'react-redux';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import {
   setFirebaseUser,
@@ -31,8 +31,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Sync with backend
         try {
           await dispatch(syncUser()).unwrap();
-        } catch {
-          // Silent failure - backend sync failed but user is authenticated with Firebase
+        } catch (error) {
+          // Backend sync failed - logout from Firebase to prevent inconsistent state
+          // eslint-disable-next-line no-console
+          console.error(
+            'Backend sync failed, logging out from Firebase:',
+            error
+          );
+          await signOut(auth);
+          dispatch(clearAuth());
         }
       } else {
         // User is signed out

@@ -15,7 +15,14 @@ const initialState: AuthState = {
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async () => {
+    // eslint-disable-next-line no-console
+    console.log('[Auth] Starting Google login...');
     const result = await authService.loginWithGoogle();
+    // eslint-disable-next-line no-console
+    console.log('[Auth] Google login successful:', {
+      uid: result.firebaseUser.uid,
+      email: result.firebaseUser.email,
+    });
     return {
       firebaseUser: {
         uid: result.firebaseUser.uid,
@@ -29,7 +36,14 @@ export const loginWithGoogle = createAsyncThunk(
 );
 
 export const syncUser = createAsyncThunk('auth/syncUser', async () => {
+  // eslint-disable-next-line no-console
+  console.log('[Auth] Syncing user with backend...');
   const dbUser = await authService.syncUser();
+  // eslint-disable-next-line no-console
+  console.log(
+    '[Auth] User synced successfully:',
+    dbUser?.username || 'Unknown'
+  );
   return dbUser;
 });
 
@@ -121,10 +135,14 @@ const authSlice = createSlice({
     // Google Login
     builder
       .addCase(loginWithGoogle.pending, (state) => {
+        // eslint-disable-next-line no-console
+        console.log('[Auth] Login pending...');
         state.loading = true;
         state.error = null;
       })
       .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        // eslint-disable-next-line no-console
+        console.log('[Auth] Login fulfilled');
         state.loading = false;
         state.firebaseUser = action.payload.firebaseUser as User;
         state.dbUser = action.payload.dbUser;
@@ -132,6 +150,8 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginWithGoogle.rejected, (state, action) => {
+        // eslint-disable-next-line no-console
+        console.error('[Auth] Login rejected:', action.error);
         state.loading = false;
         state.error = action.error.message || 'Google login failed';
       });
@@ -139,13 +159,19 @@ const authSlice = createSlice({
     // Sync User
     builder
       .addCase(syncUser.pending, (state) => {
+        // eslint-disable-next-line no-console
+        console.log('[Auth] Sync user pending...');
         state.loading = true;
       })
       .addCase(syncUser.fulfilled, (state, action) => {
+        // eslint-disable-next-line no-console
+        console.log('[Auth] Sync user fulfilled');
         state.loading = false;
         state.dbUser = action.payload;
       })
-      .addCase(syncUser.rejected, (state) => {
+      .addCase(syncUser.rejected, (state, action) => {
+        // eslint-disable-next-line no-console
+        console.error('[Auth] Sync user rejected:', action.error);
         state.loading = false;
       });
 
