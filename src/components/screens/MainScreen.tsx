@@ -76,6 +76,9 @@ import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStora
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
+import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useSubscription } from '../../hooks/useSubscription';
+import { SubscriptionTier } from '../../types/subscription.types';
 import SheetsService, {
   CreateSheetRequest,
 } from '../../services/sheets.service';
@@ -85,6 +88,7 @@ import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal'
 import CharacterCreationWizardModal from '../CharacterCreationWizard/CharacterCreationWizardModal';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import SheetLimitDialog from '../common/SheetLimitDialog';
 
 type SelectedOption = {
   value: string;
@@ -240,6 +244,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     updateSheet: updateSheetAction,
   } = useSheets();
   const { showAlert, AlertDialog } = useAlert();
+  const { tier } = useSubscription();
+  const { totalSheets, maxSheets, canCreate } = useSheetLimit();
+  const [showLimitDialog, setShowLimitDialog] = React.useState(false);
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -339,6 +346,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       selectedOptions.devocao.value === '**');
 
   const onClickGenerate = async () => {
+    // Check sheet limit for authenticated users
+    if (isAuthenticated && !canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -374,6 +387,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const onClickGenerateEmptySheet = async () => {
+    // Check sheet limit for authenticated users
+    if (isAuthenticated && !canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     // Always show wizard for manual creation
     // The wizard determines level 1 choices regardless of final level
     setWizardModalOpen(true);
@@ -462,6 +481,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         'Faça login para salvar suas fichas na nuvem e acessá-las de qualquer dispositivo.',
         'Login Necessário'
       );
+      return;
+    }
+
+    // Check if this is a new sheet (not updating existing) and limit reached
+    const isNewSheet = !cloudSheetId; // If no cloudSheetId, it's a new sheet
+    if (isNewSheet && !canCreate) {
+      setShowLimitDialog(true);
       return;
     }
 
@@ -1194,6 +1220,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           onCancel={handleLevelUpWizardCancel}
         />
       )}
+
+      {/* Sheet Limit Dialog */}
+      <SheetLimitDialog
+        open={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        currentCount={totalSheets}
+        maxCount={maxSheets}
+        tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
+      />
 
       <div id='main-screen'>
         <Container

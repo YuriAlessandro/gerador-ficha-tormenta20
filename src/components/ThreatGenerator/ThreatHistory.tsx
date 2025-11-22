@@ -33,6 +33,10 @@ import {
   getTierDisplayName,
   getTierByChallengeLevel,
 } from '../../functions/threatGenerator';
+import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useSubscription } from '../../hooks/useSubscription';
+import { SubscriptionTier } from '../../types/subscription.types';
+import SheetLimitDialog from '../common/SheetLimitDialog';
 
 const ThreatHistory: React.FC = () => {
   const history = useHistory();
@@ -40,7 +44,10 @@ const ThreatHistory: React.FC = () => {
   const threats = useSelector(
     (state: RootState) => state.threatStorage.threats
   );
+  const { tier } = useSubscription();
+  const { totalSheets, maxSheets, canCreate } = useSheetLimit();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     threatId: string | null;
@@ -78,6 +85,11 @@ const ThreatHistory: React.FC = () => {
   };
 
   const handleNewThreat = () => {
+    // Check sheet limit before creating new threat
+    if (!canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
     history.push('/threat-generator');
   };
 
@@ -138,7 +150,7 @@ const ThreatHistory: React.FC = () => {
       ) : (
         <Grid container spacing={3}>
           {filteredThreats.map((threat) => {
-            const tier = getTierDisplayName(
+            const threatTier = getTierDisplayName(
               getTierByChallengeLevel(threat.challengeLevel)
             );
 
@@ -172,7 +184,7 @@ const ThreatHistory: React.FC = () => {
                       color='text.secondary'
                       gutterBottom
                     >
-                      <strong>Patamar:</strong> {tier}
+                      <strong>Patamar:</strong> {threatTier}
                     </Typography>
                     <Typography
                       variant='body2'
@@ -218,6 +230,15 @@ const ThreatHistory: React.FC = () => {
           })}
         </Grid>
       )}
+
+      {/* Sheet Limit Dialog */}
+      <SheetLimitDialog
+        open={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        currentCount={totalSheets}
+        maxCount={maxSheets}
+        tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog

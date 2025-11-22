@@ -66,6 +66,8 @@ import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { SupplementId } from './types/supplement.types';
 import tormentaLogo from './assets/images/tormenta-logo-eye.png';
+import PricingPage from './components/Premium/PricingPage';
+import SubscriptionManagement from './components/Premium/SubscriptionManagement';
 
 // Premium features
 import {
@@ -408,6 +410,14 @@ function App(): JSX.Element {
                                 </Route>
                                 <Route path='/u/:username'>
                                   <ProfilePage />
+                                </Route>
+                                <Route path='/pricing'>
+                                  <PricingPage />
+                                </Route>
+                                <Route path='/subscription'>
+                                  <ProtectedRoute requireAuth redirectTo='/'>
+                                    <SubscriptionManagement />
+                                  </ProtectedRoute>
                                 </Route>
                                 {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />

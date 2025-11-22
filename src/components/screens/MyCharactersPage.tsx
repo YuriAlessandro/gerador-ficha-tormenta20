@@ -49,8 +49,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { SheetData } from '../../services/sheets.service';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
-
-const MAX_CHARACTERS_LIMIT = 10; // Cloud storage limit
+import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useSubscription } from '../../hooks/useSubscription';
+import { SubscriptionTier } from '../../types/subscription.types';
+import PremiumBadge from '../Premium/PremiumBadge';
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -66,6 +68,9 @@ const MyCharactersPage: React.FC = () => {
     duplicateSheet: duplicateSheetAction,
     clearError,
   } = useSheets();
+  const { tier, isPremium } = useSubscription();
+  const { totalSheets, maxSheets, canCreate, remainingSlots, isNearLimit } =
+    useSheetLimit();
 
   // Get initial tab from URL query param
   const getInitialTab = () => {
@@ -377,16 +382,72 @@ const MyCharactersPage: React.FC = () => {
                 return isPlayerTab ? 'Criar Nova Ficha' : 'Criar Nova Ameaça';
               })()}
             </Button>
-            <Stack direction='row' spacing={1} alignItems='center'>
-              <CharacterLimitIndicator
-                current={sheets.length}
-                max={MAX_CHARACTERS_LIMIT}
-              />
-              <Typography variant='body2' color='text.secondary'>
-                {sheets.length} de {MAX_CHARACTERS_LIMIT} personagens
-              </Typography>
+            <Stack
+              direction='row'
+              spacing={2}
+              alignItems='center'
+              flexWrap='wrap'
+            >
+              {!isPremium && (
+                <Chip
+                  label='Plano Gratuito'
+                  size='small'
+                  color='default'
+                  sx={{ fontWeight: 'medium' }}
+                />
+              )}
+              {isPremium && <PremiumBadge variant='small' />}
+              <Stack direction='row' spacing={1} alignItems='center'>
+                <CharacterLimitIndicator
+                  current={totalSheets}
+                  max={maxSheets}
+                />
+                <Typography
+                  variant='body2'
+                  color={isNearLimit ? 'warning.main' : 'text.secondary'}
+                  fontWeight={isNearLimit ? 'bold' : 'normal'}
+                >
+                  {totalSheets} de {maxSheets} fichas
+                </Typography>
+              </Stack>
             </Stack>
           </Box>
+
+          {/* Near limit or at limit warning */}
+          {isNearLimit && canCreate && (
+            <Alert severity='warning' sx={{ mb: 2 }}>
+              Você está próximo do limite de {maxSheets} fichas. Restam apenas{' '}
+              {remainingSlots} vaga{remainingSlots !== 1 ? 's' : ''}.{' '}
+              {!isPremium && (
+                <Button
+                  size='small'
+                  variant='text'
+                  onClick={() => history.push('/pricing')}
+                  sx={{ textDecoration: 'underline', ml: 1 }}
+                >
+                  Ver Planos Premium
+                </Button>
+              )}
+            </Alert>
+          )}
+          {!canCreate && (
+            <Alert severity='error' sx={{ mb: 2 }}>
+              Você atingiu o limite de {maxSheets} fichas do plano{' '}
+              {tier === SubscriptionTier.FREE ? 'Gratuito' : tier}. Delete
+              algumas fichas antigas para criar novas
+              {!isPremium && ' ou faça upgrade para o Plano Simples'}.
+              {!isPremium && (
+                <Button
+                  size='small'
+                  variant='contained'
+                  onClick={() => history.push('/pricing')}
+                  sx={{ ml: 2 }}
+                >
+                  Ver Planos Premium
+                </Button>
+              )}
+            </Alert>
+          )}
         </Box>
 
         {/* Tabs */}

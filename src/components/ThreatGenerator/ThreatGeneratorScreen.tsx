@@ -24,6 +24,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useAlert } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
+import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useSubscription } from '../../hooks/useSubscription';
+import { SubscriptionTier } from '../../types/subscription.types';
 import {
   ThreatSheet,
   TreasureLevel,
@@ -47,6 +50,7 @@ import StepSix from './steps/StepSix';
 import StepSeven from './steps/StepSeven';
 import StepEight from './steps/StepEight';
 import ThreatResult from './ThreatResult';
+import SheetLimitDialog from '../common/SheetLimitDialog';
 
 interface ThreatGeneratorScreenProps {
   isDarkMode: boolean;
@@ -62,6 +66,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const { isAuthenticated } = useAuth();
   const { createSheet: createSheetAction, updateSheet: updateSheetAction } =
     useSheets();
+  const { tier } = useSubscription();
+  const { totalSheets, maxSheets, canCreate } = useSheetLimit();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -69,6 +75,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   );
 
   const [activeStep, setActiveStep] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSavedToCloud, setIsSavedToCloud] = useState(false);
@@ -162,6 +169,13 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
       return;
     }
 
+    // Check sheet limit for authenticated users creating new threats
+    // Don't check if editing existing threat
+    if (isAuthenticated && !isEditing && !canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     // Save threat to localStorage automatically (discreto)
     const completeThreat = {
       ...threat,
@@ -194,6 +208,12 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   const handleSaveToCloud = async () => {
     if (!isAuthenticated || !threat || isSavedToCloud) return;
+
+    // Check sheet limit for new threats (not updates)
+    if (!cloudThreatId && !canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
 
     try {
       const completeThreat = threat as ThreatSheet;
@@ -303,6 +323,16 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   return (
     <>
       <AlertDialog />
+
+      {/* Sheet Limit Dialog */}
+      <SheetLimitDialog
+        open={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        currentCount={totalSheets}
+        maxCount={maxSheets}
+        tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
+      />
+
       <Container maxWidth='lg' sx={{ py: 4 }}>
         <Paper elevation={3} sx={{ overflow: 'hidden' }}>
           {/* Header */}

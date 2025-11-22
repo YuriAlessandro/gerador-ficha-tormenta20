@@ -17,6 +17,7 @@ import threatStorageReducer from './slices/threatStorage';
 import authReducer from './slices/auth/authSlice';
 import sheetsReducer from './slices/sheets/sheetsSlice';
 import systemReducer from './slices/system/systemSlice';
+import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -41,6 +42,12 @@ export const systemPersistConfig = {
   whitelist: ['selectedSystem'], // Persist user's system preference
 };
 
+export const subscriptionPersistConfig = {
+  key: 'subscription',
+  storage,
+  whitelist: ['subscription', 'limits'], // Persist subscription data and limits
+};
+
 const persistedReducer = persistReducer(
   persistConfig,
   sheetStorageSlice.reducer
@@ -58,6 +65,11 @@ const persistedSystemReducer = persistReducer(
   systemReducer
 );
 
+const persistedSubscriptionReducer = persistReducer(
+  subscriptionPersistConfig,
+  subscriptionReducer
+);
+
 const store = configureStore({
   reducer: {
     sheetBuilder: sheetBuilderReducer,
@@ -66,6 +78,7 @@ const store = configureStore({
     auth: persistedAuthReducer,
     sheets: sheetsReducer,
     system: persistedSystemReducer,
+    subscription: persistedSubscriptionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
