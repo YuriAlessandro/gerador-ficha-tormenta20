@@ -4,11 +4,13 @@ import React, {
   useState,
   useCallback,
   ReactNode,
-  useEffect,
+  // useEffect, // DISABLED: 3D Dice feature temporarily disabled
+  useMemo,
 } from 'react';
-import { DiceTray } from '../components/DiceBox3D/DiceTray';
+// DISABLED: 3D Dice feature temporarily disabled
+// import { DiceTray } from '../components/DiceBox3D/DiceTray';
 import { useDiceBox, DiceRollResult } from '../hooks/useDiceBox';
-import { useAuth } from '../hooks/useAuth';
+// import { useAuth } from '../hooks/useAuth'; // DISABLED: 3D Dice feature temporarily disabled
 
 export interface Dice3DSettings {
   enabled: boolean;
@@ -29,7 +31,7 @@ interface Dice3DContextValue {
 const defaultSettings: Dice3DSettings = {
   enabled: false,
   theme: 'default',
-  scale: 10,
+  scale: 12,
   gravity: 1,
   suspendSimulation: false,
 };
@@ -53,29 +55,45 @@ export function Dice3DProvider({
   children,
   initialSettings = {},
 }: Dice3DProviderProps) {
-  const { user } = useAuth();
+  // DISABLED: 3D Dice feature temporarily disabled
+  // const { user } = useAuth();
 
-  const [settings, setSettings] = useState<Dice3DSettings>({
+  const [settingsState, setSettingsState] = useState<Dice3DSettings>({
     ...defaultSettings,
     ...initialSettings,
   });
 
+  // Memoize settings to prevent unnecessary re-initializations
+  const settings = useMemo(
+    () => settingsState,
+    [
+      settingsState.enabled,
+      settingsState.theme,
+      settingsState.scale,
+      settingsState.gravity,
+      settingsState.suspendSimulation,
+    ]
+  );
+
   const [isRolling, setIsRolling] = useState(false);
 
+  // DISABLED: 3D Dice feature temporarily disabled
   const { roll, isReady } = useDiceBox(settings);
+  // const { roll, isReady, loading, error } = useDiceBox(settings);
 
+  // DISABLED: 3D Dice feature temporarily disabled
   // Sync with user settings from database
-  useEffect(() => {
-    if (user?.dice3DEnabled !== undefined) {
-      setSettings((prev) => ({
-        ...prev,
-        enabled: user.dice3DEnabled ?? false,
-      }));
-    }
-  }, [user?.dice3DEnabled]);
+  // useEffect(() => {
+  //   if (user?.dice3DEnabled !== undefined) {
+  //     setSettingsState((prev) => ({
+  //       ...prev,
+  //       enabled: user.dice3DEnabled ?? false,
+  //     }));
+  //   }
+  // }, [user?.dice3DEnabled]);
 
   const updateSettings = useCallback((newSettings: Partial<Dice3DSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+    setSettingsState((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
   const roll3D = useCallback(
@@ -105,18 +123,24 @@ export function Dice3DProvider({
     isRolling,
   };
 
-  const handleCloseTray = useCallback(() => {
-    setIsRolling(false);
-  }, []);
+  // DISABLED: 3D Dice feature temporarily disabled
+  // const handleCloseTray = useCallback(() => {
+  //   setIsRolling(false);
+  // }, []);
 
   return (
     <Dice3DContext.Provider value={contextValue}>
       {children}
+      {/* DISABLED: 3D Dice feature temporarily disabled
       <DiceTray
         config={settings}
         visible={isRolling}
         onClose={handleCloseTray}
+        loading={loading}
+        error={error}
+        isReady={isReady}
       />
+      */}
     </Dice3DContext.Provider>
   );
 }

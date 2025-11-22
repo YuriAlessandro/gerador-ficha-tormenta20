@@ -52,8 +52,6 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
           new Promise<void>((resolve) => {
             const check = () => {
               const container = document.getElementById('dice-box-container');
-              // eslint-disable-next-line no-console
-              console.log('Checking for container:', container);
               if (container) {
                 resolve();
               } else {
@@ -64,8 +62,6 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
           });
 
         await checkContainer();
-        // eslint-disable-next-line no-console
-        console.log('Container found, initializing DiceBox');
 
         const instance = new DiceBox({
           assetPath: '/assets/dice-box/',
@@ -76,48 +72,13 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
           suspendSimulation: config.suspendSimulation ?? false,
         });
 
-        // eslint-disable-next-line no-console
-        console.log('DiceBox instance created, calling init()');
         await instance.init();
-        // eslint-disable-next-line no-console
-        console.log('DiceBox initialized successfully');
-
-        // Force canvas to full container size
-        setTimeout(() => {
-          const container = document.getElementById('dice-box-container');
-          const canvas = container?.querySelector(
-            'canvas'
-          ) as HTMLCanvasElement;
-
-          if (canvas && container) {
-            // Get container dimensions
-            const rect = container.getBoundingClientRect();
-
-            // Set canvas attributes (actual rendering size)
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-
-            // Set canvas style (display size)
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.style.display = 'block';
-
-            // eslint-disable-next-line no-console
-            console.log('Canvas resized to:', rect.width, 'x', rect.height);
-
-            // Force DiceBox to resize
-            if (instance.resize) {
-              instance.resize();
-            }
-          }
-        }, 100);
 
         if (mounted) {
           diceBoxRef.current = instance;
           setIsReady(true);
         }
       } catch (err) {
-        console.error('DiceBox init error:', err);
         if (mounted) {
           setError(err as Error);
           setIsReady(false);
@@ -137,6 +98,16 @@ export function useDiceBox(config: DiceBoxConfig): UseDiceBoxReturn {
         diceBoxRef.current.clear();
         diceBoxRef.current = null;
       }
+
+      // Remove canvas element from DOM
+      const container = document.getElementById('dice-box-container');
+      if (container) {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          canvas.remove();
+        }
+      }
+
       setIsReady(false);
     };
   }, [
