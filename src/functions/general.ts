@@ -1468,7 +1468,7 @@ export const applyPower = (
           (attr) => availableAttributes.includes(attr)
         );
 
-        let targetAttribute: Atributo;
+        let targetAttribute: Atributo | undefined;
 
         // Use manual selection if provided
         if (
@@ -1478,27 +1478,40 @@ export const applyPower = (
           targetAttribute = manualSelections.attributes[0] as Atributo;
         } else if (firstPriorityAttribute) {
           targetAttribute = firstPriorityAttribute;
-        } else {
-          // If no priority attributes available, pick any
+        } else if (availableAttributes.length > 0) {
+          // If no priority attributes available, pick any from available
           targetAttribute = getRandomItemFromArray(availableAttributes);
         }
 
-        sheet.atributos[targetAttribute].mod += 1;
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'AttributeIncreasedByAumentoDeAtributo',
-              attribute: targetAttribute,
-              plateau: getCurrentPlateau(sheet),
-            },
-          ],
-        });
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Aumenta o atributo ${targetAttribute} por +1`,
-        });
+        // Only apply if we found a valid target attribute
+        if (targetAttribute && sheet.atributos[targetAttribute]) {
+          sheet.atributos[targetAttribute].mod += 1;
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'AttributeIncreasedByAumentoDeAtributo',
+                attribute: targetAttribute,
+                plateau: getCurrentPlateau(sheet),
+              },
+            ],
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aumenta o atributo ${targetAttribute} por +1`,
+          });
+        } else {
+          // Skip this attribute increase if no valid target found
+          // eslint-disable-next-line no-console
+          console.warn(
+            `No valid attribute found for increase in plateau ${getCurrentPlateau(
+              sheet
+            )}`
+          );
+          // Skip adding to history or substeps when no valid attribute found
+        }
       } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
         // Get all available weapons
         const allWeaponNames = Object.values(Armas).map(
