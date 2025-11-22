@@ -28,7 +28,6 @@ import {
 } from '@mui/material';
 import {
   Edit as EditIcon,
-  Star as StarIcon,
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Description as SheetIcon,
@@ -37,10 +36,11 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
 import { AppDispatch } from '../../store';
+import PremiumBadge from '../Premium/PremiumBadge';
 import {
   updateProfile,
   saveSystemSetup,
-  saveDice3DSettings,
+  // saveDice3DSettings, // DISABLED: 3D Dice feature temporarily disabled
 } from '../../store/slices/auth/authSlice';
 import {
   SupplementId,
@@ -94,22 +94,24 @@ const ProfilePage: React.FC = () => {
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
   const [supplementsSuccess, setSupplementsSuccess] = useState(false);
-  const [dice3DEnabled, setDice3DEnabled] = useState(
-    currentUser?.dice3DEnabled || false
-  );
-  const [dice3DLoading, setDice3DLoading] = useState(false);
-  const [dice3DError, setDice3DError] = useState<string | null>(null);
-  const [dice3DSuccess, setDice3DSuccess] = useState(false);
+  // DISABLED: 3D Dice feature temporarily disabled
+  // const [dice3DEnabled, setDice3DEnabled] = useState(
+  //   currentUser?.dice3DEnabled || false
+  // );
+  // const [dice3DLoading, setDice3DLoading] = useState(false);
+  // const [dice3DError, setDice3DError] = useState<string | null>(null);
+  // const [dice3DSuccess, setDice3DSuccess] = useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
 
+  // DISABLED: 3D Dice feature temporarily disabled
   // Sync dice3D state with user data
-  useEffect(() => {
-    if (currentUser?.dice3DEnabled !== undefined) {
-      setDice3DEnabled(currentUser.dice3DEnabled);
-    }
-  }, [currentUser?.dice3DEnabled]);
+  // useEffect(() => {
+  //   if (currentUser?.dice3DEnabled !== undefined) {
+  //     setDice3DEnabled(currentUser.dice3DEnabled);
+  //   }
+  // }, [currentUser?.dice3DEnabled]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -233,26 +235,27 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleToggleDice3D = async (checked: boolean) => {
-    try {
-      setDice3DLoading(true);
-      setDice3DError(null);
-      setDice3DSuccess(false);
-      setDice3DEnabled(checked);
-      await dispatch(saveDice3DSettings(checked)).unwrap();
-      setDice3DSuccess(true);
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => setDice3DSuccess(false), 3000);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Erro ao salvar configuração';
-      setDice3DError(errorMessage);
-      // Revert on error
-      setDice3DEnabled(!checked);
-    } finally {
-      setDice3DLoading(false);
-    }
-  };
+  // DISABLED: 3D Dice feature temporarily disabled
+  // const handleToggleDice3D = async (checked: boolean) => {
+  //   try {
+  //     setDice3DLoading(true);
+  //     setDice3DError(null);
+  //     setDice3DSuccess(false);
+  //     setDice3DEnabled(checked);
+  //     await dispatch(saveDice3DSettings(checked)).unwrap();
+  //     setDice3DSuccess(true);
+  //     // Auto-hide success message after 3 seconds
+  //     setTimeout(() => setDice3DSuccess(false), 3000);
+  //   } catch (err) {
+  //     const errorMessage =
+  //       err instanceof Error ? err.message : 'Erro ao salvar configuração';
+  //     setDice3DError(errorMessage);
+  //     // Revert on error
+  //     setDice3DEnabled(!checked);
+  //   } finally {
+  //     setDice3DLoading(false);
+  //   }
+  // };
 
   const formatDate = (date: Date) => {
     const d = new Date(date);
@@ -346,17 +349,12 @@ const ProfilePage: React.FC = () => {
               </Typography>
 
               {profile.isPremium && (
-                <Chip
-                  icon={<StarIcon />}
-                  label='Premium'
-                  sx={{
-                    mt: 1.5,
-                    bgcolor: 'gold',
-                    color: 'black',
-                    fontWeight: 'bold',
-                    fontSize: isMobile ? '0.875rem' : '1rem',
-                  }}
-                />
+                <Box sx={{ mt: 1.5 }}>
+                  <PremiumBadge
+                    variant={isMobile ? 'small' : 'default'}
+                    showIcon
+                  />
+                </Box>
               )}
             </Box>
 
@@ -425,6 +423,65 @@ const ProfilePage: React.FC = () => {
                     >
                       Editar Perfil
                     </Button>
+
+                    <Box
+                      sx={{
+                        mt: 3,
+                        pt: 3,
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Assinatura
+                      </Typography>
+                      {profile.isPremium ? (
+                        <Stack spacing={2}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            <Typography variant='body1'>Status:</Typography>
+                            <PremiumBadge variant='small' showIcon />
+                          </Box>
+                          <Button
+                            variant='outlined'
+                            onClick={() => history.push('/subscription')}
+                            fullWidth={isMobile}
+                          >
+                            Gerenciar Assinatura
+                          </Button>
+                        </Stack>
+                      ) : (
+                        <Stack spacing={2}>
+                          <Typography variant='body2' color='text.secondary'>
+                            Desbloqueie recursos premium como dados 3D, mais
+                            fichas, diários e muito mais!
+                          </Typography>
+                          <Button
+                            variant='contained'
+                            color='primary'
+                            onClick={() => history.push('/pricing')}
+                            fullWidth={isMobile}
+                            sx={{
+                              background:
+                                'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                              color: '#000',
+                              fontWeight: 'bold',
+                              '&:hover': {
+                                background:
+                                  'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
+                              },
+                            }}
+                          >
+                            Ver Planos Premium
+                          </Button>
+                        </Stack>
+                      )}
+                    </Box>
                   </Stack>
                 </Box>
               </TabPanel>
@@ -444,6 +501,7 @@ const ProfilePage: React.FC = () => {
                       />
                     </Box>
 
+                    {/* DISABLED: 3D Dice feature temporarily disabled
                     <Box>
                       <Typography variant='h6' fontWeight='bold' gutterBottom>
                         Configurações Visuais
@@ -509,6 +567,7 @@ const ProfilePage: React.FC = () => {
                         />
                       </Box>
                     </Box>
+                    */}
 
                     <Box>
                       <Typography variant='h6' fontWeight='bold' gutterBottom>

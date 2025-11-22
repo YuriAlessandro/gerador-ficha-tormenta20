@@ -3,6 +3,7 @@ import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { Box } from '@mui/material';
 import React from 'react';
+import { DiceRoll } from '@/interfaces/DiceRoll';
 import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
 import PowerDisplay from './PowerDisplay';
 
@@ -20,6 +21,10 @@ const PowersDisplay: React.FC<{
   generalPowers: GeneralPower[];
   className: string;
   raceName: string;
+  onUpdateRolls?: (
+    power: ClassPower | RaceAbility | ClassAbility | OriginPower | GeneralPower,
+    newRolls: DiceRoll[]
+  ) => void;
 }> = ({
   sheetHistory,
   classPowers,
@@ -30,6 +35,7 @@ const PowersDisplay: React.FC<{
   generalPowers,
   className,
   raceName,
+  onUpdateRolls,
 }) => {
   const powers = [
     ...classPowers,
@@ -86,6 +92,7 @@ const PowersDisplay: React.FC<{
           power={power}
           type={getPowerOrigin(power)}
           count={powerCount[power.name]}
+          onUpdateRolls={onUpdateRolls}
         />
       ))}
     </Box>

@@ -116,6 +116,45 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   }, [sheet.generalPowers, sheet.classPowers, sheet.origin?.powers, open]);
 
+  // Helper function to get original general power with rolls if it exists
+  const getOriginalPowerWithRolls = (
+    powerToAdd: GeneralPower
+  ): GeneralPower => {
+    const originalPower = sheet.generalPowers?.find(
+      (p) => p.name === powerToAdd.name
+    );
+    if (originalPower && originalPower.rolls) {
+      return { ...powerToAdd, rolls: originalPower.rolls };
+    }
+    return powerToAdd;
+  };
+
+  // Helper function to get original class power with rolls if it exists
+  const getOriginalClassPowerWithRolls = (
+    powerToAdd: ClassPower
+  ): ClassPower => {
+    const originalPower = sheet.classPowers?.find(
+      (p) => p.name === powerToAdd.name
+    );
+    if (originalPower && originalPower.rolls) {
+      return { ...powerToAdd, rolls: originalPower.rolls };
+    }
+    return powerToAdd;
+  };
+
+  // Helper function to get original origin power with rolls if it exists
+  const getOriginalOriginPowerWithRolls = (
+    powerToAdd: OriginPower
+  ): OriginPower => {
+    const originalPower = sheet.origin?.powers?.find(
+      (p) => p.name === powerToAdd.name
+    );
+    if (originalPower && originalPower.rolls) {
+      return { ...powerToAdd, rolls: originalPower.rolls };
+    }
+    return powerToAdd;
+  };
+
   // Organize all powers by category
   // Use all available supplements to show all powers in editor
   const allSupplements = [
@@ -310,11 +349,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             [power.name]: autoSelections,
           };
         });
-        setSelectedPowers((prev) => [...prev, power]);
+        setSelectedPowers((prev) => [
+          ...prev,
+          getOriginalPowerWithRolls(power),
+        ]);
       }
     } else {
       // Add power directly
-      setSelectedPowers((prev) => [...prev, power]);
+      setSelectedPowers((prev) => [...prev, getOriginalPowerWithRolls(power)]);
     }
   };
 
@@ -462,11 +504,17 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             [power.name]: autoSelections,
           };
         });
-        setSelectedClassPowers((prev) => [...prev, power]);
+        setSelectedClassPowers((prev) => [
+          ...prev,
+          getOriginalClassPowerWithRolls(power),
+        ]);
       }
     } else {
       // Add power directly
-      setSelectedClassPowers((prev) => [...prev, power]);
+      setSelectedClassPowers((prev) => [
+        ...prev,
+        getOriginalClassPowerWithRolls(power),
+      ]);
     }
   };
 
@@ -555,11 +603,17 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         };
       });
 
-      // Add the power to the selected list
+      // Add the power to the selected list with preserved rolls
       if (isClassPower) {
-        setSelectedClassPowers((prev) => [...prev, powerToAdd as ClassPower]);
+        setSelectedClassPowers((prev) => [
+          ...prev,
+          getOriginalClassPowerWithRolls(powerToAdd as ClassPower),
+        ]);
       } else {
-        setSelectedPowers((prev) => [...prev, powerToAdd as GeneralPower]);
+        setSelectedPowers((prev) => [
+          ...prev,
+          getOriginalPowerWithRolls(powerToAdd as GeneralPower),
+        ]);
       }
     }
 
@@ -786,8 +840,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         return updated;
       });
     } else {
-      // Add power
-      setSelectedOriginPowers((prev) => [...prev, power]);
+      // Add power with preserved rolls
+      setSelectedOriginPowers((prev) => [
+        ...prev,
+        getOriginalOriginPowerWithRolls(power),
+      ]);
     }
   };
 

@@ -173,10 +173,18 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
 
   const handleSpellToggle = (spell: Spell) => {
     setSelectedSpells((prev) => {
-      const isSelected = prev.some((s) => s.nome === spell.nome);
-      if (isSelected) {
+      const existingSpell = prev.find((s) => s.nome === spell.nome);
+      if (existingSpell) {
+        // Remove spell
         return prev.filter((s) => s.nome !== spell.nome);
       }
+      // Add spell - check if it was previously in the sheet with rolls
+      const originalSpell = sheet.spells?.find((s) => s.nome === spell.nome);
+      if (originalSpell && originalSpell.rolls) {
+        // Preserve existing rolls
+        return [...prev, { ...spell, rolls: originalSpell.rolls }];
+      }
+      // Add new spell without rolls
       return [...prev, spell];
     });
   };

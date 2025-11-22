@@ -21,8 +21,6 @@ import {
   Link,
 } from '@mui/material';
 import styled from '@emotion/styled';
-import bigBoxDark from '@/assets/images/bigBoxDark.svg';
-import bigBox from '@/assets/images/bigBox.svg';
 import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
@@ -67,22 +65,6 @@ interface ThemeProp {
     };
   };
 }
-
-const TextBox = styled.div<ThemeProp>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 50%;
-  &:first-of-type {
-    border-right: 1px solid ${(props) => props.theme.palette.primary.main};
-    padding-right: 10px;
-  }
-  &:last-child {
-    padding-left: 10px;
-  }
-`;
 
 const StatTitle = styled.h4`
   font-family: 'Tfont';

@@ -20,11 +20,16 @@ import {
   ListItemSecondaryAction,
   TextField,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import EditIcon from '@mui/icons-material/Edit';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, {
@@ -92,6 +97,15 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [showAddClothing, setShowAddClothing] = useState(false);
   const [showAddAlchemy, setShowAddAlchemy] = useState(false);
   const [showAddFood, setShowAddFood] = useState(false);
+
+  // Estados para edição de arma
+  const [editingWeapon, setEditingWeapon] = useState<Equipment | null>(null);
+  const [editingWeaponIndex, setEditingWeaponIndex] = useState<number | null>(
+    null
+  );
+  const [editNome, setEditNome] = useState<string>('');
+  const [editAtkBonus, setEditAtkBonus] = useState<string>('');
+  const [editDano, setEditDano] = useState<string>('');
 
   // Categorize supplement weapons by type
   const getCategorizedWeapons = useMemo(() => {
@@ -401,19 +415,54 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleWeaponToggle = (weapon: Equipment) => {
+    // Sempre adiciona a arma (permite múltiplas armas com mesmo nome)
     setSelectedEquipment((prev) => ({
       ...prev,
-      weapons: prev.weapons.some((w) => w.nome === weapon.nome)
-        ? prev.weapons.filter((w) => w.nome !== weapon.nome)
-        : [...prev.weapons, weapon],
+      weapons: [...prev.weapons, weapon],
     }));
   };
 
-  const handleRemoveWeapon = (weapon: Equipment) => {
+  const handleRemoveWeapon = (index: number) => {
     setSelectedEquipment((prev) => ({
       ...prev,
-      weapons: prev.weapons.filter((w) => w.nome !== weapon.nome),
+      weapons: prev.weapons.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleOpenEditWeapon = (weapon: Equipment, index: number) => {
+    setEditingWeapon(weapon);
+    setEditingWeaponIndex(index);
+    setEditNome(weapon.nome);
+    setEditAtkBonus(weapon.atkBonus?.toString() || '0');
+    setEditDano(weapon.dano || '');
+  };
+
+  const handleCloseEditWeapon = () => {
+    setEditingWeapon(null);
+    setEditingWeaponIndex(null);
+    setEditNome('');
+    setEditAtkBonus('');
+    setEditDano('');
+  };
+
+  const handleSaveEditWeapon = () => {
+    if (!editingWeapon || editingWeaponIndex === null) return;
+
+    const updatedWeapon: Equipment = {
+      ...editingWeapon,
+      nome: editNome,
+      atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
+      dano: editDano,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      weapons: prev.weapons.map((w, i) =>
+        i === editingWeaponIndex ? updatedWeapon : w
+      ),
+    }));
+
+    handleCloseEditWeapon();
   };
 
   const handleArmorToggle = (armor: DefenseEquipment) => {
@@ -935,19 +984,28 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.weapons.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.weapons.map((weapon) => (
-                      <ListItem key={weapon.nome}>
+                    {selectedEquipment.weapons.map((weapon, index) => (
+                      // eslint-disable-next-line react/no-array-index-key
+                      <ListItem key={index}>
                         <ListItemText
                           primary={weapon.nome}
                           secondary={`Dano: ${weapon.dano} | Crítico: ${
                             weapon.critico || '20/x2'
-                          }`}
+                          } | Bônus Ataque: ${weapon.atkBonus || 0}`}
                         />
                         <ListItemSecondaryAction>
                           <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditWeapon(weapon, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
                             edge='end'
                             size='small'
-                            onClick={() => handleRemoveWeapon(weapon)}
+                            onClick={() => handleRemoveWeapon(index)}
                             color='error'
                           >
                             <DeleteIcon />
@@ -2426,6 +2484,48 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           </Button>
         </Stack>
       </Box>
+
+      {/* Dialog de edição de arma */}
+      <Dialog
+        open={editingWeapon !== null}
+        onClose={handleCloseEditWeapon}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Arma</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome da Arma'
+              value={editNome}
+              onChange={(e) => setEditNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para a arma'
+            />
+            <TextField
+              label='Bônus de Ataque'
+              type='number'
+              value={editAtkBonus}
+              onChange={(e) => setEditAtkBonus(e.target.value)}
+              fullWidth
+              helperText='Bônus adicional que será somado ao ataque (pode ser negativo)'
+            />
+            <TextField
+              label='Dano'
+              value={editDano}
+              onChange={(e) => setEditDano(e.target.value)}
+              fullWidth
+              helperText='Ex: 1d8, 2d6+2, 1d10+4'
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditWeapon}>Cancelar</Button>
+          <Button onClick={handleSaveEditWeapon} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Drawer>
   );
 };

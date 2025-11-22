@@ -1,6 +1,7 @@
 import React from 'react';
 import '../assets/css/result.css';
 import { Box, Grid, Typography } from '@mui/material';
+import { DiceRoll } from '@/interfaces/DiceRoll';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
@@ -11,10 +12,11 @@ interface SpellsProp {
   spellPath: SpellPath | undefined;
   keyAttr: CharacterAttribute | null;
   nivel: number;
+  onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
-  const { spells, spellPath, keyAttr, nivel } = props;
+  const { spells, spellPath, keyAttr, nivel, onUpdateRolls } = props;
 
   spells.sort((spell1, spell2) => {
     if (spell1.spellCircle < spell2.spellCircle) return -1;
@@ -93,7 +95,11 @@ const Spells: React.FC<SpellsProp> = (props) => {
             {spells
               .sort((a, b) => a.nome.localeCompare(b.nome))
               .map((spell) => (
-                <SpellRow key={spell.nome} spell={spell} />
+                <SpellRow
+                  key={spell.nome}
+                  spell={spell}
+                  onUpdateRolls={onUpdateRolls}
+                />
               ))}
           </Box>
         </Box>
