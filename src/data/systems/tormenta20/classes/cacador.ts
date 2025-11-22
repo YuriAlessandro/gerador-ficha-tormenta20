@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -50,6 +51,13 @@ const CACADOR: ClassDescription = {
       name: 'Marca da Presa',
       text: 'Você pode gastar uma ação de movimento e 1 PM para analisar uma criatura em alcance curto. Até o fim da cena, você recebe +1d4 nas rolagens de dano contra essa criatura. A cada quatro níveis, você pode gastar +1 PM para aumentar o bônus de dano (veja a tabela da classe).',
       nivel: 1,
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (Marca)',
+          dice: '1d4',
+        },
+      ],
     },
     {
       name: 'Rastreador',
@@ -100,11 +108,25 @@ const CACADOR: ClassDescription = {
       name: 'Armadilha: Arataca.',
       text: 'A vítima sofre 2d6 pontos de dano de perfuração e fica agarrada. Uma criatura agarrada pode escapar com uma ação padrão e um teste de Acrobacia ou Atletismo (CD Sab).',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano da Armadilha',
+          dice: '2d6',
+        },
+      ],
     },
     {
       name: 'Armadilha: Espinhos',
       text: 'A vítima sofre 6d6 pontos de dano de perfuração. Um teste de Reflexos (CD Sab) reduz o dano à metade.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano da Armadilha',
+          dice: '6d6',
+        },
+      ],
     },
     {
       name: 'Armadilha: Laço',
@@ -251,6 +273,13 @@ const CACADOR: ClassDescription = {
           { type: RequirementType.NIVEL, value: 6 },
         ],
       ],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (Escaramuça)',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Escaramuça Superior',
@@ -260,6 +289,13 @@ const CACADOR: ClassDescription = {
           { type: RequirementType.PODER, name: 'Escaramuça' },
           { type: RequirementType.NIVEL, value: 12 },
         ],
+      ],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (Escaramuça Superior)',
+          dice: '1d12',
+        },
       ],
     },
     {
@@ -271,6 +307,13 @@ const CACADOR: ClassDescription = {
       name: 'Ervas Curativas',
       text: 'Você pode gastar uma ação completa e uma quantidade de PM a sua escolha (limitado por sua Sabedoria) para aplicar ervas que curam ou desintoxicam em você ou num aliado adjacente. Para cada PM que gastar, cura 2d6 PV ou remove uma condição envenenado afetando o alvo.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura (por PM gasto)',
+          dice: '2d6',
+        },
+      ],
     },
     {
       name: 'Ímpeto',

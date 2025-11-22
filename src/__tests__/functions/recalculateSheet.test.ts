@@ -10,8 +10,8 @@ import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Bag from '../../interfaces/Bag';
 import { DestinyPowers } from '../../data/systems/tormenta20/powers/destinyPowers';
 import PODERES_COMBATE from '../../data/systems/tormenta20/powers/combatPowers';
-import { GeneralPower } from '../../interfaces/Poderes';
 import { SupplementId } from '../../types/supplement.types';
+import { spellsCircles } from '../../interfaces/Spells';
 
 // Import classes and races data
 import { dataRegistry } from '../../data/registry';
@@ -150,9 +150,6 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
     };
     current = recalculateSheet(current);
 
-    const initialPM = current.pm;
-    const initialCarMod = current.atributos[Atributo.CARISMA].mod;
-
     // Add first power: "Acuidade com Arma"
     const poder1 = PODERES_COMBATE.ACUIDADE_COM_ARMA;
     current = {
@@ -234,8 +231,6 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
     const sheet = createBaseBardSheet();
     let current = recalculateSheet(sheet);
 
-    const initialPM = current.pm;
-
     // Change something that doesn't affect PM (add a spell)
     current = {
       ...current,
@@ -248,7 +243,7 @@ describe('recalculateSheet - Attribute and PM Preservation', () => {
           duracao: 'Cena',
           resistencia: 'Vontade',
           description: 'Test',
-          spellCircle: '1º Circulo' as any,
+          spellCircle: spellsCircles.c1,
           school: 'Abjur',
         },
       ],

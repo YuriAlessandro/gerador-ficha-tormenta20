@@ -3,6 +3,7 @@ import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
 import CharacterSheet, { SheetAction, SheetBonus } from './CharacterSheet';
 import { ClassDescription } from './Class';
+import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
@@ -58,6 +59,7 @@ export type RaceAbility = {
   description: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type RaceNames =

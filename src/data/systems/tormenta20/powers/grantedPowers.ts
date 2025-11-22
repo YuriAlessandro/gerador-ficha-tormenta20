@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -308,6 +309,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar 1 PM e uma ação padrão para cobrir sua mão com energia negativa e tocar uma criatura em alcance corpo a corpo. A criatura sofre 2d6 pontos de dano de trevas (Fortitude CD Sab reduz à metade) e você recupera PV iguais à metade do dano causado. Você pode aprender Toque Vampírico como uma magia divina. Se fizer isso, o custo dela diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Tenebra' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '2d6',
+      },
+    ],
   },
   CENTELHA_MAGICA: {
     name: 'Centelha Mágica',
@@ -534,6 +542,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar 1 PM para fazer uma arma corpo a corpo de corte que esteja empunhando causar +1d6 de dano por fogo até o fim da cena. ',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo (adicional)',
+        dice: '1d6',
+      },
+    ],
   },
   EXTASE_DA_LOUCURA: {
     name: 'Êxtase da Loucura',
@@ -633,6 +648,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Seus ataques e habilidades causam +1d6 pontos de dano contra mortos-vivos. Quando você usa um efeito que gera luz, o alcance da iluminação dobra.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano vs Mortos-Vivos',
+        dice: '1d6',
+      },
+    ],
   },
   KIAI_DIVINO: {
     name: 'Kiai Divino',
@@ -785,6 +807,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       [{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }],
       [{ type: RequirementType.DEVOTO, name: 'Megalokk' }],
     ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano da Mordida',
+        dice: '1d6',
+      },
+    ],
   },
   PRESAS_VENENOSAS: {
     name: 'Presas venenosas',
@@ -792,6 +821,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar uma ação de movimento e 1 PM para envenenar uma arma corpo a corpo que esteja empunhando. Em caso de acerto, a arma causa perda de 1d12 pontos de vida. A arma permanece envenenada até atingir uma criatura ou até o fim da cena, o que acontecer primeiro.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Sszzaas' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Veneno',
+        dice: '1d12',
+      },
+    ],
   },
   REPARAR_INJUSTICA: {
     name: 'Reparar Injustiça',
@@ -826,6 +862,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar uma ação completa e 2 PM para invocar 2d4+1 kobolds capangas em espaços desocupados em alcance curto. Você pode gastar uma ação de movimento para fazer os kobolds andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6–1 pontos de dano de perfuração cada). Os kobolds têm For –1, Des 1, Defesa 12, 1 PV e falham automaticamente em qualquer teste de resistência ou oposto. Eles desaparecem quando morrem ou no fim da cena. Os kobolds não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Kallyadranoch' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano dos Kobolds',
+        dice: '1d6-1',
+      },
+    ],
   },
   SOPRO_DO_MAR: {
     name: 'Sopro do Mar',
@@ -833,6 +876,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar uma ação padrão e 1 PM para soprar vento marinho em um cone de 6m. Criaturas na área sofrem 2d6 pontos de dano de frio (Reflexos CD Sab reduz à metade). Você pode aprender Sopro das Uivantes como uma magia divina. Se fizer isso, o custo dela diminui em –1 PM.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Oceano' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '2d6',
+      },
+    ],
   },
   SORTE_DOS_LOUCOS: {
     name: 'Sorte dos loucos',
@@ -953,6 +1003,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você pode gastar uma ação completa e 2 PM para invocar 1d4+1 goblinoides capangas em espaços desocupados em alcance curto. Você pode gastar uma ação de movimento para fazer os goblinoides andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6+1 pontos de dano de corte cada). Os goblinoides têm For 1, Des 1, Defesa 15, 1 PV e falham automaticamente em qualquer teste de resistência ou oposto. Eles desaparecem quando morrem ou no fim da cena. Os goblinoides não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Thwor' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano dos Goblinoides',
+        dice: '1d6+1',
+      },
+    ],
   },
   URRO_DIVINO: {
     name: 'Urro Divino',

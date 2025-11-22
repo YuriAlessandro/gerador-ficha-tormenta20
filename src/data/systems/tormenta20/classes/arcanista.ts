@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import _ from 'lodash';
 import { getRandomItemFromArray } from '../../../../functions/randomUtils';
 import {
@@ -368,16 +369,37 @@ const ARCANISTA: ClassDescription = {
       name: 'Raio Arcano',
       text: 'Você pode gastar uma ação padrão para causar 1d8 pontos de dano de essência num alvo em alcance curto. Esse dano aumenta em +1d8 para cada círculo de magia acima do 1º que você puder lançar. O alvo pode fazer um teste de Reflexos (CD atributo-chave) para reduzir o dano à metade. O raio arcano conta como uma magia para efeitos de habilidades e itens que beneficiem suas magias.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano de Essência',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Raio Elemental',
       text: 'Quando usa Raio Arcano, você pode pagar 1 PM para que ele cause dano de um tipo de energia a sua escolha, entre ácido, eletricidade, fogo, frio ou trevas. Se o alvo falhar no teste de Reflexos, sofre uma condição, de acordo com o tipo de energia. Veja a descrição das condições no Apêndice. Ácido: vulnerável por 1 rodada. Eletricidade: ofuscado por 1 rodada. Fogo: fica em chamas. Frio: lento por 1 rodada. Trevas: não pode curar PV por 1 uma rodada.',
       requirements: [[{ type: RequirementType.PODER, name: 'Raio Arcano' }]],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Elemental (Raio)',
+          dice: '1d8',
+        },
+      ],
     },
     {
       name: 'Raio Poderoso',
       text: 'Os dados de dano do seu Raio Arcano aumentam para d12 e o alcance dele aumenta para médio.',
       requirements: [[{ type: RequirementType.PODER, name: 'Raio Arcano' }]],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Raio Arcano - Dano Poderoso (d12)',
+          dice: '1d12',
+        },
+      ],
     },
     {
       name: 'Tinta do Mago',

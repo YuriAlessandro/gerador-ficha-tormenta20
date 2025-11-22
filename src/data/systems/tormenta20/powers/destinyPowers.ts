@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -210,6 +211,13 @@ export const DestinyPowers: Record<string, GeneralPower> = {
         { type: RequirementType.ATRIBUTO, name: 'Sabedoria', value: 1 },
         { type: RequirementType.PERICIA, name: 'Cura' },
       ],
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Cura (base)',
+        dice: '1d6',
+      },
     ],
   },
   PARCEIRO: {

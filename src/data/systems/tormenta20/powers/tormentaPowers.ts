@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import Skill from '@/interfaces/Skills';
 import {
   GeneralPower,
@@ -185,6 +186,13 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você pode gastar uma ação completa e 2 PM para criar um enxame de insetos rubros em um ponto a sua escolha em alcance curto e com duração sustentada. O enxame tem tamanho Médio e pode passar pelo espaço de outras criaturas. Uma vez por rodada, você pode gastar uma ação de movimento para mover o enxame 9m. No final do seu turno, o enxame causa 2d6 pontos de dano de ácido a qualquer criatura no espaço que ele estiver ocupando. Para cada dois outros poderes da Tormenta que possui, você pode gastar +1 PM quando usa este poder para aumentar o dano do enxame em +1d6.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido',
+        dice: '2d6',
+      },
+    ],
   },
   DENTES_AFIADOS: {
     name: 'Dentes Afiados',
@@ -192,6 +200,13 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe uma arma natural de mordida (dano 1d4, crítico x2, corte). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano da Mordida',
+        dice: '1d4',
+      },
+    ],
     sheetActions: [
       {
         source: {
@@ -252,6 +267,13 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Se uma criatura que tenha sofrido dano de sua mordida nesta cena for reduzida a 0 ou menos PV, ela explode em chuva cáustica, morrendo e causando 4d4 pontos de dano de ácido em criaturas adjacentes. Para cada dois outros poderes da Tormenta que você possui, o dano aumenta em +2d4. Você é imune a esse dano.',
     type: GeneralPowerType.TORMENTA,
     requirements: [[{ type: RequirementType.PODER, name: 'Dentes Afiados' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido (explosão)',
+        dice: '4d4',
+      },
+    ],
   },
   LEGIAO_ABERRANTE: {
     name: 'Legião Aberrante',
@@ -320,6 +342,13 @@ const tormentaPowers: Record<string, GeneralPower> = {
         },
       ],
     ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano da Pata Insetoide',
+        dice: '1d4',
+      },
+    ],
   },
   MENTE_ABERRANTE: {
     name: 'Mente Aberrante',
@@ -327,6 +356,13 @@ const tormentaPowers: Record<string, GeneralPower> = {
       'Você recebe resistência a efeitos mentais +1. Além disso, sempre que precisa fazer um teste de Vontade para resistir a uma habilidade, a criatura que usou essa habilidade sofre 1d6 pontos de dano psíquico. Para cada dois outros poderes da Tormenta que você possui o bônus em testes de resistência aumenta em +1 e o dano aumenta em +1d6',
     type: GeneralPowerType.TORMENTA,
     requirements: [],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Psíquico (reflexo mental)',
+        dice: '1d6',
+      },
+    ],
   },
   OLHOS_VERMELHOS: {
     name: 'Olhos Vermelhos',

@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import Race from '../../../../interfaces/Race';
 import { Atributo } from '../atributos';
 
@@ -39,6 +40,13 @@ const MEDUSA: Race = {
       name: 'Natureza Venenosa',
       description:
         'Você recebe resistência a veneno 5 e pode gastar uma ação de movimento e 1 PM para envenenar uma arma que esteja empunhando. A arma causa +1d12 pontos de dano de veneno. O veneno dura até você acertar um ataque ou até o fim da cena (o que acontecer primeiro).',
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano de Veneno',
+          dice: '1d12',
+        },
+      ],
     },
     {
       name: 'Olhar Atordoante',

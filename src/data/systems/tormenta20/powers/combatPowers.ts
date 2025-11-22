@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import Skill from '@/interfaces/Skills';
 import {
   GeneralPower,
@@ -100,6 +101,13 @@ const combatPowers: Record<string, GeneralPower> = {
       'Quando faz uma investida montada, você causa +2d8 pontos de dano. Além disso, pode continuar se movendo depois do ataque. Você deve se mover em linha reta e seu movimento máximo ainda é o dobro do seu deslocamento.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PODER, name: 'Ginete' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Adicional (Investida)',
+        dice: '2d8',
+      },
+    ],
   },
   COMBATE_DEFENSIVO: {
     name: 'Combate Defensivo',
@@ -321,6 +329,13 @@ const combatPowers: Record<string, GeneralPower> = {
       'Seus ataques desarmados causam 1d6 pontos de dano e podem causar dano letal ou não letal (sem penalidades).',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PERICIA, name: 'Luta' }]],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Desarmado',
+        dice: '1d6',
+      },
+    ],
   },
   FANATICO: {
     name: 'Fanático',

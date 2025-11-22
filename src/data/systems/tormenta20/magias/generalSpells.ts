@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { cloneDeep } from 'lodash';
 import { pickFromArray } from '../../../../functions/randomUtils';
 import CharacterSheet, { SubStep } from '../../../../interfaces/CharacterSheet';
@@ -300,11 +301,18 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 2,
-        text: 'muda a duração para um dia. Além do normal, você “finca” a adaga na mente do alvo. Enquanto a magia durar, você sabe a direção e localização do alvo, desde que ele esteja no mesmo mundo.',
+        text: 'muda a duração para um dia. Além do normal, você "finca" a adaga na mente do alvo. Enquanto a magia durar, você sabe a direção e localização do alvo, desde que ele esteja no mesmo mundo.',
       },
       {
         addPm: 2,
         text: 'aumenta o dano em +1d6.',
+      },
+    ],
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano Psíquico',
+        dice: '2d6',
       },
     ],
   },
@@ -396,6 +404,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Conv',
     description:
       'Você invoca a arma preferida de sua divindade (caso sua divindade possua uma), que surge flutuando a seu lado. Uma vez por rodada, quando você sofre um ataque corpo a corpo, pode usar uma reação para que a arma cause automaticamente 2d6 pontos de dano do tipo da arma — por exemplo, uma espada longa causa dano de corte — no oponente que fez o ataque. Esta magia se dissipa se você morrer.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano da Arma',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -668,6 +683,28 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Conv',
     description:
       'Você conjura um monstro Pequeno que ataca seus inimigos. Você escolhe a aparência do monstro e o tipo de dano que ele pode causar, entre corte, impacto e perfuração. No entanto, ele não é uma criatura real, e sim um construto feito de energia. Se for destruído, ou quando a magia acaba, desaparece com um brilho, sem deixar nada para trás. Você só pode ter um monstro conjurado por esta magia por vez. O monstro surge em um espaço desocupado a sua escolha dentro do alcance e age no início de cada um de seus turnos, a partir da próxima rodada. O monstro tem deslocamento 9m e pode fazer uma ação de movimento por rodada. Você pode gastar uma ação padrão para dar uma das ordens da página 185 a ele.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano - Pequeno ou Médio',
+        dice: '2d6+6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano - Grande',
+        dice: '4d6+10',
+      },
+      {
+        id: uuid(),
+        label: 'Dano - Enorme',
+        dice: '4d8+15',
+      },
+      {
+        id: uuid(),
+        label: 'Dano - Colossal',
+        dice: '4d12+20',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -784,6 +821,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Conv',
     description:
       'Você cria uma pequena porção de um elemento, a sua escolha. Os elementos criados são reais, não mágicos. Elementos físicos devem surgir em uma superfície. Em vez de um cubo, pode- -se criar objetos simples (sem partes móveis) feitos de gelo, terra ou pedra.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto (aprimoramento)',
+        dice: '2d4',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -855,6 +899,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Evoc',
     description:
       'Você canaliza luz que recupera 2d8+2 pontos de vida na criatura tocada.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Luz vs Mortos-vivos (truque)',
+        dice: '1d8',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 0,
@@ -889,6 +940,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta magia emite um som alto e agudo. O alvo sofre 1d8+2 pontos de dano de impacto (ou o dobro disso e ignora RD se for um construto ou objeto mundano) e fica atordoado por uma rodada (apenas uma vez por cena). Um teste de Fortitude reduz o dano à metade e evita o atordoamento.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Impacto',
+        dice: '1d8+2',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -1074,6 +1132,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Evoc',
     description:
       'Um leque de chamas irrompe de suas mãos, causando 2d6 pontos de dano de fogo às criaturas na área.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 0,
@@ -1159,6 +1224,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Necro',
     description:
       'Você canaliza energia negativa contra um alvo, causando 2d8+2 pontos de dano de trevas (ou curando 2d8+2 PV, se for um morto-vivo). Infligir Ferimentos anula Curar Ferimentos',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '2d8+2',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -1240,6 +1312,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Conv',
     description:
       'Uma névoa espessa eleva-se de um ponto a sua escolha, obscurecendo toda a visão — criaturas a até 1,5m têm camuflagem leve e criaturas a partir de 3m têm camuflagem total. Um vento forte dispersa a névoa em 4 rodadas e um vendaval a dispersa em 1 rodada. Esta magia não funciona sob a água.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido por rodada (aprimoramento)',
+        dice: '2d4',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -1509,6 +1588,18 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Evoc',
     description:
       'Favorita entre arcanistas iniciantes, esta magia lança duas setas de energia que causam 1d4+1 pontos de dano de essência cada. Você pode lançar as setas em alvos diferentes ou concentrá-las num mesmo alvo. Caso você possua um bônus no dano de magias, como pelo poder Arcano de Batalha, ele é aplicado em apenas uma seta (o bônus vale para a magia, não cada alvo).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Essência - 1 seta',
+        dice: '1d4+1',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Essência - 2 setas',
+        dice: '2d4+2',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -1608,6 +1699,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Evoc',
     description:
       'Arcos elétricos envolvem sua mão, causando 2d8+2 pontos de dano de eletricidade. Se o alvo usa armadura de metal (ou carrega muito metal, a critério do mestre), sofre uma penalidade de –5 no teste de resistência.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Eletricidade',
+        dice: '2d8+2',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -1754,6 +1852,13 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     school: 'Necro',
     description:
       'Você suga energia vital da terra, recebendo 2d10 pontos de vida temporários. Os PV temporários desaparecem ao final da cena.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas (aprimoramento)',
+        dice: '1d10',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -2161,6 +2266,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Esta famosa magia de ataque cria uma poderosa explosão, causando 6d6 pontos de dano de fogo em todas as criaturas e objetos livres na área.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Fogo',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -2187,6 +2299,18 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Você dispara um projétil que causa 4d6 pontos de dano de ácido. Se falhar no teste de resistência, o alvo fica coberto por um muco corrosivo, sofrendo mais 2d6 de dano de ácido no início de seus dois próximos turnos. Se lançada contra um objeto que não esteja em posse de uma criatura a magia causa dano dobrado e ignora a RD do objeto.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido inicial',
+        dice: '4d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Ácido por rodada',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -2213,6 +2337,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Você dispara um poderoso raio que causa 6d6 pontos de dano de eletricidade em todas as criaturas e objetos livres na área. ',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Eletricidade',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,
@@ -2235,6 +2366,18 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Evoc',
     description:
       'Você sopra ar gélido que causa 4d6 pontos de dano de frio (Fortitude reduz à metade). Criaturas de tamanho Médio ou menor que falhem na resistência ficam caídas e são empurradas 6m na direção oposta. Se houver uma parede ou outro objeto sólido (mas não uma criatura) no caminho, a criatura para de se mover, mas sofre +2d6 pontos de dano de impacto.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Frio',
+        dice: '4d6',
+      },
+      {
+        id: uuid(),
+        label: 'Dano de Impacto (colisão)',
+        dice: '2d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -2370,6 +2513,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Necro',
     description:
       'Esta magia cria um crânio envolto em energia negativa. Quando atinge o alvo, ele causa 4d8+4 pontos de dano de trevas e se desfaz emitindo um som horrendo, deixando abalado o alvo e todos os inimigos num raio de 3m dele (criaturas já abaladas ficam apavoradas por 1d4 rodadas). Passar no teste de resistência diminui o dano à metade e evita a condição (as demais criaturas na área também tem direito ao teste de resistência, para evitar a condição).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '4d8+4',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -2392,6 +2542,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Necro',
     description:
       'Sua mão brilha com energia sombria, causando 6d6 pontos de dano de trevas. Você recupera pontos de vida iguais à metade do dano causado (se causou algum dano).',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Trevas',
+        dice: '6d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 2,
@@ -2934,6 +3091,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     school: 'Necro',
     description:
       'A área é coberta por emanações letais. Criaturas na área sofrem 5d6 pontos de dano de ácido e ficam enjoadas por 1 rodada. Se passarem na resistência, sofrem metade do dano e não ficam enjoadas.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido',
+        dice: '5d6',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 0,
@@ -3204,6 +3368,13 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     school: 'Conv',
     description:
       'Você conjura um enxame de pequenas criaturas da Tormenta. O enxame pode passar pelo espaço de outras criaturas e não impede que outras criaturas entrem no espaço dele. No final de cada um de seus turnos, o enxame causa 4d12 pontos de dano de ácido a qualquer criatura em seu espaço (Reflexos reduz à metade). Você pode gastar uma ação de movimento para mover o enxame com deslocamento de 12m.',
+    rolls: [
+      {
+        id: uuid(),
+        label: 'Dano de Ácido',
+        dice: '4d12',
+      },
+    ],
     aprimoramentos: [
       {
         addPm: 1,

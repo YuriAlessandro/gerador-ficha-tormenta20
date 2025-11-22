@@ -5,6 +5,7 @@ import CharacterSheet, {
   SheetAction,
   SubStep,
 } from './CharacterSheet';
+import { DiceRoll } from './DiceRoll';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -48,6 +49,7 @@ export interface GeneralPower {
   canRepeat?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 }
 
 export type GeneralPowers = {
@@ -60,6 +62,7 @@ export type OriginPower = {
   type: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;

@@ -1,5 +1,6 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
+import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
@@ -36,6 +37,7 @@ export type ClassAbility = {
   nivel: number;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type ClassPower = {
@@ -45,6 +47,7 @@ export type ClassPower = {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export interface SpellPath {

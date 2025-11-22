@@ -2352,7 +2352,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     sheet.classe,
     sheet.spells
   );
-  updatedSheet.spells.push(...newSpells);
+  // Filter out duplicates before adding
+  const uniqueNewSpells = newSpells.filter(
+    (newSpell) =>
+      !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+  );
+  updatedSheet.spells.push(...uniqueNewSpells);
 
   newSpells.forEach((spell) => {
     subSteps.push({
@@ -2573,7 +2578,12 @@ export function applyManualLevelUp(
 
   // Aplicar magias selecionadas manualmente
   if (selections.spellsLearned && selections.spellsLearned.length > 0) {
-    updatedSheet.spells.push(...selections.spellsLearned);
+    // Filter out duplicates before adding
+    const uniqueSelectedSpells = selections.spellsLearned.filter(
+      (newSpell) =>
+        !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+    );
+    updatedSheet.spells.push(...uniqueSelectedSpells);
 
     selections.spellsLearned.forEach((spell) => {
       subSteps.push({
@@ -3344,7 +3354,12 @@ export default function generateRandomSheet(
 
   // Passo 13: Gerar magias se possível
   const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
-  charSheet.spells.push(...newSpells);
+  // Filter out duplicates before adding
+  const uniqueNewSpells = newSpells.filter(
+    (newSpell) =>
+      !charSheet.spells.some((existing) => existing.nome === newSpell.nome)
+  );
+  charSheet.spells.push(...uniqueNewSpells);
 
   if (newSpells.length) {
     charSheet.steps.push({

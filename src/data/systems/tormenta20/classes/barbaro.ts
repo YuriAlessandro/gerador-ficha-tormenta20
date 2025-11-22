@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import { ClassDescription } from '../../../../interfaces/Class';
 import { RequirementType } from '../../../../interfaces/Poderes';
 import Skill from '../../../../interfaces/Skills';
@@ -188,6 +189,13 @@ const BARBARO: ClassDescription = {
       name: 'Golpe Poderoso',
       text: 'Ao acertar um ataque corpo a corpo ou com uma arma de arremesso, você pode gastar 1 PM para causar um dado de dano extra do mesmo tipo (por exemplo, com um montante, causa +1d6, para um dano total de 3d6; com um machado de guerra, causa +1d12).',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Extra (exemplo: 1d6 montante, 1d12 machado)',
+          dice: '1d6',
+        },
+      ],
     },
     {
       name: 'Ímpeto',
@@ -198,6 +206,13 @@ const BARBARO: ClassDescription = {
       name: 'Investida Imprudente',
       text: 'Quando faz uma investida, você pode aumentar sua penalidade em Defesa pela investida para –5 para receber um bônus de +1d12 na rolagem de dano deste ataque.',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Dano Adicional (Investida)',
+          dice: '1d12',
+        },
+      ],
     },
     {
       name: 'Pele de Aço',
@@ -259,6 +274,13 @@ const BARBARO: ClassDescription = {
       name: 'Vigor Primal',
       text: 'Você pode gastar uma ação de movimento e uma quantidade de PM limitada por sua Constituição. Para cada PM que gastar, você recupera 1d12 pontos de vida',
       requirements: [],
+      rolls: [
+        {
+          id: uuid(),
+          label: 'Cura (por PM gasto)',
+          dice: '1d12',
+        },
+      ],
     },
   ],
   probDevoto: 0.3,

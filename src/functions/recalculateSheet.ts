@@ -554,7 +554,7 @@ function shouldRecalculatePM(
   if (sheet.classe.name !== originalSheet.classe.name) return true;
 
   // Check if key spell attribute changed
-  const spellPath = sheet.classe.spellPath;
+  const { spellPath } = sheet.classe;
   if (spellPath) {
     const keyAttr = spellPath.keyAttribute;
     const oldMod = originalSheet.atributos[keyAttr]?.mod || 0;
@@ -573,26 +573,30 @@ function shouldRecalculatePM(
   const newPowerNames = new Set(sheet.generalPowers.map((p) => p.name));
 
   // Powers added
-  for (const powerName of newPowerNames) {
-    if (!oldPowerNames.has(powerName)) {
-      const power = sheet.generalPowers.find((p) => p.name === powerName);
-      if (power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM')) {
-        return true;
+  const hasAddedPowerWithPMBonus = Array.from(newPowerNames).some(
+    (powerName) => {
+      if (!oldPowerNames.has(powerName)) {
+        const power = sheet.generalPowers.find((p) => p.name === powerName);
+        return power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM');
       }
+      return false;
     }
-  }
+  );
+  if (hasAddedPowerWithPMBonus) return true;
 
   // Powers removed
-  for (const powerName of oldPowerNames) {
-    if (!newPowerNames.has(powerName)) {
-      const power = originalSheet.generalPowers.find(
-        (p) => p.name === powerName
-      );
-      if (power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM')) {
-        return true;
+  const hasRemovedPowerWithPMBonus = Array.from(oldPowerNames).some(
+    (powerName) => {
+      if (!newPowerNames.has(powerName)) {
+        const power = originalSheet.generalPowers.find(
+          (p) => p.name === powerName
+        );
+        return power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM');
       }
+      return false;
     }
-  }
+  );
+  if (hasRemovedPowerWithPMBonus) return true;
 
   return false; // No PM-affecting changes detected
 }
@@ -849,10 +853,6 @@ export function recalculateSheet(
   if (updatedSheet.manualPMEdit) {
     updatedSheet.pm += updatedSheet.manualPMEdit;
   }
-
-  // Store calculated values before applying manual overrides
-  const calculatedPV = updatedSheet.pv;
-  const calculatedPM = updatedSheet.pm;
 
   // Apply manual max overrides if defined (replaces calculated values)
   if (updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0) {
