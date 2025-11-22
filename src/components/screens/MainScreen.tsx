@@ -474,7 +474,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       );
       setSheetSavedToCloud(true);
       showAlert(
-        'Ficha salva na nuvem com sucesso! Você pode acessá-la em "Meus Personagens".',
+        'Ficha salva na nuvem com sucesso! Você pode acessá-la em "Meus Personagens".\n\n⚠️ Antes de utilizar em jogo, confirme que todos os valores de sua ficha estão corretos. Nosso sistema pode cometer erros. Você pode alterar sua ficha à vontade.',
         'Sucesso'
       );
     } catch (error) {

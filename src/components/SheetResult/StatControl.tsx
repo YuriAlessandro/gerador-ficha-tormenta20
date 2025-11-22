@@ -57,10 +57,17 @@ const StatControl: React.FC<StatControlProps> = ({
   const darkColor = isOverMax ? overMaxDarkColor : normalDarkColor;
 
   const handleIncrement = useCallback(() => {
-    // Allow incrementing beyond max for temporary bonuses
-    const newValue = current + increment;
-    onUpdateCurrent(newValue);
-  }, [current, increment, onUpdateCurrent]);
+    // Se ainda não atingiu o máximo, cap no máximo (healing normal)
+    if (current < max) {
+      const newValue = Math.min(current + increment, max);
+      onUpdateCurrent(newValue);
+    }
+    // Se já está no máximo ou acima, adiciona como bônus temporário
+    else {
+      const newValue = current + increment;
+      onUpdateCurrent(newValue);
+    }
+  }, [current, increment, max, onUpdateCurrent]);
 
   const handleDecrement = useCallback(() => {
     const newValue = Math.max(current - increment, 0);

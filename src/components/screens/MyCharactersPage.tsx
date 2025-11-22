@@ -31,6 +31,7 @@ import {
   Tooltip,
   Tabs,
   Tab,
+  LinearProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -508,6 +509,74 @@ const MyCharactersPage: React.FC = () => {
                       objectFit: 'cover',
                     }}
                   />
+
+                  {/* PV/PM Progress Bars - só para personagens, não para ameaças */}
+                  {!sheet.sheetData?.isThreat && (
+                    <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+                      {/* Barra de PV (Verde) */}
+                      <Box sx={{ mb: 1 }}>
+                        <Typography
+                          variant='caption'
+                          sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                        >
+                          PV:{' '}
+                          {(sheet.sheetData as any).currentPV ??
+                            (sheet.sheetData as any).pv}
+                          /{(sheet.sheetData as any).pv}
+                        </Typography>
+                        <LinearProgress
+                          variant='determinate'
+                          value={Math.min(
+                            (((sheet.sheetData as any).currentPV ??
+                              (sheet.sheetData as any).pv) /
+                              (sheet.sheetData as any).pv) *
+                              100,
+                            100
+                          )}
+                          sx={{
+                            height: 6,
+                            borderRadius: 1,
+                            backgroundColor: theme.palette.success.light,
+                            '& .MuiLinearProgress-bar': {
+                              backgroundColor: theme.palette.success.main,
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      {/* Barra de PM (Azul) */}
+                      <Box>
+                        <Typography
+                          variant='caption'
+                          sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                        >
+                          PM:{' '}
+                          {(sheet.sheetData as any).currentPM ??
+                            (sheet.sheetData as any).pm}
+                          /{(sheet.sheetData as any).pm}
+                        </Typography>
+                        <LinearProgress
+                          variant='determinate'
+                          value={Math.min(
+                            (((sheet.sheetData as any).currentPM ??
+                              (sheet.sheetData as any).pm) /
+                              (sheet.sheetData as any).pm) *
+                              100,
+                            100
+                          )}
+                          sx={{
+                            height: 6,
+                            borderRadius: 1,
+                            backgroundColor: theme.palette.info.light,
+                            '& .MuiLinearProgress-bar': {
+                              backgroundColor: theme.palette.info.main,
+                            },
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
                   <CardContent sx={{ flexGrow: 1 }}>
                     <Typography
                       gutterBottom
