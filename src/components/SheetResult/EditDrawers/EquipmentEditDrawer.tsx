@@ -416,9 +416,18 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   const handleWeaponToggle = (weapon: Equipment) => {
     // Sempre adiciona a arma (permite múltiplas armas com mesmo nome)
+    // Store base values when weapon is first added
+    const weaponWithBase: Equipment = {
+      ...weapon,
+      baseDano: weapon.dano,
+      baseAtkBonus: weapon.atkBonus ?? 0,
+      baseCritico: weapon.critico,
+      hasManualEdits: false, // Initially not manually edited
+    };
+
     setSelectedEquipment((prev) => ({
       ...prev,
-      weapons: [...prev.weapons, weapon],
+      weapons: [...prev.weapons, weaponWithBase],
     }));
   };
 
@@ -448,11 +457,23 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleSaveEditWeapon = () => {
     if (!editingWeapon || editingWeaponIndex === null) return;
 
+    // Store base values if not already stored (for backward compatibility)
+    const baseDano = editingWeapon.baseDano ?? editingWeapon.dano;
+    const baseAtkBonus =
+      editingWeapon.baseAtkBonus ?? editingWeapon.atkBonus ?? 0;
+    const baseCritico = editingWeapon.baseCritico ?? editingWeapon.critico;
+
     const updatedWeapon: Equipment = {
       ...editingWeapon,
       nome: editNome,
       atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
       dano: editDano,
+      // Store base values for future resets
+      baseDano,
+      baseAtkBonus,
+      baseCritico,
+      // Mark as manually edited so recalculateSheet preserves these changes
+      hasManualEdits: true,
     };
 
     setSelectedEquipment((prev) => ({

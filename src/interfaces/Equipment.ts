@@ -21,6 +21,15 @@ export default interface Equipment {
   atkBonus?: number;
   weaponTags?: string[];
   preco?: number;
+
+  // Base values for weapons (original stats before any modifications)
+  baseDano?: string;
+  baseAtkBonus?: number;
+  baseCritico?: string;
+
+  // Flag to indicate if this weapon has manual user edits
+  // When true, recalculateSheet will preserve user edits instead of resetting
+  hasManualEdits?: boolean;
 }
 
 export type defenseEquipGroup = 'Armadura' | 'Escudo';

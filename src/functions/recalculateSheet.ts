@@ -208,19 +208,34 @@ const weaponMatchesBonus = (
 const resetWeaponToBase = (weapon: Equipment): Equipment => {
   const resetWeapon = { ...weapon };
 
-  // Reset atkBonus to 0 (base value)
-  resetWeapon.atkBonus = 0;
-
-  // Reset damage string to remove any added bonuses
-  if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
-    // Extract base damage (everything before the first '+')
-    [resetWeapon.dano] = resetWeapon.dano.split('+');
+  // If weapon has manual edits, preserve the current values
+  // Only reset weapons that don't have manual edits (i.e., system-added weapons)
+  if (resetWeapon.hasManualEdits) {
+    // Preserve user edits - only reset atkBonus if it's a system bonus
+    // User-edited damage and critical are kept as-is
+    return resetWeapon;
   }
 
-  // Reset critical to base value - this is more complex as we need to handle
-  // various formats like "x2", "19", "19/x3", etc.
-  // For now, we'll store original values or use a more sophisticated approach
-  // TODO: Consider storing original weapon data separately
+  // For weapons without manual edits, reset to base values
+  // If base values exist, use them; otherwise, extract from current values
+
+  // Reset atkBonus to base or 0
+  resetWeapon.atkBonus = resetWeapon.baseAtkBonus ?? 0;
+
+  // Reset damage to base value or extract base if not stored
+  if (resetWeapon.baseDano) {
+    resetWeapon.dano = resetWeapon.baseDano;
+  } else if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
+    // Fallback: Extract base damage (everything before the first '+')
+    // and store it for future use
+    [resetWeapon.dano] = resetWeapon.dano.split('+');
+    resetWeapon.baseDano = resetWeapon.dano;
+  }
+
+  // Reset critical to base value
+  if (resetWeapon.baseCritico) {
+    resetWeapon.critico = resetWeapon.baseCritico;
+  }
 
   return resetWeapon;
 };
