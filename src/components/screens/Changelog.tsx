@@ -25,6 +25,34 @@ const Changelog: React.FC = () => (
 
       <h2>Versão 3</h2>
 
+      <h3>3.4.2</h3>
+      <ul>
+        <li>
+          🔧 Corrigido problema ao salvar algumas divindades: Linn-Wuu,
+          Tannah-Toh e Hynnin. Obrigado{' '}
+          <a
+            href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/424'
+            target='_blank'
+            rel='noreferrer'
+          >
+            @Prodigy-tlk
+          </a>
+          .
+        </li>
+        <li>
+          🔧 Corrigido um problema ao tentar selecionar o subtipo de armas e
+          armaduras nos geradores de itens superiores e itens mágicos.{' '}
+          <a
+            href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/423'
+            target='_blank'
+            rel='noreferrer'
+          >
+            @renydev
+          </a>
+          .
+        </li>
+      </ul>
+
       <h3>3.4.1</h3>
       <ul>
         <li>

@@ -22,8 +22,7 @@ import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import RACAS from '@/data/racas';
 import CLASSES from '@/data/classes';
 import { ORIGINS } from '@/data/origins';
-import { allDivindadeNames } from '@/interfaces/Divindade';
-import { DivindadeEnum } from '@/data/divindades';
+import { DivindadeEnum, DIVINDADES } from '@/data/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -100,11 +99,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceName: sheet.raca.name,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
-    deityName: sheet.devoto?.divindade.name
-      ? allDivindadeNames.find(
-          (d) => d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-        ) || ''
-      : '',
+    deityName: sheet.devoto?.divindade.name || '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
   });
@@ -122,12 +117,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name
-        ? allDivindadeNames.find(
-            (d) =>
-              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-          ) || ''
-        : '',
+      deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
@@ -540,12 +530,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceName: sheet.raca.name,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name
-        ? allDivindadeNames.find(
-            (d) =>
-              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-          ) || ''
-        : '',
+      deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
     });
@@ -778,9 +763,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               }
             >
               <MenuItem value=''>Nenhuma</MenuItem>
-              {allDivindadeNames.map((deity) => (
-                <MenuItem key={deity} value={deity}>
-                  {deity}
+              {DIVINDADES.map((deity) => (
+                <MenuItem key={deity.name} value={deity.name}>
+                  {deity.name}
                 </MenuItem>
               ))}
             </Select>
