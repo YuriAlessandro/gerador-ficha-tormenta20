@@ -86,6 +86,18 @@ const armorsByType = {
   heavy: EQUIPAMENTOS.armaduraPesada,
 };
 
+const weaponSubtypes = [
+  { value: 'simple', label: 'Simples' },
+  { value: 'martial', label: 'Marciais' },
+  { value: 'exotic', label: 'Exóticas' },
+  { value: 'firearm', label: 'De Fogo' },
+];
+
+const armorSubtypes = [
+  { value: 'light', label: 'Leves' },
+  { value: 'heavy', label: 'Pesadas' },
+];
+
 const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
   const [state, setState] = useState<MagicalItemsState>({
     generationMode: 'random',
@@ -483,20 +495,18 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
                   label='Subtipo'
                 >
                   <MenuItem value='all'>Todos</MenuItem>
-                  {state.selectedItemType === 'weapon' && (
-                    <>
-                      <MenuItem value='simple'>Simples</MenuItem>
-                      <MenuItem value='martial'>Marciais</MenuItem>
-                      <MenuItem value='exotic'>Exóticas</MenuItem>
-                      <MenuItem value='firearm'>De Fogo</MenuItem>
-                    </>
-                  )}
-                  {state.selectedItemType === 'armor' && (
-                    <>
-                      <MenuItem value='light'>Leves</MenuItem>
-                      <MenuItem value='heavy'>Pesadas</MenuItem>
-                    </>
-                  )}
+                  {state.selectedItemType === 'weapon' &&
+                    weaponSubtypes.map((sub) => (
+                      <MenuItem key={sub.value} value={sub.value}>
+                        {sub.label}
+                      </MenuItem>
+                    ))}
+                  {state.selectedItemType === 'armor' &&
+                    armorSubtypes.map((sub) => (
+                      <MenuItem key={sub.value} value={sub.value}>
+                        {sub.label}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>
