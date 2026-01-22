@@ -36,7 +36,6 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
 import { AppDispatch } from '../../store';
-import PremiumBadge from '../Premium/PremiumBadge';
 import {
   updateProfile,
   saveSystemSetup,
@@ -347,15 +346,6 @@ const ProfilePage: React.FC = () => {
               >
                 @{profile.username}
               </Typography>
-
-              {profile.isPremium && (
-                <Box sx={{ mt: 1.5 }}>
-                  <PremiumBadge
-                    variant={isMobile ? 'small' : 'default'}
-                    showIcon
-                  />
-                </Box>
-              )}
             </Box>
 
             {isOwnProfile && isAuthenticated && currentUser?.email && (
@@ -423,65 +413,6 @@ const ProfilePage: React.FC = () => {
                     >
                       Editar Perfil
                     </Button>
-
-                    <Box
-                      sx={{
-                        mt: 3,
-                        pt: 3,
-                        borderTop: '1px solid',
-                        borderColor: 'divider',
-                      }}
-                    >
-                      <Typography variant='h6' fontWeight='bold' gutterBottom>
-                        Assinatura
-                      </Typography>
-                      {profile.isPremium ? (
-                        <Stack spacing={2}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                            }}
-                          >
-                            <Typography variant='body1'>Status:</Typography>
-                            <PremiumBadge variant='small' showIcon />
-                          </Box>
-                          <Button
-                            variant='outlined'
-                            onClick={() => history.push('/subscription')}
-                            fullWidth={isMobile}
-                          >
-                            Gerenciar Assinatura
-                          </Button>
-                        </Stack>
-                      ) : (
-                        <Stack spacing={2}>
-                          <Typography variant='body2' color='text.secondary'>
-                            Desbloqueie recursos premium como dados 3D, mais
-                            fichas, diários e muito mais!
-                          </Typography>
-                          <Button
-                            variant='contained'
-                            color='primary'
-                            onClick={() => history.push('/pricing')}
-                            fullWidth={isMobile}
-                            sx={{
-                              background:
-                                'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
-                              color: '#000',
-                              fontWeight: 'bold',
-                              '&:hover': {
-                                background:
-                                  'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
-                              },
-                            }}
-                          >
-                            Ver Planos Premium
-                          </Button>
-                        </Stack>
-                      )}
-                    </Box>
                   </Stack>
                 </Box>
               </TabPanel>

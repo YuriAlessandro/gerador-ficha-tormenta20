@@ -13,20 +13,22 @@ import {
   Box,
   Typography,
   Divider,
+  Chip,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { ORIGINS } from '../../data/systems/tormenta20/origins';
-import Origin from '../../interfaces/Origin';
 
 import SearchInput from './SearchInput';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, OriginWithSupplement } from '../../data/registry';
 import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 
-const Row: React.FC<{ origin: Origin; defaultOpen: boolean }> = ({
+const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
   origin,
   defaultOpen,
 }) => {
@@ -69,14 +71,33 @@ const Row: React.FC<{ origin: Origin; defaultOpen: boolean }> = ({
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
             <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
-                {origin.name}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                >
+                  {origin.name}
+                </Typography>
+                <Chip
+                  label={origin.supplementName}
+                  size='small'
+                  variant='outlined'
+                  color={
+                    origin.supplementId === SupplementId.TORMENTA20_CORE
+                      ? 'default'
+                      : 'secondary'
+                  }
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
 
               {/* Items */}
               <Box sx={{ mb: 2 }}>
@@ -168,19 +189,21 @@ const Row: React.FC<{ origin: Origin; defaultOpen: boolean }> = ({
 };
 
 const OriginsTable: React.FC = () => {
-  const allOrigins: Origin[] = Object.values(ORIGINS).sort((a, b) =>
-    a.name < b.name ? -1 : 1
-  );
-
   const [value, setValue] = useState('');
-  const [origins, setOrigins] = useState<Origin[]>(allOrigins);
-  const { params } = useRouteMatch();
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_ATLAS_ARTON]);
+  const [origins, setOrigins] = useState<OriginWithSupplement[]>([]);
+  const { params } = useRouteMatch<{ selectedOrigin?: string }>();
   const history = useHistory();
 
   const filter = (searchValue: string) => {
     const search = searchValue.toLocaleLowerCase();
+    const allOrigins =
+      dataRegistry.getOriginsBySupplements(selectedSupplements);
+
     if (search.length > 0) {
-      const filteredOrigins = origins.filter((origin) =>
+      const filteredOrigins = allOrigins.filter((origin) =>
         origin.name.toLowerCase().includes(search)
       );
 
@@ -192,13 +215,26 @@ const OriginsTable: React.FC = () => {
     }
   };
 
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        // Don't allow deselecting all supplements
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      return [...prev, supplementId];
+    });
+  };
+
   useEffect(() => {
-    const { selectedOrigin } = params as any;
+    const { selectedOrigin } = params;
     if (selectedOrigin) {
       setValue(selectedOrigin);
       filter(selectedOrigin);
+    } else {
+      filter(''); // Load all origins on mount
     }
-  }, [params]);
+  }, [params, selectedSupplements]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
@@ -215,6 +251,16 @@ const OriginsTable: React.FC = () => {
       <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
         Origens de Personagem
       </TormentaTitle>
+
+      {/* Supplement Filter */}
+      <SupplementFilter
+        selectedSupplements={selectedSupplements}
+        availableSupplements={[
+          SupplementId.TORMENTA20_CORE,
+          SupplementId.TORMENTA20_ATLAS_ARTON,
+        ]}
+        onToggleSupplement={handleToggleSupplement}
+      />
 
       {/* Search Input */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>

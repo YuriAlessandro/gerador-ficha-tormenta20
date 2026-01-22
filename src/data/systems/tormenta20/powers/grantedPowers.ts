@@ -488,11 +488,15 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
   DOM_DA_RESSUREICAO: {
     name: 'Dom da Ressurreição',
     description:
-      'Você pode gastar uma ação completa e todos os PM que possui (mínimo 1 PM) para tocar o corpo de uma criatura morta há menos de um ano e ressuscitá-la. A criatura volta à vida com 1 PV e 0 PM, e perde 1 ponto de Constituição permanentemente. Este poder só pode ser usado uma vez em cada criatura. Apenas clérigos podem escolher este poder. Um personagem pode ter Dom da Imortalidade ou Dom da Ressurreição, mas não ambos.',
+      'Você pode gastar uma ação completa e todos os PM que possui (mínimo 1 PM) para tocar o corpo de uma criatura morta há menos de um ano e ressuscitá-la. A criatura volta à vida com 1 PV e 0 PM, e perde 1 ponto de Constituição permanentemente. Este poder só pode ser usado uma vez em cada criatura. Apenas clérigos e frades podem escolher este poder. Um personagem pode ter Dom da Imortalidade ou Dom da Ressurreição, mas não ambos.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [
       [
         { type: RequirementType.CLASSE, name: 'Clérigo' },
+        { type: RequirementType.DEVOTO, name: 'Thyatis' },
+      ],
+      [
+        { type: RequirementType.CLASSE, name: 'Frade' },
         { type: RequirementType.DEVOTO, name: 'Thyatis' },
       ],
     ],

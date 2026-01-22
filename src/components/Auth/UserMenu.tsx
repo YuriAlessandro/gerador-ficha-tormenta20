@@ -162,15 +162,6 @@ const UserMenu: React.FC = () => {
           <Typography variant='caption' color='text.secondary'>
             {user?.email}
           </Typography>
-          {user?.isPremium && (
-            <Typography
-              variant='caption'
-              display='block'
-              sx={{ color: 'warning.main', fontWeight: 'bold' }}
-            >
-              ⭐ Premium
-            </Typography>
-          )}
         </Box>
 
         <Divider />
