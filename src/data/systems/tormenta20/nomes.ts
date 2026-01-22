@@ -224,6 +224,33 @@ export const nomes: {
       'Bromélia',
     ],
   },
+  Duende: {
+    Homem: [
+      'Garu',
+      'Pife',
+      'Deande',
+      'Elwin',
+      'Finn',
+      'Bramble',
+      'Moss',
+      'Zephyr',
+      'Quill',
+      'Rune',
+    ],
+    Mulher: [
+      'Nissa',
+      'Pixie',
+      'July',
+      'Willow',
+      'Luna',
+      'Fern',
+      'Briar',
+      'Hazel',
+      'Skye',
+      'Lyra',
+      'Wren',
+    ],
+  },
   Elfo: {
     Homem: [
       'Avoldar',

@@ -120,7 +120,9 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
             Suplementos Disponíveis
           </Typography>
           <Typography variant='caption' color='text.secondary' sx={{ mb: 2 }}>
-            Selecione os suplementos que deseja usar no gerador de fichas
+            Selecione os suplementos que você possui. Lembre-se que tentar usar
+            regras de suplementos sem possuir os livros e dominar suas regras
+            pode ser desafiador.
           </Typography>
 
           <FormGroup>

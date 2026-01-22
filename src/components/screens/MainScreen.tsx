@@ -85,9 +85,12 @@ import SheetsService, {
 import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal';
+import DuendeCustomizationModal from '../DuendeCustomizationModal';
 import CharacterCreationWizardModal from '../CharacterCreationWizard/CharacterCreationWizardModal';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import { applyDuendeCustomization } from '../../data/systems/tormenta20/herois-de-arton/races/duende';
+import Skill from '../../interfaces/Skills';
 import SheetLimitDialog from '../common/SheetLimitDialog';
 
 type SelectedOption = {
@@ -274,6 +277,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     React.useState(false);
   const [pendingGolemDespertoSheet, setPendingGolemDespertoSheet] =
     React.useState<CharacterSheet | null>(null);
+  const [showDuendeModal, setShowDuendeModal] = React.useState(false);
+  const [pendingDuendeSheet, setPendingDuendeSheet] =
+    React.useState<CharacterSheet | null>(null);
   const [wizardModalOpen, setWizardModalOpen] = React.useState(false);
   const [levelUpWizardModalOpen, setLevelUpWizardModalOpen] =
     React.useState(false);
@@ -369,6 +375,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       return; // Don't set the sheet yet - wait for modal confirmation
     }
 
+    // Check if it's a Duende and show customization modal
+    if (anotherRandomSheet.raca.name === 'Duende') {
+      setPendingDuendeSheet(anotherRandomSheet);
+      setShowDuendeModal(true);
+      return; // Don't set the sheet yet - wait for modal confirmation
+    }
+
     // Always save to local storage (historic)
     saveSheetOnHistoric(
       anotherRandomSheet,
@@ -433,6 +446,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     if (level1Sheet.raca.name === 'Golem Desperto') {
       setPendingGolemDespertoSheet(level1Sheet);
       setShowGolemDespertoModal(true);
+      return; // Wait for modal confirmation before finalizing
+    }
+
+    // Check if race is Duende - need customization modal
+    if (level1Sheet.raca.name === 'Duende') {
+      setPendingDuendeSheet(level1Sheet);
+      setShowDuendeModal(true);
       return; // Wait for modal confirmation before finalizing
     }
 
@@ -1152,6 +1172,69 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setPendingGolemDespertoSheet(null);
   };
 
+  // Duende modal handlers
+  const handleDuendeConfirm = (
+    natureId: string,
+    sizeId: string,
+    bonusAttributes: Atributo[],
+    presenteIds: string[],
+    tabuSkill: Skill
+  ) => {
+    if (!pendingDuendeSheet) return;
+
+    // Get base race and apply customization
+    const baseRace = RACAS.find((r) => r.name === 'Duende');
+    if (!baseRace) return;
+
+    const customizedRace = applyDuendeCustomization(
+      baseRace,
+      natureId,
+      sizeId,
+      bonusAttributes,
+      presenteIds,
+      tabuSkill
+    );
+
+    let finalSheet: CharacterSheet = {
+      ...pendingDuendeSheet,
+      raca: customizedRace,
+      raceSizeCategory: sizeId,
+      displacement: customizedRace.getDisplacement
+        ? customizedRace.getDisplacement(customizedRace)
+        : pendingDuendeSheet.displacement,
+      size: customizedRace.size || pendingDuendeSheet.size,
+    };
+
+    // Process each ability's sheetActions
+    customizedRace.abilities.forEach((ability) => {
+      if (ability.sheetActions || ability.sheetBonuses) {
+        const [updatedSheet] = applyPower(finalSheet, ability);
+        finalSheet = {
+          ...updatedSheet,
+          raceSizeCategory: sizeId,
+        };
+      }
+    });
+
+    // Save to historic
+    saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
+      showAlert(
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
+        'Limite Atingido'
+      )
+    );
+
+    setRandomSheet(finalSheet);
+    setSheetSavedToCloud(false);
+    setShowDuendeModal(false);
+    setPendingDuendeSheet(null);
+  };
+
+  const handleDuendeCancel = () => {
+    setShowDuendeModal(false);
+    setPendingDuendeSheet(null);
+  };
+
   return (
     <>
       <AlertDialog />
@@ -1199,6 +1282,27 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           initialSize={pendingGolemDespertoSheet.raca.sizeCategory || 'medio'}
           onConfirm={handleGolemDespertoConfirm}
           onCancel={handleGolemDespertoCancel}
+        />
+      )}
+
+      {/* Duende Customization Modal */}
+      {pendingDuendeSheet && (
+        <DuendeCustomizationModal
+          open={showDuendeModal}
+          initialNature={pendingDuendeSheet.raca.nature || 'animal'}
+          initialSize={pendingDuendeSheet.raca.sizeCategory || 'pequeno'}
+          initialBonusAttributes={
+            (pendingDuendeSheet.raceAttributeChoices as Atributo[]) || [
+              Atributo.FORCA,
+              Atributo.DESTREZA,
+            ]
+          }
+          initialPresentes={pendingDuendeSheet.raca.presentPowers || []}
+          initialTabuSkill={
+            pendingDuendeSheet.raca.tabuSkill || Skill.DIPLOMACIA
+          }
+          onConfirm={handleDuendeConfirm}
+          onCancel={handleDuendeCancel}
         />
       )}
 

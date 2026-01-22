@@ -111,7 +111,13 @@ export type RaceNames =
   | 'Trog Anão'
   | 'Velocis'
   | 'Voracis'
-  | 'Yidishan';
+  | 'Yidishan'
+  // Heróis de Arton
+  | 'Duende'
+  | 'Eiradaan'
+  | 'Galokk'
+  | 'Meio-Elfo'
+  | 'Sátiro';
 
 export default interface Race {
   name: RaceNames;
@@ -123,7 +129,10 @@ export default interface Race {
   heritage?: string; // For races with heritages (like Moreau)
   chassis?: string; // For Golem Desperto
   energySource?: string; // For Golem Desperto
-  sizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
+  sizeCategory?: string; // For Golem Desperto and Duende
+  nature?: string; // For Duende (animal/vegetal/mineral)
+  presentPowers?: string[]; // For Duende (3 selected powers)
+  tabuSkill?: Skill; // For Duende (skill with -5 penalty)
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;

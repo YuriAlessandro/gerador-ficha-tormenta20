@@ -93,7 +93,8 @@ export type SheetActionStep =
         | 'moreauSapiencia'
         | 'moreauEspertezaVulpina'
         | 'golemDespertoSagrada'
-        | 'fradeAutoridadeEclesiastica';
+        | 'fradeAutoridadeEclesiastica'
+        | 'meioElfoAmbicaoHerdada';
     }
   | {
       type: 'selectWeaponSpecialization';

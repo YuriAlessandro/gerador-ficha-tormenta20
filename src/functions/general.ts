@@ -129,6 +129,7 @@ import {
   applyLefouDeformidade,
   applyOsteonMemoriaPostuma,
   applyYidishanNaturezaOrganica,
+  applyMeioElfoAmbicaoHerdada,
 } from './powers/special';
 import {
   applyMoreauSapiencia,
@@ -1825,6 +1826,10 @@ export const applyPower = (
           sheetAction.action.specialAction === 'fradeAutoridadeEclesiastica'
         ) {
           currentSteps = applyFradeAutoridadeEclesiastica(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'meioElfoAmbicaoHerdada'
+        ) {
+          currentSteps = applyMeioElfoAmbicaoHerdada(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`

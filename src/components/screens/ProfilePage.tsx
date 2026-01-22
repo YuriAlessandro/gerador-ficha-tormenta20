@@ -509,7 +509,9 @@ const ProfilePage: React.FC = () => {
                         color='text.secondary'
                         sx={{ mb: 2, display: 'block' }}
                       >
-                        Selecione os suplementos que deseja usar
+                        Selecione os suplementos que você possui. Lembre-se que
+                        tentar usar regras de suplementos sem possuir os livros
+                        e dominar suas regras pode ser desafiador.
                       </Typography>
 
                       {supplementsError && (

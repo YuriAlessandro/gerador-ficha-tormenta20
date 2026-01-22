@@ -1,13 +1,52 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
+// Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
+// This runs AFTER Vite's middleware to catch 404s on client-side routes
+function spaFallbackPlugin(): Plugin {
+  return {
+    name: 'spa-fallback',
+    configureServer(server) {
+      // Use a hook that runs after Vite's built-in middleware
+      return () => {
+        server.middlewares.use((req, res, next) => {
+          const url = req.url || '';
+          const accept = req.headers.accept || '';
+
+          // Only handle navigation requests (HTML pages)
+          const isNavigationRequest = accept.includes('text/html');
+
+          // Skip internal Vite paths and actual file requests
+          const isInternalPath =
+            url.startsWith('/@') ||
+            url.startsWith('/node_modules') ||
+            url.startsWith('/src/') ||
+            url.startsWith('/__');
+
+          // Skip known file extensions
+          const hasFileExtension =
+            /\.(js|jsx|ts|tsx|css|scss|less|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|map|webp|pdf|html|wasm|mjs|cjs)$/i.test(
+              url
+            );
+
+          if (isNavigationRequest && !isInternalPath && !hasFileExtension) {
+            req.url = '/index.html';
+          }
+          next();
+        });
+      };
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  appType: 'spa',
   build: {
     outDir: 'build',
   },
@@ -16,6 +55,7 @@ export default defineConfig({
   },
   base: '/',
   plugins: [
+    spaFallbackPlugin(),
     react(),
     checker({
       overlay: { initialIsOpen: false },

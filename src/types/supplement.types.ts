@@ -15,6 +15,8 @@ export enum SupplementId {
   TORMENTA20_ATLAS_ARTON = 'tormenta20-atlas-de-arton',
   /** Suplemento: Deuses de Arton */
   TORMENTA20_DEUSES_ARTON = 'tormenta20-deuses-de-arton',
+  /** Suplemento: Heróis de Arton */
+  TORMENTA20_HEROIS_ARTON = 'tormenta20-herois-de-arton',
 
   // Future systems supplements can be added here:
   // DND5E_CORE = 'dnd5e-core',
@@ -88,8 +90,18 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Deuses de Arton',
     abbreviation: 'DA',
-    description: 'Novas raças, classes, poderes e equipamentos divinos',
+    description:
+      '1 nova classe; 76 poderes concedidos; 28 magias; 22 habilidades de Suraggel',
     releaseDate: '2024',
+    requiresPremium: false,
+  },
+  [SupplementId.TORMENTA20_HEROIS_ARTON]: {
+    id: SupplementId.TORMENTA20_HEROIS_ARTON,
+    systemId: SystemId.TORMENTA20,
+    name: 'Heróis de Arton',
+    abbreviation: 'HA',
+    description: 'Em desenvolvimento',
+    releaseDate: '2025',
     requiresPremium: false,
   },
 };
