@@ -48,6 +48,25 @@ export const AUTORIDADE_ECLESIASTICA_TEXTS: Record<string, string> = {
 };
 
 /**
+ * Retorna o texto dinâmico de Autoridade Eclesiástica para uma divindade.
+ * Usado tanto pela função de aplicação quanto pelo componente de exibição.
+ */
+export function getAutoridadeEclesiasticaDynamicText(
+  deityName: string | undefined
+): string | undefined {
+  if (!deityName) return undefined;
+
+  const normalizedDeity = deityName.trim();
+  const deityText = AUTORIDADE_ECLESIASTICA_TEXTS[normalizedDeity];
+
+  if (deityText) {
+    return `[${normalizedDeity}] ${deityText}`;
+  }
+
+  return undefined;
+}
+
+/**
  * Aplica os efeitos de Autoridade Eclesiástica baseado na divindade do Frade.
  * Os efeitos variam de acordo com a divindade:
  * - Bônus em perícias (fixos na ficha)
@@ -70,6 +89,17 @@ export function applyFradeAutoridadeEclesiastica(
 
   // Obtém o texto específico da divindade para exibir na ficha
   const deityText = AUTORIDADE_ECLESIASTICA_TEXTS[normalizedDeity];
+
+  // Atualiza o dynamicText do poder na ficha
+  if (sheet.classPowers) {
+    const autoridadePower = sheet.classPowers.find(
+      (p) => p.name === 'Autoridade Eclesiástica'
+    );
+    if (autoridadePower && deityText) {
+      autoridadePower.dynamicText = `[${normalizedDeity}] ${deityText}`;
+    }
+  }
+
   if (deityText) {
     subSteps.push({
       name: 'Autoridade Eclesiástica',

@@ -2,9 +2,10 @@ import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { Box } from '@mui/material';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
+import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import PowerDisplay from './PowerDisplay';
 
 function filterUnique<T>(array: T[]) {
@@ -21,6 +22,7 @@ const PowersDisplay: React.FC<{
   generalPowers: GeneralPower[];
   className: string;
   raceName: string;
+  deityName?: string;
   onUpdateRolls?: (
     power: ClassPower | RaceAbility | ClassAbility | OriginPower | GeneralPower,
     newRolls: DiceRoll[]
@@ -35,10 +37,25 @@ const PowersDisplay: React.FC<{
   generalPowers,
   className,
   raceName,
+  deityName,
   onUpdateRolls,
 }) => {
+  // Aplica texto dinâmico para poderes que dependem da divindade
+  const processedClassPowers = useMemo(
+    () =>
+      classPowers.map((power) => {
+        if (power.name === 'Autoridade Eclesiástica') {
+          const dynamicText = getAutoridadeEclesiasticaDynamicText(deityName);
+          if (dynamicText) {
+            return { ...power, dynamicText };
+          }
+        }
+        return power;
+      }),
+    [classPowers, deityName]
+  );
   const powers = [
-    ...classPowers,
+    ...processedClassPowers,
     ...raceAbilities,
     ...classAbilities,
     ...originPowers,
@@ -54,7 +71,7 @@ const PowersDisplay: React.FC<{
   });
 
   const uniquePowers = [
-    ...filterUnique(classPowers),
+    ...filterUnique(processedClassPowers),
     ...filterUnique(raceAbilities),
     ...filterUnique(classAbilities),
     ...filterUnique(originPowers),
@@ -65,7 +82,7 @@ const PowersDisplay: React.FC<{
   const getPowerOrigin = (
     pw: ClassPower | RaceAbility | ClassAbility | OriginPower
   ) => {
-    if (classPowers.includes(pw as ClassPower)) {
+    if (processedClassPowers.some((p) => p.name === pw.name)) {
       return `Poder de ${className}`;
     }
     if (raceAbilities.includes(pw as RaceAbility)) {

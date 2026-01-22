@@ -22,8 +22,14 @@ import RollsEditDialog from '../RollsEditDialog';
 
 const getText = (text: string) => <div>{text}</div>;
 
-const generateClassPowerDiv = (power: ClassPower | ClassAbility) =>
-  getText(power.text);
+const generateClassPowerDiv = (power: ClassPower | ClassAbility) => {
+  // Usa dynamicText se disponível (para poderes como Autoridade Eclesiástica)
+  const textToShow =
+    'dynamicText' in power && power.dynamicText
+      ? power.dynamicText
+      : power.text;
+  return getText(textToShow);
+};
 const generateGeneralPowerDiv = (power: RaceAbility | OriginPower) =>
   getText(power.description);
 

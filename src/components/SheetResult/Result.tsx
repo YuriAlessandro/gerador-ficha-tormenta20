@@ -858,6 +858,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   generalPowers={generalPowers}
                   className={classe.name}
                   raceName={raca.name}
+                  deityName={devoto?.divindade?.name}
                   onUpdateRolls={
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
                   }

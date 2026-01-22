@@ -43,6 +43,7 @@ export type ClassAbility = {
 export type ClassPower = {
   name: string;
   text: string;
+  dynamicText?: string; // Texto dinâmico que substitui o texto padrão (ex: Autoridade Eclesiástica)
   requirements?: Requirement[][];
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];

@@ -103,6 +103,12 @@ export function isPowerAvailable(
           }
           case RequirementType.DEVOTO: {
             const godName = rule.name;
+            // 'any' significa que o personagem deve ser devoto de qualquer divindade
+            if (godName === 'any') {
+              const result = !!sheet.devoto?.divindade;
+              if (rule.not) return !result;
+              return result;
+            }
             const result = sheet.devoto?.divindade.name === godName;
             if (rule.not) return !result;
             return result;
