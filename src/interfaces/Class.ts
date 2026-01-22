@@ -20,7 +20,11 @@ export type ClassNames =
   | 'Nobre'
   | 'Paladino'
   | 'Bucaneiro'
-  | 'Druida';
+  | 'Druida'
+  // Deuses de Arton
+  | 'Frade'
+  // Heróis de Arton
+  | 'Treinador';
 export interface BasicExpertise {
   type: string;
   list: Skill[];
