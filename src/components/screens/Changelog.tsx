@@ -25,6 +25,22 @@ const Changelog: React.FC = () => (
 
       <h2>Versão 3</h2>
 
+      <h3>3.4.3</h3>
+      <ul>
+        <li>
+          🔧 Corrigido uma rolagem do rolador de recompensas que estava
+          incorreta. Obrigado{' '}
+          <a
+            href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/425'
+            target='_blank'
+            rel='noreferrer'
+          >
+            @maxgameplayeryt-tech
+          </a>
+          .
+        </li>
+      </ul>
+
       <h3>3.4.2</h3>
       <ul>
         <li>

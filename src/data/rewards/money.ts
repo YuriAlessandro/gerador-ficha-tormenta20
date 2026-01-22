@@ -401,7 +401,6 @@ export const moneyRewards: Money = {
         dice: 1,
         mult: 1,
         money: MONEY_TYPE.RIQUEZA_MEDIA,
-        applyRollBonus: true,
       },
     },
   ],
