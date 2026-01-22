@@ -4,6 +4,7 @@
     "browser": true,
     "jest": true
   },
+  "ignorePatterns": ["src/premium/**", "backend/**"],
   "extends": [
     "plugin:react/recommended",
     "airbnb",
