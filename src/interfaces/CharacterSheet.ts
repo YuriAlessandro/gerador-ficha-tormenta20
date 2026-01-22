@@ -88,7 +88,8 @@ export type SheetActionStep =
         | 'yidishanNaturezaOrganica'
         | 'moreauSapiencia'
         | 'moreauEspertezaVulpina'
-        | 'golemDespertoSagrada';
+        | 'golemDespertoSagrada'
+        | 'fradeAutoridadeEclesiastica';
     }
   | {
       type: 'selectWeaponSpecialization';
