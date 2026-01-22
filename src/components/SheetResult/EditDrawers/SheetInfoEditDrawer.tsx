@@ -48,6 +48,7 @@ import {
   getCompatibleEnergySources,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import { SURAGEL_ALTERNATIVE_ABILITIES } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import {
@@ -77,6 +78,7 @@ interface EditedData {
   raceChassis: string | undefined; // For Golem Desperto
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
+  suragelAbility: string | undefined; // For Suraggel (Aggelus/Sulfure) alternative abilities
   className: string;
   originName: string;
   deityName: string;
@@ -164,6 +166,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceChassis: sheet.raceChassis,
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
+    suragelAbility: sheet.suragelAbility,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name
@@ -212,6 +215,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
+      suragelAbility: sheet.suragelAbility,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -506,6 +510,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceChassis: editedData.raceChassis,
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
+      suragelAbility: editedData.suragelAbility,
       customPVPerLevel: editedData.customPVPerLevel,
       customPMPerLevel: editedData.customPMPerLevel,
       bonusPV: editedData.bonusPV,
@@ -663,6 +668,23 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     }
 
+    // Check for Suraggel ability change
+    if (
+      editedData.raceName.startsWith('Suraggel') &&
+      editedData.suragelAbility !== sheet.suragelAbility
+    ) {
+      const defaultAbilityName = editedData.raceName.includes('Aggelus')
+        ? 'Luz Sagrada'
+        : 'Sombras Profanas';
+      const abilityName = editedData.suragelAbility || defaultAbilityName;
+
+      newSteps.push({
+        label: 'Edição Manual - Habilidade Racial Suraggel',
+        type: 'Edição Manual',
+        value: [{ name: 'Habilidade', value: abilityName }],
+      });
+    }
+
     // Check for sex change that affects attributes (for sex-dependent races like Nagah)
     if (
       editedData.sexo !== sheet.sexo &&
@@ -806,8 +828,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
-    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau) OR Golem Desperto customization changed
-    const raceOrSexOrHeritageOrGolemChanged =
+    // Find and update race if changed OR sex changed (for sex-dependent races like Nagah) OR heritage changed (for Moreau) OR Golem Desperto customization changed OR Suraggel ability changed
+    const raceOrSexOrHeritageOrGolemOrSuragelChanged =
       editedData.raceName !== sheet.raca.name ||
       (editedData.sexo !== sheet.sexo && selectedRace?.getAttributes) ||
       (editedData.raceName === 'Moreau' &&
@@ -815,9 +837,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       (editedData.raceName === 'Golem Desperto' &&
         (editedData.raceChassis !== sheet.raceChassis ||
           editedData.raceEnergySource !== sheet.raceEnergySource ||
-          editedData.raceSizeCategory !== sheet.raceSizeCategory));
+          editedData.raceSizeCategory !== sheet.raceSizeCategory)) ||
+      (editedData.raceName.startsWith('Suraggel') &&
+        editedData.suragelAbility !== sheet.suragelAbility);
 
-    if (raceOrSexOrHeritageOrGolemChanged) {
+    if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
       if (newRace) {
         // For Moreau, update race with heritage attributes and abilities
@@ -856,6 +880,40 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           }
           if (newRace.size) {
             updates.size = newRace.size;
+          }
+        }
+
+        // For Suraggel races, apply alternative ability if selected
+        if (editedData.raceName.startsWith('Suraggel')) {
+          const defaultAbilityName = editedData.raceName.includes('Aggelus')
+            ? 'Luz Sagrada'
+            : 'Sombras Profanas';
+
+          if (editedData.suragelAbility) {
+            // User selected an alternative ability - replace the default one
+            const alternativeAbility = SURAGEL_ALTERNATIVE_ABILITIES.find(
+              (a) => a.name === editedData.suragelAbility
+            );
+            if (alternativeAbility) {
+              const abilityIndex = newRace.abilities.findIndex(
+                (a) => a.name === defaultAbilityName
+              );
+              if (abilityIndex !== -1) {
+                newRace = {
+                  ...newRace,
+                  abilities: [
+                    ...newRace.abilities.slice(0, abilityIndex),
+                    {
+                      name: alternativeAbility.name,
+                      description: alternativeAbility.description,
+                      sheetBonuses: alternativeAbility.sheetBonuses,
+                      sheetActions: alternativeAbility.sheetActions,
+                    },
+                    ...newRace.abilities.slice(abilityIndex + 1),
+                  ],
+                };
+              }
+            }
           }
         }
 
@@ -1036,6 +1094,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
+      suragelAbility: sheet.suragelAbility,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name
@@ -1375,6 +1434,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                             newRaceName === 'Golem Desperto'
                               ? editedData.raceSizeCategory
                               : undefined,
+                          // Reset Suraggel ability if changing from/to Suraggel race
+                          suragelAbility: newRaceName.startsWith('Suraggel')
+                            ? editedData.suragelAbility
+                            : undefined,
                         });
                       }}
                     >
@@ -1512,6 +1575,72 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       </FormControl>
                     </>
                   )}
+
+                  {/* Suraggel Ability Selector - Only show for Suraggel races with Deuses de Arton supplement */}
+                  {editedData.raceName.startsWith('Suraggel') &&
+                    userSupplements.includes(
+                      SupplementId.TORMENTA20_DEUSES_ARTON
+                    ) && (
+                      <FormControl fullWidth>
+                        <InputLabel>Habilidade Racial</InputLabel>
+                        <Select
+                          value={editedData.suragelAbility || ''}
+                          label='Habilidade Racial'
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              suragelAbility: e.target.value || undefined,
+                            })
+                          }
+                        >
+                          <MenuItem value=''>
+                            <Stack
+                              direction='row'
+                              spacing={1}
+                              alignItems='center'
+                            >
+                              <span>
+                                {editedData.raceName.includes('Aggelus')
+                                  ? 'Luz Sagrada'
+                                  : 'Sombras Profanas'}
+                              </span>
+                              <Chip
+                                label='Padrão'
+                                size='small'
+                                sx={{ fontSize: '0.7rem', height: '20px' }}
+                              />
+                            </Stack>
+                          </MenuItem>
+                          {SURAGEL_ALTERNATIVE_ABILITIES.map((ability) => (
+                            <MenuItem key={ability.name} value={ability.name}>
+                              <Stack
+                                direction='row'
+                                spacing={1}
+                                alignItems='center'
+                                justifyContent='space-between'
+                                width='100%'
+                              >
+                                <span>{ability.name}</span>
+                                <Stack direction='row' spacing={0.5}>
+                                  <Chip
+                                    label={ability.plano}
+                                    size='small'
+                                    color='secondary'
+                                    sx={{ fontSize: '0.65rem', height: '18px' }}
+                                  />
+                                  <Chip
+                                    label='Deuses de Arton'
+                                    size='small'
+                                    color='primary'
+                                    sx={{ fontSize: '0.65rem', height: '18px' }}
+                                  />
+                                </Stack>
+                              </Stack>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
 
                   {/* Race Fixed Attributes - Always show if race has fixed attributes */}
                   {fixedAttributes.length > 0 && anyAttributeCount === 0 && (

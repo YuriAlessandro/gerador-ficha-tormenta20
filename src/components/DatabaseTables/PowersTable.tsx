@@ -22,19 +22,17 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import generalPowers from '../../data/poderes';
-import {
-  GeneralPower,
-  GeneralPowers,
-  Requirement,
-  RequirementType,
-} from '../../interfaces/Poderes';
+import { Requirement, RequirementType } from '../../interfaces/Poderes';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
-import { dataRegistry } from '../../data/registry';
+import {
+  dataRegistry,
+  GeneralPowerWithSupplement,
+  GeneralPowersWithSupplement,
+} from '../../data/registry';
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
   let reqText = '';
@@ -72,10 +70,10 @@ const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
   );
 };
 
-const Row: React.FC<{ power: GeneralPower; defaultOpen: boolean }> = ({
-  power,
-  defaultOpen,
-}) => {
+const Row: React.FC<{
+  power: GeneralPowerWithSupplement;
+  defaultOpen: boolean;
+}> = ({ power, defaultOpen }) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -115,6 +113,17 @@ const Row: React.FC<{ power: GeneralPower; defaultOpen: boolean }> = ({
               variant='filled'
               color='primary'
               sx={{ ml: 1, fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
+            />
+            <Chip
+              label={power.supplementName}
+              size='small'
+              variant='outlined'
+              color={
+                power.supplementId === SupplementId.TORMENTA20_CORE
+                  ? 'default'
+                  : 'secondary'
+              }
+              sx={{ fontFamily: 'Tfont, serif', fontSize: '0.7rem' }}
             />
           </Box>
           <CopyUrlButton
@@ -192,9 +201,19 @@ const Row: React.FC<{ power: GeneralPower; defaultOpen: boolean }> = ({
 const PowersTable: React.FC = () => {
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
-  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
+  >([
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_AMEACAS_ARTON,
+    SupplementId.TORMENTA20_DEUSES_ARTON,
+  ]);
   const [allPowersByCategory, setAllPowersByCategory] =
-    useState<GeneralPowers>(generalPowers);
+    useState<GeneralPowersWithSupplement>(() =>
+      dataRegistry.getPowersWithSupplementInfo([
+        SupplementId.TORMENTA20_CORE,
+        SupplementId.TORMENTA20_AMEACAS_ARTON,
+        SupplementId.TORMENTA20_DEUSES_ARTON,
+      ])
+    );
 
   const allPowers = [
     ...allPowersByCategory.COMBATE,
@@ -205,7 +224,7 @@ const PowersTable: React.FC = () => {
   ];
 
   const [value, setValue] = useState('');
-  const [powers, setPowers] = useState<GeneralPower[]>([]);
+  const [powers, setPowers] = useState<GeneralPowerWithSupplement[]>([]);
   const { params } = useRouteMatch();
   const history = useHistory();
 
@@ -218,7 +237,7 @@ const PowersTable: React.FC = () => {
   // Update powers when supplements change
   useEffect(() => {
     const combinedPowers =
-      dataRegistry.getPowersBySupplements(selectedSupplements);
+      dataRegistry.getPowersWithSupplementInfo(selectedSupplements);
     setAllPowersByCategory(combinedPowers);
   }, [selectedSupplements]);
 
@@ -289,7 +308,7 @@ const PowersTable: React.FC = () => {
 
   const renderPowerSection = (
     title: string,
-    powersList: GeneralPower[],
+    powersList: GeneralPowerWithSupplement[],
     ref: React.RefObject<HTMLDivElement>
   ) => (
     <>
@@ -330,6 +349,7 @@ const PowersTable: React.FC = () => {
         availableSupplements={[
           SupplementId.TORMENTA20_CORE,
           SupplementId.TORMENTA20_AMEACAS_ARTON,
+          SupplementId.TORMENTA20_DEUSES_ARTON,
         ]}
         onToggleSupplement={handleToggleSupplement}
       />

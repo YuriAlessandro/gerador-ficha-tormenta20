@@ -20,6 +20,7 @@ import Race from '@/interfaces/Race';
 import { ClassDescription } from '@/interfaces/Class';
 import Origin from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
+import { SupplementId } from '@/types/supplement.types';
 
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
@@ -38,6 +39,7 @@ import SpellSchoolSelectionStep from './steps/SpellSchoolSelectionStep';
 import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
+import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 
 interface CharacterCreationWizardModalProps {
   open: boolean;
@@ -202,6 +204,15 @@ const CharacterCreationWizardModal: React.FC<
   const needsFeiticeiroLinhagemSelection = (): boolean =>
     selections.arcanistaSubtype === 'Feiticeiro';
 
+  const needsSuragelAbilitySelection = (): boolean => {
+    if (!race) return false;
+    const isSuragel = race.name.startsWith('Suraggel');
+    const hasDeusesArton = supplements.includes(
+      SupplementId.TORMENTA20_DEUSES_ARTON
+    );
+    return isSuragel && hasDeusesArton;
+  };
+
   // Helper to get spell info for classes without spellPath defined initially
   const getSpellInfo = (): {
     spellType: 'Arcane' | 'Divine' | 'Both';
@@ -250,6 +261,7 @@ const CharacterCreationWizardModal: React.FC<
     stepsArray.push('Informações Básicas'); // Always first step
     stepsArray.push('Valores dos Atributos');
     if (needsRaceAttributes()) stepsArray.push('Atributos da Raça');
+    if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsDeityPowers()) stepsArray.push('Poderes da Divindade');
@@ -358,6 +370,18 @@ const CharacterCreationWizardModal: React.FC<
         );
       }
 
+      case 'Habilidade Suraggel':
+        if (!race) return null;
+        return (
+          <SuragelAbilitySelectionStep
+            raceName={race.name}
+            selectedAbility={selections.suragelAbility}
+            onChange={(ability) =>
+              setSelections({ ...selections, suragelAbility: ability })
+            }
+          />
+        );
+
       case 'Perícias da Classe':
         if (!classe) return null;
         return (
@@ -463,6 +487,14 @@ const CharacterCreationWizardModal: React.FC<
             onChange={(linhagem) =>
               setSelections({ ...selections, feiticeiroLinhagem: linhagem })
             }
+            activeSupplements={supplements}
+            selectedDeus={selections.linhagemAbencoada?.deus}
+            onDeusChange={(deus) =>
+              setSelections({
+                ...selections,
+                linhagemAbencoada: { deus },
+              })
+            }
           />
         );
 
@@ -548,6 +580,10 @@ const CharacterCreationWizardModal: React.FC<
         );
       }
 
+      case 'Habilidade Suraggel':
+        // Always valid - either default ability or selected alternative
+        return true;
+
       case 'Perícias da Classe':
         if (!classe) return false;
         return selections.classSkills?.length === classe.periciasrestantes.qtd;
@@ -589,6 +625,9 @@ const CharacterCreationWizardModal: React.FC<
         return selections.arcanistaSubtype !== undefined;
 
       case 'Linhagem do Feiticeiro':
+        if (selections.feiticeiroLinhagem === 'Linhagem Abençoada') {
+          return !!selections.linhagemAbencoada?.deus;
+        }
         return selections.feiticeiroLinhagem !== undefined;
 
       case 'Escolas de Magia':

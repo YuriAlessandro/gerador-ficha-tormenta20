@@ -69,7 +69,16 @@ export interface WizardSelections {
   feiticeiroLinhagem?:
     | 'Linhagem Dracônica'
     | 'Linhagem Feérica'
-    | 'Linhagem Rubra';
+    | 'Linhagem Rubra'
+    | 'Linhagem Abençoada';
+
+  // Linhagem Abençoada: deus escolhido
+  linhagemAbencoada?: {
+    deus: string;
+  };
+
+  // Suraggel ability selection (replaces Luz Sagrada or Sombra Profana)
+  suragelAbility?: string;
 
   // Golem customization (if race is Golem Desperto)
   golemChassis?: string;

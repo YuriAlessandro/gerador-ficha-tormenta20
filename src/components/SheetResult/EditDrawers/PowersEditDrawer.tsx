@@ -160,6 +160,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const allSupplements = [
     SupplementId.TORMENTA20_CORE,
     SupplementId.TORMENTA20_AMEACAS_ARTON,
+    SupplementId.TORMENTA20_DEUSES_ARTON,
   ];
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);

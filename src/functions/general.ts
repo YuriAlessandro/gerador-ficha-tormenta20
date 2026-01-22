@@ -28,6 +28,7 @@ import {
 import {
   standardFaithProbability,
   DivindadeEnum,
+  DIVINDADES,
 } from '../data/systems/tormenta20/divindades';
 import { generateRandomName } from '../data/systems/tormenta20/nomes';
 import {
@@ -136,6 +137,7 @@ import {
 import { MOREAU_HERITAGES } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyGolemDespertoSagrada } from './powers/golem-desperto-special';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
+import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
 import {
   getAttributeIncreasesInSamePlateau,
@@ -3483,6 +3485,42 @@ export function generateEmptySheet(
     emptySheet.raceAttributeChoices = wizardSelections.raceAttributes;
   }
 
+  // Apply Suraggel alternative ability if selected
+  if (
+    wizardSelections?.suragelAbility &&
+    emptySheet.raca.name.startsWith('Suraggel')
+  ) {
+    const alternativeAbility = SURAGEL_ALTERNATIVE_ABILITIES.find(
+      (a) => a.name === wizardSelections.suragelAbility
+    );
+    if (alternativeAbility) {
+      // Clone the race to avoid mutating the original
+      const modifiedRace = _.cloneDeep(emptySheet.raca);
+
+      // Find the default ability to replace (Luz Sagrada for Aggelus, Sombras Profanas for Sulfure)
+      const defaultAbilityName = modifiedRace.name.includes('Aggelus')
+        ? 'Luz Sagrada'
+        : 'Sombras Profanas';
+
+      const abilityIndex = modifiedRace.abilities.findIndex(
+        (a) => a.name === defaultAbilityName
+      );
+
+      if (abilityIndex !== -1) {
+        // Replace the default ability with the alternative
+        modifiedRace.abilities[abilityIndex] = {
+          name: alternativeAbility.name,
+          description: alternativeAbility.description,
+          sheetBonuses: alternativeAbility.sheetBonuses,
+          sheetActions: alternativeAbility.sheetActions,
+        };
+      }
+
+      emptySheet.raca = modifiedRace;
+      emptySheet.suragelAbility = wizardSelections.suragelAbility;
+    }
+  }
+
   // Handle Arcanista subtype selection specially
   if (
     generatedClass.name === 'Arcanista' &&
@@ -3590,6 +3628,41 @@ export function generateEmptySheet(
           name: 'Linhagem Rubra',
           text: 'Seu sangue foi corrompido pela Tormenta. Você recebe um poder da Tormenta.',
           nivel: 1,
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
+        const deusEscolhido =
+          wizardSelections.linhagemAbencoada?.deus || 'um deus maior';
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Abençoada',
+          text: `Seu poder vem de ${deusEscolhido}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
+          nivel: 1,
+        });
+
+        // Buscar poderes concedidos da divindade escolhida
+        const divindade = DIVINDADES.find((d) => d.name === deusEscolhido);
+        const poderesDisponiveis = divindade?.poderes || [];
+
+        // Habilidade de nível 2: poder concedido com escolha
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Abençoada (Poder Concedido)',
+          text: `Você recebe um poder concedido de ${deusEscolhido}, aprovado pelo mestre, sem precisar ser devoto.`,
+          nivel: 2,
+          sheetActions:
+            poderesDisponiveis.length > 0
+              ? [
+                  {
+                    source: {
+                      type: 'power',
+                      name: 'Linhagem Abençoada (Poder Concedido)',
+                    },
+                    action: {
+                      type: 'getGeneralPower',
+                      availablePowers: poderesDisponiveis,
+                      pick: 1,
+                    },
+                  },
+                ]
+              : undefined,
         });
       }
     }

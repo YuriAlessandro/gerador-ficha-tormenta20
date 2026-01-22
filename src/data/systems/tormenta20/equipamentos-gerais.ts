@@ -1,4 +1,5 @@
 import Equipment from '../../../interfaces/Equipment';
+import Skill from '../../../interfaces/Skills';
 
 // Função helper para processar preços (remove "T$ " e converte para número)
 function parsePrice(priceStr: string): number {
@@ -21,6 +22,14 @@ export const equipamentoAventureiro: Equipment[] = [
     group: 'Item Geral',
     preco: parsePrice('T$ 10'),
     spaces: parseSpaces(0.5),
+    rolls: [
+      {
+        label: 'Dano de Luz',
+        dice: '2d10',
+        description:
+          'O alvo sofre 2d10 pontos de dano de luz (Reflexos CD Sab reduz à metade).',
+      },
+    ],
   },
   {
     nome: 'Algemas',
@@ -75,6 +84,13 @@ export const equipamentoAventureiro: Equipment[] = [
     group: 'Item Geral',
     preco: parsePrice('T$ 50'),
     spaces: parseSpaces('—'),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Mochila de aventureiro' },
+        target: { type: 'MaxSpaces' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   {
     nome: 'Óleo',
@@ -105,12 +121,35 @@ export const equipamentoAventureiro: Equipment[] = [
     group: 'Item Geral',
     preco: parsePrice('T$ 5'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
+        target: { type: 'Skill', name: Skill.FORTITUDE },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+      {
+        source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
+        target: { type: 'Skill', name: Skill.REFLEXOS },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+      {
+        source: { type: 'equipment', equipmentName: 'Símbolo sagrado' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tocha',
     group: 'Item Geral',
     preco: parsePrice('T$ 0,1'),
     spaces: parseSpaces(1),
+    canBeUsedAsWeapon: true,
+    weaponStats: {
+      dano: '1d4+1',
+      critico: 'x2',
+      tipo: 'Impacto/Fogo',
+    },
   },
   {
     nome: 'Vara de madeira (3m)',
@@ -133,6 +172,17 @@ export const ferramentas: Equipment[] = [
     group: 'Item Geral',
     preco: parsePrice('T$ 75'),
     spaces: parseSpaces(1),
+    selectableBonus: {
+      availableSkills: [
+        Skill.CONHECIMENTO,
+        Skill.GUERRA,
+        Skill.MISTICISMO,
+        Skill.NOBREZA,
+        Skill.RELIGIAO,
+      ],
+      bonusValue: 1,
+      pick: 1,
+    },
   },
   {
     nome: 'Equipamento de viagem',
@@ -151,6 +201,18 @@ export const ferramentas: Equipment[] = [
     group: 'Item Geral',
     preco: parsePrice('T$ 150'),
     spaces: parseSpaces(1),
+    conditionalBonuses: [
+      {
+        condition: { type: 'isClass', value: 'Bardo' },
+        bonuses: [
+          {
+            source: { type: 'equipment', equipmentName: 'Flauta mística' },
+            target: { type: 'SpellDC' },
+            modifier: { type: 'Fixed', value: 1 },
+          },
+        ],
+      },
+    ],
   },
   {
     nome: 'Gazua',
@@ -209,6 +271,13 @@ export const vestuario: Equipment[] = [
     group: 'Vestuário',
     preco: parsePrice('T$ 5'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Bandana' },
+        target: { type: 'Skill', name: Skill.INTIMIDACAO },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Botas reforçadas',
@@ -221,18 +290,39 @@ export const vestuario: Equipment[] = [
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Camisa bufante' },
+        target: { type: 'Skill', name: Skill.ATUACAO },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Capa esvoaçante',
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Capa esvoaçante' },
+        target: { type: 'Skill', name: Skill.ENGANACAO },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Capa pesada',
     group: 'Vestuário',
     preco: parsePrice('T$ 15'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Capa pesada' },
+        target: { type: 'Skill', name: Skill.FORTITUDE },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Casaco longo',
@@ -245,6 +335,18 @@ export const vestuario: Equipment[] = [
     group: 'Vestuário',
     preco: parsePrice('T$ 50'),
     spaces: parseSpaces(1),
+    conditionalBonuses: [
+      {
+        condition: { type: 'hasClassAbility', value: 'Caminho do Arcanista' },
+        bonuses: [
+          {
+            source: { type: 'equipment', equipmentName: 'Chapéu arcano' },
+            target: { type: 'PM' },
+            modifier: { type: 'Fixed', value: 1 },
+          },
+        ],
+      },
+    ],
   },
   {
     nome: 'Enfeite de elmo',
@@ -259,16 +361,48 @@ export const vestuario: Equipment[] = [
     spaces: parseSpaces(1),
   },
   {
+    nome: 'Farrapos de ermitão',
+    group: 'Vestuário',
+    preco: parsePrice('T$ 5'),
+    spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Farrapos de ermitão' },
+        target: { type: 'Skill', name: Skill.DIPLOMACIA },
+        modifier: { type: 'Fixed', value: -2 },
+      },
+      {
+        source: { type: 'equipment', equipmentName: 'Farrapos de ermitão' },
+        target: { type: 'Skill', name: Skill.ADESTRAMENTO },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
+  },
+  {
     nome: 'Gorro de ervas',
     group: 'Vestuário',
     preco: parsePrice('T$ 75'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Gorro de ervas' },
+        target: { type: 'Skill', name: Skill.VONTADE },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Luva de pelica',
     group: 'Vestuário',
     preco: parsePrice('T$ 5'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Luva de pelica' },
+        target: { type: 'Skill', name: Skill.LADINAGEM },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Manopla',
@@ -287,24 +421,52 @@ export const vestuario: Equipment[] = [
     group: 'Vestuário',
     preco: parsePrice('T$ 20'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Manto eclesiástico' },
+        target: { type: 'Skill', name: Skill.RELIGIAO },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Robe místico',
     group: 'Vestuário',
     preco: parsePrice('T$ 50'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Robe místico' },
+        target: { type: 'Skill', name: Skill.MISTICISMO },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Sapatos de andruança',
     group: 'Vestuário',
     preco: parsePrice('T$ 8'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Sapatos de andruança' },
+        target: { type: 'Skill', name: Skill.ACROBACIA },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Tabardo',
     group: 'Vestuário',
     preco: parsePrice('T$ 10'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Tabardo' },
+        target: { type: 'Skill', name: Skill.DIPLOMACIA },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
   {
     nome: 'Traje da corte',
@@ -323,6 +485,13 @@ export const vestuario: Equipment[] = [
     group: 'Vestuário',
     preco: parsePrice('T$ 25'),
     spaces: parseSpaces(1),
+    sheetBonuses: [
+      {
+        source: { type: 'equipment', equipmentName: 'Veste de seda' },
+        target: { type: 'Skill', name: Skill.REFLEXOS },
+        modifier: { type: 'Fixed', value: 1 },
+      },
+    ],
   },
 ];
 

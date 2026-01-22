@@ -533,6 +533,7 @@ const UnifiedSpellsTable: React.FC = () => {
         availableSupplements={[
           SupplementId.TORMENTA20_CORE,
           SupplementId.TORMENTA20_AMEACAS_ARTON,
+          SupplementId.TORMENTA20_DEUSES_ARTON,
         ]}
         onToggleSupplement={(supplementId) => {
           setSelectedSupplements((prev) =>

@@ -52,6 +52,12 @@ import {
   validateModificationCombination,
 } from '../../utils/superiorItemsValidation';
 import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
+import { useAuth } from '../../hooks/useAuth';
+import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
+import {
+  SupplementId,
+  SUPPLEMENT_METADATA,
+} from '../../types/supplement.types';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 
@@ -109,6 +115,10 @@ const materialOptions = [
 ];
 
 const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
+  const { user } = useAuth();
+  const userSupplements = user?.enabledSupplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const [state, setState] = useState<SuperiorItemsState>({
     generationMode: 'random',
     selectedItemType: null,
@@ -125,9 +135,26 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
   const [availableItems, setAvailableItems] = useState<ItemOption[]>([]);
   const [selectedMaterial, setSelectedMaterial] = useState<string>('');
 
+  // Get modifications including supplement-based ones
   const getModifications = (itemType: ItemType): ItemMod[] => {
-    if (itemType === 'weapon') return weaponsModifications;
-    return armorsModifications;
+    // Start with base modifications
+    const baseMods =
+      itemType === 'weapon' ? weaponsModifications : armorsModifications;
+
+    // Collect supplement-based modifications
+    const supplementMods: ItemMod[] = [];
+    userSupplements.forEach((supplementId: SupplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.improvements) {
+        const modsToAdd =
+          itemType === 'weapon'
+            ? supplement.improvements.weapons || []
+            : supplement.improvements.armors || [];
+        supplementMods.push(...modsToAdd);
+      }
+    });
+
+    return [...baseMods, ...supplementMods];
   };
 
   const getValidMods = (
@@ -670,19 +697,48 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                     />
                   )}
                   renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                      <Chip
-                        variant='outlined'
-                        label={`${option.mod}${
-                          option.double ? ' (2 pts)' : ''
-                        }`}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...getTagProps({ index })}
-                      />
-                    ))
+                    value.map((option, index) => {
+                      const supplementMeta = option.supplementId
+                        ? SUPPLEMENT_METADATA[
+                            option.supplementId as SupplementId
+                          ]
+                        : null;
+                      return (
+                        <Chip
+                          variant='outlined'
+                          label={
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                              }}
+                            >
+                              <span>
+                                {option.mod}
+                                {option.double ? ' (2 pts)' : ''}
+                              </span>
+                              {supplementMeta && (
+                                <Chip
+                                  size='small'
+                                  label={supplementMeta.abbreviation}
+                                  color='primary'
+                                  sx={{ height: 16, fontSize: '0.65rem' }}
+                                />
+                              )}
+                            </Box>
+                          }
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...getTagProps({ index })}
+                        />
+                      );
+                    })
                   }
                   renderOption={(props, option) => {
                     const modOption = getModificationOption(option);
+                    const supplementMeta = option.supplementId
+                      ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+                      : null;
                     return (
                       <Box
                         component='li'
@@ -698,6 +754,15 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                             {option.mod}
                             {option.double && (
                               <Chip size='small' label='2 pts' sx={{ ml: 1 }} />
+                            )}
+                            {supplementMeta && (
+                              <Chip
+                                size='small'
+                                label={supplementMeta.abbreviation}
+                                color='primary'
+                                variant='outlined'
+                                sx={{ ml: 1 }}
+                              />
                             )}
                             {modOption.disabled && (
                               <Chip
@@ -852,38 +917,54 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                         <Typography variant='subtitle2' gutterBottom>
                           Modificações:
                         </Typography>
-                        {item.modifications.map((mod) => (
-                          <Accordion
-                            key={`${item.id}-${mod.mod}`}
-                            sx={{ mb: 1 }}
-                          >
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Typography>
-                                {mod.mod}
-                                {mod.double && (
-                                  <Chip
-                                    size='small'
-                                    label='2 pts'
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                              </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              <Typography variant='body2'>
-                                {mod.description}
-                              </Typography>
-                              {mod.prerequisite && (
-                                <Typography
-                                  variant='caption'
-                                  color='warning.main'
-                                >
-                                  Pré-requisito: {mod.prerequisite}
+                        {item.modifications.map((mod) => {
+                          const supplementMeta = mod.supplementId
+                            ? SUPPLEMENT_METADATA[
+                                mod.supplementId as SupplementId
+                              ]
+                            : null;
+                          return (
+                            <Accordion
+                              key={`${item.id}-${mod.mod}`}
+                              sx={{ mb: 1 }}
+                            >
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>
+                                  {mod.mod}
+                                  {mod.double && (
+                                    <Chip
+                                      size='small'
+                                      label='2 pts'
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
+                                  {supplementMeta && (
+                                    <Chip
+                                      size='small'
+                                      label={supplementMeta.abbreviation}
+                                      color='primary'
+                                      variant='outlined'
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
                                 </Typography>
-                              )}
-                            </AccordionDetails>
-                          </Accordion>
-                        ))}
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <Typography variant='body2'>
+                                  {mod.description}
+                                </Typography>
+                                {mod.prerequisite && (
+                                  <Typography
+                                    variant='caption'
+                                    color='warning.main'
+                                  >
+                                    Pré-requisito: {mod.prerequisite}
+                                  </Typography>
+                                )}
+                              </AccordionDetails>
+                            </Accordion>
+                          );
+                        })}
                       </Box>
                     )}
                   </CardContent>

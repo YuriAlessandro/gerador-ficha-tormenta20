@@ -31,6 +31,19 @@ export interface OriginWithSupplement extends Origin {
   supplementName: string;
 }
 
+export interface GeneralPowerWithSupplement extends GeneralPower {
+  supplementId: SupplementId;
+  supplementName: string;
+}
+
+export interface GeneralPowersWithSupplement {
+  COMBATE: GeneralPowerWithSupplement[];
+  CONCEDIDOS: GeneralPowerWithSupplement[];
+  DESTINO: GeneralPowerWithSupplement[];
+  MAGIA: GeneralPowerWithSupplement[];
+  TORMENTA: GeneralPowerWithSupplement[];
+}
+
 /**
  * Mapa de todos os sistemas disponíveis
  */
@@ -253,6 +266,73 @@ class DataRegistry {
   ): GeneralPower[] {
     const powers = this.getPowersBySupplements(supplementIds, systemId);
     return Object.values(powers).flat();
+  }
+
+  /**
+   * Retorna poderes com informação do suplemento de origem
+   */
+  getPowersWithSupplementInfo(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): GeneralPowersWithSupplement {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+
+    const result: GeneralPowersWithSupplement = {
+      COMBATE: [],
+      CONCEDIDOS: [],
+      DESTINO: [],
+      MAGIA: [],
+      TORMENTA: [],
+    };
+
+    if (!systemData) return result;
+
+    supplements.forEach((supplementId) => {
+      const supplementPowers = systemData.supplements[supplementId]?.powers;
+      const supplementName =
+        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+
+      if (supplementPowers) {
+        result.COMBATE.push(
+          ...supplementPowers.COMBATE.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+        result.CONCEDIDOS.push(
+          ...supplementPowers.CONCEDIDOS.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+        result.DESTINO.push(
+          ...supplementPowers.DESTINO.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+        result.MAGIA.push(
+          ...supplementPowers.MAGIA.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+        result.TORMENTA.push(
+          ...supplementPowers.TORMENTA.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+      }
+    });
+
+    return result;
   }
 
   /**

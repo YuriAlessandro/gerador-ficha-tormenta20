@@ -541,6 +541,95 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Checks if the character has a specific class ability
+ */
+function hasClassAbility(sheet: CharacterSheet, abilityName: string): boolean {
+  // Check in class abilities
+  const classAbilities = sheet.classe.abilities || [];
+  if (
+    classAbilities.some(
+      (ability) => ability.name === abilityName && ability.nivel <= sheet.nivel
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if equipment bonus condition is met
+ */
+function isConditionMet(
+  sheet: CharacterSheet,
+  condition: { type: string; value: string }
+): boolean {
+  if (condition.type === 'hasClassAbility') {
+    return hasClassAbility(sheet, condition.value);
+  }
+
+  if (condition.type === 'isClass') {
+    return sheet.classe.name === condition.value;
+  }
+
+  return false;
+}
+
+/**
+ * Collects and applies bonuses from all equipment in the bag
+ */
+function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Collect all equipment from the bag
+  const allEquipment: Equipment[] = [
+    ...(updatedSheet.bag.equipments['Item Geral'] || []),
+    ...(updatedSheet.bag.equipments.Vestuário || []),
+    ...(updatedSheet.bag.equipments.Alquimía || []),
+    ...(updatedSheet.bag.equipments.Arma || []),
+    ...(updatedSheet.bag.equipments.Armadura || []),
+    ...(updatedSheet.bag.equipments.Escudo || []),
+    ...(updatedSheet.bag.equipments.Alimentação || []),
+    ...(updatedSheet.bag.equipments.Animal || []),
+    ...(updatedSheet.bag.equipments.Veículo || []),
+    ...(updatedSheet.bag.equipments.Serviço || []),
+    ...(updatedSheet.bag.equipments.Hospedagem || []),
+  ];
+
+  // Process each equipment
+  allEquipment.forEach((equip) => {
+    // Add direct sheet bonuses
+    if (equip.sheetBonuses) {
+      updatedSheet.sheetBonuses.push(...equip.sheetBonuses);
+    }
+
+    // Process conditional bonuses
+    if (equip.conditionalBonuses) {
+      equip.conditionalBonuses.forEach((conditional) => {
+        if (isConditionMet(updatedSheet, conditional.condition)) {
+          updatedSheet.sheetBonuses.push(...conditional.bonuses);
+        }
+      });
+    }
+
+    // Process selectable bonus (if a skill was selected)
+    if (equip.selectableBonus && equip.selectedBonusSkill) {
+      const skillBonus = {
+        source: { type: 'equipment' as const, equipmentName: equip.nome },
+        target: { type: 'Skill' as const, name: equip.selectedBonusSkill },
+        modifier: {
+          type: 'Fixed' as const,
+          value: equip.selectableBonus.bonusValue,
+        },
+      };
+      updatedSheet.sheetBonuses.push(skillBonus);
+    }
+  });
+
+  return updatedSheet;
+}
+
+/**
  * Defines what parts of the sheet should be recalculated
  */
 export type RecalculationScope = {
@@ -819,6 +908,9 @@ export function recalculateSheet(
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet);
 
+  // Step 7.3: Apply equipment bonuses
+  updatedSheet = applyEquipmentBonuses(updatedSheet);
+
   // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
   // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
   const basePV = updatedSheet.classe.pv || 0;
@@ -995,6 +1087,12 @@ export function recalculateSheet(
       } else if (bonus.target.type === 'ArmorPenalty') {
         updatedSheet.extraArmorPenalty =
           (updatedSheet.extraArmorPenalty || 0) + bonusValue;
+      } else if (bonus.target.type === 'MaxSpaces') {
+        updatedSheet.maxSpaces = (updatedSheet.maxSpaces || 0) + bonusValue;
+      } else if (bonus.target.type === 'SpellDC') {
+        // SpellDC bonuses are tracked in sheetBonuses for display
+        // The actual calculation is done when casting spells
+        // (stored for reference but not directly applied to sheet)
       }
     }
   });

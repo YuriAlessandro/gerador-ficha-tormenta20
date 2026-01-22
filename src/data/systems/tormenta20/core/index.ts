@@ -12,6 +12,7 @@ import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
+import { ItemMod } from '../../../../interfaces/Rewards';
 
 export interface SupplementEquipment {
   weapons?: Record<string, Equipment>;
@@ -28,6 +29,11 @@ export interface SupplementSpells {
   universal?: Spell[];
 }
 
+export interface SupplementImprovements {
+  weapons?: ItemMod[];
+  armors?: ItemMod[];
+}
+
 export interface SupplementData {
   id: SupplementId;
   races: Race[];
@@ -36,6 +42,7 @@ export interface SupplementData {
   equipment?: SupplementEquipment;
   spells?: SupplementSpells;
   origins?: Origin[];
+  improvements?: SupplementImprovements;
 }
 
 export const TORMENTA20_CORE_SUPPLEMENT: SupplementData = {

@@ -9,7 +9,7 @@ const FRADE: ClassDescription = {
   name: 'Frade',
   pv: 12,
   addpv: 3,
-  pm: 0,
+  pm: 6,
   addpm: 6,
   periciasbasicas: [
     {

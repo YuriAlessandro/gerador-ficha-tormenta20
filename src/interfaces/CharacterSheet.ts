@@ -27,6 +27,10 @@ export type SheetChangeSource =
   | {
       type: 'divinity';
       divinityName: string;
+    }
+  | {
+      type: 'equipment';
+      equipmentName: string;
     };
 
 export type SheetAction = {
@@ -224,6 +228,9 @@ export type StatModifierTarget =
   | {
       type: 'HPAttributeReplacement';
       newAttribute: Atributo;
+    }
+  | {
+      type: 'SpellDC';
     };
 
 export type StatModifier =
@@ -295,6 +302,7 @@ export default interface CharacterSheet {
   raceChassis?: string; // For Golem Desperto
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
+  suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
