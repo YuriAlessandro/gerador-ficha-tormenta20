@@ -8,6 +8,9 @@ import HEROIS_ARTON_RACES from './races';
 import HEROIS_ARTON_CLASSES from './classes';
 import HEROIS_ARTON_POWERS from './powers';
 import HEROIS_ARTON_EQUIPMENT from './equipment';
+import HEROIS_ARTON_ORIGINS from './origins';
+import HEROIS_ARTON_CLASS_POWERS from './classPowers';
+import HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS from './golpePessoalEffects';
 
 export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
   id: SupplementId.TORMENTA20_HEROIS_ARTON,
@@ -22,4 +25,7 @@ export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
     [GeneralPowerType.TORMENTA]: HEROIS_ARTON_POWERS[GeneralPowerType.TORMENTA],
   },
   equipment: HEROIS_ARTON_EQUIPMENT,
+  origins: HEROIS_ARTON_ORIGINS,
+  classPowers: HEROIS_ARTON_CLASS_POWERS,
+  golpePessoalEffects: HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS,
 };

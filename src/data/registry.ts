@@ -9,9 +9,13 @@ import { SystemId } from '../types/system.types';
 import { SupplementId, SUPPLEMENT_METADATA } from '../types/supplement.types';
 import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
 import Race from '../interfaces/Race';
-import { ClassDescription } from '../interfaces/Class';
+import { ClassDescription, ClassNames, ClassPower } from '../interfaces/Class';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
 import Origin from '../interfaces/Origin';
+import {
+  GOLPE_PESSOAL_EFFECTS,
+  GolpePessoalEffect,
+} from './systems/tormenta20/golpePessoal';
 
 /**
  * Tipos para dados com informação de origem do suplemento
@@ -42,6 +46,11 @@ export interface GeneralPowersWithSupplement {
   DESTINO: GeneralPowerWithSupplement[];
   MAGIA: GeneralPowerWithSupplement[];
   TORMENTA: GeneralPowerWithSupplement[];
+}
+
+export interface GolpePessoalEffectWithSupplement extends GolpePessoalEffect {
+  supplementId?: SupplementId;
+  supplementName?: string;
 }
 
 /**
@@ -156,6 +165,7 @@ class DataRegistry {
 
   /**
    * Retorna classes de todos os suplementos ativos
+   * Mescla poderes de classe adicionais de suplementos nas classes base
    */
   getClassesBySupplements(
     supplementIds: SupplementId[],
@@ -170,16 +180,56 @@ class DataRegistry {
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
 
+    // Coleta todas as classes
     const classes = supplements.flatMap(
       (id) => systemData.supplements[id]?.classes || []
     );
 
-    this.classesCache = { system: systemId, supplements, data: classes };
-    return classes;
+    // Coleta todos os poderes de classe adicionais dos suplementos (com informação de origem)
+    const additionalClassPowers: Partial<Record<ClassNames, ClassPower[]>> = {};
+    supplements.forEach((id) => {
+      // Pula o suplemento core para não marcar poderes do livro básico
+      if (id === SupplementId.TORMENTA20_CORE) return;
+
+      const supplementClassPowers = systemData.supplements[id]?.classPowers;
+      if (supplementClassPowers) {
+        const supplementName = SUPPLEMENT_METADATA[id]?.name || id;
+        Object.entries(supplementClassPowers).forEach(([className, powers]) => {
+          const key = className as ClassNames;
+          if (!additionalClassPowers[key]) {
+            additionalClassPowers[key] = [];
+          }
+          // Adiciona informação do suplemento em cada poder
+          const powersWithSupplementInfo = powers.map((power) => ({
+            ...power,
+            supplementId: id,
+            supplementName,
+          }));
+          additionalClassPowers[key]!.push(...powersWithSupplementInfo);
+        });
+      }
+    });
+
+    // Mescla poderes adicionais nas classes correspondentes
+    const mergedClasses = classes.map((classDesc) => {
+      const additionalPowers =
+        additionalClassPowers[classDesc.name as ClassNames];
+      if (additionalPowers && additionalPowers.length > 0) {
+        return {
+          ...classDesc,
+          powers: [...classDesc.powers, ...additionalPowers],
+        };
+      }
+      return classDesc;
+    });
+
+    this.classesCache = { system: systemId, supplements, data: mergedClasses };
+    return mergedClasses;
   }
 
   /**
    * Retorna classes com informação do suplemento de origem
+   * Mescla poderes de classe adicionais de suplementos nas classes base
    */
   getClassesWithSupplementInfo(
     supplementIds: SupplementId[],
@@ -188,6 +238,31 @@ class DataRegistry {
     const supplements = this.ensureCore(supplementIds, systemId);
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
+
+    // Coleta todos os poderes de classe adicionais dos suplementos (com informação de origem)
+    const additionalClassPowers: Partial<Record<ClassNames, ClassPower[]>> = {};
+    supplements.forEach((id) => {
+      // Pula o suplemento core para não marcar poderes do livro básico
+      if (id === SupplementId.TORMENTA20_CORE) return;
+
+      const supplementClassPowers = systemData.supplements[id]?.classPowers;
+      if (supplementClassPowers) {
+        const supName = SUPPLEMENT_METADATA[id]?.name || id;
+        Object.entries(supplementClassPowers).forEach(([className, powers]) => {
+          const key = className as ClassNames;
+          if (!additionalClassPowers[key]) {
+            additionalClassPowers[key] = [];
+          }
+          // Adiciona informação do suplemento em cada poder
+          const powersWithSupplementInfo = powers.map((power) => ({
+            ...power,
+            supplementId: id,
+            supplementName: supName,
+          }));
+          additionalClassPowers[key]!.push(...powersWithSupplementInfo);
+        });
+      }
+    });
 
     // Combina classes com informação de origem
     const classesWithInfo: ClassWithSupplement[] = [];
@@ -198,8 +273,19 @@ class DataRegistry {
         SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
 
       classes.forEach((classDesc) => {
+        // Mescla poderes adicionais na classe
+        const additionalPowers =
+          additionalClassPowers[classDesc.name as ClassNames];
+        const mergedClass =
+          additionalPowers && additionalPowers.length > 0
+            ? {
+                ...classDesc,
+                powers: [...classDesc.powers, ...additionalPowers],
+              }
+            : classDesc;
+
         classesWithInfo.push({
-          ...classDesc,
+          ...mergedClass,
           supplementId,
           supplementName,
         });
@@ -385,6 +471,7 @@ class DataRegistry {
 
   /**
    * Busca uma classe por nome em todos os suplementos ativos
+   * Retorna a classe com poderes mesclados de suplementos
    */
   getClassByName(
     name: string,
@@ -392,7 +479,49 @@ class DataRegistry {
     systemId: SystemId = this.currentSystem
   ): ClassDescription | undefined {
     const classes = this.getClassesBySupplements(supplementIds, systemId);
-    return classes.find((c) => c.name === name);
+    const foundClass = classes.find((c) => c.name === name);
+    return foundClass ? _.cloneDeep(foundClass) : undefined;
+  }
+
+  /**
+   * Retorna efeitos de Golpe Pessoal combinados de todos os suplementos ativos
+   * Os efeitos base do livro são sempre incluídos, e suplementos podem adicionar novos efeitos
+   * Cada efeito inclui informação sobre o suplemento de origem (se não for do livro básico)
+   */
+  getGolpePessoalEffectsBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Record<string, GolpePessoalEffectWithSupplement> {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+
+    // Começa com os efeitos base (sem informação de suplemento - são do livro básico)
+    const combinedEffects: Record<string, GolpePessoalEffectWithSupplement> =
+      {};
+    Object.entries(GOLPE_PESSOAL_EFFECTS).forEach(([key, effect]) => {
+      combinedEffects[key] = { ...effect };
+    });
+
+    if (!systemData) return combinedEffects;
+
+    // Adiciona efeitos de cada suplemento ativo (exceto CORE que já está incluído)
+    supplements.forEach((id) => {
+      if (id === SupplementId.TORMENTA20_CORE) return;
+
+      const supplementEffects = systemData.supplements[id]?.golpePessoalEffects;
+      if (supplementEffects) {
+        const supplementName = SUPPLEMENT_METADATA[id]?.name || id;
+        Object.entries(supplementEffects).forEach(([key, effect]) => {
+          combinedEffects[key] = {
+            ...effect,
+            supplementId: id,
+            supplementName,
+          };
+        });
+      }
+    });
+
+    return combinedEffects;
   }
 
   /**

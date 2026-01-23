@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -24,13 +24,16 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import {
-  GOLPE_PESSOAL_EFFECTS,
   GolpePessoalBuild,
-  GolpePessoalEffect,
   ELEMENTAL_DAMAGE_TYPES,
   BASIC_SPELLS_1ST_2ND_CIRCLE,
 } from '../../../data/systems/tormenta20/golpePessoal';
 import { validateGolpePessoalBuild } from '../../../functions/powers/golpePessoal';
+import {
+  dataRegistry,
+  GolpePessoalEffectWithSupplement,
+} from '../../../data/registry';
+import { SupplementId } from '../../../types/supplement.types';
 import CharacterSheet from '../../../interfaces/CharacterSheet';
 
 interface GolpePessoalBuilderProps {
@@ -39,10 +42,12 @@ interface GolpePessoalBuilderProps {
   onConfirm: (build: GolpePessoalBuild) => void;
   initialBuild?: GolpePessoalBuild;
   sheet?: CharacterSheet;
+  /** Lista de suplementos ativos para determinar quais efeitos estão disponíveis */
+  activeSupplements?: SupplementId[];
 }
 
 interface EffectSelection {
-  effect: GolpePessoalEffect;
+  effect: GolpePessoalEffectWithSupplement;
   effectKey?: string;
   count: number;
   choices: string[];
@@ -54,12 +59,20 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
   onConfirm,
   initialBuild,
   sheet,
+  activeSupplements = [],
 }) => {
   const [weapon, setWeapon] = useState<string>('');
   const [selectedEffects, setSelectedEffects] = useState<
     Record<string, EffectSelection>
   >({});
   const [errors, setErrors] = useState<string[]>([]);
+
+  // Obtém os efeitos combinados dos suplementos ativos
+  // Se nenhum suplemento for passado, usa apenas os efeitos do livro básico
+  const availableEffects = useMemo(
+    () => dataRegistry.getGolpePessoalEffectsBySupplements(activeSupplements),
+    [activeSupplements]
+  );
 
   const calculateTotalCost = (): number =>
     Object.values(selectedEffects).reduce((total, selection) => {
@@ -109,7 +122,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
         // Convert build to selections
         const effects: Record<string, EffectSelection> = {};
         initialBuild.effects.forEach((effectData) => {
-          const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+          const effect = availableEffects[effectData.effectName];
           if (effect) {
             effects[effectData.effectName] = {
               effect,
@@ -125,11 +138,11 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
       }
       setErrors([]);
     }
-  }, [open, initialBuild]);
+  }, [open, initialBuild, availableEffects]);
 
   const handleEffectToggle = (effectName: string) => {
     // Find the effect by comparing the name property
-    const effectEntry = Object.entries(GOLPE_PESSOAL_EFFECTS).find(
+    const effectEntry = Object.entries(availableEffects).find(
       ([, effect]) => effect.name === effectName
     );
 
@@ -230,9 +243,9 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
     }
   };
 
-  const renderEffectCard = (effect: GolpePessoalEffect) => {
-    // Find the key for this effect in GOLPE_PESSOAL_EFFECTS
-    const effectKey = Object.entries(GOLPE_PESSOAL_EFFECTS).find(
+  const renderEffectCard = (effect: GolpePessoalEffectWithSupplement) => {
+    // Find the key for this effect in availableEffects
+    const effectKey = Object.entries(availableEffects).find(
       ([, e]) => e.name === effect.name
     )?.[0];
 
@@ -288,7 +301,7 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
             alignItems='flex-start'
             mb={1}
           >
-            <Box display='flex' alignItems='center' gap={1}>
+            <Box display='flex' alignItems='center' gap={1} flexWrap='wrap'>
               <Typography variant='h6'>
                 {getCategoryIcon(effect.category)} {effect.name}
               </Typography>
@@ -301,6 +314,18 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
                   color: 'white',
                 }}
               />
+              {effect.supplementName && (
+                <Chip
+                  label={effect.supplementName}
+                  size='small'
+                  variant='outlined'
+                  sx={{
+                    borderColor: '#9c27b0',
+                    color: '#9c27b0',
+                    fontSize: '0.7rem',
+                  }}
+                />
+              )}
             </Box>
 
             {isSelected && selection && (
@@ -390,13 +415,13 @@ const GolpePessoalBuilder: React.FC<GolpePessoalBuilderProps> = ({
     );
   };
 
-  const offensiveEffects = Object.values(GOLPE_PESSOAL_EFFECTS).filter(
+  const offensiveEffects = Object.values(availableEffects).filter(
     (e) => e.category === 'offensive'
   );
-  const utilityEffects = Object.values(GOLPE_PESSOAL_EFFECTS).filter(
+  const utilityEffects = Object.values(availableEffects).filter(
     (e) => e.category === 'utility'
   );
-  const drawbackEffects = Object.values(GOLPE_PESSOAL_EFFECTS).filter(
+  const drawbackEffects = Object.values(availableEffects).filter(
     (e) => e.category === 'drawback'
   );
 

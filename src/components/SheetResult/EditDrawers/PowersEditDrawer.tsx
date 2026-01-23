@@ -41,10 +41,7 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
-import {
-  GolpePessoalBuild,
-  GOLPE_PESSOAL_EFFECTS,
-} from '@/data/systems/tormenta20/golpePessoal';
+import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
 
@@ -161,6 +158,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     SupplementId.TORMENTA20_CORE,
     SupplementId.TORMENTA20_AMEACAS_ARTON,
     SupplementId.TORMENTA20_DEUSES_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
   ];
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
@@ -1145,6 +1143,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                     const power = selectedClassPowers.find(
                       (p) => p.name === powerName
                     )!;
+                    const isFromSupplement = !!power.supplementId;
                     const label =
                       count > 1 ? `${powerName} (${count}x)` : powerName;
 
@@ -1153,8 +1152,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                         key={powerName}
                         label={label}
                         size='small'
-                        color='secondary'
+                        color={isFromSupplement ? 'info' : 'secondary'}
                         onDelete={() => handleClassPowerRemove(power)}
+                        title={
+                          isFromSupplement
+                            ? `Suplemento: ${power.supplementName}`
+                            : undefined
+                        }
                       />
                     );
                   })}
@@ -1352,17 +1356,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                             }
                             label={
                               <Box sx={{ width: '100%' }}>
-                                <Typography
-                                  variant='body1'
-                                  fontWeight='bold'
-                                  color={
-                                    meetsRequirements
-                                      ? 'text.primary'
-                                      : 'error.main'
-                                  }
+                                <Stack
+                                  direction='row'
+                                  alignItems='center'
+                                  spacing={1}
                                 >
-                                  {power.name}
-                                </Typography>
+                                  <Typography
+                                    variant='body1'
+                                    fontWeight='bold'
+                                    color={
+                                      meetsRequirements
+                                        ? 'text.primary'
+                                        : 'error.main'
+                                    }
+                                  >
+                                    {power.name}
+                                  </Typography>
+                                  {power.supplementId && (
+                                    <Chip
+                                      label={power.supplementName}
+                                      size='small'
+                                      variant='outlined'
+                                      color='info'
+                                      sx={{ fontSize: '0.65rem', height: 20 }}
+                                    />
+                                  )}
+                                </Stack>
                                 <Typography
                                   variant='body2'
                                   color='text.secondary'
@@ -1569,6 +1588,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         <GolpePessoalBuilder
           open={golpePessoalDialog.open}
           sheet={sheet}
+          activeSupplements={allSupplements}
           onClose={() =>
             setGolpePessoalDialog({
               open: false,
@@ -1579,10 +1599,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             // Add the Golpe Pessoal power with the build description
             const powerToAdd = golpePessoalDialog.powerToAdd!;
 
+            // Get all available effects including from supplements
+            const availableEffects =
+              dataRegistry.getGolpePessoalEffectsBySupplements(allSupplements);
+
             // Create effect descriptions
             const effectDescriptions = build.effects
               .map((effectData) => {
-                const effect = GOLPE_PESSOAL_EFFECTS[effectData.effectName];
+                const effect = availableEffects[effectData.effectName];
                 if (!effect) return '';
 
                 let desc = `• ${effect.name}: ${effect.description}`;

@@ -7,12 +7,23 @@ import CORE_CLASSES from './classes';
 import CORE_POWERS from './powers';
 import CORE_ORIGINS from '../origins';
 import Race from '../../../../interfaces/Race';
-import { ClassDescription } from '../../../../interfaces/Class';
+import {
+  ClassDescription,
+  ClassNames,
+  ClassPower,
+} from '../../../../interfaces/Class';
 import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
 import { Spell } from '../../../../interfaces/Spells';
 import Origin from '../../../../interfaces/Origin';
 import { ItemMod } from '../../../../interfaces/Rewards';
+import { GolpePessoalEffect } from '../golpePessoal';
+
+/**
+ * Poderes de classe adicionais por suplemento
+ * Mapeia nome da classe para array de poderes adicionais
+ */
+export type SupplementClassPowers = Partial<Record<ClassNames, ClassPower[]>>;
 
 export interface SupplementEquipment {
   weapons?: Record<string, Equipment>;
@@ -43,6 +54,10 @@ export interface SupplementData {
   spells?: SupplementSpells;
   origins?: Origin[];
   improvements?: SupplementImprovements;
+  /** Poderes adicionais para classes existentes (do livro básico) */
+  classPowers?: SupplementClassPowers;
+  /** Efeitos adicionais de Golpe Pessoal (habilidade do Guerreiro) */
+  golpePessoalEffects?: Record<string, GolpePessoalEffect>;
 }
 
 export const TORMENTA20_CORE_SUPPLEMENT: SupplementData = {

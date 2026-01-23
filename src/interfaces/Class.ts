@@ -5,6 +5,7 @@ import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
+import { SupplementId } from '../types/supplement.types';
 
 export type ClassNames =
   | 'Arcanista'
@@ -53,6 +54,8 @@ export type ClassPower = {
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  supplementId?: SupplementId; // Suplemento de origem do poder
+  supplementName?: string; // Nome do suplemento de origem
 };
 
 export interface SpellPath {
