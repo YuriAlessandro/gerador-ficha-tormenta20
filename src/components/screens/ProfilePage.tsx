@@ -32,8 +32,24 @@ import {
   CalendarToday as CalendarIcon,
   Description as SheetIcon,
   Settings as SettingsIcon,
+  Favorite as FavoriteIcon,
+  Receipt as ReceiptIcon,
+  CreditCard as CreditCardIcon,
+  Cancel as CancelIcon,
+  Refresh as RefreshIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
+import SupporterBadge from '../Premium/SupporterBadge';
+import {
+  SupportLevel,
+  getSupportLevelName,
+  isSupporter,
+  SubscriptionStatus,
+  Invoice,
+  SUPPORT_LIMITS,
+} from '../../types/subscription.types';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../hooks/useSubscription';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
 import { AppDispatch } from '../../store';
 import {
@@ -75,6 +91,19 @@ const ProfilePage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch<AppDispatch>();
   const { user: currentUser, isAuthenticated } = useAuth();
+  const {
+    subscription,
+    supportLevel,
+    isSupporter: isUserSupporter,
+    invoices,
+    loading: subscriptionLoading,
+    error: subscriptionError,
+    loadSubscription,
+    loadInvoices,
+    cancel: cancelSub,
+    reactivate: reactivateSub,
+    manageSubscription,
+  } = useSubscription();
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,6 +122,12 @@ const ProfilePage: React.FC = () => {
   const [supplementsLoading, setSupplementsLoading] = useState(false);
   const [supplementsError, setSupplementsError] = useState<string | null>(null);
   const [supplementsSuccess, setSupplementsSuccess] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [reactivateLoading, setReactivateLoading] = useState(false);
+  const [subscriptionActionSuccess, setSubscriptionActionSuccess] = useState<
+    string | null
+  >(null);
   // DISABLED: 3D Dice feature temporarily disabled
   // const [dice3DEnabled, setDice3DEnabled] = useState(
   //   currentUser?.dice3DEnabled || false
@@ -111,6 +146,15 @@ const ProfilePage: React.FC = () => {
   //     setDice3DEnabled(currentUser.dice3DEnabled);
   //   }
   // }, [currentUser?.dice3DEnabled]);
+
+  // Load subscription and invoices when support tab is selected (tab index 2)
+  useEffect(() => {
+    if (currentTab === 2 && isOwnProfile) {
+      // Always reload subscription and invoices to ensure fresh data
+      loadSubscription();
+      loadInvoices(10);
+    }
+  }, [currentTab, isOwnProfile, loadInvoices, loadSubscription]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -234,6 +278,67 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    try {
+      setCancelLoading(true);
+      await cancelSub();
+      setCancelDialogOpen(false);
+      setSubscriptionActionSuccess(
+        'Apoio cancelado. Ele continuará ativo até o final do período de cobrança.'
+      );
+      loadSubscription();
+      setTimeout(() => setSubscriptionActionSuccess(null), 5000);
+    } catch (err) {
+      // Error is handled by the hook
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleReactivateSubscription = async () => {
+    try {
+      setReactivateLoading(true);
+      await reactivateSub();
+      setSubscriptionActionSuccess('Apoio reativado com sucesso!');
+      loadSubscription();
+      setTimeout(() => setSubscriptionActionSuccess(null), 5000);
+    } catch (err) {
+      // Error is handled by the hook
+    } finally {
+      setReactivateLoading(false);
+    }
+  };
+
+  const formatInvoiceDate = (date: Date | string | null | undefined) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const formatCurrency = (amount: number, currency: string) =>
+    new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency || 'BRL',
+    }).format(amount);
+
+  const getSubscriptionStatusLabel = () => {
+    if (subscription?.cancelAtPeriodEnd) return 'Cancelamento Agendado';
+    if (subscription?.status === SubscriptionStatus.ACTIVE) return 'Ativo';
+    if (subscription?.status === SubscriptionStatus.PAST_DUE)
+      return 'Pagamento Pendente';
+    return 'Inativo';
+  };
+
+  const getSubscriptionStatusColor = (): 'warning' | 'success' | 'error' => {
+    if (subscription?.cancelAtPeriodEnd) return 'warning';
+    if (subscription?.status === SubscriptionStatus.ACTIVE) return 'success';
+    return 'error';
+  };
+
   // DISABLED: 3D Dice feature temporarily disabled
   // const handleToggleDice3D = async (checked: boolean) => {
   //   try {
@@ -340,12 +445,26 @@ const ProfilePage: React.FC = () => {
               >
                 {profile.fullName || profile.username}
               </Typography>
-              <Typography
-                variant={isMobile ? 'body1' : 'h6'}
-                sx={{ opacity: 0.9 }}
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='center'
+                spacing={1}
               >
-                @{profile.username}
-              </Typography>
+                <Typography
+                  variant={isMobile ? 'body1' : 'h6'}
+                  sx={{ opacity: 0.9 }}
+                >
+                  @{profile.username}
+                </Typography>
+                {profile.supportLevel && isSupporter(profile.supportLevel) && (
+                  <SupporterBadge
+                    level={profile.supportLevel}
+                    variant='small'
+                    showTooltip={false}
+                  />
+                )}
+              </Stack>
             </Box>
 
             {isOwnProfile && isAuthenticated && currentUser?.email && (
@@ -379,6 +498,11 @@ const ProfilePage: React.FC = () => {
                   <Tab
                     icon={<SettingsIcon />}
                     label='Sistema'
+                    iconPosition='start'
+                  />
+                  <Tab
+                    icon={<FavoriteIcon />}
+                    label='Apoio'
                     iconPosition='start'
                   />
                 </Tabs>
@@ -614,6 +738,354 @@ const ProfilePage: React.FC = () => {
                   </Stack>
                 </Box>
               </TabPanel>
+
+              {/* Aba de Apoio */}
+              <TabPanel value={currentTab} index={2}>
+                <Box sx={{ p: 2 }}>
+                  <Stack spacing={3}>
+                    {/* Success/Error Messages */}
+                    {subscriptionActionSuccess && (
+                      <Alert severity='success'>
+                        {subscriptionActionSuccess}
+                      </Alert>
+                    )}
+                    {subscriptionError && (
+                      <Alert severity='error'>{subscriptionError}</Alert>
+                    )}
+
+                    {/* Current Support Level */}
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Seu Nível de Apoio
+                      </Typography>
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: isUserSupporter
+                            ? 'primary.main'
+                            : 'divider',
+                          bgcolor: isUserSupporter
+                            ? 'action.selected'
+                            : 'background.paper',
+                        }}
+                      >
+                        <Stack
+                          direction='row'
+                          alignItems='center'
+                          justifyContent='space-between'
+                          flexWrap='wrap'
+                          gap={2}
+                        >
+                          <Stack
+                            direction='row'
+                            alignItems='center'
+                            spacing={2}
+                          >
+                            {isUserSupporter ? (
+                              <SupporterBadge level={supportLevel} />
+                            ) : (
+                              <Chip label='Grátis' variant='outlined' />
+                            )}
+                            <Box>
+                              <Typography variant='body1' fontWeight='medium'>
+                                {getSupportLevelName(supportLevel)}
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                              >
+                                {isUserSupporter
+                                  ? `Até ${SUPPORT_LIMITS[supportLevel].maxSheets} fichas salvas`
+                                  : 'Até 5 fichas salvas'}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                          {!isUserSupporter && (
+                            <Button
+                              variant='contained'
+                              color='primary'
+                              onClick={() => history.push('/apoiar')}
+                            >
+                              Tornar-se Apoiador
+                            </Button>
+                          )}
+                        </Stack>
+                      </Box>
+                    </Box>
+
+                    {/* Subscription Details - Only for supporters */}
+                    {isUserSupporter && subscription && (
+                      <>
+                        <Box>
+                          <Typography
+                            variant='h6'
+                            fontWeight='bold'
+                            gutterBottom
+                          >
+                            Detalhes da Assinatura
+                          </Typography>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <Stack
+                                direction='row'
+                                spacing={1.5}
+                                alignItems='center'
+                              >
+                                <CalendarIcon color='primary' />
+                                <Box>
+                                  <Typography
+                                    variant='body2'
+                                    color='text.secondary'
+                                  >
+                                    Próxima Cobrança
+                                  </Typography>
+                                  <Typography
+                                    variant='body1'
+                                    fontWeight='medium'
+                                  >
+                                    {subscription.cancelAtPeriodEnd
+                                      ? 'Não haverá renovação'
+                                      : formatInvoiceDate(
+                                          subscription.currentPeriodEnd
+                                        )}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 6 }}>
+                              <Stack
+                                direction='row'
+                                spacing={1.5}
+                                alignItems='center'
+                              >
+                                <CreditCardIcon color='primary' />
+                                <Box>
+                                  <Typography
+                                    variant='body2'
+                                    color='text.secondary'
+                                  >
+                                    Status
+                                  </Typography>
+                                  <Chip
+                                    label={getSubscriptionStatusLabel()}
+                                    size='small'
+                                    color={getSubscriptionStatusColor()}
+                                  />
+                                </Box>
+                              </Stack>
+                            </Grid>
+                          </Grid>
+
+                          {/* Cancel at period end warning */}
+                          {subscription.cancelAtPeriodEnd && (
+                            <Alert severity='warning' sx={{ mt: 2 }}>
+                              Seu apoio será encerrado em{' '}
+                              {formatInvoiceDate(subscription.currentPeriodEnd)}
+                              . Você ainda pode reativar antes dessa data.
+                            </Alert>
+                          )}
+                        </Box>
+
+                        {/* Billing History */}
+                        <Box>
+                          <Typography
+                            variant='h6'
+                            fontWeight='bold'
+                            gutterBottom
+                          >
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={1}
+                            >
+                              <ReceiptIcon />
+                              <span>Histórico de Cobranças</span>
+                            </Stack>
+                          </Typography>
+                          {subscriptionLoading && (
+                            <Box display='flex' justifyContent='center' py={3}>
+                              <CircularProgress size={24} />
+                            </Box>
+                          )}
+                          {!subscriptionLoading &&
+                            invoices &&
+                            invoices.length > 0 && (
+                              <Stack spacing={1}>
+                                {invoices.map((invoice: Invoice) => (
+                                  <Box
+                                    key={invoice.id}
+                                    sx={{
+                                      p: 2,
+                                      borderRadius: 1,
+                                      border: '1px solid',
+                                      borderColor: 'divider',
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Box>
+                                      <Typography
+                                        variant='body2'
+                                        fontWeight='medium'
+                                      >
+                                        {formatInvoiceDate(invoice.paidAt)}
+                                      </Typography>
+                                      <Typography
+                                        variant='caption'
+                                        color='text.secondary'
+                                      >
+                                        Período:{' '}
+                                        {formatInvoiceDate(invoice.periodStart)}{' '}
+                                        - {formatInvoiceDate(invoice.periodEnd)}
+                                      </Typography>
+                                    </Box>
+                                    <Stack
+                                      direction='row'
+                                      alignItems='center'
+                                      spacing={2}
+                                    >
+                                      <Typography
+                                        variant='body1'
+                                        fontWeight='bold'
+                                        color='primary'
+                                      >
+                                        {formatCurrency(
+                                          invoice.amount,
+                                          invoice.currency
+                                        )}
+                                      </Typography>
+                                      <Chip
+                                        label={
+                                          invoice.status === 'paid'
+                                            ? 'Pago'
+                                            : 'Pendente'
+                                        }
+                                        size='small'
+                                        color={
+                                          invoice.status === 'paid'
+                                            ? 'success'
+                                            : 'warning'
+                                        }
+                                      />
+                                      {invoice.invoiceUrl && (
+                                        <Button
+                                          size='small'
+                                          href={invoice.invoiceUrl}
+                                          target='_blank'
+                                          rel='noopener noreferrer'
+                                          endIcon={<OpenInNewIcon />}
+                                        >
+                                          Ver
+                                        </Button>
+                                      )}
+                                    </Stack>
+                                  </Box>
+                                ))}
+                              </Stack>
+                            )}
+                          {!subscriptionLoading &&
+                            (!invoices || invoices.length === 0) && (
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                                sx={{ py: 2 }}
+                              >
+                                Nenhuma cobrança encontrada.
+                              </Typography>
+                            )}
+                        </Box>
+
+                        {/* Actions */}
+                        <Box>
+                          <Typography
+                            variant='h6'
+                            fontWeight='bold'
+                            gutterBottom
+                          >
+                            Gerenciar Apoio
+                          </Typography>
+                          <Stack
+                            direction={isMobile ? 'column' : 'row'}
+                            spacing={2}
+                          >
+                            <Button
+                              variant='outlined'
+                              onClick={manageSubscription}
+                              startIcon={<CreditCardIcon />}
+                            >
+                              Gerenciar Pagamento
+                            </Button>
+                            {subscription.cancelAtPeriodEnd ? (
+                              <Button
+                                variant='contained'
+                                color='success'
+                                onClick={handleReactivateSubscription}
+                                disabled={reactivateLoading}
+                                startIcon={
+                                  reactivateLoading ? (
+                                    <CircularProgress size={16} />
+                                  ) : (
+                                    <RefreshIcon />
+                                  )
+                                }
+                              >
+                                Reativar Apoio
+                              </Button>
+                            ) : (
+                              <Button
+                                variant='outlined'
+                                color='error'
+                                onClick={() => setCancelDialogOpen(true)}
+                                startIcon={<CancelIcon />}
+                              >
+                                Cancelar Apoio
+                              </Button>
+                            )}
+                          </Stack>
+                        </Box>
+                      </>
+                    )}
+
+                    {/* CTA for non-supporters */}
+                    {!isUserSupporter && (
+                      <Box
+                        sx={{
+                          p: 3,
+                          borderRadius: 2,
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                          textAlign: 'center',
+                        }}
+                      >
+                        <FavoriteIcon sx={{ fontSize: 48, mb: 1 }} />
+                        <Typography variant='h6' gutterBottom>
+                          Apoie o Fichas de Nimb!
+                        </Typography>
+                        <Typography
+                          variant='body2'
+                          sx={{ mb: 2, opacity: 0.9 }}
+                        >
+                          Ajude a manter o projeto e desbloqueie funcionalidades
+                          exclusivas como mais fichas salvas e badges especiais.
+                        </Typography>
+                        <Button
+                          variant='contained'
+                          color='secondary'
+                          size='large'
+                          onClick={() => history.push('/apoiar')}
+                        >
+                          Ver Planos de Apoio
+                        </Button>
+                      </Box>
+                    )}
+                  </Stack>
+                </Box>
+              </TabPanel>
             </Card>
           )}
 
@@ -623,7 +1095,7 @@ const ProfilePage: React.FC = () => {
               Estatísticas
             </Typography>
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Stack direction='row' spacing={1.5} alignItems='center'>
                   <SheetIcon color='primary' />
                   <Box>
@@ -636,7 +1108,7 @@ const ProfilePage: React.FC = () => {
                   </Box>
                 </Stack>
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <Stack direction='row' spacing={1.5} alignItems='center'>
                   <CalendarIcon color='primary' />
                   <Box>
@@ -645,6 +1117,29 @@ const ProfilePage: React.FC = () => {
                     </Typography>
                     <Typography variant='h6' fontWeight='bold'>
                       {formatDate(profile.createdAt)}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                <Stack direction='row' spacing={1.5} alignItems='center'>
+                  <FavoriteIcon
+                    sx={{
+                      color: isSupporter(
+                        profile.supportLevel || SupportLevel.FREE
+                      )
+                        ? 'error.main'
+                        : 'text.secondary',
+                    }}
+                  />
+                  <Box>
+                    <Typography variant='body2' color='text.secondary'>
+                      Status
+                    </Typography>
+                    <Typography variant='h6' fontWeight='bold'>
+                      {getSupportLevelName(
+                        profile.supportLevel || SupportLevel.FREE
+                      )}
                     </Typography>
                   </Box>
                 </Stack>
@@ -701,6 +1196,52 @@ const ProfilePage: React.FC = () => {
             disabled={editLoading}
           >
             {editLoading ? <CircularProgress size={24} /> : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Cancelar Apoio</DialogTitle>
+        <DialogContent>
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            Tem certeza que deseja cancelar seu apoio?
+          </Alert>
+          <Typography variant='body2' color='text.secondary'>
+            Seu apoio continuará ativo até o final do período de cobrança atual
+            {subscription?.currentPeriodEnd && (
+              <> ({formatInvoiceDate(subscription.currentPeriodEnd)})</>
+            )}
+            . Após essa data, você perderá acesso aos benefícios de apoiador.
+          </Typography>
+          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+            Você pode reativar seu apoio a qualquer momento antes do término do
+            período.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setCancelDialogOpen(false)}
+            disabled={cancelLoading}
+          >
+            Manter Apoio
+          </Button>
+          <Button
+            onClick={handleCancelSubscription}
+            variant='contained'
+            color='error'
+            disabled={cancelLoading}
+          >
+            {cancelLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              'Confirmar Cancelamento'
+            )}
           </Button>
         </DialogActions>
       </Dialog>

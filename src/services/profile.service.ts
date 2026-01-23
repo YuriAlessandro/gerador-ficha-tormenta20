@@ -1,10 +1,12 @@
 import api from './api';
+import { SupportLevel } from '../types/subscription.types';
 
 export interface PublicProfile {
   username: string;
   fullName?: string;
   photoURL?: string;
-  isPremium: boolean;
+  supportLevel: SupportLevel;
+  isPremium: boolean; // Keep for backward compatibility
   createdAt: Date;
   totalSheets: number;
 }

@@ -28,7 +28,9 @@ export async function getPricingPlans(): Promise<PricingPlan[]> {
 export async function createCheckoutSession(
   tier: SubscriptionTier
 ): Promise<{ sessionId: string; url: string }> {
-  const response = await api.post('/api/subscriptions/checkout', { tier });
+  const response = await api.post('/api/subscriptions/checkout', {
+    level: tier,
+  });
   return response.data.data;
 }
 

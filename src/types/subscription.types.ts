@@ -1,14 +1,24 @@
 /**
- * Subscription system types for premium features
+ * Support system types (formerly subscription/premium features)
  */
 
 /**
- * Available subscription tiers
+ * Available support levels
  */
-export enum SubscriptionTier {
+export enum SupportLevel {
   FREE = 'free',
-  SIMPLE = 'simple',
+  NIVEL_1 = 'nivel_1',
+  NIVEL_2 = 'nivel_2',
+  NIVEL_3 = 'nivel_3',
+  NIVEL_2_ANUAL = 'nivel_2_anual',
+  NIVEL_3_ANUAL = 'nivel_3_anual',
 }
+
+/**
+ * Alias for backward compatibility
+ */
+export const SubscriptionTier = SupportLevel;
+export type SubscriptionTier = SupportLevel;
 
 /**
  * Subscription status from Stripe
@@ -29,7 +39,7 @@ export enum SubscriptionStatus {
 export interface Subscription {
   _id: string;
   userId: string;
-  tier: SubscriptionTier;
+  tier: SupportLevel;
   status: SubscriptionStatus;
   stripeCustomerId: string;
   stripeSubscriptionId?: string;
@@ -42,117 +52,165 @@ export interface Subscription {
 }
 
 /**
- * Feature limits per subscription tier
+ * Feature limits per support level
  */
 export interface SubscriptionLimits {
-  maxSheets: number; // Maximum number of saved sheets
-  maxDiaries: number; // Maximum number of player diaries
-  maxNotebooks: number; // Maximum number of master notebooks
-  canComment: boolean; // Can comment on platform content
-  canUseBuilds: boolean; // Can generate sheets from builds
+  maxSheets: number;
+  canComment: boolean;
 }
 
 /**
- * Pricing plan configuration
+ * Support level info for display
  */
-export interface PricingPlan {
-  tier: SubscriptionTier;
+export interface SupportLevelInfo {
+  level: SupportLevel;
+  tier?: SupportLevel; // Alias for backward compatibility
   name: string;
-  price: number; // Monthly price in BRL
-  originalPrice?: number; // Original price (if on sale)
-  stripePriceId?: string; // Stripe price ID for checkout
-  features: string[]; // List of feature descriptions
+  price: number;
+  originalPrice?: number; // For discount display
+  description: string;
+  stripePriceId?: string;
+  features: string[];
   limits: SubscriptionLimits;
-  recommended?: boolean; // Highlight as recommended
+  badgeVariant: 'silver' | 'gold' | 'diamond';
+  recommended?: boolean;
+  billingPeriod?: 'monthly' | 'yearly';
 }
+
+/**
+ * Pricing plan configuration (alias for backward compatibility)
+ */
+export type PricingPlan = SupportLevelInfo;
 
 /**
  * Invoice/payment history item
  */
 export interface Invoice {
-  _id: string;
-  subscriptionId: string;
-  stripeInvoiceId: string;
+  id: string;
   amount: number;
   currency: string;
-  status: 'paid' | 'open' | 'void' | 'uncollectible';
-  paidAt?: Date;
-  invoiceUrl?: string;
-  invoicePdfUrl?: string;
-  createdAt: Date;
+  status: 'paid' | 'open' | 'void' | 'uncollectible' | 'draft';
+  paidAt?: Date | string | null;
+  invoiceUrl?: string | null;
+  invoicePdfUrl?: string | null;
+  periodStart: Date | string;
+  periodEnd: Date | string;
 }
 
 /**
- * Pricing plans configuration
+ * Support level display configuration
  */
-export const PRICING_PLANS: Record<SubscriptionTier, PricingPlan> = {
-  [SubscriptionTier.FREE]: {
-    tier: SubscriptionTier.FREE,
+export const SUPPORT_LEVEL_CONFIG: Record<
+  SupportLevel,
+  {
+    name: string;
+    badgeColor: string;
+    badgeGradient: string;
+    badgeVariant: 'none' | 'silver' | 'gold' | 'diamond';
+  }
+> = {
+  [SupportLevel.FREE]: {
     name: 'Grátis',
-    price: 0,
-    features: [
-      'Criação de fichas ilimitadas',
-      'Acesso a todas as ferramentas da plataforma',
-      'Até 5 fichas salvas na nuvem',
-      '1 diário do jogador',
-      '1 caderno do mestre',
-    ],
-    limits: {
-      maxSheets: 5,
-      maxDiaries: 1,
-      maxNotebooks: 1,
-      canComment: false,
-      canUseBuilds: false,
-    },
+    badgeColor: '#666',
+    badgeGradient: 'linear-gradient(135deg, #666 0%, #888 100%)',
+    badgeVariant: 'none',
   },
-  [SubscriptionTier.SIMPLE]: {
-    tier: SubscriptionTier.SIMPLE,
-    name: 'Simples',
-    price: 6.99,
-    originalPrice: 9.99,
-    features: [
-      'Tudo do plano grátis',
-      'Até 50 fichas salvas na nuvem',
-      'Comentar nos conteúdos da plataforma',
-      'Gerar fichas a partir de builds',
-      'Diários ilimitados do jogador',
-      'Cadernos ilimitados do mestre',
-    ],
-    limits: {
-      maxSheets: 50,
-      maxDiaries: Infinity,
-      maxNotebooks: Infinity,
-      canComment: true,
-      canUseBuilds: true,
-    },
-    recommended: true,
+  [SupportLevel.NIVEL_1]: {
+    name: 'Apoiador Nível 1',
+    badgeColor: '#C0C0C0',
+    badgeGradient:
+      'linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 50%, #A8A8A8 100%)',
+    badgeVariant: 'silver',
+  },
+  [SupportLevel.NIVEL_2]: {
+    name: 'Apoiador Nível 2',
+    badgeColor: '#FFD700',
+    badgeGradient: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+    badgeVariant: 'gold',
+  },
+  [SupportLevel.NIVEL_2_ANUAL]: {
+    name: 'Apoiador Nível 2 - Anual',
+    badgeColor: '#FFD700',
+    badgeGradient: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+    badgeVariant: 'gold',
+  },
+  [SupportLevel.NIVEL_3]: {
+    name: 'Apoiador Nível 3',
+    badgeColor: '#B9F2FF',
+    badgeGradient:
+      'linear-gradient(135deg, #B9F2FF 0%, #89CFF0 50%, #00BFFF 100%)',
+    badgeVariant: 'diamond',
+  },
+  [SupportLevel.NIVEL_3_ANUAL]: {
+    name: 'Apoiador Nível 3 - Anual',
+    badgeColor: '#B9F2FF',
+    badgeGradient:
+      'linear-gradient(135deg, #B9F2FF 0%, #89CFF0 50%, #00BFFF 100%)',
+    badgeVariant: 'diamond',
   },
 };
 
 /**
- * Helper to get limits for a subscription tier
+ * Support limits configuration
  */
-export function getSubscriptionLimits(
-  tier: SubscriptionTier
-): SubscriptionLimits {
-  return PRICING_PLANS[tier].limits;
+export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
+  [SupportLevel.FREE]: {
+    maxSheets: 5,
+    canComment: false,
+  },
+  [SupportLevel.NIVEL_1]: {
+    maxSheets: 5, // Same as FREE (badge only)
+    canComment: false,
+  },
+  [SupportLevel.NIVEL_2]: {
+    maxSheets: 10,
+    canComment: true,
+  },
+  [SupportLevel.NIVEL_3]: {
+    maxSheets: 20,
+    canComment: true,
+  },
+  [SupportLevel.NIVEL_2_ANUAL]: {
+    maxSheets: 10, // Same as NIVEL_2
+    canComment: true,
+  },
+  [SupportLevel.NIVEL_3_ANUAL]: {
+    maxSheets: 20, // Same as NIVEL_3
+    canComment: true,
+  },
+};
+
+/**
+ * Alias for backward compatibility
+ */
+export const PRICING_PLANS = SUPPORT_LIMITS;
+
+/**
+ * Helper to get limits for a support level
+ */
+export function getSupportLimits(level: SupportLevel): SubscriptionLimits {
+  return SUPPORT_LIMITS[level];
 }
+
+/**
+ * Alias for backward compatibility
+ */
+export const getSubscriptionLimits = getSupportLimits;
 
 /**
  * Helper to check if user can access a feature
  */
 export function canAccessFeature(
-  tier: SubscriptionTier,
+  level: SupportLevel,
   feature: keyof SubscriptionLimits
 ): boolean {
-  const limits = getSubscriptionLimits(tier);
+  const limits = getSupportLimits(level);
   const value = limits[feature];
 
   if (typeof value === 'boolean') {
     return value;
   }
 
-  // For numeric limits, just check if > 0
   return value > 0;
 }
 
@@ -160,19 +218,26 @@ export function canAccessFeature(
  * Helper to check if user has reached a limit
  */
 export function hasReachedLimit(
-  tier: SubscriptionTier,
-  limitType: keyof Pick<
-    SubscriptionLimits,
-    'maxSheets' | 'maxDiaries' | 'maxNotebooks'
-  >,
+  level: SupportLevel,
+  limitType: 'maxSheets',
   currentCount: number
 ): boolean {
-  const limits = getSubscriptionLimits(tier);
-  const maxAllowed = limits[limitType] as number;
-
-  if (maxAllowed === Infinity) {
-    return false;
-  }
+  const limits = getSupportLimits(level);
+  const maxAllowed = limits[limitType];
 
   return currentCount >= maxAllowed;
+}
+
+/**
+ * Helper to check if user is a supporter (any paid level)
+ */
+export function isSupporter(level: SupportLevel): boolean {
+  return level !== SupportLevel.FREE;
+}
+
+/**
+ * Get display name for a support level
+ */
+export function getSupportLevelName(level: SupportLevel): string {
+  return SUPPORT_LEVEL_CONFIG[level].name;
 }

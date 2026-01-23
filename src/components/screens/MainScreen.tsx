@@ -33,6 +33,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Casino as CasinoIcon,
   Warning as WarningIcon,
+  Cloud as CloudIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -250,6 +251,10 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const { tier } = useSubscription();
   const { totalSheets, maxSheets, canCreate } = useSheetLimit();
   const [showLimitDialog, setShowLimitDialog] = React.useState(false);
+  const [showCloudSaveNotice, setShowCloudSaveNotice] = React.useState(false);
+  const [pendingGenerateAction, setPendingGenerateAction] = React.useState<
+    'random' | 'empty' | null
+  >(null);
   const [selectedOptions, setSelectedOptions] = React.useState<SelectOptions>({
     nivel: 1,
     classe: '',
@@ -351,13 +356,27 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     (selectedOptions.devocao.label !== 'Padrão' ||
       selectedOptions.devocao.value === '**');
 
-  const onClickGenerate = async () => {
-    // Check sheet limit for authenticated users
-    if (isAuthenticated && !canCreate) {
-      setShowLimitDialog(true);
-      return;
-    }
+  // Check if cloud save notice should be shown (once per 24h for non-authenticated users)
+  const CLOUD_NOTICE_KEY = 'fdnCloudNoticeLastShown';
+  const shouldShowCloudNotice = React.useCallback(() => {
+    if (isAuthenticated) return false;
 
+    const lastShown = localStorage.getItem(CLOUD_NOTICE_KEY);
+    if (!lastShown) return true;
+
+    const lastShownDate = new Date(lastShown);
+    const now = new Date();
+    const hoursDiff =
+      (now.getTime() - lastShownDate.getTime()) / (1000 * 60 * 60);
+
+    return hoursDiff >= 24;
+  }, [isAuthenticated]);
+
+  const markCloudNoticeShown = () => {
+    localStorage.setItem(CLOUD_NOTICE_KEY, new Date().toISOString());
+  };
+
+  const executeRandomGeneration = () => {
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
     if (presentation) {
@@ -399,6 +418,49 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setSheetSavedToCloud(false); // Mark as not saved to cloud yet
   };
 
+  const onClickGenerate = async () => {
+    // Check sheet limit for authenticated users
+    if (isAuthenticated && !canCreate) {
+      setShowLimitDialog(true);
+      return;
+    }
+
+    // Show cloud save notice for non-authenticated users (once per 24h)
+    if (shouldShowCloudNotice()) {
+      setPendingGenerateAction('random');
+      setShowCloudSaveNotice(true);
+      return;
+    }
+
+    executeRandomGeneration();
+  };
+
+  const executeEmptyGeneration = () => {
+    // Always show wizard for manual creation
+    // The wizard determines level 1 choices regardless of final level
+    setWizardModalOpen(true);
+  };
+
+  const handleCloudNoticeContinue = () => {
+    markCloudNoticeShown();
+    setShowCloudSaveNotice(false);
+
+    // Execute the pending action
+    if (pendingGenerateAction === 'random') {
+      executeRandomGeneration();
+    } else if (pendingGenerateAction === 'empty') {
+      executeEmptyGeneration();
+    }
+    setPendingGenerateAction(null);
+  };
+
+  const handleCloudNoticeCreateAccount = () => {
+    markCloudNoticeShown();
+    setShowCloudSaveNotice(false);
+    setPendingGenerateAction(null);
+    history.push('/login?redirect=/criar-ficha');
+  };
+
   const onClickGenerateEmptySheet = async () => {
     // Check sheet limit for authenticated users
     if (isAuthenticated && !canCreate) {
@@ -406,9 +468,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       return;
     }
 
-    // Always show wizard for manual creation
-    // The wizard determines level 1 choices regardless of final level
-    setWizardModalOpen(true);
+    // Show cloud save notice for non-authenticated users (once per 24h)
+    if (shouldShowCloudNotice()) {
+      setPendingGenerateAction('empty');
+      setShowCloudSaveNotice(true);
+      return;
+    }
+
+    executeEmptyGeneration();
   };
 
   const finalizeSheet = (sheet: CharacterSheet) => {
@@ -1267,6 +1334,37 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
             color='warning'
           >
             Sair Sem Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cloud Save Notice Dialog (for non-authenticated users) */}
+      <Dialog open={showCloudSaveNotice} maxWidth='sm' fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <CloudIcon color='primary' />
+          Salve suas fichas na nuvem!
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Criando uma conta gratuita, você pode salvar suas fichas na nuvem e
+            acessá-las de qualquer dispositivo. Suas fichas ficam sincronizadas
+            e seguras!
+          </DialogContentText>
+          <DialogContentText>
+            Sem uma conta, suas fichas serão salvas apenas localmente no
+            navegador e podem ser perdidas se você limpar os dados do navegador.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleCloudNoticeContinue} variant='outlined'>
+            Continuar sem conta
+          </Button>
+          <Button
+            onClick={handleCloudNoticeCreateAccount}
+            variant='contained'
+            color='primary'
+          >
+            Criar conta gratuita
           </Button>
         </DialogActions>
       </Dialog>

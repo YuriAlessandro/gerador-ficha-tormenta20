@@ -17,6 +17,7 @@ import {
   canAccessFeature,
   hasReachedLimit,
   SubscriptionLimits,
+  isSupporter as checkIsSupporter,
 } from '../types/subscription.types';
 
 /**
@@ -37,6 +38,11 @@ export const useSubscription = () => {
   const error = useSelector((state: RootState) => state.subscription.error);
   const limits = useSelector((state: RootState) => state.subscription.limits);
 
+  // Get auth state to check if user is authenticated
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+
   // Get current tier (defaults to FREE if no subscription)
   const tier = subscription?.tier || SubscriptionTier.FREE;
   const status = subscription?.status || SubscriptionStatus.ACTIVE;
@@ -44,12 +50,12 @@ export const useSubscription = () => {
   const isPremium =
     tier !== SubscriptionTier.FREE && status === SubscriptionStatus.ACTIVE;
 
-  // Fetch subscription on mount if not loaded
+  // Fetch subscription on mount if not loaded (only for authenticated users)
   useEffect(() => {
-    if (!subscription && !loading) {
+    if (isAuthenticated && !subscription && !loading) {
       dispatch(fetchSubscription());
     }
-  }, [dispatch, subscription, loading]);
+  }, [dispatch, subscription, loading, isAuthenticated]);
 
   // Actions
   const loadSubscription = useCallback(() => {
@@ -98,15 +104,13 @@ export const useSubscription = () => {
   );
 
   const hasReached = useCallback(
-    (
-      limitType: keyof Pick<
-        SubscriptionLimits,
-        'maxSheets' | 'maxDiaries' | 'maxNotebooks'
-      >,
-      currentCount: number
-    ): boolean => hasReachedLimit(tier, limitType, currentCount),
+    (limitType: 'maxSheets', currentCount: number): boolean =>
+      hasReachedLimit(tier, limitType, currentCount),
     [tier]
   );
+
+  // Check if user is a supporter (any paid level)
+  const isUserSupporter = checkIsSupporter(tier);
 
   const getLimit = useCallback(
     (limitType: keyof SubscriptionLimits): number | boolean =>
@@ -118,9 +122,11 @@ export const useSubscription = () => {
     // Subscription data
     subscription,
     tier,
+    supportLevel: tier, // Alias for new terminology
     status,
     isActive,
     isPremium,
+    isSupporter: isUserSupporter, // Is user a supporter (any paid level)
     limits,
 
     // Pricing and invoices

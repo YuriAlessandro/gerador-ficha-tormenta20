@@ -9,7 +9,7 @@ import {
   Paper,
   useTheme,
 } from '@mui/material';
-import { Psychology } from '@mui/icons-material';
+import { Psychology, Favorite } from '@mui/icons-material';
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -70,6 +70,66 @@ const LandingPage: React.FC<{
           >
             &ldquo;Khalmyr tem o tabuleiro, mas quem move as peças é Nimb&rdquo;
           </Typography>
+        </Box>
+
+        {/* Support Banner */}
+        <Box
+          onClick={() => onClickButton('apoiar')}
+          sx={{
+            width: '100%',
+            mb: 4,
+            p: { xs: 2, sm: 3 },
+            borderRadius: 3,
+            cursor: 'pointer',
+            background: `linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%)`,
+            boxShadow: '0 4px 20px rgba(255, 165, 0, 0.3)',
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: { xs: 1, sm: 2 },
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 24px rgba(255, 165, 0, 0.4)',
+            },
+          }}
+        >
+          <Favorite
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2rem' },
+              color: '#FFFFFF',
+              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+            }}
+          />
+          <Typography
+            variant='h6'
+            sx={{
+              color: '#FFFFFF',
+              fontWeight: 'bold',
+              textAlign: 'center',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' },
+            }}
+          >
+            Apoie o Fichas de Nimb e ajude a manter o projeto funcionando!
+          </Typography>
+          <Button
+            variant='contained'
+            size='small'
+            sx={{
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#FF8C00',
+              fontWeight: 'bold',
+              px: { xs: 2, sm: 3 },
+              '&:hover': {
+                backgroundColor: '#FFFFFF',
+              },
+              display: { xs: 'none', sm: 'inline-flex' },
+            }}
+          >
+            Saiba mais
+          </Button>
         </Box>
 
         {/* Main Tools - 3 Big Cards - Modern Edition */}

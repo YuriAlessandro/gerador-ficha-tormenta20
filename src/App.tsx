@@ -66,9 +66,9 @@ import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { SupplementId } from './types/supplement.types';
 import tormentaLogo from './assets/images/tormenta-logo-eye.png';
-// DISABLED: Premium subscription UI temporarily hidden
-// import PricingPage from './components/Premium/PricingPage';
-// import SubscriptionManagement from './components/Premium/SubscriptionManagement';
+// Support page
+import SupportPage from './components/Premium/SupportPage';
+import SupportSuccessPage from './components/Premium/SupportSuccessPage';
 
 // Premium features
 import {
@@ -412,16 +412,13 @@ function App(): JSX.Element {
                                 <Route path='/u/:username'>
                                   <ProfilePage />
                                 </Route>
-                                {/* DISABLED: Premium subscription UI temporarily hidden
-                                <Route path='/pricing'>
-                                  <PricingPage />
+                                {/* Support pages */}
+                                <Route path='/apoiar/sucesso'>
+                                  <SupportSuccessPage />
                                 </Route>
-                                <Route path='/subscription'>
-                                  <ProtectedRoute requireAuth redirectTo='/'>
-                                    <SubscriptionManagement />
-                                  </ProtectedRoute>
+                                <Route path='/apoiar'>
+                                  <SupportPage />
                                 </Route>
-                                */}
                                 {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={isDarkTheme} />
               </Route> */}
