@@ -46,6 +46,7 @@ export interface GeneralPowersWithSupplement {
   DESTINO: GeneralPowerWithSupplement[];
   MAGIA: GeneralPowerWithSupplement[];
   TORMENTA: GeneralPowerWithSupplement[];
+  RACA: GeneralPowerWithSupplement[];
 }
 
 export interface GolpePessoalEffectWithSupplement extends GolpePessoalEffect {
@@ -316,6 +317,7 @@ class DataRegistry {
         DESTINO: [],
         MAGIA: [],
         TORMENTA: [],
+        RACA: [],
       };
     }
 
@@ -326,6 +328,7 @@ class DataRegistry {
       DESTINO: [],
       MAGIA: [],
       TORMENTA: [],
+      RACA: [],
     };
 
     supplements.forEach((id) => {
@@ -336,6 +339,7 @@ class DataRegistry {
         combinedPowers.DESTINO.push(...supplementPowers.DESTINO);
         combinedPowers.MAGIA.push(...supplementPowers.MAGIA);
         combinedPowers.TORMENTA.push(...supplementPowers.TORMENTA);
+        combinedPowers.RACA.push(...supplementPowers.RACA);
       }
     });
 
@@ -370,6 +374,7 @@ class DataRegistry {
       DESTINO: [],
       MAGIA: [],
       TORMENTA: [],
+      RACA: [],
     };
 
     if (!systemData) return result;
@@ -410,6 +415,13 @@ class DataRegistry {
         );
         result.TORMENTA.push(
           ...supplementPowers.TORMENTA.map((p) => ({
+            ...p,
+            supplementId,
+            supplementName,
+          }))
+        );
+        result.RACA.push(
+          ...supplementPowers.RACA.map((p) => ({
             ...p,
             supplementId,
             supplementName,

@@ -22,6 +22,7 @@ export const TORMENTA20_DEUSES_ARTON_SUPPLEMENT: SupplementData = {
     [GeneralPowerType.CONCEDIDOS]:
       DEUSES_ARTON_POWERS[GeneralPowerType.CONCEDIDOS],
     [GeneralPowerType.TORMENTA]: DEUSES_ARTON_POWERS[GeneralPowerType.TORMENTA],
+    [GeneralPowerType.RACA]: DEUSES_ARTON_POWERS[GeneralPowerType.RACA],
   },
   equipment: DEUSES_ARTON_EQUIPMENT,
   improvements: DEUSES_ARTON_IMPROVEMENTS,

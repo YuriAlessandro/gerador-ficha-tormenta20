@@ -12,6 +12,7 @@ const AMEACAS_ARTON_POWERS: GeneralPowers = {
   DESTINO: [...DRACONIC_BLESSINGS, ...KOBOLDS_TALENTS, ...MECHANICAL_MARVELS],
   MAGIA: [],
   TORMENTA: [],
+  RACA: [],
 };
 
 export default AMEACAS_ARTON_POWERS;

@@ -230,6 +230,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       name: 'Poderes Concedidos',
       powers: allPowersByCategory.CONCEDIDOS,
     },
+    {
+      type: GeneralPowerType.RACA,
+      name: 'Poderes de Raça',
+      powers: allPowersByCategory.RACA,
+    },
   ];
 
   const handlePowerToggle = (power: GeneralPower) => {

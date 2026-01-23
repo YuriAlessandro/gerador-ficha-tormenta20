@@ -192,7 +192,11 @@ const OriginsTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
-  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_ATLAS_ARTON]);
+  >([
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_ATLAS_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
+  ]);
   const [origins, setOrigins] = useState<OriginWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedOrigin?: string }>();
   const history = useHistory();
@@ -258,6 +262,7 @@ const OriginsTable: React.FC = () => {
         availableSupplements={[
           SupplementId.TORMENTA20_CORE,
           SupplementId.TORMENTA20_ATLAS_ARTON,
+          SupplementId.TORMENTA20_HEROIS_ARTON,
         ]}
         onToggleSupplement={handleToggleSupplement}
       />

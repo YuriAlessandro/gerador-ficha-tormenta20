@@ -23,6 +23,7 @@ export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
     [GeneralPowerType.CONCEDIDOS]:
       HEROIS_ARTON_POWERS[GeneralPowerType.CONCEDIDOS],
     [GeneralPowerType.TORMENTA]: HEROIS_ARTON_POWERS[GeneralPowerType.TORMENTA],
+    [GeneralPowerType.RACA]: HEROIS_ARTON_POWERS[GeneralPowerType.RACA],
   },
   equipment: HEROIS_ARTON_EQUIPMENT,
   origins: HEROIS_ARTON_ORIGINS,

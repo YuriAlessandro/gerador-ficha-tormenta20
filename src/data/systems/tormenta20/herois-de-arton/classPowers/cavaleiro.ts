@@ -1,7 +1,6 @@
 import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
 import Skill from '../../../../../interfaces/Skills';
-import { Atributo } from '../../atributos';
 
 /**
  * Poderes de Cavaleiro do suplemento Heróis de Arton

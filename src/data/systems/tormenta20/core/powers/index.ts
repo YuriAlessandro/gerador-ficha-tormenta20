@@ -14,6 +14,7 @@ const CORE_POWERS: GeneralPowers = {
   DESTINO: Object.values(destinyPowers),
   MAGIA: Object.values(spellPowers),
   TORMENTA: Object.values(tormentaPowers),
+  RACA: [],
 };
 
 export default CORE_POWERS;

@@ -13,6 +13,7 @@ export enum GeneralPowerType {
   MAGIA = 'MAGIA',
   CONCEDIDOS = 'CONCEDIDOS',
   TORMENTA = 'TORMENTA',
+  RACA = 'RACA',
 }
 
 export enum RequirementType {

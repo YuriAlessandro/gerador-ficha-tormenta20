@@ -205,6 +205,7 @@ const PowersTable: React.FC = () => {
     SupplementId.TORMENTA20_CORE,
     SupplementId.TORMENTA20_AMEACAS_ARTON,
     SupplementId.TORMENTA20_DEUSES_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
   ]);
   const [allPowersByCategory, setAllPowersByCategory] =
     useState<GeneralPowersWithSupplement>(() =>
@@ -212,6 +213,7 @@ const PowersTable: React.FC = () => {
         SupplementId.TORMENTA20_CORE,
         SupplementId.TORMENTA20_AMEACAS_ARTON,
         SupplementId.TORMENTA20_DEUSES_ARTON,
+        SupplementId.TORMENTA20_HEROIS_ARTON,
       ])
     );
 
@@ -221,6 +223,7 @@ const PowersTable: React.FC = () => {
     ...allPowersByCategory.DESTINO,
     ...allPowersByCategory.MAGIA,
     ...allPowersByCategory.TORMENTA,
+    ...allPowersByCategory.RACA,
   ];
 
   const [value, setValue] = useState('');
@@ -233,6 +236,7 @@ const PowersTable: React.FC = () => {
   const destinyRef = useRef<null | HTMLDivElement>(null);
   const magicRef = useRef<null | HTMLDivElement>(null);
   const tormentaRef = useRef<null | HTMLDivElement>(null);
+  const racaRef = useRef<null | HTMLDivElement>(null);
 
   // Update powers when supplements change
   useEffect(() => {
@@ -301,6 +305,9 @@ const PowersTable: React.FC = () => {
       case 4:
         tormentaRef.current?.scrollIntoView({ behavior: 'smooth' });
         break;
+      case 5:
+        racaRef.current?.scrollIntoView({ behavior: 'smooth' });
+        break;
       default:
         break;
     }
@@ -350,6 +357,7 @@ const PowersTable: React.FC = () => {
           SupplementId.TORMENTA20_CORE,
           SupplementId.TORMENTA20_AMEACAS_ARTON,
           SupplementId.TORMENTA20_DEUSES_ARTON,
+          SupplementId.TORMENTA20_HEROIS_ARTON,
         ]}
         onToggleSupplement={handleToggleSupplement}
       />
@@ -390,6 +398,7 @@ const PowersTable: React.FC = () => {
           <Tab label='Destino' />
           <Tab label='Magia' />
           <Tab label='Tormenta' />
+          <Tab label='Raça' />
         </Tabs>
       </Box>
 
@@ -456,6 +465,11 @@ const PowersTable: React.FC = () => {
                   'Poderes da Tormenta',
                   allPowersByCategory.TORMENTA,
                   tormentaRef
+                )}
+                {renderPowerSection(
+                  'Poderes de Raça',
+                  allPowersByCategory.RACA,
+                  racaRef
                 )}
               </>
             )}

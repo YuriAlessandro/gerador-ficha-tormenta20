@@ -617,6 +617,7 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
     },
   ],
   [GeneralPowerType.TORMENTA]: [],
+  [GeneralPowerType.RACA]: [],
 };
 
 export default DEUSES_ARTON_POWERS;
