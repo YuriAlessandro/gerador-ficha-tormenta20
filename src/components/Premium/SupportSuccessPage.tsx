@@ -42,6 +42,7 @@ const SupportSuccessPage: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [loading, isSupporter, loadAttempts, loadSubscription]);
 
   const handleGoToProfile = () => {
