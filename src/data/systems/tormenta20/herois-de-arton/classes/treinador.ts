@@ -202,7 +202,7 @@ const TREINADOR: ClassDescription = {
     OCEANO: 1,
     NIMB: 1,
   },
-  attrPriority: [Atributo.CARISMA, Atributo.CONSTITUICAO, Atributo.SABEDORIA],
+  attrPriority: [Atributo.CARISMA],
 };
 
 export default TREINADOR;

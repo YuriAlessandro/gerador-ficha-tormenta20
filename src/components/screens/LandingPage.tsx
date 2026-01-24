@@ -7,11 +7,17 @@ import {
   Button,
   Typography,
   Paper,
+  Chip,
   useTheme,
 } from '@mui/material';
-import { Psychology, Favorite } from '@mui/icons-material';
+import {
+  Psychology,
+  Favorite,
+  Groups as GroupsIcon,
+} from '@mui/icons-material';
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../hooks/useSubscription';
 
 const LandingPage: React.FC<{
   onClickButton: (link: string) => void;
@@ -19,6 +25,7 @@ const LandingPage: React.FC<{
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
   const { isAuthenticated } = useAuth();
+  const { canAccessGameTables } = useSubscription();
 
   const onOpenLink = (link: string) => {
     window.open(link);
@@ -499,6 +506,184 @@ const LandingPage: React.FC<{
               </Grid>
             </Grid>
           </Grid>
+        </Box>
+
+        {/* Game Tables Section - Available to all authenticated users */}
+        <Box sx={{ mb: 6 }}>
+          <Card
+            onClick={() => onClickButton(isAuthenticated ? 'mesas' : 'apoiar')}
+            sx={{
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: 'center',
+              background: canAccessGameTables
+                ? `linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)`
+                : `linear-gradient(135deg, ${theme.palette.grey[700]} 0%, ${theme.palette.grey[900]} 100%)`,
+              border: `2px solid ${
+                canAccessGameTables ? '#7C3AED' : theme.palette.grey[600]
+              }`,
+              borderRadius: 3,
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: canAccessGameTables
+                  ? '0 12px 28px rgba(124, 58, 237, 0.3)'
+                  : `0 12px 28px ${theme.palette.grey[900]}40`,
+                '& .table-icon': {
+                  transform: 'scale(1.1)',
+                },
+              },
+            }}
+          >
+            {/* Premium Badge */}
+            <Chip
+              label={canAccessGameTables ? 'Premium' : 'Requer Login'}
+              size='small'
+              sx={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                backgroundColor: canAccessGameTables ? '#FFD700' : '#FF8C00',
+                color: '#000',
+                fontWeight: 'bold',
+                fontSize: '0.7rem',
+              }}
+            />
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                p: { xs: 3, md: 4 },
+                width: '100%',
+                gap: 3,
+              }}
+            >
+              <Box
+                className='table-icon'
+                sx={{
+                  minWidth: { xs: 60, md: 80 },
+                  height: { xs: 60, md: 80 },
+                  borderRadius: 3,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <GroupsIcon
+                  sx={{
+                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    color: '#FFFFFF',
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant='h5'
+                  component='h3'
+                  sx={{
+                    fontFamily: 'Tfont',
+                    fontWeight: 700,
+                    mb: 0.5,
+                    fontSize: { xs: '1.2rem', md: '1.5rem' },
+                    color: '#FFFFFF',
+                  }}
+                >
+                  Mesas de Jogo
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    fontSize: { xs: '0.9rem', md: '1rem' },
+                    lineHeight: 1.4,
+                    maxWidth: 500,
+                  }}
+                >
+                  {canAccessGameTables
+                    ? 'Crie mesas virtuais, convide jogadores e jogue em tempo real com rolagem de dados sincronizada'
+                    : 'Participe de mesas virtuais, aceite convites e jogue em tempo real com seus amigos'}
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    px: 2,
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    Convites
+                  </Typography>
+                  <Typography
+                    variant='h6'
+                    sx={{ color: '#FFFFFF', fontWeight: 'bold' }}
+                  >
+                    Ilimitados
+                  </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    px: 2,
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '0.75rem',
+                    }}
+                  >
+                    Dados
+                  </Typography>
+                  <Typography
+                    variant='h6'
+                    sx={{ color: '#FFFFFF', fontWeight: 'bold' }}
+                  >
+                    Em tempo real
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontSize: '1rem',
+                }}
+              >
+                →
+              </Box>
+            </Box>
+          </Card>
         </Box>
 
         {/* Secondary Tools */}

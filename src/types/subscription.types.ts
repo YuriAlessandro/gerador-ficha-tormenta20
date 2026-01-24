@@ -57,6 +57,8 @@ export interface Subscription {
 export interface SubscriptionLimits {
   maxSheets: number;
   canComment: boolean;
+  maxGameTables: number; // 0 = not available, -1 = unlimited
+  maxPlayersPerTable: number; // -1 = unlimited
 }
 
 /**
@@ -157,26 +159,38 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
   [SupportLevel.FREE]: {
     maxSheets: 5,
     canComment: false,
+    maxGameTables: 0,
+    maxPlayersPerTable: 0,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 5, // Same as FREE (badge only)
     canComment: false,
+    maxGameTables: 0,
+    maxPlayersPerTable: 0,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 10,
     canComment: true,
+    maxGameTables: 1,
+    maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: 20,
     canComment: true,
+    maxGameTables: 5,
+    maxPlayersPerTable: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 10, // Same as NIVEL_2
     canComment: true,
+    maxGameTables: 1,
+    maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: 20, // Same as NIVEL_3
     canComment: true,
+    maxGameTables: 5,
+    maxPlayersPerTable: -1, // Unlimited
   },
 };
 
@@ -219,11 +233,21 @@ export function canAccessFeature(
  */
 export function hasReachedLimit(
   level: SupportLevel,
-  limitType: 'maxSheets',
+  limitType: 'maxSheets' | 'maxGameTables' | 'maxPlayersPerTable',
   currentCount: number
 ): boolean {
   const limits = getSupportLimits(level);
   const maxAllowed = limits[limitType];
+
+  // -1 means unlimited
+  if (maxAllowed === -1) {
+    return false;
+  }
+
+  // 0 means feature not available
+  if (maxAllowed === 0) {
+    return true;
+  }
 
   return currentCount >= maxAllowed;
 }
@@ -240,4 +264,21 @@ export function isSupporter(level: SupportLevel): boolean {
  */
 export function getSupportLevelName(level: SupportLevel): string {
   return SUPPORT_LEVEL_CONFIG[level].name;
+}
+
+/**
+ * Helper to check if user can access game tables (NIVEL_2 or higher)
+ */
+export function canAccessGameTables(level: SupportLevel): boolean {
+  const limits = getSupportLimits(level);
+  return limits.maxGameTables > 0;
+}
+
+/**
+ * Helper to get max players per table for a support level
+ * Returns null if unlimited
+ */
+export function getMaxPlayersPerTable(level: SupportLevel): number | null {
+  const limits = getSupportLimits(level);
+  return limits.maxPlayersPerTable === -1 ? null : limits.maxPlayersPerTable;
 }

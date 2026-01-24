@@ -18,6 +18,7 @@ import {
   hasReachedLimit,
   SubscriptionLimits,
   isSupporter as checkIsSupporter,
+  canAccessGameTables as checkCanAccessGameTables,
 } from '../types/subscription.types';
 
 /**
@@ -104,13 +105,18 @@ export const useSubscription = () => {
   );
 
   const hasReached = useCallback(
-    (limitType: 'maxSheets', currentCount: number): boolean =>
-      hasReachedLimit(tier, limitType, currentCount),
+    (
+      limitType: 'maxSheets' | 'maxGameTables' | 'maxPlayersPerTable',
+      currentCount: number
+    ): boolean => hasReachedLimit(tier, limitType, currentCount),
     [tier]
   );
 
   // Check if user is a supporter (any paid level)
   const isUserSupporter = checkIsSupporter(tier);
+
+  // Check if user can access game tables (NIVEL_2 or higher)
+  const canAccessGameTables = checkCanAccessGameTables(tier) && isActive;
 
   const getLimit = useCallback(
     (limitType: keyof SubscriptionLimits): number | boolean =>
@@ -127,6 +133,7 @@ export const useSubscription = () => {
     isActive,
     isPremium,
     isSupporter: isUserSupporter, // Is user a supporter (any paid level)
+    canAccessGameTables, // Can access game tables (NIVEL_2 or higher)
     limits,
 
     // Pricing and invoices

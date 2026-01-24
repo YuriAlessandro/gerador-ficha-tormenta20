@@ -42,6 +42,7 @@ import {
   FileCopy as DuplicateIcon,
   Person as PersonIcon,
   Dangerous as ThreatIcon,
+  Groups as TableIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
@@ -203,6 +204,14 @@ const MyCharactersPage: React.FC = () => {
     } catch (err) {
       // Silently fail - user will see the error from Redux
     }
+  };
+
+  const handleNavigateToTable = (
+    e: React.MouseEvent,
+    tableId: string
+  ): void => {
+    e.stopPropagation();
+    history.push(`/mesas/${tableId}`);
   };
 
   const getDescription = (sheet: SheetData) => {
@@ -669,13 +678,43 @@ const MyCharactersPage: React.FC = () => {
                       {getDescription(sheet)}
                     </Typography>
 
-                    <Stack direction='row' spacing={1} alignItems='center'>
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      alignItems='center'
+                      flexWrap='wrap'
+                      useFlexGap
+                    >
                       <Chip
                         label={`Nível ${getLevel(sheet)}`}
                         size='small'
                         color='primary'
                         variant='outlined'
                       />
+                      {sheet.assignedTableId && (
+                        <Tooltip title='Ir para a mesa'>
+                          <Chip
+                            icon={<TableIcon />}
+                            label={sheet.assignedTableId.name}
+                            size='small'
+                            color='secondary'
+                            variant='filled'
+                            onClick={(e) =>
+                              handleNavigateToTable(
+                                e,
+                                // eslint-disable-next-line no-underscore-dangle
+                                sheet.assignedTableId!._id
+                              )
+                            }
+                            sx={{
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: 'secondary.dark',
+                              },
+                            }}
+                          />
+                        </Tooltip>
+                      )}
                     </Stack>
 
                     <Typography

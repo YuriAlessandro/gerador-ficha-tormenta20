@@ -1,6 +1,11 @@
 import { SerializedSheetInterface } from 't20-sheet-builder';
 import api from './api';
 
+export interface AssignedTable {
+  _id: string;
+  name: string;
+}
+
 export interface SheetData {
   id: string;
   userId: string;
@@ -11,6 +16,7 @@ export interface SheetData {
   createdAt: string;
   updatedAt: string;
   ownerFirebaseUid?: string;
+  assignedTableId?: AssignedTable | null;
 }
 
 export interface CreateSheetRequest {
@@ -49,6 +55,7 @@ interface MongoSheetData {
   createdAt: string;
   updatedAt: string;
   ownerFirebaseUid?: string;
+  assignedTableId?: AssignedTable | null;
 }
 
 class SheetsService {
@@ -68,6 +75,7 @@ class SheetsService {
       createdAt: sheet.createdAt,
       updatedAt: sheet.updatedAt,
       ownerFirebaseUid: sheet.ownerFirebaseUid,
+      assignedTableId: sheet.assignedTableId,
     };
   }
 

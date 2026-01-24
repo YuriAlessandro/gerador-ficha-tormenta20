@@ -150,12 +150,25 @@ const SupportPage: React.FC = () => {
           color='text.secondary'
           sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
         >
+          É importante salientar: o Fichas de Nimb é um projeto sem fins
+          lucrativos. Todos os desenvolvedores trabalham no projeto no tempo
+          livre, por vontade própria, quando podem e se estiverem dispostos.
+          Isso quer dizer que nem sempre temos desenvolvedores disponíveis para
+          o projeto o tempo todo, e por isso as coisas andam bem devagar por
+          aqui.
+        </Typography>
+        <Typography
+          variant='body1'
+          color='text.secondary'
+          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
+        >
           Com o seu apoio, você ajuda a manter o projeto de pé, com atualizações
           constantes, crescimento para novos sistemas, novos suplementos, e cada
           vez mais features. Com mais e mais apoio, conseguiremos dedicar mais
           tempo para o projeto e contratar pessoas que possam nós ajudar a tocar
           diversos dos planos que temos para esse projeto - que não está nem
-          perto do fim.
+          perto do fim. Além disso, conseguimos pagar por ferramentas que nos
+          ajudem a acelar o desenvolvimento do projeto.
         </Typography>
         <Typography
           variant='body1'
@@ -185,7 +198,15 @@ const SupportPage: React.FC = () => {
       {!isMobile && (
         <Box sx={{ mt: 4 }}>
           <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-            Os pagamentos são processados de forma segura através do Stripe.
+            Os pagamentos são processados de forma segura através do{' '}
+            <a
+              href='https://docs.stripe.com/security'
+              target='_blank'
+              rel='noreferrer'
+            >
+              Stripe
+            </a>
+            .
           </Typography>
           <Typography variant='body2' color='text.secondary'>
             Você pode cancelar seu apoio a qualquer momento.
