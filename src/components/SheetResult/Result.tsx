@@ -208,6 +208,15 @@ const Result: React.FC<ResultProps> = (props) => {
       const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
         p.name === power.name ? { ...p, rolls: newRolls } : p
       );
+      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, rolls: newRolls } : a
+      );
+      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, rolls: newRolls } : a
+      );
+      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
 
       const updatedSheet = {
         ...currentSheet,
@@ -217,6 +226,18 @@ const Result: React.FC<ResultProps> = (props) => {
           currentSheet.origin && updatedOriginPowers
             ? { ...currentSheet.origin, powers: updatedOriginPowers }
             : currentSheet.origin,
+        raca:
+          currentSheet.raca && updatedRaceAbilities
+            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
+            : currentSheet.raca,
+        classe:
+          currentSheet.classe && updatedClassAbilities
+            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
+            : currentSheet.classe,
+        devoto:
+          currentSheet.devoto && updatedDeityPowers
+            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
+            : currentSheet.devoto,
       };
 
       setCurrentSheet(updatedSheet);
