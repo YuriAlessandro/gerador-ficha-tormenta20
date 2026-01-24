@@ -42,10 +42,11 @@ interface PowerDisplayProps {
     power: ClassPower | RaceAbility | ClassAbility | OriginPower,
     newRolls: DiceRoll[]
   ) => void;
+  characterName?: string;
 }
 
 const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
-  ({ sheetHistory, power, type, count, onUpdateRolls }) => {
+  ({ sheetHistory, power, type, count, onUpdateRolls, characterName }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
     const theme = useTheme();
@@ -137,7 +138,12 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
           <Stack direction='row' alignItems='center' spacing={0.5}>
             {powerRolls.length > 0 && (
               <Box onClick={(e) => e.stopPropagation()}>
-                <RollButton rolls={powerRolls} iconOnly size='small' />
+                <RollButton
+                  rolls={powerRolls}
+                  iconOnly
+                  size='small'
+                  characterName={characterName}
+                />
               </Box>
             )}
             <Typography

@@ -13,6 +13,7 @@ interface RollButtonProps {
   iconOnly?: boolean;
   size?: 'small' | 'medium' | 'large';
   onRollComplete?: (results: RollGroup[]) => void;
+  characterName?: string;
 }
 
 const RollButton: React.FC<RollButtonProps> = ({
@@ -22,6 +23,7 @@ const RollButton: React.FC<RollButtonProps> = ({
   iconOnly = false,
   size = 'small',
   onRollComplete,
+  characterName,
 }) => {
   const { showDiceResult } = useDiceRoll();
 
@@ -41,7 +43,7 @@ const RollButton: React.FC<RollButtonProps> = ({
     const overallLabel =
       rolls.length === 1 ? rolls[0].label : 'Rolagem de Poder';
 
-    showDiceResult(overallLabel, rollGroups);
+    showDiceResult(overallLabel, rollGroups, characterName);
 
     if (onRollComplete) {
       onRollComplete(rollGroups);

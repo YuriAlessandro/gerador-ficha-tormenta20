@@ -27,6 +27,7 @@ const PowersDisplay: React.FC<{
     power: ClassPower | RaceAbility | ClassAbility | OriginPower | GeneralPower,
     newRolls: DiceRoll[]
   ) => void;
+  characterName?: string;
 }> = ({
   sheetHistory,
   classPowers,
@@ -39,6 +40,7 @@ const PowersDisplay: React.FC<{
   raceName,
   deityName,
   onUpdateRolls,
+  characterName,
 }) => {
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
@@ -110,6 +112,7 @@ const PowersDisplay: React.FC<{
           type={getPowerOrigin(power)}
           count={powerCount[power.name]}
           onUpdateRolls={onUpdateRolls}
+          characterName={characterName}
         />
       ))}
     </Box>

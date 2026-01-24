@@ -9,10 +9,11 @@ interface WeaponProps {
   rangeBonus: number;
   fightBonus: number;
   modDano: number;
+  characterName?: string;
 }
 
 const Weapon: React.FC<WeaponProps> = (props) => {
-  const { equipment, rangeBonus, fightBonus, modDano } = props;
+  const { equipment, rangeBonus, fightBonus, modDano, characterName } = props;
   const { nome, dano, critico, alcance, atkBonus } = equipment;
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
@@ -46,24 +47,28 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     const atkModifierStr = atk >= 0 ? `+${atk}` : `${atk}`;
     const attackDiceNotation = `1d20${atkModifierStr}`;
 
-    showDiceResult(nome, [
-      {
-        label: 'Ataque',
-        diceNotation: attackDiceNotation,
-        rolls: [attackRoll],
-        modifier: atk,
-        total: attackTotal,
-        isCritical,
-        isFumble,
-      },
-      {
-        label: 'Dano',
-        diceNotation: damageRollResult.diceString,
-        rolls: damageRollResult.diceRolls,
-        modifier: damageRollResult.modifier,
-        total: Math.max(1, damageRollResult.total),
-      },
-    ]);
+    showDiceResult(
+      nome,
+      [
+        {
+          label: 'Ataque',
+          diceNotation: attackDiceNotation,
+          rolls: [attackRoll],
+          modifier: atk,
+          total: attackTotal,
+          isCritical,
+          isFumble,
+        },
+        {
+          label: 'Dano',
+          diceNotation: damageRollResult.diceString,
+          rolls: damageRollResult.diceRolls,
+          modifier: damageRollResult.modifier,
+          total: Math.max(1, damageRollResult.total),
+        },
+      ],
+      characterName
+    );
   };
 
   return (

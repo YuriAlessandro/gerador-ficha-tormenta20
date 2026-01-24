@@ -22,10 +22,11 @@ import RollButton from './RollButton';
 interface SpellProps {
   spell: Spell;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
+  characterName?: string;
 }
 
 const SpellRow: React.FC<SpellProps> = React.memo((props) => {
-  const { spell, onUpdateRolls } = props;
+  const { spell, onUpdateRolls, characterName } = props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
@@ -72,7 +73,12 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
             <Stack direction='row' alignItems='center' spacing={0.5}>
               {spell.rolls && spell.rolls.length > 0 && (
                 <Box onClick={(e) => e.stopPropagation()}>
-                  <RollButton rolls={spell.rolls} iconOnly size='small' />
+                  <RollButton
+                    rolls={spell.rolls}
+                    iconOnly
+                    size='small'
+                    characterName={characterName}
+                  />
                 </Box>
               )}
               <Typography

@@ -9,10 +9,12 @@ interface WeaponsProps {
   rangeBonus: number;
   fightBonus: number;
   modFor: number;
+  characterName?: string;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
-  const { weapons, getKey, rangeBonus, fightBonus, modFor } = props;
+  const { weapons, getKey, rangeBonus, fightBonus, modFor, characterName } =
+    props;
   const weaponsDiv = weapons.map((equip) => (
     <Weapon
       key={getKey(equip.nome)}
@@ -20,6 +22,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       fightBonus={fightBonus}
       rangeBonus={rangeBonus}
       modDano={modFor}
+      characterName={characterName}
     />
   ));
 

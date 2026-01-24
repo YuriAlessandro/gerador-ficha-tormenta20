@@ -11,9 +11,10 @@ import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 type Props = {
   attributes: CharacterAttributes;
+  characterName?: string;
 };
 
-const AttributeDisplay = ({ attributes }: Props) => {
+const AttributeDisplay = ({ attributes, characterName }: Props) => {
   const theme = useTheme();
   const { settings, roll3D, isReady } = useDice3D();
   const { showDiceResult } = useDiceRoll();
@@ -71,17 +72,21 @@ const AttributeDisplay = ({ attributes }: Props) => {
     const modifierStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
     const diceNotation = `1d20${modifierStr}`;
 
-    showDiceResult(`Teste de ${attributeName}`, [
-      {
-        label: attributeName,
-        diceNotation,
-        rolls: [d20Roll],
-        modifier,
-        total,
-        isCritical,
-        isFumble,
-      },
-    ]);
+    showDiceResult(
+      `Teste de ${attributeName}`,
+      [
+        {
+          label: attributeName,
+          diceNotation,
+          rolls: [d20Roll],
+          modifier,
+          total,
+          isCritical,
+          isFumble,
+        },
+      ],
+      characterName
+    );
   };
 
   return (

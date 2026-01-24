@@ -426,9 +426,10 @@ const Result: React.FC<ResultProps> = (props) => {
         fightBonus={fightBonus}
         rangeBonus={rangeBonus}
         modFor={modFor}
+        characterName={nome}
       />
     ),
-    [bagEquipments.Arma, fightBonus, rangeBonus, modFor]
+    [bagEquipments.Arma, fightBonus, rangeBonus, modFor, nome]
   );
 
   const defenseEquipments = useMemo(
@@ -645,7 +646,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   : { mt: '-90px', position: 'relative' }
               }
             >
-              <AttributeDisplay attributes={atributos} />
+              <AttributeDisplay attributes={atributos} characterName={nome} />
             </Box>
 
             {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
@@ -862,6 +863,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   onUpdateRolls={
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
                   }
+                  characterName={nome}
                 />
               </Box>
             </Card>
@@ -897,6 +899,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   onUpdateRolls={
                     onSheetUpdate ? handleSpellRollsUpdate : undefined
                   }
+                  characterName={nome}
                 />
               </Box>
             </Card>

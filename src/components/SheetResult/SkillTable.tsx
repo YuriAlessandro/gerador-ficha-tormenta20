@@ -89,17 +89,21 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     const modifierStr = skillTotal >= 0 ? `+${skillTotal}` : `${skillTotal}`;
     const diceNotation = `1d20${modifierStr}`;
 
-    showDiceResult(`Teste de ${skill.name}`, [
-      {
-        label: skill.name,
-        diceNotation,
-        rolls: [d20Roll],
-        modifier: skillTotal,
-        total,
-        isCritical,
-        isFumble,
-      },
-    ]);
+    showDiceResult(
+      `Teste de ${skill.name}`,
+      [
+        {
+          label: skill.name,
+          diceNotation,
+          rolls: [d20Roll],
+          modifier: skillTotal,
+          total,
+          isCritical,
+          isFumble,
+        },
+      ],
+      sheet.nome
+    );
   };
 
   return (
