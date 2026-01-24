@@ -276,7 +276,6 @@ const SheetViewPage: React.FC = () => {
             sheet={sheet}
             isDarkMode={isDarkMode}
             onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
-            isSavedToCloud
           />
         </Box>
 

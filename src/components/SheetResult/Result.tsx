@@ -2,8 +2,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
-import HomeIcon from '@mui/icons-material/Home';
-import PersonIcon from '@mui/icons-material/Person';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Box,
@@ -48,7 +46,6 @@ import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
-import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
@@ -89,11 +86,10 @@ interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
-  isSavedToCloud?: boolean;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
-  const { sheet, isDarkMode, onSheetUpdate, isSavedToCloud } = props;
+  const { sheet, isDarkMode, onSheetUpdate } = props;
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
@@ -517,29 +513,9 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
-  // Breadcrumb items
-  const breadcrumbItems: BreadcrumbItem[] = useMemo(
-    () =>
-      isSavedToCloud
-        ? [
-            { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-            { label: 'Meus Personagens', href: '/meus-personagens' },
-            { label: nome, icon: <PersonIcon fontSize='small' /> },
-          ]
-        : [
-            { label: 'Home', href: '/', icon: <HomeIcon fontSize='small' /> },
-            { label: 'Criar Ficha', href: '/criar-ficha' },
-            { label: 'Resultado' },
-          ],
-    [isSavedToCloud, nome]
-  );
-
   return (
     <BackgroundBox isDarkMode={isDarkMode} sx={{ p: 2 }}>
       <Container maxWidth='xl'>
-        {/* Breadcrumb Navigation */}
-        <BreadcrumbNav items={breadcrumbItems} />
-
         <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
           {/* LADO ESQUERDO, 60% */}
           <Box width={isMobile ? '100%' : '60%'}>
