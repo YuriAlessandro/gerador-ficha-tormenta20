@@ -1,19 +1,10 @@
-import React, { useState } from 'react';
-import {
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Typography,
-  Box,
-  Stack,
-  Chip,
-} from '@mui/material';
+import React from 'react';
+import { Button, IconButton } from '@mui/material';
 import CasinoIcon from '@mui/icons-material/Casino';
-import { DiceRoll, RollResult } from '@/interfaces/DiceRoll';
-import { executeMultipleDiceRolls, formatRollResult } from '@/utils/diceRoller';
+import { DiceRoll } from '@/interfaces/DiceRoll';
+import { executeMultipleDiceRolls } from '@/utils/diceRoller';
+import { useDiceRoll } from '../premium/hooks/useDiceRoll';
+import { RollGroup } from '../premium/services/socket.service';
 
 interface RollButtonProps {
   rolls: DiceRoll[];
@@ -21,7 +12,7 @@ interface RollButtonProps {
   disabled?: boolean;
   iconOnly?: boolean;
   size?: 'small' | 'medium' | 'large';
-  onRollComplete?: (results: RollResult[]) => void;
+  onRollComplete?: (results: RollGroup[]) => void;
 }
 
 const RollButton: React.FC<RollButtonProps> = ({
@@ -32,96 +23,55 @@ const RollButton: React.FC<RollButtonProps> = ({
   size = 'small',
   onRollComplete,
 }) => {
-  const [open, setOpen] = useState(false);
-  const [results, setResults] = useState<RollResult[]>([]);
+  const { showDiceResult } = useDiceRoll();
 
   const handleRoll = () => {
     const rollResults = executeMultipleDiceRolls(rolls);
-    setResults(rollResults);
-    setOpen(true);
+
+    // Convert RollResult[] to RollGroup[]
+    const rollGroups: RollGroup[] = rollResults.map((result) => ({
+      label: result.label,
+      diceNotation: result.dice,
+      rolls: result.rolls,
+      modifier: result.modifier,
+      total: Math.max(1, result.total),
+    }));
+
+    // Determine overall label
+    const overallLabel =
+      rolls.length === 1 ? rolls[0].label : 'Rolagem de Poder';
+
+    showDiceResult(overallLabel, rollGroups);
 
     if (onRollComplete) {
-      onRollComplete(rollResults);
+      onRollComplete(rollGroups);
     }
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleReroll = () => {
-    handleRoll();
   };
 
   if (rolls.length === 0) {
     return null;
   }
 
-  return (
-    <>
-      {iconOnly ? (
-        <IconButton
-          size={size}
-          onClick={handleRoll}
-          disabled={disabled}
-          color='primary'
-          title='Rolar dados'
-        >
-          <CasinoIcon />
-        </IconButton>
-      ) : (
-        <Button
-          size={size}
-          startIcon={<CasinoIcon />}
-          onClick={handleRoll}
-          disabled={disabled}
-          variant='outlined'
-        >
-          {label}
-        </Button>
-      )}
-
-      <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>
-          <Stack direction='row' alignItems='center' spacing={1}>
-            <CasinoIcon />
-            <Typography variant='h6'>Resultados das Rolagens</Typography>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2}>
-            {results.map((result, index) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <Box key={index}>
-                <Typography variant='subtitle1' fontWeight='bold'>
-                  {result.label}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 0.5 }}
-                >
-                  {formatRollResult(result)}
-                </Typography>
-                <Chip
-                  label={`Total: ${result.total}`}
-                  color='primary'
-                  size='small'
-                />
-              </Box>
-            ))}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleReroll} startIcon={<CasinoIcon />}>
-            Rolar Novamente
-          </Button>
-          <Button onClick={handleClose} variant='contained'>
-            Fechar
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+  return iconOnly ? (
+    <IconButton
+      size={size}
+      onClick={handleRoll}
+      disabled={disabled}
+      color='primary'
+      title='Rolar dados'
+    >
+      <CasinoIcon />
+    </IconButton>
+  ) : (
+    <Button
+      size={size}
+      startIcon={<CasinoIcon />}
+      onClick={handleRoll}
+      disabled={disabled}
+      variant='outlined'
+    >
+      {label}
+    </Button>
   );
 };
 

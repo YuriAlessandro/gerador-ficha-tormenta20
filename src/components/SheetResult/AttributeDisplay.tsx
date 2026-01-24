@@ -1,14 +1,13 @@
 import React from 'react';
 import { Stack, useTheme } from '@mui/material';
-import { useSnackbar } from 'notistack';
 
 import styled from '@emotion/styled';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { addSign } from './common/StringHelper';
 import FancyBox from './common/FancyBox';
 import { rollD20 } from '../../functions/diceRoller';
-import { AttributeRollData } from './notifications/AttributeRollNotification';
 import { useDice3D } from '../../contexts/Dice3DContext';
+import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 type Props = {
   attributes: CharacterAttributes;
@@ -16,8 +15,8 @@ type Props = {
 
 const AttributeDisplay = ({ attributes }: Props) => {
   const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
   const { settings, roll3D, isReady } = useDice3D();
+  const { showDiceResult } = useDiceRoll();
 
   const Title = styled.span`
     font-family: 'Tfont';
@@ -64,19 +63,25 @@ const AttributeDisplay = ({ attributes }: Props) => {
       d20Roll = rollD20();
     }
 
-    const total = d20Roll + modifier;
+    const total = Math.max(1, d20Roll + modifier);
+    const isCritical = d20Roll === 20;
+    const isFumble = d20Roll === 1;
 
-    const rollData: AttributeRollData = {
-      attributeName,
-      d20Roll,
-      modifier,
-      total,
-    };
+    // Format dice notation with sign
+    const modifierStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
+    const diceNotation = `1d20${modifierStr}`;
 
-    enqueueSnackbar('', {
-      variant: 'attributeCheck',
-      roll: rollData,
-    });
+    showDiceResult(`Teste de ${attributeName}`, [
+      {
+        label: attributeName,
+        diceNotation,
+        rolls: [d20Roll],
+        modifier,
+        total,
+        isCritical,
+        isFumble,
+      },
+    ]);
   };
 
   return (

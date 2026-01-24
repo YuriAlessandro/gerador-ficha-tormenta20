@@ -8,12 +8,11 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { Box, useTheme } from '@mui/material';
 import styled from '@emotion/styled';
-import { useSnackbar } from 'notistack';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { CompleteSkill, SkillsAttrs } from '../../interfaces/Skills';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
-import { SkillRollData } from './notifications/SkillRollNotification';
+import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 interface IProps {
   sheet: CharacterSheet;
@@ -22,7 +21,7 @@ interface IProps {
 
 const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
+  const { showDiceResult } = useDiceRoll();
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
@@ -82,22 +81,25 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
 
   const handleSkillClick = (skill: CompleteSkill, skillTotal: number) => {
     const d20Roll = rollD20();
-    const attrValue = skill.modAttr ? sheet.atributos[skill.modAttr].mod : 0;
+    const total = Math.max(1, d20Roll + skillTotal);
+    const isCritical = d20Roll === 20;
+    const isFumble = d20Roll === 1;
 
-    const rollData: SkillRollData = {
-      skillName: skill.name,
-      d20Roll,
-      halfLevel: skill.halfLevel ?? 0,
-      attributeMod: attrValue,
-      training: skill.training ?? 0,
-      others: skill.others ?? 0,
-      total: d20Roll + skillTotal,
-    };
+    // Format dice notation with sign
+    const modifierStr = skillTotal >= 0 ? `+${skillTotal}` : `${skillTotal}`;
+    const diceNotation = `1d20${modifierStr}`;
 
-    enqueueSnackbar('', {
-      variant: 'skillRoll',
-      roll: rollData,
-    });
+    showDiceResult(`Teste de ${skill.name}`, [
+      {
+        label: skill.name,
+        diceNotation,
+        rolls: [d20Roll],
+        modifier: skillTotal,
+        total,
+        isCritical,
+        isFumble,
+      },
+    ]);
   };
 
   return (

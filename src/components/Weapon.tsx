@@ -1,9 +1,8 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import Equipment from '../interfaces/Equipment';
 import { rollD20, rollDamage } from '../functions/diceRoller';
-import { AttackRollData } from './SheetResult/notifications/AttackRollNotification';
+import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 
 interface WeaponProps {
   equipment: Equipment;
@@ -16,7 +15,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const { equipment, rangeBonus, fightBonus, modDano } = props;
   const { nome, dano, critico, alcance, atkBonus } = equipment;
   const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
+  const { showDiceResult } = useDiceRoll();
 
   const isRange = alcance && alcance !== '-';
 
@@ -30,7 +29,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
 
   const handleWeaponClick = () => {
     const attackRoll = rollD20();
-    const attackTotal = attackRoll + atk;
+    const attackTotal = Math.max(1, attackRoll + atk);
+    const isCritical = attackRoll === 20;
+    const isFumble = attackRoll === 1;
 
     // Parsear e rolar dano
     const damageString = `${dano}+${damageModifier}`;
@@ -41,21 +42,28 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       return;
     }
 
-    const rollData: AttackRollData = {
-      weaponName: nome,
-      attackRoll,
-      attackBonus: atk,
-      attackTotal,
-      damageRolls: damageRollResult.diceRolls,
-      damageModifier: damageRollResult.modifier,
-      damageTotal: damageRollResult.total,
-      diceString: damageRollResult.diceString,
-    };
+    // Format attack dice notation
+    const atkModifierStr = atk >= 0 ? `+${atk}` : `${atk}`;
+    const attackDiceNotation = `1d20${atkModifierStr}`;
 
-    enqueueSnackbar('', {
-      variant: 'weaponAttack',
-      roll: rollData,
-    });
+    showDiceResult(nome, [
+      {
+        label: 'Ataque',
+        diceNotation: attackDiceNotation,
+        rolls: [attackRoll],
+        modifier: atk,
+        total: attackTotal,
+        isCritical,
+        isFumble,
+      },
+      {
+        label: 'Dano',
+        diceNotation: damageRollResult.diceString,
+        rolls: damageRollResult.diceRolls,
+        modifier: damageRollResult.modifier,
+        total: Math.max(1, damageRollResult.total),
+      },
+    ]);
   };
 
   return (
