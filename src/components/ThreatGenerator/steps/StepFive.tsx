@@ -30,7 +30,12 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import InfoIcon from '@mui/icons-material/Info';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
-import { ThreatSheet, ThreatAbility } from '../../../interfaces/ThreatSheet';
+import CasinoIcon from '@mui/icons-material/Casino';
+import {
+  ThreatSheet,
+  ThreatAbility,
+  AbilityRoll,
+} from '../../../interfaces/ThreatSheet';
 import { getRecommendedAbilityCount } from '../../../functions/threatGenerator';
 import {
   ABILITY_SUGGESTIONS,
@@ -47,16 +52,73 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     name: '',
     description: '',
   });
+  const [newAbilityRolls, setNewAbilityRolls] = useState<AbilityRoll[]>([]);
+  const [newRoll, setNewRoll] = useState({ name: '', dice: '', bonus: 0 });
   const [suggestionDialog, setSuggestionDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [customizeDialog, setCustomizeDialog] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<{
     name: string;
     description: string;
+    rolls?: AbilityRoll[];
   } | null>(null);
+  const [selectedSuggestionRolls, setSelectedSuggestionRolls] = useState<
+    AbilityRoll[]
+  >([]);
+  const [newSuggestionRoll, setNewSuggestionRoll] = useState({
+    name: '',
+    dice: '',
+    bonus: 0,
+  });
 
   const generateAbilityId = () =>
     `ability_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  const generateRollId = () =>
+    `roll_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Handle adding a roll to the new ability form
+  const handleAddRoll = () => {
+    if (!newRoll.name.trim() || !newRoll.dice.trim()) return;
+
+    const roll: AbilityRoll = {
+      id: generateRollId(),
+      name: newRoll.name.trim(),
+      dice: newRoll.dice.trim(),
+      bonus: newRoll.bonus,
+    };
+
+    setNewAbilityRolls([...newAbilityRolls, roll]);
+    setNewRoll({ name: '', dice: '', bonus: 0 });
+  };
+
+  // Handle removing a roll from the new ability form
+  const handleRemoveRoll = (rollId: string) => {
+    setNewAbilityRolls(newAbilityRolls.filter((r) => r.id !== rollId));
+  };
+
+  // Handle adding a roll to the suggestion dialog
+  const handleAddSuggestionRoll = () => {
+    if (!newSuggestionRoll.name.trim() || !newSuggestionRoll.dice.trim())
+      return;
+
+    const roll: AbilityRoll = {
+      id: generateRollId(),
+      name: newSuggestionRoll.name.trim(),
+      dice: newSuggestionRoll.dice.trim(),
+      bonus: newSuggestionRoll.bonus,
+    };
+
+    setSelectedSuggestionRolls([...selectedSuggestionRolls, roll]);
+    setNewSuggestionRoll({ name: '', dice: '', bonus: 0 });
+  };
+
+  // Handle removing a roll from the suggestion dialog
+  const handleRemoveSuggestionRoll = (rollId: string) => {
+    setSelectedSuggestionRolls(
+      selectedSuggestionRolls.filter((r) => r.id !== rollId)
+    );
+  };
 
   const handleAddAbility = () => {
     if (!newAbility.name.trim()) return;
@@ -65,6 +127,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       id: generateAbilityId(),
       name: newAbility.name.trim(),
       description: newAbility.description.trim(),
+      rolls: newAbilityRolls.length > 0 ? newAbilityRolls : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
@@ -75,6 +138,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       name: '',
       description: '',
     });
+    setNewAbilityRolls([]);
   };
 
   const handleRemoveAbility = (abilityId: string) => {
@@ -89,6 +153,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     description: string;
   }) => {
     setSelectedSuggestion(suggestion);
+    setSelectedSuggestionRolls([]);
+    setNewSuggestionRoll({ name: '', dice: '', bonus: 0 });
     setSuggestionDialog(false);
     setCustomizeDialog(true);
   };
@@ -100,12 +166,17 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       id: generateAbilityId(),
       name: selectedSuggestion.name,
       description: selectedSuggestion.description,
+      rolls:
+        selectedSuggestionRolls.length > 0
+          ? selectedSuggestionRolls
+          : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
     onUpdate({ abilities: updatedAbilities });
 
     setSelectedSuggestion(null);
+    setSelectedSuggestionRolls([]);
     setCustomizeDialog(false);
   };
 
@@ -201,6 +272,109 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   placeholder='Descreva o efeito da habilidade...'
                 />
               </Grid>
+
+              {/* Rolls Section */}
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 2,
+                  }}
+                >
+                  <Typography variant='subtitle2' gutterBottom>
+                    <CasinoIcon
+                      fontSize='small'
+                      sx={{ mr: 0.5, verticalAlign: 'middle' }}
+                    />
+                    Rolagens (Opcional)
+                  </Typography>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    display='block'
+                    mb={1}
+                  >
+                    Adicione rolagens de dados para esta habilidade. Ex: Dano de
+                    Sopro de Fogo (2d6+3)
+                  </Typography>
+
+                  {/* List of added rolls */}
+                  {newAbilityRolls.length > 0 && (
+                    <Box mb={2}>
+                      {newAbilityRolls.map((roll) => (
+                        <Chip
+                          key={roll.id}
+                          label={`${roll.name}: ${roll.dice}${
+                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                          }`}
+                          onDelete={() => handleRemoveRoll(roll.id)}
+                          size='small'
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                          icon={<CasinoIcon />}
+                        />
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Add new roll form */}
+                  <Grid container spacing={1}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Nome'
+                        value={newRoll.name}
+                        onChange={(e) =>
+                          setNewRoll({ ...newRoll, name: e.target.value })
+                        }
+                        placeholder='Dano'
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Dado'
+                        value={newRoll.dice}
+                        onChange={(e) =>
+                          setNewRoll({ ...newRoll, dice: e.target.value })
+                        }
+                        placeholder='2d6'
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Bônus'
+                        type='number'
+                        value={newRoll.bonus}
+                        onChange={(e) =>
+                          setNewRoll({
+                            ...newRoll,
+                            bonus: parseInt(e.target.value, 10) || 0,
+                          })
+                        }
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 2 }}>
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        fullWidth
+                        onClick={handleAddRoll}
+                        disabled={!newRoll.name.trim() || !newRoll.dice.trim()}
+                        sx={{ height: '40px' }}
+                      >
+                        <AddIcon />
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Grid>
+
               <Grid size={12}>
                 <Button
                   variant='contained'
@@ -260,11 +434,34 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                       <ListItemText
                         primary={ability.name}
                         secondary={
-                          ability.description || 'Sem descrição fornecida'
+                          <Box>
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              sx={{ whiteSpace: 'pre-wrap' }}
+                            >
+                              {ability.description || 'Sem descrição fornecida'}
+                            </Typography>
+                            {ability.rolls && ability.rolls.length > 0 && (
+                              <Box mt={1}>
+                                {ability.rolls.map((roll) => (
+                                  <Chip
+                                    key={roll.id}
+                                    label={`${roll.name}: ${roll.dice}${
+                                      roll.bonus >= 0
+                                        ? `+${roll.bonus}`
+                                        : roll.bonus
+                                    }`}
+                                    size='small'
+                                    sx={{ mr: 0.5, mb: 0.5 }}
+                                    icon={<CasinoIcon />}
+                                    variant='outlined'
+                                  />
+                                ))}
+                              </Box>
+                            )}
+                          </Box>
                         }
-                        secondaryTypographyProps={{
-                          style: { whiteSpace: 'pre-wrap' },
-                        }}
                       />
                       <ListItemSecondaryAction>
                         <IconButton
@@ -370,7 +567,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
           <TextField
             fullWidth
             multiline
-            rows={6}
+            rows={4}
             label='Descrição'
             value={selectedSuggestion?.description || ''}
             onChange={(e) =>
@@ -378,7 +575,103 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                 prev ? { ...prev, description: e.target.value } : null
               )
             }
+            sx={{ mb: 2 }}
           />
+
+          {/* Rolls Section in Customize Dialog */}
+          <Box
+            sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 2 }}
+          >
+            <Typography variant='subtitle2' gutterBottom>
+              <CasinoIcon
+                fontSize='small'
+                sx={{ mr: 0.5, verticalAlign: 'middle' }}
+              />
+              Rolagens (Opcional)
+            </Typography>
+
+            {/* List of added rolls */}
+            {selectedSuggestionRolls.length > 0 && (
+              <Box mb={2}>
+                {selectedSuggestionRolls.map((roll) => (
+                  <Chip
+                    key={roll.id}
+                    label={`${roll.name}: ${roll.dice}${
+                      roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                    }`}
+                    onDelete={() => handleRemoveSuggestionRoll(roll.id)}
+                    size='small'
+                    sx={{ mr: 0.5, mb: 0.5 }}
+                    icon={<CasinoIcon />}
+                  />
+                ))}
+              </Box>
+            )}
+
+            {/* Add new roll form */}
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Nome'
+                  value={newSuggestionRoll.name}
+                  onChange={(e) =>
+                    setNewSuggestionRoll({
+                      ...newSuggestionRoll,
+                      name: e.target.value,
+                    })
+                  }
+                  placeholder='Dano'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Dado'
+                  value={newSuggestionRoll.dice}
+                  onChange={(e) =>
+                    setNewSuggestionRoll({
+                      ...newSuggestionRoll,
+                      dice: e.target.value,
+                    })
+                  }
+                  placeholder='2d6'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Bônus'
+                  type='number'
+                  value={newSuggestionRoll.bonus}
+                  onChange={(e) =>
+                    setNewSuggestionRoll({
+                      ...newSuggestionRoll,
+                      bonus: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 2 }}>
+                <Button
+                  size='small'
+                  variant='outlined'
+                  fullWidth
+                  onClick={handleAddSuggestionRoll}
+                  disabled={
+                    !newSuggestionRoll.name.trim() ||
+                    !newSuggestionRoll.dice.trim()
+                  }
+                  sx={{ height: '40px' }}
+                >
+                  <AddIcon />
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCustomizeDialog(false)}>Cancelar</Button>

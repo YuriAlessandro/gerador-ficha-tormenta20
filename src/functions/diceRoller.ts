@@ -117,3 +117,55 @@ export function checkD20Result(roll: number): 'critical' | 'fumble' | 'normal' {
   if (roll === 1) return 'fumble';
   return 'normal';
 }
+
+/**
+ * Parseia string de crítico de uma arma
+ * Formatos suportados:
+ * - 'x2', 'x3', 'x4' - apenas multiplicador (threshold 20)
+ * - '19', '18', '17' - apenas threshold (multiplicador x2)
+ * - '19/x3', '18/x4' - threshold/multiplicador
+ * - '-', '**' - sem crítico (threshold 21 = impossível)
+ * @param criticalString String no formato do crítico da arma
+ * @returns { threshold, multiplier }
+ */
+export function parseCritical(criticalString: string): {
+  threshold: number;
+  multiplier: number;
+} {
+  const defaultResult = { threshold: 20, multiplier: 2 };
+
+  if (!criticalString || criticalString === '-' || criticalString === '**') {
+    return { threshold: 21, multiplier: 2 }; // Impossível acertar crítico
+  }
+
+  const cleaned = criticalString.trim().toLowerCase();
+
+  // Formato completo: "19/x3"
+  const fullMatch = cleaned.match(/^(\d+)\/x(\d+)$/);
+  if (fullMatch) {
+    return {
+      threshold: parseInt(fullMatch[1], 10),
+      multiplier: parseInt(fullMatch[2], 10),
+    };
+  }
+
+  // Apenas multiplicador: "x3"
+  const multiplierMatch = cleaned.match(/^x(\d+)$/);
+  if (multiplierMatch) {
+    return {
+      threshold: 20,
+      multiplier: parseInt(multiplierMatch[1], 10),
+    };
+  }
+
+  // Apenas threshold: "19"
+  const thresholdMatch = cleaned.match(/^(\d+)$/);
+  if (thresholdMatch) {
+    return {
+      threshold: parseInt(thresholdMatch[1], 10),
+      multiplier: 2,
+    };
+  }
+
+  return defaultResult;
+}

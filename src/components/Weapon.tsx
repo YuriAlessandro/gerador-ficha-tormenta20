@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import Equipment from '../interfaces/Equipment';
-import { rollD20, rollDamage } from '../functions/diceRoller';
+import { rollD20, rollDamage, parseCritical } from '../functions/diceRoller';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 
 interface WeaponProps {
@@ -31,7 +31,10 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const handleWeaponClick = () => {
     const attackRoll = rollD20();
     const attackTotal = Math.max(1, attackRoll + atk);
-    const isCritical = attackRoll === 20;
+
+    // Parsear crítico da arma (campo critico pode ser "19/x3", "x2", "19", etc.)
+    const { threshold, multiplier } = parseCritical(critico || '');
+    const isCritical = attackRoll >= threshold;
     const isFumble = attackRoll === 1;
 
     // Parsear e rolar dano
@@ -43,9 +46,24 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       return;
     }
 
+    // Calcular dano com fórmula correta de crítico
+    // Fórmula: (dados × multiplicador) + bônus
+    const diceTotal = damageRollResult.diceRolls.reduce((sum, r) => sum + r, 0);
+    const normalDamage = Math.max(1, diceTotal + damageRollResult.modifier);
+    const criticalDamage = Math.max(
+      1,
+      diceTotal * multiplier + damageRollResult.modifier
+    );
+    const finalDamage = isCritical ? criticalDamage : normalDamage;
+
     // Format attack dice notation
     const atkModifierStr = atk >= 0 ? `+${atk}` : `${atk}`;
     const attackDiceNotation = `1d20${atkModifierStr}`;
+
+    // Label com dano normal entre parênteses se crítico (para criaturas imunes)
+    const damageLabel = isCritical
+      ? `Dano x${multiplier} (normal: ${normalDamage})`
+      : 'Dano';
 
     showDiceResult(
       nome,
@@ -60,11 +78,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           isFumble,
         },
         {
-          label: 'Dano',
+          label: damageLabel,
           diceNotation: damageRollResult.diceString,
           rolls: damageRollResult.diceRolls,
           modifier: damageRollResult.modifier,
-          total: Math.max(1, damageRollResult.total),
+          total: finalDamage,
         },
       ],
       characterName

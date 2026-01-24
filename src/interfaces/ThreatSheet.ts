@@ -74,6 +74,15 @@ export interface ThreatAttack {
   damageDice: string; // Ex: "1d8", "2d6", "3d10"
   bonusDamage: number;
   averageDamage?: number; // Calculado automaticamente
+  criticalThreshold?: number; // Margem de ameaça (padrão: 20)
+  criticalMultiplier?: number; // Multiplicador de crítico (padrão: 2)
+}
+
+export interface AbilityRoll {
+  id: string;
+  name: string;
+  dice: string; // Ex: "1d8", "2d6", "3d10"
+  bonus: number;
 }
 
 export interface ThreatAbility {
@@ -81,6 +90,7 @@ export interface ThreatAbility {
   name: string;
   description: string;
   category?: string;
+  rolls?: AbilityRoll[];
 }
 
 export interface ThreatAttributes {

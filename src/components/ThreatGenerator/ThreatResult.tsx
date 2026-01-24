@@ -8,6 +8,7 @@ import {
   Container,
   CircularProgress,
   Stack,
+  Box,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -27,7 +28,11 @@ import { useHistory } from 'react-router-dom';
 import { useConfirm } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { convertThreatToFoundry } from '../../2foundry';
-import { ThreatSheet } from '../../interfaces/ThreatSheet';
+import {
+  ThreatSheet,
+  ThreatAttack,
+  AbilityRoll,
+} from '../../interfaces/ThreatSheet';
 import {
   getTierDisplayName,
   getTierByChallengeLevel,
@@ -35,6 +40,8 @@ import {
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
+import { rollD20, rollDamage } from '../../functions/diceRoller';
+import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 interface ThreatResultProps {
   threat: ThreatSheet;
@@ -42,6 +49,7 @@ interface ThreatResultProps {
   isFromHistory?: boolean;
   isSavedToCloud?: boolean;
   onSaveToCloud?: () => Promise<void>;
+  viewOnly?: boolean;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -50,6 +58,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   isFromHistory = false,
   isSavedToCloud = false,
   onSaveToCloud,
+  viewOnly = false,
 }) => {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -57,6 +66,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { showConfirm, ConfirmDialog } = useConfirm();
   const { isAuthenticated } = useAuth();
+  const { showDiceResult } = useDiceRoll();
   const [showExportButton, setExportButton] = React.useState<boolean>();
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
@@ -73,6 +83,152 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   function getKey(elementId: string) {
     return `${threat.id}-${elementId}`;
   }
+
+  const handleSkillRoll = (skillName: string, modifier: number) => {
+    const roll = rollD20();
+    const total = roll + modifier;
+    const isCritical = roll === 20;
+    const isFumble = roll === 1;
+
+    const modifierStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
+    const diceNotation = `1d20${modifierStr}`;
+
+    showDiceResult(
+      `${threat.name}: ${skillName}`,
+      [
+        {
+          label: skillName,
+          diceNotation,
+          rolls: [roll],
+          modifier,
+          total,
+          isCritical,
+          isFumble,
+        },
+      ],
+      threat.name
+    );
+  };
+
+  const handleAbilityRoll = (abilityName: string, roll: AbilityRoll) => {
+    // Build damage string with bonus
+    const damageString = `${roll.dice}${roll.bonus >= 0 ? '+' : ''}${
+      roll.bonus
+    }`;
+    const damageRollResult = rollDamage(damageString);
+
+    if (!damageRollResult) {
+      return;
+    }
+
+    showDiceResult(
+      `${threat.name}: ${abilityName}`,
+      [
+        {
+          label: roll.name,
+          diceNotation: damageRollResult.diceString,
+          rolls: damageRollResult.diceRolls,
+          modifier: damageRollResult.modifier,
+          total: Math.max(1, damageRollResult.total),
+        },
+      ],
+      threat.name
+    );
+  };
+
+  const handleAbilityNameClick = (
+    abilityName: string,
+    rolls: AbilityRoll[]
+  ) => {
+    if (!rolls || rolls.length === 0) return;
+
+    const rollResults = rolls
+      .map((roll) => {
+        const damageString = `${roll.dice}${roll.bonus >= 0 ? '+' : ''}${
+          roll.bonus
+        }`;
+        const damageRollResult = rollDamage(damageString);
+
+        if (!damageRollResult) return null;
+
+        return {
+          label: roll.name,
+          diceNotation: damageRollResult.diceString,
+          rolls: damageRollResult.diceRolls,
+          modifier: damageRollResult.modifier,
+          total: Math.max(1, damageRollResult.total),
+        };
+      })
+      .filter((result) => result !== null);
+
+    if (rollResults.length === 0) return;
+
+    showDiceResult(`${threat.name}: ${abilityName}`, rollResults, threat.name);
+  };
+
+  const handleAttackClick = (attack: ThreatAttack) => {
+    const attackRoll = rollD20();
+    const attackTotal = Math.max(1, attackRoll + attack.attackBonus);
+    const criticalThreshold = attack.criticalThreshold || 20;
+    const criticalMultiplier = attack.criticalMultiplier || 2;
+    const isCritical = attackRoll >= criticalThreshold;
+    const isFumble = attackRoll === 1;
+
+    // Build damage string with bonus
+    const damageString = `${attack.damageDice}${
+      attack.bonusDamage >= 0 ? '+' : ''
+    }${attack.bonusDamage}`;
+    const damageRollResult = rollDamage(damageString);
+
+    if (!damageRollResult) {
+      return;
+    }
+
+    // Separar dados do bônus para aplicar multiplicador corretamente
+    // Fórmula: (dados × multiplicador) + bônus
+    const diceTotal = damageRollResult.diceRolls.reduce((sum, r) => sum + r, 0);
+    const normalDamage = Math.max(1, diceTotal + damageRollResult.modifier);
+    const criticalDamage = Math.max(
+      1,
+      diceTotal * criticalMultiplier + damageRollResult.modifier
+    );
+    const finalDamage = isCritical ? criticalDamage : normalDamage;
+
+    // Format attack dice notation
+    const atkModifierStr =
+      attack.attackBonus >= 0
+        ? `+${attack.attackBonus}`
+        : `${attack.attackBonus}`;
+    const attackDiceNotation = `1d20${atkModifierStr}`;
+
+    // Label mostrando dano normal entre parênteses (para criaturas imunes a crítico)
+    const damageLabel = isCritical
+      ? `Dano x${criticalMultiplier} (normal: ${normalDamage})`
+      : 'Dano';
+
+    showDiceResult(
+      `${threat.name}: ${attack.name}`,
+      [
+        {
+          label: 'Ataque',
+          diceNotation: attackDiceNotation,
+          rolls: [attackRoll],
+          modifier: attack.attackBonus,
+          total: attackTotal,
+          isCritical,
+          isFumble,
+        },
+        {
+          label: damageLabel,
+          diceNotation: damageRollResult.diceString,
+          rolls: damageRollResult.diceRolls,
+          modifier: damageRollResult.modifier,
+          total: finalDamage,
+        },
+      ],
+      threat.name
+    );
+  };
 
   const handleSaveToCloud = async () => {
     if (!onSaveToCloud || isSaving) return;
@@ -133,21 +289,42 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     getTierByChallengeLevel(threat.challengeLevel)
   );
 
+  // Get numeric resistance value
+  const getResistanceNumeric = (type: string) => {
+    if (type === 'strong') {
+      return threat.combatStats.strongSave;
+    }
+    if (type === 'medium') {
+      return threat.combatStats.mediumSave;
+    }
+    return threat.combatStats.weakSave;
+  };
+
   // Format resistance values
   const getResistanceValue = (type: string) => {
-    let resistanceValue = threat.combatStats.weakSave;
-    if (type === 'strong') {
-      resistanceValue = threat.combatStats.strongSave;
-    } else if (type === 'medium') {
-      resistanceValue = threat.combatStats.mediumSave;
-    }
+    const resistanceValue = getResistanceNumeric(type);
     return resistanceValue > 0 ? `+${resistanceValue}` : `${resistanceValue}`;
   };
 
-  // Get resistance assignments
+  // Get resistance assignments (numeric and formatted)
+  const fortResistNum = getResistanceNumeric(
+    threat.resistanceAssignments.Fortitude
+  );
+  const refResistNum = getResistanceNumeric(
+    threat.resistanceAssignments.Reflexos
+  );
+  const vonResistNum = getResistanceNumeric(
+    threat.resistanceAssignments.Vontade
+  );
   const fortResist = getResistanceValue(threat.resistanceAssignments.Fortitude);
   const refResist = getResistanceValue(threat.resistanceAssignments.Reflexos);
   const wonResist = getResistanceValue(threat.resistanceAssignments.Vontade);
+
+  // Get initiative and perception values
+  const initiativeSkill = threat.skills.find((s) => s.name === 'Iniciativa');
+  const initiativeValue = initiativeSkill?.total || 0;
+  const perceptionSkill = threat.skills.find((s) => s.name === 'Percepção');
+  const perceptionValue = perceptionSkill?.total || 0;
 
   // Format attributes
   const formatAttribute = (attr: Atributo) => {
@@ -173,13 +350,13 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   return (
     <>
-      <ConfirmDialog />
+      {!viewOnly && <ConfirmDialog />}
       <Container maxWidth='xl' sx={{ py: 2 }}>
         {/* Breadcrumb Navigation */}
-        <BreadcrumbNav items={breadcrumbItems} />
+        {!viewOnly && <BreadcrumbNav items={breadcrumbItems} />}
 
         {/* Action Buttons */}
-        {showExportButton && (
+        {showExportButton && !viewOnly && (
           <Card sx={{ p: 2, mb: 2 }}>
             <Stack
               spacing={1}
@@ -302,42 +479,122 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           </Card>
         )}
 
-        <Card ref={resultRef} sx={{ p: 2, mt: 2 }}>
+        <Card ref={resultRef} sx={{ p: 2, mt: viewOnly ? 0 : 2 }}>
           <div className='simpleSeetName'>{threat.name}</div>
           {threat.type} {threat.size} {threat.role}, ND {threat.challengeLevel}{' '}
           ({tier})
           <div className='simpleSheetDivisor' />
-          <div>
-            <span className='simpleSheetText'>Iniciativa</span>{' '}
-            {(() => {
-              const initiative = threat.skills.find(
-                (s) => s.name === 'Iniciativa'
-              );
-              const value = initiative?.total || 0;
-              return value > 0 ? `+${value}` : `${value}`;
-            })()}
-            , <span className='simpleSheetText'>Percepção</span>{' '}
-            {(() => {
-              const perception = threat.skills.find(
-                (s) => s.name === 'Percepção'
-              );
-              const value = perception?.total || 0;
-              return value > 0 ? `+${value}` : `${value}`;
-            })()}
-          </div>
-          <div>
+          <Box display='inline'>
+            <Box
+              component='span'
+              onClick={() => handleSkillRoll('Iniciativa', initiativeValue)}
+              sx={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+                borderRadius: 1,
+                px: 0.5,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              title='Rolar Iniciativa'
+            >
+              <span className='simpleSheetText'>Iniciativa</span>{' '}
+              {initiativeValue > 0
+                ? `+${initiativeValue}`
+                : `${initiativeValue}`}
+            </Box>
+            ,{' '}
+            <Box
+              component='span'
+              onClick={() => handleSkillRoll('Percepção', perceptionValue)}
+              sx={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+                borderRadius: 1,
+                px: 0.5,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              title='Rolar Percepção'
+            >
+              <span className='simpleSheetText'>Percepção</span>{' '}
+              {perceptionValue > 0
+                ? `+${perceptionValue}`
+                : `${perceptionValue}`}
+            </Box>
+          </Box>
+          <Box display='inline'>
             <span className='simpleSheetText'>Defesa</span>{' '}
             {threat.combatStats.defense},{' '}
-            <span className='simpleSheetText'>Fort</span> {fortResist},{' '}
-            <span className='simpleSheetText'>Ref</span> {refResist},{' '}
-            <span className='simpleSheetText'>Von</span> {wonResist}
+            <Box
+              component='span'
+              onClick={() => handleSkillRoll('Fortitude', fortResistNum)}
+              sx={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+                borderRadius: 1,
+                px: 0.5,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              title='Rolar Fortitude'
+            >
+              <span className='simpleSheetText'>Fort</span> {fortResist}
+            </Box>
+            ,{' '}
+            <Box
+              component='span'
+              onClick={() => handleSkillRoll('Reflexos', refResistNum)}
+              sx={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+                borderRadius: 1,
+                px: 0.5,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              title='Rolar Reflexos'
+            >
+              <span className='simpleSheetText'>Ref</span> {refResist}
+            </Box>
+            ,{' '}
+            <Box
+              component='span'
+              onClick={() => handleSkillRoll('Vontade', vonResistNum)}
+              sx={{
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: 'all 0.2s ease',
+                borderRadius: 1,
+                px: 0.5,
+                '&:hover': {
+                  backgroundColor: theme.palette.action.hover,
+                  color: theme.palette.primary.main,
+                },
+              }}
+              title='Rolar Vontade'
+            >
+              <span className='simpleSheetText'>Von</span> {wonResist}
+            </Box>
             {threat.abilities && threat.abilities.length > 0 && (
               <>
                 , <span className='simpleSheetText'>CD</span>{' '}
                 {threat.combatStats.standardEffectDC}
               </>
             )}
-          </div>
+          </Box>
           <div>
             <span className='simpleSheetText'>Pontos de Vida</span>{' '}
             {threat.combatStats.hitPoints}
@@ -361,10 +618,31 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
             <div>Nenhum ataque configurado</div>
           ) : (
             threat.attacks.map((attack) => (
-              <div key={getKey(attack.name)}>
+              <Box
+                key={getKey(attack.name)}
+                onClick={() => handleAttackClick(attack)}
+                sx={{
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'all 0.2s ease',
+                  borderRadius: 1,
+                  px: 0.5,
+                  mx: -0.5,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                    color: theme.palette.primary.main,
+                  },
+                  '&:active': {
+                    transform: 'scale(0.99)',
+                  },
+                }}
+                title={`Rolar ataque: ${attack.name}`}
+              >
                 {attack.name} +{attack.attackBonus} ({attack.damageDice}
-                {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''})
-              </div>
+                {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''},{' '}
+                {attack.criticalThreshold || 20}/x
+                {attack.criticalMultiplier || 2})
+              </Box>
             ))
           )}
           <div className='simpleSheetDivisor' />
@@ -394,8 +672,68 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
               {threat.abilities.map((ability) => (
                 <div key={getKey(ability.name)}>
-                  <span className='simpleSheetText'>{ability.name}: </span>
+                  {ability.rolls && ability.rolls.length > 0 ? (
+                    <Box
+                      component='span'
+                      onClick={() =>
+                        handleAbilityNameClick(
+                          ability.name,
+                          ability.rolls || []
+                        )
+                      }
+                      sx={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        transition: 'all 0.2s ease',
+                        borderRadius: 1,
+                        px: 0.5,
+                        mx: -0.5,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                      title={`Rolar ${ability.name}`}
+                    >
+                      <span className='simpleSheetText'>{ability.name}:</span>
+                    </Box>
+                  ) : (
+                    <span className='simpleSheetText'>{ability.name}: </span>
+                  )}{' '}
                   {ability.description}
+                  {ability.rolls && ability.rolls.length > 0 && (
+                    <Box component='span' sx={{ ml: 1 }}>
+                      {ability.rolls.map((roll) => (
+                        <Box
+                          key={roll.id}
+                          component='span'
+                          onClick={() => handleAbilityRoll(ability.name, roll)}
+                          sx={{
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease',
+                            borderRadius: 1,
+                            px: 0.5,
+                            mx: 0.25,
+                            backgroundColor: theme.palette.action.selected,
+                            '&:hover': {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                            },
+                          }}
+                          title={`Rolar ${roll.name}: ${roll.dice}${
+                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                          }`}
+                        >
+                          🎲 {roll.name}: {roll.dice}
+                          {roll.bonus !== 0 &&
+                            (roll.bonus >= 0
+                              ? `+${roll.bonus}`
+                              : `${roll.bonus}`)}
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </div>
               ))}
             </>
