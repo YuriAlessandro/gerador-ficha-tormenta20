@@ -104,7 +104,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,wasm}'],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MB limit (increased from default 2MB)
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit (increased for large bundle)
         runtimeCaching: [
           {
             // eslint-disable-next-line no-restricted-globals
