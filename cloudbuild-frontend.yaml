@@ -1,7 +1,13 @@
 steps:
-  # Inicializar e atualizar submodules (necessário para repos privados)
+  # Configurar credenciais do GitHub para repos privados
   - name: 'gcr.io/cloud-builders/git'
-    args: ['submodule', 'update', '--init', '--recursive']
+    secretEnv: ['GITHUB_TOKEN']
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        git config --global url."https://x-access-token:$$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+        git submodule update --init --recursive
 
   # Build da imagem Docker
   - name: 'gcr.io/cloud-builders/docker'
@@ -81,3 +87,8 @@ substitutions:
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
+      env: 'GITHUB_TOKEN'
