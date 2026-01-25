@@ -691,7 +691,7 @@ const ProfilePage: React.FC = () => {
                                 startIcon={<FavoriteIcon />}
                                 onClick={() => history.push('/apoiar')}
                               >
-                                Conhecer Planos
+                                Apoiar
                               </Button>
                             </Stack>
                           </Box>

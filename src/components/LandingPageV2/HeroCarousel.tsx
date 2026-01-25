@@ -12,12 +12,14 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
+import BlogService from '../../services/blog.service';
+import { BlogPost } from '../../types/blog.types';
 import heroImage from '../../assets/images/tormenta20.jpg';
 import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
 import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
-import diceImage from '../../assets/images/backgrounds/dice.jpg';
-import dragonImage from '../../assets/images/backgrounds/dragon.jpg';
+import p16Image from '../../assets/images/arts/p16.png';
+import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
   id: string;
@@ -30,6 +32,9 @@ export interface CarouselSlide {
   category?: string;
   bigText?: string;
   requireAuth?: boolean;
+  // Blog post support
+  type?: 'default' | 'blog';
+  blogPostSlug?: string; // If type is 'blog', fetch post data by slug
 }
 
 // ===========================================
@@ -60,7 +65,7 @@ export const carouselSlides: CarouselSlide[] = [
     title: 'Apoie o Projeto!',
     subtitle:
       'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
-    image: dragonImage,
+    image: lancaGalrasiaImage,
     category: 'Recompensas incríveis te aguardam!',
     ctaText: 'Apoiar',
     ctaLink: '/apoiar',
@@ -91,7 +96,7 @@ export const carouselSlides: CarouselSlide[] = [
     title: 'Planejador de Builds',
     subtitle:
       'Planeje a evolução do seu personagem nível a nível. Compartilhe builds com a comunidade!',
-    image: diceImage,
+    image: p16Image,
     ctaText: 'Explorar Builds',
     ctaLink: '/builds',
     category: 'Comunidade',
@@ -114,8 +119,36 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<Record<string, BlogPost>>({});
 
   const totalSlides = carouselSlides.length;
+
+  // Fetch blog post data for blog-type slides
+  useEffect(() => {
+    const blogSlides = carouselSlides.filter(
+      (s) => s.type === 'blog' && s.blogPostSlug
+    );
+
+    if (blogSlides.length === 0) return;
+
+    const fetchPromises = blogSlides.map((slide) =>
+      BlogService.getPostBySlug(slide.blogPostSlug!)
+        .then((post) => ({ slug: slide.blogPostSlug!, post }))
+        .catch(() => null)
+    );
+
+    Promise.all(fetchPromises).then((results) => {
+      const postsMap: Record<string, BlogPost> = {};
+      results.forEach((result) => {
+        if (result) {
+          postsMap[result.slug] = result.post;
+        }
+      });
+      if (Object.keys(postsMap).length > 0) {
+        setBlogPosts(postsMap);
+      }
+    });
+  }, []);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -142,7 +175,26 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     return () => clearInterval(interval);
   }, [isPaused, nextSlide, autoPlayInterval, totalSlides]);
 
-  const slide = carouselSlides[currentSlide];
+  const rawSlide = carouselSlides[currentSlide];
+
+  // If this is a blog slide and we have fetched the post data, use it
+  const slide = React.useMemo(() => {
+    if (rawSlide.type === 'blog' && rawSlide.blogPostSlug) {
+      const blogPost = blogPosts[rawSlide.blogPostSlug];
+      if (blogPost) {
+        return {
+          ...rawSlide,
+          title: blogPost.title,
+          subtitle: blogPost.description,
+          category: `Por ${blogPost.authorName}`,
+          ctaText: 'Ler post',
+          ctaLink: `/blog/${blogPost.slug}`,
+          image: blogPost.coverImage || rawSlide.image,
+        };
+      }
+    }
+    return rawSlide;
+  }, [rawSlide, blogPosts]);
 
   return (
     <Box

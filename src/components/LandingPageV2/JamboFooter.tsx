@@ -29,11 +29,6 @@ const imageCredits = [
     url: 'https://unsplash.com/pt-br/fotografias/uma-mesa-com-um-mapa-em-um-quarto-escuro-F55DenU3jlE',
   },
   {
-    description: 'Dice',
-    author: 'Timothy Dykes',
-    url: 'https://unsplash.com/pt-br/fotografias/um-grupo-de-dados-azuis-e-marrons-sentados-um-em-cima-do-outro-jfovL-sc0tQ',
-  },
-  {
     description: 'Dragon',
     author: 'Jonathan Kemper',
     url: 'https://unsplash.com/pt-br/fotografias/decoracao-da-parede-da-cabeca-do-dragao-preto-zQMN9fLJehM',

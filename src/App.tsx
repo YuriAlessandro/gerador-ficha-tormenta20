@@ -51,6 +51,9 @@ import SupportPage from './components/Premium/SupportPage';
 import SupportSuccessPage from './components/Premium/SupportSuccessPage';
 import JamboFooter from './components/LandingPageV2/JamboFooter';
 
+// Blog components
+import { BlogList, BlogPostPage, BlogEditor } from './components/Blog';
+
 // Premium features
 import {
   BuildsProvider,
@@ -336,6 +339,18 @@ function ThemedApp(): JSX.Element {
                               </Route>
                               <Route path='/apoiar'>
                                 <SupportPage />
+                              </Route>
+                              {/* Blog routes */}
+                              <Route path='/blog/novo'>
+                                <ProtectedRoute requireAuth redirectTo='/blog'>
+                                  <BlogEditor />
+                                </ProtectedRoute>
+                              </Route>
+                              <Route path='/blog/:slug'>
+                                <BlogPostPage />
+                              </Route>
+                              <Route path='/blog'>
+                                <BlogList />
                               </Route>
                               {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={darkMode} />

@@ -100,7 +100,8 @@ export const SUPPLEMENT_METADATA: Partial<
     systemId: SystemId.TORMENTA20,
     name: 'Heróis de Arton',
     abbreviation: 'HA',
-    description: 'Em desenvolvimento',
+    description:
+      '5 raças; 1 classe; 30 origens; 59 poderes gerais; poderes de classe para 14 classes',
     releaseDate: '2025',
     requiresPremium: false,
   },

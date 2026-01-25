@@ -67,7 +67,7 @@ const SupportBanner: React.FC<SupportBannerProps> = ({ onClickButton }) => {
             transition: 'all 0.3s ease',
           }}
         >
-          Conhecer Planos
+          Apoiar
         </Button>
       </Stack>
     </Box>

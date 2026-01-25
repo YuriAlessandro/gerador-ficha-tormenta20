@@ -10,6 +10,7 @@ import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
 import GameSessionsSection from './GameSessionsSection';
 import BuildsPreviewSection from './BuildsPreviewSection';
+import { BlogPreviewSection } from '../Blog';
 
 interface LandingPageV2Props {
   onClickButton: (link: string) => void;
@@ -86,6 +87,11 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
         {/* Builds Preview Section - Public builds from all users */}
         <Box className='landing-section'>
           <BuildsPreviewSection onClickButton={onClickButton} />
+        </Box>
+
+        {/* Blog Preview Section - Recent blog posts */}
+        <Box className='landing-section'>
+          <BlogPreviewSection onClickButton={onClickButton} />
         </Box>
       </Container>
     </Box>
