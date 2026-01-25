@@ -9,6 +9,7 @@ import {
 import api from './api';
 
 import { SupplementId } from '../types/supplement.types';
+import { AccentColorId } from '../theme/accentColors';
 
 export interface DbUser {
   _id: string;
@@ -26,6 +27,8 @@ export interface DbUser {
   enabledSupplements?: SupplementId[];
   hasCompletedInitialSetup?: boolean;
   dice3DEnabled?: boolean;
+  accentColor?: AccentColorId;
+  darkMode?: boolean;
 }
 
 export interface AuthResponse {
@@ -146,6 +149,19 @@ class AuthService {
       {
         dice3DEnabled: enabled,
       }
+    );
+
+    return data.user;
+  }
+
+  // Save appearance settings (accent color and dark mode)
+  static async saveAppearanceSettings(settings: {
+    accentColor?: AccentColorId;
+    darkMode?: boolean;
+  }): Promise<DbUser> {
+    const { data } = await api.put<{ user: DbUser; message: string }>(
+      '/api/auth/profile',
+      settings
     );
 
     return data.user;

@@ -67,7 +67,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const { createSheet: createSheetAction, updateSheet: updateSheetAction } =
     useSheets();
   const { tier } = useSubscription();
-  const { totalSheets, maxSheets, canCreate } = useSheetLimit();
+  const { menaceCount, maxMenaceSheets, canCreateMenace } = useSheetLimit();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -171,7 +171,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
     // Check sheet limit for authenticated users creating new threats
     // Don't check if editing existing threat
-    if (isAuthenticated && !isEditing && !canCreate) {
+    if (isAuthenticated && !isEditing && !canCreateMenace) {
       setShowLimitDialog(true);
       return;
     }
@@ -210,7 +210,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     if (!isAuthenticated || !threat || isSavedToCloud) return;
 
     // Check sheet limit for new threats (not updates)
-    if (!cloudThreatId && !canCreate) {
+    if (!cloudThreatId && !canCreateMenace) {
       setShowLimitDialog(true);
       return;
     }
@@ -328,8 +328,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
       <SheetLimitDialog
         open={showLimitDialog}
         onClose={() => setShowLimitDialog(false)}
-        currentCount={totalSheets}
-        maxCount={maxSheets}
+        currentCount={menaceCount}
+        maxCount={maxMenaceSheets}
         tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
       />
 

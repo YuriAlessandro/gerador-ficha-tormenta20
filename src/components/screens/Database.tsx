@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   Typography,
+  useTheme,
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
@@ -77,6 +78,8 @@ const Database: React.FC<IProps> = () => {
   const { path, url } = useRouteMatch();
   const history = useHistory();
   const isMobile = useMediaQuery('(max-width: 720px)');
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const onSelectMenu = (menu: number, route: string) => {
     setSelectedMenu(menu);
@@ -137,14 +140,22 @@ const Database: React.FC<IProps> = () => {
                       sx={{
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
-                        background:
-                          'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                        border: '1px solid rgba(209, 50, 53, 0.1)',
+                        background: isDark
+                          ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
+                          : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                        border: `1px solid ${
+                          isDark
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : `rgba(${
+                                theme.palette.mode === 'dark'
+                                  ? '255, 255, 255'
+                                  : '0, 0, 0'
+                              }, 0.1)`
+                        }`,
                         '&:hover': {
                           transform: 'translateY(-8px) scale(1.02)',
-                          boxShadow: '0 12px 24px rgba(209, 50, 53, 0.2)',
-                          background:
-                            'linear-gradient(135deg, #d13235 0%, #922325 100%)',
+                          boxShadow: `0 12px 24px ${theme.palette.primary.main}40`,
+                          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                           color: 'white',
                           '& .MuiCardContent-root': {
                             color: 'white',
@@ -180,7 +191,7 @@ const Database: React.FC<IProps> = () => {
                           className='card-icon'
                           sx={{
                             mb: 2,
-                            color: '#d13235',
+                            color: theme.palette.primary.main,
                             fontSize: '3rem',
                             transition: 'all 0.3s ease',
                           }}
@@ -227,19 +238,22 @@ const Database: React.FC<IProps> = () => {
                             justifyContent: 'center',
                             transition: 'all 0.3s ease',
                             background:
+                              // eslint-disable-next-line no-nested-ternary
                               selectedMenu === item.id
-                                ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
+                                ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+                                : isDark
+                                ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
                                 : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                            border: '1px solid rgba(209, 50, 53, 0.2)',
+                            border: `1px solid ${theme.palette.primary.main}33`,
                             color:
                               selectedMenu === item.id ? 'white' : 'inherit',
                             '&:hover': {
                               transform: 'scale(1.05)',
-                              boxShadow: '0 4px 12px rgba(209, 50, 53, 0.3)',
+                              boxShadow: `0 4px 12px ${theme.palette.primary.main}4D`,
                               background:
                                 selectedMenu === item.id
-                                  ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
-                                  : 'linear-gradient(135deg, rgba(209, 50, 53, 0.1) 0%, rgba(209, 50, 53, 0.05) 100%)',
+                                  ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+                                  : `linear-gradient(135deg, ${theme.palette.primary.main}1A 0%, ${theme.palette.primary.main}0D 100%)`,
                             },
                           }}
                         >
@@ -258,7 +272,7 @@ const Database: React.FC<IProps> = () => {
                                 color:
                                   selectedMenu === item.id
                                     ? 'white'
-                                    : '#d13235',
+                                    : theme.palette.primary.main,
                               }}
                             >
                               {item.icon}
@@ -288,8 +302,7 @@ const Database: React.FC<IProps> = () => {
                     elevation={0}
                     sx={{
                       mb: 3,
-                      background:
-                        'linear-gradient(135deg, #d13235 0%, #922325 100%)',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
                       borderRadius: 2,
                     }}
                   >

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
 import { useDispatch } from 'react-redux';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -9,12 +15,19 @@ import {
   setLoading,
 } from '../store/slices/auth/authSlice';
 import { AppDispatch } from '../store';
+import AuthModal from '../components/Auth/AuthModal';
 
 interface AuthContextType {
-  // Context is primarily for Firebase auth state listening
+  loginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({});
+const AuthContext = createContext<AuthContextType>({
+  loginModalOpen: false,
+  openLoginModal: () => {},
+  closeLoginModal: () => {},
+});
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -22,6 +35,10 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+
+  const openLoginModal = () => setLoginModalOpen(true);
+  const closeLoginModal = () => setLoginModalOpen(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -53,7 +70,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => unsubscribe();
   }, [dispatch]);
 
-  return <AuthContext.Provider value={{}}>{children}</AuthContext.Provider>;
+  const contextValue = {
+    loginModalOpen,
+    openLoginModal,
+    closeLoginModal,
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+      <AuthModal open={loginModalOpen} onClose={closeLoginModal} />
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuthContext = () => {

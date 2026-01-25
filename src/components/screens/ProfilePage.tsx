@@ -25,6 +25,8 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  Switch,
+  Tooltip,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -38,6 +40,9 @@ import {
   Cancel as CancelIcon,
   Refresh as RefreshIcon,
   OpenInNew as OpenInNewIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material';
 import SupporterBadge from '../Premium/SupporterBadge';
 import {
@@ -50,6 +55,8 @@ import {
 } from '../../types/subscription.types';
 import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useUserPreferences } from '../../hooks/useUserPreferences';
+import { AccentColorId, getAccentColorsArray } from '../../theme/accentColors';
 import ProfileService, { PublicProfile } from '../../services/profile.service';
 import { AppDispatch } from '../../store';
 import {
@@ -104,6 +111,13 @@ const ProfilePage: React.FC = () => {
     reactivate: reactivateSub,
     manageSubscription,
   } = useSubscription();
+  const {
+    accentColor,
+    darkMode,
+    setAccentColor,
+    setDarkMode,
+    loading: preferencesLoading,
+  } = useUserPreferences();
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -554,6 +568,191 @@ const ProfilePage: React.FC = () => {
                         color='primary'
                         sx={{ fontWeight: 'bold' }}
                       />
+                    </Box>
+
+                    {/* Appearance Settings */}
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Aparência
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ mb: 2, display: 'block' }}
+                      >
+                        Personalize a aparência do site
+                      </Typography>
+
+                      {/* Dark Mode Toggle */}
+                      <Box
+                        sx={{
+                          p: 2,
+                          mb: 2,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Stack direction='row' spacing={2} alignItems='center'>
+                          {darkMode ? (
+                            <DarkModeIcon color='primary' />
+                          ) : (
+                            <LightModeIcon color='primary' />
+                          )}
+                          <Box>
+                            <Typography variant='body1' fontWeight='medium'>
+                              Tema Escuro
+                            </Typography>
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                            >
+                              {darkMode
+                                ? 'Ativado - cores escuras'
+                                : 'Desativado - cores claras'}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        <Switch
+                          checked={darkMode}
+                          onChange={(e) => setDarkMode(e.target.checked)}
+                          disabled={preferencesLoading}
+                        />
+                      </Box>
+
+                      {/* Accent Color Selector */}
+                      <Box>
+                        <Typography
+                          variant='body1'
+                          fontWeight='medium'
+                          gutterBottom
+                        >
+                          Cor de Destaque
+                        </Typography>
+                        <Typography
+                          variant='caption'
+                          color='text.secondary'
+                          sx={{ mb: 2, display: 'block' }}
+                        >
+                          Escolha a cor principal da interface
+                        </Typography>
+
+                        {/* Block for non-supporters */}
+                        {!isUserSupporter ? (
+                          <Box
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              border: '1px dashed',
+                              borderColor: 'divider',
+                              bgcolor: 'action.hover',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <Stack spacing={2} alignItems='center'>
+                              <Stack
+                                direction='row'
+                                spacing={1}
+                                sx={{ opacity: 0.5 }}
+                              >
+                                {getAccentColorsArray().map((color) => (
+                                  <Box
+                                    key={color.id}
+                                    sx={{
+                                      width: 32,
+                                      height: 32,
+                                      borderRadius: '50%',
+                                      backgroundColor: color.main,
+                                      border:
+                                        accentColor === color.id
+                                          ? '2px solid'
+                                          : '1px solid transparent',
+                                      borderColor:
+                                        accentColor === color.id
+                                          ? 'text.primary'
+                                          : 'transparent',
+                                    }}
+                                  />
+                                ))}
+                              </Stack>
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                              >
+                                Personalize as cores do site tornando-se um
+                                apoiador
+                              </Typography>
+                              <Button
+                                variant='outlined'
+                                size='small'
+                                startIcon={<FavoriteIcon />}
+                                onClick={() => history.push('/apoiar')}
+                              >
+                                Conhecer Planos
+                              </Button>
+                            </Stack>
+                          </Box>
+                        ) : (
+                          <Stack
+                            direction='row'
+                            spacing={2}
+                            flexWrap='wrap'
+                            useFlexGap
+                          >
+                            {getAccentColorsArray().map((color) => (
+                              <Tooltip key={color.id} title={color.name} arrow>
+                                <Box
+                                  onClick={() =>
+                                    !preferencesLoading &&
+                                    setAccentColor(color.id as AccentColorId)
+                                  }
+                                  sx={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: '50%',
+                                    backgroundColor: color.main,
+                                    cursor: preferencesLoading
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                    border:
+                                      accentColor === color.id
+                                        ? '3px solid'
+                                        : '2px solid transparent',
+                                    borderColor:
+                                      accentColor === color.id
+                                        ? 'text.primary'
+                                        : 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow:
+                                      accentColor === color.id
+                                        ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${color.main}`
+                                        : 'none',
+                                    '&:hover': {
+                                      transform: 'scale(1.1)',
+                                      boxShadow: `0 4px 12px ${color.main}50`,
+                                    },
+                                  }}
+                                >
+                                  {accentColor === color.id && (
+                                    <CheckIcon
+                                      sx={{
+                                        color: color.contrastText,
+                                        fontSize: 24,
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              </Tooltip>
+                            ))}
+                          </Stack>
+                        )}
+                      </Box>
                     </Box>
 
                     {/* DISABLED: 3D Dice feature temporarily disabled

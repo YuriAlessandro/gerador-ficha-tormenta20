@@ -45,7 +45,7 @@ const ThreatHistory: React.FC = () => {
     (state: RootState) => state.threatStorage.threats
   );
   const { tier } = useSubscription();
-  const { totalSheets, maxSheets, canCreate } = useSheetLimit();
+  const { menaceCount, maxMenaceSheets, canCreateMenace } = useSheetLimit();
   const [searchTerm, setSearchTerm] = useState('');
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -86,7 +86,7 @@ const ThreatHistory: React.FC = () => {
 
   const handleNewThreat = () => {
     // Check sheet limit before creating new threat
-    if (!canCreate) {
+    if (!canCreateMenace) {
       setShowLimitDialog(true);
       return;
     }
@@ -235,8 +235,8 @@ const ThreatHistory: React.FC = () => {
       <SheetLimitDialog
         open={showLimitDialog}
         onClose={() => setShowLimitDialog(false)}
-        currentCount={totalSheets}
-        maxCount={maxSheets}
+        currentCount={menaceCount}
+        maxCount={maxMenaceSheets}
         tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
       />
 

@@ -9,23 +9,30 @@ import {
   Typography,
   Divider,
   CircularProgress,
+  Stack,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useSubscription } from '../../hooks/useSubscription';
 import { AppDispatch } from '../../store';
 import { logout } from '../../store/slices/auth/authSlice';
 import AuthModal from './AuthModal';
+import SupporterBadge from '../Premium/SupporterBadge';
+import { SupportLevel } from '../../types/subscription.types';
 
 const UserMenu: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const history = useHistory();
   const { user, isAuthenticated, loading } = useAuth();
+  const { subscription } = useSubscription();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const supportLevel = subscription?.tier || SupportLevel.FREE;
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -99,26 +106,38 @@ const UserMenu: React.FC = () => {
 
   return (
     <>
-      <IconButton
-        onClick={handleMenuOpen}
-        size='small'
-        sx={{ ml: 2 }}
-        aria-controls={anchorEl ? 'account-menu' : undefined}
-        aria-haspopup='true'
-        aria-expanded={anchorEl ? 'true' : undefined}
-      >
-        <Avatar
-          sx={{
-            width: 32,
-            height: 32,
-            bgcolor: 'primary.dark',
-            fontSize: '0.875rem',
-          }}
-          src={user?.photoURL || undefined}
+      <Stack direction='row' alignItems='center' spacing={1}>
+        {/* Supporter Badge - only shows for supporters */}
+        <SupporterBadge level={supportLevel} variant='small' showTooltip />
+
+        <IconButton
+          onClick={handleMenuOpen}
+          size='small'
+          sx={{ p: 0.5 }}
+          aria-controls={anchorEl ? 'account-menu' : undefined}
+          aria-haspopup='true'
+          aria-expanded={anchorEl ? 'true' : undefined}
         >
-          {!user?.photoURL && getInitials()}
-        </Avatar>
-      </IconButton>
+          <Avatar
+            sx={{
+              width: 36,
+              height: 36,
+              bgcolor: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              border: '2px solid rgba(255, 255, 255, 0.4)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                border: '2px solid rgba(255, 255, 255, 0.8)',
+              },
+            }}
+            src={user?.photoURL || undefined}
+          >
+            {!user?.photoURL && getInitials()}
+          </Avatar>
+        </IconButton>
+      </Stack>
 
       <Menu
         anchorEl={anchorEl}

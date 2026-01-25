@@ -52,8 +52,7 @@ import { SheetData } from '../../services/sheets.service';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
-import { SubscriptionTier } from '../../types/subscription.types';
-import PremiumBadge from '../Premium/PremiumBadge';
+import SupporterBadge from '../Premium/SupporterBadge';
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -69,9 +68,19 @@ const MyCharactersPage: React.FC = () => {
     duplicateSheet: duplicateSheetAction,
     clearError,
   } = useSheets();
-  const { tier, isPremium } = useSubscription();
-  const { totalSheets, maxSheets, canCreate, remainingSlots, isNearLimit } =
-    useSheetLimit();
+  const { supportLevel } = useSubscription();
+  const {
+    maxSheets,
+    maxMenaceSheets,
+    canCreateCharacter,
+    canCreateMenace,
+    isNearCharacterLimit,
+    isNearMenaceLimit,
+    remainingCharacterSlots,
+    remainingMenaceSlots,
+    isCharacterLimitUnlimited,
+    isMenaceLimitUnlimited,
+  } = useSheetLimit();
 
   // Get initial tab from URL query param
   const getInitialTab = () => {
@@ -397,64 +406,84 @@ const MyCharactersPage: React.FC = () => {
               alignItems='center'
               flexWrap='wrap'
             >
-              {!isPremium && (
-                <Chip
-                  label='Plano Gratuito'
-                  size='small'
-                  color='default'
-                  sx={{ fontWeight: 'medium' }}
-                />
+              <SupporterBadge
+                level={supportLevel}
+                variant='small'
+                showTooltip={false}
+              />
+              {/* Character Sheets - only show counter when limit is not unlimited */}
+              {activeTab === 0 && !isCharacterLimitUnlimited && (
+                <Stack direction='row' spacing={1} alignItems='center'>
+                  <CharacterLimitIndicator
+                    current={playerSheets.length}
+                    max={maxSheets}
+                  />
+                  <Typography
+                    variant='body2'
+                    color={
+                      isNearCharacterLimit ? 'warning.main' : 'text.secondary'
+                    }
+                    fontWeight={isNearCharacterLimit ? 'bold' : 'normal'}
+                  >
+                    {playerSheets.length} de {maxSheets} fichas de personagem
+                  </Typography>
+                </Stack>
               )}
-              {isPremium && <PremiumBadge variant='small' />}
-              <Stack direction='row' spacing={1} alignItems='center'>
-                <CharacterLimitIndicator
-                  current={totalSheets}
-                  max={maxSheets}
-                />
-                <Typography
-                  variant='body2'
-                  color={isNearLimit ? 'warning.main' : 'text.secondary'}
-                  fontWeight={isNearLimit ? 'bold' : 'normal'}
-                >
-                  {totalSheets} de {maxSheets} fichas
-                </Typography>
-              </Stack>
+              {/* Menace Sheets - only show counter when limit is not unlimited */}
+              {activeTab === 1 && !isMenaceLimitUnlimited && (
+                <Stack direction='row' spacing={1} alignItems='center'>
+                  <CharacterLimitIndicator
+                    current={threatSheets.length}
+                    max={maxMenaceSheets}
+                  />
+                  <Typography
+                    variant='body2'
+                    color={
+                      isNearMenaceLimit ? 'warning.main' : 'text.secondary'
+                    }
+                    fontWeight={isNearMenaceLimit ? 'bold' : 'normal'}
+                  >
+                    {threatSheets.length} de {maxMenaceSheets} fichas de ameaças
+                  </Typography>
+                </Stack>
+              )}
             </Stack>
           </Box>
 
-          {/* Near limit or at limit warning */}
-          {isNearLimit && canCreate && (
-            <Alert severity='warning' sx={{ mb: 2 }}>
-              Você está próximo do limite de {maxSheets} fichas. Restam apenas{' '}
-              {remainingSlots} vaga{remainingSlots !== 1 ? 's' : ''}.{' '}
-              {!isPremium && (
-                <Button
-                  size='small'
-                  variant='text'
-                  onClick={() => history.push('/pricing')}
-                  sx={{ textDecoration: 'underline', ml: 1 }}
-                >
-                  Ver Planos Premium
-                </Button>
-              )}
-            </Alert>
-          )}
-          {!canCreate && (
+          {/* Near limit or at limit warning for Character Sheets */}
+          {activeTab === 0 &&
+            isNearCharacterLimit &&
+            canCreateCharacter &&
+            !isCharacterLimitUnlimited && (
+              <Alert severity='warning' sx={{ mb: 2 }}>
+                Você está próximo do limite de {maxSheets} fichas de personagem.
+                Restam apenas {remainingCharacterSlots} vaga
+                {remainingCharacterSlots !== 1 ? 's' : ''}.
+              </Alert>
+            )}
+          {activeTab === 0 &&
+            !canCreateCharacter &&
+            !isCharacterLimitUnlimited && (
+              <Alert severity='error' sx={{ mb: 2 }}>
+                Você atingiu o limite de {maxSheets} fichas de personagem do seu
+                apoio. Delete algumas fichas antigas para criar novas.
+              </Alert>
+            )}
+          {/* Near limit or at limit warning for Menace Sheets */}
+          {activeTab === 1 &&
+            isNearMenaceLimit &&
+            canCreateMenace &&
+            !isMenaceLimitUnlimited && (
+              <Alert severity='warning' sx={{ mb: 2 }}>
+                Você está próximo do limite de {maxMenaceSheets} fichas de
+                ameaça. Restam apenas {remainingMenaceSlots} vaga
+                {remainingMenaceSlots !== 1 ? 's' : ''}.
+              </Alert>
+            )}
+          {activeTab === 1 && !canCreateMenace && !isMenaceLimitUnlimited && (
             <Alert severity='error' sx={{ mb: 2 }}>
-              Você atingiu o limite de {maxSheets} fichas do plano{' '}
-              {tier === SubscriptionTier.FREE ? 'Gratuito' : tier}. Delete
-              algumas fichas antigas para criar novas
-              {!isPremium && ' ou faça upgrade para o Plano Simples'}.
-              {!isPremium && (
-                <Button
-                  size='small'
-                  variant='contained'
-                  onClick={() => history.push('/pricing')}
-                  sx={{ ml: 2 }}
-                >
-                  Ver Planos Premium
-                </Button>
-              )}
+              Você atingiu o limite de {maxMenaceSheets} fichas de ameaça do seu
+              apoio. Delete algumas fichas antigas para criar novas.
             </Alert>
           )}
         </Box>

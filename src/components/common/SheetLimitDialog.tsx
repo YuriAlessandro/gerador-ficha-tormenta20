@@ -13,8 +13,8 @@ import {
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
-import UpgradeIcon from '@mui/icons-material/Upgrade';
 import FolderIcon from '@mui/icons-material/Folder';
+import { Favorite } from '@mui/icons-material';
 
 interface SheetLimitDialogProps {
   open: boolean;
@@ -39,7 +39,7 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
 
   const handleUpgrade = () => {
     onClose();
-    history.push('/pricing');
+    history.push('/apoiar');
   };
 
   const handleManageSheets = () => {
@@ -95,12 +95,9 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
         {isFree ? (
           <Alert severity='info' sx={{ mb: 2 }}>
             <Typography variant='body2' sx={{ mb: 1 }}>
-              Com o <strong>Plano Simples</strong> você pode criar até{' '}
-              <strong>50 fichas</strong>!
-            </Typography>
-            <Typography variant='caption' color='text.secondary'>
-              Além de fichas ilimitadas de diários e cadernos, comentários em
-              builds e muito mais.
+              Considere virar um apoiador do nosso projeto. Você irá aumentar
+              seu limite de fichas e colaborar com a sustentabilidade do Fichas
+              de Nimb.
             </Typography>
           </Alert>
         ) : (
@@ -111,12 +108,6 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
             </Typography>
           </Alert>
         )}
-
-        <DialogContentText variant='body2' color='text.secondary'>
-          {isFree
-            ? 'Faça upgrade para continuar criando fichas ou delete algumas fichas antigas.'
-            : 'Delete algumas fichas antigas para liberar espaço.'}
-        </DialogContentText>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -134,7 +125,7 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
           <Button
             onClick={handleUpgrade}
             variant='contained'
-            startIcon={<UpgradeIcon />}
+            startIcon={<Favorite />}
             sx={{
               background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
               color: '#000',
@@ -143,7 +134,7 @@ const SheetLimitDialog: React.FC<SheetLimitDialogProps> = ({
               },
             }}
           >
-            Ver Planos
+            Apoiar
           </Button>
         )}
       </DialogActions>

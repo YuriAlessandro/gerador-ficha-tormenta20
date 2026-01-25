@@ -2,6 +2,18 @@ import React, { useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 
 /**
+ * Convert hex color to RGB components string
+ */
+const hexToRgbString = (hex: string): string => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return '209, 50, 53'; // fallback to red
+  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(
+    result[3],
+    16
+  )}`;
+};
+
+/**
  * Component that injects MUI theme colors as CSS variables
  * This allows CSS files to use theme colors via var(--primary-main), etc.
  */
@@ -21,6 +33,20 @@ export const CssVarsProvider: React.FC<{ children: React.ReactNode }> = ({
     root.style.setProperty(
       '--primary-contrast',
       theme.palette.primary.contrastText
+    );
+
+    // Primary RGB values (for rgba() usage in CSS)
+    root.style.setProperty(
+      '--primary-main-rgb',
+      hexToRgbString(theme.palette.primary.main)
+    );
+    root.style.setProperty(
+      '--primary-dark-rgb',
+      hexToRgbString(theme.palette.primary.dark)
+    );
+    root.style.setProperty(
+      '--primary-light-rgb',
+      hexToRgbString(theme.palette.primary.light)
     );
 
     // Secondary colors

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { User } from 'firebase/auth';
 import authService from '../../../services/auth.service';
 import { AuthState, DbUser } from '../../../types/auth.types';
+import { AccentColorId } from '../../../theme/accentColors';
 
 const initialState: AuthState = {
   firebaseUser: null,
@@ -92,6 +93,24 @@ export const saveDice3DSettings = createAsyncThunk(
         return rejectWithValue(error.message);
       }
       return rejectWithValue('Failed to save 3D dice settings');
+    }
+  }
+);
+
+export const saveAppearanceSettings = createAsyncThunk(
+  'auth/saveAppearanceSettings',
+  async (
+    settings: { accentColor?: AccentColorId; darkMode?: boolean },
+    { rejectWithValue }
+  ) => {
+    try {
+      const updatedUser = await authService.saveAppearanceSettings(settings);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save appearance settings');
     }
   }
 );
@@ -214,6 +233,21 @@ const authSlice = createSlice({
         state.dbUser = action.payload;
       })
       .addCase(saveDice3DSettings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Save Appearance Settings
+    builder
+      .addCase(saveAppearanceSettings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveAppearanceSettings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dbUser = action.payload;
+      })
+      .addCase(saveAppearanceSettings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
