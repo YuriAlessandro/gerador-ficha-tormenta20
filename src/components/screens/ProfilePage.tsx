@@ -222,7 +222,8 @@ const ProfilePage: React.FC = () => {
 
       const updates: { username?: string; fullName?: string } = {};
 
-      if (editForm.username !== currentUser?.username) {
+      // Apenas apoiadores podem alterar o nome de usuário
+      if (editForm.username !== currentUser?.username && isUserSupporter) {
         updates.username = editForm.username.toLowerCase();
       }
 
@@ -555,10 +556,14 @@ const ProfilePage: React.FC = () => {
                       value={currentUser?.username || ''}
                       disabled
                       fullWidth
-                      helperText='Edite seu perfil para alterar'
+                      helperText={
+                        isUserSupporter
+                          ? 'Edite seu perfil para alterar'
+                          : 'Apenas apoiadores podem alterar'
+                      }
                     />
                     <TextField
-                      label='Nome Completo'
+                      label='Nome de Exibição'
                       value={currentUser?.fullName || ''}
                       disabled
                       fullWidth
@@ -1392,16 +1397,21 @@ const ProfilePage: React.FC = () => {
                 setEditForm({ ...editForm, username: e.target.value })
               }
               fullWidth
-              helperText='Somente letras minúsculas, números e underscores'
-              disabled={editLoading}
+              helperText={
+                isUserSupporter
+                  ? 'Somente letras minúsculas, números e underscores'
+                  : 'Apenas apoiadores podem alterar o nome de usuário'
+              }
+              disabled={editLoading || !isUserSupporter}
             />
             <TextField
-              label='Nome Completo'
+              label='Nome de Exibição'
               value={editForm.fullName}
               onChange={(e) =>
                 setEditForm({ ...editForm, fullName: e.target.value })
               }
               fullWidth
+              helperText='Nome exibido publicamente no seu perfil'
               disabled={editLoading}
             />
           </Stack>
