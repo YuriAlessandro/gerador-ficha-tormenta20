@@ -116,6 +116,18 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
               <Typography variant='body1' fontWeight={500}>
                 {race.name}
               </Typography>
+              {race.supplementId !== SupplementId.TORMENTA20_CORE && (
+                <Chip
+                  label={race.supplementName}
+                  size='small'
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    backgroundColor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                  }}
+                />
+              )}
             </Box>
             <CopyUrlButton
               itemName={race.name}

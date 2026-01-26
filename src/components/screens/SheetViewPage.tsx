@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useHistory, useLocation } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -10,9 +10,16 @@ import {
   Link,
   IconButton,
   Snackbar,
+  Card,
+  Stack,
+  Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import ShareIcon from '@mui/icons-material/Share';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import CasinoIcon from '@mui/icons-material/Casino';
 import Result from '@/components/SheetResult/Result';
 import SheetsService from '@/services/sheets.service';
 import { SEO } from '@/components/SEO';
@@ -22,10 +29,15 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
 import { ClassDescription } from '@/interfaces/Class';
+import preparePDF from '@/functions/downloadSheetPdf';
+import { convertToFoundry, FoundryJSON } from '@/2foundry';
 
 const SheetViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
+  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, firebaseUser } = useAuth();
   const { updateSheet } = useSheets();
 
@@ -36,6 +48,12 @@ const SheetViewPage: React.FC = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [loadingPDF, setLoadingPDF] = useState(false);
+  const [loadingFoundry, setLoadingFoundry] = useState(false);
+
+  // Check if viewing from game table context (hide export options)
+  const queryParams = new URLSearchParams(location.search);
+  const isEmbedded = queryParams.get('embed') === 'true';
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -178,6 +196,54 @@ const SheetViewPage: React.FC = () => {
     history.push('/');
   };
 
+  // PDF Export
+  const preparePrint = async () => {
+    if (!sheet) return;
+    setLoadingPDF(true);
+    try {
+      const pdfBytes = await preparePDF(sheet);
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: 'application/pdf',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Ficha de ${sheet.nome}.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch {
+      setSnackbarMessage('Erro ao gerar PDF.');
+      setSnackbarOpen(true);
+    } finally {
+      setLoadingPDF(false);
+    }
+  };
+
+  // Foundry Export
+  const encodeFoundryJSON = (json: FoundryJSON | undefined) => {
+    if (json) {
+      return `data:text/json;charset=utf-8,${encodeURIComponent(
+        JSON.stringify(json)
+      )}`;
+    }
+    return '';
+  };
+
+  const exportFoundry = () => {
+    if (!sheet) return;
+    setLoadingFoundry(true);
+
+    const foundryJSON = convertToFoundry(sheet);
+    const encodedJSON = encodeFoundryJSON(foundryJSON);
+
+    setTimeout(() => {
+      const link = document.createElement('a');
+      link.href = encodedJSON;
+      link.download = `${sheet.nome}.json`;
+      link.click();
+      setLoadingFoundry(false);
+    }, 300);
+  };
+
   if (loading) {
     return (
       <Container maxWidth='xl'>
@@ -272,6 +338,58 @@ const SheetViewPage: React.FC = () => {
                 <ShareIcon />
               </IconButton>
             </Box>
+
+            {/* Export Options - hidden when embedded in game table */}
+            {!isEmbedded && (
+              <Card sx={{ p: 2, mb: 2 }}>
+                <Stack
+                  spacing={1}
+                  direction={isMobile ? 'column' : 'row'}
+                  sx={{
+                    '& button': {
+                      minHeight: isMobile ? '44px' : 'auto',
+                      fontSize: isMobile ? '16px' : '14px',
+                    },
+                  }}
+                >
+                  {/* PDF Export Button */}
+                  <Button
+                    variant='outlined'
+                    onClick={preparePrint}
+                    fullWidth={isMobile}
+                    disabled={loadingPDF}
+                    sx={{ justifyContent: 'flex-start' }}
+                    startIcon={
+                      loadingPDF ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <PictureAsPdfIcon />
+                      )
+                    }
+                  >
+                    {loadingPDF ? 'Gerando PDF...' : 'Gerar PDF da Ficha'}
+                  </Button>
+
+                  {/* Foundry Export Button */}
+                  <Button
+                    variant='outlined'
+                    onClick={exportFoundry}
+                    fullWidth={isMobile}
+                    disabled={loadingFoundry}
+                    sx={{ justifyContent: 'flex-start' }}
+                    startIcon={
+                      loadingFoundry ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <CasinoIcon />
+                      )
+                    }
+                  >
+                    {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
+                  </Button>
+                </Stack>
+              </Card>
+            )}
 
             {/* Permission Info */}
             {!isOwner && (

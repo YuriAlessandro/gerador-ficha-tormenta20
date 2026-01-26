@@ -57,6 +57,18 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
             <Typography variant='body1' fontWeight={500}>
               {origin.name}
             </Typography>
+            {origin.supplementId !== SupplementId.TORMENTA20_CORE && (
+              <Chip
+                label={origin.supplementName}
+                size='small'
+                sx={{
+                  height: '20px',
+                  fontSize: '0.7rem',
+                  backgroundColor: 'secondary.main',
+                  color: 'secondary.contrastText',
+                }}
+              />
+            )}
             <Box sx={{ ml: 'auto' }}>
               <CopyUrlButton
                 itemName={origin.name}

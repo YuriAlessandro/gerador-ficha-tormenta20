@@ -303,6 +303,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
+  // Sync selectedOptions.supplements when user's enabledSupplements change
+  React.useEffect(() => {
+    const newSupplements = user?.enabledSupplements || [];
+    setSelectedOptions((prev) => ({
+      ...prev,
+      supplements: newSupplements,
+    }));
+  }, [user?.enabledSupplements]);
+
   // Load cloud sheet on mount if passed via navigation state
   React.useEffect(() => {
     if (location.state?.cloudSheet) {

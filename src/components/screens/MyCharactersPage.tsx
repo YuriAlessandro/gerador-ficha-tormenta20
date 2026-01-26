@@ -131,8 +131,10 @@ const MyCharactersPage: React.FC = () => {
           );
         case 'level': {
           // nivel is the Portuguese property name in sheetData
-          const levelA = a.sheetData?.nivel || 0;
-          const levelB = b.sheetData?.nivel || 0;
+          const dataA = a.sheetData as unknown as { nivel?: number };
+          const dataB = b.sheetData as unknown as { nivel?: number };
+          const levelA = dataA?.nivel || 0;
+          const levelB = dataB?.nivel || 0;
           return levelB - levelA;
         }
         default:

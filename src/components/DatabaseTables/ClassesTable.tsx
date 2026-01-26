@@ -118,6 +118,18 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   </Typography>
                 )}
               </Typography>
+              {classe.supplementId !== SupplementId.TORMENTA20_CORE && (
+                <Chip
+                  label={classe.supplementName}
+                  size='small'
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    backgroundColor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                  }}
+                />
+              )}
             </Box>
             <CopyUrlButton
               itemName={classe.name}
