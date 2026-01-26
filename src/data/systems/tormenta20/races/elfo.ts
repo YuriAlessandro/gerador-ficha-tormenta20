@@ -26,13 +26,13 @@ const ELFO: Race = {
       description: 'Seu deslocamento é 12m (em vez de 9m).',
     },
     {
-      name: 'Herança Feérica',
+      name: 'Sangue Mágico',
       description: 'Você recebe +1 ponto de mana por nível.',
       sheetBonuses: [
         {
           source: {
             type: 'power',
-            name: 'Herança Feérica',
+            name: 'Sangue Mágico',
           },
           target: {
             type: 'PM',

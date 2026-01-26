@@ -2052,27 +2052,58 @@ export const applyPower = (
   if (powerOrAbility.sheetBonuses) {
     sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
 
-    // Check if there's an HP attribute replacement and apply it immediately
-    const hpReplacement = powerOrAbility.sheetBonuses.find(
-      (bonus) => bonus.target.type === 'HPAttributeReplacement'
-    );
+    // Generate substeps for important bonuses so they appear in the step-by-step
+    powerOrAbility.sheetBonuses.forEach((bonus) => {
+      const sourceName = getSourceName(bonus.source);
 
-    if (
-      hpReplacement &&
-      hpReplacement.target.type === 'HPAttributeReplacement'
-    ) {
-      const { newAttribute } = hpReplacement.target;
-      const baseHp = sheet.classe.pv;
-      const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
+      if (bonus.target.type === 'PM') {
+        // Generate description based on modifier type
+        let bonusDescription = '';
+        if (bonus.modifier.type === 'LevelCalc') {
+          bonusDescription = '+1 PM por nível';
+        } else if (
+          bonus.modifier.type === 'Fixed' &&
+          'value' in bonus.modifier
+        ) {
+          bonusDescription = `+${bonus.modifier.value} PM`;
+        } else {
+          bonusDescription = '+PM';
+        }
+        subSteps.push({
+          name: sourceName,
+          value: bonusDescription,
+        });
+      } else if (bonus.target.type === 'PV') {
+        let bonusDescription = '';
+        if (bonus.modifier.type === 'LevelCalc') {
+          bonusDescription = '+1 PV por nível';
+        } else if (
+          bonus.modifier.type === 'Fixed' &&
+          'value' in bonus.modifier
+        ) {
+          bonusDescription = `+${bonus.modifier.value} PV`;
+        } else {
+          bonusDescription = '+PV';
+        }
+        subSteps.push({
+          name: sourceName,
+          value: bonusDescription,
+        });
+      } else if (bonus.target.type === 'HPAttributeReplacement') {
+        // Special handling for HP attribute replacement
+        const { newAttribute } = bonus.target;
+        const baseHp = sheet.classe.pv;
+        const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
 
-      const oldPv = sheet.pv;
-      sheet.pv = baseHp + attributeBonus;
+        const oldPv = sheet.pv;
+        sheet.pv = baseHp + attributeBonus;
 
-      subSteps.push({
-        name: getSourceName(hpReplacement.source),
-        value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
-      });
-    }
+        subSteps.push({
+          name: sourceName,
+          value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
+        });
+      }
+    });
   }
 
   return [sheet, subSteps];
@@ -2331,7 +2362,39 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   if (addPv < 1) addPv = 1;
 
   const newPvTotal = updatedSheet.pv + addPv;
-  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  // Calculate PM bonus from sheetBonuses that scale with level
+  // We need to add the incremental bonus for the new level
+  let levelCalcPMBonus = 0;
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
+      // For LevelCalc, calculate the bonus at new level vs old level
+      // Since we already incremented nivel, old level is nivel - 1
+      const oldLevel = updatedSheet.nivel - 1;
+      const newLevel = updatedSheet.nivel;
+      const { formula } = bonus.modifier as {
+        type: 'LevelCalc';
+        formula: string;
+      };
+
+      const calcBonus = (level: number) => {
+        const filledFormula = formula.replace('{level}', level.toString());
+        try {
+          // eslint-disable-next-line no-eval
+          return eval(filledFormula);
+        } catch {
+          return 0;
+        }
+      };
+
+      const oldBonus = calcBonus(oldLevel);
+      const newBonus = calcBonus(newLevel);
+      levelCalcPMBonus += newBonus - oldBonus;
+    }
+  });
+
+  const newPmTotal =
+    updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
 
   const subSteps = [];
 
@@ -2342,7 +2405,9 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
       value: newPvTotal,
     },
     {
-      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm} por nível)`,
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm}${
+        levelCalcPMBonus > 0 ? ` + ${levelCalcPMBonus} bônus racial` : ''
+      } por nível)`,
       value: newPmTotal,
     }
   );
@@ -2561,7 +2626,39 @@ export function applyManualLevelUp(
   if (addPv < 1) addPv = 1;
 
   const newPvTotal = updatedSheet.pv + addPv;
-  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  // Calculate PM bonus from sheetBonuses that scale with level
+  // We need to add the incremental bonus for the new level
+  let levelCalcPMBonus = 0;
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
+      // For LevelCalc, calculate the bonus at new level vs old level
+      // Since we already incremented nivel, old level is nivel - 1
+      const oldLevel = updatedSheet.nivel - 1;
+      const newLevel = updatedSheet.nivel;
+      const { formula } = bonus.modifier as {
+        type: 'LevelCalc';
+        formula: string;
+      };
+
+      const calcBonus = (level: number) => {
+        const filledFormula = formula.replace('{level}', level.toString());
+        try {
+          // eslint-disable-next-line no-eval
+          return eval(filledFormula);
+        } catch {
+          return 0;
+        }
+      };
+
+      const oldBonus = calcBonus(oldLevel);
+      const newBonus = calcBonus(newLevel);
+      levelCalcPMBonus += newBonus - oldBonus;
+    }
+  });
+
+  const newPmTotal =
+    updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
 
   const subSteps = [];
 
@@ -2572,7 +2669,9 @@ export function applyManualLevelUp(
       value: newPvTotal,
     },
     {
-      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm} por nível)`,
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm}${
+        levelCalcPMBonus > 0 ? ` + ${levelCalcPMBonus} bônus racial` : ''
+      } por nível)`,
       value: newPmTotal,
     }
   );

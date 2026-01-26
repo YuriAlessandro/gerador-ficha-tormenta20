@@ -945,11 +945,10 @@ export function recalculateSheet(
     keyAttrMod = keyAttr?.mod || 0;
   }
 
-  // Calculate PM: base + keyAttrMod + (perLevel + keyAttrMod) * (level - 1)
+  // Calculate PM: base + keyAttrMod + perLevel * (level - 1)
+  // keyAttrMod is only added once at level 1, not per level
   updatedSheet.pm =
-    basePM +
-    keyAttrMod +
-    (addPMPerLevel + keyAttrMod) * (updatedSheet.nivel - 1);
+    basePM + keyAttrMod + addPMPerLevel * (updatedSheet.nivel - 1);
 
   // Add bonus PM if defined
   if (updatedSheet.bonusPM) {
@@ -1001,7 +1000,7 @@ export function recalculateSheet(
     customPMPerLevel: updatedSheet.customPMPerLevel,
     bonusPM: updatedSheet.bonusPM,
     nivel: updatedSheet.nivel,
-    pmFromLevels: (addPMPerLevel + keyAttrMod) * (updatedSheet.nivel - 1),
+    pmFromLevels: addPMPerLevel * (updatedSheet.nivel - 1),
     atributos: {
       INT: updatedSheet.atributos.Inteligência?.mod || 0,
       CAR: updatedSheet.atributos.Carisma?.mod || 0,
