@@ -31,6 +31,13 @@ const CENTAURO: Race = {
     {
       name: 'Avantajado',
       description: 'Seu tamanho é Grande e seu deslocamento é 12m.',
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Avantajado' },
+          target: { type: 'Displacement' },
+          modifier: { type: 'Fixed', value: 3 },
+        },
+      ],
     },
     {
       name: 'Cascos',

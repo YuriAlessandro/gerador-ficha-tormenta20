@@ -82,6 +82,13 @@ const SATIRO: Race = {
       name: 'Pernas Caprinas',
       description:
         'Seu deslocamento é 12m e você pode usar Destreza como atributo-chave de Atletismo (em vez de Força).',
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Pernas Caprinas' },
+          target: { type: 'Displacement' },
+          modifier: { type: 'Fixed', value: 3 },
+        },
+      ],
     },
   ],
 };

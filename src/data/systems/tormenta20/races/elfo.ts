@@ -24,6 +24,13 @@ const ELFO: Race = {
     {
       name: 'Graça de Glórienn',
       description: 'Seu deslocamento é 12m (em vez de 9m).',
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Graça de Glórienn' },
+          target: { type: 'Displacement' },
+          modifier: { type: 'Fixed', value: 3 },
+        },
+      ],
     },
     {
       name: 'Sangue Mágico',
