@@ -120,18 +120,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
         skills: origin.pericias,
       };
 
+  // Items are always given automatically - not selectable
   const items = origin.getItems();
 
-  // Build benefit options
+  // Build benefit options - only skills and powers are selectable
   const skillOptions: OriginBenefit[] = originBenefits.skills.map((skill) => ({
     type: 'skill' as const,
     name: skill,
-  }));
-
-  const itemOptions: OriginBenefit[] = items.map((item) => ({
-    type: 'item' as const,
-    name:
-      typeof item.equipment === 'string' ? item.equipment : item.equipment.nome,
   }));
 
   const powerOptions: OriginBenefit[] = originBenefits.powers.origin.map(
@@ -164,13 +159,37 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Typography variant='body1' color='text.secondary'>
-        A origem {origin.name} permite escolher {REQUIRED_SELECTIONS} benefícios
-        entre perícias, itens e poderes. Selecione abaixo:
+        A origem {origin.name} concede itens automaticamente e permite escolher{' '}
+        {REQUIRED_SELECTIONS} benefícios entre perícias e poderes. Selecione
+        abaixo:
       </Typography>
 
       <Typography variant='caption' color='text.secondary'>
         Selecionados: {selectedBenefits.length} / {REQUIRED_SELECTIONS}
       </Typography>
+
+      {/* Items Section - Always granted, display only */}
+      {items.length > 0 && (
+        <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Typography variant='h6' gutterBottom>
+            Itens (concedidos automaticamente)
+          </Typography>
+          {items.map((item) => {
+            const itemName =
+              typeof item.equipment === 'string'
+                ? item.equipment
+                : item.equipment.nome;
+            const itemKey = `${itemName}-${item.qtd || 1}`;
+
+            return (
+              <Typography key={itemKey} variant='body2' color='text.secondary'>
+                • {itemName}
+                {item.qtd && item.qtd > 1 ? ` (x${item.qtd})` : ''}
+              </Typography>
+            );
+          })}
+        </Paper>
+      )}
 
       {/* Skills Section */}
       {skillOptions.length > 0 && (
@@ -188,36 +207,6 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
             return (
               <FormControlLabel
                 key={`skill-${benefit.name}`}
-                control={
-                  <Checkbox
-                    checked={isSelected}
-                    onChange={() => handleToggle(benefit)}
-                    disabled={isDisabled}
-                  />
-                }
-                label={benefit.name}
-              />
-            );
-          })}
-        </Paper>
-      )}
-
-      {/* Items Section */}
-      {itemOptions.length > 0 && (
-        <Paper sx={{ p: 2 }}>
-          <Typography variant='h6' gutterBottom>
-            Itens
-          </Typography>
-          {itemOptions.map((benefit) => {
-            const isSelected = selectedBenefits.some(
-              (b) => b.type === benefit.type && b.name === benefit.name
-            );
-            const isDisabled =
-              !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
-
-            return (
-              <FormControlLabel
-                key={`item-${benefit.name}`}
                 control={
                   <Checkbox
                     checked={isSelected}
