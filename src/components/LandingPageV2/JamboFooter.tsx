@@ -14,6 +14,14 @@ import { useHistory } from 'react-router-dom';
 // Image credits - add more as needed
 const imageCredits = [
   {
+    description: 'Lança de Galrasia',
+    author: 'Mateus Freitas, pintura de Pedro Arthur',
+  },
+  {
+    description: 'P16',
+    author: 'Luan Moura, pintura de Pedro Arthur',
+  },
+  {
     description: 'RPG background',
     author: 'freepik',
     url: 'https://www.freepik.com/free-photo/still-life-objects-with-role-playing-game-sheet_24749855.htm',
@@ -181,10 +189,7 @@ const JamboFooter: React.FC = () => {
               color='text.secondary'
               sx={{ fontFamily: 'Tfont, serif' }}
             >
-              Fichas de Nimb
-            </Typography>
-            <Typography variant='caption' color='text.disabled'>
-              &copy; {currentYear} &middot; Projeto sem fins lucrativos
+              &copy; {currentYear} &middot; Fichas de Nimb
             </Typography>
           </Stack>
 
