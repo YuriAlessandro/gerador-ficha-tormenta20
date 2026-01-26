@@ -933,71 +933,95 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
   };
 
-  const racas: SelectedOption[] = RACAS.map((raca: RaceWithSupplement) => ({
-    value: raca.name,
-    label: raca.name,
-    supplementId: raca.supplementId,
-    supplementName: raca.supplementName,
-  }));
-
-  const rolesopt: SelectedOption[] = Object.keys(roles).map((role) => ({
-    value: role,
-    label: role,
-  }));
-
-  const classesopt: SelectedOption[] = CLASSES.map(
-    (classe: ClassWithSupplement) => ({
-      value: classe.name,
-      label: classe.name,
-      supplementId: classe.supplementId,
-      supplementName: classe.supplementName,
-    })
+  // Memoize options arrays to prevent re-creation on every render
+  // This fixes performance issues with react-select keyboard navigation
+  const racas = React.useMemo<SelectedOption[]>(
+    () =>
+      RACAS.map((raca: RaceWithSupplement) => ({
+        value: raca.name,
+        label: raca.name,
+        supplementId: raca.supplementId,
+        supplementName: raca.supplementName,
+      })),
+    [RACAS]
   );
 
-  const niveis: { value: string; label: string }[] = [];
+  const rolesopt = React.useMemo<SelectedOption[]>(
+    () =>
+      Object.keys(roles).map((role) => ({
+        value: role,
+        label: role,
+      })),
+    []
+  );
 
-  for (let index = 1; index < 21; index += 1) {
-    niveis.push({
-      value: index as unknown as string,
-      label: `Nível ${index}`,
-    });
-  }
+  const classesopt = React.useMemo<SelectedOption[]>(
+    () =>
+      CLASSES.map((classe: ClassWithSupplement) => ({
+        value: classe.name,
+        label: classe.name,
+        supplementId: classe.supplementId,
+        supplementName: classe.supplementName,
+      })),
+    [CLASSES]
+  );
 
-  const opcoesGerarItens = [
-    { value: 'nao-gerar', label: 'Não gerar' },
-    { value: 'consumir-dinheiro', label: 'Gerar consumindo dinheiro inicial' },
-    { value: 'sem-gastar-dinheiro', label: 'Gerar sem gastar dinheiro' },
-  ];
+  const niveis = React.useMemo<{ value: string; label: string }[]>(() => {
+    const result: { value: string; label: string }[] = [];
+    for (let index = 1; index < 21; index += 1) {
+      result.push({
+        value: index as unknown as string,
+        label: `Nível ${index}`,
+      });
+    }
+    return result;
+  }, []);
+
+  const opcoesGerarItens = React.useMemo(
+    () => [
+      { value: 'nao-gerar', label: 'Não gerar' },
+      {
+        value: 'consumir-dinheiro',
+        label: 'Gerar consumindo dinheiro inicial',
+      },
+      { value: 'sem-gastar-dinheiro', label: 'Gerar sem gastar dinheiro' },
+    ],
+    []
+  );
 
   // Combina origens do core com origens dos suplementos ativos
-  const allOrigins = React.useMemo(
-    () => dataRegistry.getOriginsBySupplements(userSupplements),
+  const origens = React.useMemo<SelectedOption[]>(
+    () =>
+      dataRegistry
+        .getOriginsBySupplements(userSupplements)
+        .map((origin: OriginWithSupplement) => ({
+          value: origin.name,
+          label: origin.name,
+          supplementId: origin.supplementId,
+          supplementName: origin.supplementName,
+        })),
     [userSupplements]
   );
 
-  const origens: SelectedOption[] = allOrigins.map(
-    (origin: OriginWithSupplement) => ({
-      value: origin.name,
-      label: origin.name,
-      supplementId: origin.supplementId,
-      supplementName: origin.supplementName,
-    })
+  const divindades = React.useMemo(
+    () =>
+      allDivindadeNames
+        .filter((dv) => {
+          if (selectedOptions.classe) {
+            const classe = CLASSES.find(
+              (c) => c.name === selectedOptions.classe
+            );
+            if (classe) return classe?.faithProbability?.[dv] !== 0;
+            return true;
+          }
+          return true;
+        })
+        .map((sdv) => ({
+          value: sdv,
+          label: sdv.charAt(0).toUpperCase() + sdv.slice(1).toLowerCase(),
+        })),
+    [selectedOptions.classe, CLASSES]
   );
-
-  const divindades = allDivindadeNames
-    .filter((dv) => {
-      if (selectedOptions.classe) {
-        const classe = CLASSES.find((c) => c.name === selectedOptions.classe);
-        if (classe) return classe?.faithProbability?.[dv] !== 0;
-        return true;
-      }
-
-      return true;
-    })
-    .map((sdv) => ({
-      value: sdv,
-      label: sdv.charAt(0).toUpperCase() + sdv.slice(1).toLowerCase(),
-    }));
 
   const formThemeColors = isDarkMode
     ? getSelectTheme('dark')
