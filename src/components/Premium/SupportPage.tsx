@@ -225,7 +225,7 @@ const SupportPage: React.FC = () => {
         <Alert severity='info' sx={{ mb: 3 }}>
           Você já possui um apoio ativo. Para fazer upgrade ou downgrade do seu
           nível de apoio, entre em contato com o suporte através do email{' '}
-          <strong>yuri.alessandro@hotmail.com</strong>.
+          <strong>contato@fichasdenimb.com.br</strong>.
         </Alert>
       )}
 

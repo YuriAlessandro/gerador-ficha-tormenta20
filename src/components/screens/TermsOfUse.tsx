@@ -232,8 +232,8 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='body1'>
               Para solicitar cancelamento ou reembolso, entre em contato pelo
               email:{' '}
-              <Link href='mailto:yuri.alessandro@hotmail.com'>
-                yuri.alessandro@hotmail.com
+              <Link href='mailto:contato@fichasdenimb.com.br'>
+                contato@fichasdenimb.com.br
               </Link>
             </Typography>
           </Section>
@@ -356,8 +356,8 @@ const TermsOfUse: React.FC = () => {
             <Typography variant='body1'>
               Para dúvidas, sugestões ou solicitações, entre em contato pelo
               email:{' '}
-              <Link href='mailto:yuri.alessandro@hotmail.com'>
-                yuri.alessandro@hotmail.com
+              <Link href='mailto:contato@fichasdenimb.com.br'>
+                contato@fichasdenimb.com.br
               </Link>
             </Typography>
           </Section>
