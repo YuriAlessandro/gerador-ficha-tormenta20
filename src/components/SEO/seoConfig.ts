@@ -91,6 +91,11 @@ export const SEO_CONFIG = {
       description:
         'Recursos e ferramentas adicionais para mestres e jogadores de Tormenta 20.',
     },
+    termsOfUse: {
+      title: 'Termos de Uso',
+      description:
+        'Termos de uso e condições da plataforma Fichas de Nimb para Tormenta 20.',
+    },
   },
 };
 

@@ -115,6 +115,21 @@ export const saveAppearanceSettings = createAsyncThunk(
   }
 );
 
+export const acceptTerms = createAsyncThunk(
+  'auth/acceptTerms',
+  async (version: number, { rejectWithValue }) => {
+    try {
+      const updatedUser = await authService.acceptTerms(version);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to accept terms');
+    }
+  }
+);
+
 // Slice
 const authSlice = createSlice({
   name: 'auth',
@@ -248,6 +263,21 @@ const authSlice = createSlice({
         state.dbUser = action.payload;
       })
       .addCase(saveAppearanceSettings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Accept Terms
+    builder
+      .addCase(acceptTerms.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(acceptTerms.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dbUser = action.payload;
+      })
+      .addCase(acceptTerms.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

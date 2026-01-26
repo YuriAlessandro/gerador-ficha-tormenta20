@@ -7,7 +7,9 @@ import {
   Box,
   IconButton,
   Divider,
+  Link,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import CloseIcon from '@mui/icons-material/Close';
 import GoogleLoginButton from './GoogleLoginButton';
 
@@ -58,8 +60,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ open, onClose }) => {
             textAlign='center'
             display='block'
           >
-            Ao entrar, você concorda com nossos Termos de Uso e Política de
-            Privacidade
+            Ao entrar, você concorda com nossos{' '}
+            <Link component={RouterLink} to='/termos-de-uso' onClick={onClose}>
+              Termos de Uso
+            </Link>
           </Typography>
         </Box>
       </DialogContent>

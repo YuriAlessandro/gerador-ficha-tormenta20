@@ -22,6 +22,7 @@ export interface DbUser {
   dice3DEnabled?: boolean;
   accentColor?: AccentColorId;
   darkMode?: boolean;
+  termsAcceptedVersion?: number;
 }
 
 export interface AuthState {

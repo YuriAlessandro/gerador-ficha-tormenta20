@@ -98,6 +98,10 @@ const footerSections: FooterSection[] = [
       { label: 'Apoiar o Projeto', link: '/apoiar' },
     ],
   },
+  {
+    title: 'Legal',
+    links: [{ label: 'Termos de Uso', link: '/termos-de-uso' }],
+  },
 ];
 
 const JamboFooter: React.FC = () => {

@@ -29,6 +29,7 @@ export interface DbUser {
   dice3DEnabled?: boolean;
   accentColor?: AccentColorId;
   darkMode?: boolean;
+  termsAcceptedVersion?: number;
 }
 
 export interface AuthResponse {
@@ -162,6 +163,18 @@ class AuthService {
     const { data } = await api.put<{ user: DbUser; message: string }>(
       '/api/auth/profile',
       settings
+    );
+
+    return data.user;
+  }
+
+  // Accept terms of use
+  static async acceptTerms(version: number): Promise<DbUser> {
+    const { data } = await api.put<{ user: DbUser; message: string }>(
+      '/api/auth/profile',
+      {
+        termsAcceptedVersion: version,
+      }
     );
 
     return data.user;

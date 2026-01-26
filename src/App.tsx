@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch, useHistory } from 'react-router-dom';
+import { Route, Switch, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, Provider } from 'react-redux';
 
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
@@ -20,10 +20,13 @@ import SidebarV2 from './components/SidebarV2';
 import NavbarV2 from './components/NavbarV2';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import SystemSetupDialog from './components/SystemSetupDialog';
+import TermsAcceptanceModal from './components/Terms/TermsAcceptanceModal';
 import { AuthProvider } from './contexts/AuthContext';
+import { CURRENT_TERMS_VERSION } from './constants/terms';
 import CavernaDoSaber from './components/screens/CavernaDoSaber';
 import Changelog from './components/screens/Changelog';
 import Database from './components/screens/Database';
+import TermsOfUse from './components/screens/TermsOfUse';
 import LandingPageV2 from './components/LandingPageV2';
 import MainScreen from './components/screens/MainScreen';
 import MyCharactersPage from './components/screens/MyCharactersPage';
@@ -91,17 +94,35 @@ declare module 'notistack' {
 function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
   const { loading, user, isAuthenticated } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
   const [showSetupDialog, setShowSetupDialog] = React.useState(false);
 
-  // Check if user needs initial setup
+  // Check if user is on the terms page (allow reading terms without modal blocking)
+  const isOnTermsPage = location.pathname === '/termos-de-uso';
+
+  // Check if user needs to accept terms
+  const needsTermsAcceptance = React.useMemo(() => {
+    if (!isAuthenticated || !user) return false;
+    const userTermsVersion = user.termsAcceptedVersion ?? 0;
+    return userTermsVersion < CURRENT_TERMS_VERSION;
+  }, [isAuthenticated, user]);
+
+  // Check if this is an update to existing terms (user had accepted before)
+  const isNewTerms = React.useMemo(() => {
+    if (!user) return false;
+    const userTermsVersion = user.termsAcceptedVersion ?? 0;
+    return userTermsVersion > 0 && userTermsVersion < CURRENT_TERMS_VERSION;
+  }, [user]);
+
+  // Check if user needs initial setup (only after terms are accepted)
   React.useEffect(() => {
-    if (!loading && isAuthenticated && user) {
+    if (!loading && isAuthenticated && user && !needsTermsAcceptance) {
       // Se o usuário não completou o setup inicial, mostra o diálogo
       if (!user.hasCompletedInitialSetup) {
         setShowSetupDialog(true);
       }
     }
-  }, [loading, isAuthenticated, user]);
+  }, [loading, isAuthenticated, user, needsTermsAcceptance]);
 
   const handleSetupComplete = async (supplements: SupplementId[]) => {
     await dispatch(saveSystemSetup(supplements)).unwrap();
@@ -146,8 +167,12 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <TermsAcceptanceModal
+        open={needsTermsAcceptance && !isOnTermsPage}
+        isNewTerms={isNewTerms}
+      />
       <SystemSetupDialog
-        open={showSetupDialog}
+        open={showSetupDialog && !needsTermsAcceptance}
         onComplete={handleSetupComplete}
         currentSupplements={
           user?.enabledSupplements || [SupplementId.TORMENTA20_CORE]
@@ -248,6 +273,9 @@ function ThemedApp(): JSX.Element {
                             <Switch>
                               <Route path='/changelog'>
                                 <Changelog />
+                              </Route>
+                              <Route path='/termos-de-uso'>
+                                <TermsOfUse />
                               </Route>
                               <Route path='/recompensas'>
                                 <Rewards isDarkMode={darkMode} />
