@@ -27,6 +27,7 @@ import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
 import OriginsTable from '../DatabaseTables/OriginsTable';
 import TormentaTitle from '../Database/TormentaTitle';
+import { SEO, getPageSEO } from '../SEO';
 
 interface IProps {
   isDarkMode?: boolean;
@@ -114,11 +115,19 @@ const Database: React.FC<IProps> = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const databaseSEO = getPageSEO('database');
+
   return (
-    <Container className='database-container' maxWidth='xl'>
-      <Fade in={isLoaded} timeout={800}>
-        <Box>
-          <TormentaTitle
+    <>
+      <SEO
+        title={databaseSEO.title}
+        description={databaseSEO.description}
+        url="/database"
+      />
+      <Container className='database-container' maxWidth='xl'>
+        <Fade in={isLoaded} timeout={800}>
+          <Box>
+            <TormentaTitle
             variant='h3'
             centered
             gradient
@@ -388,11 +397,12 @@ const Database: React.FC<IProps> = () => {
                   </Box>
                 </Route>
               </Switch>
-            )}
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Fade>
-    </Container>
+        </Fade>
+      </Container>
+    </>
   );
 };
 

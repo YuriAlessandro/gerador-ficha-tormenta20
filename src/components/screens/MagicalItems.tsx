@@ -27,6 +27,7 @@ import {
   AccordionDetails,
   Slide,
 } from '@mui/material';
+import { SEO, getPageSEO } from '../SEO';
 import {
   ContentCopy as CopyIcon,
   ExpandMore as ExpandMoreIcon,
@@ -438,336 +439,349 @@ const MagicalItems: React.FC<{ isDarkMode: boolean }> = () => {
     };
   };
 
+  const magicalItemsSEO = getPageSEO('magicalItems');
+
   return (
-    <Container maxWidth='lg' sx={{ py: 3 }}>
-      <Typography variant='h4' component='h1' gutterBottom>
-        Gerador de Itens Mágicos
-      </Typography>
+    <>
+      <SEO
+        title={magicalItemsSEO.title}
+        description={magicalItemsSEO.description}
+        url='/itens-magicos'
+      />
+      <Container maxWidth='lg' sx={{ py: 3 }}>
+        <Typography variant='h4' component='h1' gutterBottom>
+          Gerador de Itens Mágicos
+        </Typography>
 
-      <Collapse in={alertMessage.length > 0}>
-        <Alert
-          sx={{ mb: 2 }}
-          severity='error'
-          onClose={() => setAlertMessage('')}
-        >
-          {alertMessage}
-        </Alert>
-      </Collapse>
+        <Collapse in={alertMessage.length > 0}>
+          <Alert
+            sx={{ mb: 2 }}
+            severity='error'
+            onClose={() => setAlertMessage('')}
+          >
+            {alertMessage}
+          </Alert>
+        </Collapse>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Grid container spacing={3}>
-          <Grid size={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={state.generationMode === 'manual'}
-                  onChange={handleModeToggle}
-                />
-              }
-              label={`Modo: ${
-                state.generationMode === 'random' ? 'Aleatório' : 'Manual'
-              }`}
-            />
-          </Grid>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Grid container spacing={3}>
+            <Grid size={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={state.generationMode === 'manual'}
+                    onChange={handleModeToggle}
+                  />
+                }
+                label={`Modo: ${
+                  state.generationMode === 'random' ? 'Aleatório' : 'Manual'
+                }`}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo do Item</InputLabel>
-              <Select
-                value={state.selectedItemType || ''}
-                onChange={handleItemTypeChange}
-                label='Tipo do Item'
-              >
-                <MenuItem value='weapon'>Armas</MenuItem>
-                <MenuItem value='armor'>Armaduras</MenuItem>
-                <MenuItem value='shield'>Escudos</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {state.selectedItemType && state.selectedItemType !== 'shield' && (
             <Grid size={{ xs: 12, md: 4 }}>
               <FormControl fullWidth>
-                <InputLabel>Subtipo</InputLabel>
+                <InputLabel>Tipo do Item</InputLabel>
                 <Select
-                  value={itemSubType}
-                  onChange={handleSubTypeChange}
-                  label='Subtipo'
+                  value={state.selectedItemType || ''}
+                  onChange={handleItemTypeChange}
+                  label='Tipo do Item'
                 >
-                  <MenuItem value='all'>Todos</MenuItem>
-                  {state.selectedItemType === 'weapon' &&
-                    weaponSubtypes.map((sub) => (
-                      <MenuItem key={sub.value} value={sub.value}>
-                        {sub.label}
-                      </MenuItem>
-                    ))}
-                  {state.selectedItemType === 'armor' &&
-                    armorSubtypes.map((sub) => (
-                      <MenuItem key={sub.value} value={sub.value}>
-                        {sub.label}
-                      </MenuItem>
-                    ))}
+                  <MenuItem value='weapon'>Armas</MenuItem>
+                  <MenuItem value='armor'>Armaduras</MenuItem>
+                  <MenuItem value='shield'>Escudos</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-          )}
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Autocomplete
-              options={availableItems}
-              getOptionLabel={(option) => option.label}
-              value={
-                availableItems.find(
-                  (item) => item.value === state.selectedItem
-                ) || null
-              }
-              onChange={handleItemChange}
-              renderInput={(params) => {
-                const { InputLabelProps, InputProps, ...rest } = params;
-                return (
-                  <TextField
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    InputLabelProps={InputLabelProps}
-                    InputProps={InputProps}
-                    label='Item Específico'
-                  />
-                );
-              }}
-              disabled={!state.selectedItemType}
-            />
-          </Grid>
-
-          {state.generationMode === 'random' && (
-            <>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography gutterBottom>
-                  Mínimo de Encantamentos: {state.minEnchantmentCount}
-                </Typography>
-                <Slider
-                  value={state.minEnchantmentCount}
-                  onChange={handleMinEnchantmentCountChange}
-                  min={1}
-                  max={5}
-                  marks
-                  valueLabelDisplay='auto'
-                />
+            {state.selectedItemType && state.selectedItemType !== 'shield' && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Subtipo</InputLabel>
+                  <Select
+                    value={itemSubType}
+                    onChange={handleSubTypeChange}
+                    label='Subtipo'
+                  >
+                    <MenuItem value='all'>Todos</MenuItem>
+                    {state.selectedItemType === 'weapon' &&
+                      weaponSubtypes.map((sub) => (
+                        <MenuItem key={sub.value} value={sub.value}>
+                          {sub.label}
+                        </MenuItem>
+                      ))}
+                    {state.selectedItemType === 'armor' &&
+                      armorSubtypes.map((sub) => (
+                        <MenuItem key={sub.value} value={sub.value}>
+                          {sub.label}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
               </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography gutterBottom>
-                  Máximo de Encantamentos: {state.maxEnchantmentCount}
-                </Typography>
-                <Slider
-                  value={state.maxEnchantmentCount}
-                  onChange={handleMaxEnchantmentCountChange}
-                  min={1}
-                  max={5}
-                  marks
-                  valueLabelDisplay='auto'
-                />
-              </Grid>
-            </>
-          )}
+            )}
 
-          {state.generationMode === 'manual' && (
-            <>
-              <Grid size={12}>
-                <Autocomplete
-                  multiple
-                  options={availableEnchantments}
-                  getOptionLabel={(option) => option.enchantment}
-                  getOptionDisabled={(option) => {
-                    const enchantmentOption = getEnchantmentOption(option);
-                    return enchantmentOption.disabled;
-                  }}
-                  value={state.selectedEnchantments}
-                  onChange={handleEnchantmentSelect}
-                  renderInput={(params) => (
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Autocomplete
+                options={availableItems}
+                getOptionLabel={(option) => option.label}
+                value={
+                  availableItems.find(
+                    (item) => item.value === state.selectedItem
+                  ) || null
+                }
+                onChange={handleItemChange}
+                renderInput={(params) => {
+                  const { InputLabelProps, InputProps, ...rest } = params;
+                  return (
                     <TextField
                       // eslint-disable-next-line react/jsx-props-no-spreading
-                      {...params}
-                      label='Encantamentos'
-                      placeholder='Selecione os encantamentos'
+                      {...rest}
+                      InputLabelProps={InputLabelProps}
+                      InputProps={InputProps}
+                      label='Item Específico'
                     />
-                  )}
-                  renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                      <Chip
-                        variant='outlined'
-                        label={`${option.enchantment}${
-                          option.double ? ' (2 pts)' : ''
-                        }`}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...getTagProps({ index })}
-                      />
-                    ))
-                  }
-                  renderOption={(props, option) => {
-                    const enchantmentOption = getEnchantmentOption(option);
-                    return (
-                      <Box
-                        component='li'
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                        sx={{
-                          opacity: enchantmentOption.disabled ? 0.5 : 1,
-                          pointerEvents: enchantmentOption.disabled
-                            ? 'none'
-                            : 'auto',
-                        }}
-                      >
-                        <Box>
-                          <Typography variant='body2'>
-                            {option.enchantment}
-                            {option.double && (
-                              <Chip size='small' label='2 pts' sx={{ ml: 1 }} />
-                            )}
-                            {enchantmentOption.disabled && (
-                              <Chip
-                                size='small'
-                                label='Muito caro'
-                                color='error'
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                            {option.onlyShield && (
-                              <Chip
-                                size='small'
-                                label='Só escudo'
-                                color='info'
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </Typography>
-                          {option.effect && (
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                              sx={{ display: 'block', mb: 0.5 }}
-                            >
-                              {option.effect}
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
-                    );
-                  }}
-                  disabled={!state.selectedItemType}
-                />
-              </Grid>
+                  );
+                }}
+                disabled={!state.selectedItemType}
+              />
+            </Grid>
 
-              {state.selectedEnchantments.length > 0 && (
-                <Grid size={12}>
-                  <Typography variant='body2' color='text.secondary'>
-                    Custo total:{' '}
-                    {calculateEnchantmentCost(state.selectedEnchantments)}{' '}
-                    pontos
+            {state.generationMode === 'random' && (
+              <>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography gutterBottom>
+                    Mínimo de Encantamentos: {state.minEnchantmentCount}
                   </Typography>
+                  <Slider
+                    value={state.minEnchantmentCount}
+                    onChange={handleMinEnchantmentCountChange}
+                    min={1}
+                    max={5}
+                    marks
+                    valueLabelDisplay='auto'
+                  />
                 </Grid>
-              )}
-            </>
-          )}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography gutterBottom>
+                    Máximo de Encantamentos: {state.maxEnchantmentCount}
+                  </Typography>
+                  <Slider
+                    value={state.maxEnchantmentCount}
+                    onChange={handleMaxEnchantmentCountChange}
+                    min={1}
+                    max={5}
+                    marks
+                    valueLabelDisplay='auto'
+                  />
+                </Grid>
+              </>
+            )}
 
-          <Grid size={12}>
-            <Button
-              variant='contained'
-              size='large'
-              startIcon={<MagicIcon />}
-              onClick={
-                state.generationMode === 'random'
-                  ? generateRandomItem
-                  : generateManualItem
-              }
-              disabled={!state.selectedItemType || !state.selectedItem}
-            >
-              Gerar Item Mágico
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {state.generatedHistory.length > 0 && (
-        <Box>
-          <Typography variant='h5' gutterBottom>
-            <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Itens Gerados
-          </Typography>
-
-          <TransitionGroup>
-            {state.generatedHistory.map((item) => (
-              <Slide key={item.id} direction='right' timeout={600}>
-                <Card sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant='h6' component='h3'>
-                      {item.itemName} Mágico
-                    </Typography>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
-                    >
-                      {item.itemType === 'weapon' && 'Arma'}
-                      {item.itemType === 'armor' && 'Armadura'}
-                      {item.itemType === 'shield' && 'Escudo'}
-                      {' • '}
-                      {new Date(item.timestamp).toLocaleString()}
-                    </Typography>
-                    {item.enchantments.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant='subtitle2' gutterBottom>
-                          Encantamentos:
-                        </Typography>
-                        {item.enchantments.map((enchantment) => (
-                          <Accordion
-                            key={`${item.id}-${enchantment.enchantment}`}
-                            sx={{ mb: 1 }}
-                          >
-                            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                              <Typography>
-                                {enchantment.enchantment}
-                                {enchantment.double && (
-                                  <Chip
-                                    size='small'
-                                    label='2 pts'
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                                {enchantment.onlyShield && (
-                                  <Chip
-                                    size='small'
-                                    label='Só escudo'
-                                    color='info'
-                                    sx={{ ml: 1 }}
-                                  />
-                                )}
-                              </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              <Typography variant='body2'>
-                                {enchantment.effect}
-                              </Typography>
-                            </AccordionDetails>
-                          </Accordion>
-                        ))}
-                      </Box>
+            {state.generationMode === 'manual' && (
+              <>
+                <Grid size={12}>
+                  <Autocomplete
+                    multiple
+                    options={availableEnchantments}
+                    getOptionLabel={(option) => option.enchantment}
+                    getOptionDisabled={(option) => {
+                      const enchantmentOption = getEnchantmentOption(option);
+                      return enchantmentOption.disabled;
+                    }}
+                    value={state.selectedEnchantments}
+                    onChange={handleEnchantmentSelect}
+                    renderInput={(params) => (
+                      <TextField
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...params}
+                        label='Encantamentos'
+                        placeholder='Selecione os encantamentos'
+                      />
                     )}
-                  </CardContent>
-                  <CardActions>
-                    <Button
-                      size='small'
-                      startIcon={<CopyIcon />}
-                      onClick={() => copyItemToClipboard(item)}
-                    >
-                      Copiar
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Slide>
-            ))}
-          </TransitionGroup>
-        </Box>
-      )}
-    </Container>
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip
+                          variant='outlined'
+                          label={`${option.enchantment}${
+                            option.double ? ' (2 pts)' : ''
+                          }`}
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...getTagProps({ index })}
+                        />
+                      ))
+                    }
+                    renderOption={(props, option) => {
+                      const enchantmentOption = getEnchantmentOption(option);
+                      return (
+                        <Box
+                          component='li'
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...props}
+                          sx={{
+                            opacity: enchantmentOption.disabled ? 0.5 : 1,
+                            pointerEvents: enchantmentOption.disabled
+                              ? 'none'
+                              : 'auto',
+                          }}
+                        >
+                          <Box>
+                            <Typography variant='body2'>
+                              {option.enchantment}
+                              {option.double && (
+                                <Chip
+                                  size='small'
+                                  label='2 pts'
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
+                              {enchantmentOption.disabled && (
+                                <Chip
+                                  size='small'
+                                  label='Muito caro'
+                                  color='error'
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
+                              {option.onlyShield && (
+                                <Chip
+                                  size='small'
+                                  label='Só escudo'
+                                  color='info'
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
+                            </Typography>
+                            {option.effect && (
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                                sx={{ display: 'block', mb: 0.5 }}
+                              >
+                                {option.effect}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    }}
+                    disabled={!state.selectedItemType}
+                  />
+                </Grid>
+
+                {state.selectedEnchantments.length > 0 && (
+                  <Grid size={12}>
+                    <Typography variant='body2' color='text.secondary'>
+                      Custo total:{' '}
+                      {calculateEnchantmentCost(state.selectedEnchantments)}{' '}
+                      pontos
+                    </Typography>
+                  </Grid>
+                )}
+              </>
+            )}
+
+            <Grid size={12}>
+              <Button
+                variant='contained'
+                size='large'
+                startIcon={<MagicIcon />}
+                onClick={
+                  state.generationMode === 'random'
+                    ? generateRandomItem
+                    : generateManualItem
+                }
+                disabled={!state.selectedItemType || !state.selectedItem}
+              >
+                Gerar Item Mágico
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {state.generatedHistory.length > 0 && (
+          <Box>
+            <Typography variant='h5' gutterBottom>
+              <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Itens Gerados
+            </Typography>
+
+            <TransitionGroup>
+              {state.generatedHistory.map((item) => (
+                <Slide key={item.id} direction='right' timeout={600}>
+                  <Card sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Typography variant='h6' component='h3'>
+                        {item.itemName} Mágico
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        {item.itemType === 'weapon' && 'Arma'}
+                        {item.itemType === 'armor' && 'Armadura'}
+                        {item.itemType === 'shield' && 'Escudo'}
+                        {' • '}
+                        {new Date(item.timestamp).toLocaleString()}
+                      </Typography>
+                      {item.enchantments.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant='subtitle2' gutterBottom>
+                            Encantamentos:
+                          </Typography>
+                          {item.enchantments.map((enchantment) => (
+                            <Accordion
+                              key={`${item.id}-${enchantment.enchantment}`}
+                              sx={{ mb: 1 }}
+                            >
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                <Typography>
+                                  {enchantment.enchantment}
+                                  {enchantment.double && (
+                                    <Chip
+                                      size='small'
+                                      label='2 pts'
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
+                                  {enchantment.onlyShield && (
+                                    <Chip
+                                      size='small'
+                                      label='Só escudo'
+                                      color='info'
+                                      sx={{ ml: 1 }}
+                                    />
+                                  )}
+                                </Typography>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <Typography variant='body2'>
+                                  {enchantment.effect}
+                                </Typography>
+                              </AccordionDetails>
+                            </Accordion>
+                          ))}
+                        </Box>
+                      )}
+                    </CardContent>
+                    <CardActions>
+                      <Button
+                        size='small'
+                        startIcon={<CopyIcon />}
+                        onClick={() => copyItemToClipboard(item)}
+                      >
+                        Copiar
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Slide>
+              ))}
+            </TransitionGroup>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 };
 

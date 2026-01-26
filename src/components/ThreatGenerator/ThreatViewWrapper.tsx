@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
 import ThreatResult from './ThreatResult';
+import { SEO } from '../SEO';
 
 const ThreatViewWrapper: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -72,12 +73,23 @@ const ThreatViewWrapper: React.FC = () => {
   }
 
   return (
-    <ThreatResult
-      threat={threat}
-      isFromHistory
-      isSavedToCloud={isSavedToCloud}
-      onSaveToCloud={handleSaveToCloud}
-    />
+    <>
+      <SEO
+        title={`${threat.name} - Ameaça ND ${threat.challengeLevel} | Fichas de Nimb`}
+        description={`${threat.type || ''} ${threat.size || ''} ${
+          threat.role || ''
+        }. PV: ${threat.combatStats?.hitPoints || '-'}, Defesa: ${
+          threat.combatStats?.defense || '-'
+        }.`}
+        url={`/threat/${id}`}
+      />
+      <ThreatResult
+        threat={threat}
+        isFromHistory
+        isSavedToCloud={isSavedToCloud}
+        onSaveToCloud={handleSaveToCloud}
+      />
+    </>
   );
 };
 

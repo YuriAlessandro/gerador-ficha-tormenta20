@@ -12,6 +12,7 @@ import {
 import { useHistory, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
+import { SEO, createArticleSchema } from '../SEO';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { BlogPost, PostReactions, EmojiType } from '../../types/blog.types';
 import { useAuth } from '../../hooks/useAuth';
@@ -157,140 +158,163 @@ const BlogPostPage: React.FC = () => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        pb: 8,
-        background: isDark
-          ? 'linear-gradient(180deg, #121212 0%, #1a1a1a 100%)'
-          : 'linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%)',
-      }}
-    >
-      {/* Hero section with cover image - starts behind navbar */}
-      {post.coverImage && (
-        <Box
-          sx={{
-            width: '100%',
-            // Height includes space for navbar + visible content
-            height: { xs: '300px', sm: '400px', md: '500px' },
-            // Pull up to start from very top of viewport (behind navbar)
-            mt: { xs: '-56px', sm: '-64px', md: '-64px' },
-            // Add padding top to compensate for navbar
-            pt: { xs: '56px', sm: '64px', md: '64px' },
-            backgroundImage: `url(${post.coverImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '60%',
-              background: isDark
-                ? 'linear-gradient(transparent, #121212)'
-                : 'linear-gradient(transparent, #f5f5f5)',
-            },
-          }}
-        />
-      )}
-
-      <Container
-        maxWidth='md'
-        sx={{ pt: post.coverImage ? 0 : { xs: 10, md: 12 } }}
+    <>
+      <SEO
+        title={`${post.title} | Fichas de Nimb`}
+        description={post.description}
+        image={post.coverImage}
+        url={`/blog/${post.slug}`}
+        type='article'
+        author={post.authorName}
+        publishedAt={post.publishedAt}
+        structuredData={createArticleSchema({
+          title: post.title,
+          description: post.description,
+          url: `/blog/${post.slug}`,
+          image: post.coverImage,
+          authorName: post.authorName,
+          publishedAt: post.publishedAt,
+        })}
+      />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pb: 8,
+          background: isDark
+            ? 'linear-gradient(180deg, #121212 0%, #1a1a1a 100%)'
+            : 'linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%)',
+        }}
       >
-        <Box
-          sx={{ position: 'relative', zIndex: 1, mt: post.coverImage ? -6 : 0 }}
-        >
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => history.push('/blog')}
+        {/* Hero section with cover image - starts behind navbar */}
+        {post.coverImage && (
+          <Box
             sx={{
-              mb: 3,
-              color: post.coverImage ? 'white' : 'inherit',
-              textShadow: post.coverImage
-                ? '0 1px 3px rgba(0,0,0,0.5)'
-                : 'none',
-              '&:hover': {
-                backgroundColor: post.coverImage
-                  ? 'rgba(255,255,255,0.1)'
-                  : undefined,
+              width: '100%',
+              // Height includes space for navbar + visible content
+              height: { xs: '300px', sm: '400px', md: '500px' },
+              // Pull up to start from very top of viewport (behind navbar)
+              mt: { xs: '-56px', sm: '-64px', md: '-64px' },
+              // Add padding top to compensate for navbar
+              pt: { xs: '56px', sm: '64px', md: '64px' },
+              backgroundImage: `url(${post.coverImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: '60%',
+                background: isDark
+                  ? 'linear-gradient(transparent, #121212)'
+                  : 'linear-gradient(transparent, #f5f5f5)',
               },
             }}
+          />
+        )}
+
+        <Container
+          maxWidth='md'
+          sx={{ pt: post.coverImage ? 0 : { xs: 10, md: 12 } }}
+        >
+          <Box
+            sx={{
+              position: 'relative',
+              zIndex: 1,
+              mt: post.coverImage ? -6 : 0,
+            }}
           >
-            Voltar para o blog
-          </Button>
-
-          {/* Post header */}
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant='h3'
-              component='h1'
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.75rem' },
-              }}
-            >
-              {post.title}
-            </Typography>
-
-            <Typography
-              variant='h6'
-              color='text.secondary'
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => history.push('/blog')}
               sx={{
                 mb: 3,
-                fontWeight: 400,
-                lineHeight: 1.6,
+                color: post.coverImage ? 'white' : 'inherit',
+                textShadow: post.coverImage
+                  ? '0 1px 3px rgba(0,0,0,0.5)'
+                  : 'none',
+                '&:hover': {
+                  backgroundColor: post.coverImage
+                    ? 'rgba(255,255,255,0.1)'
+                    : undefined,
+                },
               }}
             >
-              {post.description}
-            </Typography>
+              Voltar para o blog
+            </Button>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              <Chip
-                icon={<PersonIcon />}
-                label={post.authorName}
+            {/* Post header */}
+            <Box sx={{ mb: 4 }}>
+              <Typography
+                variant='h3'
+                component='h1'
                 sx={{
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.05)',
+                  fontWeight: 700,
+                  mb: 2,
+                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.75rem' },
                 }}
-              />
-              <Chip
-                icon={<CalendarTodayIcon />}
-                label={formatDate(post.publishedAt)}
-                sx={{
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.05)',
-                }}
-              />
-            </Box>
-          </Box>
+              >
+                {post.title}
+              </Typography>
 
-          {/* Post content - blocks */}
-          <Box sx={{ mb: 6 }}>
-            {post.blocks
-              .sort((a, b) => a.order - b.order)
-              .map((block) => (
-                <BlogBlock
-                  key={block.id}
-                  block={block}
-                  postId={post.id}
-                  reactions={reactions[block.id] || {}}
-                  onReactionToggle={handleReactionToggle}
-                  isLoading={reactingBlocks.has(block.id)}
+              <Typography
+                variant='h6'
+                color='text.secondary'
+                sx={{
+                  mb: 3,
+                  fontWeight: 400,
+                  lineHeight: 1.6,
+                }}
+              >
+                {post.description}
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Chip
+                  icon={<PersonIcon />}
+                  label={post.authorName}
+                  sx={{
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'rgba(0,0,0,0.05)',
+                  }}
                 />
-              ))}
-          </Box>
+                <Chip
+                  icon={<CalendarTodayIcon />}
+                  label={formatDate(post.publishedAt)}
+                  sx={{
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'rgba(0,0,0,0.05)',
+                  }}
+                />
+              </Box>
+            </Box>
 
-          {/* Comments section */}
-          <CommentSection postId={post.id} />
-        </Box>
-      </Container>
-    </Box>
+            {/* Post content - blocks */}
+            <Box sx={{ mb: 6 }}>
+              {post.blocks
+                .sort((a, b) => a.order - b.order)
+                .map((block) => (
+                  <BlogBlock
+                    key={block.id}
+                    block={block}
+                    postId={post.id}
+                    reactions={reactions[block.id] || {}}
+                    onReactionToggle={handleReactionToggle}
+                    isLoading={reactingBlocks.has(block.id)}
+                  />
+                ))}
+            </Box>
+
+            {/* Comments section */}
+            <CommentSection postId={post.id} />
+          </Box>
+        </Container>
+      </Box>
+    </>
   );
 };
 

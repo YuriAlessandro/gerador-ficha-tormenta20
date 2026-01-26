@@ -27,6 +27,7 @@ import {
   AccordionDetails,
   Slide,
 } from '@mui/material';
+import { SEO, getPageSEO } from '../SEO';
 import {
   ContentCopy as CopyIcon,
   ExpandMore as ExpandMoreIcon,
@@ -544,446 +545,463 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
     };
   };
 
+  const superiorItemsSEO = getPageSEO('superiorItems');
+
   return (
-    <Container maxWidth='lg' sx={{ py: 3 }}>
-      <Typography variant='h4' component='h1' gutterBottom>
-        Gerador de Itens Superiores
-      </Typography>
+    <>
+      <SEO
+        title={superiorItemsSEO.title}
+        description={superiorItemsSEO.description}
+        url='/itens-superiores'
+      />
+      <Container maxWidth='lg' sx={{ py: 3 }}>
+        <Typography variant='h4' component='h1' gutterBottom>
+          Gerador de Itens Superiores
+        </Typography>
 
-      <Collapse in={alertMessage.length > 0}>
-        <Alert
-          sx={{ mb: 2 }}
-          severity='error'
-          onClose={() => setAlertMessage('')}
-        >
-          {alertMessage}
-        </Alert>
-      </Collapse>
+        <Collapse in={alertMessage.length > 0}>
+          <Alert
+            sx={{ mb: 2 }}
+            severity='error'
+            onClose={() => setAlertMessage('')}
+          >
+            {alertMessage}
+          </Alert>
+        </Collapse>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Grid container spacing={3}>
-          <Grid size={12}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={state.generationMode === 'manual'}
-                  onChange={handleModeToggle}
-                />
-              }
-              label={`Modo: ${
-                state.generationMode === 'random' ? 'Aleatório' : 'Manual'
-              }`}
-            />
-          </Grid>
+        <Paper sx={{ p: 3, mb: 3 }}>
+          <Grid container spacing={3}>
+            <Grid size={12}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={state.generationMode === 'manual'}
+                    onChange={handleModeToggle}
+                  />
+                }
+                label={`Modo: ${
+                  state.generationMode === 'random' ? 'Aleatório' : 'Manual'
+                }`}
+              />
+            </Grid>
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <FormControl fullWidth>
-              <InputLabel>Tipo do Item</InputLabel>
-              <Select
-                value={state.selectedItemType || ''}
-                onChange={handleItemTypeChange}
-                label='Tipo do Item'
-              >
-                <MenuItem value='weapon'>Armas</MenuItem>
-                <MenuItem value='armor'>Armaduras</MenuItem>
-                <MenuItem value='shield'>Escudos</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {state.selectedItemType && state.selectedItemType !== 'shield' && (
             <Grid size={{ xs: 12, md: 4 }}>
               <FormControl fullWidth>
-                <InputLabel>Subtipo</InputLabel>
+                <InputLabel>Tipo do Item</InputLabel>
                 <Select
-                  value={itemSubType}
-                  onChange={handleSubTypeChange}
-                  label='Subtipo'
+                  value={state.selectedItemType || ''}
+                  onChange={handleItemTypeChange}
+                  label='Tipo do Item'
                 >
-                  <MenuItem value='all'>Todos</MenuItem>
-                  {state.selectedItemType === 'weapon' &&
-                    weaponSubtypes.map((sub) => (
-                      <MenuItem key={sub.value} value={sub.value}>
-                        {sub.label}
-                      </MenuItem>
-                    ))}
-                  {state.selectedItemType === 'armor' &&
-                    armorSubtypes.map((sub) => (
-                      <MenuItem key={sub.value} value={sub.value}>
-                        {sub.label}
-                      </MenuItem>
-                    ))}
+                  <MenuItem value='weapon'>Armas</MenuItem>
+                  <MenuItem value='armor'>Armaduras</MenuItem>
+                  <MenuItem value='shield'>Escudos</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-          )}
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Autocomplete
-              options={availableItems}
-              getOptionLabel={(option) => option.label}
-              value={
-                availableItems.find(
-                  (item) => item.value === state.selectedItem
-                ) || null
-              }
-              onChange={handleItemChange}
-              renderInput={(params) => {
-                const { InputLabelProps, InputProps, ...rest } = params;
-                return (
-                  <TextField
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    InputLabelProps={InputLabelProps}
-                    InputProps={InputProps}
-                    label='Item Específico'
-                  />
-                );
-              }}
-              disabled={!state.selectedItemType}
-            />
-          </Grid>
-
-          {state.generationMode === 'random' && (
-            <>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography gutterBottom>
-                  Mínimo de Modificações: {state.minModificationCount}
-                </Typography>
-                <Slider
-                  value={state.minModificationCount}
-                  onChange={handleMinModificationCountChange}
-                  min={1}
-                  max={5}
-                  marks
-                  valueLabelDisplay='auto'
-                />
+            {state.selectedItemType && state.selectedItemType !== 'shield' && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Subtipo</InputLabel>
+                  <Select
+                    value={itemSubType}
+                    onChange={handleSubTypeChange}
+                    label='Subtipo'
+                  >
+                    <MenuItem value='all'>Todos</MenuItem>
+                    {state.selectedItemType === 'weapon' &&
+                      weaponSubtypes.map((sub) => (
+                        <MenuItem key={sub.value} value={sub.value}>
+                          {sub.label}
+                        </MenuItem>
+                      ))}
+                    {state.selectedItemType === 'armor' &&
+                      armorSubtypes.map((sub) => (
+                        <MenuItem key={sub.value} value={sub.value}>
+                          {sub.label}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
               </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography gutterBottom>
-                  Máximo de Modificações: {state.maxModificationCount}
-                </Typography>
-                <Slider
-                  value={state.maxModificationCount}
-                  onChange={handleMaxModificationCountChange}
-                  min={1}
-                  max={5}
-                  marks
-                  valueLabelDisplay='auto'
-                />
-              </Grid>
-            </>
-          )}
+            )}
 
-          {state.generationMode === 'manual' && (
-            <>
-              <Grid size={12}>
-                <Autocomplete
-                  multiple
-                  options={availableModifications}
-                  getOptionLabel={(option) => option.mod}
-                  getOptionDisabled={(option) => {
-                    const modOption = getModificationOption(option);
-                    return modOption.disabled;
-                  }}
-                  value={state.selectedModifications}
-                  onChange={handleModificationSelect}
-                  renderInput={(params) => (
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Autocomplete
+                options={availableItems}
+                getOptionLabel={(option) => option.label}
+                value={
+                  availableItems.find(
+                    (item) => item.value === state.selectedItem
+                  ) || null
+                }
+                onChange={handleItemChange}
+                renderInput={(params) => {
+                  const { InputLabelProps, InputProps, ...rest } = params;
+                  return (
                     <TextField
                       // eslint-disable-next-line react/jsx-props-no-spreading
-                      {...params}
-                      label='Modificações'
-                      placeholder='Selecione as modificações'
+                      {...rest}
+                      InputLabelProps={InputLabelProps}
+                      InputProps={InputProps}
+                      label='Item Específico'
                     />
-                  )}
-                  renderTags={(value, getTagProps) =>
-                    value.map((option, index) => {
+                  );
+                }}
+                disabled={!state.selectedItemType}
+              />
+            </Grid>
+
+            {state.generationMode === 'random' && (
+              <>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography gutterBottom>
+                    Mínimo de Modificações: {state.minModificationCount}
+                  </Typography>
+                  <Slider
+                    value={state.minModificationCount}
+                    onChange={handleMinModificationCountChange}
+                    min={1}
+                    max={5}
+                    marks
+                    valueLabelDisplay='auto'
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography gutterBottom>
+                    Máximo de Modificações: {state.maxModificationCount}
+                  </Typography>
+                  <Slider
+                    value={state.maxModificationCount}
+                    onChange={handleMaxModificationCountChange}
+                    min={1}
+                    max={5}
+                    marks
+                    valueLabelDisplay='auto'
+                  />
+                </Grid>
+              </>
+            )}
+
+            {state.generationMode === 'manual' && (
+              <>
+                <Grid size={12}>
+                  <Autocomplete
+                    multiple
+                    options={availableModifications}
+                    getOptionLabel={(option) => option.mod}
+                    getOptionDisabled={(option) => {
+                      const modOption = getModificationOption(option);
+                      return modOption.disabled;
+                    }}
+                    value={state.selectedModifications}
+                    onChange={handleModificationSelect}
+                    renderInput={(params) => (
+                      <TextField
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...params}
+                        label='Modificações'
+                        placeholder='Selecione as modificações'
+                      />
+                    )}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => {
+                        const supplementMeta = option.supplementId
+                          ? SUPPLEMENT_METADATA[
+                              option.supplementId as SupplementId
+                            ]
+                          : null;
+                        return (
+                          <Chip
+                            variant='outlined'
+                            label={
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.5,
+                                }}
+                              >
+                                <span>
+                                  {option.mod}
+                                  {option.double ? ' (2 pts)' : ''}
+                                </span>
+                                {supplementMeta && (
+                                  <Chip
+                                    size='small'
+                                    label={supplementMeta.abbreviation}
+                                    color='primary'
+                                    sx={{ height: 16, fontSize: '0.65rem' }}
+                                  />
+                                )}
+                              </Box>
+                            }
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...getTagProps({ index })}
+                          />
+                        );
+                      })
+                    }
+                    renderOption={(props, option) => {
+                      const modOption = getModificationOption(option);
                       const supplementMeta = option.supplementId
                         ? SUPPLEMENT_METADATA[
                             option.supplementId as SupplementId
                           ]
                         : null;
                       return (
-                        <Chip
-                          variant='outlined'
-                          label={
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 0.5,
-                              }}
-                            >
-                              <span>
-                                {option.mod}
-                                {option.double ? ' (2 pts)' : ''}
-                              </span>
+                        <Box
+                          component='li'
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...props}
+                          sx={{
+                            opacity: modOption.disabled ? 0.5 : 1,
+                            pointerEvents: modOption.disabled ? 'none' : 'auto',
+                          }}
+                        >
+                          <Box>
+                            <Typography variant='body2'>
+                              {option.mod}
+                              {option.double && (
+                                <Chip
+                                  size='small'
+                                  label='2 pts'
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
                               {supplementMeta && (
                                 <Chip
                                   size='small'
                                   label={supplementMeta.abbreviation}
                                   color='primary'
-                                  sx={{ height: 16, fontSize: '0.65rem' }}
+                                  variant='outlined'
+                                  sx={{ ml: 1 }}
                                 />
                               )}
-                            </Box>
-                          }
-                          // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...getTagProps({ index })}
-                        />
-                      );
-                    })
-                  }
-                  renderOption={(props, option) => {
-                    const modOption = getModificationOption(option);
-                    const supplementMeta = option.supplementId
-                      ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
-                      : null;
-                    return (
-                      <Box
-                        component='li'
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                        sx={{
-                          opacity: modOption.disabled ? 0.5 : 1,
-                          pointerEvents: modOption.disabled ? 'none' : 'auto',
-                        }}
-                      >
-                        <Box>
-                          <Typography variant='body2'>
-                            {option.mod}
-                            {option.double && (
-                              <Chip size='small' label='2 pts' sx={{ ml: 1 }} />
-                            )}
-                            {supplementMeta && (
-                              <Chip
-                                size='small'
-                                label={supplementMeta.abbreviation}
-                                color='primary'
-                                variant='outlined'
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                            {modOption.disabled && (
-                              <Chip
-                                size='small'
-                                label='Bloqueado'
-                                color='error'
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </Typography>
-                          {option.description && (
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                              sx={{ display: 'block', mb: 0.5 }}
-                            >
-                              {option.description}
+                              {modOption.disabled && (
+                                <Chip
+                                  size='small'
+                                  label='Bloqueado'
+                                  color='error'
+                                  sx={{ ml: 1 }}
+                                />
+                              )}
                             </Typography>
-                          )}
-                          {option.prerequisite && (
-                            <Typography
-                              variant='caption'
-                              color={
-                                modOption.disabled
-                                  ? 'error.main'
-                                  : 'warning.main'
-                              }
-                              sx={{ display: 'block' }}
-                            >
-                              Requer: {option.prerequisite}
-                            </Typography>
-                          )}
+                            {option.description && (
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                                sx={{ display: 'block', mb: 0.5 }}
+                              >
+                                {option.description}
+                              </Typography>
+                            )}
+                            {option.prerequisite && (
+                              <Typography
+                                variant='caption'
+                                color={
+                                  modOption.disabled
+                                    ? 'error.main'
+                                    : 'warning.main'
+                                }
+                                sx={{ display: 'block' }}
+                              >
+                                Requer: {option.prerequisite}
+                              </Typography>
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    );
-                  }}
-                  disabled={!state.selectedItemType}
-                />
-              </Grid>
-
-              {state.selectedModifications.some(
-                (mod) => mod.mod === 'Material especial'
-              ) && (
-                <Grid size={12}>
-                  <Autocomplete
-                    options={materialOptions}
-                    getOptionLabel={(option) => option.label}
-                    value={
-                      materialOptions.find(
-                        (opt) => opt.value === selectedMaterial
-                      ) || null
-                    }
-                    onChange={(_, value) =>
-                      setSelectedMaterial(value?.value || '')
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...params}
-                        label='Tipo de Material'
-                        placeholder='Selecione o material especial'
-                        required
-                      />
-                    )}
+                      );
+                    }}
+                    disabled={!state.selectedItemType}
                   />
                 </Grid>
-              )}
 
-              {selectedMaterial && (
-                <Grid size={12}>
-                  {(() => {
-                    const materialData =
-                      getSpecialMaterialData(selectedMaterial);
-                    if (!materialData) return null;
-                    const relevantEffect =
-                      state.selectedItemType === 'weapon'
-                        ? materialData.weaponEffect
-                        : materialData.armorEffect;
-                    if (!relevantEffect) return null;
-                    return (
-                      <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                        <Typography variant='h6' gutterBottom>
-                          Efeito do Material: {materialData.name}
-                        </Typography>
-                        <Typography variant='body2'>
-                          <strong>Efeito:</strong> {relevantEffect.effect}
-                        </Typography>
-                      </Paper>
-                    );
-                  })()}
-                </Grid>
-              )}
+                {state.selectedModifications.some(
+                  (mod) => mod.mod === 'Material especial'
+                ) && (
+                  <Grid size={12}>
+                    <Autocomplete
+                      options={materialOptions}
+                      getOptionLabel={(option) => option.label}
+                      value={
+                        materialOptions.find(
+                          (opt) => opt.value === selectedMaterial
+                        ) || null
+                      }
+                      onChange={(_, value) =>
+                        setSelectedMaterial(value?.value || '')
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...params}
+                          label='Tipo de Material'
+                          placeholder='Selecione o material especial'
+                          required
+                        />
+                      )}
+                    />
+                  </Grid>
+                )}
 
-              {state.selectedModifications.length > 0 && (
-                <Grid size={12}>
-                  <Typography variant='body2' color='text.secondary'>
-                    Custo total:{' '}
-                    {calculateModificationCost(state.selectedModifications)}{' '}
-                    pontos
-                  </Typography>
-                </Grid>
-              )}
-            </>
-          )}
+                {selectedMaterial && (
+                  <Grid size={12}>
+                    {(() => {
+                      const materialData =
+                        getSpecialMaterialData(selectedMaterial);
+                      if (!materialData) return null;
+                      const relevantEffect =
+                        state.selectedItemType === 'weapon'
+                          ? materialData.weaponEffect
+                          : materialData.armorEffect;
+                      if (!relevantEffect) return null;
+                      return (
+                        <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+                          <Typography variant='h6' gutterBottom>
+                            Efeito do Material: {materialData.name}
+                          </Typography>
+                          <Typography variant='body2'>
+                            <strong>Efeito:</strong> {relevantEffect.effect}
+                          </Typography>
+                        </Paper>
+                      );
+                    })()}
+                  </Grid>
+                )}
 
-          <Grid size={12}>
-            <Button
-              variant='contained'
-              size='large'
-              startIcon={<ShuffleIcon />}
-              onClick={
-                state.generationMode === 'random'
-                  ? generateRandomItem
-                  : generateManualItem
-              }
-              disabled={!state.selectedItemType || !state.selectedItem}
-            >
-              Gerar Item Superior
-            </Button>
+                {state.selectedModifications.length > 0 && (
+                  <Grid size={12}>
+                    <Typography variant='body2' color='text.secondary'>
+                      Custo total:{' '}
+                      {calculateModificationCost(state.selectedModifications)}{' '}
+                      pontos
+                    </Typography>
+                  </Grid>
+                )}
+              </>
+            )}
+
+            <Grid size={12}>
+              <Button
+                variant='contained'
+                size='large'
+                startIcon={<ShuffleIcon />}
+                onClick={
+                  state.generationMode === 'random'
+                    ? generateRandomItem
+                    : generateManualItem
+                }
+                disabled={!state.selectedItemType || !state.selectedItem}
+              >
+                Gerar Item Superior
+              </Button>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
+        </Paper>
 
-      {state.generatedHistory.length > 0 && (
-        <Box>
-          <Typography variant='h5' gutterBottom>
-            <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Itens Gerados
-          </Typography>
+        {state.generatedHistory.length > 0 && (
+          <Box>
+            <Typography variant='h5' gutterBottom>
+              <HistoryIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Itens Gerados
+            </Typography>
 
-          <TransitionGroup>
-            {state.generatedHistory.map((item) => (
-              <Slide key={item.id} direction='right' timeout={600}>
-                <Card sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant='h6' component='h3'>
-                      {item.itemName}
-                    </Typography>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
-                    >
-                      {item.itemType === 'weapon' && 'Arma'}
-                      {item.itemType === 'armor' && 'Armadura'}
-                      {item.itemType === 'shield' && 'Escudo'}
-                      {' • '}
-                      {new Date(item.timestamp).toLocaleString()}
-                    </Typography>
-                    {item.modifications.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant='subtitle2' gutterBottom>
-                          Modificações:
-                        </Typography>
-                        {item.modifications.map((mod) => {
-                          const supplementMeta = mod.supplementId
-                            ? SUPPLEMENT_METADATA[
-                                mod.supplementId as SupplementId
-                              ]
-                            : null;
-                          return (
-                            <Accordion
-                              key={`${item.id}-${mod.mod}`}
-                              sx={{ mb: 1 }}
-                            >
-                              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                <Typography>
-                                  {mod.mod}
-                                  {mod.double && (
-                                    <Chip
-                                      size='small'
-                                      label='2 pts'
-                                      sx={{ ml: 1 }}
-                                    />
-                                  )}
-                                  {supplementMeta && (
-                                    <Chip
-                                      size='small'
-                                      label={supplementMeta.abbreviation}
-                                      color='primary'
-                                      variant='outlined'
-                                      sx={{ ml: 1 }}
-                                    />
-                                  )}
-                                </Typography>
-                              </AccordionSummary>
-                              <AccordionDetails>
-                                <Typography variant='body2'>
-                                  {mod.description}
-                                </Typography>
-                                {mod.prerequisite && (
-                                  <Typography
-                                    variant='caption'
-                                    color='warning.main'
-                                  >
-                                    Pré-requisito: {mod.prerequisite}
+            <TransitionGroup>
+              {state.generatedHistory.map((item) => (
+                <Slide key={item.id} direction='right' timeout={600}>
+                  <Card sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Typography variant='h6' component='h3'>
+                        {item.itemName}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        {item.itemType === 'weapon' && 'Arma'}
+                        {item.itemType === 'armor' && 'Armadura'}
+                        {item.itemType === 'shield' && 'Escudo'}
+                        {' • '}
+                        {new Date(item.timestamp).toLocaleString()}
+                      </Typography>
+                      {item.modifications.length > 0 && (
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant='subtitle2' gutterBottom>
+                            Modificações:
+                          </Typography>
+                          {item.modifications.map((mod) => {
+                            const supplementMeta = mod.supplementId
+                              ? SUPPLEMENT_METADATA[
+                                  mod.supplementId as SupplementId
+                                ]
+                              : null;
+                            return (
+                              <Accordion
+                                key={`${item.id}-${mod.mod}`}
+                                sx={{ mb: 1 }}
+                              >
+                                <AccordionSummary
+                                  expandIcon={<ExpandMoreIcon />}
+                                >
+                                  <Typography>
+                                    {mod.mod}
+                                    {mod.double && (
+                                      <Chip
+                                        size='small'
+                                        label='2 pts'
+                                        sx={{ ml: 1 }}
+                                      />
+                                    )}
+                                    {supplementMeta && (
+                                      <Chip
+                                        size='small'
+                                        label={supplementMeta.abbreviation}
+                                        color='primary'
+                                        variant='outlined'
+                                        sx={{ ml: 1 }}
+                                      />
+                                    )}
                                   </Typography>
-                                )}
-                              </AccordionDetails>
-                            </Accordion>
-                          );
-                        })}
-                      </Box>
-                    )}
-                  </CardContent>
-                  <CardActions>
-                    <Button
-                      size='small'
-                      startIcon={<CopyIcon />}
-                      onClick={() => copyItemToClipboard(item)}
-                    >
-                      Copiar
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Slide>
-            ))}
-          </TransitionGroup>
-        </Box>
-      )}
-    </Container>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                  <Typography variant='body2'>
+                                    {mod.description}
+                                  </Typography>
+                                  {mod.prerequisite && (
+                                    <Typography
+                                      variant='caption'
+                                      color='warning.main'
+                                    >
+                                      Pré-requisito: {mod.prerequisite}
+                                    </Typography>
+                                  )}
+                                </AccordionDetails>
+                              </Accordion>
+                            );
+                          })}
+                        </Box>
+                      )}
+                    </CardContent>
+                    <CardActions>
+                      <Button
+                        size='small'
+                        startIcon={<CopyIcon />}
+                        onClick={() => copyItemToClipboard(item)}
+                      >
+                        Copiar
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Slide>
+              ))}
+            </TransitionGroup>
+          </Box>
+        )}
+      </Container>
+    </>
   );
 };
 

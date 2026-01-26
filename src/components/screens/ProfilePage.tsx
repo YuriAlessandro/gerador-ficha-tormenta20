@@ -69,6 +69,7 @@ import {
   SUPPLEMENT_METADATA,
 } from '../../types/supplement.types';
 import { SystemId } from '../../types/system.types';
+import { SEO, createProfileSchema } from '../SEO';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -424,6 +425,26 @@ const ProfilePage: React.FC = () => {
 
   return (
     <>
+      <SEO
+        title={`${
+          profile.fullName || profile.username
+        } - Perfil | Fichas de Nimb`}
+        description={`Perfil de ${
+          profile.fullName || profile.username
+        } no Fichas de Nimb. ${profile.totalSheets} fichas criadas.`}
+        image={profile.photoURL}
+        url={`/perfil/${profile.username}`}
+        type='profile'
+        structuredData={createProfileSchema({
+          name: profile.fullName || profile.username,
+          username: profile.username,
+          description: `Perfil de ${
+            profile.fullName || profile.username
+          } no Fichas de Nimb. ${profile.totalSheets} fichas criadas.`,
+          image: profile.photoURL,
+          url: `/perfil/${profile.username}`,
+        })}
+      />
       <Box
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,

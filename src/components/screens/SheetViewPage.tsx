@@ -15,6 +15,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import ShareIcon from '@mui/icons-material/Share';
 import Result from '@/components/SheetResult/Result';
 import SheetsService from '@/services/sheets.service';
+import { SEO } from '@/components/SEO';
 import { useAuth } from '@/hooks/useAuth';
 import { useSheets } from '@/hooks/useSheets';
 import CharacterSheet from '@/interfaces/CharacterSheet';
@@ -222,72 +223,79 @@ const SheetViewPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container maxWidth='xl'>
-        <Box sx={{ mt: 3, mb: 4, pb: 4 }}>
-          {/* Breadcrumbs */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 3,
-            }}
-          >
-            <Breadcrumbs aria-label='breadcrumb'>
-              <Link
-                color='inherit'
-                href='/'
-                onClick={handleBreadcrumbClick}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <HomeIcon sx={{ mr: 0.5 }} fontSize='small' />
-                Home
-              </Link>
-              <Typography color='text.primary'>
-                Ficha de {sheet.nome}
-              </Typography>
-            </Breadcrumbs>
-
-            {/* Share Button */}
-            <IconButton
-              onClick={handleShareClick}
-              color='primary'
-              aria-label='compartilhar ficha'
-              title='Compartilhar ficha'
+    <>
+      <SEO
+        title={`${sheet.nome} - Ficha de Personagem | Fichas de Nimb`}
+        description={`${sheet.raca.name} ${sheet.classe.name}${sheet.origin ? `, ${sheet.origin.name}` : ''}. Nível ${sheet.nivel}.`}
+        url={`/ficha/${id}`}
+      />
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Container maxWidth='xl'>
+          <Box sx={{ mt: 3, mb: 4, pb: 4 }}>
+            {/* Breadcrumbs */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+              }}
             >
-              <ShareIcon />
-            </IconButton>
+              <Breadcrumbs aria-label='breadcrumb'>
+                <Link
+                  color='inherit'
+                  href='/'
+                  onClick={handleBreadcrumbClick}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <HomeIcon sx={{ mr: 0.5 }} fontSize='small' />
+                  Home
+                </Link>
+                <Typography color='text.primary'>
+                  Ficha de {sheet.nome}
+                </Typography>
+              </Breadcrumbs>
+
+              {/* Share Button */}
+              <IconButton
+                onClick={handleShareClick}
+                color='primary'
+                aria-label='compartilhar ficha'
+                title='Compartilhar ficha'
+              >
+                <ShareIcon />
+              </IconButton>
+            </Box>
+
+            {/* Permission Info */}
+            {!isOwner && (
+              <Alert severity='info' sx={{ mb: 2 }}>
+                Você está visualizando esta ficha em modo somente leitura.
+              </Alert>
+            )}
+
+            {/* Sheet Result */}
+            <Result
+              sheet={sheet}
+              isDarkMode={isDarkMode}
+              onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
+            />
           </Box>
 
-          {/* Permission Info */}
-          {!isOwner && (
-            <Alert severity='info' sx={{ mb: 2 }}>
-              Você está visualizando esta ficha em modo somente leitura.
-            </Alert>
-          )}
-
-          {/* Sheet Result */}
-          <Result
-            sheet={sheet}
-            isDarkMode={isDarkMode}
-            onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={3000}
+            onClose={() => setSnackbarOpen(false)}
+            message={snackbarMessage}
           />
-        </Box>
-
-        {/* Snackbar for notifications */}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={3000}
-          onClose={() => setSnackbarOpen(false)}
-          message={snackbarMessage}
-        />
-      </Container>
-    </Box>
+        </Container>
+      </Box>
+    </>
   );
 };
 

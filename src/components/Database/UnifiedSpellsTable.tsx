@@ -20,6 +20,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 
+import { SEO, getPageSEO } from '../SEO';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
@@ -510,141 +511,172 @@ const UnifiedSpellsTable: React.FC = () => {
     return times.sort((a, b) => a.localeCompare(b, 'pt-BR'));
   }, [allSpells]);
 
+  // Get selected spell for SEO
+  const selectedSpellData =
+    filteredSpells.length === 1 &&
+    (params as { selectedSpell?: string }).selectedSpell
+      ? filteredSpells[0]
+      : null;
+  const spellsSEO = getPageSEO('spells');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Magias
-      </TormentaTitle>
+    <>
+      <SEO
+        title={
+          selectedSpellData
+            ? `${selectedSpellData.nome} - Magia de Tormenta 20`
+            : spellsSEO.title
+        }
+        description={
+          selectedSpellData
+            ? `${selectedSpellData.school}, ${getCircleNumber(
+                selectedSpellData.spellCircle
+              )}º círculo. Execução: ${selectedSpellData.execucao}, Alcance: ${
+                selectedSpellData.alcance
+              }.`
+            : spellsSEO.description
+        }
+        url={`/database/magias${
+          selectedSpellData
+            ? `/${(params as { selectedSpell?: string }).selectedSpell}`
+            : ''
+        }`}
+      />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Magias
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={filters.search}
-            handleChange={handleSearchChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={filters.search}
+              handleChange={handleSearchChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Supplement Filter */}
-      <SupplementFilter
-        selectedSupplements={selectedSupplements}
-        availableSupplements={[
-          SupplementId.TORMENTA20_CORE,
-          SupplementId.TORMENTA20_AMEACAS_ARTON,
-          SupplementId.TORMENTA20_DEUSES_ARTON,
-        ]}
-        onToggleSupplement={(supplementId) => {
-          setSelectedSupplements((prev) =>
-            prev.includes(supplementId)
-              ? prev.filter((id) => id !== supplementId)
-              : [...prev, supplementId]
-          );
-        }}
-      />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+            SupplementId.TORMENTA20_DEUSES_ARTON,
+          ]}
+          onToggleSupplement={(supplementId) => {
+            setSelectedSupplements((prev) =>
+              prev.includes(supplementId)
+                ? prev.filter((id) => id !== supplementId)
+                : [...prev, supplementId]
+            );
+          }}
+        />
 
-      {/* Advanced Filters */}
-      <AdvancedSpellFilter
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        availableSchools={availableSchools}
-        availableExecutionTimes={availableExecutionTimes}
-      />
+        {/* Advanced Filters */}
+        <AdvancedSpellFilter
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          availableSchools={availableSchools}
+          availableExecutionTimes={availableExecutionTimes}
+        />
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {filteredSpells.length === 0
-            ? 'Nenhuma magia encontrada com os filtros aplicados'
-            : `${filteredSpells.length} magia${
-                filteredSpells.length !== 1 ? 's' : ''
-              } encontrada${filteredSpells.length !== 1 ? 's' : ''}`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {filteredSpells.length === 0
+              ? 'Nenhuma magia encontrada com os filtros aplicados'
+              : `${filteredSpells.length} magia${
+                  filteredSpells.length !== 1 ? 's' : ''
+                } encontrada${filteredSpells.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Spells Table */}
-      <TableContainer
-        component={Paper}
-        className='table-container'
-        sx={{
-          maxWidth: '100%',
-          overflowX: 'auto',
-          '& .MuiTable-root': {
-            minWidth: 650,
-            '@media (max-width: 768px)': {
-              minWidth: '100%',
+        {/* Spells Table */}
+        <TableContainer
+          component={Paper}
+          className='table-container'
+          sx={{
+            maxWidth: '100%',
+            overflowX: 'auto',
+            '& .MuiTable-root': {
+              minWidth: 650,
+              '@media (max-width: 768px)': {
+                minWidth: '100%',
+              },
             },
-          },
-          '& .MuiTableCell-root': {
-            '@media (max-width: 768px)': {
-              padding: '8px 4px',
-              fontSize: '0.875rem',
+            '& .MuiTableCell-root': {
+              '@media (max-width: 768px)': {
+                padding: '8px 4px',
+                fontSize: '0.875rem',
+              },
             },
-          },
-        }}
-      >
-        <Table aria-label='unified spells table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Magia
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Círculo
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Escola
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Execução
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredSpells.length === 0 ? (
+          }}
+        >
+          <Table aria-label='unified spells table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma magia encontrada. Tente ajustar os filtros.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome da Magia
                   </Typography>
                 </TableCell>
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Círculo
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Escola
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Execução
+                  </Typography>
+                </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              filteredSpells.map((spell) => (
-                <Row
-                  key={`${spell.nome}-${spell.spellTypes.join('-')}`}
-                  spell={spell}
-                  defaultOpen={filteredSpells.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {filteredSpells.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma magia encontrada. Tente ajustar os filtros.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredSpells.map((spell) => (
+                  <Row
+                    key={`${spell.nome}-${spell.spellTypes.join('-')}`}
+                    spell={spell}
+                    defaultOpen={filteredSpells.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

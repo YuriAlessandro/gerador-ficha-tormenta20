@@ -22,6 +22,7 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
+import { SEO, getPageSEO } from '../SEO';
 import { Requirement, RequirementType } from '../../interfaces/Poderes';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
@@ -459,83 +460,105 @@ const ClassesTable: React.FC = () => {
     filter(event.target.value);
   };
 
+  // Get selected class for SEO
+  const selectedClassData =
+    classes.length === 1 && params.selectedClass ? classes[0] : null;
+  const classesSEO = getPageSEO('classes');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Classes e Poderes de Classe
-      </TormentaTitle>
-
-      {/* Supplement Filter */}
-      <SupplementFilter
-        selectedSupplements={selectedSupplements}
-        availableSupplements={[
-          SupplementId.TORMENTA20_CORE,
-          SupplementId.TORMENTA20_AMEACAS_ARTON,
-        ]}
-        onToggleSupplement={handleToggleSupplement}
+    <>
+      <SEO
+        title={
+          selectedClassData
+            ? `${selectedClassData.name} - Classe de Tormenta 20`
+            : classesSEO.title
+        }
+        description={
+          selectedClassData
+            ? `Habilidades, poderes e progressão da classe ${selectedClassData.name} em Tormenta 20.`
+            : classesSEO.description
+        }
+        url={`/database/classes${
+          selectedClassData ? `/${params.selectedClass}` : ''
+        }`}
       />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Classes e Poderes de Classe
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {classes.length === 0
-            ? 'Nenhuma classe encontrada com os filtros aplicados'
-            : `${classes.length} classe${
-                classes.length !== 1 ? 's' : ''
-              } encontrada${classes.length !== 1 ? 's' : ''}`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {classes.length === 0
+              ? 'Nenhuma classe encontrada com os filtros aplicados'
+              : `${classes.length} classe${
+                  classes.length !== 1 ? 's' : ''
+                } encontrada${classes.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Classes Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='classes table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Classe
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {classes.length === 0 ? (
+        {/* Classes Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='classes table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma classe encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome da Classe
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              classes.map((cl) => (
-                <Row
-                  key={cl.name}
-                  classe={cl}
-                  defaultOpen={classes.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {classes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma classe encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                classes.map((cl) => (
+                  <Row
+                    key={cl.name}
+                    classe={cl}
+                    defaultOpen={classes.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

@@ -40,6 +40,7 @@ import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloud
 import SheetViewPage from './components/screens/SheetViewPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import ErrorBoundary from './components/ErrorBoundary';
+import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
 import { useUserPreferences } from './hooks/useUserPreferences';
 import { saveSystemSetup } from './store/slices/auth/authSlice';
@@ -377,13 +378,15 @@ function ThemedApp(): JSX.Element {
 
 function App(): JSX.Element {
   return (
-    <ErrorBoundary>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ThemedApp />
-        </PersistGate>
-      </Provider>
-    </ErrorBoundary>
+    <SEOProvider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <ThemedApp />
+          </PersistGate>
+        </Provider>
+      </ErrorBoundary>
+    </SEOProvider>
   );
 }
 

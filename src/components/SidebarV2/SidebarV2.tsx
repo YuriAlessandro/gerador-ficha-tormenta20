@@ -33,7 +33,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import NotesIcon from '@mui/icons-material/Notes';
 import LinkIcon from '@mui/icons-material/Link';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
-import CasinoIcon from '@mui/icons-material/Casino';
+// import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 
 import logo from '../../assets/images/tormenta-logo-eye.png';
@@ -338,11 +338,11 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               />
             </FormGroup>
           </StyledMenuItem>
-          <StyledMenuItem>
+          {/* <StyledMenuItem>
             <ListItemIcon>
               <CasinoIcon />
             </ListItemIcon>
-            {/* <FormGroup>
+            <FormGroup>
               <FormControlLabel
                 labelPlacement='end'
                 control={
@@ -355,8 +355,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 }
                 label='Dados 3D'
               />
-            </FormGroup> */}
-          </StyledMenuItem>
+            </FormGroup>
+          </StyledMenuItem> */}
         </MenuList>
 
         {/* Footer spacing */}

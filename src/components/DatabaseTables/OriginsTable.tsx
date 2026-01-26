@@ -21,6 +21,7 @@ import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 
 import SearchInput from './SearchInput';
+import { SEO, getPageSEO } from '../SEO';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, OriginWithSupplement } from '../../data/registry';
@@ -250,84 +251,106 @@ const OriginsTable: React.FC = () => {
     filter(event.target.value);
   };
 
+  // Get selected origin for SEO
+  const selectedOriginData =
+    origins.length === 1 && params.selectedOrigin ? origins[0] : null;
+  const originsSEO = getPageSEO('origins');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Origens de Personagem
-      </TormentaTitle>
-
-      {/* Supplement Filter */}
-      <SupplementFilter
-        selectedSupplements={selectedSupplements}
-        availableSupplements={[
-          SupplementId.TORMENTA20_CORE,
-          SupplementId.TORMENTA20_ATLAS_ARTON,
-          SupplementId.TORMENTA20_HEROIS_ARTON,
-        ]}
-        onToggleSupplement={handleToggleSupplement}
+    <>
+      <SEO
+        title={
+          selectedOriginData
+            ? `${selectedOriginData.name} - Origem de Tormenta 20`
+            : originsSEO.title
+        }
+        description={
+          selectedOriginData
+            ? `Poderes, perícias e benefícios da origem ${selectedOriginData.name} em Tormenta 20.`
+            : originsSEO.description
+        }
+        url={`/database/origens${
+          selectedOriginData ? `/${params.selectedOrigin}` : ''
+        }`}
       />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Origens de Personagem
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_ATLAS_ARTON,
+            SupplementId.TORMENTA20_HEROIS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {origins.length === 0
-            ? 'Nenhuma origem encontrada com os filtros aplicados'
-            : `${origins.length} origem${
-                origins.length !== 1 ? 's' : ''
-              } encontrada${origins.length !== 1 ? 's' : ''}`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {origins.length === 0
+              ? 'Nenhuma origem encontrada com os filtros aplicados'
+              : `${origins.length} origem${
+                  origins.length !== 1 ? 's' : ''
+                } encontrada${origins.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Origins Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='origins table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Origem
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {origins.length === 0 ? (
+        {/* Origins Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='origins table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma origem encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome da Origem
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              origins.map((origin) => (
-                <Row
-                  key={origin.name}
-                  origin={origin}
-                  defaultOpen={origins.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {origins.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma origem encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                origins.map((origin) => (
+                  <Row
+                    key={origin.name}
+                    origin={origin}
+                    defaultOpen={origins.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

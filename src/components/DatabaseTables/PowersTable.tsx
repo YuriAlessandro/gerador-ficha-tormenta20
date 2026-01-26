@@ -23,6 +23,7 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import { Requirement, RequirementType } from '../../interfaces/Poderes';
+import { SEO, getPageSEO } from '../SEO';
 import SearchInput from './SearchInput';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
@@ -344,139 +345,165 @@ const PowersTable: React.FC = () => {
     </>
   );
 
+  // Get selected power for SEO
+  const selectedPowerData =
+    powers.length === 1 && (params as { selectedPower?: string }).selectedPower
+      ? powers[0]
+      : null;
+  const powersSEO = getPageSEO('powers');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Poderes Gerais
-      </TormentaTitle>
-
-      {/* Supplement Filter */}
-      <SupplementFilter
-        selectedSupplements={selectedSupplements}
-        availableSupplements={[
-          SupplementId.TORMENTA20_CORE,
-          SupplementId.TORMENTA20_AMEACAS_ARTON,
-          SupplementId.TORMENTA20_DEUSES_ARTON,
-          SupplementId.TORMENTA20_HEROIS_ARTON,
-        ]}
-        onToggleSupplement={handleToggleSupplement}
+    <>
+      <SEO
+        title={
+          selectedPowerData
+            ? `${selectedPowerData.name} - Poder de Tormenta 20`
+            : powersSEO.title
+        }
+        description={
+          selectedPowerData
+            ? `Requisitos e efeitos do poder ${selectedPowerData.name} (${selectedPowerData.type}) em Tormenta 20.`
+            : powersSEO.description
+        }
+        url={`/database/poderes${
+          selectedPowerData
+            ? `/${(params as { selectedPower?: string }).selectedPower}`
+            : ''
+        }`}
       />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Poderes Gerais
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+            SupplementId.TORMENTA20_DEUSES_ARTON,
+            SupplementId.TORMENTA20_HEROIS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Category Tabs */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Tabs
-          onChange={handleTabChange}
-          aria-label='power categories'
-          variant='scrollable'
-          scrollButtons='auto'
-          sx={{
-            background: 'linear-gradient(135deg, #d13235 0%, #922325 100%)',
-            borderRadius: 1,
-            '& .MuiTab-root': {
-              fontFamily: 'Tfont, serif',
-              fontWeight: 600,
-              color: 'white',
-            },
-            '& .MuiTab-root.Mui-selected': {
-              color: '#FAFAFA',
-            },
-          }}
-        >
-          <Tab label='Combate' />
-          <Tab label='Concedidos' />
-          <Tab label='Destino' />
-          <Tab label='Magia' />
-          <Tab label='Tormenta' />
-          <Tab label='Raça' />
-        </Tabs>
-      </Box>
+        {/* Category Tabs */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Tabs
+            onChange={handleTabChange}
+            aria-label='power categories'
+            variant='scrollable'
+            scrollButtons='auto'
+            sx={{
+              background: 'linear-gradient(135deg, #d13235 0%, #922325 100%)',
+              borderRadius: 1,
+              '& .MuiTab-root': {
+                fontFamily: 'Tfont, serif',
+                fontWeight: 600,
+                color: 'white',
+              },
+              '& .MuiTab-root.Mui-selected': {
+                color: '#FAFAFA',
+              },
+            }}
+          >
+            <Tab label='Combate' />
+            <Tab label='Concedidos' />
+            <Tab label='Destino' />
+            <Tab label='Magia' />
+            <Tab label='Tormenta' />
+            <Tab label='Raça' />
+          </Tabs>
+        </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {powers.length > 0
-            ? `${powers.length} poder${
-                powers.length !== 1 ? 'es' : ''
-              } encontrado${powers.length !== 1 ? 's' : ''}`
-            : 'Navegue pelas categorias ou use a busca para encontrar poderes específicos'}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {powers.length > 0
+              ? `${powers.length} poder${
+                  powers.length !== 1 ? 'es' : ''
+                } encontrado${powers.length !== 1 ? 's' : ''}`
+              : 'Navegue pelas categorias ou use a busca para encontrar poderes específicos'}
+          </Typography>
+        </Box>
 
-      {/* Powers Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='powers table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome do Poder
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {powers.length > 0 ? (
-              powers.map((power) => (
-                <Row
-                  key={power.name}
-                  power={power}
-                  defaultOpen={powers.length === 1}
-                />
-              ))
-            ) : (
-              <>
-                {renderPowerSection(
-                  'Poderes de Combate',
-                  allPowersByCategory.COMBATE,
-                  combatRef
-                )}
-                {renderPowerSection(
-                  'Poderes Concedidos',
-                  allPowersByCategory.CONCEDIDOS,
-                  concedidoRef
-                )}
-                {renderPowerSection(
-                  'Poderes de Destino',
-                  allPowersByCategory.DESTINO,
-                  destinyRef
-                )}
-                {renderPowerSection(
-                  'Poderes de Magia',
-                  allPowersByCategory.MAGIA,
-                  magicRef
-                )}
-                {renderPowerSection(
-                  'Poderes da Tormenta',
-                  allPowersByCategory.TORMENTA,
-                  tormentaRef
-                )}
-                {renderPowerSection(
-                  'Poderes de Raça',
-                  allPowersByCategory.RACA,
-                  racaRef
-                )}
-              </>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+        {/* Powers Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='powers table'>
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome do Poder
+                  </Typography>
+                </TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {powers.length > 0 ? (
+                powers.map((power) => (
+                  <Row
+                    key={power.name}
+                    power={power}
+                    defaultOpen={powers.length === 1}
+                  />
+                ))
+              ) : (
+                <>
+                  {renderPowerSection(
+                    'Poderes de Combate',
+                    allPowersByCategory.COMBATE,
+                    combatRef
+                  )}
+                  {renderPowerSection(
+                    'Poderes Concedidos',
+                    allPowersByCategory.CONCEDIDOS,
+                    concedidoRef
+                  )}
+                  {renderPowerSection(
+                    'Poderes de Destino',
+                    allPowersByCategory.DESTINO,
+                    destinyRef
+                  )}
+                  {renderPowerSection(
+                    'Poderes de Magia',
+                    allPowersByCategory.MAGIA,
+                    magicRef
+                  )}
+                  {renderPowerSection(
+                    'Poderes da Tormenta',
+                    allPowersByCategory.TORMENTA,
+                    tormentaRef
+                  )}
+                  {renderPowerSection(
+                    'Poderes de Raça',
+                    allPowersByCategory.RACA,
+                    racaRef
+                  )}
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

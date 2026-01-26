@@ -15,6 +15,7 @@ import {
   useMediaQuery,
   IconButton,
 } from '@mui/material';
+import { SEO, getPageSEO } from '../SEO';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/Check';
@@ -320,8 +321,15 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     }
   };
 
+  const threatGeneratorSEO = getPageSEO('threatGenerator');
+
   return (
     <>
+      <SEO
+        title={threatGeneratorSEO.title}
+        description={threatGeneratorSEO.description}
+        url='/gerador-ameacas'
+      />
       <AlertDialog />
 
       {/* Sheet Limit Dialog */}

@@ -14,6 +14,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { BlogPost } from '../../types/blog.types';
 import BlogService from '../../services/blog.service';
 import BlogCard from './BlogCard';
+import { SEO, getPageSEO } from '../SEO';
 
 const BlogList: React.FC = () => {
   const theme = useTheme();
@@ -93,88 +94,97 @@ const BlogList: React.FC = () => {
     </>
   );
 
+  const blogSEO = getPageSEO('blog');
+
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        pt: { xs: 10, md: 12 },
-        pb: 8,
-        background: isDark
-          ? 'linear-gradient(180deg, #121212 0%, #1a1a1a 100%)'
-          : 'linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%)',
-      }}
-    >
-      <Container maxWidth='lg'>
-        <Box sx={{ mb: 4 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => history.push('/')}
-            sx={{ mb: 2 }}
-          >
-            Voltar
-          </Button>
-
-          <Typography
-            variant='h3'
-            component='h1'
-            sx={{
-              fontWeight: 700,
-              mb: 1,
-            }}
-          >
-            Blog
-          </Typography>
-          <Typography variant='body1' color='text.secondary'>
-            Novidades, atualizações e conteúdo sobre o projeto
-          </Typography>
-        </Box>
-
-        <Grid container spacing={3}>
-          {loading && renderSkeletons()}
-          {!loading && posts.length === 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Box
-                sx={{
-                  textAlign: 'center',
-                  py: 8,
-                }}
-              >
-                <Typography variant='h6' color='text.secondary'>
-                  Nenhum post publicado ainda.
-                </Typography>
-              </Box>
-            </Grid>
-          )}
-          {!loading &&
-            posts.length > 0 &&
-            posts.map((post) => (
-              <Grid key={post.slug} size={{ xs: 12, sm: 6, md: 4 }}>
-                <BlogCard
-                  post={post}
-                  onClick={() => handlePostClick(post.slug)}
-                />
-              </Grid>
-            ))}
-        </Grid>
-
-        {!loading && currentPage < totalPages && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+    <>
+      <SEO
+        title={blogSEO.title}
+        description={blogSEO.description}
+        url='/blog'
+      />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          pt: { xs: 10, md: 12 },
+          pb: 8,
+          background: isDark
+            ? 'linear-gradient(180deg, #121212 0%, #1a1a1a 100%)'
+            : 'linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%)',
+        }}
+      >
+        <Container maxWidth='lg'>
+          <Box sx={{ mb: 4 }}>
             <Button
-              variant='outlined'
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              sx={{ px: 4 }}
+              startIcon={<ArrowBackIcon />}
+              onClick={() => history.push('/')}
+              sx={{ mb: 2 }}
             >
-              {loadingMore ? (
-                <CircularProgress size={24} color='inherit' />
-              ) : (
-                'Carregar mais'
-              )}
+              Voltar
             </Button>
+
+            <Typography
+              variant='h3'
+              component='h1'
+              sx={{
+                fontWeight: 700,
+                mb: 1,
+              }}
+            >
+              Blog
+            </Typography>
+            <Typography variant='body1' color='text.secondary'>
+              Novidades, atualizações e conteúdo sobre o projeto
+            </Typography>
           </Box>
-        )}
-      </Container>
-    </Box>
+
+          <Grid container spacing={3}>
+            {loading && renderSkeletons()}
+            {!loading && posts.length === 0 && (
+              <Grid size={{ xs: 12 }}>
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    py: 8,
+                  }}
+                >
+                  <Typography variant='h6' color='text.secondary'>
+                    Nenhum post publicado ainda.
+                  </Typography>
+                </Box>
+              </Grid>
+            )}
+            {!loading &&
+              posts.length > 0 &&
+              posts.map((post) => (
+                <Grid key={post.slug} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <BlogCard
+                    post={post}
+                    onClick={() => handlePostClick(post.slug)}
+                  />
+                </Grid>
+              ))}
+          </Grid>
+
+          {!loading && currentPage < totalPages && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Button
+                variant='outlined'
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                sx={{ px: 4 }}
+              >
+                {loadingMore ? (
+                  <CircularProgress size={24} color='inherit' />
+                ) : (
+                  'Carregar mais'
+                )}
+              </Button>
+            </Box>
+          )}
+        </Container>
+      </Box>
+    </>
   );
 };
 

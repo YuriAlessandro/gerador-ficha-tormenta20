@@ -22,6 +22,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import Race from '../../interfaces/Race';
 import SearchInput from './SearchInput';
+import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
@@ -289,83 +290,105 @@ const RacesTable: React.FC = () => {
     filter(event.target.value);
   };
 
+  // Get selected race for SEO
+  const selectedRaceData =
+    races.length === 1 && params.selectedRace ? races[0] : null;
+  const racesSEO = getPageSEO('races');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Raças e Habilidades Raciais
-      </TormentaTitle>
-
-      {/* Supplement Filter */}
-      <SupplementFilter
-        selectedSupplements={selectedSupplements}
-        availableSupplements={[
-          SupplementId.TORMENTA20_CORE,
-          SupplementId.TORMENTA20_AMEACAS_ARTON,
-        ]}
-        onToggleSupplement={handleToggleSupplement}
+    <>
+      <SEO
+        title={
+          selectedRaceData
+            ? `${selectedRaceData.name} - Raça de Tormenta 20`
+            : racesSEO.title
+        }
+        description={
+          selectedRaceData
+            ? `Atributos, habilidades e modificadores da raça ${selectedRaceData.name} em Tormenta 20.`
+            : racesSEO.description
+        }
+        url={`/database/raças${
+          selectedRaceData ? `/${params.selectedRace}` : ''
+        }`}
       />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Raças e Habilidades Raciais
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {races.length === 0
-            ? 'Nenhuma raça encontrada com os filtros aplicados'
-            : `${races.length} raça${races.length !== 1 ? 's' : ''} encontrada${
-                races.length !== 1 ? 's' : ''
-              }`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {races.length === 0
+              ? 'Nenhuma raça encontrada com os filtros aplicados'
+              : `${races.length} raça${
+                  races.length !== 1 ? 's' : ''
+                } encontrada${races.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Races Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='races table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Raça
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {races.length === 0 ? (
+        {/* Races Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='races table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma raça encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome da Raça
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              races.map((race) => (
-                <Row
-                  key={race.name}
-                  race={race}
-                  defaultOpen={races.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {races.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma raça encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                races.map((race) => (
+                  <Row
+                    key={race.name}
+                    race={race}
+                    defaultOpen={races.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

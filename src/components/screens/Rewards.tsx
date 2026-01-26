@@ -1,6 +1,7 @@
 import { Button, Container, Stack, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
+import { SEO, getPageSEO } from '../SEO';
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -167,42 +168,50 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
     ? getSelectTheme('dark')
     : getSelectTheme('default');
 
+  const rewardsSEO = getPageSEO('rewards');
+
   return (
-    <Container maxWidth='lg' sx={{ py: 3 }}>
-      <Stack
-        spacing={2}
-        direction='row'
-        flexWrap='wrap'
-        alignItems='center'
-        justifyContent='center'
-        sx={{ marginBottom: '20px' }}
-        rowGap={2}
-      >
-        <TextField
-          id='filled-number'
-          label='Quantidade'
-          type='number'
-          variant='outlined'
-          onChange={onChangeQtd}
-          sx={{ maxWidth: '100px' }}
-          size='small'
-          value={numberOfItems}
-        />
+    <>
+      <SEO
+        title={rewardsSEO.title}
+        description={rewardsSEO.description}
+        url='/recompensas'
+      />
+      <Container maxWidth='lg' sx={{ py: 3 }}>
+        <Stack
+          spacing={2}
+          direction='row'
+          flexWrap='wrap'
+          alignItems='center'
+          justifyContent='center'
+          sx={{ marginBottom: '20px' }}
+          rowGap={2}
+        >
+          <TextField
+            id='filled-number'
+            label='Quantidade'
+            type='number'
+            variant='outlined'
+            onChange={onChangeQtd}
+            sx={{ maxWidth: '100px' }}
+            size='small'
+            value={numberOfItems}
+          />
 
-        <Select
-          className='filterSelect'
-          options={nds}
-          placeholder='Nível de Dificuldade'
-          onChange={onChangeNd}
-          theme={(theme) => ({
-            ...theme,
-            colors: {
-              ...formThemeColors,
-            },
-          })}
-        />
+          <Select
+            className='filterSelect'
+            options={nds}
+            placeholder='Nível de Dificuldade'
+            onChange={onChangeNd}
+            theme={(theme) => ({
+              ...theme,
+              colors: {
+                ...formThemeColors,
+              },
+            })}
+          />
 
-        {/* <Divider orientation='vertical' flexItem />
+          {/* <Divider orientation='vertical' flexItem />
 
         <FormControlLabel
           value='top'
@@ -218,96 +227,96 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
 
         <Divider orientation='vertical' flexItem /> */}
 
-        <FormControlLabel
-          value='top'
-          control={
-            <Radio
-              checked={rewardMult === 'Padrão'}
-              onChange={handleRewardMultChange}
-              value='Padrão'
-              name='radio-button-demo'
-              color='default'
-            />
-          }
-          label='Padrão'
-          labelPlacement='end'
-        />
+          <FormControlLabel
+            value='top'
+            control={
+              <Radio
+                checked={rewardMult === 'Padrão'}
+                onChange={handleRewardMultChange}
+                value='Padrão'
+                name='radio-button-demo'
+                color='default'
+              />
+            }
+            label='Padrão'
+            labelPlacement='end'
+          />
 
-        <FormControlLabel
-          value='top'
-          control={
-            <Radio
-              checked={rewardMult === 'Metade'}
-              onChange={handleRewardMultChange}
-              value='Metade'
-              name='radio-button-demo'
-              color='default'
-            />
-          }
-          label='Metade'
-          labelPlacement='end'
-        />
+          <FormControlLabel
+            value='top'
+            control={
+              <Radio
+                checked={rewardMult === 'Metade'}
+                onChange={handleRewardMultChange}
+                value='Metade'
+                name='radio-button-demo'
+                color='default'
+              />
+            }
+            label='Metade'
+            labelPlacement='end'
+          />
 
-        <FormControlLabel
-          value='top'
-          control={
-            <Radio
-              checked={rewardMult === 'Dobro'}
-              onChange={handleRewardMultChange}
-              value='Dobro'
-              name='radio-button-demo'
-              color='default'
-            />
-          }
-          label='Dobro'
-          labelPlacement='end'
-        />
+          <FormControlLabel
+            value='top'
+            control={
+              <Radio
+                checked={rewardMult === 'Dobro'}
+                onChange={handleRewardMultChange}
+                value='Dobro'
+                name='radio-button-demo'
+                color='default'
+              />
+            }
+            label='Dobro'
+            labelPlacement='end'
+          />
 
-        <Button onClick={onClickGenerate} type='button' variant='contained'>
-          Gerar Recompensa
-        </Button>
-      </Stack>
+          <Button onClick={onClickGenerate} type='button' variant='contained'>
+            Gerar Recompensa
+          </Button>
+        </Stack>
 
-      <p>
-        <ul>
-          <li>
-            <strong>Metade</strong>: A criatura tem poucos tesouros; quaisquer
-            resultados rolados para dinheiro é dividido pela metade.
-          </li>
-          <li>
-            <strong>Dobro</strong>: Será rolado normalmente, duas vezes para
-            para dinheiro e duas vezes para itens.
-          </li>
-        </ul>
-      </p>
+        <p>
+          <ul>
+            <li>
+              <strong>Metade</strong>: A criatura tem poucos tesouros; quaisquer
+              resultados rolados para dinheiro é dividido pela metade.
+            </li>
+            <li>
+              <strong>Dobro</strong>: Será rolado normalmente, duas vezes para
+              para dinheiro e duas vezes para itens.
+            </li>
+          </ul>
+        </p>
 
-      {items && ResultDiv}
+        {items && ResultDiv}
 
-      <h3>Como gerar o tesouro corretamente?</h3>
+        <h3>Como gerar o tesouro corretamente?</h3>
 
-      <p>
-        Para determinar o tesouro de uma única criatura, use a ND equivalente ao
-        nível de desafio da criatura derrotada.
-      </p>
+        <p>
+          Para determinar o tesouro de uma única criatura, use a ND equivalente
+          ao nível de desafio da criatura derrotada.
+        </p>
 
-      <p>
-        Se o grupo tiver derrotado mais de uma criatura, use a ND equivalente ao
-        nível de desafio do combate.
-      </p>
+        <p>
+          Se o grupo tiver derrotado mais de uma criatura, use a ND equivalente
+          ao nível de desafio do combate.
+        </p>
 
-      <p>
-        Para criaturas com ND menor do que 1, o nível de desafio do combate será
-        igual ao ND da criatura multiplicado pelo número delas. Assim, quatro
-        inimigos de ND 1/4 formam um combate de ND 1.
-      </p>
+        <p>
+          Para criaturas com ND menor do que 1, o nível de desafio do combate
+          será igual ao ND da criatura multiplicado pelo número delas. Assim,
+          quatro inimigos de ND 1/4 formam um combate de ND 1.
+        </p>
 
-      <p>
-        Para criaturas com ND igual ou maior do que 1, o nível de desafio do
-        combate será igual ao ND da criatura +2 para cada vez que o número delas
-        dobrar. Assim, dois inimigos de ND 5 formam um combate de ND 7, quatro
-        inimigos de ND 8 formam um combate de ND 12 e assim por diante.
-      </p>
-      {/* <p>
+        <p>
+          Para criaturas com ND igual ou maior do que 1, o nível de desafio do
+          combate será igual ao ND da criatura +2 para cada vez que o número
+          delas dobrar. Assim, dois inimigos de ND 5 formam um combate de ND 7,
+          quatro inimigos de ND 8 formam um combate de ND 12 e assim por diante.
+        </p>
+        {/* <p>
         Os valores entre parênteses dizem respeito a ordem de rolagem dos dados.
         <ul>
           <li>
@@ -335,7 +344,8 @@ const Rewards: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => {
           </li>
         </ul>
       </p> */}
-    </Container>
+      </Container>
+    </>
   );
 };
 

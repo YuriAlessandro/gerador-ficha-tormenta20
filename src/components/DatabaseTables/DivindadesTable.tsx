@@ -20,6 +20,7 @@ import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import SearchInput from './SearchInput';
+import { SEO, getPageSEO } from '../SEO';
 import { DIVINDADES } from '../../data/systems/tormenta20/divindades';
 import Divindade from '../../interfaces/Divindade';
 import TormentaTitle from '../Database/TormentaTitle';
@@ -175,73 +176,95 @@ const DivindadesTable: React.FC = () => {
     filter(event.target.value);
   };
 
+  // Get selected divinity for SEO
+  const selectedDivindadeData =
+    divindades.length === 1 && params.selectedGod ? divindades[0] : null;
+  const deitiesSEO = getPageSEO('deities');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Divindades de Arton
-      </TormentaTitle>
+    <>
+      <SEO
+        title={
+          selectedDivindadeData
+            ? `${selectedDivindadeData.name} - Divindade de Tormenta 20`
+            : deitiesSEO.title
+        }
+        description={
+          selectedDivindadeData
+            ? `Informações, poderes concedidos e devotos de ${selectedDivindadeData.name} em Tormenta 20.`
+            : deitiesSEO.description
+        }
+        url={`/database/divindades${
+          selectedDivindadeData ? `/${params.selectedGod}` : ''
+        }`}
+      />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Divindades de Arton
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {divindades.length === 0
-            ? 'Nenhuma divindade encontrada com os filtros aplicados'
-            : `${divindades.length} divindade${
-                divindades.length !== 1 ? 's' : ''
-              } encontrada${divindades.length !== 1 ? 's' : ''}`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {divindades.length === 0
+              ? 'Nenhuma divindade encontrada com os filtros aplicados'
+              : `${divindades.length} divindade${
+                  divindades.length !== 1 ? 's' : ''
+                } encontrada${divindades.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Divindades Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='divindades table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Divindade
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {divindades.length === 0 ? (
+        {/* Divindades Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='divindades table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma divindade encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                  >
+                    Nome da Divindade
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              divindades.map((divindade) => (
-                <Row
-                  key={divindade.name}
-                  divindade={divindade}
-                  defaultOpen={divindades.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {divindades.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma divindade encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                divindades.map((divindade) => (
+                  <Row
+                    key={divindade.name}
+                    divindade={divindade}
+                    defaultOpen={divindades.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 
