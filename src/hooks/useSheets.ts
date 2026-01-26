@@ -17,17 +17,19 @@ import {
   UpdateSheetRequest,
   SheetData,
 } from '../services/sheets.service';
+import { useAuth } from './useAuth';
 
 export const useSheets = () => {
   const dispatch = useDispatch<AppDispatch>();
   const sheets = useSelector((state: RootState) => state.sheets);
+  const { isAuthenticated } = useAuth();
 
-  // Auto-fetch sheets when hook is used (if not already initialized)
+  // Auto-fetch sheets when hook is used (if authenticated and not already initialized)
   useEffect(() => {
-    if (!sheets.initialized && !sheets.loading) {
+    if (isAuthenticated && !sheets.initialized && !sheets.loading) {
       dispatch(fetchUserSheets());
     }
-  }, [dispatch, sheets.initialized, sheets.loading]);
+  }, [dispatch, sheets.initialized, sheets.loading, isAuthenticated]);
 
   const actions = {
     // Fetch all user sheets

@@ -107,6 +107,7 @@ const sheetsSlice = createSlice({
       .addCase(fetchUserSheets.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch sheets';
+        state.initialized = true; // Prevent infinite retry loop
       });
 
     // Fetch sheet by ID
