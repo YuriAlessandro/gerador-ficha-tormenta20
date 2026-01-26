@@ -274,9 +274,7 @@ const MyCharactersPage: React.FC = () => {
     const description = isPlayers
       ? 'Você ainda não criou nenhum personagem. Comece agora e suas fichas ficarão sincronizadas em todos os seus dispositivos!'
       : 'Você ainda não criou nenhuma ameaça. Comece agora e tenha suas criaturas sempre organizadas!';
-    const buttonText = isPlayers
-      ? 'Criar Meu Primeiro Personagem'
-      : 'Criar Minha Primeira Ameaça';
+    const buttonText = isPlayers ? 'Criar Nova Ficha' : 'Criar Nova Ameaça';
 
     return (
       <Box
