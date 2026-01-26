@@ -14,16 +14,24 @@ ReactGAConfig.setup();
 
 // Register PWA Service Worker
 const updateSW = registerSW({
+  immediate: true, // Check for updates immediately on load
   onNeedRefresh() {
     // eslint-disable-next-line no-restricted-globals, no-alert
-    if (confirm('Há uma nova versão disponível. Deseja atualizar?')) {
+    if (confirm('Nova versão disponível! Clique OK para atualizar.')) {
       updateSW(true);
     }
   },
   onOfflineReady() {
     // eslint-disable-next-line no-console
     console.log('App pronto para uso offline!');
-    // Optionally show a notification to user
+  },
+  onRegistered(registration) {
+    // Check for updates every 5 minutes
+    if (registration) {
+      setInterval(() => {
+        registration.update();
+      }, 5 * 60 * 1000);
+    }
   },
 });
 

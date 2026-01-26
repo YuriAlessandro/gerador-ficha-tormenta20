@@ -66,7 +66,7 @@ export default defineConfig({
     }),
     viteTsconfigPaths(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // Prompt user to reload when update available
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
       manifest: {
         name: 'Fichas de Nimb',
@@ -103,7 +103,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,wasm}'],
+        // Exclude HTML from precache - let it be handled by NetworkFirst runtime caching
+        // This ensures users always get the latest HTML on navigation
+        globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
+        // Don't precache index.html - always fetch fresh
+        navigateFallback: null,
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit (increased for large bundle)
         // Clean up old caches on activation
         cleanupOutdatedCaches: true,
