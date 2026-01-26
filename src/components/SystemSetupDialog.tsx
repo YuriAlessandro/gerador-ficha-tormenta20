@@ -119,10 +119,22 @@ const SystemSetupDialog: React.FC<SystemSetupDialogProps> = ({
           <Typography variant='subtitle2' color='text.secondary' gutterBottom>
             Suplementos Disponíveis
           </Typography>
-          <Typography variant='caption' color='text.secondary' sx={{ mb: 2 }}>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ mb: 2, display: 'block' }}
+          >
             Selecione os suplementos que você possui. Lembre-se que tentar usar
             regras de suplementos sem possuir os livros e dominar suas regras
             pode ser desafiador.
+          </Typography>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ mb: 2, display: 'block' }}
+          >
+            Você pode alterar essa configuração a qualquer momento no seu
+            perfil.
           </Typography>
 
           <FormGroup>
