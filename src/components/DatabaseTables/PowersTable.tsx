@@ -29,10 +29,7 @@ import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
-import {
-  dataRegistry,
-  GeneralPowerWithSupplement,
-} from '../../data/registry';
+import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
   let reqText = '';
