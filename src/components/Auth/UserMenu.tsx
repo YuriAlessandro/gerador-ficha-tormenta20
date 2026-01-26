@@ -21,6 +21,7 @@ import { AppDispatch } from '../../store';
 import { logout } from '../../store/slices/auth/authSlice';
 import AuthModal from './AuthModal';
 import SupporterBadge from '../Premium/SupporterBadge';
+import { NotificationBell } from '../Notifications';
 import { SupportLevel } from '../../types/subscription.types';
 
 const UserMenu: React.FC = () => {
@@ -107,6 +108,9 @@ const UserMenu: React.FC = () => {
   return (
     <>
       <Stack direction='row' alignItems='center' spacing={1}>
+        {/* Notification Bell */}
+        <NotificationBell />
+
         {/* Supporter Badge - only shows for supporters */}
         <SupporterBadge level={supportLevel} variant='small' showTooltip />
 

@@ -18,6 +18,7 @@ import authReducer from './slices/auth/authSlice';
 import sheetsReducer from './slices/sheets/sheetsSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
+import notificationReducer from './slices/notification/notificationSlice';
 import { onActiveSheetChangeMiddleware } from './middlewares/onActiveSheetChangeMiddleware';
 
 export const persistConfig = {
@@ -79,6 +80,7 @@ const store = configureStore({
     sheets: sheetsReducer,
     system: persistedSystemReducer,
     subscription: persistedSubscriptionReducer,
+    notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

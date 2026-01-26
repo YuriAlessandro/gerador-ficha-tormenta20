@@ -23,6 +23,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-redux": "^7.1.25",
     "axios": "^1.12.2",
+    "date-fns": "^4.1.0",
     "firebase": "^12.3.0",
     "lodash": "^4.17.21",
     "notistack": "^3.0.1",
