@@ -78,6 +78,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { SubscriptionTier } from '../../types/subscription.types';
 import SheetsService, {
@@ -242,6 +243,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated, user } = useAuth();
+  const { openLoginModal } = useAuthContext();
   const {
     sheets,
     createSheet: createSheetAction,
@@ -458,7 +460,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     markCloudNoticeShown();
     setShowCloudSaveNotice(false);
     setPendingGenerateAction(null);
-    history.push('/login?redirect=/criar-ficha');
+    openLoginModal();
   };
 
   const onClickGenerateEmptySheet = async () => {

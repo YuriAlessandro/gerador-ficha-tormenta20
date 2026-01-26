@@ -14,13 +14,13 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { useHistory } from 'react-router-dom';
 import CheckIcon from '@mui/icons-material/Check';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import StarIcon from '@mui/icons-material/Star';
 import DiamondIcon from '@mui/icons-material/Diamond';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 import {
   SupportLevel,
   SupportLevelInfo,
@@ -32,10 +32,10 @@ import SupporterBadge from './SupporterBadge';
  * Support page to display support levels and encourage contributions
  */
 const SupportPage: React.FC = () => {
-  const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isAuthenticated } = useAuth();
+  const { openLoginModal } = useAuthContext();
   const {
     tier: currentTier,
     loading,
@@ -78,7 +78,7 @@ const SupportPage: React.FC = () => {
 
   const handleSelectLevel = (level: SupportLevel) => {
     if (!isAuthenticated) {
-      history.push('/login?redirect=/apoiar');
+      openLoginModal();
       return;
     }
     upgradeToTier(level);

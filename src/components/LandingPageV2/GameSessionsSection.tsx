@@ -13,6 +13,7 @@ import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import LoginIcon from '@mui/icons-material/Login';
 import { useGameTable } from '../../premium/hooks/useGameTable';
 import { GameTableStatus } from '../../premium/services/gameTable.service';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 interface GameSessionsSectionProps {
   onClickButton: (link: string) => void;
@@ -25,6 +26,7 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { openLoginModal } = useAuthContext();
 
   const gameTableContext = isAuthenticated ? useGameTable() : null;
   const tables = gameTableContext?.tables ?? [];
@@ -83,7 +85,7 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
             <Button
               variant='outlined'
               startIcon={<LoginIcon />}
-              onClick={() => onClickButton('/login')}
+              onClick={openLoginModal}
               sx={{ mt: 1 }}
             >
               Faça login para acessar

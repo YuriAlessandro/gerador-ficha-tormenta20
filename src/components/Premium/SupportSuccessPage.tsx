@@ -11,12 +11,14 @@ import {
 import { CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 import SupporterBadge from './SupporterBadge';
 import { getSupportLevelName } from '../../types/subscription.types';
 
 const SupportSuccessPage: React.FC = () => {
   const history = useHistory();
   const { user, isAuthenticated } = useAuth();
+  const { openLoginModal } = useAuthContext();
   const { loadSubscription, supportLevel, isSupporter, loading } =
     useSubscription();
   const [loadAttempts, setLoadAttempts] = useState(0);
@@ -24,13 +26,13 @@ const SupportSuccessPage: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      history.push('/login?redirect=/apoiar');
+      openLoginModal();
       return;
     }
 
     // Load subscription immediately
     loadSubscription();
-  }, [isAuthenticated, history, loadSubscription]);
+  }, [isAuthenticated, openLoginModal, loadSubscription]);
 
   // Retry loading subscription if not yet a supporter (webhook may be processing)
   useEffect(() => {
