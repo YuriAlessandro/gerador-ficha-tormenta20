@@ -193,6 +193,7 @@ const CharacterCreationWizardModal: React.FC<
     // Classes que lançam magias: Arcanista, Bardo, Druida, Clérigo
     return (
       classe.spellPath !== undefined ||
+      classe.name === 'Arcanista' ||
       classe.name === 'Bardo' ||
       classe.name === 'Druida' ||
       classe.name === 'Clérigo'
