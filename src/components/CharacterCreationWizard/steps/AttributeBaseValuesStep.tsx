@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  TextField,
-  Typography,
-  Alert,
-  Paper,
-  Divider,
-} from '@mui/material';
+import { Box, TextField, Typography, Paper, Divider } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Race, { RaceAttributeAbility } from '@/interfaces/Race';
 
@@ -65,8 +58,8 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-          gap: 2,
+          gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' },
+          gap: 1.5,
         }}
       >
         {allAttributes.map((atributo) => {
@@ -76,73 +69,75 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
           const finalMod = baseMod + racialModifier;
 
           return (
-            <Box key={atributo}>
-              <Paper sx={{ p: 2 }}>
-                <Typography variant='h6' gutterBottom>
-                  {atributo}
+            <Paper key={atributo} sx={{ p: 1.5 }}>
+              <Typography
+                variant='subtitle2'
+                fontWeight='bold'
+                sx={{ mb: 1, fontFamily: 'Tfont, serif' }}
+              >
+                {atributo}
+              </Typography>
+
+              <TextField
+                size='small'
+                type='number'
+                label='Valor Base'
+                value={baseValue}
+                onChange={(e) => handleChange(atributo, e.target.value)}
+                inputProps={{ min: 0, max: 30 }}
+                sx={{
+                  width: 100,
+                  mb: 1,
+                  '& .MuiInputBase-input': { textAlign: 'center' },
+                }}
+              />
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '0.75rem',
+                }}
+              >
+                <Typography variant='caption' color='text.secondary'>
+                  Mod. Racial:
                 </Typography>
-
-                <TextField
-                  fullWidth
-                  type='number'
-                  label='Valor Base'
-                  value={baseValue}
-                  onChange={(e) => handleChange(atributo, e.target.value)}
-                  inputProps={{ min: 0, max: 30 }}
-                  sx={{ mb: 2 }}
-                />
-
-                <Divider sx={{ my: 1 }} />
-
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
+                <Typography
+                  variant='caption'
+                  color={racialModifier > 0 ? 'success.main' : 'text.secondary'}
+                  fontWeight='bold'
                 >
-                  <Typography variant='body2' color='text.secondary'>
-                    Modificador Racial:
-                  </Typography>
-                  <Typography
-                    variant='body2'
-                    color={
-                      racialModifier > 0 ? 'success.main' : 'text.secondary'
-                    }
-                    fontWeight='bold'
-                  >
-                    {racialModifier > 0
-                      ? `+${racialModifier}`
-                      : racialModifier || '0'}
-                  </Typography>
-                </Box>
+                  {racialModifier > 0
+                    ? `+${racialModifier}`
+                    : racialModifier || '0'}
+                </Typography>
+              </Box>
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mt: 1,
-                  }}
+              <Divider sx={{ my: 0.5 }} />
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Typography variant='caption' fontWeight='bold'>
+                  Final:
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='primary.main'
+                  fontWeight='bold'
                 >
-                  <Typography variant='body1' fontWeight='bold'>
-                    Valor Final:
-                  </Typography>
-                  <Typography variant='h6' color='primary.main'>
-                    {baseValue} ({finalMod >= 0 ? `+${finalMod}` : finalMod})
-                  </Typography>
-                </Box>
-              </Paper>
-            </Box>
+                  {baseValue} ({finalMod >= 0 ? `+${finalMod}` : finalMod})
+                </Typography>
+              </Box>
+            </Paper>
           );
         })}
       </Box>
-
-      <Alert severity='info'>
-        Valores recomendados: distribua 78 pontos entre os atributos usando
-        point-buy, ou use os valores padrão (15, 14, 13, 12, 10, 8) conforme o
-        manual.
-      </Alert>
     </Box>
   );
 };

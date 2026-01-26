@@ -62,7 +62,15 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
           renderValue={(selected) => (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
               {selected.map((value) => (
-                <Chip key={value} label={value} size='small' />
+                <Chip
+                  key={value}
+                  label={value}
+                  size='small'
+                  onDelete={() => {
+                    onChange(selectedSkills.filter((s) => s !== value));
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                />
               ))}
             </Box>
           )}
