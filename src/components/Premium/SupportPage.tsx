@@ -42,6 +42,7 @@ const SupportPage: React.FC = () => {
     error,
     upgradeToTier,
     clearError,
+    isSupporter: hasActiveSubscription,
   } = useSubscription();
 
   const [supportLevels, setSupportLevels] = useState<SupportLevelInfo[]>([]);
@@ -219,6 +220,15 @@ const SupportPage: React.FC = () => {
   // Right side content (scrollable cards)
   const RightContent = () => (
     <Box>
+      {/* Active subscription message */}
+      {hasActiveSubscription && (
+        <Alert severity='info' sx={{ mb: 3 }}>
+          Você já possui um apoio ativo. Para fazer upgrade ou downgrade do seu
+          nível de apoio, entre em contato com o suporte através do email{' '}
+          <strong>yuri.alessandro@hotmail.com</strong>.
+        </Alert>
+      )}
+
       {/* Error messages */}
       {error && (
         <Alert severity='error' onClose={clearError} sx={{ mb: 3 }}>
@@ -413,7 +423,7 @@ const SupportPage: React.FC = () => {
                     variant={isHighLevel ? 'contained' : 'outlined'}
                     size='large'
                     onClick={() => handleSelectLevel(levelInfo.level)}
-                    disabled={loading || isCurrent}
+                    disabled={loading || isCurrent || hasActiveSubscription}
                     sx={
                       isHighLevel
                         ? {
@@ -440,6 +450,7 @@ const SupportPage: React.FC = () => {
                       if (loading)
                         return <CircularProgress size={24} color='inherit' />;
                       if (isCurrent) return 'Nível Atual';
+                      if (hasActiveSubscription) return 'Apoio Ativo';
                       if (!isAuthenticated) return 'Entrar para Apoiar';
                       return 'Apoiar';
                     })()}
