@@ -44,7 +44,10 @@ export const useAlert = () => {
       >
         <DialogTitle id='alert-dialog-title'>{options.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText id='alert-dialog-description'>
+          <DialogContentText
+            id='alert-dialog-description'
+            sx={{ whiteSpace: 'pre-line' }}
+          >
             {options.message}
           </DialogContentText>
         </DialogContent>
@@ -121,7 +124,10 @@ export const useConfirm = () => {
       >
         <DialogTitle id='confirm-dialog-title'>{options.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText id='confirm-dialog-description'>
+          <DialogContentText
+            id='confirm-dialog-description'
+            sx={{ whiteSpace: 'pre-line' }}
+          >
             {options.message}
           </DialogContentText>
         </DialogContent>

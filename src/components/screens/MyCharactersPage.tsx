@@ -130,9 +130,9 @@ const MyCharactersPage: React.FC = () => {
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
         case 'level': {
-          // Assuming level is in sheetData
-          const levelA = a.sheetData?.level || 0;
-          const levelB = b.sheetData?.level || 0;
+          // nivel is the Portuguese property name in sheetData
+          const levelA = a.sheetData?.nivel || 0;
+          const levelB = b.sheetData?.nivel || 0;
           return levelB - levelA;
         }
         default:
@@ -259,8 +259,8 @@ const MyCharactersPage: React.FC = () => {
     if (data?.isThreat) {
       return `ND ${data.challengeLevel || '?'}`;
     }
-    // For characters, show level
-    return data?.level || 1;
+    // For characters, show nivel (Portuguese property name)
+    return data?.nivel || 1;
   };
 
   const EmptyState = () => {

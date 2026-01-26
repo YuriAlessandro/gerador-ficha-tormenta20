@@ -381,6 +381,7 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                         py: 1,
                         textDecoration: 'none',
                         color: 'inherit',
+                        borderRadius: 1,
                         '&:hover': {
                           backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         },
