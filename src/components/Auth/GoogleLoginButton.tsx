@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, CircularProgress, Alert, Box } from '@mui/material';
+import { Button, CircularProgress, Alert, Box, useTheme } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store';
@@ -19,6 +19,8 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   variant = 'outlined',
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -78,11 +80,14 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
         startIcon={loading ? <CircularProgress size={20} /> : <GoogleIcon />}
         sx={{
           textTransform: 'none',
-          borderColor: '#dadce0',
-          color: '#3c4043',
+          borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.23)' : '#dadce0',
+          color: isDarkMode ? '#fff' : '#3c4043',
+          backgroundColor: isDarkMode ? 'transparent' : 'transparent',
           '&:hover': {
-            borderColor: '#dadce0',
-            backgroundColor: '#f8f9fa',
+            borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.4)' : '#dadce0',
+            backgroundColor: isDarkMode
+              ? 'rgba(255, 255, 255, 0.08)'
+              : '#f8f9fa',
           },
         }}
       >
