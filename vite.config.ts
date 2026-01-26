@@ -105,16 +105,64 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,wasm}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit (increased for large bundle)
+        // Clean up old caches on activation
+        cleanupOutdatedCaches: true,
+        // Skip waiting to activate new service worker immediately
+        skipWaiting: true,
+        // Claim clients immediately so the new SW takes control
+        clientsClaim: true,
         runtimeCaching: [
           {
-            // eslint-disable-next-line no-restricted-globals
-            urlPattern: ({ url }) => url.origin === self.location.origin,
+            // HTML pages - always try network first to get latest version
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'html-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24, // 1 day
+              },
+              networkTimeoutSeconds: 3, // Fall back to cache if network takes > 3s
+            },
+          },
+          {
+            // JS and CSS files with hashes - these are immutable, cache first is OK
+            urlPattern: ({ request, url }) =>
+              (request.destination === 'script' ||
+                request.destination === 'style') &&
+              url.pathname.match(/\.[a-f0-9]{8}\./), // Match Vite hash pattern
             handler: 'CacheFirst',
             options: {
-              cacheName: 'tormenta20-cache-v3.2.0',
+              cacheName: 'static-resources',
               expiration: {
-                maxEntries: 1000,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 365 days
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (immutable)
+              },
+            },
+          },
+          {
+            // Images, fonts and other assets
+            urlPattern: ({ request }) =>
+              request.destination === 'image' || request.destination === 'font',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'assets-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+            },
+          },
+          {
+            // Other same-origin requests - use StaleWhileRevalidate for balance
+            // eslint-disable-next-line no-restricted-globals
+            urlPattern: ({ url }) => url.origin === self.location.origin,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'general-cache',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
               },
             },
           },
