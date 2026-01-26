@@ -110,7 +110,11 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     <Box>
       <BookTitle>Perícias</BookTitle>
       <TableContainer component={Paper}>
-        <Table aria-label='Perícias' size='small'>
+        <Table
+          aria-label='Perícias'
+          size='small'
+          sx={{ borderCollapse: 'separate', borderSpacing: 0 }}
+        >
           <TableHead>
             <TableRow>
               <TableCell>
