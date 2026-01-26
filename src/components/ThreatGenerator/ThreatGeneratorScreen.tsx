@@ -15,13 +15,13 @@ import {
   useMediaQuery,
   IconButton,
 } from '@mui/material';
-import { SEO, getPageSEO } from '../SEO';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckIcon from '@mui/icons-material/Check';
 import HistoryIcon from '@mui/icons-material/History';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { SEO, getPageSEO } from '../SEO';
 import { useAlert } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';

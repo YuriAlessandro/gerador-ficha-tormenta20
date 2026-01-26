@@ -1,7 +1,6 @@
 import { Button, Container, Stack, styled } from '@mui/material';
 import React, { useState } from 'react';
 import Select from 'react-select';
-import { SEO, getPageSEO } from '../SEO';
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -13,6 +12,7 @@ import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Radio from '@mui/material/Radio';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { SEO, getPageSEO } from '../SEO';
 import getSelectTheme from '../../functions/style';
 
 import { ITEM_TYPE, LEVELS } from '../../interfaces/Rewards';

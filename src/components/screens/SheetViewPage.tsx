@@ -226,7 +226,9 @@ const SheetViewPage: React.FC = () => {
     <>
       <SEO
         title={`${sheet.nome} - Ficha de Personagem | Fichas de Nimb`}
-        description={`${sheet.raca.name} ${sheet.classe.name}${sheet.origin ? `, ${sheet.origin.name}` : ''}. Nível ${sheet.nivel}.`}
+        description={`${sheet.raca.name} ${sheet.classe.name}${
+          sheet.origin ? `, ${sheet.origin.name}` : ''
+        }. Nível ${sheet.nivel}.`}
         url={`/ficha/${id}`}
       />
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>

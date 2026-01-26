@@ -12,8 +12,8 @@ import {
 import { useHistory, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
-import { SEO, createArticleSchema } from '../SEO';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { SEO, createArticleSchema } from '../SEO';
 import { BlogPost, PostReactions, EmojiType } from '../../types/blog.types';
 import { useAuth } from '../../hooks/useAuth';
 import BlogService from '../../services/blog.service';

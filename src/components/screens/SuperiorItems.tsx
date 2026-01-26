@@ -27,7 +27,6 @@ import {
   AccordionDetails,
   Slide,
 } from '@mui/material';
-import { SEO, getPageSEO } from '../SEO';
 import {
   ContentCopy as CopyIcon,
   ExpandMore as ExpandMoreIcon,
@@ -35,7 +34,9 @@ import {
   Shuffle as ShuffleIcon,
 } from '@mui/icons-material';
 import { TransitionGroup } from 'react-transition-group';
+
 import EQUIPAMENTOS from '../../data/systems/tormenta20/equipamentos';
+import { SEO, getPageSEO } from '../SEO';
 import {
   armorsModifications,
   weaponsModifications,
