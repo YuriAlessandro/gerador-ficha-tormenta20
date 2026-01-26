@@ -28,6 +28,9 @@ export interface CarouselSlide {
   image?: string;
   ctaText?: string;
   ctaLink?: string;
+  secondaryCtaText?: string;
+  secondaryCtaLink?: string;
+  secondaryRequireAuth?: boolean;
   isNew?: boolean;
   category?: string;
   bigText?: string;
@@ -47,10 +50,13 @@ export const carouselSlides: CarouselSlide[] = [
     subtitle:
       'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
     image: sheetImage,
-    ctaText: 'Meus Personagens',
-    ctaLink: '/meus-personagens',
-    category: 'Ferramentas',
+    ctaText: 'Criar Ficha',
+    ctaLink: '/criar-ficha',
     requireAuth: true,
+    secondaryCtaText: 'Meus Personagens',
+    secondaryCtaLink: '/meus-personagens',
+    secondaryRequireAuth: true,
+    category: 'Ferramentas',
   },
   {
     id: 'fichas-de-nimb',
@@ -304,33 +310,69 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
           </Typography>
         )}
 
-        {/* CTA Button */}
+        {/* CTA Buttons */}
         {slide.ctaText && slide.ctaLink && (
-          <Button
-            variant='contained'
-            size={isMobile ? 'medium' : 'large'}
-            onClick={() => {
-              if (slide.requireAuth && !isAuthenticated) {
-                openLoginModal();
-              } else {
-                onClickButton(slide.ctaLink!);
-              }
-            }}
-            sx={{
-              backgroundColor: theme.palette.primary.main,
-              fontFamily: 'Tfont, serif',
-              fontSize: { xs: '0.9rem', md: '1rem' },
-              px: { xs: 3, md: 4 },
-              py: { xs: 1, md: 1.5 },
-              '&:hover': {
-                backgroundColor: theme.palette.primary.dark,
-                transform: 'scale(1.05)',
-              },
-              transition: 'all 0.2s ease',
-            }}
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            justifyContent='center'
+            alignItems='center'
           >
-            {slide.ctaText}
-          </Button>
+            <Button
+              variant='contained'
+              size={isMobile ? 'medium' : 'large'}
+              onClick={() => {
+                if (slide.requireAuth && !isAuthenticated) {
+                  openLoginModal();
+                } else {
+                  onClickButton(slide.ctaLink!);
+                }
+              }}
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                fontFamily: 'Tfont, serif',
+                fontSize: { xs: '0.9rem', md: '1rem' },
+                px: { xs: 3, md: 4 },
+                py: { xs: 1, md: 1.5 },
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {slide.ctaText}
+            </Button>
+            {slide.secondaryCtaText && slide.secondaryCtaLink && (
+              <Button
+                variant='outlined'
+                size={isMobile ? 'medium' : 'large'}
+                onClick={() => {
+                  if (slide.secondaryRequireAuth && !isAuthenticated) {
+                    openLoginModal();
+                  } else {
+                    onClickButton(slide.secondaryCtaLink!);
+                  }
+                }}
+                sx={{
+                  fontFamily: 'Tfont, serif',
+                  fontSize: { xs: '0.9rem', md: '1rem' },
+                  px: { xs: 3, md: 4 },
+                  py: { xs: 1, md: 1.5 },
+                  color: 'white',
+                  borderColor: 'rgba(255, 255, 255, 0.7)',
+                  '&:hover': {
+                    borderColor: 'white',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'scale(1.05)',
+                  },
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {slide.secondaryCtaText}
+              </Button>
+            )}
+          </Stack>
         )}
       </Box>
 
