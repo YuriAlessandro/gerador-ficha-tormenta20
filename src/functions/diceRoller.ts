@@ -38,9 +38,9 @@ export function rollDice(sides: number, count: number = 1): number[] {
 }
 
 /**
- * Parseia string de dano do tipo "1d8+2", "2d6+5", "1d10"
- * @param damageString String no formato NdM+X ou NdM
- * @returns Objeto com informações do dado e modificador
+ * Parseia string de dano do tipo "1d8+2", "2d6+5", "1d10", "1d8+2+3"
+ * @param damageString String no formato NdM+X ou NdM (suporta múltiplos modificadores)
+ * @returns Objeto com informações do dado e modificador total
  */
 export function parseDamage(damageString: string): {
   diceCount: number;
@@ -51,8 +51,8 @@ export function parseDamage(damageString: string): {
   // Remove espaços
   const cleaned = damageString.trim();
 
-  // Regex para capturar NdM+X ou NdM-X ou NdM
-  const match = cleaned.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  // Regex para capturar NdM seguido de múltiplos modificadores (+X-Y+Z...)
+  const match = cleaned.match(/^(\d+)d(\d+)((?:[+-]\d+)*)$/i);
 
   if (!match) {
     return null;
@@ -60,7 +60,15 @@ export function parseDamage(damageString: string): {
 
   const diceCount = parseInt(match[1], 10);
   const diceSides = parseInt(match[2], 10);
-  const modifier = match[3] ? parseInt(match[3], 10) : 0;
+
+  // Soma todos os modificadores (ex: "+2+3-1" → ["+2", "+3", "-1"] → 4)
+  let modifier = 0;
+  if (match[3]) {
+    const modifiers = match[3].match(/[+-]\d+/g);
+    if (modifiers) {
+      modifier = modifiers.reduce((sum, mod) => sum + parseInt(mod, 10), 0);
+    }
+  }
 
   return {
     diceCount,
