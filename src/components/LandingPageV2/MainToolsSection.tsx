@@ -23,7 +23,7 @@ const MainToolsSection: React.FC<MainToolsSectionProps> = ({
     {
       title: isAuthenticated ? 'Meus Personagens' : 'Criar Personagem',
       description: isAuthenticated
-        ? 'Acesse e gerencie suas fichas de personagem'
+        ? 'Acesse e gerencie suas fichas de personagem e ameaças'
         : 'Comece sua aventura criando um novo herói',
       icon: isAuthenticated ? (
         <GroupIcon sx={{ fontSize: 'inherit' }} />
