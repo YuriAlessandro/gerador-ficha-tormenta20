@@ -815,7 +815,7 @@ const Result: React.FC<ResultProps> = (props) => {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {size.name}
+                      {size.name.charAt(0)}
                     </Typography>
                     <StatTitle>Tamanho</StatTitle>
                   </Box>

@@ -153,12 +153,27 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                 <StyledTableRow key={skill.name}>
                   <DefaultTbCell component='th' scope='row'>
                     {(skill.training ?? 0) > 0 ? (
-                      <ClickableSkillName
+                      <Box
+                        component='span'
                         onClick={() => handleSkillClick(skill, skillTotal)}
                         title={`Rolar ${skill.name}`}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          textDecoration: 'underline dotted',
+                          transition: 'all 0.2s ease',
+                          color: 'secondary.main',
+                          '&:hover': {
+                            color: 'secondary.dark',
+                            textDecoration: 'underline solid',
+                          },
+                          '&:active': {
+                            transform: 'scale(0.98)',
+                          },
+                        }}
                       >
                         <strong>• {skill.name}</strong>
-                      </ClickableSkillName>
+                      </Box>
                     ) : (
                       <ClickableSkillName
                         onClick={() => handleSkillClick(skill, skillTotal)}
