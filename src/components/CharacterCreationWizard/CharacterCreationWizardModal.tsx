@@ -54,6 +54,7 @@ const CharacterCreationWizardModal: React.FC<
   const [activeStep, setActiveStep] = useState(0);
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsInitialized, setStepsInitialized] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [selections, setSelections] = useState<WizardSelections>({
     // Initialize with default attribute values
     baseAttributes: {
@@ -740,59 +741,105 @@ const CharacterCreationWizardModal: React.FC<
     setSteps(getSteps());
   };
 
+  // Handle close attempt - show confirmation dialog
+  const handleCloseAttempt = () => {
+    setConfirmCloseOpen(true);
+  };
+
+  // Handle confirmed close
+  const handleConfirmClose = () => {
+    setConfirmCloseOpen(false);
+    onClose();
+  };
+
+  // Handle cancel close (stay in wizard)
+  const handleCancelClose = () => {
+    setConfirmCloseOpen(false);
+  };
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth='md'
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          minHeight: '500px',
-        },
-      }}
-    >
-      <DialogTitle>
-        <Typography variant='h5' component='div' fontWeight='bold'>
-          Criação Manual de Personagem
-        </Typography>
-        <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-          Complete os passos abaixo para customizar seu personagem
-        </Typography>
-      </DialogTitle>
+    <>
+      <Dialog
+        open={open}
+        onClose={handleCloseAttempt}
+        maxWidth='md'
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minHeight: '500px',
+          },
+        }}
+      >
+        <DialogTitle>
+          <Typography variant='h5' component='div' fontWeight='bold'>
+            Criação Manual de Personagem
+          </Typography>
+          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+            Complete os passos abaixo para customizar seu personagem
+          </Typography>
+        </DialogTitle>
 
-      <DialogContent>
-        <Box sx={{ width: '100%', mt: 2 }}>
-          <Stepper activeStep={activeStep}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+        <DialogContent>
+          <Box sx={{ width: '100%', mt: 2 }}>
+            <Stepper activeStep={activeStep}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-          <Box sx={{ mt: 4, mb: 2 }}>{getStepContent(activeStep)}</Box>
-        </Box>
-      </DialogContent>
+            <Box sx={{ mt: 4, mb: 2 }}>{getStepContent(activeStep)}</Box>
+          </Box>
+        </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} color='inherit'>
-          Cancelar
-        </Button>
-        <Box sx={{ flex: '1 1 auto' }} />
-        <Button disabled={activeStep === 0} onClick={handleBack}>
-          Voltar
-        </Button>
-        <Button
-          variant='contained'
-          onClick={handleNext}
-          disabled={!canProceed()}
-        >
-          {activeStep === steps.length - 1 ? 'Confirmar' : 'Próximo'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <DialogActions>
+          <Button onClick={handleCloseAttempt} color='inherit'>
+            Cancelar
+          </Button>
+          <Box sx={{ flex: '1 1 auto' }} />
+          <Button disabled={activeStep === 0} onClick={handleBack}>
+            Voltar
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleNext}
+            disabled={!canProceed()}
+          >
+            {activeStep === steps.length - 1 ? 'Confirmar' : 'Próximo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmCloseOpen}
+        onClose={handleCancelClose}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>Cancelar criação de personagem?</DialogTitle>
+        <DialogContent>
+          <Typography variant='body1'>
+            Tem certeza que deseja cancelar? Todas as informações preenchidas
+            serão perdidas.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelClose} color='inherit'>
+            Continuar editando
+          </Button>
+          <Button
+            onClick={handleConfirmClose}
+            variant='contained'
+            color='error'
+          >
+            Sim, cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 
