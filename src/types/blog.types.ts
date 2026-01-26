@@ -63,6 +63,7 @@ export interface BlogComment {
   authorUsername: string;
   authorName: string;
   authorPhotoURL?: string;
+  authorSupportLevel?: import('./subscription.types').SupportLevel;
   content: string;
   createdAt: string;
   updatedAt: string;
