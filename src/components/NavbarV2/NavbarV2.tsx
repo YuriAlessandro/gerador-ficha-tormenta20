@@ -304,6 +304,7 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                           anchorEl={anchorEls[category.label]}
                           open={Boolean(anchorEls[category.label])}
                           onClose={() => handleMenuClose(category.label)}
+                          disableScrollLock
                           MenuListProps={{
                             sx: { py: 0.5 },
                           }}

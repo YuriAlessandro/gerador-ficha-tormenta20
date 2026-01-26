@@ -145,6 +145,7 @@ const UserMenu: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         onClick={handleMenuClose}
+        disableScrollLock
         PaperProps={{
           elevation: 0,
           sx: {
