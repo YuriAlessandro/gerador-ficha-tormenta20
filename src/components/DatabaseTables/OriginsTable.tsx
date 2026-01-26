@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -198,27 +198,22 @@ const OriginsTable: React.FC = () => {
     SupplementId.TORMENTA20_ATLAS_ARTON,
     SupplementId.TORMENTA20_HEROIS_ARTON,
   ]);
-  const [origins, setOrigins] = useState<OriginWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedOrigin?: string }>();
   const history = useHistory();
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered origins using useMemo - this ensures data is always in sync with state
+  const origins = useMemo(() => {
     const allOrigins =
       dataRegistry.getOriginsBySupplements(selectedSupplements);
+    const search = value.toLocaleLowerCase();
 
     if (search.length > 0) {
-      const filteredOrigins = allOrigins.filter((origin) =>
+      return allOrigins.filter((origin) =>
         origin.name.toLowerCase().includes(search)
       );
-
-      if (filteredOrigins.length > 1) history.push('/database/origens');
-
-      setOrigins(filteredOrigins);
-    } else {
-      setOrigins(allOrigins);
     }
-  };
+    return allOrigins;
+  }, [selectedSupplements, value]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -227,28 +222,35 @@ const OriginsTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
       return [...prev, supplementId];
     });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedOrigin } = params;
-    if (selectedOrigin) {
+    if (selectedOrigin && selectedOrigin !== value) {
       setValue(selectedOrigin);
-      filter(selectedOrigin);
-    } else {
-      filter(''); // Load all origins on mount
     }
-  }, [params, selectedSupplements]);
+  }, [params]);
+
+  // Handle URL navigation when filtering results in single match
+  useEffect(() => {
+    if (origins.length > 1 && value) {
+      history.push('/database/origens');
+    }
+  }, [origins.length, value, history]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
   // Get selected origin for SEO

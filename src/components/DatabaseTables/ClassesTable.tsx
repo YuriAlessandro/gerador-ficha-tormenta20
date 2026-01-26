@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -393,17 +393,17 @@ const ClassesTable: React.FC = () => {
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
-  const [classes, setClasses] = useState<ClassWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered classes using useMemo - this ensures data is always in sync with state
+  const classes = useMemo(() => {
     const allClasses =
       dataRegistry.getClassesWithSupplementInfo(selectedSupplements);
+    const search = value.toLocaleLowerCase();
 
     if (search.length > 0) {
-      const filteredClasses = allClasses.filter((classe) => {
+      return allClasses.filter((classe) => {
         if (
           classe.name.toLowerCase().includes(search) ||
           classe.subname?.toLowerCase().includes(search)
@@ -421,14 +421,9 @@ const ClassesTable: React.FC = () => {
 
         return false;
       });
-
-      if (filteredClasses.length > 1) history.push('/database/classes');
-
-      setClasses(filteredClasses);
-    } else {
-      setClasses(allClasses);
     }
-  };
+    return allClasses;
+  }, [selectedSupplements, value]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -436,28 +431,35 @@ const ClassesTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
       return [...prev, supplementId];
     });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedClass } = params;
-    if (selectedClass) {
+    if (selectedClass && selectedClass !== value) {
       setValue(selectedClass);
-      filter(selectedClass);
-    } else {
-      filter('');
     }
-  }, [params, selectedSupplements]);
+  }, [params]);
+
+  // Handle URL navigation when filtering results in single match
+  useEffect(() => {
+    if (classes.length > 1 && value) {
+      history.push('/database/classes');
+    }
+  }, [classes.length, value, history]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
   // Get selected class for SEO

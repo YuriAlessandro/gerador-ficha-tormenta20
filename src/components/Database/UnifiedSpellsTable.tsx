@@ -316,7 +316,13 @@ const UnifiedSpellsTable: React.FC = () => {
   const { user } = useAuth();
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
-  >(user?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
+  >(
+    user?.enabledSupplements || [
+      SupplementId.TORMENTA20_CORE,
+      SupplementId.TORMENTA20_AMEACAS_ARTON,
+      SupplementId.TORMENTA20_DEUSES_ARTON,
+    ]
+  );
 
   // Get supplement spells memoized
   const supplementSpells = useMemo((): ExtendedSpell[] => {
@@ -567,11 +573,18 @@ const UnifiedSpellsTable: React.FC = () => {
             SupplementId.TORMENTA20_DEUSES_ARTON,
           ]}
           onToggleSupplement={(supplementId) => {
-            setSelectedSupplements((prev) =>
-              prev.includes(supplementId)
-                ? prev.filter((id) => id !== supplementId)
-                : [...prev, supplementId]
-            );
+            setSelectedSupplements((prev) => {
+              if (prev.includes(supplementId)) {
+                // Don't allow deselecting all supplements
+                if (prev.length === 1) return prev;
+                return prev.filter((id) => id !== supplementId);
+              }
+              // Keep CORE at the top when adding
+              if (supplementId === SupplementId.TORMENTA20_CORE) {
+                return [supplementId, ...prev];
+              }
+              return [...prev, supplementId];
+            });
           }}
         />
 

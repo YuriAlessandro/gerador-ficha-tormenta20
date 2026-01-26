@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -229,35 +229,28 @@ const RacesTable: React.FC = () => {
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
-  const [races, setRaces] = useState<RaceWithSupplement[]>([]);
   const { params } = useRouteMatch<{ selectedRace?: string }>();
   const history = useHistory();
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered races using useMemo - this ensures data is always in sync with state
+  const races = useMemo(() => {
     const allRaces =
       dataRegistry.getRacesWithSupplementInfo(selectedSupplements);
+    const search = value.toLocaleLowerCase();
 
     if (search.length > 0) {
-      const filteredRaces = allRaces.filter((race) => {
+      return allRaces.filter((race) => {
         if (race.name.toLowerCase().includes(search)) {
           return true;
         }
         const abltNames = race.abilities.map((ablt) => ablt.name);
-
         if (abltNames.find((name) => name.toLowerCase().includes(search)))
           return true;
-
         return false;
       });
-
-      if (filteredRaces.length > 1) history.push('/database/raças');
-
-      setRaces(filteredRaces);
-    } else {
-      setRaces(allRaces);
     }
-  };
+    return allRaces;
+  }, [selectedSupplements, value]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -266,28 +259,35 @@ const RacesTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
       return [...prev, supplementId];
     });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedRace } = params;
-    if (selectedRace) {
+    if (selectedRace && selectedRace !== value) {
       setValue(selectedRace);
-      filter(selectedRace);
-    } else {
-      filter(''); // Load all races on mount
     }
-  }, [params, selectedSupplements]);
+  }, [params]);
+
+  // Handle URL navigation when filtering results in single match
+  useEffect(() => {
+    if (races.length > 1 && value) {
+      history.push('/database/raças');
+    }
+  }, [races.length, value, history]);
 
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
   // Get selected race for SEO

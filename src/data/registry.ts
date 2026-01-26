@@ -135,19 +135,19 @@ class DataRegistry {
 
   /**
    * Retorna raças com informação do suplemento de origem
+   * Nota: Não força CORE para permitir filtragem na enciclopédia
    */
   getRacesWithSupplementInfo(
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): RaceWithSupplement[] {
-    const supplements = this.ensureCore(supplementIds, systemId);
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
 
     // Combina raças com informação de origem
     const racesWithInfo: RaceWithSupplement[] = [];
 
-    supplements.forEach((supplementId) => {
+    supplementIds.forEach((supplementId) => {
       const races = systemData.supplements[supplementId]?.races || [];
       const supplementName =
         SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
@@ -231,18 +231,18 @@ class DataRegistry {
   /**
    * Retorna classes com informação do suplemento de origem
    * Mescla poderes de classe adicionais de suplementos nas classes base
+   * Nota: Não força CORE para permitir filtragem na enciclopédia
    */
   getClassesWithSupplementInfo(
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): ClassWithSupplement[] {
-    const supplements = this.ensureCore(supplementIds, systemId);
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
 
     // Coleta todos os poderes de classe adicionais dos suplementos (com informação de origem)
     const additionalClassPowers: Partial<Record<ClassNames, ClassPower[]>> = {};
-    supplements.forEach((id) => {
+    supplementIds.forEach((id) => {
       // Pula o suplemento core para não marcar poderes do livro básico
       if (id === SupplementId.TORMENTA20_CORE) return;
 
@@ -255,11 +255,13 @@ class DataRegistry {
             additionalClassPowers[key] = [];
           }
           // Adiciona informação do suplemento em cada poder
-          const powersWithSupplementInfo = powers.map((power) => ({
-            ...power,
-            supplementId: id,
-            supplementName: supName,
-          }));
+          const powersWithSupplementInfo = (powers as ClassPower[]).map(
+            (power) => ({
+              ...power,
+              supplementId: id,
+              supplementName: supName,
+            })
+          );
           additionalClassPowers[key]!.push(...powersWithSupplementInfo);
         });
       }
@@ -268,7 +270,7 @@ class DataRegistry {
     // Combina classes com informação de origem
     const classesWithInfo: ClassWithSupplement[] = [];
 
-    supplements.forEach((supplementId) => {
+    supplementIds.forEach((supplementId) => {
       const classes = systemData.supplements[supplementId]?.classes || [];
       const supplementName =
         SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
@@ -360,12 +362,12 @@ class DataRegistry {
 
   /**
    * Retorna poderes com informação do suplemento de origem
+   * Nota: Não força CORE para permitir filtragem na enciclopédia
    */
   getPowersWithSupplementInfo(
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): GeneralPowersWithSupplement {
-    const supplements = this.ensureCore(supplementIds, systemId);
     const systemData = SYSTEMS_MAP[systemId];
 
     const result: GeneralPowersWithSupplement = {
@@ -379,7 +381,7 @@ class DataRegistry {
 
     if (!systemData) return result;
 
-    supplements.forEach((supplementId) => {
+    supplementIds.forEach((supplementId) => {
       const supplementPowers = systemData.supplements[supplementId]?.powers;
       const supplementName =
         SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
@@ -435,18 +437,18 @@ class DataRegistry {
 
   /**
    * Retorna origens de todos os suplementos ativos
+   * Nota: Não força CORE para permitir filtragem na enciclopédia
    */
   getOriginsBySupplements(
     supplementIds: SupplementId[],
     systemId: SystemId = this.currentSystem
   ): OriginWithSupplement[] {
-    const supplements = this.ensureCore(supplementIds, systemId);
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
 
     const origins: OriginWithSupplement[] = [];
 
-    supplements.forEach((supplementId) => {
+    supplementIds.forEach((supplementId) => {
       const supplementOrigins =
         systemData.supplements[supplementId]?.origins || [];
       const supplementMeta = SUPPLEMENT_METADATA[supplementId];

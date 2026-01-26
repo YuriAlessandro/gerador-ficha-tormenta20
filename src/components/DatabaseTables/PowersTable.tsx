@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -32,7 +32,6 @@ import { SupplementId } from '../../types/supplement.types';
 import {
   dataRegistry,
   GeneralPowerWithSupplement,
-  GeneralPowersWithSupplement,
 } from '../../data/registry';
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
@@ -208,27 +207,8 @@ const PowersTable: React.FC = () => {
     SupplementId.TORMENTA20_DEUSES_ARTON,
     SupplementId.TORMENTA20_HEROIS_ARTON,
   ]);
-  const [allPowersByCategory, setAllPowersByCategory] =
-    useState<GeneralPowersWithSupplement>(() =>
-      dataRegistry.getPowersWithSupplementInfo([
-        SupplementId.TORMENTA20_CORE,
-        SupplementId.TORMENTA20_AMEACAS_ARTON,
-        SupplementId.TORMENTA20_DEUSES_ARTON,
-        SupplementId.TORMENTA20_HEROIS_ARTON,
-      ])
-    );
-
-  const allPowers = [
-    ...allPowersByCategory.COMBATE,
-    ...allPowersByCategory.CONCEDIDOS,
-    ...allPowersByCategory.DESTINO,
-    ...allPowersByCategory.MAGIA,
-    ...allPowersByCategory.TORMENTA,
-    ...allPowersByCategory.RACA,
-  ];
 
   const [value, setValue] = useState('');
-  const [powers, setPowers] = useState<GeneralPowerWithSupplement[]>([]);
   const { params } = useRouteMatch();
   const history = useHistory();
 
@@ -239,27 +219,30 @@ const PowersTable: React.FC = () => {
   const tormentaRef = useRef<null | HTMLDivElement>(null);
   const racaRef = useRef<null | HTMLDivElement>(null);
 
-  // Update powers when supplements change
-  useEffect(() => {
-    const combinedPowers =
-      dataRegistry.getPowersWithSupplementInfo(selectedSupplements);
-    setAllPowersByCategory(combinedPowers);
-  }, [selectedSupplements]);
+  // Derive powers by category using useMemo - always in sync with selectedSupplements
+  const allPowersByCategory = useMemo(
+    () => dataRegistry.getPowersWithSupplementInfo(selectedSupplements),
+    [selectedSupplements]
+  );
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered powers using useMemo - always in sync with state
+  const powers = useMemo(() => {
+    const search = value.toLocaleLowerCase();
     if (search.length > 0) {
-      const filteredPowers = allPowers.filter((power) =>
+      const allPowersList = [
+        ...allPowersByCategory.COMBATE,
+        ...allPowersByCategory.CONCEDIDOS,
+        ...allPowersByCategory.DESTINO,
+        ...allPowersByCategory.MAGIA,
+        ...allPowersByCategory.TORMENTA,
+        ...allPowersByCategory.RACA,
+      ];
+      return allPowersList.filter((power) =>
         power.name.toLowerCase().includes(search)
       );
-
-      if (filteredPowers.length > 1) history.push('/database/poderes');
-
-      setPowers(filteredPowers);
-    } else {
-      setPowers([]);
     }
-  };
+    return [];
+  }, [allPowersByCategory, value]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {
     setSelectedSupplements((prev) => {
@@ -267,26 +250,35 @@ const PowersTable: React.FC = () => {
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== supplementId);
       }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
       return [...prev, supplementId];
     });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedPower } = params as any;
-    if (selectedPower) {
+    if (selectedPower && selectedPower !== value) {
       setValue(selectedPower);
-      filter(selectedPower);
     }
   }, [params]);
 
+  // Handle URL navigation when filtering results in multiple matches
+  useEffect(() => {
+    if (powers.length > 1 && value) {
+      history.push('/database/poderes');
+    }
+  }, [powers.length, value, history]);
+
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
