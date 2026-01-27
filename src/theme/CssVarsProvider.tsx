@@ -89,6 +89,17 @@ export const CssVarsProvider: React.FC<{ children: React.ReactNode }> = ({
       '--mode-aware-bg',
       theme.palette.mode === 'dark' ? '#212121' : '#f3f2f1'
     );
+
+    // Link color - use primary.light in dark mode for better visibility
+    root.style.setProperty(
+      '--link-color',
+      theme.palette.mode === 'dark'
+        ? theme.palette.primary.light
+        : theme.palette.primary.main
+    );
+
+    // Set data-theme attribute for CSS selectors
+    root.setAttribute('data-theme', theme.palette.mode);
   }, [theme]);
 
   return <>{children}</>;

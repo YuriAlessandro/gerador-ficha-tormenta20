@@ -57,8 +57,17 @@ code {
   color: white;
 }
 
+/* Global link styling - uses theme-aware CSS variable */
+a {
+  color: var(--link-color, var(--primary-main, #1976d2));
+}
+
 a:visited {
-  color: inherit;
+  color: var(--link-color, var(--primary-main, #1976d2));
+}
+
+a:hover {
+  color: var(--primary-light, #42a5f5);
 }
 
 @media screen and (max-width: 720px) {

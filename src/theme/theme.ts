@@ -322,6 +322,17 @@ export const getThemeOptions = (
           },
         },
       },
+      MuiLink: {
+        styleOverrides: {
+          root: {
+            // Use primary.light in dark mode for better visibility
+            color: mode === 'dark' ? accentColor.light : accentColor.main,
+            '&:hover': {
+              color: accentColor.light,
+            },
+          },
+        },
+      },
     },
   };
 };
