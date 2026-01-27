@@ -1020,9 +1020,27 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           updates.skills = updatedSheet.skills;
         } else {
           // Regular origins: need user to select benefits
+          // Check if deity also changed and store it for later
+          let deityToStore: Divindade | null = null;
+          if (
+            editedData.deityName &&
+            editedData.deityName !== sheet.devoto?.divindade.name
+          ) {
+            const normalizedSearch = normalizeDeityName(editedData.deityName);
+            const foundDeity = DIVINDADES_DATA.find(
+              (d) => normalizeDeityName(d.name) === normalizedSearch
+            );
+            if (foundDeity) {
+              deityToStore = foundDeity;
+            }
+          }
+
           // Store pending updates and open drawer
           setPendingUpdates(updates);
           setPendingOrigin(newOrigin);
+          if (deityToStore) {
+            setPendingDeity(deityToStore);
+          }
           setOriginEditDrawerOpen(true);
           return; // Don't save yet, wait for benefit selection
         }
@@ -1141,14 +1159,44 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     );
 
     // Merge origin-related updates
-    const finalUpdates = {
+    const originUpdates = {
       ...pendingUpdates,
       origin: updatedSheet.origin,
       skills: updatedSheet.skills,
     };
 
-    // Use recalculation for full sheet update
-    const updatedSheetFinal = { ...sheet, ...finalUpdates };
+    // Check if there's also a pending deity change
+    if (pendingDeity) {
+      const getsAllPowers = sheet.classe.qtdPoderesConcedidos === 'all';
+
+      if (getsAllPowers) {
+        // Classes like Clérigo, Paladino, Frade get all powers automatically
+        originUpdates.devoto = {
+          divindade: pendingDeity,
+          poderes: pendingDeity.poderes,
+        };
+        // Save everything and clean up
+        const updatedSheetFinal = { ...sheet, ...originUpdates };
+        const recalculatedSheet = recalculateSheet(updatedSheetFinal);
+        onSave(recalculatedSheet);
+        setPendingOrigin(null);
+        setPendingDeity(null);
+        setPendingUpdates({});
+        setOriginEditDrawerOpen(false);
+        onClose();
+      } else {
+        // Need to open deity drawer for power selection
+        setPendingUpdates(originUpdates);
+        setPendingOrigin(null);
+        setOriginEditDrawerOpen(false);
+        setDeityEditDrawerOpen(true);
+        // Don't close yet - deity drawer will handle final save
+      }
+      return;
+    }
+
+    // No pending deity - save normally
+    const updatedSheetFinal = { ...sheet, ...originUpdates };
     const recalculatedSheet = recalculateSheet(updatedSheetFinal);
     onSave(recalculatedSheet);
 
