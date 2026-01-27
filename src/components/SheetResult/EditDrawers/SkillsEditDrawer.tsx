@@ -304,10 +304,18 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       open={open}
       onClose={handleCancel}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } },
+        sx: { width: { xs: '100%', sm: 600 }, overflow: 'hidden' },
       }}
     >
-      <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
         <Stack
           direction='row'
           justifyContent='space-between'
@@ -327,7 +335,10 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           &ldquo;Outros&rdquo; conforme necessário.
         </Typography>
 
-        <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+        <TableContainer
+          component={Paper}
+          sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}
+        >
           <Table stickyHeader size='small'>
             <TableHead>
               <TableRow>
@@ -385,6 +396,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
               p: 2,
               backgroundColor: 'action.hover',
               borderRadius: 1,
+              flexShrink: 0,
             }}
           >
             <Typography variant='subtitle2' sx={{ mb: 2 }}>
@@ -419,7 +431,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           </Box>
         )}
 
-        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
+        <Stack direction='row' spacing={2} sx={{ mt: 4, flexShrink: 0 }}>
           <Button fullWidth variant='contained' onClick={handleSave}>
             Salvar
           </Button>
