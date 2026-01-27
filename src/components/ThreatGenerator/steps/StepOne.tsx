@@ -39,7 +39,21 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
   };
 
   const handleDisplacementChange = (value: string) => {
-    onUpdate({ displacement: value });
+    // Extract numeric part and validate
+    const numericValue = parseInt(value.replace(/[^0-9]/g, ''), 10);
+    if (value === '' || (numericValue > 0 && !Number.isNaN(numericValue))) {
+      onUpdate({ displacement: value });
+    }
+  };
+
+  // Check if displacement is valid (positive integer)
+  const isDisplacementValid = (): boolean => {
+    if (!threat.displacement) return true; // Empty is valid (will use default)
+    const numericValue = parseInt(
+      threat.displacement.replace(/[^0-9]/g, ''),
+      10
+    );
+    return numericValue > 0 && !Number.isNaN(numericValue);
   };
 
   return (
@@ -114,6 +128,12 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
             value={threat.displacement || ''}
             onChange={(e) => handleDisplacementChange(e.target.value)}
             placeholder='Ex: 9m'
+            error={!isDisplacementValid()}
+            helperText={
+              !isDisplacementValid()
+                ? 'Deve ser um número positivo'
+                : 'Digite o valor em metros (ex: 9m)'
+            }
           />
         </Grid>
       </Grid>
