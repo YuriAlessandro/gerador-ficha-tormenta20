@@ -124,10 +124,36 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   const items = origin.getItems();
 
   // Build benefit options - only skills and powers are selectable
-  const skillOptions: OriginBenefit[] = originBenefits.skills.map((skill) => ({
-    type: 'skill' as const,
-    name: skill,
-  }));
+  // Get all origin skills to show disabled ones that are already selected
+  const allOriginSkills = origin.pericias || [];
+
+  // Skills already used in previous steps
+  const alreadyUsedSkills = allOriginSkills.filter((skill) =>
+    usedSkills.includes(skill as Skill)
+  );
+
+  // Skills available for selection (not already used) - filter out any that are in usedSkills
+  const availableSkillOptions: OriginBenefit[] = originBenefits.skills
+    .filter((skill) => !usedSkills.includes(skill))
+    .map((skill) => ({
+      type: 'skill' as const,
+      name: skill,
+      alreadyUsed: false,
+    }));
+
+  const alreadyUsedSkillOptions: OriginBenefit[] = alreadyUsedSkills.map(
+    (skill) => ({
+      type: 'skill' as const,
+      name: skill as Skill,
+      alreadyUsed: true,
+    })
+  );
+
+  // Combine all skill options
+  const skillOptions: OriginBenefit[] = [
+    ...availableSkillOptions,
+    ...alreadyUsedSkillOptions,
+  ];
 
   const powerOptions: OriginBenefit[] = originBenefits.powers.origin.map(
     (power) => ({
@@ -197,11 +223,19 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           <Typography variant='h6' gutterBottom>
             Perícias
           </Typography>
+          {alreadyUsedSkillOptions.length > 0 && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Algumas perícias desta origem já foram selecionadas em etapas
+              anteriores (raça ou classe). Você pode desmarcá-las lá para
+              escolhê-las aqui.
+            </Alert>
+          )}
           {skillOptions.map((benefit) => {
             const isSelected = selectedBenefits.some(
               (b) => b.type === benefit.type && b.name === benefit.name
             );
-            const isDisabled =
+            const isAlreadyUsed = benefit.alreadyUsed === true;
+            const isDisabledByLimit =
               !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
 
             return (
@@ -211,10 +245,28 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                   <Checkbox
                     checked={isSelected}
                     onChange={() => handleToggle(benefit)}
-                    disabled={isDisabled}
+                    disabled={isAlreadyUsed || isDisabledByLimit}
                   />
                 }
-                label={benefit.name}
+                label={
+                  <Typography
+                    component='span'
+                    sx={{
+                      color: isAlreadyUsed ? 'text.disabled' : 'inherit',
+                    }}
+                  >
+                    {benefit.name}
+                    {isAlreadyUsed && (
+                      <Typography
+                        component='span'
+                        variant='caption'
+                        sx={{ ml: 1, fontStyle: 'italic' }}
+                      >
+                        (já selecionada)
+                      </Typography>
+                    )}
+                  </Typography>
+                }
               />
             );
           })}

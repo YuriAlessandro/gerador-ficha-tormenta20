@@ -8,6 +8,7 @@ import { GeneralPower } from './Poderes';
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
   name: string;
+  alreadyUsed?: boolean; // Flag to indicate skill is already selected in previous steps
 }
 
 export interface LevelUpSelections {
