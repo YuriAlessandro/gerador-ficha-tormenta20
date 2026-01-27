@@ -779,9 +779,6 @@ const CharacterCreationWizardModal: React.FC<
           <Typography variant='h5' component='div' fontWeight='bold'>
             Criação Manual de Personagem
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-            Complete os passos abaixo para customizar seu personagem
-          </Typography>
         </DialogTitle>
 
         <DialogContent>
