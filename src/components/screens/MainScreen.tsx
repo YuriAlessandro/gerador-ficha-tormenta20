@@ -71,7 +71,10 @@ import '../../assets/css/mainScreen.css';
 import roles from '../../data/systems/tormenta20/roles';
 import { raceHasOrigin } from '../../data/systems/tormenta20/origins';
 import getSelectTheme from '../../functions/style';
-import { allDivindadeNames } from '../../interfaces/Divindade';
+import {
+  allDivindadeNames,
+  divindadeDisplayNames,
+} from '../../interfaces/Divindade';
 import { HistoricI } from '../../interfaces/Historic';
 import { MAX_CHARACTERS_LIMIT } from '../../store/slices/sheetStorage/sheetStorage';
 import { useAuth } from '../../hooks/useAuth';
@@ -1029,7 +1032,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         })
         .map((sdv) => ({
           value: sdv,
-          label: sdv.charAt(0).toUpperCase() + sdv.slice(1).toLowerCase(),
+          label: divindadeDisplayNames[sdv],
         })),
     [selectedOptions.classe, CLASSES]
   );

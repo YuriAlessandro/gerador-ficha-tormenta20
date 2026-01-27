@@ -25,7 +25,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import { dataRegistry } from '@/data/registry';
-import { allDivindadeNames } from '@/interfaces/Divindade';
+import Divindade from '@/interfaces/Divindade';
 import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
@@ -169,11 +169,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     suragelAbility: sheet.suragelAbility,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
-    deityName: sheet.devoto?.divindade.name
-      ? allDivindadeNames.find(
-          (d) => d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-        ) || ''
-      : '',
+    deityName: sheet.devoto?.divindade.name || '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
     customPVPerLevel: sheet.customPVPerLevel,
@@ -218,12 +214,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       suragelAbility: sheet.suragelAbility,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name
-        ? allDivindadeNames.find(
-            (d) =>
-              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-          ) || ''
-        : '',
+      deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       customPVPerLevel: sheet.customPVPerLevel,
@@ -1097,12 +1088,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       suragelAbility: sheet.suragelAbility,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
-      deityName: sheet.devoto?.divindade.name
-        ? allDivindadeNames.find(
-            (d) =>
-              d.toLowerCase() === sheet.devoto?.divindade.name.toLowerCase()
-          ) || ''
-        : '',
+      deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
       customPVPerLevel: sheet.customPVPerLevel,
@@ -1856,9 +1842,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       }
                     >
                       <MenuItem value=''>Nenhuma</MenuItem>
-                      {allDivindadeNames.map((deity) => (
-                        <MenuItem key={deity} value={deity}>
-                          {deity}
+                      {DIVINDADES_DATA.map((deity: Divindade) => (
+                        <MenuItem key={deity.name} value={deity.name}>
+                          {deity.name}
                         </MenuItem>
                       ))}
                     </Select>
