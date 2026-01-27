@@ -231,10 +231,15 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
 
       {!isComplete && selectedSpells.length > 0 && (
         <Alert severity='warning'>
-          Selecione {requiredCount - selectedSpells.length} magia
-          {requiredCount - selectedSpells.length > 1 ? 's' : ''} adicional
-          {requiredCount - selectedSpells.length > 1 ? 'is' : ''} para
-          continuar.
+          {requiredCount - selectedSpells.length > 0
+            ? `Selecione ${requiredCount - selectedSpells.length} magia${
+                requiredCount - selectedSpells.length > 1 ? 's' : ''
+              } adicional${
+                requiredCount - selectedSpells.length > 1 ? 'is' : ''
+              } para continuar.`
+            : `Remova ${selectedSpells.length - requiredCount} magia${
+                selectedSpells.length - requiredCount > 1 ? 's' : ''
+              } para continuar.`}
         </Alert>
       )}
 

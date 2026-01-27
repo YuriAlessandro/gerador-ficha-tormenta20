@@ -210,11 +210,15 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
           color='warning.main'
           sx={{ mt: 2, textAlign: 'center' }}
         >
-          Selecione {requiredCount - selectedSpells.length}{' '}
-          {requiredCount - selectedSpells.length === 1
-            ? 'magia mais'
-            : 'magias mais'}{' '}
-          para continuar.
+          {requiredCount - selectedSpells.length > 0
+            ? `Selecione ${requiredCount - selectedSpells.length} ${
+                requiredCount - selectedSpells.length === 1
+                  ? 'magia mais'
+                  : 'magias mais'
+              } para continuar.`
+            : `Remova ${selectedSpells.length - requiredCount} ${
+                selectedSpells.length - requiredCount === 1 ? 'magia' : 'magias'
+              } para continuar.`}
         </Typography>
       )}
     </Box>
