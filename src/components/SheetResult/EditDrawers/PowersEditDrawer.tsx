@@ -18,7 +18,10 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
-import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  Step,
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
 import {
   GeneralPower,
   GeneralPowerType,
@@ -965,6 +968,39 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       });
     }
 
+    // Create history entries for manually added powers
+    const newHistoryEntries: SheetActionHistoryEntry[] = [];
+
+    if (addedPowers.length > 0) {
+      newHistoryEntries.push({
+        source: { type: 'manualEdit' },
+        changes: addedPowers.map((p) => ({
+          type: 'PowerAdded' as const,
+          powerName: p.name,
+        })),
+      });
+    }
+
+    if (addedClassPowers.length > 0) {
+      newHistoryEntries.push({
+        source: { type: 'manualEdit' },
+        changes: addedClassPowers.map((p) => ({
+          type: 'PowerAdded' as const,
+          powerName: p.name,
+        })),
+      });
+    }
+
+    if (addedOriginPowers.length > 0) {
+      newHistoryEntries.push({
+        source: { type: 'manualEdit' },
+        changes: addedOriginPowers.map((p) => ({
+          type: 'PowerAdded' as const,
+          powerName: p.name,
+        })),
+      });
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -977,6 +1013,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }
         : undefined,
       steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
+      sheetActionHistory: [
+        ...(sheet.sheetActionHistory || []),
+        ...newHistoryEntries,
+      ],
     };
 
     const recalculatedSheet = recalculateSheet(

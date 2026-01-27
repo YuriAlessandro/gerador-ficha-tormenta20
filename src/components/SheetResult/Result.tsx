@@ -847,7 +847,7 @@ const Result: React.FC<ResultProps> = (props) => {
               <Box>
                 <BookTitle>Poderes</BookTitle>
                 <PowersDisplay
-                  sheetHistory={currentSheet.sheetActionHistory}
+                  sheetHistory={currentSheet.sheetActionHistory || []}
                   classAbilities={classe.abilities}
                   classPowers={classPowers}
                   raceAbilities={raca.abilities}

@@ -80,6 +80,9 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
             if (source.type === 'race') {
               return `${source.raceName}`;
             }
+            if (source.type === 'manualEdit') {
+              return 'Adicionado manualmente';
+            }
             return '';
           })
           .filter((source) => source !== ''),

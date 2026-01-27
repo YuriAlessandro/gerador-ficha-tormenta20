@@ -31,6 +31,9 @@ export type SheetChangeSource =
   | {
       type: 'equipment';
       equipmentName: string;
+    }
+  | {
+      type: 'manualEdit';
     };
 
 export type SheetAction = {
