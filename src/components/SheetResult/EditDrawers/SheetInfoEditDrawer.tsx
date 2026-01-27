@@ -56,7 +56,9 @@ import {
   applyRegionalOriginBenefits,
   removeOriginBenefits,
 } from '@/functions/originBenefits';
+import { GeneralPower } from '@/interfaces/Poderes';
 import OriginEditDrawer from './OriginEditDrawer';
+import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 
 // Helper function to normalize deity names for comparison (removes hyphens and spaces)
 const normalizeDeityName = (name: string): string =>
@@ -200,6 +202,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const [pendingUpdates, setPendingUpdates] = useState<Partial<CharacterSheet>>(
     {}
   );
+
+  // State for DeityPowerEditDrawer
+  const [deityEditDrawerOpen, setDeityEditDrawerOpen] = useState(false);
+  const [pendingDeity, setPendingDeity] = useState<Divindade | null>(null);
 
   useEffect(() => {
     setEditedData({
@@ -1038,10 +1044,22 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         (d) => normalizeDeityName(d.name) === normalizedSearch
       );
       if (newDeity) {
-        updates.devoto = {
-          divindade: newDeity,
-          poderes: [],
-        };
+        // Check if class gets all powers automatically
+        const getsAllPowers = sheet.classe.qtdPoderesConcedidos === 'all';
+
+        if (getsAllPowers) {
+          // Classes like Clérigo, Paladino, Frade get all powers automatically
+          updates.devoto = {
+            divindade: newDeity,
+            poderes: newDeity.poderes,
+          };
+        } else {
+          // Other classes need to select powers - open drawer
+          setPendingUpdates(updates);
+          setPendingDeity(newDeity);
+          setDeityEditDrawerOpen(true);
+          return; // Don't save yet, wait for power selection
+        }
       } else {
         // eslint-disable-next-line no-console
         console.warn('⚠️ Divindade não encontrada (edit):', {
@@ -1138,6 +1156,31 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     setPendingOrigin(null);
     setPendingUpdates({});
     setOriginEditDrawerOpen(false);
+    onClose();
+  };
+
+  // Handle deity power selection
+  const handleDeityPowersSave = (selectedPowers: GeneralPower[]) => {
+    if (!pendingDeity) return;
+
+    // Update devoto with selected powers
+    const finalUpdates = {
+      ...pendingUpdates,
+      devoto: {
+        divindade: pendingDeity,
+        poderes: selectedPowers,
+      },
+    };
+
+    // Use recalculation for full sheet update
+    const updatedSheet = { ...sheet, ...finalUpdates };
+    const recalculatedSheet = recalculateSheet(updatedSheet);
+    onSave(recalculatedSheet);
+
+    // Clean up
+    setPendingDeity(null);
+    setPendingUpdates({});
+    setDeityEditDrawerOpen(false);
     onClose();
   };
 
@@ -2141,6 +2184,21 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           origin={pendingOrigin}
           sheet={sheet}
           onSave={handleOriginBenefitsSave}
+        />
+      )}
+
+      {/* DeityPowerEditDrawer for deity power selection */}
+      {pendingDeity && (
+        <DeityPowerEditDrawer
+          open={deityEditDrawerOpen}
+          onClose={() => {
+            setDeityEditDrawerOpen(false);
+            setPendingDeity(null);
+            setPendingUpdates({});
+          }}
+          deity={pendingDeity}
+          sheet={sheet}
+          onSave={handleDeityPowersSave}
         />
       )}
     </>
