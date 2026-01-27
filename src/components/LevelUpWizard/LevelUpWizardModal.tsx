@@ -453,9 +453,40 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         });
         setActiveStep(0);
 
-        // TODO: Update simulated sheet with current level selections
-        // For now, just increment the level
+        // Update simulated sheet with current level selections
+        // This ensures powers selected in previous levels are tracked
         const nextSheet = { ...simulatedSheet, nivel: currentLevel + 1 };
+
+        // Add selected power to the simulated sheet
+        if (
+          currentLevelSelection.powerChoice === 'class' &&
+          currentLevelSelection.selectedClassPower
+        ) {
+          nextSheet.classPowers = [
+            ...(nextSheet.classPowers || []),
+            currentLevelSelection.selectedClassPower,
+          ];
+        } else if (
+          currentLevelSelection.powerChoice === 'general' &&
+          currentLevelSelection.selectedGeneralPower
+        ) {
+          nextSheet.generalPowers = [
+            ...(nextSheet.generalPowers || []),
+            currentLevelSelection.selectedGeneralPower,
+          ];
+        }
+
+        // Add selected spells to the simulated sheet
+        if (
+          currentLevelSelection.spellsLearned &&
+          currentLevelSelection.spellsLearned.length > 0
+        ) {
+          nextSheet.spells = [
+            ...(nextSheet.spells || []),
+            ...currentLevelSelection.spellsLearned,
+          ];
+        }
+
         setSimulatedSheet(nextSheet);
       } else {
         // All levels complete - confirm
@@ -476,6 +507,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       const previousLevel = currentLevel - 1;
       const previousLevelSelection = allLevelSelections[previousLevel - 2];
 
+      // Get the selection for the current level we're leaving
+      const currentSelection = allLevelSelections[currentLevel - 2];
+
       setCurrentLevel(previousLevel);
       setCurrentLevelSelection(previousLevelSelection);
       setAllLevelSelections(allLevelSelections.slice(0, -1));
@@ -485,8 +519,41 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       // For simplicity, go to step 0
       setActiveStep(0);
 
-      // Update simulated sheet
+      // Update simulated sheet - remove powers/spells added in current level
       const prevSheet = { ...simulatedSheet, nivel: previousLevel };
+
+      // Remove the power that was selected in the level we're leaving
+      if (currentSelection) {
+        if (
+          currentSelection.powerChoice === 'class' &&
+          currentSelection.selectedClassPower
+        ) {
+          prevSheet.classPowers = (prevSheet.classPowers || []).filter(
+            (p) => p.name !== currentSelection.selectedClassPower?.name
+          );
+        } else if (
+          currentSelection.powerChoice === 'general' &&
+          currentSelection.selectedGeneralPower
+        ) {
+          prevSheet.generalPowers = (prevSheet.generalPowers || []).filter(
+            (p) => p.name !== currentSelection.selectedGeneralPower?.name
+          );
+        }
+
+        // Remove spells that were selected in the level we're leaving
+        if (
+          currentSelection.spellsLearned &&
+          currentSelection.spellsLearned.length > 0
+        ) {
+          const spellNamesToRemove = currentSelection.spellsLearned.map(
+            (s) => s.nome
+          );
+          prevSheet.spells = (prevSheet.spells || []).filter(
+            (s) => !spellNamesToRemove.includes(s.nome)
+          );
+        }
+      }
+
       setSimulatedSheet(prevSheet);
     }
   };
