@@ -454,6 +454,10 @@
     min-height: 40vh;
   }
 
+  .hero-content {
+    padding-bottom: 2rem; /* Extra space for pagination dots */
+  }
+
   .tool-card {
     min-height: 160px;
     padding: 1.5rem;
@@ -480,6 +484,7 @@
 
   .hero-content {
     padding: 1rem;
+    padding-bottom: 2.5rem; /* Extra space for pagination dots */
   }
 
   .tool-card {
