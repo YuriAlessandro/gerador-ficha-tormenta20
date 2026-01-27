@@ -99,6 +99,25 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     updatedAt: new Date(),
   });
 
+  // Warn before leaving if threat is not saved to cloud (refresh/close tab)
+  // Note: Browser security forces native alert for beforeunload
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only warn if there's significant progress (has a name) and not saved
+      const hasProgress = threat?.name && threat.name.trim() !== '';
+      if (hasProgress && !isSavedToCloud && !showResult) {
+        e.preventDefault();
+        e.returnValue =
+          'Você tem uma ameaça não salva. Deseja sair mesmo assim?';
+        return e.returnValue;
+      }
+      return undefined;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [threat?.name, isSavedToCloud, showResult]);
+
   // Check for edit mode on component mount
   React.useEffect(() => {
     // Check for cloud threat passed via location.state
