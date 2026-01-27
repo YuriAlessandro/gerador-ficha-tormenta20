@@ -586,7 +586,7 @@ const Result: React.FC<ResultProps> = (props) => {
                               ?.name || raceHeritage
                           })`
                         : ''
-                    } ${className} (${sexo})`}
+                    } ${className}${sexo ? ` (${sexo})` : ''}`}
                     size='medium'
                   />
                   <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
