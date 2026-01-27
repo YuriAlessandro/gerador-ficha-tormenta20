@@ -6,7 +6,7 @@ import Skill from '@/interfaces/Skills';
 
 /**
  * Removes origin benefits from the character sheet
- * This includes skills and powers granted by the origin
+ * This includes skills, powers, sheetBonuses, and sheetActionHistory granted by the origin
  *
  * NOTE: Items are NOT removed because Bag uses a complex BagEquipments structure
  * that groups items by category, making it difficult to track which items came from origin.
@@ -14,6 +14,9 @@ import Skill from '@/interfaces/Skills';
  */
 export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = { ...sheet };
+
+  // Get origin power names for filtering
+  const originPowerNames = sheet.origin?.powers?.map((p) => p.name) || [];
 
   // If we have selectedBenefits, remove those skills
   if (sheet.origin?.selectedBenefits) {
@@ -23,6 +26,31 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
 
     updatedSheet.skills = sheet.skills.filter(
       (skill) => !skillsToRemove.includes(skill)
+    );
+  }
+
+  // Remove sheetBonuses that came from origin or from origin powers
+  if (sheet.sheetBonuses) {
+    updatedSheet.sheetBonuses = sheet.sheetBonuses.filter((bonus) => {
+      // Remove bonuses from origin source
+      if (bonus.source?.type === 'origin') {
+        return false;
+      }
+      // Remove bonuses from origin powers
+      if (
+        bonus.source?.type === 'power' &&
+        originPowerNames.includes(bonus.source.name)
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Remove sheetActionHistory entries that came from origin
+  if (sheet.sheetActionHistory) {
+    updatedSheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+      (entry) => entry.source?.type !== 'origin'
     );
   }
 
