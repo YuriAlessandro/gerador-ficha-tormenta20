@@ -277,10 +277,18 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       open={open}
       onClose={handleCancel}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 800 } },
+        sx: { width: { xs: '100%', sm: 800 }, overflow: 'hidden' },
       }}
     >
-      <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
         <Stack
           direction='row'
           justifyContent='space-between'
@@ -378,7 +386,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           </Box>
         )}
 
-        <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
           {spellCategories.map((category) => {
             const filteredSpells = filterSpells(category.spells);
 
@@ -497,7 +505,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           })}
         </Box>
 
-        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
+        <Stack direction='row' spacing={2} sx={{ mt: 3, flexShrink: 0 }}>
           <Button fullWidth variant='contained' onClick={handleSave}>
             Salvar
           </Button>
