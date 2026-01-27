@@ -109,12 +109,14 @@ export default defineConfig({
         // Don't precache index.html - always fetch fresh
         navigateFallback: null,
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit (increased for large bundle)
-        // Clean up old caches on activation
+        // Clean up old caches on activation - important to remove stale assets
         cleanupOutdatedCaches: true,
-        // Skip waiting to activate new service worker immediately
-        skipWaiting: true,
-        // Claim clients immediately so the new SW takes control
-        clientsClaim: true,
+        // DO NOT use skipWaiting with 'prompt' registerType
+        // skipWaiting causes conflicts where the SW activates but old JS is still cached
+        // The update will happen when user clicks "Update" in the notification
+        skipWaiting: false,
+        // DO NOT claim clients immediately - let user control the update
+        clientsClaim: false,
         runtimeCaching: [
           {
             // HTML pages - always try network first to get latest version
