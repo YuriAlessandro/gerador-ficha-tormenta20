@@ -34,6 +34,7 @@ import {
   Casino as CasinoIcon,
   Warning as WarningIcon,
   Cloud as CloudIcon,
+  HelpOutline as HelpIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -265,7 +266,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     classe: '',
     raca: '',
     origin: '',
-    devocao: { label: 'Aleatória', value: '' },
+    devocao: { label: 'Não devoto', value: '--' },
     gerarItens: 'nao-gerar',
     supplements: user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
   });
@@ -367,13 +368,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [randomSheet, sheetSavedToCloud, showHistoric]);
 
+  // For empty sheets, user must select a specific deity option (not "Aleatório")
+  // Valid options: specific deity, "Não devoto" (--), or "Qualquer divindade" (**)
   const canGenerateEmptySheet =
     selectedOptions.classe &&
     selectedOptions.raca &&
     (raceHasOrigin(selectedOptions.raca) ? selectedOptions.origin : true) &&
     selectedOptions.nivel &&
-    (selectedOptions.devocao.label !== 'Padrão' ||
-      selectedOptions.devocao.value === '**');
+    selectedOptions.devocao.value !== ''; // Empty value means "Aleatório" mode
 
   // Check if cloud save notice should be shown (once per 24h for non-authenticated users)
   const CLOUD_NOTICE_KEY = 'fdnCloudNoticeLastShown';
@@ -918,7 +920,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     setSelectedOptions({
       ...selectedOptions,
       classe: classe?.value ?? '',
-      devocao: { label: 'Padrão', value: '' },
+      devocao: { label: 'Não devoto', value: '--' },
     });
   };
 
@@ -1614,21 +1616,54 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
               {/* Divinity Selection */}
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  spacing={0.5}
+                  sx={{ mb: 1 }}
                 >
-                  Divindade
-                </Typography>
+                  <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
+                    Divindade
+                  </Typography>
+                  <Tooltip
+                    title={
+                      <span>
+                        As opções em &quot;Fichas aleatórias&quot; só funcionam
+                        para geração automática:
+                        <br />
+                        <br />
+                        <strong>🎯 Qualquer divindade:</strong> sempre escolhe
+                        uma divindade permitida pela classe.
+                        <br />
+                        <br />
+                        <strong>🎲 Aleatório:</strong> pode gerar um personagem
+                        devoto ou não devoto aleatoriamente.
+                      </span>
+                    }
+                    arrow
+                    placement='top'
+                  >
+                    <HelpIcon
+                      sx={{
+                        fontSize: 16,
+                        color: 'text.secondary',
+                        cursor: 'help',
+                      }}
+                    />
+                  </Tooltip>
+                </Stack>
                 <Select
                   placeholder='Divindades'
                   options={[
                     {
                       label: '',
+                      options: [{ value: '--', label: 'Não devoto' }],
+                    },
+                    {
+                      label: 'Fichas aleatórias automáticas',
                       options: [
-                        { value: '', label: 'Padrão' },
-                        { value: '**', label: 'Qualquer divindade' },
-                        { value: '--', label: 'Não devoto' },
+                        { value: '**', label: '🎯 Qualquer divindade' },
+                        { value: '', label: '🎲 Aleatório' },
                       ],
                     },
                     {
