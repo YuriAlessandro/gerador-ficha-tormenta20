@@ -29,6 +29,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
 import { ClassDescription } from '@/interfaces/Class';
+import { SupplementId } from '@/types/supplement.types';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 
@@ -82,7 +83,10 @@ const SheetViewPage: React.FC = () => {
         ) as CharacterSheet;
 
         // Get classes based on user's enabled supplements
-        const userSupplements = user?.enabledSupplements || [];
+        // Default to TORMENTA20_CORE for non-authenticated users
+        const userSupplements = user?.enabledSupplements || [
+          SupplementId.TORMENTA20_CORE,
+        ];
         const CLASSES =
           dataRegistry.getClassesWithSupplementInfo(userSupplements);
 

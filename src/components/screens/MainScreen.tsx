@@ -267,7 +267,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     origin: '',
     devocao: { label: 'Aleatória', value: '' },
     gerarItens: 'nao-gerar',
-    supplements: user?.enabledSupplements || [],
+    supplements: user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
   });
 
   const [simpleSheet, setSimpleSheet] = React.useState(false);
@@ -302,13 +302,18 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const location = useLocation<{ cloudSheet?: any }>();
 
   // Get races and classes based on user's enabled supplements
-  const userSupplements = user?.enabledSupplements || [];
+  // Default to TORMENTA20_CORE for non-authenticated users
+  const userSupplements = user?.enabledSupplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const RACAS = dataRegistry.getRacesWithSupplementInfo(userSupplements);
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
   // Sync selectedOptions.supplements when user's enabledSupplements change
   React.useEffect(() => {
-    const newSupplements = user?.enabledSupplements || [];
+    const newSupplements = user?.enabledSupplements || [
+      SupplementId.TORMENTA20_CORE,
+    ];
     setSelectedOptions((prev) => ({
       ...prev,
       supplements: newSupplements,

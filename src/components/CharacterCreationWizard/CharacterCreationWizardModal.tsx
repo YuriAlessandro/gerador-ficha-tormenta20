@@ -68,7 +68,10 @@ const CharacterCreationWizardModal: React.FC<
   });
 
   // Get race, class, origin, deity from selected options
-  const supplements = selectedOptions.supplements || [];
+  // Default to TORMENTA20_CORE for non-authenticated users
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const race: Race | undefined = dataRegistry.getRaceByName(
     selectedOptions.raca,
     supplements
