@@ -58,16 +58,35 @@ code {
 }
 
 /* Global link styling - uses theme-aware CSS variable */
+/* Links inherit color by default to work better with various backgrounds */
 a {
-  color: var(--link-color, var(--primary-main, #1976d2));
+  color: inherit;
+  text-decoration: underline;
 }
 
 a:visited {
-  color: var(--link-color, var(--primary-main, #1976d2));
+  color: inherit;
 }
 
 a:hover {
+  opacity: 0.8;
+}
+
+/* Links that should use theme color explicitly */
+a.theme-link,
+.content-area a:not([class]) {
+  color: var(--link-color, var(--primary-main, #1976d2));
+}
+
+a.theme-link:visited,
+.content-area a:not([class]):visited {
+  color: var(--link-color, var(--primary-main, #1976d2));
+}
+
+a.theme-link:hover,
+.content-area a:not([class]):hover {
   color: var(--primary-light, #42a5f5);
+  opacity: 1;
 }
 
 @media screen and (max-width: 720px) {

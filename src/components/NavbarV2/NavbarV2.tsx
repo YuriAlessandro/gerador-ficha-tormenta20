@@ -32,6 +32,7 @@ import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import logoFichasDeNimb from '@/assets/images/logoFichasDeNimbSmall.svg';
 import { useAuth } from '@/hooks/useAuth';
 import UserMenu from '../Auth/UserMenu';
 
@@ -279,6 +280,15 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                 },
               }}
             >
+              <Box
+                component='img'
+                src={logoFichasDeNimb}
+                alt='Fichas de Nimb'
+                sx={{
+                  width: { xs: 28, md: 32 },
+                  height: { xs: 28, md: 32 },
+                }}
+              />
               Fichas de Nimb
             </Link>
 

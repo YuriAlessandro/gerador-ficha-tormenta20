@@ -194,7 +194,7 @@ const BlogPostPage: React.FC = () => {
               // Height includes space for navbar + visible content
               height: { xs: '300px', sm: '400px', md: '500px' },
               // Pull up to start from very top of viewport (behind navbar)
-              mt: { xs: '-56px', sm: '-64px', md: '-64px' },
+              mt: { xs: '-120px', sm: '-124px', md: '-124px' },
               // Add padding top to compensate for navbar
               pt: { xs: '56px', sm: '64px', md: '64px' },
               backgroundImage: `url(${post.coverImage})`,

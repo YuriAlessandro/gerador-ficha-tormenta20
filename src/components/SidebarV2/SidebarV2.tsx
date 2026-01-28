@@ -36,7 +36,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 // import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 
-import logoFichasDeNimb from '../../assets/images/logoFichasDeNimb.svg';
+import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 // import { useDice3D } from '../../contexts/Dice3DContext';
