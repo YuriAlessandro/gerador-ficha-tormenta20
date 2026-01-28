@@ -36,7 +36,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 // import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 
-import logo from '../../assets/images/tormenta-logo-eye.png';
+import logoFichasDeNimb from '../../assets/images/logoFichasDeNimb.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 // import { useDice3D } from '../../contexts/Dice3DContext';
@@ -138,11 +138,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
       <StyledPaper>
         {/* Header */}
         <div className='sidebarHeader'>
-          <Link
-            href='https://jamboeditora.com.br/categoria/rpg/tormenta20-rpg/'
-            target='_blank'
-          >
-            <img src={String(logo)} alt='Logo' className='logo' />
+          <Link href='/' onClick={onCloseSidebar}>
+            <img src={logoFichasDeNimb} alt='Fichas de Nimb' className='logo' />
           </Link>
           <div style={{ textAlign: 'right', paddingRight: '15px' }}>
             <CloseIcon

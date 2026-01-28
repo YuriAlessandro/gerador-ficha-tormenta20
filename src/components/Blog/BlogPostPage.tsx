@@ -13,6 +13,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import InstagramIcon from '@mui/icons-material/Instagram';
 import { SEO, createArticleSchema } from '../SEO';
 import { BlogPost, PostReactions, EmojiType } from '../../types/blog.types';
 import { useAuth } from '../../hooks/useAuth';
@@ -290,6 +291,25 @@ const BlogPostPage: React.FC = () => {
                       : 'rgba(0,0,0,0.05)',
                   }}
                 />
+                <Chip
+                  component='a'
+                  href='https://instagram.com/fichasdenimb'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  icon={<InstagramIcon />}
+                  label='@fichasdenimb'
+                  clickable
+                  sx={{
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'rgba(0,0,0,0.05)',
+                    '&:hover': {
+                      backgroundColor: isDark
+                        ? 'rgba(255,255,255,0.2)'
+                        : 'rgba(0,0,0,0.1)',
+                    },
+                  }}
+                />
               </Box>
             </Box>
 
@@ -307,6 +327,59 @@ const BlogPostPage: React.FC = () => {
                     isLoading={reactingBlocks.has(block.id)}
                   />
                 ))}
+            </Box>
+
+            {/* Instagram follow section */}
+            <Box
+              sx={{
+                mb: 6,
+                p: 3,
+                borderRadius: 2,
+                background: isDark
+                  ? 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)'
+                  : 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)',
+                textAlign: 'center',
+              }}
+            >
+              <Typography
+                variant='h6'
+                sx={{
+                  color: 'white',
+                  fontWeight: 600,
+                  mb: 1,
+                  textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                }}
+              >
+                Gostou do conteudo?
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'rgba(255,255,255,0.9)',
+                  mb: 2,
+                  textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                }}
+              >
+                Siga-nos no Instagram para mais novidades sobre Tormenta 20!
+              </Typography>
+              <Button
+                component='a'
+                href='https://instagram.com/fichasdenimb'
+                target='_blank'
+                rel='noopener noreferrer'
+                variant='contained'
+                startIcon={<InstagramIcon />}
+                sx={{
+                  backgroundColor: 'white',
+                  color: '#833ab4',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.9)',
+                  },
+                }}
+              >
+                @fichasdenimb
+              </Button>
             </Box>
 
             {/* Comments section */}

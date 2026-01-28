@@ -412,13 +412,13 @@ const Result: React.FC<ResultProps> = (props) => {
     ))
   );
 
-  const modFor = atributos.Força.mod;
+  const modFor = atributos.Força.value;
 
   const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
   const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
 
   const fightAttrBonus = fightSkill?.modAttr
-    ? currentSheet.atributos[fightSkill.modAttr].mod
+    ? currentSheet.atributos[fightSkill.modAttr].value
     : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
@@ -427,7 +427,7 @@ const Result: React.FC<ResultProps> = (props) => {
     (fightSkill?.training ?? 0);
 
   const rangeAttrBonus = rangeSkill?.modAttr
-    ? currentSheet.atributos[rangeSkill.modAttr].mod
+    ? currentSheet.atributos[rangeSkill.modAttr].value
     : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +

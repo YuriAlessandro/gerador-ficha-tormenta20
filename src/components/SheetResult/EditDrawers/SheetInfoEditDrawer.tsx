@@ -94,12 +94,6 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
 }
 
-// Helper function to calculate the highest attribute value for a given modifier
-const calculateValueFromModifier = (modifier: number): number =>
-  // Formula: modifier = floor((value - 10) / 2)
-  // Reverse: value = modifier * 2 + 10 + 1 (using highest value for the modifier)
-  modifier * 2 + 11;
-
 // Helper function to get name suggestions based on race and gender
 const getNameSuggestions = (
   raceName: string,
@@ -377,11 +371,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     }
     if (bonus.type === 'Attribute') {
       const attr = bonus.attribute as Atributo;
-      return atributos[attr]?.mod || 0;
+      return atributos[attr]?.value || 0;
     }
     if (bonus.type === 'SpecialAttribute') {
       if (bonus.attribute === 'spellKeyAttr' && spellKeyAttribute) {
-        return atributos[spellKeyAttribute].mod;
+        return atributos[spellKeyAttribute].value;
       }
     }
     if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -409,7 +403,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pv;
 
-    const conMod = attributes.Constituição.mod;
+    const conMod = attributes.Constituição.value;
     const pvBase = classData.pv + conMod;
     const pvPerLevel = (customPVPerLevel ?? classData.addpv ?? 0) + conMod;
     let total = pvBase + pvPerLevel * (level - 1) + bonusPV;
@@ -445,7 +439,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     let keyAttrMod = 0;
     if (classData.spellPath) {
       const keyAttr = attributes[classData.spellPath.keyAttribute];
-      keyAttrMod = keyAttr ? keyAttr.mod : 0;
+      keyAttrMod = keyAttr ? keyAttr.value : 0;
     }
 
     const pmBase = classData.pm + keyAttrMod;
@@ -471,11 +465,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   const handleAttributeModifierChange = (
     atributo: Atributo,
-    newMod: number
+    newValue: number
   ) => {
-    // Clamp the modifier to reasonable bounds
-    const clampedMod = Math.max(-5, Math.min(10, newMod));
-    const newValue = calculateValueFromModifier(clampedMod);
+    // Clamp the value to reasonable bounds (-5 to 10)
+    const clampedValue = Math.max(-5, Math.min(10, newValue));
 
     setEditedData((prev) => ({
       ...prev,
@@ -483,8 +476,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ...prev.attributes,
         [atributo]: {
           ...prev.attributes[atributo],
-          value: newValue,
-          mod: clampedMod,
+          value: clampedValue,
         },
       },
     }));
@@ -539,34 +531,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       });
     }
 
-    // Check for attribute changes and calculate manual edits
+    // Check for attribute changes
     const attrChanges: SubStep[] = [];
-    const manualAttributeEdits: Partial<Record<Atributo, number>> = {};
 
     Object.entries(editedData.attributes).forEach(([attrName, attrData]) => {
       const originalAttr =
         sheet.atributos[attrName as keyof CharacterAttributes];
-      if (attrData.mod !== originalAttr.mod) {
-        // Calculate the base modifier from the attribute value
-        const baseMod = Math.floor((attrData.value - 10) / 2);
-        // The manual edit is the difference between edited mod and base mod
-        const manualEdit = attrData.mod - baseMod;
-
-        if (manualEdit !== 0) {
-          manualAttributeEdits[attrName as Atributo] = manualEdit;
-        }
-
+      if (attrData.value !== originalAttr.value) {
         attrChanges.push({
           name: attrName,
-          value: attrData.mod,
+          value: attrData.value,
         });
       }
     });
-
-    // Add manual edits to updates
-    if (Object.keys(manualAttributeEdits).length > 0) {
-      updates.manualAttributeEdits = manualAttributeEdits;
-    }
 
     if (attrChanges.length > 0) {
       newSteps.push({
@@ -935,11 +912,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           if (attrMod.attr !== 'any') {
             // Fixed attribute modifier - remove it
             const currentAttr = baseAttributes[attrMod.attr];
-            const newMod = currentAttr.mod - attrMod.mod;
+            const newValue = currentAttr.value - attrMod.mod;
             baseAttributes[attrMod.attr] = {
               ...currentAttr,
-              mod: newMod,
-              value: newMod * 2 + 11,
+              value: newValue,
             };
           }
         });
@@ -952,11 +928,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         ) {
           sheet.raceAttributeChoices.forEach((attr) => {
             const currentAttr = baseAttributes[attr];
-            const newMod = currentAttr.mod - 1; // 'any' attributes always give +1
+            const newValue = currentAttr.value - 1; // 'any' attributes always give +1
             baseAttributes[attr] = {
               ...currentAttr,
-              mod: newMod,
-              value: newMod * 2 + 11,
+              value: newValue,
             };
           });
         }
@@ -1257,7 +1232,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const classData = CLASSES.find((c) => c.name === editedData.className);
     if (!classData) return '';
 
-    const conMod = editedData.attributes.Constituição.mod;
+    const conMod = editedData.attributes.Constituição.value;
     const pvPerLevel = editedData.customPVPerLevel ?? classData.addpv ?? 0;
     const pvBase = classData.pv + conMod;
     const pvFromLevels = (pvPerLevel + conMod) * (editedData.nivel - 1);
@@ -1326,7 +1301,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     let keyAttrName = '';
     if (classData.spellPath) {
       const keyAttr = editedData.attributes[classData.spellPath.keyAttribute];
-      keyAttrMod = keyAttr ? keyAttr.mod : 0;
+      keyAttrMod = keyAttr ? keyAttr.value : 0;
       keyAttrName = classData.spellPath.keyAttribute.substring(0, 3);
     }
 
@@ -1975,10 +1950,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         <TextField
                           size='small'
                           type='number'
-                          value={attribute.mod}
+                          value={attribute.value}
                           onChange={(e) => {
-                            const newMod = parseInt(e.target.value, 10) || 0;
-                            handleAttributeModifierChange(atributo, newMod);
+                            const newValue = parseInt(e.target.value, 10) || 0;
+                            handleAttributeModifierChange(atributo, newValue);
                           }}
                           inputProps={{
                             min: -5,

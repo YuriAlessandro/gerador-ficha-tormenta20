@@ -83,11 +83,11 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     }
     if (bonus.type === 'Attribute') {
       const attr = bonus.attribute as Atributo;
-      return sheet.atributos[attr]?.mod || 0;
+      return sheet.atributos[attr]?.value || 0;
     }
     if (bonus.type === 'SpecialAttribute') {
       if (bonus.attribute === 'spellKeyAttr' && sheet.classe.spellPath) {
-        return sheet.atributos[sheet.classe.spellPath.keyAttribute].mod;
+        return sheet.atributos[sheet.classe.spellPath.keyAttribute].value;
       }
     }
     if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -131,7 +131,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     if (editedData.useDefenseAttribute && !heavyArmor) {
       const attrToUse =
         editedData.customDefenseAttribute || getDefaultDefenseAttribute();
-      total += sheet.atributos[attrToUse].mod;
+      total += sheet.atributos[attrToUse].value;
     }
 
     // Add power bonuses
@@ -176,10 +176,10 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
     if (editedData.useDefenseAttribute && !heavyArmor) {
       const attrToUse =
         editedData.customDefenseAttribute || getDefaultDefenseAttribute();
-      const attrMod = sheet.atributos[attrToUse].mod;
-      if (attrMod !== 0) {
+      const attrValue = sheet.atributos[attrToUse].value;
+      if (attrValue !== 0) {
         const attrName = attrToUse.substring(0, 3).toUpperCase();
-        components.push(`${attrMod} (${attrName})`);
+        components.push(`${attrValue} (${attrName})`);
       }
     }
 
@@ -244,7 +244,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   const heavyArmor = hasHeavyArmor();
   const defaultAttribute = getDefaultDefenseAttribute();
   const currentAttr = editedData.customDefenseAttribute || defaultAttribute;
-  const currentAttrMod = sheet.atributos[currentAttr].mod;
+  const currentAttrValue = sheet.atributos[currentAttr].value;
 
   return (
     <Drawer
@@ -349,8 +349,8 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
             </Select>
             <Typography variant='caption' color='text.secondary' sx={{ mt: 1 }}>
               Modificador atual de {currentAttr}:{' '}
-              {currentAttrMod >= 0 ? '+' : ''}
-              {currentAttrMod}
+              {currentAttrValue >= 0 ? '+' : ''}
+              {currentAttrValue}
             </Typography>
           </FormControl>
 

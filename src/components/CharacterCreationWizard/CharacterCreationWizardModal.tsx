@@ -56,14 +56,14 @@ const CharacterCreationWizardModal: React.FC<
   const [stepsInitialized, setStepsInitialized] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [selections, setSelections] = useState<WizardSelections>({
-    // Initialize with default attribute values
+    // Initialize with default attribute modifiers (0 = average)
     baseAttributes: {
-      [Atributo.FORCA]: 10,
-      [Atributo.DESTREZA]: 10,
-      [Atributo.CONSTITUICAO]: 10,
-      [Atributo.INTELIGENCIA]: 10,
-      [Atributo.SABEDORIA]: 10,
-      [Atributo.CARISMA]: 10,
+      [Atributo.FORCA]: 0,
+      [Atributo.DESTREZA]: 0,
+      [Atributo.CONSTITUICAO]: 0,
+      [Atributo.INTELIGENCIA]: 0,
+      [Atributo.SABEDORIA]: 0,
+      [Atributo.CARISMA]: 0,
     },
   });
 
@@ -93,12 +93,10 @@ const CharacterCreationWizardModal: React.FC<
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
     if (!selections.baseAttributes || !race) return 0;
-    const baseValue = selections.baseAttributes[Atributo.INTELIGENCIA];
+    // baseAttributes now contains the modifier directly
+    const baseModifier = selections.baseAttributes[Atributo.INTELIGENCIA];
 
-    // Calculate base modifier from attribute value
-    const baseModifier = Math.floor((baseValue - 10) / 2);
-
-    // Calculate racial modifier for Intelligence (applied directly to modifier, not value)
+    // Add racial modifier for Intelligence
     let racialModifier = 0;
     race.attributes.attrs.forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
@@ -111,7 +109,6 @@ const CharacterCreationWizardModal: React.FC<
       }
     });
 
-    // Racial modifiers are added directly to the modifier, not to the attribute value
     return baseModifier + racialModifier;
   };
 

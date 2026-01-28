@@ -63,12 +63,12 @@ const preparePDF: (
   originField.setText(sheet.origin?.name || '');
   classField.setText(`${sheet.classe.name} ${sheet.nivel}`);
   deytiField.setText(sheet.devoto?.divindade.name || '');
-  forceField.setText(sheet.atributos.Força.mod.toString());
-  dexterityField.setText(sheet.atributos.Destreza.mod.toString());
-  constitutionField.setText(sheet.atributos.Constituição.mod.toString());
-  intelligenceField.setText(sheet.atributos.Inteligência.mod.toString());
-  wisdomField.setText(sheet.atributos.Sabedoria.mod.toString());
-  charismaField.setText(sheet.atributos.Carisma.mod.toString());
+  forceField.setText(sheet.atributos.Força.value.toString());
+  dexterityField.setText(sheet.atributos.Destreza.value.toString());
+  constitutionField.setText(sheet.atributos.Constituição.value.toString());
+  intelligenceField.setText(sheet.atributos.Inteligência.value.toString());
+  wisdomField.setText(sheet.atributos.Sabedoria.value.toString());
+  charismaField.setText(sheet.atributos.Carisma.value.toString());
   displacimentField.setText(sheet.displacement.toString());
   halfLevelField.setText(Math.floor(sheet.nivel / 2).toString());
 
@@ -87,7 +87,7 @@ const preparePDF: (
   );
 
   const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].mod
+    ? sheet.atributos[fightSkill.modAttr].value
     : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
@@ -96,7 +96,7 @@ const preparePDF: (
     (fightSkill?.training ?? 0);
 
   const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].mod
+    ? sheet.atributos[rangeSkill.modAttr].value
     : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
@@ -274,7 +274,9 @@ const preparePDF: (
       const skillIsTrainedField = form.getCheckBox(`treinado${index + 1}`);
       const skillOthersField = form.getTextField(`outros${index + 1}`);
 
-      const attrValue = skill.modAttr ? sheet.atributos[skill.modAttr].mod : 0;
+      const attrValue = skill.modAttr
+        ? sheet.atributos[skill.modAttr].value
+        : 0;
 
       const skillTotal =
         (skill.halfLevel ?? 0) +

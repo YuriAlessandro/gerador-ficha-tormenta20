@@ -4,8 +4,7 @@ import { GeneralPower } from './Poderes';
 
 export interface CharacterAttribute {
   name: Atributo;
-  value: number;
-  mod: number;
+  value: number; // O modificador do atributo diretamente (-5 a +10)
 }
 
 export type CharacterAttributes = {

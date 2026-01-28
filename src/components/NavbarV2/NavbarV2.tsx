@@ -12,6 +12,7 @@ import {
   useTheme,
   useMediaQuery,
   Link,
+  Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -30,6 +31,7 @@ import WhatshotIcon from '@mui/icons-material/Whatshot';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import InstagramIcon from '@mui/icons-material/Instagram';
 import { useAuth } from '@/hooks/useAuth';
 import UserMenu from '../Auth/UserMenu';
 
@@ -263,6 +265,9 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
               onClick={(e) => handleLinkClick(e, '')}
               underline='none'
               sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
                 fontFamily: 'Tfont, serif',
                 fontWeight: 600,
                 fontSize: '1.25rem',
@@ -396,10 +401,32 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
           </Stack>
         </Box>
 
-        {/* Right side: User menu */}
-        <Box sx={{ ml: 'auto' }}>
+        {/* Right side: Instagram + User menu */}
+        <Stack
+          direction='row'
+          alignItems='center'
+          spacing={1}
+          sx={{ ml: 'auto' }}
+        >
+          <Tooltip title='Siga-nos no Instagram'>
+            <IconButton
+              component='a'
+              href='https://instagram.com/fichasdenimb'
+              target='_blank'
+              rel='noopener noreferrer'
+              sx={{
+                color: 'inherit',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+              aria-label='Instagram @fichasdenimb'
+            >
+              <InstagramIcon />
+            </IconButton>
+          </Tooltip>
           <UserMenu />
-        </Box>
+        </Stack>
       </Stack>
     </Box>
   );

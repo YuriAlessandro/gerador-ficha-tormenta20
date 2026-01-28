@@ -18,7 +18,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
 }) => {
   const handleChange = (atributo: Atributo, value: string) => {
     const numValue = parseInt(value, 10);
-    if (!Number.isNaN(numValue) && numValue >= 0 && numValue <= 30) {
+    if (!Number.isNaN(numValue) && numValue >= -5 && numValue <= 10) {
       onChange({
         ...baseAttributes,
         [atributo]: numValue,
@@ -26,7 +26,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
     }
   };
 
-  // Calculate racial modifier (applied to modifier, not value)
+  // Calculate racial modifier bonus
   const getRacialModifier = (atributo: Atributo): number => {
     let modifier = 0;
 
@@ -44,15 +44,27 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
     return modifier;
   };
 
-  const getModifier = (value: number): number => Math.floor((value - 10) / 2);
-
   const allAttributes = Object.values(Atributo);
+
+  // Helper to format modifier with sign
+  const formatMod = (mod: number): string => {
+    if (mod > 0) return `+${mod}`;
+    return mod.toString();
+  };
+
+  // Helper to get color for racial modifier
+  const getRacialModifierColor = (mod: number): string => {
+    if (mod > 0) return 'success.main';
+    if (mod < 0) return 'error.main';
+    return 'text.secondary';
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Typography variant='body1' color='text.secondary'>
-        Defina os valores base dos atributos do seu personagem. Os modificadores
-        da raça {race.name} serão aplicados automaticamente.
+        Defina os modificadores dos atributos do seu personagem. Os
+        modificadores da raça {race.name} serão aplicados automaticamente ao
+        valor final.
       </Typography>
 
       <Box
@@ -63,10 +75,9 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
         }}
       >
         {allAttributes.map((atributo) => {
-          const baseValue = baseAttributes[atributo] || 10;
-          const baseMod = getModifier(baseValue);
+          const baseModifier = baseAttributes[atributo] ?? 0;
           const racialModifier = getRacialModifier(atributo);
-          const finalMod = baseMod + racialModifier;
+          const finalValue = baseModifier + racialModifier;
 
           return (
             <Paper key={atributo} sx={{ p: 1.5 }}>
@@ -81,10 +92,10 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
               <TextField
                 size='small'
                 type='number'
-                label='Valor Base'
-                value={baseValue}
+                label='Modificador'
+                value={baseModifier}
                 onChange={(e) => handleChange(atributo, e.target.value)}
-                inputProps={{ min: 0, max: 30 }}
+                inputProps={{ min: -5, max: 10 }}
                 sx={{
                   width: 100,
                   mb: 1,
@@ -105,12 +116,10 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                 </Typography>
                 <Typography
                   variant='caption'
-                  color={racialModifier > 0 ? 'success.main' : 'text.secondary'}
+                  color={getRacialModifierColor(racialModifier)}
                   fontWeight='bold'
                 >
-                  {racialModifier > 0
-                    ? `+${racialModifier}`
-                    : racialModifier || '0'}
+                  {formatMod(racialModifier)}
                 </Typography>
               </Box>
 
@@ -131,7 +140,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   color='primary.main'
                   fontWeight='bold'
                 >
-                  {baseValue} ({finalMod >= 0 ? `+${finalMod}` : finalMod})
+                  {formatMod(finalValue)}
                 </Typography>
               </Box>
             </Paper>

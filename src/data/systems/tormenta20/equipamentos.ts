@@ -678,7 +678,7 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
   if (!heavyArmor) {
     // Se for nobre
     if (cloneSheet.classe.name === 'Nobre') {
-      const carismaMod = cloneSheet.atributos.Carisma.mod;
+      const carismaMod = cloneSheet.atributos.Carisma.value;
       // Only add step if Carisma modifier is not 0
       if (carismaMod !== 0) {
         cloneSheet.steps.push({
@@ -696,7 +696,7 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
     }
     // Se não for Nobre
     else {
-      const destreza = cloneSheet.atributos.Destreza.mod;
+      const destreza = cloneSheet.atributos.Destreza.value;
       // Only add step if Destreza modifier is not 0
       if (destreza !== 0) {
         cloneSheet.steps.push({

@@ -315,8 +315,6 @@ export default interface CharacterSheet {
   customDefenseAttribute?: Atributo; // Custom attribute for defense (overrides DES/CAR)
   useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
   bonusDefense?: number; // Manual defense bonus
-  // Manual edit tracking (to preserve user edits during recalculation)
-  manualAttributeEdits?: Partial<Record<Atributo, number>>; // Manual mods to preserve
   manualPMEdit?: number; // Manual PM adjustment (added after calculation)
   manualPVEdit?: number; // Manual PV adjustment (added after calculation)
   // Manual PM/PV control (for gameplay tracking and manual overrides)

@@ -66,6 +66,7 @@ import generateRandomSheet, {
   applyPower,
   applyManualLevelUp,
 } from '../../functions/general';
+import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';

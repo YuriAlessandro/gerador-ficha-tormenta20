@@ -49,7 +49,7 @@ import { useUserPreferences } from './hooks/useUserPreferences';
 import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { SupplementId } from './types/supplement.types';
-import tormentaLogo from './assets/images/tormenta-logo-eye.png';
+import logoFichasDeNimb from './assets/images/logoFichasDeNimb.svg';
 // Support page
 import SupportPage from './components/Premium/SupportPage';
 import SupportSuccessPage from './components/Premium/SupportSuccessPage';
@@ -148,13 +148,12 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
       >
         <Box
           component='img'
-          src={tormentaLogo}
+          src={logoFichasDeNimb}
           alt='Fichas de Nimb'
           sx={{
             width: 120,
             height: 120,
             mb: 3,
-            opacity: 0.9,
           }}
         />
         <CircularProgress size={50} color='primary' />

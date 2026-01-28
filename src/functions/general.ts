@@ -493,11 +493,12 @@ function getModifiedAttribute(
   atributosModificados: CharacterAttributes,
   attrDaRaca: RaceAttributeAbility
 ): CharacterAttribute {
-  const newMod = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
+  const newValue =
+    atributosModificados[selectedAttrName].value + attrDaRaca.mod;
 
   return {
     ...atributosModificados[selectedAttrName],
-    mod: newMod,
+    value: newValue,
   };
 }
 
@@ -598,8 +599,7 @@ function generateFinalAttributes(
     const maxAttr = Math.max(...atributosNumericos);
     priorityGeneratedAttrs[attr] = {
       name: attr,
-      value: maxAttr,
-      mod: getModValue(maxAttr),
+      value: getModValue(maxAttr), // Armazena diretamente o modificador
     };
 
     atributosNumericos.splice(atributosNumericos.indexOf(maxAttr), 1);
@@ -608,10 +608,10 @@ function generateFinalAttributes(
   });
 
   const charAttributes = freeAttrs.reduce((acc, attr, index) => {
-    const mod = getModValue(atributosNumericos[index]);
+    const modValue = getModValue(atributosNumericos[index]);
     return {
       ...acc,
-      [attr]: { name: attr, value: atributosNumericos[index], mod },
+      [attr]: { name: attr, value: modValue }, // Armazena diretamente o modificador
     };
   }, priorityGeneratedAttrs) as CharacterAttributes;
 
@@ -628,7 +628,7 @@ function generateFinalAttributes(
     type: 'Atributos',
     value: Object.values(sortedAttributes).map((attr) => ({
       name: attr.name,
-      value: attr.mod,
+      value: attr.value,
     })),
   });
 
@@ -736,8 +736,8 @@ export function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: Skill[]
 ): Skill[] {
-  if (attributes.Inteligência.mod > 0) {
-    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+  if (attributes.Inteligência.value > 0) {
+    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.value);
   }
 
   return [];
@@ -1199,9 +1199,9 @@ function calcDisplacement(
   baseDisplacement: number
 ): number {
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -1236,8 +1236,8 @@ export const applyPower = (
     powerOrAbility.sheetActions.forEach((sheetAction) => {
       if (sheetAction.action.type === 'ModifyAttribute') {
         const { attribute, value } = sheetAction.action;
-        const newValue = sheet.atributos[attribute].mod + value;
-        sheet.atributos[attribute].mod = newValue;
+        const newValue = sheet.atributos[attribute].value + value;
+        sheet.atributos[attribute].value = newValue;
 
         subSteps.push({
           name: getSourceName(sheetAction.source),
@@ -1489,7 +1489,7 @@ export const applyPower = (
 
         // Only apply if we found a valid target attribute
         if (targetAttribute && sheet.atributos[targetAttribute]) {
-          sheet.atributos[targetAttribute].mod += 1;
+          sheet.atributos[targetAttribute].value += 1;
 
           sheet.sheetActionHistory.push({
             source: sheetAction.source,
@@ -1869,7 +1869,8 @@ export const applyPower = (
                 case 'ATRIBUTO': {
                   const attr = rule.name as Atributo;
                   return (
-                    rule.name && sheet.atributos[attr].mod >= (rule?.value || 0)
+                    rule.name &&
+                    sheet.atributos[attr].value >= (rule?.value || 0)
                   );
                 }
                 case 'PERICIA': {
@@ -2093,14 +2094,15 @@ export const applyPower = (
         // Special handling for HP attribute replacement
         const { newAttribute } = bonus.target;
         const baseHp = sheet.classe.pv;
-        const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
+        const attributeBonus =
+          sheet.atributos[newAttribute].value * sheet.nivel;
 
         const oldPv = sheet.pv;
         sheet.pv = baseHp + attributeBonus;
 
         subSteps.push({
           name: sourceName,
-          value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
+          value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].value} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
         });
       }
     });
@@ -2245,16 +2247,16 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     ) {
       let remainingPenalty = totalPenalty;
       while (remainingPenalty > 0) {
-        // Ache o atributo com maior mod que não seja carisma
+        // Ache o atributo com maior value que não seja carisma
         const highestAttribute = Object.values(sheetClone.atributos).reduce(
           (prev, curr) => {
             if (curr.name === 'Carisma') return prev;
-            if (prev.mod > curr.mod) return prev;
+            if (prev.value > curr.value) return prev;
             return curr;
           }
         );
 
-        sheetClone.atributos[highestAttribute.name].mod -= 1;
+        sheetClone.atributos[highestAttribute.name].value -= 1;
         remainingPenalty -= 1;
 
         subSteps.push({
@@ -2263,7 +2265,7 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
         });
       }
     } else {
-      sheetClone.atributos.Carisma.mod -= totalPenalty;
+      sheetClone.atributos.Carisma.value -= totalPenalty;
       subSteps.push({
         name: 'Carisma',
         value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
@@ -2357,7 +2359,7 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   }
 
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].value;
 
   if (addPv < 1) addPv = 1;
 
@@ -2621,7 +2623,7 @@ export function applyManualLevelUp(
   }
 
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].value;
 
   if (addPv < 1) addPv = 1;
 
@@ -2872,7 +2874,7 @@ export function applyManualLevelUp(
 
 const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   if (bonus.type === 'Attribute') {
-    return sheet.atributos[bonus.attribute].mod;
+    return sheet.atributos[bonus.attribute].value;
   }
   if (bonus.type === 'LevelCalc') {
     const filledFormula = bonus.formula.replace(
@@ -2893,7 +2895,7 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
       const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].mod;
+      return sheet.atributos[attr].value;
     }
   }
   if (bonus.type === 'Fixed') {
@@ -3272,7 +3274,6 @@ export default function generateRandomSheet(
     atributos[attributeModifier.attribute] = {
       ...currentAttr,
       value: newValue,
-      mod: getModValue(newValue),
     };
 
     attributeModifierText = `+${attributeModifier.modifier} ${attributeModifier.attribute} (${currentAttr.value} → ${newValue})`;
@@ -3282,10 +3283,10 @@ export default function generateRandomSheet(
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
-  const summedPV = initialPV + atributos.Constituição.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
+  const summedPV = initialPV + atributos.Constituição.value;
 
   steps.push({
     label: 'Vida máxima (+CON)',
@@ -3535,12 +3536,12 @@ export function generateEmptySheet(
     sexo: '',
     nivel: 1,
     atributos: {
-      Força: { name: Atributo.FORCA, mod: 0, value: 10 },
-      Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
-      Constituição: { name: Atributo.CONSTITUICAO, mod: 0, value: 10 },
-      Inteligência: { name: Atributo.INTELIGENCIA, mod: 0, value: 10 },
-      Sabedoria: { name: Atributo.SABEDORIA, mod: 0, value: 10 },
-      Carisma: { name: Atributo.CARISMA, mod: 0, value: 10 },
+      Força: { name: Atributo.FORCA, value: 0 },
+      Destreza: { name: Atributo.DESTREZA, value: 0 },
+      Constituição: { name: Atributo.CONSTITUICAO, value: 0 },
+      Inteligência: { name: Atributo.INTELIGENCIA, value: 0 },
+      Sabedoria: { name: Atributo.SABEDORIA, value: 0 },
+      Carisma: { name: Atributo.CARISMA, value: 0 },
     },
     maxSpaces: 10,
     raca: race,
@@ -3575,12 +3576,12 @@ export function generateEmptySheet(
   }
 
   // Apply wizard base attribute values if provided
+  // Note: baseAttributes now contains modifiers directly (not D&D-style base values)
   if (wizardSelections?.baseAttributes) {
     Object.keys(wizardSelections.baseAttributes).forEach((attrKey) => {
       const attr = attrKey as Atributo;
-      const value = wizardSelections.baseAttributes![attr];
-      emptySheet.atributos[attr].value = value;
-      emptySheet.atributos[attr].mod = Math.floor((value - 10) / 2);
+      const modValue = wizardSelections.baseAttributes![attr];
+      emptySheet.atributos[attr].value = modValue;
     });
   }
 

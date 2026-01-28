@@ -117,7 +117,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
     // For new Oficio skills, calculate manually
     if (!originalSkill && skill.name.startsWith('Ofício')) {
-      const intMod = sheet.atributos.Inteligência.mod;
+      const intMod = sheet.atributos.Inteligência.value;
       const halfLevel = Math.floor(sheet.nivel / 2);
       const training = skillTrainingMod(skill.trained, sheet.nivel);
       return halfLevel + intMod + training + skill.others;
@@ -126,7 +126,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     if (!originalSkill) return 0;
 
     const attrBonus = originalSkill.modAttr
-      ? sheet.atributos[originalSkill.modAttr].mod
+      ? sheet.atributos[originalSkill.modAttr].value
       : 0;
     const halfLevel = originalSkill.halfLevel ?? 0;
     const training = skillTrainingMod(skill.trained, sheet.nivel);

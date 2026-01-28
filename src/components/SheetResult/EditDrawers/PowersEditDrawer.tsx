@@ -669,7 +669,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         switch (req.type) {
           case RequirementType.ATRIBUTO: {
             const attrName = req.name as Atributo;
-            const attrValue = sheet.atributos[attrName]?.mod || 0;
+            const attrValue = sheet.atributos[attrName]?.value || 0;
             return attrValue >= (req.value || 0);
           }
 
@@ -748,7 +748,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         switch (req.type) {
           case RequirementType.ATRIBUTO: {
             const attrName = req.name as Atributo;
-            const attrValue = sheet.atributos[attrName]?.mod || 0;
+            const attrValue = sheet.atributos[attrName]?.value || 0;
             return attrValue >= (req.value || 0);
           }
           case RequirementType.NIVEL:

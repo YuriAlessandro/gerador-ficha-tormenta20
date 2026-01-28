@@ -17,31 +17,11 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
 
-import {
-  applyRaceAbilities,
-  applyPower,
-  modifyAttributesBasedOnRace,
-} from './general';
+import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
 
-/**
- * Resets all attribute modifiers to their base values calculated from .value
- * This prevents accumulation of bonuses when recalculating the sheet
- * Preserves manual edits from manualAttributeEdits if present
- */
-function resetAttributesToBase(sheet: CharacterSheet): void {
-  Object.keys(sheet.atributos).forEach((attrName) => {
-    const attr = sheet.atributos[attrName as Atributo];
-    if (attr && attr.value !== undefined) {
-      // Calculate base modifier: (value - 10) / 2, rounded down
-      const baseMod = Math.floor((attr.value - 10) / 2);
-
-      // Apply manual edit if present
-      const manualEdit = sheet.manualAttributeEdits?.[attrName as Atributo];
-      attr.mod = manualEdit !== undefined ? baseMod + manualEdit : baseMod;
-    }
-  });
-}
+// Note: resetAttributesToBase was removed as part of attribute system simplification.
+// The value field now directly contains the modifier (no separate base/mod distinction).
 
 /**
  * Removes duplicate entries from sheetActionHistory based on source
@@ -144,12 +124,12 @@ const calculateBonusValue = (
   }
   if (bonus.type === 'Attribute') {
     const attr = bonus.attribute as Atributo;
-    return sheet.atributos[attr]?.mod || 0;
+    return sheet.atributos[attr]?.value || 0;
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
       const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].mod;
+      return sheet.atributos[attr].value;
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -255,7 +235,7 @@ const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
     const attributeBonus =
-      updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
+      updatedSheet.atributos[newAttribute].value * updatedSheet.nivel;
 
     updatedSheet.pv = baseHp + attributeBonus;
   }
@@ -387,9 +367,9 @@ const calcDisplacement = (
   baseDisplacement: number
 ): number => {
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -630,82 +610,6 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
- * Defines what parts of the sheet should be recalculated
- */
-export type RecalculationScope = {
-  attributes?: boolean; // Recalculate attributes (default: true)
-  pm?: boolean; // Recalculate PM (default: true)
-  pv?: boolean; // Recalculate PV (default: true)
-  defense?: boolean; // Recalculate defense (default: true)
-  skills?: boolean; // Recalculate skills (default: true)
-  weapons?: boolean; // Recalculate weapons (default: true)
-  displacement?: boolean; // Recalculate displacement (default: true)
-};
-
-/**
- * Determines if PM should be recalculated based on what changed
- */
-function shouldRecalculatePM(
-  sheet: CharacterSheet,
-  originalSheet?: CharacterSheet
-): boolean {
-  if (!originalSheet) return true; // Always recalculate if no original
-
-  // Check if level changed
-  if (sheet.nivel !== originalSheet.nivel) return true;
-
-  // Check if class changed
-  if (sheet.classe.name !== originalSheet.classe.name) return true;
-
-  // Check if key spell attribute changed
-  const { spellPath } = sheet.classe;
-  if (spellPath) {
-    const keyAttr = spellPath.keyAttribute;
-    const oldMod = originalSheet.atributos[keyAttr]?.mod || 0;
-    const newMod = sheet.atributos[keyAttr]?.mod || 0;
-    if (oldMod !== newMod) return true;
-  }
-
-  // Check if custom PM per level changed
-  if (sheet.customPMPerLevel !== originalSheet.customPMPerLevel) return true;
-
-  // Check if bonus PM changed
-  if (sheet.bonusPM !== originalSheet.bonusPM) return true;
-
-  // Check if powers that affect PM were added/removed
-  const oldPowerNames = new Set(originalSheet.generalPowers.map((p) => p.name));
-  const newPowerNames = new Set(sheet.generalPowers.map((p) => p.name));
-
-  // Powers added
-  const hasAddedPowerWithPMBonus = Array.from(newPowerNames).some(
-    (powerName) => {
-      if (!oldPowerNames.has(powerName)) {
-        const power = sheet.generalPowers.find((p) => p.name === powerName);
-        return power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM');
-      }
-      return false;
-    }
-  );
-  if (hasAddedPowerWithPMBonus) return true;
-
-  // Powers removed
-  const hasRemovedPowerWithPMBonus = Array.from(oldPowerNames).some(
-    (powerName) => {
-      if (!newPowerNames.has(powerName)) {
-        const power = originalSheet.generalPowers.find(
-          (p) => p.name === powerName
-        );
-        return power?.sheetBonuses?.some((bonus) => bonus.target.type === 'PM');
-      }
-      return false;
-    }
-  );
-  if (hasRemovedPowerWithPMBonus) return true;
-
-  return false; // No PM-affecting changes detected
-}
-
-/**
  * Recalculates the entire character sheet after changes have been made.
  * This function applies all powers, abilities, and bonuses to ensure
  * the sheet is consistent and up-to-date.
@@ -713,46 +617,17 @@ function shouldRecalculatePM(
  * @param sheet - The updated character sheet
  * @param originalSheet - Optional original sheet state to detect removed powers
  * @param manualSelections - Optional manual selections for powers that require them
- * @param scope - Optional scope to control what gets recalculated (default: everything)
  */
 export function recalculateSheet(
   sheet: CharacterSheet,
   originalSheet?: CharacterSheet,
-  manualSelections?: ManualPowerSelections,
-  scope?: RecalculationScope
+  manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
 
-  // Default scope: recalculate everything
-  const recalcScope: Required<RecalculationScope> = {
-    attributes: scope?.attributes ?? true,
-    pm: scope?.pm ?? shouldRecalculatePM(sheet, originalSheet),
-    pv: scope?.pv ?? true,
-    defense: scope?.defense ?? true,
-    skills: scope?.skills ?? true,
-    weapons: scope?.weapons ?? true,
-    displacement: scope?.displacement ?? true,
-  };
-
-  // Step -1: Reset attribute modifiers to base values to prevent accumulation (only if needed)
-  if (recalcScope.attributes) {
-    resetAttributesToBase(updatedSheet);
-  }
-
-  // Step -0.5: Re-apply race attribute bonuses (they were lost in the reset)
-  // Race bonuses are stored in .mod, not .value, so we need to re-apply them
-  if (recalcScope.attributes) {
-    const raceAttributes = modifyAttributesBasedOnRace(
-      updatedSheet.raca,
-      updatedSheet.atributos,
-      [], // Priority attrs not needed for recalculation
-      [], // Steps not needed for recalculation
-      undefined, // No manual choices during recalculation
-      updatedSheet.sexo as 'Masculino' | 'Feminino' | undefined
-    );
-    updatedSheet.atributos = raceAttributes;
-  }
+  // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.
+  // Race bonuses are already included in value from initial creation.
 
   // Step 0: If we have the original sheet, identify removed powers
   if (originalSheet) {
@@ -803,10 +678,10 @@ export function recalculateSheet(
                 ) as { type: 'Attribute'; attribute: Atributo; value: number };
                 if (attributeChange) {
                   const originalValue =
-                    updatedSheet.atributos[change.attribute].mod;
+                    updatedSheet.atributos[change.attribute].value;
                   const modificationValue =
                     attributeChange.value - originalValue;
-                  updatedSheet.atributos[change.attribute].mod -=
+                  updatedSheet.atributos[change.attribute].value -=
                     modificationValue;
                 }
               }
@@ -870,7 +745,7 @@ export function recalculateSheet(
             }
 
             case 'AttributeIncreasedByAumentoDeAtributo':
-              updatedSheet.atributos[change.attribute].mod -= 1;
+              updatedSheet.atributos[change.attribute].value -= 1;
               break;
 
             default:
@@ -916,7 +791,7 @@ export function recalculateSheet(
   const basePV = updatedSheet.classe.pv || 0;
   const addPVPerLevel =
     updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
-  const conMod = updatedSheet.atributos.Constituição?.mod || 0;
+  const conMod = updatedSheet.atributos.Constituição?.value || 0;
   updatedSheet.pv =
     basePV +
     addPVPerLevel * (updatedSheet.nivel - 1) +
@@ -942,7 +817,7 @@ export function recalculateSheet(
   if (updatedSheet.classe.spellPath) {
     const keyAttr =
       updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute];
-    keyAttrMod = keyAttr?.mod || 0;
+    keyAttrMod = keyAttr?.value || 0;
   }
 
   // Calculate PM: base + keyAttrMod + perLevel * (level - 1)
@@ -1002,14 +877,14 @@ export function recalculateSheet(
     nivel: updatedSheet.nivel,
     pmFromLevels: addPMPerLevel * (updatedSheet.nivel - 1),
     atributos: {
-      INT: updatedSheet.atributos.Inteligência?.mod || 0,
-      CAR: updatedSheet.atributos.Carisma?.mod || 0,
-      SAB: updatedSheet.atributos.Sabedoria?.mod || 0,
+      INT: updatedSheet.atributos.Inteligência?.value || 0,
+      CAR: updatedSheet.atributos.Carisma?.value || 0,
+      SAB: updatedSheet.atributos.Sabedoria?.value || 0,
     },
     spellKeyAttr: updatedSheet.classe.spellPath?.keyAttribute || 'N/A',
     spellKeyAttrMod: updatedSheet.classe.spellPath?.keyAttribute
       ? updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute]
-          ?.mod || 0
+          ?.value || 0
       : 0,
     bonuses: [] as Array<{
       source: string;
@@ -1121,8 +996,8 @@ export function recalculateSheet(
     // User explicitly disabled attribute, remove it
     const defaultAttr =
       updatedSheet.classe.name === 'Nobre'
-        ? updatedSheet.atributos.Carisma.mod
-        : updatedSheet.atributos.Destreza.mod;
+        ? updatedSheet.atributos.Carisma.value
+        : updatedSheet.atributos.Destreza.value;
     updatedSheet.defesa -= defaultAttr;
   } else if (
     updatedSheet.customDefenseAttribute &&
@@ -1136,11 +1011,11 @@ export function recalculateSheet(
         : Atributo.DESTREZA;
 
     if (updatedSheet.customDefenseAttribute !== defaultAttr) {
-      // Remove default attribute mod and add custom
-      const defaultMod = updatedSheet.atributos[defaultAttr].mod;
-      const customMod =
-        updatedSheet.atributos[updatedSheet.customDefenseAttribute].mod;
-      updatedSheet.defesa = updatedSheet.defesa - defaultMod + customMod;
+      // Remove default attribute value and add custom
+      const defaultValue = updatedSheet.atributos[defaultAttr].value;
+      const customValue =
+        updatedSheet.atributos[updatedSheet.customDefenseAttribute].value;
+      updatedSheet.defesa = updatedSheet.defesa - defaultValue + customValue;
     }
   }
 

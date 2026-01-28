@@ -30,9 +30,9 @@ const updateSW = registerSW({
     // eslint-disable-next-line no-console
     console.log('[PWA] App pronto para uso offline!');
   },
-  onRegisteredSW(swUrl, registration) {
+  onRegistered(registration: ServiceWorkerRegistration | undefined) {
     // eslint-disable-next-line no-console
-    console.log('[PWA] Service Worker registrado:', swUrl);
+    console.log('[PWA] Service Worker registrado');
     // Check for updates every 2 minutes (more frequent for faster updates)
     if (registration) {
       setInterval(() => {

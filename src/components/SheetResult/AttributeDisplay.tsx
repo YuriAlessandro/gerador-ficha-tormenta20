@@ -96,10 +96,10 @@ const AttributeDisplay = ({ attributes, characterName }: Props) => {
         return (
           <FancyBox key={attribute}>
             <NumberDisplay
-              onClick={() => handleAttributeClick(label, value.mod)}
+              onClick={() => handleAttributeClick(label, value.value)}
               title={`Rolar teste de ${label}`}
             >
-              {addSign(value.mod)}
+              {addSign(value.value)}
             </NumberDisplay>
             <Title>{label}</Title>
           </FancyBox>

@@ -25,7 +25,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     return 1;
   });
 
-  const mod = keyAttr ? keyAttr.mod : 0;
+  const mod = keyAttr ? keyAttr.value : 0;
   const resistence = 10 + Math.floor(nivel * 0.5) + mod;
 
   const isMobile = window.innerWidth < 720;
@@ -39,7 +39,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
           </span>
           <span>
             <strong>Modificador:</strong>{' '}
-            {`${mod > 0 ? '+' : ''}${keyAttr?.mod}`}
+            {`${mod > 0 ? '+' : ''}${keyAttr?.value}`}
           </span>
           <span>
             <strong>Teste de Resistência:</strong> {resistence}

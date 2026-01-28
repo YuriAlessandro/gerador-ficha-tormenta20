@@ -140,7 +140,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
           <TableBody sx={{ border: 'none' }}>
             {skills?.map((skill) => {
               const attrValue = skill.modAttr
-                ? sheet.atributos[skill.modAttr].mod
+                ? sheet.atributos[skill.modAttr].value
                 : 0;
 
               const skillTotal =

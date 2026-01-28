@@ -179,9 +179,6 @@ export function applyFradeAutoridadeEclesiastica(
       // +1 em Carisma
       if (sheet.atributos.Carisma) {
         sheet.atributos.Carisma.value += 1;
-        sheet.atributos.Carisma.mod = Math.floor(
-          (sheet.atributos.Carisma.value - 10) / 2
-        );
       }
       subSteps.push({
         name: 'Autoridade Eclesiástica (Marah)',

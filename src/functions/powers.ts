@@ -54,7 +54,9 @@ export function isPowerAvailable(
           }
           case RequirementType.ATRIBUTO: {
             const attr = rule.name as Atributo;
-            return rule.name && sheet.atributos[attr].mod >= (rule?.value || 0);
+            return (
+              rule.name && sheet.atributos[attr].value >= (rule?.value || 0)
+            );
           }
           case RequirementType.PERICIA: {
             const pericia = rule.name as Skill;
