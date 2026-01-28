@@ -9,8 +9,8 @@ import {
 import React from 'react';
 
 const ls = window.localStorage;
-const CURRENT_ALERT_NAME = 'version341Alert';
-const OLD_ALERT_NAME = 'version34Alert';
+const CURRENT_ALERT_NAME = 'instagramAlert';
+const OLD_ALERT_NAME = 'instagramAlert';
 
 const SystemUpdate = () => {
   // Clean up old alert from localStorage
@@ -27,10 +27,10 @@ const SystemUpdate = () => {
     setOpen(false);
   };
 
-  const doNotShowAnymore = () => {
-    ls.setItem(CURRENT_ALERT_NAME, 'true');
-    setOpen(false);
-  };
+  // const doNotShowAnymore = () => {
+  //   ls.setItem(CURRENT_ALERT_NAME, 'true');
+  //   setOpen(false);
+  // };
 
   return (
     <Dialog
@@ -39,25 +39,38 @@ const SystemUpdate = () => {
       aria-labelledby='alert-dialog-title'
       aria-describedby='alert-dialog-description'
     >
-      <DialogTitle id='alert-dialog-title'>Versão 3.4.1</DialogTitle>
+      <DialogTitle id='alert-dialog-title'>
+        <a
+          href='https://www.instagram.com/fichasdenimb/'
+          target='_blank'
+          rel='noreferrer'
+        >
+          @fichasdenimb
+        </a>
+      </DialogTitle>
       <DialogContent>
         <DialogContentText id='alert-dialog-description'>
           <p>
-            Nova atualização disponível! A versão 3.4.1 traz melhorias na
-            interface do passo-a-passo e diversas correções na edição de fichas.
+            A maior e mais completa atualização do Fichas de Nimb está chegando.
           </p>
           <p>
-            Agora você pode visualizar tamanho e deslocamento diretamente na
-            ficha, além de uma interface aprimorada para seleção manual de
-            atributos ao editar raças. Confira a lista completa de mudanças no
-            <a href='https://fichasdenimb.com.br/#/changelog'> Changelog</a>
+            Segue nosso instagram{' '}
+            <a
+              href='https://www.instagram.com/fichasdenimb/'
+              target='_blank'
+              rel='noreferrer'
+            >
+              @fichasdenimb
+            </a>{' '}
+            para ficar por dentro de tudo que está para chegar e receber a
+            atualização em primeira mão.
           </p>
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button variant='contained' size='small' onClick={doNotShowAnymore}>
+        {/* <Button variant='contained' size='small' onClick={doNotShowAnymore}>
           Nunca mais mostrar
-        </Button>
+        </Button> */}
         <Button variant='contained' onClick={handleClose}>
           Fechar
         </Button>
