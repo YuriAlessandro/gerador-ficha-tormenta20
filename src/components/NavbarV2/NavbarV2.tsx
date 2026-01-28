@@ -268,7 +268,7 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                 fontSize: '1.25rem',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                color: 'inherit',
+                color: 'inherit !important',
                 '&:hover': {
                   opacity: 0.9,
                 },
@@ -380,7 +380,7 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                       sx={{
                         py: 1,
                         textDecoration: 'none',
-                        color: 'inherit',
+                        color: 'inherit !important',
                         borderRadius: 1,
                         '&:hover': {
                           backgroundColor: 'rgba(255, 255, 255, 0.1)',
