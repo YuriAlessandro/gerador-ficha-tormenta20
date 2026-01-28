@@ -55,10 +55,7 @@ import SupportPage from './components/Premium/SupportPage';
 import SupportSuccessPage from './components/Premium/SupportSuccessPage';
 import JamboFooter from './components/LandingPageV2/JamboFooter';
 
-// Blog components
-import { BlogList, BlogPostPage, BlogEditor } from './components/Blog';
-
-// Premium features
+// Premium features (including Blog components)
 import {
   BuildsProvider,
   BuildViewPage as PremiumBuildViewPage,
@@ -69,6 +66,9 @@ import {
   GameTableDetailPage,
   GameSessionPage,
   DiceRollProvider,
+  BlogList,
+  BlogPostPage,
+  BlogEditor,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 // import CreatureSheet from './components/screens/CreatureSheet';

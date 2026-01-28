@@ -11,7 +11,7 @@ import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
 import GameSessionsSection from './GameSessionsSection';
 import BuildsPreviewSection from './BuildsPreviewSection';
-import { BlogPreviewSection } from '../Blog';
+import { BlogPreviewSection } from '../../premium';
 
 interface LandingPageV2Props {
   onClickButton: (link: string) => void;
