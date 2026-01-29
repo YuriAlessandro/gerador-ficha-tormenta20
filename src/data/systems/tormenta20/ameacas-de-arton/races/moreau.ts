@@ -1,10 +1,40 @@
-import Race from '../../../../../interfaces/Race';
+import Race, { RaceAttributeAbility } from '../../../../../interfaces/Race';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import {
   MOREAU_HERITAGES,
   MOREAU_HERITAGE_NAMES,
   MoreauHeritageName,
 } from './moreau-heritages';
+import { Atributo } from '../../atributos';
+
+/**
+ * Aplica customização ao Moreau
+ * Esta função é usada tanto na geração inicial quanto no editor manual
+ */
+export function applyMoreauCustomization(
+  baseRace: Race,
+  heritageName: MoreauHeritageName,
+  bonusAttributes: Atributo[] // 2 atributos para os slots 'any'
+): Race {
+  const heritage = MOREAU_HERITAGES[heritageName];
+  if (!heritage) return baseRace;
+
+  // Separar atributos fixos (não-'any') dos escolhidos pelo jogador
+  const fixedAttrs = heritage.attributes.filter((a) => a.attr !== 'any');
+  const chosenAttrs: RaceAttributeAbility[] = bonusAttributes.map((attr) => ({
+    attr,
+    mod: 1,
+  }));
+
+  return {
+    ...baseRace,
+    heritage: heritageName,
+    attributes: {
+      attrs: [...fixedAttrs, ...chosenAttrs],
+    },
+    abilities: heritage.abilities,
+  };
+}
 
 const MOREAU: Race = {
   name: 'Moreau',
