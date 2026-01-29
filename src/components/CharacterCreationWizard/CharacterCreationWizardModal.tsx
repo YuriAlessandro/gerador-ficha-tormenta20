@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -21,6 +21,10 @@ import { ClassDescription } from '@/interfaces/Class';
 import Origin from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
+import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
+import { applyMoreauCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau';
+import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
@@ -41,16 +45,33 @@ import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 
+interface RaceCustomization {
+  // Golem Desperto
+  golemChassis?: string;
+  golemEnergySource?: string;
+  golemSize?: string;
+  // Duende
+  duendeNature?: string;
+  duendeSize?: string;
+  duendeBonusAttributes?: Atributo[];
+  duendePresentes?: string[];
+  duendeTabuSkill?: Skill;
+  // Moreau
+  moreauHeritage?: string;
+  moreauBonusAttributes?: Atributo[];
+}
+
 interface CharacterCreationWizardModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (selections: WizardSelections) => void;
   selectedOptions: SelectedOptions;
+  raceCustomization?: RaceCustomization;
 }
 
 const CharacterCreationWizardModal: React.FC<
   CharacterCreationWizardModalProps
-> = ({ open, onClose, onConfirm, selectedOptions }) => {
+> = ({ open, onClose, onConfirm, selectedOptions, raceCustomization }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsInitialized, setStepsInitialized] = useState(false);
@@ -72,10 +93,67 @@ const CharacterCreationWizardModal: React.FC<
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
   ];
-  const race: Race | undefined = dataRegistry.getRaceByName(
-    selectedOptions.raca,
-    supplements
-  );
+
+  // Get race and apply customization if provided
+  const race: Race | undefined = useMemo(() => {
+    let baseRace = dataRegistry.getRaceByName(
+      selectedOptions.raca,
+      supplements
+    );
+    if (!baseRace) return undefined;
+
+    // Apply race customization if provided (from pre-wizard modal)
+    if (raceCustomization) {
+      // Golem Desperto customization
+      if (
+        baseRace.name === 'Golem Desperto' &&
+        raceCustomization.golemChassis &&
+        raceCustomization.golemEnergySource &&
+        raceCustomization.golemSize
+      ) {
+        baseRace = applyGolemDespertoCustomization(
+          baseRace,
+          raceCustomization.golemChassis,
+          raceCustomization.golemEnergySource,
+          raceCustomization.golemSize
+        );
+      }
+
+      // Duende customization
+      if (
+        baseRace.name === 'Duende' &&
+        raceCustomization.duendeNature &&
+        raceCustomization.duendeSize &&
+        raceCustomization.duendeBonusAttributes &&
+        raceCustomization.duendePresentes &&
+        raceCustomization.duendeTabuSkill
+      ) {
+        baseRace = applyDuendeCustomization(
+          baseRace,
+          raceCustomization.duendeNature,
+          raceCustomization.duendeSize,
+          raceCustomization.duendeBonusAttributes,
+          raceCustomization.duendePresentes,
+          raceCustomization.duendeTabuSkill
+        );
+      }
+
+      // Moreau customization
+      if (
+        baseRace.name === 'Moreau' &&
+        raceCustomization.moreauHeritage &&
+        raceCustomization.moreauBonusAttributes
+      ) {
+        baseRace = applyMoreauCustomization(
+          baseRace,
+          raceCustomization.moreauHeritage as MoreauHeritageName,
+          raceCustomization.moreauBonusAttributes
+        );
+      }
+    }
+
+    return baseRace;
+  }, [selectedOptions.raca, supplements, raceCustomization]);
   const classes = dataRegistry.getClassesBySupplements(supplements);
   const classe: ClassDescription | undefined = classes.find(
     (c) => c.name === selectedOptions.classe
@@ -295,14 +373,14 @@ const CharacterCreationWizardModal: React.FC<
       setActiveStep(0);
       setStepsInitialized(false); // Mark as not initialized yet
       setSelections({
-        // Reset with default attribute values
+        // Reset with default attribute modifiers (0 = average)
         baseAttributes: {
-          [Atributo.FORCA]: 10,
-          [Atributo.DESTREZA]: 10,
-          [Atributo.CONSTITUICAO]: 10,
-          [Atributo.INTELIGENCIA]: 10,
-          [Atributo.SABEDORIA]: 10,
-          [Atributo.CARISMA]: 10,
+          [Atributo.FORCA]: 0,
+          [Atributo.DESTREZA]: 0,
+          [Atributo.CONSTITUICAO]: 0,
+          [Atributo.INTELIGENCIA]: 0,
+          [Atributo.SABEDORIA]: 0,
+          [Atributo.CARISMA]: 0,
         },
       });
       // Initialize steps array
@@ -340,12 +418,12 @@ const CharacterCreationWizardModal: React.FC<
             race={race}
             baseAttributes={
               selections.baseAttributes || {
-                [Atributo.FORCA]: 10,
-                [Atributo.DESTREZA]: 10,
-                [Atributo.CONSTITUICAO]: 10,
-                [Atributo.INTELIGENCIA]: 10,
-                [Atributo.SABEDORIA]: 10,
-                [Atributo.CARISMA]: 10,
+                [Atributo.FORCA]: 0,
+                [Atributo.DESTREZA]: 0,
+                [Atributo.CONSTITUICAO]: 0,
+                [Atributo.INTELIGENCIA]: 0,
+                [Atributo.SABEDORIA]: 0,
+                [Atributo.CARISMA]: 0,
               }
             }
             raceAttributeChoices={selections.raceAttributes}

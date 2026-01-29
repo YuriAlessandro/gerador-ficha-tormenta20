@@ -93,10 +93,12 @@ import SimpleResult from '../SimpleResult';
 import Historic from './Historic';
 import GolemDespertoCustomizationModal from '../GolemDespertoCustomizationModal';
 import DuendeCustomizationModal from '../DuendeCustomizationModal';
+import MoreauCustomizationModal from '../MoreauCustomizationModal';
 import CharacterCreationWizardModal from '../CharacterCreationWizard/CharacterCreationWizardModal';
 import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import { applyGolemDespertoCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 import { applyDuendeCustomization } from '../../data/systems/tormenta20/herois-de-arton/races/duende';
+import { applyMoreauCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import Skill from '../../interfaces/Skills';
 import SheetLimitDialog from '../common/SheetLimitDialog';
 
@@ -292,6 +294,28 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const [showDuendeModal, setShowDuendeModal] = React.useState(false);
   const [pendingDuendeSheet, setPendingDuendeSheet] =
     React.useState<CharacterSheet | null>(null);
+  const [showMoreauModal, setShowMoreauModal] = React.useState(false);
+  const [pendingMoreauSheet, setPendingMoreauSheet] =
+    React.useState<CharacterSheet | null>(null);
+  // Track if customization modal is shown before wizard (manual creation flow)
+  const [pendingWizardAfterCustomization, setPendingWizardAfterCustomization] =
+    React.useState(false);
+  // Store race customization choices for use in wizard/sheet generation
+  const [raceCustomization, setRaceCustomization] = React.useState<{
+    // Golem Desperto
+    golemChassis?: string;
+    golemEnergySource?: string;
+    golemSize?: string;
+    // Duende
+    duendeNature?: string;
+    duendeSize?: string;
+    duendeBonusAttributes?: Atributo[];
+    duendePresentes?: string[];
+    duendeTabuSkill?: Skill;
+    // Moreau
+    moreauHeritage?: string;
+    moreauBonusAttributes?: Atributo[];
+  }>({});
   const [wizardModalOpen, setWizardModalOpen] = React.useState(false);
   const [levelUpWizardModalOpen, setLevelUpWizardModalOpen] =
     React.useState(false);
@@ -423,6 +447,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       return; // Don't set the sheet yet - wait for modal confirmation
     }
 
+    // Check if it's a Moreau and show customization modal
+    if (anotherRandomSheet.raca.name === 'Moreau') {
+      setPendingMoreauSheet(anotherRandomSheet);
+      setShowMoreauModal(true);
+      return; // Don't set the sheet yet - wait for modal confirmation
+    }
+
     // Always save to local storage (historic)
     saveSheetOnHistoric(
       anotherRandomSheet,
@@ -458,8 +489,31 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   };
 
   const executeEmptyGeneration = () => {
-    // Always show wizard for manual creation
-    // The wizard determines level 1 choices regardless of final level
+    // Check if race needs customization BEFORE opening wizard
+    // This allows customization choices to affect wizard steps (like attribute bonuses)
+
+    // Check for Golem Desperto
+    if (selectedOptions.raca === 'Golem Desperto') {
+      setPendingWizardAfterCustomization(true);
+      setShowGolemDespertoModal(true);
+      return;
+    }
+
+    // Check for Duende
+    if (selectedOptions.raca === 'Duende') {
+      setPendingWizardAfterCustomization(true);
+      setShowDuendeModal(true);
+      return;
+    }
+
+    // Check for Moreau
+    if (selectedOptions.raca === 'Moreau') {
+      setPendingWizardAfterCustomization(true);
+      setShowMoreauModal(true);
+      return;
+    }
+
+    // No customization needed - open wizard directly
     setWizardModalOpen(true);
   };
 
@@ -527,23 +581,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       }, 200);
     }
 
-    // Generate level 1 sheet with wizard selections
-    const level1Sheet = generateEmptySheet(selectedOptions, wizardSelections);
+    // Generate level 1 sheet with wizard selections and race customization
+    const level1Sheet = generateEmptySheet(
+      selectedOptions,
+      wizardSelections,
+      raceCustomization
+    );
     level1Sheet.bag = new Bag(level1Sheet.bag.equipments);
 
-    // Check if race is Golem Desperto - need customization modal
-    if (level1Sheet.raca.name === 'Golem Desperto') {
-      setPendingGolemDespertoSheet(level1Sheet);
-      setShowGolemDespertoModal(true);
-      return; // Wait for modal confirmation before finalizing
-    }
-
-    // Check if race is Duende - need customization modal
-    if (level1Sheet.raca.name === 'Duende') {
-      setPendingDuendeSheet(level1Sheet);
-      setShowDuendeModal(true);
-      return; // Wait for modal confirmation before finalizing
-    }
+    // Clear race customization after use
+    setRaceCustomization({});
 
     // If level > 1, open level up wizard modal
     if (selectedOptions.nivel > 1) {
@@ -1211,6 +1258,21 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     energySourceId: string,
     sizeId: string
   ) => {
+    // Pre-wizard flow: store customization and open wizard
+    if (pendingWizardAfterCustomization) {
+      setRaceCustomization((prev) => ({
+        ...prev,
+        golemChassis: chassisId,
+        golemEnergySource: energySourceId,
+        golemSize: sizeId,
+      }));
+      setShowGolemDespertoModal(false);
+      setPendingWizardAfterCustomization(false);
+      setWizardModalOpen(true);
+      return;
+    }
+
+    // Post-random flow: apply customization to pending sheet
     if (!pendingGolemDespertoSheet) return;
 
     // Get base race and apply customization
@@ -1282,6 +1344,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleGolemDespertoCancel = () => {
     setShowGolemDespertoModal(false);
     setPendingGolemDespertoSheet(null);
+    setPendingWizardAfterCustomization(false);
   };
 
   // Duende modal handlers
@@ -1292,6 +1355,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     presenteIds: string[],
     tabuSkill: Skill
   ) => {
+    // Pre-wizard flow: store customization and open wizard
+    if (pendingWizardAfterCustomization) {
+      setRaceCustomization((prev) => ({
+        ...prev,
+        duendeNature: natureId,
+        duendeSize: sizeId,
+        duendeBonusAttributes: bonusAttributes,
+        duendePresentes: presenteIds,
+        duendeTabuSkill: tabuSkill,
+      }));
+      setShowDuendeModal(false);
+      setPendingWizardAfterCustomization(false);
+      setWizardModalOpen(true);
+      return;
+    }
+
+    // Post-random flow: apply customization to pending sheet
     if (!pendingDuendeSheet) return;
 
     // Get base race and apply customization
@@ -1345,6 +1425,80 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleDuendeCancel = () => {
     setShowDuendeModal(false);
     setPendingDuendeSheet(null);
+    setPendingWizardAfterCustomization(false);
+  };
+
+  // Moreau modal handlers
+  const handleMoreauConfirm = (
+    heritageName: string,
+    bonusAttributes: Atributo[]
+  ) => {
+    // Pre-wizard flow: store customization and open wizard
+    if (pendingWizardAfterCustomization) {
+      setRaceCustomization((prev) => ({
+        ...prev,
+        moreauHeritage: heritageName,
+        moreauBonusAttributes: bonusAttributes,
+      }));
+      setShowMoreauModal(false);
+      setPendingWizardAfterCustomization(false);
+      setWizardModalOpen(true);
+      return;
+    }
+
+    // Post-random flow: apply customization to pending sheet
+    if (!pendingMoreauSheet) return;
+
+    // Get base race and apply customization
+    const baseRace = RACAS.find((r) => r.name === 'Moreau');
+    if (!baseRace) return;
+
+    const customizedRace = applyMoreauCustomization(
+      baseRace,
+      heritageName as import('../../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages').MoreauHeritageName,
+      bonusAttributes
+    );
+
+    let finalSheet: CharacterSheet = {
+      ...pendingMoreauSheet,
+      raca: customizedRace,
+      raceHeritage: heritageName,
+      raceAttributeChoices: bonusAttributes,
+      displacement: customizedRace.getDisplacement
+        ? customizedRace.getDisplacement(customizedRace)
+        : pendingMoreauSheet.displacement,
+    };
+
+    // Process each ability's sheetActions and sheetBonuses
+    customizedRace.abilities.forEach((ability) => {
+      if (ability.sheetActions || ability.sheetBonuses) {
+        const [updatedSheet] = applyPower(finalSheet, ability);
+        finalSheet = {
+          ...updatedSheet,
+          raceHeritage: heritageName,
+          raceAttributeChoices: bonusAttributes,
+        };
+      }
+    });
+
+    // Save to historic
+    saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
+      showAlert(
+        `Você atingiu o limite máximo de ${MAX_CHARACTERS_LIMIT} personagens no histórico local. Remova uma ficha para salvar uma nova.`,
+        'Limite Atingido'
+      )
+    );
+
+    setRandomSheet(finalSheet);
+    setSheetSavedToCloud(false);
+    setShowMoreauModal(false);
+    setPendingMoreauSheet(null);
+  };
+
+  const handleMoreauCancel = () => {
+    setShowMoreauModal(false);
+    setPendingMoreauSheet(null);
+    setPendingWizardAfterCustomization(false);
   };
 
   return (
@@ -1415,37 +1569,59 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       </Dialog>
 
       {/* Golem Desperto Customization Modal */}
-      {pendingGolemDespertoSheet && (
+      {/* Show when: 1) Post-random flow with pending sheet, or 2) Pre-wizard flow */}
+      {(pendingGolemDespertoSheet ||
+        (pendingWizardAfterCustomization &&
+          selectedOptions.raca === 'Golem Desperto')) && (
         <GolemDespertoCustomizationModal
           open={showGolemDespertoModal}
-          initialChassis={pendingGolemDespertoSheet.raca.chassis || 'ferro'}
+          initialChassis={pendingGolemDespertoSheet?.raca.chassis || 'ferro'}
           initialEnergySource={
-            pendingGolemDespertoSheet.raca.energySource || 'alquimica'
+            pendingGolemDespertoSheet?.raca.energySource || 'alquimica'
           }
-          initialSize={pendingGolemDespertoSheet.raca.sizeCategory || 'medio'}
+          initialSize={pendingGolemDespertoSheet?.raca.sizeCategory || 'medio'}
           onConfirm={handleGolemDespertoConfirm}
           onCancel={handleGolemDespertoCancel}
         />
       )}
 
       {/* Duende Customization Modal */}
-      {pendingDuendeSheet && (
+      {/* Show when: 1) Post-random flow with pending sheet, or 2) Pre-wizard flow */}
+      {(pendingDuendeSheet ||
+        (pendingWizardAfterCustomization &&
+          selectedOptions.raca === 'Duende')) && (
         <DuendeCustomizationModal
           open={showDuendeModal}
-          initialNature={pendingDuendeSheet.raca.nature || 'animal'}
-          initialSize={pendingDuendeSheet.raca.sizeCategory || 'pequeno'}
+          initialNature={pendingDuendeSheet?.raca.nature || 'animal'}
+          initialSize={pendingDuendeSheet?.raca.sizeCategory || 'pequeno'}
           initialBonusAttributes={
-            (pendingDuendeSheet.raceAttributeChoices as Atributo[]) || [
+            (pendingDuendeSheet?.raceAttributeChoices as Atributo[]) || [
               Atributo.FORCA,
               Atributo.DESTREZA,
             ]
           }
-          initialPresentes={pendingDuendeSheet.raca.presentPowers || []}
+          initialPresentes={pendingDuendeSheet?.raca.presentPowers || []}
           initialTabuSkill={
-            pendingDuendeSheet.raca.tabuSkill || Skill.DIPLOMACIA
+            pendingDuendeSheet?.raca.tabuSkill || Skill.DIPLOMACIA
           }
           onConfirm={handleDuendeConfirm}
           onCancel={handleDuendeCancel}
+        />
+      )}
+
+      {/* Moreau Customization Modal */}
+      {/* Show when: 1) Post-random flow with pending sheet, or 2) Pre-wizard flow */}
+      {(pendingMoreauSheet ||
+        (pendingWizardAfterCustomization &&
+          selectedOptions.raca === 'Moreau')) && (
+        <MoreauCustomizationModal
+          open={showMoreauModal}
+          initialHeritage={pendingMoreauSheet?.raca.heritage || 'Coruja'}
+          initialBonusAttributes={
+            (pendingMoreauSheet?.raceAttributeChoices as Atributo[]) || []
+          }
+          onConfirm={handleMoreauConfirm}
+          onCancel={handleMoreauCancel}
         />
       )}
 
@@ -1455,6 +1631,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         onClose={() => setWizardModalOpen(false)}
         onConfirm={handleWizardConfirm}
         selectedOptions={selectedOptions}
+        raceCustomization={raceCustomization}
       />
 
       {/* Level Up Wizard Modal */}

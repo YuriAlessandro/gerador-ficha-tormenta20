@@ -135,15 +135,38 @@ import {
   applyMoreauSapiencia,
   applyMoreauEspertezaVulpina,
 } from './powers/moreau-special';
-import { MOREAU_HERITAGES } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import {
+  MOREAU_HERITAGES,
+  MoreauHeritageName,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { applyGolemDespertoSagrada } from './powers/golem-desperto-special';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
+import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import { applyDuendeCustomization } from '../data/systems/tormenta20/herois-de-arton/races/duende';
+import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
+
+// Race customization interface for races with customization options
+export interface RaceCustomization {
+  // Golem Desperto
+  golemChassis?: string;
+  golemEnergySource?: string;
+  golemSize?: string;
+  // Duende
+  duendeNature?: string;
+  duendeSize?: string;
+  duendeBonusAttributes?: Atributo[];
+  duendePresentes?: string[];
+  duendeTabuSkill?: Skill;
+  // Moreau
+  moreauHeritage?: string;
+  moreauBonusAttributes?: Atributo[];
+}
 
 // Helper function to normalize deity names for comparison (removes hyphens and spaces)
 const normalizeDeityName = (name: string): string =>
@@ -3514,12 +3537,64 @@ export default function generateRandomSheet(
 
 export function generateEmptySheet(
   selectedOptions: SelectedOptions,
-  wizardSelections?: import('../interfaces/WizardSelections').WizardSelections
+  wizardSelections?: import('../interfaces/WizardSelections').WizardSelections,
+  raceCustomization?: RaceCustomization
 ): CharacterSheet {
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
   ];
-  const race = selectRace(selectedOptions);
+  let race = selectRace(selectedOptions);
+
+  // Apply race customization if provided (from pre-wizard modal)
+  if (raceCustomization) {
+    // Golem Desperto customization
+    if (
+      race.name === 'Golem Desperto' &&
+      raceCustomization.golemChassis &&
+      raceCustomization.golemEnergySource &&
+      raceCustomization.golemSize
+    ) {
+      race = applyGolemDespertoCustomization(
+        race,
+        raceCustomization.golemChassis,
+        raceCustomization.golemEnergySource,
+        raceCustomization.golemSize
+      );
+    }
+
+    // Duende customization
+    if (
+      race.name === 'Duende' &&
+      raceCustomization.duendeNature &&
+      raceCustomization.duendeSize &&
+      raceCustomization.duendeBonusAttributes &&
+      raceCustomization.duendePresentes &&
+      raceCustomization.duendeTabuSkill
+    ) {
+      race = applyDuendeCustomization(
+        race,
+        raceCustomization.duendeNature,
+        raceCustomization.duendeSize,
+        raceCustomization.duendeBonusAttributes,
+        raceCustomization.duendePresentes,
+        raceCustomization.duendeTabuSkill
+      );
+    }
+
+    // Moreau customization
+    if (
+      race.name === 'Moreau' &&
+      raceCustomization.moreauHeritage &&
+      raceCustomization.moreauBonusAttributes
+    ) {
+      race = applyMoreauCustomization(
+        race,
+        raceCustomization.moreauHeritage as MoreauHeritageName,
+        raceCustomization.moreauBonusAttributes
+      );
+    }
+  }
+
   const size = getRaceSize(race);
   const classes = dataRegistry.getClassesBySupplements(supplements);
   const generatedClass = classes.find((classe) =>
