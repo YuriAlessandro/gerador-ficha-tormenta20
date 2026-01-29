@@ -803,4 +803,108 @@ describe('Edição de Atributos - Modificadores Raciais não devem duplicar', ()
       ).toBe(true);
     });
   });
+
+  /**
+   * Teste dedicado: Elfo Bardo - Verificação de PM através de múltiplas edições
+   *
+   * Fluxo:
+   * 1. Cria ficha de Elfo Bardo nível 5 com CAR 4
+   * 2. Verifica PM inicial
+   * 3. Adiciona poder "Aumento de Atributo" em CAR (+1)
+   * 4. Verifica PM após poder
+   * 5. Sobe para nível 6
+   * 6. Verifica PM final
+   *
+   * Elfo: +2 INT, +1 DEX, -1 CON (não afeta CAR)
+   * Bardo: pm=4, addpm=4, keyAttr=CAR
+   * Fórmula PM: basePM + keyAttrMod + addPMPerLevel * (nivel - 1)
+   */
+  describe('Elfo Bardo - Verificação de PM através de níveis e poderes', () => {
+    it('deve calcular PM corretamente em todas as etapas', () => {
+      // Elfo: +2 INT, +1 DEX, -1 CON
+      // Para Bardo: CAR é o atributo chave
+      // Base: FOR=0, DES=2, CON=0, INT=2, SAB=0, CAR=4
+      // Após racial: FOR=0, DES=3, CON=-1, INT=4, SAB=0, CAR=4
+      const initialAttributes: CharacterAttributes = {
+        [Atributo.FORCA]: { name: Atributo.FORCA, value: 0 },
+        [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 3 }, // 2 + 1 racial
+        [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: -1 }, // 0 - 1 racial
+        [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 4 }, // 2 + 2 racial
+        [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 0 },
+        [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 4 }, // Não afetado por racial
+      };
+
+      // ========== ETAPA 1: Criar ficha nível 5 ==========
+      const sheet = createSheetWithRace('Elfo', 'Bardo', 5, initialAttributes);
+
+      let currentSheet = recalculateSheet(sheet);
+
+      // PM nível 5, CAR 4: basePM(4) + CAR(4) + addpm(4) * (5-1) = 4 + 4 + 16 = 24
+      const pmNivel5Car4 = currentSheet.pm;
+      expect(currentSheet.nivel).toBe(5);
+      expect(currentSheet.atributos[Atributo.CARISMA].value).toBe(4);
+
+      // ========== ETAPA 2: Adicionar "Aumento de Atributo" em CAR ==========
+      const aumentoDeAtributo = {
+        name: 'Aumento de Atributo',
+        text: 'Você recebe +1 em um atributo.',
+        requirements: [],
+        canRepeat: true,
+      };
+
+      // CAR vai de 4 para 5
+      let editedSheet: CharacterSheet = {
+        ...currentSheet,
+        classPowers: [aumentoDeAtributo],
+        atributos: {
+          ...currentSheet.atributos,
+          [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 5 },
+        },
+        sheetActionHistory: [
+          ...currentSheet.sheetActionHistory,
+          {
+            source: { type: 'power' as const, name: 'Aumento de Atributo' },
+            powerName: 'Aumento de Atributo',
+            changes: [
+              {
+                type: 'AttributeIncreasedByAumentoDeAtributo' as const,
+                attribute: Atributo.CARISMA,
+                plateau: 2, // Nível 5 = plateau 2
+              },
+            ],
+          },
+        ],
+      };
+      currentSheet = recalculateSheet(editedSheet, currentSheet);
+
+      // PM nível 5, CAR 5: basePM(4) + CAR(5) + addpm(4) * (5-1) = 4 + 5 + 16 = 25
+      const pmNivel5Car5 = currentSheet.pm;
+      expect(currentSheet.atributos[Atributo.CARISMA].value).toBe(5);
+      expect(pmNivel5Car5).toBeGreaterThan(pmNivel5Car4); // PM deve aumentar com +1 CAR
+
+      // ========== ETAPA 3: Subir para nível 6 ==========
+      editedSheet = {
+        ...currentSheet,
+        nivel: 6,
+      };
+      currentSheet = recalculateSheet(editedSheet, currentSheet);
+
+      // PM nível 6, CAR 5: basePM(4) + CAR(5) + addpm(4) * (6-1) = 4 + 5 + 20 = 29
+      const pmNivel6Car5 = currentSheet.pm;
+      expect(currentSheet.nivel).toBe(6);
+      expect(pmNivel6Car5).toBeGreaterThan(pmNivel5Car5); // PM deve aumentar com +1 nível
+
+      // ========== VERIFICAÇÕES FINAIS ==========
+      // Verificar que atributos não foram corrompidos
+      expect(currentSheet.atributos[Atributo.CARISMA].value).toBe(5);
+      expect(currentSheet.atributos[Atributo.DESTREZA].value).toBe(3); // Racial elfo
+      expect(currentSheet.atributos[Atributo.INTELIGENCIA].value).toBe(4); // Racial elfo
+      expect(currentSheet.atributos[Atributo.CONSTITUICAO].value).toBe(-1); // Racial elfo
+
+      // Verificar valores de PM esperados
+      expect(pmNivel5Car4).toBe(29); // Nível 5, CAR 4
+      expect(pmNivel5Car5).toBe(30); // Nível 5, CAR 5 (+1 pelo Aumento de Atributo)
+      expect(pmNivel6Car5).toBe(35); // Nível 6, CAR 5 (+5 pelo nível)
+    });
+  });
 });
