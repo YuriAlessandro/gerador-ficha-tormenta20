@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Typography,
-  Alert,
-  Chip,
-  SelectChangeEvent,
-  OutlinedInput,
-} from '@mui/material';
+import { Box, Typography, Alert, Chip } from '@mui/material';
 import Skill from '@/interfaces/Skills';
 
 interface ClassSkillStepProps {
@@ -28,16 +17,13 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
   requiredCount,
   className,
 }) => {
-  const handleChange = (event: SelectChangeEvent<typeof selectedSkills>) => {
-    const {
-      target: { value },
-    } = event;
-    const newSkills =
-      typeof value === 'string' ? (value.split(',') as Skill[]) : value;
-
-    // Limit to requiredCount
-    if (newSkills.length <= requiredCount) {
-      onChange(newSkills);
+  const handleToggleSkill = (skill: Skill) => {
+    if (selectedSkills.includes(skill)) {
+      // Remove skill
+      onChange(selectedSkills.filter((s) => s !== skill));
+    } else if (selectedSkills.length < requiredCount) {
+      // Add skill (only if under limit)
+      onChange([...selectedSkills, skill]);
     }
   };
 
@@ -50,49 +36,49 @@ const ClassSkillStep: React.FC<ClassSkillStepProps> = ({
         {requiredCount > 1 ? 's' : ''} entre as seguintes opções:
       </Typography>
 
-      <FormControl fullWidth>
-        <InputLabel id='skills-label'>Perícias</InputLabel>
-        <Select
-          labelId='skills-label'
-          id='skills-select'
-          multiple
-          value={selectedSkills}
-          onChange={handleChange}
-          input={<OutlinedInput label='Perícias' />}
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {selected.map((value) => (
-                <Chip
-                  key={value}
-                  label={value}
-                  size='small'
-                  onDelete={() => {
-                    onChange(selectedSkills.filter((s) => s !== value));
-                  }}
-                  onMouseDown={(e) => e.stopPropagation()}
-                />
-              ))}
-            </Box>
-          )}
-        >
-          {availableSkills.map((skill) => (
-            <MenuItem
-              key={skill}
-              value={skill}
-              disabled={
-                !selectedSkills.includes(skill) &&
-                selectedSkills.length >= requiredCount
-              }
-            >
-              {skill}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
       <Typography variant='caption' color='text.secondary'>
         Selecionadas: {selectedSkills.length} / {requiredCount}
       </Typography>
+
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 1,
+          flexWrap: 'wrap',
+        }}
+      >
+        {availableSkills.map((skill) => {
+          const isSelected = selectedSkills.includes(skill);
+          const isDisabled =
+            !isSelected && selectedSkills.length >= requiredCount;
+
+          // Determine hover background color without nested ternary
+          let hoverBgColor: string | undefined;
+          if (isSelected) {
+            hoverBgColor = 'primary.dark';
+          } else if (!isDisabled) {
+            hoverBgColor = 'rgba(209, 50, 53, 0.08)';
+          }
+
+          return (
+            <Chip
+              key={skill}
+              label={skill}
+              size='small'
+              variant={isSelected ? 'filled' : 'outlined'}
+              color={isSelected ? 'primary' : 'default'}
+              onClick={() => handleToggleSkill(skill)}
+              disabled={isDisabled}
+              sx={{
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                '&:hover': {
+                  backgroundColor: hoverBgColor,
+                },
+              }}
+            />
+          );
+        })}
+      </Box>
 
       {selectedSkills.length > requiredCount && (
         <Alert severity='error'>
