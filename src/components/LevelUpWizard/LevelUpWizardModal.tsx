@@ -24,7 +24,10 @@ import {
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { getDivineSpellsOfCircle } from '@/data/systems/tormenta20/magias/divine';
-import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
+import {
+  getPowerSelectionRequirements,
+  getFilteredAvailableOptions,
+} from '@/functions/powers/manualPowerSelection';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -237,6 +240,17 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           currentLevelSelection.powerEffectSelections || {};
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
+
+          // Check available options - if none available, consider requirement satisfied
+          const availableOptions = getFilteredAvailableOptions(
+            req,
+            simulatedSheet
+          );
+          if (availableOptions.length === 0) return true;
+
+          // If fewer options than required, adjust the effective pick count
+          const effectivePick = Math.min(pick, availableOptions.length);
+
           let count = 0;
 
           switch (type) {
@@ -269,7 +283,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               break;
           }
 
-          return count >= pick;
+          return count >= effectivePick;
         });
       }
 

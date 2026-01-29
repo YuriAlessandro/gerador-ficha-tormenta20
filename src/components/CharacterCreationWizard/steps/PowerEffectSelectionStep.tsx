@@ -425,8 +425,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <Typography variant='subtitle1' gutterBottom>
             {label}
           </Typography>
-          <Alert severity='warning'>
-            Nenhuma opção disponível para seleção.
+          <Alert severity='info'>
+            Você já possui todas as opções disponíveis deste poder. Nenhuma
+            seleção necessária.
           </Alert>
         </Box>
       );

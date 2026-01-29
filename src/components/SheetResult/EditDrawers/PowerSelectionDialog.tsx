@@ -288,8 +288,9 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
           <Typography variant='h6' gutterBottom>
             {label}
           </Typography>
-          <Alert severity='warning'>
-            Nenhuma opção disponível para seleção.
+          <Alert severity='info'>
+            Você já possui todas as opções disponíveis deste poder. Nenhuma
+            seleção necessária.
           </Alert>
         </Box>
       );
