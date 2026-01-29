@@ -101,7 +101,7 @@ const navCategories: NavCategory[] = [
     ],
   },
   {
-    label: 'Enciclopédia de Tannah-Toh',
+    label: 'Enciclopédia',
     items: [
       {
         label: 'Raças',
@@ -171,7 +171,7 @@ const navCategories: NavCategory[] = [
 const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
   const theme = useTheme();
   const { isAuthenticated } = useAuth();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('xl'));
   const [anchorEls, setAnchorEls] = useState<{
     [key: string]: HTMLElement | null;
   }>({});
