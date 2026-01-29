@@ -907,4 +907,174 @@ describe('Edição de Atributos - Modificadores Raciais não devem duplicar', ()
       expect(pmNivel6Car5).toBe(35); // Nível 6, CAR 5 (+5 pelo nível)
     });
   });
+
+  /**
+   * Teste de Bug: Elfo Arcanista - PM duplicando ao editar INT e esquecendo ao subir nível
+   *
+   * Bug reportado:
+   * - Ao editar INT, o PM aplica o dobro do valor
+   * - Ao subir de nível, esquece de aplicar o INT
+   *
+   * Fluxo para replicar:
+   * 1. Criar Elfo Arcanista nível 5 com INT 4
+   * 2. Verificar PM inicial
+   * 3. Editar INT de 4 para 5
+   * 4. Verificar se PM aumentou corretamente (não dobrado)
+   * 5. Subir para nível 6
+   * 6. Verificar se PM ainda considera INT
+   *
+   * Arcanista: pm=4, addpm=4, keyAttr=INT
+   * Elfo: +2 INT, +1 DEX, -1 CON
+   */
+  describe('Bug: Elfo Arcanista - PM ao editar INT e subir de nível', () => {
+    it('deve calcular PM corretamente ao editar INT e subir de nível', () => {
+      // Elfo Arcanista
+      // Base INT: 2, após racial (+2): 4
+      const initialAttributes: CharacterAttributes = {
+        [Atributo.FORCA]: { name: Atributo.FORCA, value: 0 },
+        [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 3 }, // 2 + 1 racial
+        [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: -1 }, // 0 - 1 racial
+        [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 4 }, // 2 + 2 racial
+        [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 0 },
+        [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 0 },
+      };
+
+      // ========== ETAPA 1: Criar ficha nível 5 ==========
+      const sheet = createSheetWithRace(
+        'Elfo',
+        'Arcanista',
+        5,
+        initialAttributes
+      );
+
+      // Configurar spellPath do Arcanista (Mago usa INT)
+      // Normalmente isso é feito pelo setup da classe, mas no teste precisamos fazer manualmente
+      sheet.classe = {
+        ...sheet.classe,
+        spellPath: {
+          initialSpells: 4,
+          spellType: 'Arcane' as const,
+          qtySpellsLearnAtLevel: (level: number) =>
+            [5, 9, 13, 17].includes(level) ? 2 : 1,
+          spellCircleAvailableAtLevel: (level: number) => {
+            if (level < 5) return 1;
+            if (level < 9) return 2;
+            if (level < 13) return 3;
+            if (level < 17) return 4;
+            return 5;
+          },
+          keyAttribute: Atributo.INTELIGENCIA,
+        },
+      };
+
+      let currentSheet = recalculateSheet(sheet);
+
+      const pmInicial = currentSheet.pm;
+      const intInicial = currentSheet.atributos[Atributo.INTELIGENCIA].value;
+
+      // Log para debug
+      // eslint-disable-next-line no-console
+      console.log('=== Elfo Arcanista - Bug PM ===');
+      // eslint-disable-next-line no-console
+      console.log(`Nível 5, INT ${intInicial}: PM = ${pmInicial}`);
+
+      expect(currentSheet.nivel).toBe(5);
+      expect(intInicial).toBe(4);
+
+      // ========== ETAPA 2: Editar INT de 4 para 5 ==========
+      let editedSheet: CharacterSheet = {
+        ...currentSheet,
+        atributos: {
+          ...currentSheet.atributos,
+          [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 5 },
+        },
+      };
+      currentSheet = recalculateSheet(editedSheet, currentSheet);
+
+      const pmAposEditarInt = currentSheet.pm;
+      const intAposEditar = currentSheet.atributos[Atributo.INTELIGENCIA].value;
+
+      // eslint-disable-next-line no-console
+      console.log(`Nível 5, INT ${intAposEditar}: PM = ${pmAposEditarInt}`);
+
+      expect(intAposEditar).toBe(5);
+
+      // PM deve aumentar em 1 (não dobrar!)
+      // Se estava duplicando, a diferença seria maior que 1
+      const diferencaPmAposEditar = pmAposEditarInt - pmInicial;
+      // eslint-disable-next-line no-console
+      console.log(`Diferença PM após editar INT: ${diferencaPmAposEditar}`);
+
+      // CORRIGIDO: INT agora é contado apenas uma vez (via bônus de Magias)
+      // A correção removeu keyAttrMod do cálculo base de PM
+      expect(diferencaPmAposEditar).toBe(1); // +1 PM para +1 INT
+
+      // ========== ETAPA 3: Subir para nível 6 ==========
+      editedSheet = {
+        ...currentSheet,
+        nivel: 6,
+      };
+      currentSheet = recalculateSheet(editedSheet, currentSheet);
+
+      const pmAposSubirNivel = currentSheet.pm;
+      const intAposSubirNivel =
+        currentSheet.atributos[Atributo.INTELIGENCIA].value;
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `Nível 6, INT ${intAposSubirNivel}: PM = ${pmAposSubirNivel}`
+      );
+
+      expect(currentSheet.nivel).toBe(6);
+      expect(intAposSubirNivel).toBe(5); // INT deve continuar 5
+
+      // PM deve aumentar com o nível (addpm = 6 para Arcanista)
+      const diferencaPmAposNivel = pmAposSubirNivel - pmAposEditarInt;
+      // eslint-disable-next-line no-console
+      console.log(`Diferença PM após subir nível: ${diferencaPmAposNivel}`);
+
+      // Arcanista addpm = 6, pode haver bônus adicionais por nível
+      expect(diferencaPmAposNivel).toBeGreaterThanOrEqual(6);
+
+      // ========== ETAPA 4: Editar INT novamente (5 para 6) ==========
+      editedSheet = {
+        ...currentSheet,
+        atributos: {
+          ...currentSheet.atributos,
+          [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 6 },
+        },
+      };
+      currentSheet = recalculateSheet(editedSheet, currentSheet);
+
+      const pmFinal = currentSheet.pm;
+      const intFinal = currentSheet.atributos[Atributo.INTELIGENCIA].value;
+
+      // eslint-disable-next-line no-console
+      console.log(`Nível 6, INT ${intFinal}: PM = ${pmFinal}`);
+
+      expect(intFinal).toBe(6);
+
+      // PM deve aumentar em 1 novamente
+      const diferencaPmFinal = pmFinal - pmAposSubirNivel;
+      // eslint-disable-next-line no-console
+      console.log(
+        `Diferença PM após editar INT novamente: ${diferencaPmFinal}`
+      );
+
+      // CORRIGIDO: diferença correta de 1
+      expect(diferencaPmFinal).toBe(1); // +1 PM para +1 INT
+
+      // ========== VERIFICAÇÃO FINAL ==========
+      // eslint-disable-next-line no-console
+      console.log('=== Resumo ===');
+      // eslint-disable-next-line no-console
+      console.log(`PM Inicial (N5, INT4): ${pmInicial}`);
+      // eslint-disable-next-line no-console
+      console.log(`PM após +1 INT (N5, INT5): ${pmAposEditarInt}`);
+      // eslint-disable-next-line no-console
+      console.log(`PM após subir nível (N6, INT5): ${pmAposSubirNivel}`);
+      // eslint-disable-next-line no-console
+      console.log(`PM Final (N6, INT6): ${pmFinal}`);
+    });
+  });
 });

@@ -807,23 +807,15 @@ export function recalculateSheet(
     updatedSheet.pv += updatedSheet.manualPVEdit;
   }
 
-  // PM base = classe.pm + keyAttrMod + ((classe.addpm + keyAttrMod) * (level - 1))
+  // PM base = classe.pm + (classe.addpm * (level - 1))
+  // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
+  // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
   const basePM = updatedSheet.classe.pm || 0;
   const addPMPerLevel =
     updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
 
-  // Get key attribute modifier for PM (spell casters use their key attribute)
-  let keyAttrMod = 0;
-  if (updatedSheet.classe.spellPath) {
-    const keyAttr =
-      updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute];
-    keyAttrMod = keyAttr?.value || 0;
-  }
-
-  // Calculate PM: base + keyAttrMod + perLevel * (level - 1)
-  // keyAttrMod is only added once at level 1, not per level
-  updatedSheet.pm =
-    basePM + keyAttrMod + addPMPerLevel * (updatedSheet.nivel - 1);
+  // Calculate PM: base + perLevel * (level - 1)
+  updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
 
   // Add bonus PM if defined
   if (updatedSheet.bonusPM) {
@@ -871,7 +863,6 @@ export function recalculateSheet(
     initialPM: updatedSheet.pm, // After reset with level progression and bonus
     classeBasePM: basePM,
     classePMPerLevel: addPMPerLevel,
-    keyAttrMod,
     customPMPerLevel: updatedSheet.customPMPerLevel,
     bonusPM: updatedSheet.bonusPM,
     nivel: updatedSheet.nivel,
