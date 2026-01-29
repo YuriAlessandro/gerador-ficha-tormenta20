@@ -1254,9 +1254,47 @@ export const applyPower = (
     return '';
   };
 
+  // Helper to check if this specific sheetAction was already applied
+  // This prevents duplicating effects when recalculateSheet is called multiple times
+  const isActionAlreadyApplied = (
+    actionType: string,
+    powerName: string
+  ): boolean => {
+    return sheet.sheetActionHistory.some(
+      (historyEntry) =>
+        historyEntry.powerName === powerName &&
+        historyEntry.changes.some((change) => {
+          // Map action types to their corresponding history change types
+          const actionToChangeTypeMap: Record<string, string[]> = {
+            ModifyAttribute: ['Attribute'],
+            increaseAttribute: ['AttributeIncreasedByAumentoDeAtributo'],
+            addProficiency: ['ProficiencyAdded'],
+            learnSkill: ['SkillsAdded'],
+            addSense: ['SenseAdded'],
+            addEquipment: ['EquipmentAdded'],
+            getGeneralPower: ['PowerAdded'],
+            learnSpell: ['SpellsLearned'],
+            learnAnySpellFromHighestCircle: ['SpellsLearned'],
+            learnClassAbility: ['ClassAbilityLearned'],
+            getClassPower: ['ClassPowerAdded'],
+          };
+
+          const expectedChangeTypes = actionToChangeTypeMap[actionType] || [];
+          return expectedChangeTypes.includes(change.type);
+        })
+    );
+  };
+
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Skip if this action was already applied (prevents duplication during recalculation)
+      if (
+        isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
+      ) {
+        return;
+      }
+
       if (sheetAction.action.type === 'ModifyAttribute') {
         const { attribute, value } = sheetAction.action;
         const newValue = sheet.atributos[attribute].value + value;
