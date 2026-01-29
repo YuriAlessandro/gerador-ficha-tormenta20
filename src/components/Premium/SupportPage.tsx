@@ -167,9 +167,9 @@ const SupportPage: React.FC = () => {
           constantes, crescimento para novos sistemas, novos suplementos, e cada
           vez mais features. Com mais e mais apoio, conseguiremos dedicar mais
           tempo para o projeto e contratar pessoas que possam nós ajudar a tocar
-          diversos dos planos que temos para esse projeto - que não está nem
+          diversos dos planos que temos para Fichas de Nimb - que não está nem
           perto do fim. Além disso, conseguimos pagar por ferramentas que nos
-          ajudem a acelar o desenvolvimento do projeto.
+          ajudem a acelar o desenvolvimento do projeto no geral.
         </Typography>
         <Typography
           variant='body1'

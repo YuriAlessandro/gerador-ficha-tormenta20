@@ -121,16 +121,16 @@ export const SUPPORT_LEVEL_CONFIG: Record<
   },
   [SupportLevel.NIVEL_1]: {
     name: 'Apoiador Nível 1',
-    badgeColor: '#C0C0C0',
+    badgeColor: '#A0A0A0',
     badgeGradient:
-      'linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 50%, #A8A8A8 100%)',
+      'linear-gradient(135deg, #A8A8A8 0%, #C8C8C8 50%, #888888 100%)',
     badgeVariant: 'silver',
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     name: 'Apoiador Nível 1 - Anual',
-    badgeColor: '#C0C0C0',
+    badgeColor: '#A0A0A0',
     badgeGradient:
-      'linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 50%, #A8A8A8 100%)',
+      'linear-gradient(135deg, #A8A8A8 0%, #C8C8C8 50%, #888888 100%)',
     badgeVariant: 'silver',
   },
   [SupportLevel.NIVEL_2]: {
