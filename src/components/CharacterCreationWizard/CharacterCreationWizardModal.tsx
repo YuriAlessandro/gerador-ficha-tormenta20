@@ -389,6 +389,13 @@ const CharacterCreationWizardModal: React.FC<
     }
   }, [open]);
 
+  // Recalculate steps when race, class, or origin change (fixes bug where origin benefits don't show on first load)
+  useEffect(() => {
+    if (open && stepsInitialized) {
+      setSteps(getSteps());
+    }
+  }, [race, classe, origin, deity]);
+
   // Get current step content
   const getStepContent = (stepIndex: number): React.ReactNode => {
     const stepName = steps[stepIndex];
