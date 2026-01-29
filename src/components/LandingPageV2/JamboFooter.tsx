@@ -251,7 +251,7 @@ const JamboFooter: React.FC = () => {
                   </Typography>
                   {imageCredits.map((credit) => (
                     <Link
-                      key={credit.url}
+                      key={credit.description}
                       href={credit.url}
                       target='_blank'
                       rel='noopener noreferrer'
