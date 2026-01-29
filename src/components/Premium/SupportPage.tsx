@@ -26,6 +26,7 @@ import {
   SupportLevelInfo,
   SUPPORT_LEVEL_CONFIG,
 } from '../../types/subscription.types';
+import { getSupportLevels } from '../../services/subscription.service';
 import SupporterBadge from './SupporterBadge';
 
 /**
@@ -55,17 +56,8 @@ const SupportPage: React.FC = () => {
       try {
         setLevelsLoading(true);
         setLevelsError(null);
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL || 'http://localhost:3001'
-          }/api/subscriptions/support-levels`
-        );
-        const data = await response.json();
-        if (data.success) {
-          setSupportLevels(data.data);
-        } else {
-          setLevelsError('Erro ao carregar níveis de apoio.');
-        }
+        const levels = await getSupportLevels();
+        setSupportLevels(levels);
       } catch {
         setLevelsError('Erro ao carregar níveis de apoio. Tente novamente.');
       } finally {
