@@ -40,6 +40,7 @@ import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
+import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
@@ -363,52 +364,99 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
-    <Chip
+    <Box
       key={equip.nome}
-      sx={{ margin: 0.5 }}
-      label={`${equip.nome} ${
-        equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''
-      }`}
-    />
+      sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+    >
+      <Chip
+        sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
+        label={`${equip.nome} ${
+          equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''
+        }`}
+      />
+      {equip.rolls && equip.rolls.length > 0 && (
+        <RollButton
+          rolls={equip.rolls}
+          iconOnly
+          size='small'
+          characterName={nome}
+        />
+      )}
+    </Box>
   ));
 
   equipamentosDiv.push(
     ...bagEquipments.Arma.map((weapon) => (
-      <Chip
+      <Box
         key={getKey(weapon.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${weapon.nome} ${
-          weapon.spaces
-            ? weapon.spaces > 0 && `[${weapon.spaces} espaço(s)]`
-            : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${weapon.nome} ${
+            weapon.spaces
+              ? weapon.spaces > 0 && `[${weapon.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {weapon.rolls && weapon.rolls.length > 0 && (
+          <RollButton
+            rolls={weapon.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 
   equipamentosDiv.push(
     ...bagEquipments.Armadura.map((armor) => (
-      <Chip
+      <Box
         key={getKey(armor.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${armor.nome} ${
-          armor.spaces ? armor.spaces > 0 && `[${armor.spaces} espaço(s)]` : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${armor.nome} ${
+            armor.spaces
+              ? armor.spaces > 0 && `[${armor.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {armor.rolls && armor.rolls.length > 0 && (
+          <RollButton
+            rolls={armor.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 
   equipamentosDiv.push(
     ...bagEquipments.Escudo.map((shield) => (
-      <Chip
+      <Box
         key={getKey(shield.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${shield.nome} ${
-          shield.spaces
-            ? shield.spaces > 0 && `[${shield.spaces} espaço(s)]`
-            : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${shield.nome} ${
+            shield.spaces
+              ? shield.spaces > 0 && `[${shield.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {shield.rolls && shield.rolls.length > 0 && (
+          <RollButton
+            rolls={shield.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 

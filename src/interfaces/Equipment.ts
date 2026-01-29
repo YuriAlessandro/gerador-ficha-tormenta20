@@ -34,6 +34,7 @@ export interface EquipmentSelectableBonus {
 }
 
 export default interface Equipment {
+  id?: string; // UUID for unique identification (used for custom items)
   nome: string;
   dano?: string;
   critico?: string;
@@ -70,6 +71,9 @@ export default interface Equipment {
 
   // Custom dice rolls (e.g., Água Benta damage roll)
   rolls?: DiceRoll[];
+
+  // Flag to identify user-created custom items
+  isCustom?: boolean;
 
   // Can be used as weapon (e.g., Tocha)
   canBeUsedAsWeapon?: boolean;
