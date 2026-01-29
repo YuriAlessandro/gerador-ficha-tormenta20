@@ -370,29 +370,32 @@ const UnifiedSpellsTable: React.FC = () => {
 
   // Combine and merge all spells with type indicators
   const allSpells: MergedSpell[] = useMemo(() => {
-    const arcaneSpells = [
-      ...allArcaneSpellsCircle1,
-      ...allArcaneSpellsCircle2,
-      ...allArcaneSpellsCircle3,
-      ...allArcaneSpellsCircle4,
-      ...allArcaneSpellsCircle5,
-    ].map((spell) => ({ ...spell, spellType: 'arcane' as const }));
+    const combinedSpells: ExtendedSpell[] = [];
 
-    const divineSpells = [
-      ...allDivineSpellsCircle1,
-      ...allDivineSpellsCircle2,
-      ...allDivineSpellsCircle3,
-      ...allDivineSpellsCircle4,
-      ...allDivineSpellsCircle5,
-    ].map((spell) => ({ ...spell, spellType: 'divine' as const }));
+    // Only include core spells if TORMENTA20_CORE is selected
+    if (selectedSupplements.includes(SupplementId.TORMENTA20_CORE)) {
+      const arcaneSpells = [
+        ...allArcaneSpellsCircle1,
+        ...allArcaneSpellsCircle2,
+        ...allArcaneSpellsCircle3,
+        ...allArcaneSpellsCircle4,
+        ...allArcaneSpellsCircle5,
+      ].map((spell) => ({ ...spell, spellType: 'arcane' as const }));
 
-    const combinedSpells = [
-      ...arcaneSpells,
-      ...divineSpells,
-      ...supplementSpells,
-    ];
+      const divineSpells = [
+        ...allDivineSpellsCircle1,
+        ...allDivineSpellsCircle2,
+        ...allDivineSpellsCircle3,
+        ...allDivineSpellsCircle4,
+        ...allDivineSpellsCircle5,
+      ].map((spell) => ({ ...spell, spellType: 'divine' as const }));
+
+      combinedSpells.push(...arcaneSpells, ...divineSpells);
+    }
+
+    combinedSpells.push(...supplementSpells);
     return mergeSpells(combinedSpells);
-  }, [supplementSpells]);
+  }, [supplementSpells, selectedSupplements]);
 
   const [filters, setFilters] = useState<SpellFilters>({
     search: '',
