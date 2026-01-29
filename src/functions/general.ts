@@ -1256,34 +1256,33 @@ export const applyPower = (
 
   // Helper to check if this specific sheetAction was already applied
   // This prevents duplicating effects when recalculateSheet is called multiple times
+  // Map action types to their corresponding history change types
+  const actionToChangeTypeMap: Record<string, string[]> = {
+    ModifyAttribute: ['Attribute'],
+    increaseAttribute: ['AttributeIncreasedByAumentoDeAtributo'],
+    addProficiency: ['ProficiencyAdded'],
+    learnSkill: ['SkillsAdded'],
+    addSense: ['SenseAdded'],
+    addEquipment: ['EquipmentAdded'],
+    getGeneralPower: ['PowerAdded'],
+    learnSpell: ['SpellsLearned'],
+    learnAnySpellFromHighestCircle: ['SpellsLearned'],
+    learnClassAbility: ['ClassAbilityLearned'],
+    getClassPower: ['ClassPowerAdded'],
+  };
+
   const isActionAlreadyApplied = (
     actionType: string,
     powerName: string
-  ): boolean => {
-    return sheet.sheetActionHistory.some(
+  ): boolean =>
+    sheet.sheetActionHistory.some(
       (historyEntry) =>
         historyEntry.powerName === powerName &&
         historyEntry.changes.some((change) => {
-          // Map action types to their corresponding history change types
-          const actionToChangeTypeMap: Record<string, string[]> = {
-            ModifyAttribute: ['Attribute'],
-            increaseAttribute: ['AttributeIncreasedByAumentoDeAtributo'],
-            addProficiency: ['ProficiencyAdded'],
-            learnSkill: ['SkillsAdded'],
-            addSense: ['SenseAdded'],
-            addEquipment: ['EquipmentAdded'],
-            getGeneralPower: ['PowerAdded'],
-            learnSpell: ['SpellsLearned'],
-            learnAnySpellFromHighestCircle: ['SpellsLearned'],
-            learnClassAbility: ['ClassAbilityLearned'],
-            getClassPower: ['ClassPowerAdded'],
-          };
-
           const expectedChangeTypes = actionToChangeTypeMap[actionType] || [];
           return expectedChangeTypes.includes(change.type);
         })
     );
-  };
 
   // sheet action
   if (powerOrAbility.sheetActions) {
