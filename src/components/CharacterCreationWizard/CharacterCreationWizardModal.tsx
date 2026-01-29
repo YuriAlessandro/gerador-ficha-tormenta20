@@ -90,9 +90,11 @@ const CharacterCreationWizardModal: React.FC<
 
   // Get race, class, origin, deity from selected options
   // Default to TORMENTA20_CORE for non-authenticated users
-  const supplements = selectedOptions.supplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  // Memoize to prevent creating new array on every render (which would cause infinite loop)
+  const supplements = useMemo(
+    () => selectedOptions.supplements || [SupplementId.TORMENTA20_CORE],
+    [selectedOptions.supplements]
+  );
 
   // Get race and apply customization if provided
   const race: Race | undefined = useMemo(() => {
@@ -154,19 +156,29 @@ const CharacterCreationWizardModal: React.FC<
 
     return baseRace;
   }, [selectedOptions.raca, supplements, raceCustomization]);
-  const classes = dataRegistry.getClassesBySupplements(supplements);
-  const classe: ClassDescription | undefined = classes.find(
-    (c) => c.name === selectedOptions.classe
+
+  // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
+  const classe: ClassDescription | undefined = useMemo(() => {
+    const classes = dataRegistry.getClassesBySupplements(supplements);
+    return classes.find((c) => c.name === selectedOptions.classe);
+  }, [supplements, selectedOptions.classe]);
+
+  // Memoize origin to prevent infinite re-renders (used as useEffect dependency)
+  const origin: Origin | undefined = useMemo(() => {
+    const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
+    return allOrigins.find((o: Origin) => o.name === selectedOptions.origin);
+  }, [supplements, selectedOptions.origin]);
+
+  // Memoize deity to prevent infinite re-renders (used as useEffect dependency)
+  const deity: Divindade | null = useMemo(
+    () =>
+      selectedOptions.devocao?.value
+        ? DivindadeEnum[
+            selectedOptions.devocao.value as keyof typeof DivindadeEnum
+          ] || null
+        : null,
+    [selectedOptions.devocao?.value]
   );
-  const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
-  const origin: Origin | undefined = allOrigins.find(
-    (o: Origin) => o.name === selectedOptions.origin
-  );
-  const deity: Divindade | null = selectedOptions.devocao?.value
-    ? DivindadeEnum[
-        selectedOptions.devocao.value as keyof typeof DivindadeEnum
-      ] || null
-    : null;
 
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
