@@ -67,6 +67,7 @@ import generateRandomSheet, {
   applyManualLevelUp,
 } from '../../functions/general';
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
+import { recalculateSheet } from '../../functions/recalculateSheet';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
@@ -615,6 +616,14 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     levelUpSelections.forEach((levelSelection) => {
       finalSheet = applyManualLevelUp(finalSheet, levelSelection);
     });
+
+    // Reset current PV/PM to undefined so recalculateSheet sets them to the new max
+    // This is safe because we're in initial character creation, not gameplay
+    finalSheet.currentPV = undefined;
+    finalSheet.currentPM = undefined;
+
+    // Recalculate sheet to apply attribute bonuses to PM/PV
+    finalSheet = recalculateSheet(finalSheet);
 
     // Finalize the sheet
     finalizeSheet(finalSheet);
