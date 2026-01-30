@@ -3910,6 +3910,168 @@ export function generateEmptySheet(
     emptySheet.spells = [...wizardSelections.initialSpells];
   }
 
+  // === STEP RECORDING FOR WIZARD-CREATED SHEETS ===
+  // Record character creation steps similar to generateRandomSheet
+
+  // Step: Gender
+  if (wizardSelections?.characterGender) {
+    emptySheet.steps.push({
+      label: 'Gênero',
+      value: [
+        {
+          value: wizardSelections.characterGender,
+        },
+      ],
+    });
+  }
+
+  // Step: Race
+  emptySheet.steps.push({
+    label: 'Raça',
+    value: [{ value: race.name }],
+  });
+
+  // Step: Heritage (for Moreau)
+  if (race.heritage) {
+    const heritage = MOREAU_HERITAGES[race.heritage];
+    if (heritage) {
+      emptySheet.steps.push({
+        label: 'Herança',
+        value: [{ value: heritage.name }],
+      });
+    }
+  }
+
+  // Step: Name
+  if (wizardSelections?.characterName) {
+    emptySheet.steps.push({
+      label: 'Nome',
+      value: [{ value: wizardSelections.characterName }],
+    });
+  }
+
+  // Step: Class (with subtype for Arcanista)
+  const classValue = wizardSelections?.arcanistaSubtype
+    ? `${generatedClass.name} (${wizardSelections.arcanistaSubtype})`
+    : generatedClass.name;
+  emptySheet.steps.push({
+    label: 'Classe',
+    value: [{ value: classValue }],
+  });
+
+  // Step: Initial values
+  const initialPV = generatedClass.pv + generatedClass.addpv;
+  const initialPM = generatedClass.pm;
+  const initialDefense = 10;
+  const initialMoney = getInitialMoney(selectedOptions.nivel);
+
+  emptySheet.steps.push(
+    {
+      label: 'PV Inicial',
+      value: [{ value: initialPV }],
+    },
+    {
+      label: 'PM Inicial',
+      value: [{ value: initialPM }],
+    },
+    {
+      label: 'Defesa Inicial',
+      value: [{ value: initialDefense }],
+    },
+    {
+      label: 'Dinheiro Inicial',
+      value: [{ value: `T$ ${initialMoney}` }],
+    }
+  );
+
+  // Step: Base Attributes
+  if (wizardSelections?.baseAttributes) {
+    const attrSubsteps: SubStep[] = Object.entries(
+      wizardSelections.baseAttributes
+    ).map(([attr, value]) => ({
+      name: attr,
+      value: value >= 0 ? `+${value}` : `${value}`,
+    }));
+
+    emptySheet.steps.push({
+      label: 'Atributos Base',
+      type: 'Atributos',
+      value: attrSubsteps,
+    });
+  }
+
+  // Step: Origin benefits
+  if (selectedOptions.origin && wizardSelections?.originBenefits) {
+    const benefitSubsteps: SubStep[] = wizardSelections.originBenefits.map(
+      (benefit) => ({
+        name: benefit.type === 'skill' ? 'Perícia' : 'Poder',
+        value: benefit.name,
+      })
+    );
+
+    if (benefitSubsteps.length > 0) {
+      emptySheet.steps.push({
+        label: `Benefícios da origem: ${selectedOptions.origin}`,
+        type: 'Origem',
+        value: benefitSubsteps,
+      });
+    }
+  }
+
+  // Step: Trained Skills (from class and wizard selection)
+  if (emptySheet.skills.length > 0) {
+    const skillSubsteps: SubStep[] = emptySheet.skills.map((skill) => ({
+      name: skill,
+      value: 'Treinada',
+    }));
+
+    emptySheet.steps.push({
+      label: 'Perícias Treinadas',
+      type: 'Perícias',
+      value: skillSubsteps,
+    });
+  }
+
+  // Step: Deity
+  if (selectedOptions.devocao && selectedOptions.devocao.value !== '--') {
+    const deityPowerNames =
+      wizardSelections?.deityPowers ||
+      emptySheet.devoto?.poderes?.map((p) => p.name) ||
+      [];
+
+    const deitySubsteps: SubStep[] =
+      deityPowerNames.length > 0
+        ? deityPowerNames.map((powerName) => ({
+            name: 'Poder Concedido',
+            value: powerName,
+          }))
+        : [];
+
+    emptySheet.steps.push({
+      label: `Devoto de ${
+        selectedOptions.devocao.label || selectedOptions.devocao.value
+      }`,
+      type: 'Devoção',
+      value: deitySubsteps,
+    });
+  }
+
+  // Step: Initial Spells
+  if (emptySheet.spells.length > 0) {
+    const spellSubsteps: SubStep[] = emptySheet.spells.map((spell) => ({
+      name: spell.nome,
+      value: spell.spellCircle,
+    }));
+
+    emptySheet.steps.push({
+      label: 'Magias Iniciais',
+      type: 'Magias',
+      value: spellSubsteps,
+    });
+  }
+
+  // === END STEP RECORDING ===
+
   // Gerar equipamentos de recompensa para ficha vazia se solicitado
   if (
     selectedOptions.gerarItens &&

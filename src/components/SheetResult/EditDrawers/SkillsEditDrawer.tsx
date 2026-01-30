@@ -342,10 +342,45 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           <Table stickyHeader size='small'>
             <TableHead>
               <TableRow>
-                <TableCell>Perícia</TableCell>
-                <TableCell align='center'>Treinada</TableCell>
-                <TableCell align='center'>Outros</TableCell>
-                <TableCell align='center'>Total</TableCell>
+                <TableCell
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Perícia
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Treinada
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Outros
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Total
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

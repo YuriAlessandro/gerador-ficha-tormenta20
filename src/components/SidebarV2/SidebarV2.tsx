@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -14,8 +14,11 @@ import {
   Slide,
   styled,
   Link,
+  Avatar,
+  CircularProgress,
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import HistoryIcon from '@mui/icons-material/History';
@@ -33,12 +36,16 @@ import CodeIcon from '@mui/icons-material/Code';
 import NotesIcon from '@mui/icons-material/Notes';
 import LinkIcon from '@mui/icons-material/Link';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
+import LogoutIcon from '@mui/icons-material/Logout';
 // import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
+import { AppDispatch } from '../../store';
+import { logout } from '../../store/slices/auth/authSlice';
 // import { useDice3D } from '../../contexts/Dice3DContext';
 
 interface SidebarV2Props {
@@ -51,10 +58,14 @@ interface SidebarV2Props {
 const StyledPaper = styled(Paper)`
   position: fixed;
   z-index: 3;
-  height: 97.9vh;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for iOS */
   padding-top: 20px;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
   transition: visibility 0s, opacity 0.5s linear;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 `;
 
 const StyledMenuItem = styled(MenuItem)`
@@ -79,8 +90,41 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
+  const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useAuth();
+  const [loggingOut, setLoggingOut] = useState(false);
   // const { settings, updateSettings } = useDice3D();
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await dispatch(logout()).unwrap();
+      onCloseSidebar();
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
+  const getInitials = () => {
+    if (user?.fullName) {
+      return user.fullName
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    if (user?.username) {
+      return user.username.slice(0, 2).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getDisplayName = () =>
+    user?.fullName || user?.username || user?.email || 'Usuário';
 
   useEffect(() => {
     if (visible) {
@@ -169,6 +213,76 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
             </div>
           </div>
 
+          {/* User Section - shows when authenticated */}
+          {isAuthenticated && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                px: 2,
+                py: 1.5,
+                mx: 1,
+                mb: 1,
+                borderRadius: 2,
+                backgroundColor: isDarkTheme
+                  ? 'rgba(255, 255, 255, 0.05)'
+                  : 'rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 40,
+                  height: 40,
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                }}
+                src={user?.photoURL || undefined}
+              >
+                {!user?.photoURL && getInitials()}
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  variant='subtitle2'
+                  fontWeight='bold'
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {getDisplayName()}
+                </Typography>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
+                  {user?.email}
+                </Typography>
+              </Box>
+              {loggingOut ? (
+                <CircularProgress size={20} />
+              ) : (
+                <LogoutIcon
+                  onClick={handleLogout}
+                  sx={{
+                    cursor: 'pointer',
+                    color: 'text.secondary',
+                    '&:hover': { color: 'error.main' },
+                  }}
+                />
+              )}
+            </Box>
+          )}
+
           <MenuList>
             {/* Home */}
             <StyledMenuItem onClick={() => navigateTo('/')}>
@@ -178,10 +292,27 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               <Typography variant='inherit'>Início</Typography>
             </StyledMenuItem>
 
+            <StyledMenuItem
+              onClick={() =>
+                user?.username && navigateTo(`/perfil/${user.username}`)
+              }
+            >
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Meu Perfil</Typography>
+            </StyledMenuItem>
+
             <Divider sx={{ my: 1 }} />
 
             {/* PERSONAGENS */}
             <StyledSubheader>Personagens</StyledSubheader>
+            <StyledMenuItem onClick={() => navigateTo('/criar-ficha')}>
+              <ListItemIcon>
+                <PersonAddIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Criar nova ficha</Typography>
+            </StyledMenuItem>
             <StyledMenuItem
               onClick={() =>
                 navigateTo(isAuthenticated ? '/meus-personagens' : '/sheets')
@@ -207,16 +338,6 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                     <AccountTreeIcon />
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
-                </StyledMenuItem>
-                <StyledMenuItem
-                  onClick={() =>
-                    user?.username && navigateTo(`/perfil/${user.username}`)
-                  }
-                >
-                  <ListItemIcon>
-                    <PersonIcon />
-                  </ListItemIcon>
-                  <Typography variant='inherit'>Meu Perfil</Typography>
                 </StyledMenuItem>
               </>
             )}
@@ -385,8 +506,8 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
           </StyledMenuItem> */}
           </MenuList>
 
-          {/* Footer spacing */}
-          <Box sx={{ height: 20 }} />
+          {/* Footer spacing - extra space for iOS safe areas */}
+          <Box sx={{ height: 60 }} />
         </StyledPaper>
       </Slide>
     </>

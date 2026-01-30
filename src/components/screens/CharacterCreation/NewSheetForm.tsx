@@ -14,7 +14,6 @@ import {
 import { Edit as EditIcon } from '@mui/icons-material';
 import Select, { StylesConfig } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
-import { formatGroupLabel } from 'react-select/src/builtins';
 import SelectOptions from '../../../interfaces/SelectedOptions';
 import {
   SupplementId,
@@ -30,7 +29,6 @@ import {
   ClassWithSupplement,
   OriginWithSupplement,
 } from '../../../data/registry';
-import roles from '../../../data/systems/tormenta20/roles';
 import getSelectTheme from '../../../functions/style';
 import { raceHasOrigin } from '../../../data/systems/tormenta20/origins';
 
@@ -128,18 +126,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     }
   };
 
-  const onSelectGerarItens = (opcao: SelectedOption | null) => {
-    if (opcao) {
-      onSelectedOptionsChange({
-        ...selectedOptions,
-        gerarItens: opcao.value as
-          | 'nao-gerar'
-          | 'consumir-dinheiro'
-          | 'sem-gastar-dinheiro',
-      });
-    }
-  };
-
   // NO "Aleatoria" options - only actual values
   const racas = React.useMemo<SelectedOption[]>(
     () =>
@@ -150,15 +136,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         supplementName: raca.supplementName,
       })),
     [RACAS]
-  );
-
-  const rolesopt = React.useMemo<SelectedOption[]>(
-    () =>
-      Object.keys(roles).map((role) => ({
-        value: role,
-        label: role,
-      })),
-    []
   );
 
   const classesopt = React.useMemo<SelectedOption[]>(
@@ -183,18 +160,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     return result;
   }, []);
 
-  const opcoesGerarItens = React.useMemo(
-    () => [
-      { value: 'nao-gerar', label: 'Não gerar' },
-      {
-        value: 'consumir-dinheiro',
-        label: 'Gerar consumindo dinheiro inicial',
-      },
-      { value: 'sem-gastar-dinheiro', label: 'Gerar sem gastar dinheiro' },
-    ],
-    []
-  );
-
   const origens = React.useMemo<SelectedOption[]>(
     () =>
       dataRegistry
@@ -209,6 +174,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   );
 
   // NO "Aleatorio" in divindades - only actual deities and "Nao devoto"
+  // Sorted alphabetically by display name
   const divindades = React.useMemo(
     () =>
       allDivindadeNames
@@ -225,7 +191,8 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         .map((sdv) => ({
           value: sdv,
           label: divindadeDisplayNames[sdv],
-        })),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR')),
     [selectedOptions.classe, CLASSES]
   );
 
@@ -279,12 +246,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     }),
   };
 
-  const fmtGroupLabel: formatGroupLabel = (data) => (
-    <div>
-      <span>{data.label}</span>
-    </div>
-  );
-
   return (
     <Box>
       <Typography
@@ -322,21 +283,11 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         {/* Class Selection - NO "Aleatoria" */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-            Classe / Role <span style={{ color: '#d32f2f' }}>*</span>
+            Classe <span style={{ color: '#d32f2f' }}>*</span>
           </Typography>
           <Select
-            options={[
-              {
-                label: 'Classes',
-                options: classesopt,
-              },
-              {
-                label: 'Roles',
-                options: rolesopt,
-              },
-            ]}
+            options={classesopt}
             placeholder='Selecione uma classe...'
-            formatGroupLabel={fmtGroupLabel}
             formatOptionLabel={formatOptionLabel}
             onChange={onSelectClasse}
             isSearchable
@@ -387,22 +338,7 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           </Typography>
           <Select
             placeholder='Selecione...'
-            options={[
-              {
-                label: '',
-                options: [
-                  { value: '--', label: 'Não devoto' },
-                  {
-                    value: '**',
-                    label: 'Qualquer divindade (aleatorio no wizard)',
-                  },
-                ],
-              },
-              {
-                label: `Permitidas (${selectedOptions.classe || 'Todas'})`,
-                options: divindades,
-              },
-            ]}
+            options={[{ value: '--', label: 'Não devoto' }, ...divindades]}
             isSearchable
             value={selectedOptions.devocao}
             onChange={inSelectDivindade}
@@ -429,29 +365,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
             formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
             onChange={onSelectNivel}
             defaultValue={{ value: '1', label: 'Nível 1' }}
-            styles={selectStyles}
-            menuPortalTarget={document.body}
-            theme={(selectTheme) => ({
-              ...selectTheme,
-              colors: {
-                ...formThemeColors,
-              },
-            })}
-          />
-        </Grid>
-
-        {/* Generate Items Selection */}
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <Typography variant='body2' sx={{ mb: 1, fontWeight: 'medium' }}>
-            Gerar Itens
-          </Typography>
-          <Select
-            placeholder='Não gerar'
-            options={opcoesGerarItens}
-            value={opcoesGerarItens.find(
-              (opt) => opt.value === selectedOptions.gerarItens
-            )}
-            onChange={onSelectGerarItens}
             styles={selectStyles}
             menuPortalTarget={document.body}
             theme={(selectTheme) => ({

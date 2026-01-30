@@ -6,10 +6,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
-} from '@mui/icons-material';
+import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import './characterCreation.css';
 
 export type ModePosition = 'left' | 'right';
@@ -32,7 +29,7 @@ const ModeCard: React.FC<ModeCardProps> = ({
   shortTitle,
   description,
   isMinimized,
-  position,
+  position: _position,
   onClick,
   onBack,
   variant = 'default',
@@ -100,8 +97,6 @@ const ModeCard: React.FC<ModeCardProps> = ({
     }
     return undefined;
   };
-
-  const BackArrowIcon = position === 'left' ? ArrowBackIcon : ArrowForwardIcon;
 
   return (
     <Box
@@ -171,12 +166,21 @@ const ModeCard: React.FC<ModeCardProps> = ({
       )}
 
       {isMinimized && (
-        <>
-          <Box className='mode-card-back-arrow'>
-            <BackArrowIcon fontSize='small' />
-          </Box>
-          <Typography className='mode-card-switch-text'>Trocar modo</Typography>
-        </>
+        <Button
+          variant='text'
+          size='small'
+          sx={{
+            mt: 1,
+            color: getButtonColor(),
+            fontSize: '0.75rem',
+            textTransform: 'none',
+            '&:hover': {
+              backgroundColor: getButtonHoverBg(),
+            },
+          }}
+        >
+          Alterar modo
+        </Button>
       )}
     </Box>
   );
