@@ -1776,7 +1776,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                 </Typography>
                 <Select
                   placeholder='Selecione uma origem'
-                  options={[{ value: '', label: 'Aleatória' }, ...origens]}
+                  options={[
+                    { value: '', label: 'Aleatória' },
+                    { value: '__NO_ORIGIN__', label: 'Sem Origem' },
+                    ...origens,
+                  ]}
                   isSearchable
                   onChange={onSelectOrigin}
                   isDisabled={selectedOptions.raca === 'Golem'}
