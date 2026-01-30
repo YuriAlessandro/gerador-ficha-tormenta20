@@ -441,18 +441,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
     const { spellPath } = sheet.classe;
 
-    // Get the key attribute modifier for PM calculation
-    let keyAttrMod = 0;
-    if (spellPath) {
-      const keyAttr = attributes[spellPath.keyAttribute];
-      keyAttrMod = keyAttr ? keyAttr.value : 0;
-    }
-
-    const pmBase = classData.pm + keyAttrMod;
-    const pmPerLevel = (customPMPerLevel ?? classData.addpm ?? 0) + keyAttrMod;
+    // PM base = classe.pm + (classe.addpm * (level - 1))
+    // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
+    // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
+    const pmBase = classData.pm;
+    const pmPerLevel = customPMPerLevel ?? classData.addpm ?? 0;
     let total = pmBase + pmPerLevel * (level - 1) + bonusPM;
 
-    // Add bonuses from powers/abilities
+    // Add bonuses from powers/abilities (this is where key attribute bonus comes from)
     const pmBonuses = sheet.sheetBonuses.filter(
       (bonus) => bonus.target.type === 'PM'
     );
@@ -1307,20 +1303,15 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
     const { spellPath } = sheet.classe;
 
-    let keyAttrMod = 0;
-    let keyAttrName = '';
-    if (spellPath) {
-      const keyAttr = editedData.attributes[spellPath.keyAttribute];
-      keyAttrMod = keyAttr ? keyAttr.value : 0;
-      keyAttrName = spellPath.keyAttribute.substring(0, 3);
-    }
-
+    // PM base = classe.pm + (classe.addpm * (level - 1))
+    // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
+    // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
     const pmPerLevel = editedData.customPMPerLevel ?? classData.addpm ?? 0;
-    const pmBase = classData.pm + keyAttrMod;
-    const pmFromLevels = (pmPerLevel + keyAttrMod) * (editedData.nivel - 1);
+    const pmBase = classData.pm;
+    const pmFromLevels = pmPerLevel * (editedData.nivel - 1);
     const bonus = editedData.bonusPM;
 
-    // Calculate power bonuses
+    // Calculate power bonuses (this is where key attribute bonus comes from)
     const pmBonuses = sheet.sheetBonuses.filter((b) => b.target.type === 'PM');
     const powerBonusDetails = pmBonuses.map((b) => {
       const value = calculateBonusValue(
@@ -1345,17 +1336,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     );
 
     let formula = `${classData.pm} (base)`;
-    if (keyAttrMod !== 0) {
-      formula += ` + ${keyAttrMod} (${keyAttrName})`;
-    }
     if (editedData.nivel > 1) {
-      formula += ` + [${pmPerLevel} (por nível)`;
-      if (keyAttrMod !== 0) {
-        formula += ` + ${keyAttrMod} (${keyAttrName})`;
-      }
-      formula += `] × ${editedData.nivel - 1}`;
+      formula += ` + ${pmPerLevel} (por nível) × ${editedData.nivel - 1}`;
     }
-    // Add power bonuses to formula
+    // Add power bonuses to formula (includes key attribute from "Magias")
     powerBonusDetails.forEach((b) => {
       if (b.value !== 0) {
         formula += ` + ${b.value} (${b.source})`;
