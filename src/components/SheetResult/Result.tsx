@@ -594,7 +594,7 @@ const Result: React.FC<ResultProps> = (props) => {
               sx={{
                 p: 3,
                 mb: 4,
-                minHeight: isMobile ? '500px' : '180px',
+                minHeight: isMobile ? 'inherit' : '180px',
                 position: 'relative',
                 overflow: 'visible', // Allow the button to show outside the card
               }}
@@ -624,6 +624,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 alignItems='center'
                 flexWrap='wrap'
                 justifyContent='center'
+                gap={isMobile ? 5 : 0}
               >
                 <Box sx={{ flexGrow: 1 }}>
                   <LabelDisplay text={nome} size='large' />
@@ -723,15 +724,30 @@ const Result: React.FC<ResultProps> = (props) => {
             </Card>
 
             {/* PARTE DO MEIO: Atributos */}
-            <Box
-              sx={
-                isMobile
-                  ? { mt: '-290px', position: 'relative' }
-                  : { mt: '-90px', position: 'relative' }
-              }
-            >
-              <AttributeDisplay attributes={atributos} characterName={nome} />
-            </Box>
+            {!isMobile && (
+              <Box
+                sx={
+                  isMobile
+                    ? { mt: '-290px', position: 'relative' }
+                    : { mt: '-90px', position: 'relative' }
+                }
+              >
+                <AttributeDisplay attributes={atributos} characterName={nome} />
+              </Box>
+            )}
+            {isMobile && (
+              <Card
+                sx={{
+                  p: 3,
+                  mb: 4,
+                  position: 'relative',
+                  overflow: 'visible', // Allow the button to show outside the card
+                }}
+              >
+                <BookTitle>Atributos</BookTitle>
+                <AttributeDisplay attributes={atributos} characterName={nome} />
+              </Card>
+            )}
 
             {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
             <Card
