@@ -4,6 +4,7 @@ import { SelectionOptions } from './PowerSelections';
 import { Spell, SpellSchool } from './Spells';
 import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
+import { OriginBenefits } from './Origin';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -47,6 +48,9 @@ export interface WizardSelections {
 
   // Origin benefit selections (for non-regional origins: 2 choices)
   originBenefits?: OriginBenefit[];
+
+  // Cached origin benefits (computed once to prevent random re-selection on navigation)
+  cachedOriginBenefits?: OriginBenefits;
 
   // Origin power selections (if origin powers need selection)
   originPowerSelections?: SelectionOptions;

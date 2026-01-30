@@ -164,6 +164,8 @@ const benefitsStrategies = {
           ...benefits.powers.general,
           makeOriginGeneralPowerGetter(origin, type),
         ],
+        // Store the actual GeneralPower for wizard display
+        generalPowers: [...(benefits.powers.generalPowers || []), benefit],
       },
     }),
 };
@@ -195,41 +197,52 @@ function getBenefits(
       powers: {
         origin: [],
         general: [],
+        generalPowers: [],
       },
     }
   );
 }
 
-function sortDefaultBenefits(usedSkills: Skill[], origin: Origin) {
+// If returnAllOptions is true, returns ALL available options for manual selection
+// Otherwise, randomly picks 2 benefits (for random generator)
+function sortDefaultBenefits(
+  usedSkills: Skill[],
+  origin: Origin,
+  returnAllOptions?: boolean
+) {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     usedSkills,
     origin.pericias
   );
 
-  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...origin.poderes],
-    2
-  );
+  const allBenefits = [...notRepeatedSkills, ...origin.poderes];
 
-  return getBenefits(sortedBenefits, origin);
+  // If returnAllOptions, return all available options (for wizard manual selection)
+  // Otherwise, randomly pick 2 benefits (for random generator)
+  const benefits = returnAllOptions
+    ? allBenefits
+    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
+
+  return getBenefits(benefits, origin);
 }
 
 export function getOriginBenefits(
   usedSkills: Skill[],
-  origin: Origin
+  origin: Origin,
+  returnAllOptions?: boolean
 ): OriginBenefits {
   // Origens regionais (Atlas de Arton) concedem TODOS os benefícios automaticamente
   if (origin.isRegional && origin.getPowersAndSkills) {
-    return origin.getPowersAndSkills(usedSkills, origin);
+    return origin.getPowersAndSkills(usedSkills, origin, returnAllOptions);
   }
 
   // Origens customizadas (não regionais) que têm lógica específica
   if (origin.getPowersAndSkills) {
-    return origin.getPowersAndSkills(usedSkills, origin);
+    return origin.getPowersAndSkills(usedSkills, origin, returnAllOptions);
   }
 
   // Origens do core: escolher 2 benefícios entre perícias e poderes
-  return sortDefaultBenefits(usedSkills, origin);
+  return sortDefaultBenefits(usedSkills, origin, returnAllOptions);
 }
 
 // Amnésico recebe uma skill random e um poder geral random
@@ -249,16 +262,16 @@ function sortAmnesicBenefits(
 }
 
 // Assitente de Laboratório recebe um poder da Tormenta
+// If returnAllOptions is true, returns ALL available options for manual selection
+// Otherwise, randomly picks 2 benefits (for random generator)
 function sortLabAssistentBenefits(
   skills: Skill[],
-  origin: Origin
+  origin: Origin,
+  returnAllOptions?: boolean
 ): OriginBenefits {
   const allowedTormentaPowers = CORE_POWERS.TORMENTA.filter(
     (power) => power.requirements.length === 0
   );
-  const choosenTormentaPowers = allowedTormentaPowers.length
-    ? [getRandomItemFromArray(allowedTormentaPowers)]
-    : [];
 
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     skills,
@@ -267,18 +280,28 @@ function sortLabAssistentBenefits(
 
   const actualOriginPowers = origin ? origin.poderes : [];
 
-  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...actualOriginPowers, ...choosenTormentaPowers],
-    2
-  );
+  const allBenefits = [
+    ...notRepeatedSkills,
+    ...actualOriginPowers,
+    ...allowedTormentaPowers,
+  ];
 
-  return getBenefits(sortedBenefits, origin, GeneralPowerType.TORMENTA);
+  // If returnAllOptions, return all available options (for wizard manual selection)
+  // Otherwise, randomly pick 2 benefits (for random generator)
+  const benefits = returnAllOptions
+    ? allBenefits
+    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
+
+  return getBenefits(benefits, origin, GeneralPowerType.TORMENTA);
 }
 
 // Para origens que recebem um poder de combate aleatório
+// If returnAllOptions is true, returns ALL available options for manual selection
+// Otherwise, randomly picks 2 benefits (for random generator)
 function getBenefitsWithRandomCombatPower(
   skills: Skill[],
-  origin: Origin
+  origin: Origin,
+  returnAllOptions?: boolean
 ): OriginBenefits {
   const notRepeatedSkills = getNotUsedSkillsFromAllowed(
     skills,
@@ -286,14 +309,20 @@ function getBenefitsWithRandomCombatPower(
   );
 
   const actualOriginPowers = origin ? origin.poderes : [];
-  const choosenCombatPower = getRandomItemFromArray(CORE_POWERS.COMBATE);
 
-  const sortedBenefits = pickFromArray<Skill | OriginPower | GeneralPower>(
-    [...notRepeatedSkills, ...actualOriginPowers, choosenCombatPower],
-    2
-  );
+  const allBenefits = [
+    ...notRepeatedSkills,
+    ...actualOriginPowers,
+    ...CORE_POWERS.COMBATE,
+  ];
 
-  return getBenefits(sortedBenefits, origin, GeneralPowerType.COMBATE);
+  // If returnAllOptions, return all available options (for wizard manual selection)
+  // Otherwise, randomly pick 2 benefits (for random generator)
+  const benefits = returnAllOptions
+    ? allBenefits
+    : pickFromArray<Skill | OriginPower | GeneralPower>(allBenefits, 2);
+
+  return getBenefits(benefits, origin, GeneralPowerType.COMBATE);
 }
 
 export const ORIGINS: Record<origins, Origin> = {

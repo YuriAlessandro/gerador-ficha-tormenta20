@@ -18,7 +18,7 @@ import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race from '@/interfaces/Race';
 import { ClassDescription } from '@/interfaces/Class';
-import Origin from '@/interfaces/Origin';
+import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
@@ -250,7 +250,7 @@ const CharacterCreationWizardModal: React.FC<
     // Check origin powers
     if (origin) {
       const originBenefits = origin.getPowersAndSkills
-        ? origin.getPowersAndSkills([], origin)
+        ? origin.getPowersAndSkills([], origin, true)
         : { powers: { origin: [], general: [] }, skills: [] };
 
       const hasOriginRequirements = originBenefits.powers.origin.some(
@@ -408,6 +408,29 @@ const CharacterCreationWizardModal: React.FC<
     }
   }, [race, classe, origin, deity]);
 
+  // Clear cached origin benefits when origin changes (so new random benefits are generated)
+  useEffect(() => {
+    if (selections.cachedOriginBenefits) {
+      setSelections((prev) => ({
+        ...prev,
+        cachedOriginBenefits: undefined,
+        originBenefits: [],
+      }));
+    }
+  }, [origin?.name]);
+
+  // Helper function to get all skills already selected in previous steps
+  const getAllUsedSkills = (): Skill[] => {
+    const skills: Skill[] = [];
+    if (selections.classSkills) {
+      skills.push(...selections.classSkills);
+    }
+    if (selections.intelligenceSkills) {
+      skills.push(...selections.intelligenceSkills);
+    }
+    return skills;
+  };
+
   // Get current step content
   const getStepContent = (stepIndex: number): React.ReactNode => {
     const stepName = steps[stepIndex];
@@ -540,7 +563,8 @@ const CharacterCreationWizardModal: React.FC<
             onChange={(benefits) =>
               setSelections({ ...selections, originBenefits: benefits })
             }
-            usedSkills={selections.classSkills || []}
+            usedSkills={getAllUsedSkills()}
+            cachedBenefits={selections.cachedOriginBenefits}
           />
         );
 
@@ -766,7 +790,7 @@ const CharacterCreationWizardModal: React.FC<
         // Check origin powers
         if (origin) {
           const originBenefits = origin.getPowersAndSkills
-            ? origin.getPowersAndSkills([], origin)
+            ? origin.getPowersAndSkills([], origin, true)
             : { powers: { origin: [], general: [] }, skills: [] };
 
           originBenefits.powers.origin.forEach((power) => {
@@ -827,6 +851,34 @@ const CharacterCreationWizardModal: React.FC<
       // Last step - confirm
       onConfirm(selections);
     } else {
+      const nextStepName = steps[activeStep + 1];
+
+      // Cache origin benefits when entering origin step for the first time
+      // This prevents random re-selection when navigating back and forth
+      if (
+        nextStepName === 'Benefícios da Origem' &&
+        origin &&
+        !selections.cachedOriginBenefits
+      ) {
+        const allUsedSkills = getAllUsedSkills();
+        // Pass true to get ALL available options for manual selection
+        const benefits: OriginBenefits = origin.getPowersAndSkills
+          ? origin.getPowersAndSkills(allUsedSkills, origin, true)
+          : {
+              powers: {
+                origin:
+                  origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+                general: [],
+              },
+              skills: origin.pericias,
+            };
+
+        setSelections((prev) => ({
+          ...prev,
+          cachedOriginBenefits: benefits,
+        }));
+      }
+
       setActiveStep((prev) => prev + 1);
       // Recalculate steps after advancing (allows conditional steps to appear)
       setSteps(getSteps());

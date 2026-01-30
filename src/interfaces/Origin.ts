@@ -7,6 +7,8 @@ export interface OriginBenefits {
   powers: {
     origin: OriginPower[];
     general: PowerGetter[];
+    // Raw general powers for wizard display (not converted to PowerGetters)
+    generalPowers?: GeneralPower[];
   };
   skills: Skill[];
 }
@@ -26,7 +28,11 @@ interface Origin {
   name: string;
   pericias: Skill[];
   poderes: (OriginPower | GeneralPower)[];
-  getPowersAndSkills?: (usedSkills: Skill[], origin: Origin) => OriginBenefits;
+  getPowersAndSkills?: (
+    usedSkills: Skill[],
+    origin: Origin,
+    returnAllOptions?: boolean
+  ) => OriginBenefits;
   getItems: () => Items[];
   getMoney?: () => number;
   getAttributeModifier?: (classPriority: Atributo[]) => AttributeModifier;

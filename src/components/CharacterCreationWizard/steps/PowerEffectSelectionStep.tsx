@@ -136,7 +136,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   if (origin) {
     // Get origin powers - for regional origins this will be all of them
     const originBenefits = origin.getPowersAndSkills
-      ? origin.getPowersAndSkills([], origin)
+      ? origin.getPowersAndSkills([], origin, true)
       : { powers: { origin: [], general: [] }, skills: [] };
 
     // Check origin-specific powers

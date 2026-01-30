@@ -7,7 +7,7 @@ import {
   Checkbox,
   Paper,
 } from '@mui/material';
-import Origin from '@/interfaces/Origin';
+import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Skill from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 
@@ -16,6 +16,7 @@ interface OriginSelectionStepProps {
   selectedBenefits: OriginBenefit[];
   onChange: (benefits: OriginBenefit[]) => void;
   usedSkills: Skill[];
+  cachedBenefits?: OriginBenefits;
 }
 
 const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
@@ -23,13 +24,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   selectedBenefits,
   onChange,
   usedSkills,
+  cachedBenefits,
 }) => {
   const REQUIRED_SELECTIONS = 2;
 
   // If origin is regional, show what benefits will be granted automatically
   if (origin.isRegional) {
     const originBenefits = origin.getPowersAndSkills
-      ? origin.getPowersAndSkills(usedSkills, origin)
+      ? origin.getPowersAndSkills(usedSkills, origin, true)
       : {
           powers: {
             origin:
@@ -108,17 +110,20 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     );
   }
 
-  // Get available benefits from the origin
-  const originBenefits = origin.getPowersAndSkills
-    ? origin.getPowersAndSkills(usedSkills, origin)
-    : {
-        powers: {
-          origin:
-            origin.poderes as import('@/interfaces/Poderes').OriginPower[],
-          general: [],
-        },
-        skills: origin.pericias,
-      };
+  // Get available benefits from the origin - use cached if available
+  // This prevents random re-selection when navigating back and forth in the wizard
+  const originBenefits =
+    cachedBenefits ||
+    (origin.getPowersAndSkills
+      ? origin.getPowersAndSkills(usedSkills, origin, true)
+      : {
+          powers: {
+            origin:
+              origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+            general: [],
+          },
+          skills: origin.pericias,
+        });
 
   // Items are always given automatically - not selectable
   const items = origin.getItems();
@@ -155,12 +160,17 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
     ...alreadyUsedSkillOptions,
   ];
 
-  const powerOptions: OriginBenefit[] = originBenefits.powers.origin.map(
-    (power) => ({
+  // Include both origin powers and general powers from the origin
+  const powerOptions: OriginBenefit[] = [
+    ...originBenefits.powers.origin.map((power) => ({
       type: 'power' as const,
       name: power.name,
-    })
-  );
+    })),
+    ...(originBenefits.powers.generalPowers || []).map((power) => ({
+      type: 'power' as const,
+      name: power.name,
+    })),
+  ];
 
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
