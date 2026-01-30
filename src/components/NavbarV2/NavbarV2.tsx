@@ -385,7 +385,7 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                   }
 
                   return (
-                    <MenuItem
+                    <Button
                       key={category.label}
                       component='a'
                       href={category.link || '/'}
@@ -393,17 +393,17 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
                         handleLinkClick(e, category.link || '', category.label)
                       }
                       sx={{
-                        py: 1,
-                        textDecoration: 'none',
-                        color: 'inherit !important',
-                        borderRadius: 1,
+                        color: 'inherit',
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        px: 1.5,
                         '&:hover': {
                           backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemText primary={category.label} />
-                    </MenuItem>
+                      {category.label}
+                    </Button>
                   );
                 })}
               </Stack>
