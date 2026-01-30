@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -137,9 +137,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const { user } = useAuth();
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  // Memoize to prevent creating new array on every render (which would cause infinite reset loop)
+  const userSupplements = useMemo(
+    () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
+    [user?.enabledSupplements]
+  );
 
   // Get races and classes based on user's enabled supplements (with supplement info for badges)
   const RACAS_WITH_INFO =
@@ -437,7 +439,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     // Use sheet.classe.spellPath for the key attribute (set during character creation)
     // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
-    const spellPath = sheet.classe.spellPath;
+    const { spellPath } = sheet.classe;
 
     // Get the key attribute modifier for PM calculation
     let keyAttrMod = 0;
@@ -1303,7 +1305,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     // Use sheet.classe.spellPath for the key attribute (set during character creation)
     // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
-    const spellPath = sheet.classe.spellPath;
+    const { spellPath } = sheet.classe;
 
     let keyAttrMod = 0;
     let keyAttrName = '';
