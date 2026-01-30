@@ -108,14 +108,19 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '0.75rem',
+                  fontSize: '0.85rem',
                 }}
               >
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.85rem' }}
+                  color='text.secondary'
+                >
                   Mod. Racial:
                 </Typography>
                 <Typography
-                  variant='caption'
+                  variant='body2'
+                  sx={{ fontSize: '0.85rem' }}
                   color={getRacialModifierColor(racialModifier)}
                   fontWeight='bold'
                 >

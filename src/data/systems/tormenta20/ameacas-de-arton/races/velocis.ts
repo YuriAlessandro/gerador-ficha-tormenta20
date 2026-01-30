@@ -24,13 +24,6 @@ const velocisAbilities: RaceAbility[] = [
     name: 'Velocista da Planície',
     description:
       'Seu deslocamento é 12m. Você pode usar Destreza como atributo-chave de Atletismo (em vez de Força) e, quando faz testes de Atletismo para correr ou saltar, pode rolar dois dados e usar o melhor resultado.',
-    sheetBonuses: [
-      {
-        source: { type: 'power', name: 'Velocista da Planície' },
-        target: { type: 'Displacement' },
-        modifier: { type: 'Fixed', value: 3 },
-      },
-    ],
   },
 ];
 

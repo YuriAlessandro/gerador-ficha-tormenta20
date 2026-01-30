@@ -21,7 +21,7 @@ const AttributeDisplay = ({ attributes, characterName }: Props) => {
 
   const Title = styled.span`
     font-family: 'Tfont';
-    font-size: 10px;
+    font-size: 12px;
   `;
 
   const NumberDisplay = styled.span`

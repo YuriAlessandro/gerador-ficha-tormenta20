@@ -126,7 +126,7 @@ const formatOptionLabel = (option: SelectedOption) => (
           size='small'
           sx={{
             height: '20px',
-            fontSize: '0.7rem',
+            fontSize: '0.75rem',
             backgroundColor: 'primary.main',
             color: 'primary.contrastText',
           }}

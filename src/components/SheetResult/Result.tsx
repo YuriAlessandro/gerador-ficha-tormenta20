@@ -68,7 +68,7 @@ interface ThemeProp {
 const StatTitle = styled.h4`
   font-family: 'Tfont';
   position: relative;
-  font-size: 9px;
+  font-size: 16px;
   text-transform: uppercase;
   margin: 0;
   white-space: nowrap;
@@ -838,6 +838,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 0.5,
+                      fontSize: '68px',
                     }}
                   >
                     <StatLabel theme={theme}>{defesa}</StatLabel>
@@ -869,7 +870,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     <Typography
                       sx={{
                         fontFamily: 'Tfont',
-                        fontSize: '11px',
+                        fontSize: '16px',
                         color: theme.palette.text.secondary,
                         textAlign: 'center',
                         margin: 0,
@@ -877,7 +878,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     >
                       ({Math.floor(displacement / 1.5)}q)
                     </Typography>
-                    <StatTitle>Deslocamento</StatTitle>
+                    <StatTitle>Desl.</StatTitle>
                   </Box>
                 </FancyBox>
                 <FancyBox>
@@ -893,7 +894,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     <Typography
                       sx={{
                         fontFamily: 'Tfont',
-                        fontSize: '28px',
+                        fontSize: '58px',
                         color: theme.palette.primary.main,
                         textAlign: 'center',
                         textTransform: 'uppercase',
