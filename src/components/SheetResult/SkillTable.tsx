@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -13,6 +13,7 @@ import { CompleteSkill, SkillsAttrs } from '../../interfaces/Skills';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
+import SkillActionsDialog from './SkillActionsDialog';
 
 interface IProps {
   sheet: CharacterSheet;
@@ -22,6 +23,11 @@ interface IProps {
 const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
+  const [actionsDialogOpen, setActionsDialogOpen] = useState(false);
+  const [selectedSkill, setSelectedSkill] = useState<CompleteSkill | null>(
+    null
+  );
+  const [selectedSkillTotal, setSelectedSkillTotal] = useState(0);
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
@@ -79,31 +85,59 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     // Return first 3 letters in capital case inside parentheses
     `(${skillName.substring(0, 3).toUpperCase()})`;
 
-  const handleSkillClick = (skill: CompleteSkill, skillTotal: number) => {
-    const d20Roll = rollD20();
-    const total = Math.max(1, d20Roll + skillTotal);
-    const isCritical = d20Roll === 20;
-    const isFumble = d20Roll === 1;
+  const handleSkillRoll = useCallback(
+    (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
+      const d20Roll = rollD20();
+      const total = Math.max(1, d20Roll + skillTotal);
+      const isCritical = d20Roll === 20;
+      const isFumble = d20Roll === 1;
 
-    // Format dice notation with sign
-    const modifierStr = skillTotal >= 0 ? `+${skillTotal}` : `${skillTotal}`;
-    const diceNotation = `1d20${modifierStr}`;
+      // Format dice notation with sign
+      const modifierStr = skillTotal >= 0 ? `+${skillTotal}` : `${skillTotal}`;
+      const diceNotation = `1d20${modifierStr}`;
 
-    showDiceResult(
-      `Teste de ${skill.name}`,
-      [
-        {
-          label: skill.name,
-          diceNotation,
-          rolls: [d20Roll],
-          modifier: skillTotal,
-          total,
-          isCritical,
-          isFumble,
-        },
-      ],
-      sheet.nome
-    );
+      const label = actionName
+        ? `${skill.name} (${actionName})`
+        : `Teste de ${skill.name}`;
+
+      showDiceResult(
+        label,
+        [
+          {
+            label: actionName || skill.name,
+            diceNotation,
+            rolls: [d20Roll],
+            modifier: skillTotal,
+            total,
+            isCritical,
+            isFumble,
+          },
+        ],
+        sheet.nome
+      );
+    },
+    [showDiceResult, sheet.nome]
+  );
+
+  const handleSkillNameClick = (skill: CompleteSkill, skillTotal: number) => {
+    setSelectedSkill(skill);
+    setSelectedSkillTotal(skillTotal);
+    setActionsDialogOpen(true);
+  };
+
+  const handleSkillTotalClick = (skill: CompleteSkill, skillTotal: number) => {
+    handleSkillRoll(skill, skillTotal);
+  };
+
+  const handleActionRoll = (actionName: string) => {
+    if (selectedSkill) {
+      handleSkillRoll(selectedSkill, selectedSkillTotal, actionName);
+    }
+  };
+
+  const handleCloseActionsDialog = () => {
+    setActionsDialogOpen(false);
+    setSelectedSkill(null);
   };
 
   return (
@@ -155,8 +189,8 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                     {(skill.training ?? 0) > 0 ? (
                       <Box
                         component='span'
-                        onClick={() => handleSkillClick(skill, skillTotal)}
-                        title={`Rolar ${skill.name}`}
+                        onClick={() => handleSkillNameClick(skill, skillTotal)}
+                        title={`Ver ações de ${skill.name}`}
                         sx={{
                           cursor: 'pointer',
                           userSelect: 'none',
@@ -176,8 +210,8 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                       </Box>
                     ) : (
                       <ClickableSkillName
-                        onClick={() => handleSkillClick(skill, skillTotal)}
-                        title={`Rolar ${skill.name}`}
+                        onClick={() => handleSkillNameClick(skill, skillTotal)}
+                        title={`Ver ações de ${skill.name}`}
                       >
                         {skill.name}
                       </ClickableSkillName>
@@ -185,7 +219,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                   </DefaultTbCell>
                   <TableCellSkillTotal
                     align='center'
-                    onClick={() => handleSkillClick(skill, skillTotal)}
+                    onClick={() => handleSkillTotalClick(skill, skillTotal)}
                     title={`Rolar ${skill.name}`}
                   >
                     {skillTotal}
@@ -211,6 +245,13 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
           </TableBody>
         </Table>
       </TableContainer>
+      <SkillActionsDialog
+        open={actionsDialogOpen}
+        onClose={handleCloseActionsDialog}
+        skill={selectedSkill}
+        skillTotal={selectedSkillTotal}
+        onRoll={handleActionRoll}
+      />
     </Box>
   );
 };
