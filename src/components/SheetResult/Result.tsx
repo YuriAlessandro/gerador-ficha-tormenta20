@@ -9,6 +9,7 @@ import {
   Chip,
   Container,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
   IconButton,
@@ -659,26 +660,64 @@ const Result: React.FC<ResultProps> = (props) => {
                   direction='row'
                   spacing={3}
                 >
-                  <StatControl
-                    type='PV'
-                    current={currentSheet.currentPV ?? pv}
-                    max={pv}
-                    calculatedMax={pv}
-                    increment={currentSheet.pvIncrement ?? 1}
-                    onUpdateCurrent={handlePVCurrentUpdate}
-                    onUpdateIncrement={handlePVIncrementUpdate}
-                    disabled={!onSheetUpdate}
-                  />
-                  <StatControl
-                    type='PM'
-                    current={currentSheet.currentPM ?? pm}
-                    max={pm}
-                    calculatedMax={pm}
-                    increment={currentSheet.pmIncrement ?? 1}
-                    onUpdateCurrent={handlePMCurrentUpdate}
-                    onUpdateIncrement={handlePMIncrementUpdate}
-                    disabled={!onSheetUpdate}
-                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <StatControl
+                      type='PV'
+                      current={currentSheet.currentPV ?? pv}
+                      max={pv}
+                      calculatedMax={pv}
+                      increment={currentSheet.pvIncrement ?? 1}
+                      onUpdateCurrent={handlePVCurrentUpdate}
+                      onUpdateIncrement={handlePVIncrementUpdate}
+                      disabled={!onSheetUpdate}
+                    />
+                    {currentSheet.manualMaxPV !== undefined &&
+                      currentSheet.manualMaxPV > 0 && (
+                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
+                          <Chip
+                            size='small'
+                            label='Manual'
+                            color='warning'
+                            sx={{ mt: 1, fontSize: '0.7rem' }}
+                          />
+                        </Tooltip>
+                      )}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <StatControl
+                      type='PM'
+                      current={currentSheet.currentPM ?? pm}
+                      max={pm}
+                      calculatedMax={pm}
+                      increment={currentSheet.pmIncrement ?? 1}
+                      onUpdateCurrent={handlePMCurrentUpdate}
+                      onUpdateIncrement={handlePMIncrementUpdate}
+                      disabled={!onSheetUpdate}
+                    />
+                    {currentSheet.manualMaxPM !== undefined &&
+                      currentSheet.manualMaxPM > 0 && (
+                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
+                          <Chip
+                            size='small'
+                            label='Manual'
+                            color='warning'
+                            sx={{ mt: 1, fontSize: '0.7rem' }}
+                          />
+                        </Tooltip>
+                      )}
+                  </Box>
                 </Stack>
               </Stack>
             </Card>

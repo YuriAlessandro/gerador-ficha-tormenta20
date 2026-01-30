@@ -798,35 +798,39 @@ export function recalculateSheet(
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);
 
+  // Check for manual max overrides - when set, skip ALL recalculation for that stat
+  // Player takes full control of these values when manually defined
+  const hasManualMaxPV =
+    updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0;
+  const hasManualMaxPM =
+    updatedSheet.manualMaxPM !== undefined && updatedSheet.manualMaxPM > 0;
+
   // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
   // Skip PV recalculation if flag is set (e.g., equipment-only changes)
   if (!options?.skipPVRecalc) {
-    // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
-    const basePV = updatedSheet.classe.pv || 0;
-    const addPVPerLevel =
-      updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
-    const conMod = updatedSheet.atributos.Constituição?.value || 0;
-    updatedSheet.pv =
-      basePV +
-      addPVPerLevel * (updatedSheet.nivel - 1) +
-      conMod * updatedSheet.nivel;
+    if (hasManualMaxPV) {
+      // Player has set manual max - skip all calculations, just use the manual value
+      updatedSheet.pv = updatedSheet.manualMaxPV!;
+    } else {
+      // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
+      const basePV = updatedSheet.classe.pv || 0;
+      const addPVPerLevel =
+        updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
+      const conMod = updatedSheet.atributos.Constituição?.value || 0;
+      updatedSheet.pv =
+        basePV +
+        addPVPerLevel * (updatedSheet.nivel - 1) +
+        conMod * updatedSheet.nivel;
 
-    // Add bonus PV if defined
-    if (updatedSheet.bonusPV) {
-      updatedSheet.pv += updatedSheet.bonusPV;
-    }
+      // Add bonus PV if defined
+      if (updatedSheet.bonusPV) {
+        updatedSheet.pv += updatedSheet.bonusPV;
+      }
 
-    // Add manual PV edit if defined (applied after all calculations)
-    if (updatedSheet.manualPVEdit) {
-      updatedSheet.pv += updatedSheet.manualPVEdit;
-    }
-
-    // Apply manual max override if defined (replaces calculated value)
-    if (
-      updatedSheet.manualMaxPV !== undefined &&
-      updatedSheet.manualMaxPV > 0
-    ) {
-      updatedSheet.pv = updatedSheet.manualMaxPV;
+      // Add manual PV edit if defined (applied after all calculations)
+      if (updatedSheet.manualPVEdit) {
+        updatedSheet.pv += updatedSheet.manualPVEdit;
+      }
     }
 
     // Initialize current PV if not set (first time or reset)
@@ -842,32 +846,29 @@ export function recalculateSheet(
 
   // Skip PM recalculation if flag is set (e.g., equipment-only changes)
   if (!options?.skipPMRecalc) {
-    // PM base = classe.pm + (classe.addpm * (level - 1))
-    // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
-    // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
-    const basePM = updatedSheet.classe.pm || 0;
-    const addPMPerLevel =
-      updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
+    if (hasManualMaxPM) {
+      // Player has set manual max - skip all calculations, just use the manual value
+      updatedSheet.pm = updatedSheet.manualMaxPM!;
+    } else {
+      // PM base = classe.pm + (classe.addpm * (level - 1))
+      // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
+      // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
+      const basePM = updatedSheet.classe.pm || 0;
+      const addPMPerLevel =
+        updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
 
-    // Calculate PM: base + perLevel * (level - 1)
-    updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
+      // Calculate PM: base + perLevel * (level - 1)
+      updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
 
-    // Add bonus PM if defined
-    if (updatedSheet.bonusPM) {
-      updatedSheet.pm += updatedSheet.bonusPM;
-    }
+      // Add bonus PM if defined
+      if (updatedSheet.bonusPM) {
+        updatedSheet.pm += updatedSheet.bonusPM;
+      }
 
-    // Add manual PM edit if defined (applied after all calculations)
-    if (updatedSheet.manualPMEdit) {
-      updatedSheet.pm += updatedSheet.manualPMEdit;
-    }
-
-    // Apply manual max override if defined (replaces calculated value)
-    if (
-      updatedSheet.manualMaxPM !== undefined &&
-      updatedSheet.manualMaxPM > 0
-    ) {
-      updatedSheet.pm = updatedSheet.manualMaxPM;
+      // Add manual PM edit if defined (applied after all calculations)
+      if (updatedSheet.manualPMEdit) {
+        updatedSheet.pm += updatedSheet.manualPMEdit;
+      }
     }
 
     // Initialize current PM if not set (first time or reset)
@@ -927,9 +928,17 @@ export function recalculateSheet(
     ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
-      if (bonus.target.type === 'PV' && !options?.skipPVRecalc) {
+      if (
+        bonus.target.type === 'PV' &&
+        !options?.skipPVRecalc &&
+        !hasManualMaxPV
+      ) {
         updatedSheet.pv += bonusValue;
-      } else if (bonus.target.type === 'PM' && !options?.skipPMRecalc) {
+      } else if (
+        bonus.target.type === 'PM' &&
+        !options?.skipPMRecalc &&
+        !hasManualMaxPM
+      ) {
         const pmBefore = updatedSheet.pm;
         updatedSheet.pm += bonusValue;
         const pmAfter = updatedSheet.pm;
