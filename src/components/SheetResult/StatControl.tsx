@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   Box,
+  Chip,
   CircularProgress,
   IconButton,
   TextField,
@@ -11,6 +12,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import HotelIcon from '@mui/icons-material/Hotel';
 
 interface StatControlProps {
   type: 'PV' | 'PM';
@@ -40,10 +42,20 @@ const StatControl: React.FC<StatControlProps> = ({
   const isOverMax = current > max;
   const bonus = isOverMax ? current - max : 0;
 
-  // Calculate percentage for circular progress (cap at 100% when over-max)
-  const percentage = max > 0 ? Math.min((current / max) * 100, 100) : 0;
+  // Calculate PV minimum (only for PV, not PM)
+  // Minimum is -10 or -2*max, whichever is lower (more negative)
+  const pvMinimo = type === 'PV' ? Math.min(-10, -2 * max) : 0;
 
-  // Determine color based on type and over-max state
+  // Character states
+  const isNegative = type === 'PV' && current < 0;
+  const isUnconscious = type === 'PV' && current <= 0 && current > pvMinimo;
+  const isDead = type === 'PV' && current <= pvMinimo;
+
+  // Calculate percentage for circular progress (cap at 100% when over-max, 0% when negative)
+  const percentage =
+    max > 0 ? Math.max(0, Math.min((current / max) * 100, 100)) : 0;
+
+  // Determine color based on type and state
   const normalColor =
     type === 'PV' ? theme.palette.success.main : theme.palette.info.main;
   const normalDarkColor =
@@ -53,8 +65,28 @@ const StatControl: React.FC<StatControlProps> = ({
   const overMaxColor = theme.palette.warning.main;
   const overMaxDarkColor = theme.palette.warning.dark;
 
-  const color = isOverMax ? overMaxColor : normalColor;
-  const darkColor = isOverMax ? overMaxDarkColor : normalDarkColor;
+  // Negative/dead colors
+  const negativeColor = theme.palette.error.main;
+  const negativeDarkColor = theme.palette.error.dark;
+  const deadColor = theme.palette.grey[500];
+
+  // Select color based on state
+  const getColor = () => {
+    if (isDead) return deadColor;
+    if (isNegative) return negativeColor;
+    if (isOverMax) return overMaxColor;
+    return normalColor;
+  };
+
+  const getDarkColor = () => {
+    if (isDead) return theme.palette.grey[700];
+    if (isNegative) return negativeDarkColor;
+    if (isOverMax) return overMaxDarkColor;
+    return normalDarkColor;
+  };
+
+  const color = getColor();
+  const darkColor = getDarkColor();
 
   const handleIncrement = useCallback(() => {
     // Se ainda não atingiu o máximo, cap no máximo (healing normal)
@@ -70,9 +102,16 @@ const StatControl: React.FC<StatControlProps> = ({
   }, [current, increment, max, onUpdateCurrent]);
 
   const handleDecrement = useCallback(() => {
-    const newValue = Math.max(current - increment, 0);
-    onUpdateCurrent(newValue);
-  }, [current, increment, onUpdateCurrent]);
+    if (type === 'PV') {
+      // For PV, allow going down to minimum (negative)
+      const newValue = Math.max(current - increment, pvMinimo);
+      onUpdateCurrent(newValue);
+    } else {
+      // For PM, keep minimum at 0
+      const newValue = Math.max(current - increment, 0);
+      onUpdateCurrent(newValue);
+    }
+  }, [current, increment, pvMinimo, type, onUpdateCurrent]);
 
   const handleIncrementChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +131,12 @@ const StatControl: React.FC<StatControlProps> = ({
       </Typography>
       <br />
       <Typography variant='caption'>Calculado: {calculatedMax}</Typography>
+      {type === 'PV' && (
+        <>
+          <br />
+          <Typography variant='caption'>Mínimo: {pvMinimo}</Typography>
+        </>
+      )}
       {isOverMax && (
         <>
           <br />
@@ -100,6 +145,28 @@ const StatControl: React.FC<StatControlProps> = ({
             sx={{ color: overMaxColor, fontWeight: 'bold' }}
           >
             ⭐ Bônus temporário ativo
+          </Typography>
+        </>
+      )}
+      {isUnconscious && (
+        <>
+          <br />
+          <Typography
+            variant='caption'
+            sx={{ color: negativeColor, fontWeight: 'bold' }}
+          >
+            💤 Desacordado
+          </Typography>
+        </>
+      )}
+      {isDead && (
+        <>
+          <br />
+          <Typography
+            variant='caption'
+            sx={{ color: deadColor, fontWeight: 'bold' }}
+          >
+            💀 Morto
           </Typography>
         </>
       )}
@@ -148,7 +215,7 @@ const StatControl: React.FC<StatControlProps> = ({
             sx={{
               color,
               position: 'absolute',
-              ...(isOverMax && {
+              ...((isOverMax || isNegative) && {
                 filter: 'drop-shadow(0 0 8px currentColor)',
                 animation: 'pulse 2s ease-in-out infinite',
                 '@keyframes pulse': {
@@ -173,32 +240,46 @@ const StatControl: React.FC<StatControlProps> = ({
               gap: 0,
             }}
           >
-            <Typography
-              variant='h4'
-              component='div'
-              sx={{
-                fontFamily: 'Tfont',
-                color,
-                fontWeight: 'bold',
-                ...(isOverMax && {
-                  textShadow: `0 0 10px ${color}`,
-                }),
-              }}
-            >
-              {current}
-            </Typography>
-            {isOverMax && (
+            {isDead ? (
+              // Skull icon when dead
               <Typography
-                variant='caption'
                 sx={{
-                  fontSize: '10px',
-                  color,
-                  fontWeight: 'bold',
-                  lineHeight: 0.8,
+                  fontSize: '40px',
+                  lineHeight: 1,
                 }}
               >
-                +{bonus}
+                💀
               </Typography>
+            ) : (
+              <>
+                <Typography
+                  variant='h4'
+                  component='div'
+                  sx={{
+                    fontFamily: 'Tfont',
+                    color,
+                    fontWeight: 'bold',
+                    ...((isOverMax || isNegative) && {
+                      textShadow: `0 0 10px ${color}`,
+                    }),
+                  }}
+                >
+                  {current}
+                </Typography>
+                {isOverMax && (
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      fontSize: '10px',
+                      color,
+                      fontWeight: 'bold',
+                      lineHeight: 0.8,
+                    }}
+                  >
+                    +{bonus}
+                  </Typography>
+                )}
+              </>
             )}
           </Box>
         </Box>
@@ -214,6 +295,37 @@ const StatControl: React.FC<StatControlProps> = ({
         >
           {type}
         </Typography>
+
+        {/* Unconscious indicator */}
+        {isUnconscious && (
+          <Chip
+            size='small'
+            label='Desacordado'
+            color='error'
+            icon={<HotelIcon sx={{ fontSize: 14 }} />}
+            sx={{
+              height: 20,
+              fontSize: '0.65rem',
+              '& .MuiChip-icon': {
+                marginLeft: '4px',
+              },
+            }}
+          />
+        )}
+
+        {/* Dead indicator */}
+        {isDead && (
+          <Chip
+            size='small'
+            label='Morto'
+            sx={{
+              height: 20,
+              fontSize: '0.65rem',
+              backgroundColor: deadColor,
+              color: 'white',
+            }}
+          />
+        )}
 
         {/* Hover Controls */}
         {isHovering && !disabled && (
@@ -242,7 +354,7 @@ const StatControl: React.FC<StatControlProps> = ({
               <IconButton
                 size='small'
                 onClick={handleDecrement}
-                disabled={current <= 0}
+                disabled={type === 'PV' ? current <= pvMinimo : current <= 0}
                 sx={{
                   backgroundColor: color,
                   color: 'white',
@@ -273,14 +385,15 @@ const StatControl: React.FC<StatControlProps> = ({
                   variant='body2'
                   sx={{
                     fontWeight: 'bold',
-                    color: isOverMax
-                      ? overMaxColor
-                      : theme.palette.text.primary,
+                    color:
+                      isDead || isNegative || isOverMax
+                        ? color
+                        : theme.palette.text.primary,
                     fontSize: '0.95rem',
                     lineHeight: 1.2,
                   }}
                 >
-                  {current}/{max}
+                  {isDead ? '💀' : `${current}/${max}`}
                 </Typography>
                 {isOverMax && (
                   <Typography
@@ -293,6 +406,19 @@ const StatControl: React.FC<StatControlProps> = ({
                     }}
                   >
                     (+{bonus})
+                  </Typography>
+                )}
+                {isUnconscious && (
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      fontSize: '0.6rem',
+                      color: negativeColor,
+                      fontWeight: 600,
+                      lineHeight: 1,
+                    }}
+                  >
+                    Desacordado
                   </Typography>
                 )}
               </Box>
