@@ -418,24 +418,27 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
           spacing={1}
           sx={{ ml: 'auto' }}
         >
-          <Tooltip title='Siga-nos no Instagram'>
-            <IconButton
-              component='a'
-              href='https://instagram.com/fichasdenimb'
-              target='_blank'
-              rel='noopener noreferrer'
-              sx={{
-                color: 'inherit',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                },
-              }}
-              aria-label='Instagram @fichasdenimb'
-            >
-              <InstagramIcon />
-            </IconButton>
-          </Tooltip>
-          <UserMenu />
+          {/* Instagram - hide on mobile */}
+          {!isMobile && (
+            <Tooltip title='Siga-nos no Instagram'>
+              <IconButton
+                component='a'
+                href='https://instagram.com/fichasdenimb'
+                target='_blank'
+                rel='noopener noreferrer'
+                sx={{
+                  color: 'inherit',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+                aria-label='Instagram @fichasdenimb'
+              >
+                <InstagramIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+          <UserMenu isMobile={isMobile} />
         </Stack>
       </Stack>
     </Box>

@@ -24,7 +24,11 @@ import SupporterBadge from '../Premium/SupporterBadge';
 import { NotificationBell } from '../Notifications';
 import { SupportLevel } from '../../types/subscription.types';
 
-const UserMenu: React.FC = () => {
+interface UserMenuProps {
+  isMobile?: boolean;
+}
+
+const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
   const dispatch = useDispatch<AppDispatch>();
   const history = useHistory();
   const { user, isAuthenticated, loading } = useAuth();
@@ -108,39 +112,44 @@ const UserMenu: React.FC = () => {
   return (
     <>
       <Stack direction='row' alignItems='center' spacing={1}>
-        {/* Notification Bell */}
+        {/* Notification Bell - always visible */}
         <NotificationBell />
 
-        {/* Supporter Badge - only shows for supporters */}
-        <SupporterBadge level={supportLevel} variant='small' showTooltip />
+        {/* Supporter Badge and Avatar - hide on mobile */}
+        {!isMobile && (
+          <>
+            {/* Supporter Badge - only shows for supporters */}
+            <SupporterBadge level={supportLevel} variant='small' showTooltip />
 
-        <IconButton
-          onClick={handleMenuOpen}
-          size='small'
-          sx={{ p: 0.5 }}
-          aria-controls={anchorEl ? 'account-menu' : undefined}
-          aria-haspopup='true'
-          aria-expanded={anchorEl ? 'true' : undefined}
-        >
-          <Avatar
-            sx={{
-              width: 36,
-              height: 36,
-              bgcolor: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              border: '2px solid rgba(255, 255, 255, 0.4)',
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                border: '2px solid rgba(255, 255, 255, 0.8)',
-              },
-            }}
-            src={user?.photoURL || undefined}
-          >
-            {!user?.photoURL && getInitials()}
-          </Avatar>
-        </IconButton>
+            <IconButton
+              onClick={handleMenuOpen}
+              size='small'
+              sx={{ p: 0.5 }}
+              aria-controls={anchorEl ? 'account-menu' : undefined}
+              aria-haspopup='true'
+              aria-expanded={anchorEl ? 'true' : undefined}
+            >
+              <Avatar
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  border: '2px solid rgba(255, 255, 255, 0.4)',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    border: '2px solid rgba(255, 255, 255, 0.8)',
+                  },
+                }}
+                src={user?.photoURL || undefined}
+              >
+                {!user?.photoURL && getInitials()}
+              </Avatar>
+            </IconButton>
+          </>
+        )}
       </Stack>
 
       <Menu

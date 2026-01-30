@@ -127,222 +127,244 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   });
 
   return (
-    <Slide
-      direction='right'
-      in={visible}
-      style={{
-        background: isDarkTheme ? '#3b3b3b' : 'white',
-        color: isDarkTheme ? '#fff' : 'black',
-      }}
-    >
-      <StyledPaper>
-        {/* Header */}
-        <div className='sidebarHeader'>
-          <Link href='/' onClick={onCloseSidebar}>
-            <img src={logoFichasDeNimb} alt='Fichas de Nimb' className='logo' />
-          </Link>
-          <div style={{ textAlign: 'right', paddingRight: '15px' }}>
-            <CloseIcon
-              onClick={onCloseSidebar}
-              sx={{ cursor: 'pointer', '&:hover': { opacity: 0.7 } }}
-            />
-          </div>
-        </div>
-
-        <MenuList>
-          {/* Home */}
-          <StyledMenuItem onClick={() => navigateTo('/')}>
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Início</Typography>
-          </StyledMenuItem>
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* PERSONAGENS */}
-          <StyledSubheader>Personagens</StyledSubheader>
-          <StyledMenuItem
-            onClick={() =>
-              navigateTo(isAuthenticated ? '/meus-personagens' : '/sheets')
-            }
-          >
-            <ListItemIcon>
-              {isAuthenticated ? <GroupIcon /> : <HistoryIcon />}
-            </ListItemIcon>
-            <Typography variant='inherit'>
-              {isAuthenticated ? 'Meus Personagens' : 'Histórico Local'}
-            </Typography>
-          </StyledMenuItem>
-          {isAuthenticated && (
-            <>
-              <StyledMenuItem onClick={() => navigateTo('/my-builds')}>
-                <ListItemIcon>
-                  <AccountTreeIcon />
-                </ListItemIcon>
-                <Typography variant='inherit'>Minhas Builds</Typography>
-              </StyledMenuItem>
-              <StyledMenuItem onClick={() => navigateTo('/builds')}>
-                <ListItemIcon>
-                  <AccountTreeIcon />
-                </ListItemIcon>
-                <Typography variant='inherit'>Explorar Builds</Typography>
-              </StyledMenuItem>
-              <StyledMenuItem
-                onClick={() =>
-                  user?.username && navigateTo(`/perfil/${user.username}`)
-                }
-              >
-                <ListItemIcon>
-                  <PersonIcon />
-                </ListItemIcon>
-                <Typography variant='inherit'>Meu Perfil</Typography>
-              </StyledMenuItem>
-            </>
-          )}
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* FERRAMENTAS */}
-          <StyledSubheader>Ferramentas</StyledSubheader>
-          <StyledMenuItem onClick={() => navigateTo('/gerador-ameacas')}>
-            <ListItemIcon>
-              <SecurityIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Gerador de Ameaças</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/recompensas')}>
-            <ListItemIcon>
-              <AttachMoneyIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Rolador de Recompensas</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/itens-superiores')}>
-            <ListItemIcon>
-              <ArchitectureIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Criar Item Superior</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/itens-magicos')}>
-            <ListItemIcon>
-              <AutoFixHighIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Criar Item Mágico</Typography>
-          </StyledMenuItem>
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* CONSULTA */}
-          <StyledSubheader>Consulta</StyledSubheader>
-          <StyledMenuItem
-            onClick={() =>
-              openExternal('https://mapadearton.fichasdenimb.com.br/')
-            }
-          >
-            <ListItemIcon>
-              <MapIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Mapa Interativo</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/database')}>
-            <ListItemIcon>
-              <StorageIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Enciclopédia de Tanah-Toh</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/caverna-do-saber')}>
-            <ListItemIcon>
-              <BookIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Caverna do Saber</Typography>
-          </StyledMenuItem>
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* COMUNIDADE */}
-          <StyledSubheader>Comunidade</StyledSubheader>
-          <StyledMenuItem
-            onClick={() =>
-              openExternal(
-                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-              )
-            }
-          >
-            <ListItemIcon>
-              <ForumIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Sugestões e Feedbacks</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem
-            onClick={() =>
-              openExternal(
-                'https://github.com/YuriAlessandro/gerador-ficha-tormenta20#gerador-de-fichas-de-tormenta-20'
-              )
-            }
-          >
-            <ListItemIcon>
-              <CodeIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Contribua com o Projeto</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem onClick={() => navigateTo('/changelog')}>
-            <ListItemIcon>
-              <NotesIcon />
-            </ListItemIcon>
-            <Typography variant='inherit' className='specialMenu'>
-              Changelog
-            </Typography>
-          </StyledMenuItem>
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* LINKS EXTERNOS */}
-          <StyledSubheader>Links Externos</StyledSubheader>
-          <StyledMenuItem
-            onClick={() =>
-              openExternal('https://eduardomarques.pythonanywhere.com/')
-            }
-          >
-            <ListItemIcon>
-              <LinkIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Grimório T20</Typography>
-          </StyledMenuItem>
-          <StyledMenuItem
-            onClick={() =>
-              openExternal('https://mclemente.github.io/Calculadora-ND/')
-            }
-          >
-            <ListItemIcon>
-              <LinkIcon />
-            </ListItemIcon>
-            <Typography variant='inherit'>Calculadora ND</Typography>
-          </StyledMenuItem>
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* CONFIGURAÇÕES */}
-          <StyledSubheader>Configurações</StyledSubheader>
-          <StyledMenuItem>
-            <ListItemIcon>
-              <Brightness4Icon />
-            </ListItemIcon>
-            <FormGroup>
-              <FormControlLabel
-                labelPlacement='end'
-                control={
-                  <Switch
-                    checked={isDarkTheme}
-                    onChange={onChangeTheme}
-                    color='default'
-                    value='dark'
-                  />
-                }
-                label='Tema Escuro'
+    <>
+      {/* Backdrop - clicking outside closes sidebar */}
+      {visible && (
+        <Box
+          onClick={onCloseSidebar}
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 2,
+          }}
+        />
+      )}
+      <Slide
+        direction='right'
+        in={visible}
+        style={{
+          background: isDarkTheme ? '#3b3b3b' : 'white',
+          color: isDarkTheme ? '#fff' : 'black',
+        }}
+      >
+        <StyledPaper>
+          {/* Header */}
+          <div className='sidebarHeader'>
+            <Link href='/' onClick={onCloseSidebar}>
+              <img
+                src={logoFichasDeNimb}
+                alt='Fichas de Nimb'
+                className='logo'
               />
-            </FormGroup>
-          </StyledMenuItem>
-          {/* <StyledMenuItem>
+            </Link>
+            <div style={{ textAlign: 'right', paddingRight: '15px' }}>
+              <CloseIcon
+                onClick={onCloseSidebar}
+                sx={{ cursor: 'pointer', '&:hover': { opacity: 0.7 } }}
+              />
+            </div>
+          </div>
+
+          <MenuList>
+            {/* Home */}
+            <StyledMenuItem onClick={() => navigateTo('/')}>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Início</Typography>
+            </StyledMenuItem>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* PERSONAGENS */}
+            <StyledSubheader>Personagens</StyledSubheader>
+            <StyledMenuItem
+              onClick={() =>
+                navigateTo(isAuthenticated ? '/meus-personagens' : '/sheets')
+              }
+            >
+              <ListItemIcon>
+                {isAuthenticated ? <GroupIcon /> : <HistoryIcon />}
+              </ListItemIcon>
+              <Typography variant='inherit'>
+                {isAuthenticated ? 'Meus Personagens' : 'Histórico Local'}
+              </Typography>
+            </StyledMenuItem>
+            {isAuthenticated && (
+              <>
+                <StyledMenuItem onClick={() => navigateTo('/my-builds')}>
+                  <ListItemIcon>
+                    <AccountTreeIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Minhas Builds</Typography>
+                </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/builds')}>
+                  <ListItemIcon>
+                    <AccountTreeIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Explorar Builds</Typography>
+                </StyledMenuItem>
+                <StyledMenuItem
+                  onClick={() =>
+                    user?.username && navigateTo(`/perfil/${user.username}`)
+                  }
+                >
+                  <ListItemIcon>
+                    <PersonIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Meu Perfil</Typography>
+                </StyledMenuItem>
+              </>
+            )}
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* FERRAMENTAS */}
+            <StyledSubheader>Ferramentas</StyledSubheader>
+            <StyledMenuItem onClick={() => navigateTo('/gerador-ameacas')}>
+              <ListItemIcon>
+                <SecurityIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Gerador de Ameaças</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/recompensas')}>
+              <ListItemIcon>
+                <AttachMoneyIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Rolador de Recompensas</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/itens-superiores')}>
+              <ListItemIcon>
+                <ArchitectureIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Criar Item Superior</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/itens-magicos')}>
+              <ListItemIcon>
+                <AutoFixHighIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Criar Item Mágico</Typography>
+            </StyledMenuItem>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* CONSULTA */}
+            <StyledSubheader>Consulta</StyledSubheader>
+            <StyledMenuItem
+              onClick={() =>
+                openExternal('https://mapadearton.fichasdenimb.com.br/')
+              }
+            >
+              <ListItemIcon>
+                <MapIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Mapa Interativo</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/database')}>
+              <ListItemIcon>
+                <StorageIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>
+                Enciclopédia de Tanah-Toh
+              </Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/caverna-do-saber')}>
+              <ListItemIcon>
+                <BookIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Caverna do Saber</Typography>
+            </StyledMenuItem>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* COMUNIDADE */}
+            <StyledSubheader>Comunidade</StyledSubheader>
+            <StyledMenuItem
+              onClick={() =>
+                openExternal(
+                  'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
+                )
+              }
+            >
+              <ListItemIcon>
+                <ForumIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Sugestões e Feedbacks</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem
+              onClick={() =>
+                openExternal(
+                  'https://github.com/YuriAlessandro/gerador-ficha-tormenta20#gerador-de-fichas-de-tormenta-20'
+                )
+              }
+            >
+              <ListItemIcon>
+                <CodeIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Contribua com o Projeto</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/changelog')}>
+              <ListItemIcon>
+                <NotesIcon />
+              </ListItemIcon>
+              <Typography variant='inherit' className='specialMenu'>
+                Changelog
+              </Typography>
+            </StyledMenuItem>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* LINKS EXTERNOS */}
+            <StyledSubheader>Links Externos</StyledSubheader>
+            <StyledMenuItem
+              onClick={() =>
+                openExternal('https://eduardomarques.pythonanywhere.com/')
+              }
+            >
+              <ListItemIcon>
+                <LinkIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Grimório T20</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem
+              onClick={() =>
+                openExternal('https://mclemente.github.io/Calculadora-ND/')
+              }
+            >
+              <ListItemIcon>
+                <LinkIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Calculadora ND</Typography>
+            </StyledMenuItem>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* CONFIGURAÇÕES */}
+            <StyledSubheader>Configurações</StyledSubheader>
+            <StyledMenuItem>
+              <ListItemIcon>
+                <Brightness4Icon />
+              </ListItemIcon>
+              <FormGroup>
+                <FormControlLabel
+                  labelPlacement='end'
+                  control={
+                    <Switch
+                      checked={isDarkTheme}
+                      onChange={onChangeTheme}
+                      color='default'
+                      value='dark'
+                    />
+                  }
+                  label='Tema Escuro'
+                />
+              </FormGroup>
+            </StyledMenuItem>
+            {/* <StyledMenuItem>
             <ListItemIcon>
               <CasinoIcon />
             </ListItemIcon>
@@ -361,12 +383,13 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
               />
             </FormGroup>
           </StyledMenuItem> */}
-        </MenuList>
+          </MenuList>
 
-        {/* Footer spacing */}
-        <Box sx={{ height: 20 }} />
-      </StyledPaper>
-    </Slide>
+          {/* Footer spacing */}
+          <Box sx={{ height: 20 }} />
+        </StyledPaper>
+      </Slide>
+    </>
   );
 };
 
