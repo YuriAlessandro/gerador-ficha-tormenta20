@@ -733,7 +733,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
     // Recalculate sheet to apply weapon bonuses and other effects
     // This ensures powers like "Arsenal das Profundezas" apply to newly added weapons
-    const recalculatedSheet = recalculateSheet(sheetWithNewBag, sheet);
+    // Skip PM/PV recalculation since equipment changes shouldn't affect them
+    const recalculatedSheet = recalculateSheet(
+      sheetWithNewBag,
+      sheet,
+      undefined,
+      {
+        skipPMRecalc: true,
+        skipPVRecalc: true,
+      }
+    );
 
     // Track equipment changes in steps
     const originalWeapons = sheet.bag.getEquipments().Arma || [];
