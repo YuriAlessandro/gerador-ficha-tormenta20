@@ -635,9 +635,10 @@ const MyCharactersPage: React.FC = () => {
                           sx={{
                             height: 6,
                             borderRadius: 1,
-                            backgroundColor: theme.palette.success.light,
+                            backgroundColor: 'rgba(108,166,81, 0.2)',
                             '& .MuiLinearProgress-bar': {
                               backgroundColor: theme.palette.success.main,
+                              opacity: 100,
                             },
                           }}
                         />
@@ -666,7 +667,7 @@ const MyCharactersPage: React.FC = () => {
                           sx={{
                             height: 6,
                             borderRadius: 1,
-                            backgroundColor: theme.palette.info.light,
+                            backgroundColor: 'rgba(0, 139, 255, 0.2)',
                             '& .MuiLinearProgress-bar': {
                               backgroundColor: theme.palette.info.main,
                             },
