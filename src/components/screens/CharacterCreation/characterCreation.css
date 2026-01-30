@@ -1,0 +1,345 @@
+/* Character Creation Layout - Mode Selection and Transitions */
+
+/* Container for the entire character creation section */
+.character-creation-container {
+  width: 100%;
+}
+
+/* Mode cards container - horizontal layout on desktop */
+.mode-cards-container {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  min-height: 280px;
+}
+
+/* Individual mode card */
+.mode-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  text-align: center;
+  min-height: 240px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.mode-card-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease-in-out;
+}
+
+.mode-card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  transition: all 0.3s ease-in-out;
+}
+
+.mode-card-description {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 280px;
+  opacity: 0.85;
+  transition: all 0.3s ease-in-out;
+}
+
+.mode-card-button {
+  margin-top: 20px;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Minimized card state (desktop) */
+.mode-card.minimized {
+  flex: 0 0 80px;
+  min-height: 100%;
+  padding: 16px 8px;
+  cursor: pointer;
+}
+
+.mode-card.minimized .mode-card-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.mode-card.minimized .mode-card-title {
+  font-size: 0.75rem;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  margin-bottom: 8px;
+}
+
+.mode-card.minimized .mode-card-description,
+.mode-card.minimized .mode-card-button {
+  display: none;
+}
+
+.mode-card.minimized .mode-card-back-arrow {
+  display: flex;
+  margin-top: 8px;
+}
+
+.mode-card-back-arrow {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.mode-card.minimized:hover .mode-card-back-arrow {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mode-card-switch-text {
+  display: none;
+  font-size: 0.65rem;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.mode-card.minimized .mode-card-switch-text {
+  display: block;
+}
+
+/* Hidden card (completely removed from view) */
+.mode-card.hidden {
+  display: none;
+}
+
+/* Form container that appears next to minimized card */
+.creation-form-container {
+  flex: 1;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* Animations */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.slide-in-right {
+  animation: slideInFromRight 0.3s ease-in-out;
+}
+
+.slide-in-left {
+  animation: slideInFromLeft 0.3s ease-in-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Layout when a mode is selected (desktop) */
+.mode-selected-layout {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  min-height: 400px;
+}
+
+.mode-selected-layout.random-selected {
+  flex-direction: row;
+}
+
+.mode-selected-layout.manual-selected {
+  flex-direction: row;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .mode-cards-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .mode-card {
+    min-height: 180px;
+    padding: 24px 20px;
+  }
+
+  .mode-card-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .mode-card-title {
+    font-size: 1.1rem;
+  }
+
+  .mode-card-description {
+    font-size: 0.85rem;
+  }
+
+  /* On mobile, minimized card becomes a header bar */
+  .mode-card.minimized {
+    flex: 0 0 auto;
+    min-height: auto;
+    flex-direction: row;
+    padding: 12px 16px;
+    justify-content: flex-start;
+    gap: 12px;
+    border-radius: 8px;
+  }
+
+  .mode-card.minimized .mode-card-icon {
+    font-size: 24px;
+    margin-bottom: 0;
+  }
+
+  .mode-card.minimized .mode-card-title {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+  }
+
+  .mode-card.minimized .mode-card-back-arrow {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  .mode-card.minimized .mode-card-switch-text {
+    display: none;
+  }
+
+  .mode-selected-layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .mode-selected-layout.random-selected,
+  .mode-selected-layout.manual-selected {
+    flex-direction: column;
+  }
+
+  .creation-form-container {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+}
+
+/* Theme-specific styles - Light mode */
+.mode-card.light {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  border: 1px solid #e0e0e0;
+  color: #333333;
+}
+
+.mode-card.light:hover {
+  border-color: #bdbdbd;
+}
+
+.mode-card.light .mode-card-description {
+  color: #666666;
+}
+
+/* Theme-specific styles - Dark mode */
+.mode-card.dark {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  border: 1px solid #404040;
+  color: #ffffff;
+}
+
+.mode-card.dark:hover {
+  border-color: #505050;
+}
+
+.mode-card.dark .mode-card-description {
+  color: #b0b0b0;
+}
+
+/* Primary variant for highlighted card */
+.mode-card.primary {
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+  border: 1px solid #c62828;
+  color: #ffffff;
+}
+
+.mode-card.primary:hover {
+  box-shadow: 0 8px 24px rgba(211, 47, 47, 0.3);
+}
+
+.mode-card.primary .mode-card-description {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Minimized card with primary styling */
+.mode-card.minimized.primary {
+  background: linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);
+}
+
+/* Secondary variant */
+.mode-card.secondary {
+  background: linear-gradient(135deg, #424242 0%, #212121 100%);
+  border: 1px solid #616161;
+  color: #ffffff;
+}
+
+.mode-card.secondary:hover {
+  box-shadow: 0 8px 24px rgba(66, 66, 66, 0.3);
+}
+
+.mode-card.secondary .mode-card-description {
+  color: rgba(255, 255, 255, 0.85);
+}

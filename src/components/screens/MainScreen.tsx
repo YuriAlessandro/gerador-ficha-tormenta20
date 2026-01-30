@@ -102,6 +102,15 @@ import { applyDuendeCustomization } from '../../data/systems/tormenta20/herois-d
 import { applyMoreauCustomization } from '../../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import Skill from '../../interfaces/Skills';
 import SheetLimitDialog from '../common/SheetLimitDialog';
+import {
+  CharacterCreationLayout,
+  RandomSheetForm,
+  NewSheetForm,
+  CreationMode,
+} from './CharacterCreation';
+
+// localStorage key for persisting creation mode
+const CREATION_MODE_KEY = 'fdnLastCreationMode';
 
 type SelectedOption = {
   value: string;
@@ -322,6 +331,23 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     React.useState(false);
   const [pendingLevel1Sheet, setPendingLevel1Sheet] =
     React.useState<CharacterSheet | null>(null);
+
+  // Creation mode state with localStorage persistence
+  const [creationMode, setCreationMode] = React.useState<CreationMode>(() => {
+    const savedMode = localStorage.getItem(CREATION_MODE_KEY);
+    if (savedMode === 'random' || savedMode === 'manual') {
+      return savedMode;
+    }
+    return 'selection';
+  });
+
+  // Persist creation mode to localStorage
+  const handleCreationModeChange = (mode: CreationMode) => {
+    setCreationMode(mode);
+    if (mode !== 'selection') {
+      localStorage.setItem(CREATION_MODE_KEY, mode);
+    }
+  };
 
   // Use ref to bypass navigation blocking immediately without waiting for state updates
   const allowNavigationRef = React.useRef(false);
@@ -1711,345 +1737,34 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               </Tooltip>
             </Box>
 
-            <Grid container spacing={2}>
-              {/* Race Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
-                >
-                  Raça
-                </Typography>
-                <Select
-                  options={[{ value: '', label: 'Aleatória' }, ...racas]}
-                  placeholder='Selecione uma raça'
-                  onChange={onSelectRaca}
-                  isSearchable
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  formatOptionLabel={formatOptionLabel}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
+            <CharacterCreationLayout
+              mode={creationMode}
+              onModeChange={handleCreationModeChange}
+              randomFormContent={
+                <RandomSheetForm
+                  isDarkMode={isDarkMode}
+                  selectedOptions={selectedOptions}
+                  onSelectedOptionsChange={setSelectedOptions}
+                  simpleSheet={simpleSheet}
+                  onSimpleSheetChange={setSimpleSheet}
+                  onGenerate={onClickGenerate}
+                  userSupplements={userSupplements}
+                  enabledSupplements={user?.enabledSupplements}
                 />
-              </Grid>
-
-              {/* Class Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
-                >
-                  Classe / Role
-                </Typography>
-                <Select
-                  options={[
-                    {
-                      label: 'Classes',
-                      options: [
-                        { value: '', label: 'Aleatória' },
-                        ...classesopt,
-                      ],
-                    },
-                    {
-                      label: 'Roles',
-                      options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
-                    },
-                  ]}
-                  placeholder='Selecione uma classe ou role'
-                  formatGroupLabel={fmtGroupLabel}
-                  formatOptionLabel={formatOptionLabel}
-                  onChange={onSelectClasse}
-                  isSearchable
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
+              }
+              manualFormContent={
+                <NewSheetForm
+                  isDarkMode={isDarkMode}
+                  selectedOptions={selectedOptions}
+                  onSelectedOptionsChange={setSelectedOptions}
+                  simpleSheet={simpleSheet}
+                  onSimpleSheetChange={setSimpleSheet}
+                  onCreateSheet={onClickGenerateEmptySheet}
+                  userSupplements={userSupplements}
+                  enabledSupplements={user?.enabledSupplements}
                 />
-              </Grid>
-
-              {/* Origin Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
-                >
-                  Origem
-                </Typography>
-                <Select
-                  placeholder='Selecione uma origem'
-                  options={[
-                    { value: '', label: 'Aleatória' },
-                    { value: '__NO_ORIGIN__', label: 'Sem Origem' },
-                    ...origens,
-                  ]}
-                  isSearchable
-                  onChange={onSelectOrigin}
-                  isDisabled={selectedOptions.raca === 'Golem'}
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  formatOptionLabel={formatOptionLabel}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
-                />
-              </Grid>
-
-              {/* Divinity Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Stack
-                  direction='row'
-                  alignItems='center'
-                  spacing={0.5}
-                  sx={{ mb: 1 }}
-                >
-                  <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
-                    Divindade
-                  </Typography>
-                  <Tooltip
-                    title={
-                      <span>
-                        As opções em &quot;Fichas aleatórias&quot; só funcionam
-                        para geração automática:
-                        <br />
-                        <br />
-                        <strong>🎯 Qualquer divindade:</strong> sempre escolhe
-                        uma divindade permitida pela classe.
-                        <br />
-                        <br />
-                        <strong>🎲 Aleatório:</strong> pode gerar um personagem
-                        devoto ou não devoto aleatoriamente.
-                      </span>
-                    }
-                    arrow
-                    placement='top'
-                  >
-                    <HelpIcon
-                      sx={{
-                        fontSize: 16,
-                        color: 'text.secondary',
-                        cursor: 'help',
-                      }}
-                    />
-                  </Tooltip>
-                </Stack>
-                <Select
-                  placeholder='Divindades'
-                  options={[
-                    {
-                      label: '',
-                      options: [{ value: '--', label: 'Não devoto' }],
-                    },
-                    {
-                      label: 'Fichas aleatórias automáticas',
-                      options: [
-                        { value: '**', label: '🎯 Qualquer divindade' },
-                        { value: '', label: '🎲 Aleatório' },
-                      ],
-                    },
-                    {
-                      label: `Permitidas (${
-                        selectedOptions.classe || 'Todas'
-                      })`,
-                      options: divindades,
-                    },
-                  ]}
-                  isSearchable
-                  value={selectedOptions.devocao}
-                  onChange={inSelectDivindade}
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
-                />
-              </Grid>
-
-              {/* Level Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
-                >
-                  Nível
-                </Typography>
-                <CreatableSelect
-                  placeholder='Nível 1'
-                  options={niveis}
-                  isSearchable
-                  formatCreateLabel={(inputValue) => `Nível ${inputValue}`}
-                  onChange={onSelectNivel}
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
-                />
-              </Grid>
-
-              {/* Generate Items Selection */}
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'medium' }}
-                >
-                  Gerar Itens
-                </Typography>
-                <Select
-                  placeholder='Não gerar'
-                  options={opcoesGerarItens}
-                  value={opcoesGerarItens.find(
-                    (opt) => opt.value === selectedOptions.gerarItens
-                  )}
-                  onChange={onSelectGerarItens}
-                  styles={selectStyles}
-                  menuPortalTarget={document.body}
-                  theme={(selectTheme) => ({
-                    ...selectTheme,
-                    colors: {
-                      ...formThemeColors,
-                    },
-                  })}
-                />
-              </Grid>
-
-              {/* Simple Sheet Checkbox */}
-              <Grid
-                size={{ xs: 12, sm: 6, md: 4 }}
-                sx={{ display: 'flex', alignItems: 'flex-end' }}
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      value={simpleSheet}
-                      onChange={() => setSimpleSheet(!simpleSheet)}
-                      size={isMobile ? 'medium' : 'small'}
-                    />
-                  }
-                  label='Ficha simplificada'
-                  sx={{ fontSize: isMobile ? '16px' : '14px' }}
-                />
-              </Grid>
-            </Grid>
-
-            {/* System & Supplements Indicator */}
-            {user?.enabledSupplements && user.enabledSupplements.length > 0 && (
-              <Box
-                sx={{
-                  mt: 3,
-                  p: 1.5,
-                  borderRadius: 1,
-                  bgcolor: 'action.hover',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Stack spacing={1}>
-                  <Typography
-                    variant='caption'
-                    color='text.secondary'
-                    sx={{ fontWeight: 'medium' }}
-                  >
-                    Sistema e Suplementos Ativos:
-                  </Typography>
-                  <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-                    {user.enabledSupplements.map((suppId) => {
-                      const supplement = SUPPLEMENT_METADATA[suppId];
-                      return supplement ? (
-                        <Chip
-                          key={suppId}
-                          label={supplement.name}
-                          size='small'
-                          color='primary'
-                          variant='outlined'
-                          sx={{ fontSize: '0.75rem' }}
-                        />
-                      ) : null;
-                    })}
-                  </Stack>
-                </Stack>
-              </Box>
-            )}
-
-            {/* Action Buttons */}
-            <Box sx={{ mt: 3 }}>
-              <Stack
-                spacing={2}
-                direction={isMobile ? 'column' : 'row'}
-                sx={{ mb: 2 }}
-              >
-                <Button
-                  variant='contained'
-                  onClick={onClickGenerateEmptySheet}
-                  disabled={!canGenerateEmptySheet}
-                  size={isMobile ? 'large' : 'medium'}
-                  fullWidth={isMobile}
-                  sx={{
-                    minHeight: isMobile ? '48px' : 'auto',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }}
-                >
-                  Criar Nova Ficha
-                </Button>
-
-                <Button
-                  variant='outlined'
-                  color='secondary'
-                  onClick={onClickGenerate}
-                  size={isMobile ? 'large' : 'medium'}
-                  fullWidth={isMobile}
-                  sx={{
-                    minHeight: isMobile ? '48px' : 'auto',
-                    fontSize: isMobile ? '16px' : '14px',
-                  }}
-                  startIcon={<CasinoIcon />}
-                >
-                  Preencher Automaticamente
-                </Button>
-              </Stack>
-
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{
-                  fontSize: { xs: '14px', sm: '13px' },
-                  lineHeight: 1.4,
-                  mb: 1,
-                }}
-              >
-                Preencha os campos acima para criar sua ficha personalizada.
-                Todos os campos são obrigatórios.
-              </Typography>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{
-                  fontSize: { xs: '13px', sm: '12px' },
-                  lineHeight: 1.4,
-                  fontStyle: 'italic',
-                }}
-              >
-                💡 Dica: Use &ldquo;Preencher Automaticamente&rdquo; para
-                agilizar o processo com escolhas aleatórias que você pode editar
-                depois.
-              </Typography>
-            </Box>
+              }
+            />
           </Card>
 
           {randomSheet && (
