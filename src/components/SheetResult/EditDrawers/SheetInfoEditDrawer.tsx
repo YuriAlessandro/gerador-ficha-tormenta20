@@ -435,10 +435,14 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const classData = CLASSES.find((c) => c.name === className);
     if (!classData) return sheet.pm;
 
+    // Use sheet.classe.spellPath for the key attribute (set during character creation)
+    // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
+    const spellPath = sheet.classe.spellPath;
+
     // Get the key attribute modifier for PM calculation
     let keyAttrMod = 0;
-    if (classData.spellPath) {
-      const keyAttr = attributes[classData.spellPath.keyAttribute];
+    if (spellPath) {
+      const keyAttr = attributes[spellPath.keyAttribute];
       keyAttrMod = keyAttr ? keyAttr.value : 0;
     }
 
@@ -455,7 +459,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         bonus.modifier,
         level,
         attributes,
-        classData.spellPath?.keyAttribute
+        spellPath?.keyAttribute
       );
       total += bonusValue;
     });
@@ -1297,12 +1301,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const classData = CLASSES.find((c) => c.name === editedData.className);
     if (!classData) return '';
 
+    // Use sheet.classe.spellPath for the key attribute (set during character creation)
+    // classData.spellPath is undefined for classes like Arcanista that configure it in setup()
+    const spellPath = sheet.classe.spellPath;
+
     let keyAttrMod = 0;
     let keyAttrName = '';
-    if (classData.spellPath) {
-      const keyAttr = editedData.attributes[classData.spellPath.keyAttribute];
+    if (spellPath) {
+      const keyAttr = editedData.attributes[spellPath.keyAttribute];
       keyAttrMod = keyAttr ? keyAttr.value : 0;
-      keyAttrName = classData.spellPath.keyAttribute.substring(0, 3);
+      keyAttrName = spellPath.keyAttribute.substring(0, 3);
     }
 
     const pmPerLevel = editedData.customPMPerLevel ?? classData.addpm ?? 0;
@@ -1317,7 +1325,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         b.modifier,
         editedData.nivel,
         editedData.attributes,
-        classData.spellPath?.keyAttribute
+        spellPath?.keyAttribute
       );
       let sourceName = 'Desconhecido';
       if (b.source?.type === 'power') {
