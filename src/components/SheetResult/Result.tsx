@@ -29,6 +29,7 @@ import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
+import { CustomPower } from '@/interfaces/CustomPower';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -197,7 +198,8 @@ const Result: React.FC<ResultProps> = (props) => {
         | RaceAbility
         | ClassAbility
         | OriginPower
-        | GeneralPower,
+        | GeneralPower
+        | CustomPower,
       newRolls: DiceRoll[]
     ) => {
       // Update in all possible power arrays
@@ -219,11 +221,15 @@ const Result: React.FC<ResultProps> = (props) => {
       const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
         p.name === power.name ? { ...p, rolls: newRolls } : p
       );
+      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
 
       const updatedSheet = {
         ...currentSheet,
         generalPowers: updatedGeneralPowers,
         classPowers: updatedClassPowers,
+        customPowers: updatedCustomPowers,
         origin:
           currentSheet.origin && updatedOriginPowers
             ? { ...currentSheet.origin, powers: updatedOriginPowers }
@@ -971,6 +977,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   originPowers={origin?.powers || []}
                   deityPowers={devoto?.poderes || []}
                   generalPowers={generalPowers}
+                  customPowers={currentSheet.customPowers || []}
                   className={classe.name}
                   raceName={raca.name}
                   deityName={devoto?.divindade?.name}

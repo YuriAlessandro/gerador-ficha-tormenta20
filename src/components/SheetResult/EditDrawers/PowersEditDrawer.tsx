@@ -18,6 +18,9 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CharacterSheet, {
   Step,
   SheetActionHistoryEntry,
@@ -45,8 +48,10 @@ import {
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
+import CustomPowerDialog from './CustomPowerDialog';
 
 interface PowersEditDrawerProps {
   open: boolean;
@@ -100,6 +105,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     powerToAdd: null,
   });
 
+  // State for Custom Powers
+  const [selectedCustomPowers, setSelectedCustomPowers] = useState<
+    CustomPower[]
+  >([]);
+  const [customPowerDialog, setCustomPowerDialog] = useState<{
+    open: boolean;
+    powerToEdit?: CustomPower;
+  }>({ open: false });
+
   useEffect(() => {
     if (open) {
       if (sheet.generalPowers) {
@@ -111,10 +125,19 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       if (sheet.origin?.powers) {
         setSelectedOriginPowers([...sheet.origin.powers]);
       }
+      if (sheet.customPowers) {
+        setSelectedCustomPowers([...sheet.customPowers]);
+      }
       // Reset manual selections when opening
       setManualSelections({});
     }
-  }, [sheet.generalPowers, sheet.classPowers, sheet.origin?.powers, open]);
+  }, [
+    sheet.generalPowers,
+    sheet.classPowers,
+    sheet.origin?.powers,
+    sheet.customPowers,
+    open,
+  ]);
 
   // Helper function to get original general power with rolls if it exists
   const getOriginalPowerWithRolls = (
@@ -855,6 +878,31 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   };
 
+  // Custom Power handlers
+  const handleAddCustomPower = (power: CustomPower) => {
+    setSelectedCustomPowers((prev) => [...prev, power]);
+    setCustomPowerDialog({ open: false });
+  };
+
+  const handleEditCustomPower = (power: CustomPower) => {
+    setSelectedCustomPowers((prev) =>
+      prev.map((p) => (p.id === power.id ? power : p))
+    );
+    setCustomPowerDialog({ open: false });
+  };
+
+  const handleRemoveCustomPower = (powerId: string) => {
+    setSelectedCustomPowers((prev) => prev.filter((p) => p.id !== powerId));
+  };
+
+  const handleSaveCustomPower = (power: CustomPower) => {
+    if (customPowerDialog.powerToEdit) {
+      handleEditCustomPower(power);
+    } else {
+      handleAddCustomPower(power);
+    }
+  };
+
   const filterPowers = <
     T extends { name: string; text?: string; description?: string }
   >(
@@ -1001,11 +1049,52 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       });
     }
 
+    // Track custom power changes
+    const originalCustomPowerIds = sheet.customPowers?.map((p) => p.id) || [];
+    const newCustomPowerIds = selectedCustomPowers.map((p) => p.id);
+
+    const addedCustomPowers = selectedCustomPowers.filter(
+      (p) => !originalCustomPowerIds.includes(p.id)
+    );
+    const removedCustomPowers =
+      sheet.customPowers?.filter((p) => !newCustomPowerIds.includes(p.id)) ||
+      [];
+
+    if (addedCustomPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes Personalizados Adicionados',
+        type: 'Poderes',
+        value: addedCustomPowers.map((p) => ({ name: p.name, value: p.name })),
+      });
+    }
+
+    if (removedCustomPowers.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Poderes Personalizados Removidos',
+        type: 'Poderes',
+        value: removedCustomPowers.map((p) => ({
+          name: p.name,
+          value: `${p.name} (removido)`,
+        })),
+      });
+    }
+
+    if (addedCustomPowers.length > 0) {
+      newHistoryEntries.push({
+        source: { type: 'manualEdit' },
+        changes: addedCustomPowers.map((p) => ({
+          type: 'PowerAdded' as const,
+          powerName: p.name,
+        })),
+      });
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
       generalPowers: selectedPowers,
       classPowers: selectedClassPowers,
+      customPowers: selectedCustomPowers,
       origin: sheet.origin
         ? {
             ...sheet.origin,
@@ -1039,6 +1128,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
     if (sheet.origin?.powers) {
       setSelectedOriginPowers([...sheet.origin.powers]);
+    }
+    if (sheet.customPowers) {
+      setSelectedCustomPowers([...sheet.customPowers]);
     }
     setSearchTerm('');
     setManualSelections({});
@@ -1095,6 +1187,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         {/* Selected Powers Summary */}
         {(selectedPowers.length > 0 ||
           selectedClassPowers.length > 0 ||
+          selectedCustomPowers.length > 0 ||
           (sheet.classe.abilities &&
             sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
               .length > 0) ||
@@ -1162,6 +1255,29 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       size='small'
                       color='warning'
                       onDelete={() => handleOriginPowerToggle(power)}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {selectedCustomPowers.length > 0 && (
+              <>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Poderes Personalizados ({selectedCustomPowers.length}):
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  flexWrap='wrap'
+                  sx={{ mb: 2 }}
+                >
+                  {selectedCustomPowers.map((power) => (
+                    <Chip
+                      key={power.id}
+                      label={power.name}
+                      size='small'
+                      color='success'
+                      onDelete={() => handleRemoveCustomPower(power.id)}
                     />
                   ))}
                 </Stack>
@@ -1605,6 +1721,95 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               </Accordion>
             );
           })}
+
+          {/* Custom Powers Section */}
+          <Accordion defaultExpanded={selectedCustomPowers.length > 0}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant='h6'>
+                Poderes Personalizados ({selectedCustomPowers.length})
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+                Adicione poderes homebrew ou concedidos pelo mestre durante a
+                aventura.
+              </Typography>
+              <Button
+                variant='outlined'
+                startIcon={<AddIcon />}
+                onClick={() => setCustomPowerDialog({ open: true })}
+                sx={{ mb: 2 }}
+                fullWidth
+              >
+                Adicionar Poder Personalizado
+              </Button>
+              {selectedCustomPowers.length > 0 && (
+                <Stack spacing={2}>
+                  {selectedCustomPowers.map((power) => (
+                    <Box
+                      key={power.id}
+                      sx={{
+                        p: 2,
+                        border: 2,
+                        borderColor: 'success.main',
+                        borderRadius: 1,
+                        backgroundColor: 'success.50',
+                      }}
+                    >
+                      <Stack
+                        direction='row'
+                        justifyContent='space-between'
+                        alignItems='flex-start'
+                      >
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant='body1' fontWeight='bold'>
+                            {power.name}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                            sx={{ whiteSpace: 'pre-wrap' }}
+                          >
+                            {power.description}
+                          </Typography>
+                          {power.rolls && power.rolls.length > 0 && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ display: 'block', mt: 1 }}
+                            >
+                              <strong>Rolagens:</strong>{' '}
+                              {power.rolls.map((r) => r.label).join(', ')}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Stack direction='row' spacing={0.5}>
+                          <IconButton
+                            size='small'
+                            onClick={() =>
+                              setCustomPowerDialog({
+                                open: true,
+                                powerToEdit: power,
+                              })
+                            }
+                          >
+                            <EditIcon fontSize='small' />
+                          </IconButton>
+                          <IconButton
+                            size='small'
+                            color='error'
+                            onClick={() => handleRemoveCustomPower(power.id)}
+                          >
+                            <DeleteIcon fontSize='small' />
+                          </IconButton>
+                        </Stack>
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </Box>
 
         <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
@@ -1684,6 +1889,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }}
         />
       )}
+
+      {/* Custom Power Dialog */}
+      <CustomPowerDialog
+        open={customPowerDialog.open}
+        onClose={() => setCustomPowerDialog({ open: false })}
+        onSave={handleSaveCustomPower}
+        power={customPowerDialog.powerToEdit}
+      />
     </Drawer>
   );
 };

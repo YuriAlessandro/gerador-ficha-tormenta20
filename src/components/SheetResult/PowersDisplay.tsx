@@ -6,6 +6,7 @@ import React, { useMemo } from 'react';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
 import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
+import { CustomPower } from '@/interfaces/CustomPower';
 import PowerDisplay from './PowerDisplay';
 
 function filterUnique<T>(array: T[]) {
@@ -20,11 +21,18 @@ const PowersDisplay: React.FC<{
   originPowers: OriginPower[];
   deityPowers: GeneralPower[];
   generalPowers: GeneralPower[];
+  customPowers?: CustomPower[];
   className: string;
   raceName: string;
   deityName?: string;
   onUpdateRolls?: (
-    power: ClassPower | RaceAbility | ClassAbility | OriginPower | GeneralPower,
+    power:
+      | ClassPower
+      | RaceAbility
+      | ClassAbility
+      | OriginPower
+      | GeneralPower
+      | CustomPower,
     newRolls: DiceRoll[]
   ) => void;
   characterName?: string;
@@ -36,6 +44,7 @@ const PowersDisplay: React.FC<{
   originPowers,
   deityPowers,
   generalPowers,
+  customPowers,
   className,
   raceName,
   deityName,
@@ -63,6 +72,7 @@ const PowersDisplay: React.FC<{
     ...originPowers,
     ...deityPowers,
     ...generalPowers,
+    ...(customPowers || []),
   ];
 
   // Count how many times a power if the same name appears
@@ -79,10 +89,11 @@ const PowersDisplay: React.FC<{
     ...filterUnique(originPowers),
     ...filterUnique(deityPowers),
     ...filterUnique(generalPowers),
+    ...filterUnique(customPowers || []),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const getPowerOrigin = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower
+    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
   ) => {
     if (processedClassPowers.some((p) => p.name === pw.name)) {
       return `Poder de ${className}`;
@@ -98,6 +109,9 @@ const PowersDisplay: React.FC<{
     }
     if (deityPowers.includes(pw as GeneralPower)) {
       return 'Poder Divino';
+    }
+    if (customPowers?.some((p) => p.name === pw.name)) {
+      return 'Poder Personalizado';
     }
     return 'Poder Geral';
   };

@@ -8,6 +8,7 @@ import Skill, { CompleteSkill } from './Skills';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments } from './Equipment';
 import { OriginBenefit } from './WizardSelections';
+import { CustomPower } from './CustomPower';
 
 export type SheetChangeSource =
   | {
@@ -294,6 +295,7 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxSpaces: number;
   generalPowers: GeneralPower[];
+  customPowers?: CustomPower[];
   classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;
