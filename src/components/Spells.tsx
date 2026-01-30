@@ -14,11 +14,23 @@ interface SpellsProp {
   nivel: number;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
+  currentPM?: number;
+  maxPM?: number;
+  onSpellCast?: (pmSpent: number) => void;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
-  const { spells, spellPath, keyAttr, nivel, onUpdateRolls, characterName } =
-    props;
+  const {
+    spells,
+    spellPath,
+    keyAttr,
+    nivel,
+    onUpdateRolls,
+    characterName,
+    currentPM,
+    maxPM,
+    onSpellCast,
+  } = props;
 
   spells.sort((spell1, spell2) => {
     if (spell1.spellCircle < spell2.spellCircle) return -1;
@@ -102,6 +114,9 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   spell={spell}
                   onUpdateRolls={onUpdateRolls}
                   characterName={characterName}
+                  currentPM={currentPM}
+                  maxPM={maxPM}
+                  onSpellCast={onSpellCast}
                 />
               ))}
           </Box>

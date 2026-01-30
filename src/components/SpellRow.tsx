@@ -8,28 +8,30 @@ import {
   Typography,
   useTheme,
   IconButton,
-  Badge,
   Stack,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import SettingsIcon from '@mui/icons-material/Settings';
+import CasinoIcon from '@mui/icons-material/Casino';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { Spell } from '../interfaces/Spells';
-import RollsEditDialog from './RollsEditDialog';
-import RollButton from './RollButton';
+import SpellCastDialog from './SpellCastDialog';
 
 interface SpellProps {
   spell: Spell;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
+  currentPM?: number;
+  maxPM?: number;
+  onSpellCast?: (pmSpent: number) => void;
 }
 
 const SpellRow: React.FC<SpellProps> = React.memo((props) => {
-  const { spell, onUpdateRolls, characterName } = props;
+  const { spell, onUpdateRolls, characterName, currentPM, maxPM, onSpellCast } =
+    props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
-  const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
+  const [castDialogOpen, setCastDialogOpen] = useState(false);
   const theme = useTheme();
 
   const isMobile = useMemo(() => window.innerWidth < 720, []);
@@ -38,22 +40,22 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
     setIsExpanded((prev) => !prev);
   }, []);
 
-  const handleOpenRollsDialog = useCallback((e: React.MouseEvent) => {
+  const handleOpenCastDialog = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setRollsDialogOpen(true);
+    setCastDialogOpen(true);
   }, []);
 
-  const handleCloseRollsDialog = useCallback(() => {
-    setRollsDialogOpen(false);
+  const handleCloseCastDialog = useCallback(() => {
+    setCastDialogOpen(false);
   }, []);
 
-  const handleSaveRolls = useCallback(
-    (newRolls: DiceRoll[]) => {
-      if (onUpdateRolls) {
-        onUpdateRolls(spell, newRolls);
+  const handleSpellCast = useCallback(
+    (pmSpent: number) => {
+      if (onSpellCast) {
+        onSpellCast(pmSpent);
       }
     },
-    [spell, onUpdateRolls]
+    [onSpellCast]
   );
 
   return (
@@ -69,21 +71,18 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         }}
       >
         <Grid container spacing={2} sx={{ width: '100%' }}>
-          <Grid size={3}>
+          <Grid size={isMobile ? 12 : 3}>
             <Stack direction='row' alignItems='center' spacing={0.5}>
-              {spell.rolls && spell.rolls.length > 0 && (
-                <Box
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{ flexShrink: 0 }}
+              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
+                <IconButton
+                  size='small'
+                  onClick={handleOpenCastDialog}
+                  color={spell.rolls?.length ? 'primary' : 'default'}
+                  title='Usar magia'
                 >
-                  <RollButton
-                    rolls={spell.rolls}
-                    iconOnly
-                    size='small'
-                    characterName={characterName}
-                  />
-                </Box>
-              )}
+                  <CasinoIcon fontSize='small' />
+                </IconButton>
+              </Box>
               <Typography
                 sx={{
                   fontWeight: 'semi-bold',
@@ -122,23 +121,6 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         </Grid>
       </AccordionSummary>
       <AccordionDetails>
-        {onUpdateRolls && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-            <IconButton
-              size='small'
-              onClick={handleOpenRollsDialog}
-              title='Configurar rolagens'
-            >
-              <Badge
-                badgeContent={spell.rolls?.length || 0}
-                color='primary'
-                invisible={!spell.rolls || spell.rolls.length === 0}
-              >
-                <SettingsIcon fontSize='small' />
-              </Badge>
-            </IconButton>
-          </Box>
-        )}
         <Grid container spacing={2} marginBottom={1}>
           <Grid size={6}>
             <Typography variant='caption' fontWeight='bold'>
@@ -215,15 +197,16 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
           </div>
         )}
       </AccordionDetails>
-      {onUpdateRolls && (
-        <RollsEditDialog
-          open={rollsDialogOpen}
-          onClose={handleCloseRollsDialog}
-          rolls={spell.rolls || []}
-          onSave={handleSaveRolls}
-          title={`Rolagens: ${spell.nome}`}
-        />
-      )}
+      <SpellCastDialog
+        open={castDialogOpen}
+        onClose={handleCloseCastDialog}
+        spell={spell}
+        currentPM={currentPM ?? 0}
+        maxPM={maxPM ?? 0}
+        onCast={handleSpellCast}
+        onUpdateRolls={onUpdateRolls}
+        characterName={characterName}
+      />
     </Accordion>
   );
 });

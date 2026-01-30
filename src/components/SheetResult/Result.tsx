@@ -294,6 +294,19 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  const handleSpellCast = useCallback(
+    (pmSpent: number) => {
+      const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
+      const newPM = Math.max(0, currentPMValue - pmSpent);
+      const updatedSheet = { ...currentSheet, currentPM: newPM };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
   const {
     nome,
     sexo,
@@ -1001,6 +1014,9 @@ const Result: React.FC<ResultProps> = (props) => {
                     onSheetUpdate ? handleSpellRollsUpdate : undefined
                   }
                   characterName={nome}
+                  currentPM={currentSheet.currentPM ?? pm}
+                  maxPM={pm}
+                  onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
                 />
               </Box>
             </Card>
