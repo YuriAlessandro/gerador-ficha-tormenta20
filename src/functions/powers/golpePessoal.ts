@@ -5,7 +5,7 @@ import {
   GolpePessoalEffectInstance,
   ELEMENTAL_DAMAGE_TYPES,
   BASIC_SPELLS_1ST_2ND_CIRCLE,
-} from '../../data/golpePessoal';
+} from '../../data/systems/tormenta20/golpePessoal';
 import { getRandomItemFromArray } from '../randomUtils';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 

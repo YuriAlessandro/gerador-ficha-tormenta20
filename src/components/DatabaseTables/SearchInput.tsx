@@ -41,7 +41,9 @@ const SearchInput: React.FC<IProps> = ({
   };
 
   useEffect(() => {
-    onVoiceSearch(transcript);
+    if (transcript) {
+      onVoiceSearch(transcript);
+    }
   }, [transcript]);
 
   return (
@@ -65,7 +67,9 @@ const SearchInput: React.FC<IProps> = ({
                     </IconButton>
                   ) : (
                     <IconButton
-                      onClick={() => SpeechRecognition.startListening()}
+                      onClick={() =>
+                        SpeechRecognition.startListening({ language: 'pt-BR' })
+                      }
                     >
                       <MicIcon />
                     </IconButton>

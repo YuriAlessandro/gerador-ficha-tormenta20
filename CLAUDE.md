@@ -6,22 +6,98 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Gerador de Fichas de Tormenta 20 - A character sheet generator for the Brazilian tabletop RPG "Tormenta 20". The app generates random or customized character sheets with comprehensive RPG rules implementation.
 
-## Commands
+### Project Structure
 
-### Development
+- **Frontend (public)**: Main React application for character sheet generation (this repository)
+- **Backend (private submodule)**: Node.js backend for premium features and user authentication (located in `/backend`)
+- **Premium Features (private submodule)**: Premium frontend features (located in `/src/premium`)
+
+## Git Submodules
+
+This project uses git submodules for backend and premium features:
+
+- **Backend**: `git@github.com:YuriAlessandro/fichas-de-nimb-backend.git` (located in `/backend`)
+- **Premium**: `git@github.com:YuriAlessandro/fichas-de-nimb-premium.git` (located in `/src/premium`)
+
+**IMPORTANT**: New features should be developed in the premium submodule (`/src/premium`) as they will be paid features. The main repository remains open-source with core functionality.
+
+### Working with Submodules
 
 ```bash
-npm install          # Install dependencies
-npm start           # Start Vite dev server at localhost:5173
+# Clone repository with submodules
+git clone --recurse-submodules git@github.com:YuriAlessandro/gerador-ficha-tormenta20.git
+
+# If already cloned, initialize and update submodules
+git submodule init
+git submodule update
+
+# Pull latest changes from backend submodule
+cd backend
+git pull origin main
+cd ..
+git add backend
+git commit -m "Update backend submodule"
+
+# Pull latest changes from premium submodule
+cd src/premium
+git pull origin main
+cd ../..
+git add src/premium
+git commit -m "Update premium submodule"
+
+# Working in the backend
+cd backend
+# Make changes, commit, push as normal
+git add .
+git commit -m "Your commit message"
+git push origin main
+# Then update parent repository
+cd ..
+git add backend
+git commit -m "Update backend submodule reference"
+
+# Working in premium features
+cd src/premium
+# Make changes, commit, push as normal
+git add .
+git commit -m "Your commit message"
+git push origin main
+# Then update parent repository
+cd ../..
+git add src/premium
+git commit -m "Update premium submodule reference"
 ```
 
-### Build & Deploy
+## Commands
+
+### Frontend Development
 
 ```bash
+npm install          # Install frontend dependencies
+npm start           # Start Vite dev server at localhost:5173
 npm run build       # Build for production
 npm run deploy      # Deploy to GitHub Pages (builds first)
 ```
 
+### Backend Development
+
+```bash
+cd backend
+npm install         # Install backend dependencies
+npm run dev        # Start backend dev server
+npm run build      # Build backend for production
+npm start          # Start production server
+```
+
+### Full Stack Development
+
+```bash
+# Terminal 1 - Frontend
+npm start
+
+# Terminal 2 - Backend
+cd backend && npm run dev
+```
 
 ### Code Quality
 
@@ -50,10 +126,26 @@ npx prettier --check <filename>  # Check if files are formatted
 
 ### Important Files
 
+**Frontend:**
+
 - `src/store/` - Redux store configuration and slices
 - `src/interfaces/` - All TypeScript type definitions for RPG entities
 - `src/data/` - Game content (races, classes, spells, equipment)
 - `src/functions/` - Business logic and utility functions
+- `src/premium/` - Premium features submodule (PRIVATE)
+
+**Backend (when present):**
+
+- `backend/src/` - Backend source code
+- `backend/src/api/` - API routes and controllers
+- `backend/src/models/` - Database models
+- `backend/src/services/` - Business logic services
+
+**Premium (when present):**
+
+- `src/premium/` - Premium frontend features (PRIVATE)
+- New paid features should be developed here
+- Integrates with main app through exports
 
 ### Deprecated - DO NOT USE
 
@@ -79,6 +171,107 @@ npx prettier --check <filename>  # Check if files are formatted
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
 - Deployed to GitHub Pages at https://yurialessandro.github.io/gerador-ficha-tormenta20/
+
+### ESLint Rules - DO NOT VIOLATE
+
+This project uses strict ESLint rules. **Always follow these guidelines to avoid common errors:**
+
+#### ❌ NEVER Use:
+
+1. **`any` type** - Use specific types or proper type assertions
+
+   ```typescript
+   // ❌ BAD
+   const data = response as any;
+
+   // ✅ GOOD
+   const data = response as ResponseType;
+   // or
+   const data = response as unknown as ResponseType;
+   ```
+
+2. **`unknown` as direct type** - Use proper type guards or assertions
+
+   ```typescript
+   // ❌ BAD
+   supplements as unknown;
+
+   // ✅ GOOD
+   supplements as unknown as SupplementId[];
+   ```
+
+3. **Prop spreading (`{...other}`)** - Explicitly pass props
+
+   ```typescript
+   // ❌ BAD
+   const { children, ...other } = props;
+   return <div {...other}>{children}</div>;
+
+   // ✅ GOOD
+   const { children, className, onClick } = props;
+   return (
+     <div className={className} onClick={onClick}>
+       {children}
+     </div>
+   );
+   ```
+
+4. **Unused variables** - Remove or prefix with `_`
+
+   ```typescript
+   // ❌ BAD
+   const { data } = await api.get(); // 'data' is never used
+
+   // ✅ GOOD
+   await api.get(); // Don't destructure if not needed
+   // or
+   const { data: _data } = await api.get(); // Prefix with _ if intentionally unused
+   ```
+
+5. **Empty block statements** - Add comments or remove
+
+   ```typescript
+   // ❌ BAD
+   if (condition) {
+   }
+
+   // ✅ GOOD
+   if (condition) {
+     // Intentionally empty - handle in future
+   }
+   // or just remove the if block
+   ```
+
+6. **Unnecessary return statements**
+
+   ```typescript
+   // ❌ BAD
+   if (condition) {
+     return;
+   }
+
+   // ✅ GOOD
+   if (!condition) {
+     // Do something
+   }
+   ```
+
+#### ✅ Always Do:
+
+1. **Use specific types** - Import and use proper TypeScript interfaces/types
+2. **Type assertions with context** - Use `as unknown as Type` for complex conversions
+3. **Explicit prop passing** - List all props individually instead of spreading
+4. **Clean up unused code** - Remove unused variables or imports immediately
+5. **Add meaningful comments** - For intentionally empty blocks or complex logic
+6. **Run linter before commit** - `npx eslint <files> --max-warnings=0`
+
+### Backend Integration Notes
+
+- **Backend Privacy**: The backend repository is PRIVATE and should never be pushed to public repositories
+- **API Communication**: Frontend communicates with backend via REST API (consider CORS configuration)
+- **Authentication**: Backend handles user authentication for premium features
+- **Environment Variables**: Keep all sensitive configuration in `.env` files (never commit these)
+- **Development**: Backend runs separately from frontend during development
 
 ### TODO: Future Development
 

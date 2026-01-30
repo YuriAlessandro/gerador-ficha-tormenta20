@@ -1,0 +1,37 @@
+import { SupplementEquipment } from '../../core';
+import { AMEACAS_ARTON_WEAPONS } from './weapons';
+import { AMEACAS_ARTON_ARMORS } from './armors';
+import {
+  AMEACAS_ARTON_FOOD,
+  AMEACAS_ARTON_ANIMALS,
+  AMEACAS_ARTON_ADVENTURER_EQUIPMENT,
+  AMEACAS_ARTON_ESOTERIC,
+  AMEACAS_ARTON_CLOTHING,
+  AMEACAS_ARTON_ALCHEMY_PREPARED,
+  AMEACAS_ARTON_ALCHEMY_CATALYSTS,
+  AMEACAS_ARTON_ALCHEMY_POISONS,
+} from './general-items';
+
+/**
+ * Exporta todos os equipamentos do suplemento Ameaças de Arton
+ */
+
+export const AMEACAS_ARTON_EQUIPMENT: SupplementEquipment = {
+  weapons: AMEACAS_ARTON_WEAPONS,
+  armors: AMEACAS_ARTON_ARMORS,
+  generalItems: [
+    ...AMEACAS_ARTON_ANIMALS,
+    ...AMEACAS_ARTON_ADVENTURER_EQUIPMENT,
+    ...AMEACAS_ARTON_ESOTERIC,
+  ],
+  clothing: AMEACAS_ARTON_CLOTHING,
+  alchemy: [
+    ...AMEACAS_ARTON_ALCHEMY_PREPARED,
+    ...AMEACAS_ARTON_ALCHEMY_CATALYSTS,
+    ...AMEACAS_ARTON_ALCHEMY_POISONS,
+  ],
+  food: AMEACAS_ARTON_FOOD,
+};
+
+export default AMEACAS_ARTON_EQUIPMENT;
+export { AMEACAS_ARTON_WEAPONS, AMEACAS_ARTON_ARMORS };

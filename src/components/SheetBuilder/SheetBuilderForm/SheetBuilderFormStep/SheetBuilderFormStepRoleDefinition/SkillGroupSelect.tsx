@@ -23,7 +23,8 @@ const SkillGroupSelect = ({
     label: Translator.getSkillTranslation(skill),
   }));
   const dispatch = useDispatch();
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const previewSkills = useSelector(selectPreviewSkills);
+  const skills = getSkills(Object.entries(previewSkills || {}));
 
   const onChangeSkill = (newValues: any) => {
     dispatch(setOptionReady({ key: 'isRoleReady', value: 'pending' }));

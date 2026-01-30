@@ -392,7 +392,7 @@ function generateWeaponOrArmor(
 }
 
 /**
- * Gera um item diverso baseado na tabela miscellaneousItems
+ * Gera um diverso baseado na tabela miscellaneousItems
  */
 function generateMiscellaneousEquipment(diceRoll: number): Equipment | null {
   const rolledItem = miscellaneousItems.find(
@@ -469,7 +469,7 @@ function generateMagicalEquipment(level: number): Equipment | null {
   const typeRoll = rollDice(1, 6);
 
   if (typeRoll <= 2) {
-    // Arma mágica - por enquanto retorna item genérico
+    // Arma mágica - por enquanto retorna genérico
     return {
       nome: 'Arma Mágica',
       group: 'Item Geral',
@@ -478,7 +478,7 @@ function generateMagicalEquipment(level: number): Equipment | null {
     };
   }
   if (typeRoll === 3) {
-    // Armadura mágica - por enquanto retorna item genérico
+    // Armadura mágica - por enquanto retorna genérico
     return {
       nome: 'Armadura Mágica',
       group: 'Item Geral',
@@ -524,7 +524,7 @@ function generateMagicalEquipment(level: number): Equipment | null {
 }
 
 /**
- * Gera item diverso com tentativas até conseguir
+ * Gera diverso com tentativas até conseguir
  */
 function generateMiscellaneousEquipmentWithRetries(
   maxRetries: number = 5
@@ -535,7 +535,7 @@ function generateMiscellaneousEquipmentWithRetries(
     if (equipment) return equipment;
   }
 
-  // Se não conseguiu gerar, retorna item genérico
+  // Se não conseguiu gerar, retorna genérico
   return {
     nome: 'Item Genérico',
     group: 'Item Geral',
@@ -570,7 +570,7 @@ function generateWeaponOrArmorWithRetries(
 }
 
 /**
- * Gera item mágico com tentativas até conseguir
+ * Gera mágico com tentativas até conseguir
  */
 function generateMagicalEquipmentWithRetries(
   level: number,
@@ -644,7 +644,7 @@ function generateEquipmentsByType(itemReward: ItemReward): Equipment[] {
     }
 
     default: {
-      // Tipo de item não reconhecido - gerar item genérico
+      // Tipo de não reconhecido - gerar genérico
       results.push({
         nome: 'Item Misterioso',
         group: 'Item Geral',
@@ -740,7 +740,7 @@ export function generateEquipmentRewards(
     return {
       equipments: {},
       totalCost: 0,
-      generationDetails: 'Nenhum item gerado (nível 1)',
+      generationDetails: 'Nenhum gerado (nível 1)',
       itemsForSteps: [],
     };
   }

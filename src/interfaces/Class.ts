@@ -1,9 +1,11 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
+import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import { Requirement } from './Poderes';
 import Skill from './Skills';
 import { SpellSchool } from './Spells';
+import { SupplementId } from '../types/supplement.types';
 
 export type ClassNames =
   | 'Arcanista'
@@ -19,7 +21,11 @@ export type ClassNames =
   | 'Nobre'
   | 'Paladino'
   | 'Bucaneiro'
-  | 'Druida';
+  | 'Druida'
+  // Deuses de Arton
+  | 'Frade'
+  // Heróis de Arton
+  | 'Treinador';
 export interface BasicExpertise {
   type: string;
   list: Skill[];
@@ -36,20 +42,25 @@ export type ClassAbility = {
   nivel: number;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type ClassPower = {
   name: string;
   text: string;
+  dynamicText?: string; // Texto dinâmico que substitui o texto padrão (ex: Autoridade Eclesiástica)
   requirements?: Requirement[][];
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  supplementId?: SupplementId; // Suplemento de origem do poder
+  supplementName?: string; // Nome do suplemento de origem
 };
 
 export interface SpellPath {
   initialSpells: number;
-  spellType: 'Arcane' | 'Divine';
+  spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;

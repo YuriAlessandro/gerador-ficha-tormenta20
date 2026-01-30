@@ -37,6 +37,8 @@ function calcBagSpaces(bagEquipments: BagEquipments): number {
   let spaces = 0;
 
   equipments.forEach((equipment: Equipment) => {
+    // Ignora equipamentos undefined ou sem a propriedade spaces
+    if (!equipment) return;
     const equipamentSpaces = equipment.spaces || 0;
     spaces += equipamentSpaces;
   });
@@ -66,7 +68,7 @@ export default class Bag {
   public armorPenalty: number;
 
   constructor(equipments = {}) {
-    this.equipments = merge(equipments, cloneDeep(defaultEquipments));
+    this.equipments = merge(cloneDeep(defaultEquipments), equipments);
 
     this.spaces = calcBagSpaces(this.equipments);
     this.armorPenalty = calcArmorPenalty(this.equipments);

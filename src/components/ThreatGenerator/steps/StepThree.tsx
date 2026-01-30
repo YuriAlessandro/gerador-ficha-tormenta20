@@ -114,7 +114,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
 
           <Grid container spacing={2}>
             {['Fortitude', 'Reflexos', 'Vontade'].map((skill) => (
-              <Grid item xs={12} sm={4} key={skill}>
+              <Grid size={{ xs: 12, sm: 4 }} key={skill}>
                 <FormControl fullWidth size='small'>
                   <InputLabel>{skill}</InputLabel>
                   <Select
@@ -151,7 +151,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
       {combatStats && (
         <Grid container spacing={3}>
           {/* Estatísticas Principais */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper variant='outlined' sx={{ p: 3, height: '100%' }}>
               <Typography variant='subtitle1' gutterBottom color='primary'>
                 Estatísticas Principais
@@ -198,7 +198,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
           </Grid>
 
           {/* Ataques */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper variant='outlined' sx={{ p: 3, height: '100%' }}>
               <Typography variant='subtitle1' gutterBottom color='primary'>
                 Ataques
@@ -229,13 +229,13 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
           </Grid>
 
           {/* Resumo de Resistências Atribuídas */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Paper variant='outlined' sx={{ p: 3 }}>
               <Typography variant='subtitle1' gutterBottom color='primary'>
                 Resumo das Resistências
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Box
                     textAlign='center'
                     p={2}
@@ -254,7 +254,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Box
                     textAlign='center'
                     p={2}
@@ -273,7 +273,7 @@ const StepThree: React.FC<StepThreeProps> = ({ threat, onUpdate }) => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Box
                     textAlign='center'
                     p={2}

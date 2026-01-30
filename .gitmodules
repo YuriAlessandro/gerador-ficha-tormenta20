@@ -1,0 +1,6 @@
+[submodule "backend"]
+	path = backend
+	url = https://github.com/YuriAlessandro/fichas-de-nimb-backend.git
+[submodule "src/premium"]
+	path = src/premium
+	url = https://github.com/YuriAlessandro/fichas-de-nimb-premium.git

@@ -5,8 +5,10 @@ import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
 import Skill, { CompleteSkill } from './Skills';
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments } from './Equipment';
+import { OriginBenefit } from './WizardSelections';
+import { CustomPower } from './CustomPower';
 
 export type SheetChangeSource =
   | {
@@ -26,6 +28,13 @@ export type SheetChangeSource =
   | {
       type: 'divinity';
       divinityName: string;
+    }
+  | {
+      type: 'equipment';
+      equipmentName: string;
+    }
+  | {
+      type: 'manualEdit';
     };
 
 export type SheetAction = {
@@ -83,7 +92,13 @@ export type SheetActionStep =
       specialAction:
         | 'humanoVersatil'
         | 'lefouDeformidade'
-        | 'osteonMemoriaPostuma';
+        | 'osteonMemoriaPostuma'
+        | 'yidishanNaturezaOrganica'
+        | 'moreauSapiencia'
+        | 'moreauEspertezaVulpina'
+        | 'golemDespertoSagrada'
+        | 'fradeAutoridadeEclesiastica'
+        | 'meioElfoAmbicaoHerdada';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -105,6 +120,16 @@ export type SheetActionStep =
     }
   | {
       type: 'buildGolpePessoal';
+    }
+  | {
+      type: 'learnClassAbility';
+      availableClasses: string[]; // List of class names to choose from
+      level: number; // Level of the ability (usually 1)
+    }
+  | {
+      type: 'getClassPower';
+      minLevel?: number; // Minimum level of powers to choose from (default: 2)
+      ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
     };
 
 export type SheetActionReceipt =
@@ -141,6 +166,11 @@ export type SheetActionReceipt =
       type: 'AttributeIncreasedByAumentoDeAtributo';
       attribute: Atributo;
       plateau: number; // Plateau number for the increase
+    }
+  | {
+      type: 'ClassAbilityLearned';
+      className: string;
+      abilityName: string;
     };
 
 export type SheetActionHistoryEntry = {
@@ -203,6 +233,9 @@ export type StatModifierTarget =
   | {
       type: 'HPAttributeReplacement';
       newAttribute: Atributo;
+    }
+  | {
+      type: 'SpellDC';
     };
 
 export type StatModifier =
@@ -254,6 +287,7 @@ export default interface CharacterSheet {
     | {
         name: string;
         powers: OriginPower[];
+        selectedBenefits?: OriginBenefit[]; // Track which benefits were chosen (for editing)
       }
     | undefined;
   spells: Spell[];
@@ -261,19 +295,44 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxSpaces: number;
   generalPowers: GeneralPower[];
+  customPowers?: CustomPower[];
   classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;
   completeSkills?: CompleteSkill[];
   sentidos?: string[];
   dinheiro?: number;
+  isThreat?: boolean;
   raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
+  raceHeritage?: string; // For races with heritages (like Moreau)
+  raceChassis?: string; // For Golem Desperto
+  raceEnergySource?: string; // For Golem Desperto
+  raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
+  suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
+  customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
+  bonusPV?: number; // Bonus PV added to total
+  bonusPM?: number; // Bonus PM added to total
+  customDefenseBase?: number; // Custom base defense (overrides 10 if defined)
+  customDefenseAttribute?: Atributo; // Custom attribute for defense (overrides DES/CAR)
+  useDefenseAttribute?: boolean; // Whether to use attribute mod (false = ignore even without heavy armor)
+  bonusDefense?: number; // Manual defense bonus
+  manualPMEdit?: number; // Manual PM adjustment (added after calculation)
+  manualPVEdit?: number; // Manual PV adjustment (added after calculation)
+  // Manual PM/PV control (for gameplay tracking and manual overrides)
+  currentPM?: number; // Current PM during gameplay (consumed resources)
+  currentPV?: number; // Current PV during gameplay (damage taken)
+  manualMaxPM?: number; // Manual override for maximum PM (replaces calculated value if set)
+  manualMaxPV?: number; // Manual override for maximum PV (replaces calculated value if set)
+  pmIncrement?: number; // Increment value for PM +/- buttons (default: 1)
+  pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
 }
 
 export interface Step {
   label: string;
   type?: string;
   value: SubStep[];
+  subSteps?: SubStep[];
 }
 
 export interface SubStep {

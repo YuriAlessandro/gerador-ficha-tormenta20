@@ -91,10 +91,8 @@ startListening({
     return shouldTrigger;
   },
   effect: async (action, api) => {
-    console.log('Sheet Builder Middleware', action.type);
     try {
       api.dispatch(resetFormAlert());
-      console.log(action.type);
       await takeLatest(api);
 
       const {

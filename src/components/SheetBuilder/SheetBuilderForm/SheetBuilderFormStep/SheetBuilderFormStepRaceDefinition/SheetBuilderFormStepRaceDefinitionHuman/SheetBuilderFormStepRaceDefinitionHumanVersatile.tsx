@@ -37,7 +37,8 @@ const SheetBuilderFormStepRaceDefinitionHumanVersatile = ({
   firstVersatileOption,
   secondVersatileOption,
 }: Props) => {
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const previewSkills = useSelector(selectPreviewSkills);
+  const skills = getSkills(Object.entries(previewSkills || {}));
   const dispatch = useDispatch();
   return (
     <div className='mb-6'>

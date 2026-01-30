@@ -191,7 +191,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={isMobile ? 2 : 3}>
             {/* Circle Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='circle-filter-label'>Círculo</InputLabel>
                 <Select
@@ -213,7 +213,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* School Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='school-filter-label'>Escola</InputLabel>
                 <Select
@@ -233,7 +233,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* Execution Time Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='execution-filter-label'>Execução</InputLabel>
                 <Select
@@ -255,7 +255,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* Spell Type Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='type-filter-label'>Tipo</InputLabel>
                 <Select

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import React, { useState } from 'react';
 import {
   Box,
@@ -19,6 +21,13 @@ import CheckIcon from '@mui/icons-material/Check';
 import HistoryIcon from '@mui/icons-material/History';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { SEO, getPageSEO } from '../SEO';
+import { useAlert } from '../../hooks/useDialog';
+import { useAuth } from '../../hooks/useAuth';
+import { useSheets } from '../../hooks/useSheets';
+import { useSheetLimit } from '../../hooks/useSheetLimit';
+import { useSubscription } from '../../hooks/useSubscription';
+import { SubscriptionTier } from '../../types/subscription.types';
 import {
   ThreatSheet,
   TreasureLevel,
@@ -42,6 +51,7 @@ import StepSix from './steps/StepSix';
 import StepSeven from './steps/StepSeven';
 import StepEight from './steps/StepEight';
 import ThreatResult from './ThreatResult';
+import SheetLimitDialog from '../common/SheetLimitDialog';
 
 interface ThreatGeneratorScreenProps {
   isDarkMode: boolean;
@@ -53,6 +63,12 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const history = useHistory();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { showAlert, AlertDialog } = useAlert();
+  const { isAuthenticated } = useAuth();
+  const { createSheet: createSheetAction, updateSheet: updateSheetAction } =
+    useSheets();
+  const { tier } = useSubscription();
+  const { menaceCount, maxMenaceSheets, canCreateMenace } = useSheetLimit();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -60,8 +76,11 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   );
 
   const [activeStep, setActiveStep] = useState(0);
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSavedToCloud, setIsSavedToCloud] = useState(false);
+  const [cloudThreatId, setCloudThreatId] = useState<string | null>(null);
   const [threat, setThreat] = useState<Partial<ThreatSheet>>({
     id: generateThreatId(),
     attributes: createDefaultAttributes(),
@@ -80,8 +99,44 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     updatedAt: new Date(),
   });
 
+  // Warn before leaving if threat is not saved to cloud (refresh/close tab)
+  // Note: Browser security forces native alert for beforeunload
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only warn if there's significant progress (has a name) and not saved
+      const hasProgress = threat?.name && threat.name.trim() !== '';
+      if (hasProgress && !isSavedToCloud && !showResult) {
+        e.preventDefault();
+        e.returnValue =
+          'Você tem uma ameaça não salva. Deseja sair mesmo assim?';
+        return e.returnValue;
+      }
+      return undefined;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [threat?.name, isSavedToCloud, showResult]);
+
   // Check for edit mode on component mount
   React.useEffect(() => {
+    // Check for cloud threat passed via location.state
+    const locationState = location.state as any;
+    if (locationState?.cloudThreat) {
+      const { cloudThreat } = locationState;
+      const threatData = cloudThreat.sheetData as ThreatSheet;
+
+      setThreat(threatData);
+      setIsEditing(true);
+      setIsSavedToCloud(true);
+      setCloudThreatId(cloudThreat.id);
+
+      // Clear the state to prevent reloading
+      history.replace('/gerador-ameacas', {});
+      return;
+    }
+
+    // Check for local threat edit via query param
     const searchParams = new URLSearchParams(location.search);
     const editId = searchParams.get('edit');
 
@@ -94,7 +149,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         history.replace('/threat-generator');
       }
     }
-  }, [location.search, threats, history]);
+  }, [location.search, location.state, threats, history]);
 
   const steps = [
     'Tipo, Tamanho e Papel',
@@ -124,22 +179,87 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     setActiveStep(step);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const errors = validateThreat(threat);
     if (errors.length > 0) {
-      // eslint-disable-next-line no-alert
-      alert(`Erro na validação:\n${errors.join('\n')}`);
+      showAlert(
+        `Erro na validação:\n${errors.join('\n')}`,
+        'Erro de Validação'
+      );
       return;
     }
 
-    // Save threat to storage
+    // Check sheet limit for authenticated users creating new threats
+    // Don't check if editing existing threat
+    if (isAuthenticated && !isEditing && !canCreateMenace) {
+      setShowLimitDialog(true);
+      return;
+    }
+
+    // Save threat to localStorage automatically (discreto)
     const completeThreat = {
       ...threat,
       updatedAt: new Date(),
     } as ThreatSheet;
 
     dispatch(saveThreat(completeThreat));
+
+    // If editing a cloud threat, update it in the cloud
+    if (cloudThreatId && isSavedToCloud) {
+      try {
+        await updateSheetAction(cloudThreatId, {
+          name: completeThreat.name,
+          sheetData: {
+            ...completeThreat,
+            isThreat: true,
+          } as any,
+        });
+      } catch (error) {
+        console.error('Failed to update cloud threat:', error);
+        showAlert(
+          'Não foi possível atualizar a ameaça na nuvem.',
+          'Erro ao Atualizar'
+        );
+      }
+    }
+
     setShowResult(true);
+  };
+
+  const handleSaveToCloud = async () => {
+    if (!isAuthenticated || !threat || isSavedToCloud) return;
+
+    // Check sheet limit for new threats (not updates)
+    if (!cloudThreatId && !canCreateMenace) {
+      setShowLimitDialog(true);
+      return;
+    }
+
+    try {
+      const completeThreat = threat as ThreatSheet;
+
+      // Create sheet in cloud with isThreat flag
+      const result = await createSheetAction({
+        name: completeThreat.name,
+        sheetData: {
+          ...completeThreat,
+          isThreat: true,
+        } as any,
+      });
+
+      if (result.type.endsWith('/fulfilled')) {
+        const cloudSheet = result.payload as any;
+        setCloudThreatId(cloudSheet.id);
+        setIsSavedToCloud(true);
+        showAlert('Ameaça salva na nuvem com sucesso!', 'Sucesso');
+      }
+    } catch (error) {
+      console.error('Failed to save threat to cloud:', error);
+      showAlert(
+        'Não foi possível salvar a ameaça na nuvem. Ela permanece salva localmente.',
+        'Erro ao Salvar'
+      );
+    }
   };
 
   const handleEdit = () => {
@@ -186,7 +306,14 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   // Show result if threat is complete
   if (showResult && threat) {
-    return <ThreatResult threat={threat as ThreatSheet} onEdit={handleEdit} />;
+    return (
+      <ThreatResult
+        threat={threat as ThreatSheet}
+        onEdit={handleEdit}
+        isSavedToCloud={isSavedToCloud}
+        onSaveToCloud={handleSaveToCloud}
+      />
+    );
   }
 
   // Renderizar componente da etapa atual
@@ -213,135 +340,157 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     }
   };
 
-  return (
-    <Container maxWidth='lg' sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-        {/* Header */}
-        <Box
-          sx={{
-            background: (muiTheme) =>
-              `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
-            color: 'white',
-            p: 3,
-          }}
-        >
-          <Box
-            display='flex'
-            justifyContent='space-between'
-            alignItems='center'
-          >
-            <Box>
-              <Typography
-                variant={isMobile ? 'h5' : 'h4'}
-                component='h1'
-                gutterBottom
-              >
-                {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
-              </Typography>
-              <Typography variant='body1' sx={{ opacity: 0.9 }}>
-                Crie inimigos e NPCs seguindo as regras do Tormenta 20
-              </Typography>
-            </Box>
-            <IconButton
-              onClick={handleViewHistory}
-              sx={{ color: 'white' }}
-              title='Ver Histórico'
-            >
-              <HistoryIcon />
-            </IconButton>
-          </Box>
-        </Box>
+  const threatGeneratorSEO = getPageSEO('threatGenerator');
 
-        {/* Stepper */}
-        <Box sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
-          <Stepper
-            activeStep={activeStep}
-            orientation={isMobile ? 'vertical' : 'horizontal'}
+  return (
+    <>
+      <SEO
+        title={threatGeneratorSEO.title}
+        description={threatGeneratorSEO.description}
+        url='/gerador-ameacas'
+      />
+      <AlertDialog />
+
+      {/* Sheet Limit Dialog */}
+      <SheetLimitDialog
+        open={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        currentCount={menaceCount}
+        maxCount={maxMenaceSheets}
+        tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
+      />
+
+      <Container maxWidth='lg' sx={{ py: 4 }}>
+        <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+          {/* Header */}
+          <Box
             sx={{
-              '& .MuiStepLabel-label': {
-                fontSize: isMobile ? '0.875rem' : '1rem',
-              },
+              background: (muiTheme) =>
+                `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
+              color: 'white',
+              p: 3,
             }}
           >
-            {steps.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  sx={{
-                    cursor: 'pointer',
-                    '&:hover': {
-                      '& .MuiStepLabel-label': {
-                        color: theme.palette.primary.main,
-                      },
-                    },
-                  }}
-                  onClick={() => handleStepClick(index)}
+            <Box
+              display='flex'
+              justifyContent='space-between'
+              alignItems='center'
+            >
+              <Box>
+                <Typography
+                  variant={isMobile ? 'h5' : 'h4'}
+                  component='h1'
+                  gutterBottom
                 >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-        </Box>
+                  {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
+                </Typography>
+                <Typography variant='body1' sx={{ opacity: 0.9 }}>
+                  Crie inimigos e NPCs seguindo as regras do Tormenta 20
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={handleViewHistory}
+                sx={{ color: 'white' }}
+                title='Ver Histórico'
+              >
+                <HistoryIcon />
+              </IconButton>
+            </Box>
+          </Box>
 
-        {/* Step Content */}
-        <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
-
-        {/* Navigation */}
-        <Box
-          sx={{
-            p: 3,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Stack
-            direction='row'
-            justifyContent='space-between'
-            alignItems='center'
+          {/* Stepper */}
+          <Box
+            sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}
           >
-            <Button
-              variant='outlined'
-              onClick={handleBack}
-              disabled={activeStep === 0}
-              startIcon={<ArrowBackIcon />}
-              size={isMobile ? 'small' : 'medium'}
+            <Stepper
+              activeStep={activeStep}
+              orientation={isMobile ? 'vertical' : 'horizontal'}
+              sx={{
+                '& .MuiStepLabel-label': {
+                  fontSize: isMobile ? '0.875rem' : '1rem',
+                },
+              }}
             >
-              Anterior
-            </Button>
+              {steps.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        '& .MuiStepLabel-label': {
+                          color: theme.palette.primary.main,
+                        },
+                      },
+                    }}
+                    onClick={() => handleStepClick(index)}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
 
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{ display: { xs: 'none', sm: 'block' } }}
+          {/* Step Content */}
+          <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
+
+          {/* Navigation */}
+          <Box
+            sx={{
+              p: 3,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Stack
+              direction='row'
+              justifyContent='space-between'
+              alignItems='center'
             >
-              Etapa {activeStep + 1} de {steps.length}
-            </Typography>
-
-            {isLastStep ? (
               <Button
-                variant='contained'
-                onClick={handleFinish}
-                disabled={!canProceed}
-                startIcon={<CheckIcon />}
+                variant='outlined'
+                onClick={handleBack}
+                disabled={activeStep === 0}
+                startIcon={<ArrowBackIcon />}
                 size={isMobile ? 'small' : 'medium'}
               >
-                {isEditing ? 'Salvar Alterações' : 'Finalizar'}
+                Anterior
               </Button>
-            ) : (
-              <Button
-                variant='contained'
-                onClick={handleNext}
-                disabled={!canProceed}
-                endIcon={<ArrowForwardIcon />}
-                size={isMobile ? 'small' : 'medium'}
+
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ display: { xs: 'none', sm: 'block' } }}
               >
-                Próximo
-              </Button>
-            )}
-          </Stack>
-        </Box>
-      </Paper>
-    </Container>
+                Etapa {activeStep + 1} de {steps.length}
+              </Typography>
+
+              {isLastStep ? (
+                <Button
+                  variant='contained'
+                  onClick={handleFinish}
+                  disabled={!canProceed}
+                  startIcon={<CheckIcon />}
+                  size={isMobile ? 'small' : 'medium'}
+                >
+                  {isEditing ? 'Salvar Alterações' : 'Finalizar'}
+                </Button>
+              ) : (
+                <Button
+                  variant='contained'
+                  onClick={handleNext}
+                  disabled={!canProceed}
+                  endIcon={<ArrowForwardIcon />}
+                  size={isMobile ? 'small' : 'medium'}
+                >
+                  Próximo
+                </Button>
+              )}
+            </Stack>
+          </Box>
+        </Paper>
+      </Container>
+    </>
   );
 };
 

@@ -4,7 +4,6 @@
     "browser": true,
     "jest": true
   },
-  "ignorePatterns": ["src/premium/**", "backend/**"],
   "extends": [
     "plugin:react/recommended",
     "airbnb",
@@ -17,7 +16,7 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "project": "./tsconfig.json",
+    "project": "./tsconfig.eslint.json",
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
@@ -26,7 +25,10 @@
     "no-shadow": "off",
     "import/no-extraneous-dependencies": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_" }
+    ],
     "no-param-reassign": "off",
     "@typescript-eslint/no-shadow": ["error"],
     "react/require-default-props": "off",
@@ -49,7 +51,8 @@
     "jsx-quotes": ["error", "prefer-single"],
     "no-use-before-define": "off",
     "@typescript-eslint/no-use-before-define": ["error"],
-    "react/static-property-placement":"off"
+    "react/static-property-placement": "off",
+    "react/jsx-no-duplicate-props": ["error", { "ignoreCase": false }]
   },
   "settings": {
     "import/resolver": {

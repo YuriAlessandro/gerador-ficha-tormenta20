@@ -122,4 +122,8 @@ export interface ItemMod {
   description?: string;
   prerequisite?: string;
   double?: boolean;
+  /** What item types this modification applies to */
+  appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
+  /** Optional supplement ID for supplement-specific modifications */
+  supplementId?: string;
 }

@@ -71,7 +71,7 @@ export function pickFaith(faithP: FaithProbability): DivindadeNames {
   return probabilitySumArray[probabilitySumArray.length - 1].divindade;
 }
 
-// Returns an array with N selected item from array
+// Returns an array with N selected from array
 export function pickFromArray<ElementType>(
   array: ElementType[],
   qtd: number

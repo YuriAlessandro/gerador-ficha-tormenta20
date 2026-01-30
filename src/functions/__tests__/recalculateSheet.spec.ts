@@ -1,7 +1,7 @@
 import { recalculateSheet } from '../recalculateSheet';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
-import combatPowers from '../../data/powers/combatPowers';
-import { DestinyPowers } from '../../data/powers/destinyPowers';
+import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
+import { DestinyPowers } from '../../data/systems/tormenta20/powers/destinyPowers';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 

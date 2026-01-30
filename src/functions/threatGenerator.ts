@@ -1,5 +1,5 @@
-import { Atributo } from '../data/atributos';
-import { COMBAT_TABLES } from '../data/threats/combatTables';
+import { Atributo } from '../data/systems/tormenta20/atributos';
+import { COMBAT_TABLES } from '../data/systems/tormenta20/threats/combatTables';
 import {
   ChallengeLevel,
   ChallengeTier,

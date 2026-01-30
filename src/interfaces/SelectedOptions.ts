@@ -1,3 +1,5 @@
+import { SupplementId } from '../types/supplement.types';
+
 export default interface SelectOptions {
   nivel: number;
   raca: string;
@@ -5,4 +7,5 @@ export default interface SelectOptions {
   origin: string;
   devocao: { label: string; value: string };
   gerarItens?: 'nao-gerar' | 'consumir-dinheiro' | 'sem-gastar-dinheiro';
+  supplements?: SupplementId[];
 }

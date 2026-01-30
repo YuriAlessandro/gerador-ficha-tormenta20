@@ -1,22 +1,22 @@
-import combatPowers from './powers/combatPowers';
-import grantedPowers from './powers/grantedPowers';
-import destinyPowers from './powers/destinyPowers';
-import spellPowers from './powers/spellPowers';
-import tormentaPowers from './powers/tormentaPowers';
+/**
+ * DEPRECATED: Este arquivo mantém compatibilidade com código existente
+ * Para novo código, use dataRegistry.getPowersBySupplements()
+ */
+import CORE_POWERS from './systems/tormenta20/core/powers';
 import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
 
-const generalPowers: GeneralPowers = {
-  COMBATE: Object.values(combatPowers),
-  CONCEDIDOS: Object.values(grantedPowers),
-  DESTINO: Object.values(destinyPowers),
-  MAGIA: Object.values(spellPowers),
-  TORMENTA: Object.values(tormentaPowers),
-};
+/**
+ * @deprecated Use CORE_POWERS diretamente
+ */
+const generalPowers: GeneralPowers = CORE_POWERS;
 
 export default generalPowers;
 
+/**
+ * @deprecated Use CORE_POWERS.TORMENTA.filter() diretamente
+ */
 export function getUnrestricedTormentaPowers(): GeneralPower[] {
-  return Object.values(tormentaPowers).filter(
+  return CORE_POWERS.TORMENTA.filter(
     (power) => power.requirements.length === 0
   );
 }

@@ -29,7 +29,8 @@ const OriginBenefitsSelect = ({
   setBenefits,
   selectedBenefits,
 }: Props) => {
-  const skills = getSkills(Object.entries(useSelector(selectPreviewSkills)));
+  const previewSkills = useSelector(selectPreviewSkills);
+  const skills = getSkills(Object.entries(previewSkills || {}));
   const dispatch = useDispatch();
 
   const options: Option<OriginBenefitOption>[] = [

@@ -1,7 +1,8 @@
 import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
-import tormentaPowers from '@/data/powers/tormentaPowers';
-import HUMANO from '@/data/races/humano';
+import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import originPowers from '@/data/systems/tormenta20/powers/originPowers';
+import HUMANO from '@/data/systems/tormenta20/races/humano';
 import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
@@ -136,4 +137,103 @@ export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
   }
 
   return subSteps;
+}
+
+export function applyYidishanNaturezaOrganica(
+  _sheet: CharacterSheet
+): SubStep[] {
+  function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
+    const shouldGetSkill = Math.random() > 0.5;
+
+    if (shouldGetSkill) {
+      const randomSkill = getNotRepeatedRandom(
+        sheet.skills,
+        Object.values(Skill)
+      );
+      sheet.skills.push(randomSkill);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `Perícia treinada (${randomSkill})`,
+      });
+    } else {
+      const allowedPowers = getPowersAllowedByRequirements(sheet);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `Poder geral recebido (${randomPower.name})`,
+      });
+    }
+  }
+
+  function getAndApplyRandomOldRaceAbility(
+    sheet: CharacterSheet,
+    substeps: SubStep[]
+  ) {
+    if (sheet.raca.oldRace?.abilities) {
+      const randomAbility = getRandomItemFromArray(
+        sheet.raca.oldRace.abilities
+      );
+      sheet.raca.abilities?.push(randomAbility);
+      substeps.push({
+        name: 'Natureza Orgânica',
+        value: `${sheet.raca.oldRace.name} (${randomAbility.name})`,
+      });
+
+      applyPower(sheet, randomAbility);
+    }
+
+    return sheet;
+  }
+
+  const subSteps: SubStep[] = [];
+
+  if (_sheet.raca.oldRace) {
+    if (_sheet.raca.oldRace.name === HUMANO.name) {
+      addSkillOrGeneralPower(_sheet, subSteps);
+    } else if (_sheet.raca.oldRace.abilities) {
+      _sheet = getAndApplyRandomOldRaceAbility(_sheet, subSteps);
+    }
+  }
+
+  return subSteps;
+}
+
+export function applyMeioElfoAmbicaoHerdada(sheet: CharacterSheet): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  // 50% chance of getting a general power vs origin power
+  const shouldGetGeneralPower = Math.random() > 0.5;
+
+  if (shouldGetGeneralPower) {
+    const allowedPowers = getPowersAllowedByRequirements(sheet);
+    const randomPower = getNotRepeatedRandom(
+      sheet.generalPowers,
+      allowedPowers
+    );
+    sheet.generalPowers.push(randomPower);
+    substeps.push({
+      name: 'Ambição Herdada',
+      value: `Poder geral recebido (${randomPower.name})`,
+    });
+  } else {
+    // Get a random origin power
+    const allOriginPowers = Object.values(originPowers);
+    const randomOriginPower = getRandomItemFromArray(allOriginPowers);
+    if (sheet.origin) {
+      sheet.origin.powers.push(randomOriginPower);
+    }
+    substeps.push({
+      name: 'Ambição Herdada',
+      value: `Poder único de origem recebido (${randomOriginPower.name})`,
+    });
+
+    // Apply the origin power's effects if any
+    applyPower(sheet, randomOriginPower);
+  }
+
+  return substeps;
 }

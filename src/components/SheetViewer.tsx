@@ -132,7 +132,7 @@ const SheetViewer: React.FC<Props> = ({
                           size='small'
                         />
                         <LabelDisplay
-                          title='Deslocamento'
+                          title='Desl.'
                           text={`${displacement}m`}
                           size='small'
                         />

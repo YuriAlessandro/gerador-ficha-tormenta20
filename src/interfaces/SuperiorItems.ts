@@ -5,12 +5,15 @@ export interface ItemModification {
   description?: string;
   prerequisite?: string;
   double?: boolean;
+  /** What item types this modification applies to */
+  appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
+  /** Optional supplement ID for supplement-specific modifications */
+  supplementId?: string;
 }
 
 export interface EnhancedItemModification extends ItemModification {
   description: string;
   prerequisite?: string;
-  appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
   mod: string; // Allow overriding the mod name
 }
 

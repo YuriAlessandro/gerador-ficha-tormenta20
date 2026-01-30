@@ -1,10 +1,11 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 // eslint-disable-next-line
 import CharacterSheet, {
   SheetBonus,
   SheetAction,
   SubStep,
 } from './CharacterSheet';
+import { DiceRoll } from './DiceRoll';
 
 export enum GeneralPowerType {
   COMBATE = 'COMBATE',
@@ -12,6 +13,7 @@ export enum GeneralPowerType {
   MAGIA = 'MAGIA',
   CONCEDIDOS = 'CONCEDIDOS',
   TORMENTA = 'TORMENTA',
+  RACA = 'RACA',
 }
 
 export enum RequirementType {
@@ -27,6 +29,8 @@ export enum RequirementType {
   MAGIA = 'MAGIA',
   DEVOTO = 'DEVOTO',
   TEXT = 'TEXT',
+  RACA = 'RACA',
+  TIER_LIMIT = 'TIER_LIMIT',
 }
 
 export interface Requirement {
@@ -46,6 +50,7 @@ export interface GeneralPower {
   canRepeat?: boolean;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 }
 
 export type GeneralPowers = {
@@ -58,6 +63,7 @@ export type OriginPower = {
   type: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;

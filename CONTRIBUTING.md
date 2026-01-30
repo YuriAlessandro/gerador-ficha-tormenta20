@@ -775,7 +775,7 @@ npm run testWatch  # Modo watch para desenvolvimento
 - **Discussões**: Use [GitHub Discussions](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions) para perguntas
 - **Issues**: Reporte bugs e sugira funcionalidades
 - **Discord**: [Link do servidor] (se houver)
-- **Email**: yuri.alessandro@hotmail.com
+- **Email**: contato@fichasdenimb.com.br
 
 ## 📚 Recursos Úteis
 

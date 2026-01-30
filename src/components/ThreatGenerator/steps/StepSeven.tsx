@@ -39,7 +39,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
 
       <Grid container spacing={3}>
         {/* Equipment Section */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Equipamentos
@@ -66,7 +66,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Treasure Level Section */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper variant='outlined' sx={{ p: 3 }}>
             <Typography variant='subtitle1' gutterBottom>
               Nível de Tesouro
@@ -122,7 +122,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
           Exemplos de Equipamentos por Tipo
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
                 <strong>Humanoides</strong>
@@ -132,7 +132,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
                 <strong>Monstros</strong>
@@ -142,7 +142,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
                 <strong>Construtos</strong>
@@ -152,7 +152,7 @@ const StepSeven: React.FC<StepSevenProps> = ({ threat, onUpdate }) => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
                 <strong>Mortos-vivos</strong>

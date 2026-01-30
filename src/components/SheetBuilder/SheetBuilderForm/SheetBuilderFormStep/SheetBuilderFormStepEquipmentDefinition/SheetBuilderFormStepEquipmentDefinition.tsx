@@ -59,7 +59,6 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
   };
 
   useEffect(() => {
-    // console.log(storedEquipment);
     if (storedEquipment) {
       setSelectedSimpleWeapon(storedEquipment.simpleWeapon?.name);
       setSelectedMartialWeapon(storedEquipment.martialWeapon?.name);
@@ -67,15 +66,15 @@ const SheetBuilderFormStepEquipmentDefinition = () => {
     }
   }, [storedEquipment]);
 
-  const hasMartialWeaponProficiency = proficiencies.find(
+  const hasMartialWeaponProficiency = proficiencies?.find(
     (proficiency) => Proficiency.martial === proficiency
   );
 
-  const hasLightArmorProficiency = proficiencies.find(
+  const hasLightArmorProficiency = proficiencies?.find(
     (proficiency) => Proficiency.lightArmor === proficiency
   );
 
-  const hasHeavyArmorProficiency = proficiencies.find(
+  const hasHeavyArmorProficiency = proficiencies?.find(
     (proficiency) => Proficiency.heavyArmor === proficiency
   );
 

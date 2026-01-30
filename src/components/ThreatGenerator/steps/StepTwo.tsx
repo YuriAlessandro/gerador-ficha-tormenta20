@@ -76,7 +76,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ threat, onUpdate }) => {
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <FormControl fullWidth>
             <InputLabel>Nível de Desafio (ND)</InputLabel>
             <Select
@@ -157,7 +157,7 @@ const StepTwo: React.FC<StepTwoProps> = ({ threat, onUpdate }) => {
                 defaultND: ChallengeLevel.S,
               },
             ].map((item) => (
-              <Grid item xs={6} sm={4} md={2.4} key={item.name}>
+              <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={item.name}>
                 <Paper
                   elevation={currentTier === item.tier ? 4 : 1}
                   sx={{

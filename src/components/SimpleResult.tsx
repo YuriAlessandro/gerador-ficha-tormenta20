@@ -28,7 +28,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
   const skillsTotals = {} as SkillsTotals;
 
   sheet.completeSkills?.forEach((sk) => {
-    const attributeValue = sk.modAttr ? sheet.atributos[sk.modAttr].mod : 0;
+    const attributeValue = sk.modAttr ? sheet.atributos[sk.modAttr].value : 0;
 
     const skTotal =
       (sk.halfLevel ?? 0) +
@@ -126,7 +126,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           return (
             <div key={getKey(eq.nome)}>
               {eq.nome} {modAtk > 0 ? `+${modAtk}` : modAtk} ({eq.dano}
-              {isRange ? '' : `+${sheet.atributos.Força.mod}`}, {eq.critico})
+              {isRange ? '' : `+${sheet.atributos.Força.value}`}, {eq.critico})
             </div>
           );
         })}

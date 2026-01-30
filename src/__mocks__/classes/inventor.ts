@@ -1,6 +1,6 @@
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { Atributo } from '../../data/atributos';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import Race from '../../interfaces/Race';
 import Bag from '../../interfaces/Bag';
 
@@ -13,12 +13,12 @@ export function inventor(race: Race): CharacterSheet {
     sexo: 'Masculino',
     steps: [],
     atributos: {
-      Força: { name: Atributo.FORCA, value: 11, mod: 0 },
-      Destreza: { name: Atributo.DESTREZA, value: 11, mod: 0 },
-      Constituição: { name: Atributo.CONSTITUICAO, value: 13, mod: 1 },
-      Inteligência: { name: Atributo.INTELIGENCIA, value: 14, mod: 2 },
-      Sabedoria: { name: Atributo.SABEDORIA, value: 18, mod: 4 },
-      Carisma: { name: Atributo.CARISMA, value: 16, mod: 3 },
+      Força: { name: Atributo.FORCA, value: 0 },
+      Destreza: { name: Atributo.DESTREZA, value: 0 },
+      Constituição: { name: Atributo.CONSTITUICAO, value: 1 },
+      Inteligência: { name: Atributo.INTELIGENCIA, value: 2 },
+      Sabedoria: { name: Atributo.SABEDORIA, value: 4 },
+      Carisma: { name: Atributo.CARISMA, value: 3 },
     },
     bag: new Bag({
       equipments: {
@@ -93,7 +93,7 @@ export function inventor(race: Race): CharacterSheet {
         },
         {
           name: 'Protótipo',
-          text: 'Você começa o jogo com um item superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
+          text: 'Você começa o jogo com um superior com uma modificação ou 10 itens alquímicos, com preço total de até T$ 500. Veja o Capítulo 3: Equipamento para a lista de itens.',
           nivel: 1,
         },
       ],

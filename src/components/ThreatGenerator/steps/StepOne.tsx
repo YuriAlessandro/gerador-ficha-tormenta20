@@ -39,7 +39,21 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
   };
 
   const handleDisplacementChange = (value: string) => {
-    onUpdate({ displacement: value });
+    // Extract numeric part and validate
+    const numericValue = parseInt(value.replace(/[^0-9]/g, ''), 10);
+    if (value === '' || (numericValue > 0 && !Number.isNaN(numericValue))) {
+      onUpdate({ displacement: value });
+    }
+  };
+
+  // Check if displacement is valid (positive integer)
+  const isDisplacementValid = (): boolean => {
+    if (!threat.displacement) return true; // Empty is valid (will use default)
+    const numericValue = parseInt(
+      threat.displacement.replace(/[^0-9]/g, ''),
+      10
+    );
+    return numericValue > 0 && !Number.isNaN(numericValue);
   };
 
   return (
@@ -53,7 +67,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
 
       <Grid container spacing={3}>
         {/* Tipo */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <FormControl fullWidth>
             <InputLabel>Tipo</InputLabel>
             <Select
@@ -71,7 +85,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Tamanho */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <FormControl fullWidth>
             <InputLabel>Tamanho</InputLabel>
             <Select
@@ -89,7 +103,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Papel */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <FormControl fullWidth>
             <InputLabel>Papel</InputLabel>
             <Select
@@ -107,13 +121,19 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
         </Grid>
 
         {/* Deslocamento */}
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <TextField
             fullWidth
             label='Deslocamento'
             value={threat.displacement || ''}
             onChange={(e) => handleDisplacementChange(e.target.value)}
             placeholder='Ex: 9m'
+            error={!isDisplacementValid()}
+            helperText={
+              !isDisplacementValid()
+                ? 'Deve ser um número positivo'
+                : 'Digite o valor em metros (ex: 9m)'
+            }
           />
         </Grid>
       </Grid>
@@ -124,7 +144,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
           Sobre os Papéis
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Paper
               variant='outlined'
               sx={{
@@ -145,7 +165,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Paper
               variant='outlined'
               sx={{
@@ -166,7 +186,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
               </Typography>
             </Paper>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Paper
               variant='outlined'
               sx={{

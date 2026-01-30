@@ -25,7 +25,7 @@ import {
   allArcaneSpellsCircle3,
   allArcaneSpellsCircle4,
   allArcaneSpellsCircle5,
-} from '../../data/magias/arcane';
+} from '../../data/systems/tormenta20/magias/arcane';
 
 import { Spell } from '../../interfaces/Spells';
 

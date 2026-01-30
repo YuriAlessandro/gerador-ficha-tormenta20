@@ -1,5 +1,9 @@
 import { getRaceByName } from '../../data/racas';
-import { nomes, generateRandomName, lefou } from '../../data/nomes';
+import {
+  nomes,
+  generateRandomName,
+  lefou,
+} from '../../data/systems/tormenta20/nomes';
 import Race from '../../interfaces/Race';
 
 function getSplittedName(name: string) {

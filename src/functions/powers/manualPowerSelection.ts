@@ -1,26 +1,27 @@
-import { GeneralPower } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import Skill from '@/interfaces/Skills';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import {
-  PowerSelectionRequirements,
   PowerSelectionRequirement,
+  PowerSelectionRequirements,
   SelectionOptions,
 } from '@/interfaces/PowerSelections';
+import { RaceAbility } from '@/interfaces/Race';
+import Skill from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
-import { Atributo } from '@/data/atributos';
-import { Armas } from '@/data/equipamentos';
-import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
-import { getSpellsOfCircle } from '@/data/magias/generalSpells';
-import { FAMILIAR_NAMES } from '@/data/familiars';
-import { ANIMAL_TOTEM_NAMES } from '@/data/animalTotems';
+import { ANIMAL_TOTEM_NAMES } from '@/data/systems/tormenta20/animalTotems';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { Armas } from '@/data/systems/tormenta20/equipamentos';
+import { FAMILIAR_NAMES } from '@/data/systems/tormenta20/familiars';
+import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
+import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getAttributeIncreasesInSamePlateau } from './general';
 
 /**
  * Check if a power requires manual selection from the user
  */
 export function getPowerSelectionRequirements(
-  power: GeneralPower | ClassPower
+  power: GeneralPower | ClassPower | RaceAbility | OriginPower
 ): PowerSelectionRequirements | null {
   const requirements: PowerSelectionRequirement[] = [];
 

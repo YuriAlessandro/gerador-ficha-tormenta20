@@ -131,7 +131,7 @@ Contribuições são sempre bem-vindas! Veja como você pode ajudar:
 ## 📧 Contato
 
 - **GitHub Discussions**: [Link](https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions)
-- **Email**: yuri.alessandro@hotmail.com
+- **Email**: contato@fichasdenimb.com.br
 
 ## Contribuidores Principais
 

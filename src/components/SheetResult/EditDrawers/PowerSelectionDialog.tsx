@@ -25,8 +25,8 @@ import {
   getFilteredAvailableOptions,
   validateSelections,
 } from '@/functions/powers/manualPowerSelection';
-import { FAMILIARS } from '@/data/familiars';
-import { ANIMAL_TOTEMS } from '@/data/animalTotems';
+import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
+import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
 
 interface PowerSelectionDialogProps {
   open: boolean;
@@ -288,8 +288,9 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
           <Typography variant='h6' gutterBottom>
             {label}
           </Typography>
-          <Alert severity='warning'>
-            Nenhuma opção disponível para seleção.
+          <Alert severity='info'>
+            Você já possui todas as opções disponíveis deste poder. Nenhuma
+            seleção necessária.
           </Alert>
         </Box>
       );

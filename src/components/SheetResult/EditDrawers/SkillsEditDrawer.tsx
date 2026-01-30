@@ -26,7 +26,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 interface SkillsEditDrawerProps {
   open: boolean;
@@ -117,7 +117,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
     // For new Oficio skills, calculate manually
     if (!originalSkill && skill.name.startsWith('Ofício')) {
-      const intMod = sheet.atributos.Inteligência.mod;
+      const intMod = sheet.atributos.Inteligência.value;
       const halfLevel = Math.floor(sheet.nivel / 2);
       const training = skillTrainingMod(skill.trained, sheet.nivel);
       return halfLevel + intMod + training + skill.others;
@@ -126,7 +126,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     if (!originalSkill) return 0;
 
     const attrBonus = originalSkill.modAttr
-      ? sheet.atributos[originalSkill.modAttr].mod
+      ? sheet.atributos[originalSkill.modAttr].value
       : 0;
     const halfLevel = originalSkill.halfLevel ?? 0;
     const training = skillTrainingMod(skill.trained, sheet.nivel);
@@ -304,10 +304,18 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       open={open}
       onClose={handleCancel}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } },
+        sx: { width: { xs: '100%', sm: 600 }, overflow: 'hidden' },
       }}
     >
-      <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
         <Stack
           direction='row'
           justifyContent='space-between'
@@ -327,7 +335,10 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           &ldquo;Outros&rdquo; conforme necessário.
         </Typography>
 
-        <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+        <TableContainer
+          component={Paper}
+          sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}
+        >
           <Table stickyHeader size='small'>
             <TableHead>
               <TableRow>
@@ -385,6 +396,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
               p: 2,
               backgroundColor: 'action.hover',
               borderRadius: 1,
+              flexShrink: 0,
             }}
           >
             <Typography variant='subtitle2' sx={{ mb: 2 }}>
@@ -419,7 +431,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           </Box>
         )}
 
-        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
+        <Stack direction='row' spacing={2} sx={{ mt: 4, flexShrink: 0 }}>
           <Button fullWidth variant='contained' onClick={handleSave}>
             Salvar
           </Button>
