@@ -216,19 +216,43 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                             .map((reqGroup) =>
                               reqGroup
                                 .map((req) => {
-                                  if (req.type === RequirementType.NIVEL) {
-                                    return `Nível ${req.value}`;
+                                  switch (req.type) {
+                                    case RequirementType.NIVEL:
+                                      return `Nível ${req.value}`;
+                                    case RequirementType.PODER:
+                                      return req.name;
+                                    case RequirementType.ATRIBUTO:
+                                      return `${req.name} ${req.value}`;
+                                    case RequirementType.PERICIA:
+                                      return `Treinado em ${req.name}`;
+                                    case RequirementType.HABILIDADE:
+                                      return req.not
+                                        ? `Não ter ${req.name}`
+                                        : req.name;
+                                    case RequirementType.PROFICIENCIA:
+                                      return `Proficiência: ${req.value}`;
+                                    case RequirementType.CLASSE:
+                                      return `Classe: ${req.value}`;
+                                    case RequirementType.TIPO_ARCANISTA:
+                                      return req.name;
+                                    case RequirementType.MAGIA:
+                                      return `Magia: ${req.name}`;
+                                    case RequirementType.DEVOTO:
+                                      return req.name === 'any'
+                                        ? 'Devoto de qualquer divindade'
+                                        : `Devoto de ${req.name}`;
+                                    case RequirementType.RACA:
+                                      return `Raça: ${req.name}`;
+                                    case RequirementType.TEXT:
+                                      return req.name || '';
+                                    default:
+                                      return '';
                                   }
-                                  if (req.type === RequirementType.PODER) {
-                                    return req.name;
-                                  }
-                                  if (req.type === RequirementType.ATRIBUTO) {
-                                    return `${req.name} ${req.value}`;
-                                  }
-                                  return '';
                                 })
+                                .filter((text) => text !== '')
                                 .join(' e ')
                             )
+                            .filter((text) => text !== '')
                             .join(' OU ')}
                         </Typography>
                       </Box>
@@ -339,19 +363,43 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                             .map((reqGroup) =>
                               reqGroup
                                 .map((req) => {
-                                  if (req.type === RequirementType.NIVEL) {
-                                    return `Nível ${req.value}`;
+                                  switch (req.type) {
+                                    case RequirementType.NIVEL:
+                                      return `Nível ${req.value}`;
+                                    case RequirementType.PODER:
+                                      return req.name;
+                                    case RequirementType.ATRIBUTO:
+                                      return `${req.name} ${req.value}`;
+                                    case RequirementType.PERICIA:
+                                      return `Treinado em ${req.name}`;
+                                    case RequirementType.HABILIDADE:
+                                      return req.not
+                                        ? `Não ter ${req.name}`
+                                        : req.name;
+                                    case RequirementType.PROFICIENCIA:
+                                      return `Proficiência: ${req.value}`;
+                                    case RequirementType.CLASSE:
+                                      return `Classe: ${req.value}`;
+                                    case RequirementType.TIPO_ARCANISTA:
+                                      return req.name;
+                                    case RequirementType.MAGIA:
+                                      return `Magia: ${req.name}`;
+                                    case RequirementType.DEVOTO:
+                                      return req.name === 'any'
+                                        ? 'Devoto de qualquer divindade'
+                                        : `Devoto de ${req.name}`;
+                                    case RequirementType.RACA:
+                                      return `Raça: ${req.name}`;
+                                    case RequirementType.TEXT:
+                                      return req.name || '';
+                                    default:
+                                      return '';
                                   }
-                                  if (req.type === RequirementType.PODER) {
-                                    return req.name;
-                                  }
-                                  if (req.type === RequirementType.ATRIBUTO) {
-                                    return `${req.name} ${req.value}`;
-                                  }
-                                  return '';
                                 })
+                                .filter((text) => text !== '')
                                 .join(' e ')
                             )
+                            .filter((text) => text !== '')
                             .join(' OU ')}
                         </Typography>
                       </Box>

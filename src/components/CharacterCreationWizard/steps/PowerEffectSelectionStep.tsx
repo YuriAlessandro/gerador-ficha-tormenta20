@@ -42,6 +42,8 @@ interface PowerEffectSelectionStepProps {
   powerSource?: 'class' | 'general';
   // Optional actual sheet for better filtering in level-up context
   actualSheet?: CharacterSheet;
+  // Optional arcanista subtype for requirement checking
+  arcanistaSubtype?: string;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -53,6 +55,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   selectedPower,
   powerSource,
   actualSheet,
+  arcanistaSubtype,
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -173,8 +176,13 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       skills: [],
       completeSkills: [],
       classe: {
+        name: classe.name,
+        subname: arcanistaSubtype,
         proficiencias: [],
         spellPath: classe.spellPath,
+      },
+      raca: {
+        name: race.name,
       },
       generalPowers: [],
       spells: [],
@@ -452,6 +460,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             >
               {availableOptions.map((familiarKey) => {
                 const familiar = FAMILIARS[familiarKey];
+                const isSelected = selections.familiars?.[0] === familiarKey;
                 return (
                   <FormControlLabel
                     key={familiarKey}
@@ -465,6 +474,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         </Typography>
                       </Box>
                     }
+                    sx={{
+                      ml: 0,
+                      py: 1,
+                      px: 1,
+                      borderRadius: 1,
+                      transition: 'background-color 0.2s',
+                      ...(isSelected && {
+                        bgcolor: 'action.selected',
+                        borderLeft: 3,
+                        borderColor: 'primary.main',
+                      }),
+                    }}
                   />
                 );
               })}
@@ -493,6 +514,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             >
               {availableOptions.map((totemKey) => {
                 const totem = ANIMAL_TOTEMS[totemKey];
+                const isSelected = selections.animalTotems?.[0] === totemKey;
                 return (
                   <FormControlLabel
                     key={totemKey}
@@ -506,6 +528,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         </Typography>
                       </Box>
                     }
+                    sx={{
+                      ml: 0,
+                      py: 1,
+                      px: 1,
+                      borderRadius: 1,
+                      transition: 'background-color 0.2s',
+                      ...(isSelected && {
+                        bgcolor: 'action.selected',
+                        borderLeft: 3,
+                        borderColor: 'primary.main',
+                      }),
+                    }}
                   />
                 );
               })}
@@ -622,6 +656,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             >
               {availableOptions.map((option) => {
                 const optionName = getItemName(option);
+                const isSelected = getValue() === optionName;
 
                 let optionDescription: string | null = null;
                 if (typeof option !== 'string') {
@@ -653,6 +688,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         optionName
                       )
                     }
+                    sx={{
+                      ml: 0,
+                      py: 1,
+                      px: 1,
+                      borderRadius: 1,
+                      transition: 'background-color 0.2s',
+                      ...(isSelected && {
+                        bgcolor: 'action.selected',
+                        borderLeft: 3,
+                        borderColor: 'primary.main',
+                      }),
+                    }}
                   />
                 );
               })}
@@ -754,6 +801,18 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                       optionName
                     )
                   }
+                  sx={{
+                    ml: 0,
+                    py: 1,
+                    px: 1,
+                    borderRadius: 1,
+                    transition: 'background-color 0.2s',
+                    ...(isSelected && {
+                      bgcolor: 'action.selected',
+                      borderLeft: 3,
+                      borderColor: 'primary.main',
+                    }),
+                  }}
                 />
               );
             })}

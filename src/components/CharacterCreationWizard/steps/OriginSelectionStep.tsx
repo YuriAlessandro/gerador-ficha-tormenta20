@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -10,6 +10,11 @@ import {
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Skill from '@/interfaces/Skills';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import Race from '@/interfaces/Race';
+import CharacterSheet from '@/interfaces/CharacterSheet';
+import { isPowerAvailable } from '@/functions/powers';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 
 interface OriginSelectionStepProps {
   origin: Origin;
@@ -17,6 +22,10 @@ interface OriginSelectionStepProps {
   onChange: (benefits: OriginBenefit[]) => void;
   usedSkills: Skill[];
   cachedBenefits?: OriginBenefits;
+  // Attributes for requirement checking
+  baseAttributes?: Record<Atributo, number>;
+  raceAttributes?: Atributo[];
+  race?: Race;
 }
 
 const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
@@ -25,8 +34,73 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   onChange,
   usedSkills,
   cachedBenefits,
+  baseAttributes,
+  raceAttributes,
+  race,
 }) => {
   const REQUIRED_SELECTIONS = 2;
+
+  // Build a mock sheet for power requirement checking
+  const mockSheetForRequirements = useMemo((): CharacterSheet | null => {
+    if (!baseAttributes || !race) return null;
+
+    // Calculate attribute values (base modifier + racial modifiers)
+    const atributos: Record<Atributo, { value: number; mod: number }> = {
+      [Atributo.FORCA]: { value: 0, mod: 0 },
+      [Atributo.DESTREZA]: { value: 0, mod: 0 },
+      [Atributo.CONSTITUICAO]: { value: 0, mod: 0 },
+      [Atributo.INTELIGENCIA]: { value: 0, mod: 0 },
+      [Atributo.SABEDORIA]: { value: 0, mod: 0 },
+      [Atributo.CARISMA]: { value: 0, mod: 0 },
+    };
+
+    // Apply base attribute modifiers
+    Object.entries(baseAttributes).forEach(([attr, modifier]) => {
+      atributos[attr as Atributo].value = modifier;
+      atributos[attr as Atributo].mod = modifier;
+    });
+
+    // Apply racial modifiers
+    race.attributes.attrs.forEach((attrMod) => {
+      if (attrMod.attr === 'any') {
+        // Apply to chosen attributes
+        raceAttributes?.forEach((chosenAttr) => {
+          atributos[chosenAttr].value += attrMod.mod;
+          atributos[chosenAttr].mod += attrMod.mod;
+        });
+      } else {
+        atributos[attrMod.attr].value += attrMod.mod;
+        atributos[attrMod.attr].mod += attrMod.mod;
+      }
+    });
+
+    return {
+      atributos,
+      generalPowers: [],
+      classPowers: [],
+      skills: usedSkills,
+      nivel: 1,
+      classe: {
+        name: '',
+        abilities: [],
+        proficiencias: [],
+      },
+      raca: race,
+      spells: [],
+    } as unknown as CharacterSheet;
+  }, [baseAttributes, race, raceAttributes, usedSkills]);
+
+  // Helper to check if a power meets requirements
+  const checkPowerRequirements = (
+    power: OriginPower | GeneralPower
+  ): boolean => {
+    if (!mockSheetForRequirements) return true; // If no sheet, allow all
+    // Only check requirements if the power has them (GeneralPower has requirements, OriginPower may not)
+    if ('requirements' in power && power.requirements) {
+      return isPowerAvailable(mockSheetForRequirements, power as GeneralPower);
+    }
+    return true; // No requirements = always available
+  };
 
   // If origin is regional, show what benefits will be granted automatically
   if (origin.isRegional) {
@@ -161,16 +235,28 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   ];
 
   // Include both origin powers and general powers from the origin
-  const powerOptions: OriginBenefit[] = [
+  // Also check requirements for each power
+  const powerOptionsWithRequirements = [
     ...originBenefits.powers.origin.map((power) => ({
       type: 'power' as const,
       name: power.name,
+      power,
+      meetsRequirements: checkPowerRequirements(power),
     })),
     ...(originBenefits.powers.generalPowers || []).map((power) => ({
       type: 'power' as const,
       name: power.name,
+      power,
+      meetsRequirements: checkPowerRequirements(power),
     })),
   ];
+
+  const powerOptions: OriginBenefit[] = powerOptionsWithRequirements.map(
+    (opt) => ({
+      type: opt.type,
+      name: opt.name,
+    })
+  );
 
   const handleToggle = (benefit: OriginBenefit) => {
     const isSelected = selectedBenefits.some(
@@ -289,12 +375,24 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           <Typography variant='h6' gutterBottom>
             Poderes
           </Typography>
-          {powerOptions.map((benefit) => {
+          {powerOptionsWithRequirements.some((p) => !p.meetsRequirements) && (
+            <Alert severity='info' sx={{ mb: 2 }}>
+              Alguns poderes estão indisponíveis pois você não atende aos
+              pré-requisitos (ex: atributo mínimo).
+            </Alert>
+          )}
+          {powerOptionsWithRequirements.map((powerOpt) => {
+            const benefit: OriginBenefit = {
+              type: powerOpt.type,
+              name: powerOpt.name,
+            };
             const isSelected = selectedBenefits.some(
               (b) => b.type === benefit.type && b.name === benefit.name
             );
-            const isDisabled =
+            const isDisabledByLimit =
               !isSelected && selectedBenefits.length >= REQUIRED_SELECTIONS;
+            const isDisabledByRequirements = !powerOpt.meetsRequirements;
+            const isDisabled = isDisabledByLimit || isDisabledByRequirements;
 
             return (
               <FormControlLabel
@@ -306,7 +404,27 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
                     disabled={isDisabled}
                   />
                 }
-                label={benefit.name}
+                label={
+                  <Typography
+                    component='span'
+                    sx={{
+                      color: isDisabledByRequirements
+                        ? 'text.disabled'
+                        : 'inherit',
+                    }}
+                  >
+                    {benefit.name}
+                    {isDisabledByRequirements && (
+                      <Typography
+                        component='span'
+                        variant='caption'
+                        sx={{ ml: 1, fontStyle: 'italic' }}
+                      >
+                        (pré-requisitos não atendidos)
+                      </Typography>
+                    )}
+                  </Typography>
+                }
               />
             );
           })}

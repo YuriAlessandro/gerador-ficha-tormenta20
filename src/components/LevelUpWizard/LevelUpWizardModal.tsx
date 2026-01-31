@@ -65,6 +65,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current step within this level
   const [activeStep, setActiveStep] = useState(0);
 
+  // Confirmation dialog state for cancel action
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+
   // Simulated sheet at current level (for filtering powers/spells)
   const [simulatedSheet, setSimulatedSheet] =
     useState<CharacterSheet>(initialSheet);
@@ -80,6 +83,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       });
       setActiveStep(0);
       setSimulatedSheet(initialSheet);
+      setConfirmCloseOpen(false);
     }
   }, [open, initialSheet]);
 
@@ -521,45 +525,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       const previousLevel = currentLevel - 1;
       const previousLevelSelection = allLevelSelections[previousLevel - 2];
 
-      // Get the selection for the current level we're leaving
-      const currentSelection = allLevelSelections[currentLevel - 2];
-
       setCurrentLevel(previousLevel);
       setCurrentLevelSelection(previousLevelSelection);
       setAllLevelSelections(allLevelSelections.slice(0, -1));
-
-      // Go to last step of previous level
-      // This requires recalculating steps for previous level
-      // For simplicity, go to step 0
       setActiveStep(0);
 
-      // Update simulated sheet - remove powers/spells added in current level
+      // Update simulated sheet - remove powers/spells from the level we're returning to
+      // This allows the user to see their previous selection and modify it if desired
       const prevSheet = { ...simulatedSheet, nivel: previousLevel };
 
-      // Remove the power that was selected in the level we're leaving
-      if (currentSelection) {
+      // Remove the power that was selected in the level we're returning to
+      if (previousLevelSelection) {
         if (
-          currentSelection.powerChoice === 'class' &&
-          currentSelection.selectedClassPower
+          previousLevelSelection.powerChoice === 'class' &&
+          previousLevelSelection.selectedClassPower
         ) {
           prevSheet.classPowers = (prevSheet.classPowers || []).filter(
-            (p) => p.name !== currentSelection.selectedClassPower?.name
+            (p) => p.name !== previousLevelSelection.selectedClassPower?.name
           );
         } else if (
-          currentSelection.powerChoice === 'general' &&
-          currentSelection.selectedGeneralPower
+          previousLevelSelection.powerChoice === 'general' &&
+          previousLevelSelection.selectedGeneralPower
         ) {
           prevSheet.generalPowers = (prevSheet.generalPowers || []).filter(
-            (p) => p.name !== currentSelection.selectedGeneralPower?.name
+            (p) => p.name !== previousLevelSelection.selectedGeneralPower?.name
           );
         }
 
-        // Remove spells that were selected in the level we're leaving
+        // Remove spells that were selected in the level we're returning to
         if (
-          currentSelection.spellsLearned &&
-          currentSelection.spellsLearned.length > 0
+          previousLevelSelection.spellsLearned &&
+          previousLevelSelection.spellsLearned.length > 0
         ) {
-          const spellNamesToRemove = currentSelection.spellsLearned.map(
+          const spellNamesToRemove = previousLevelSelection.spellsLearned.map(
             (s) => s.nome
           );
           prevSheet.spells = (prevSheet.spells || []).filter(
@@ -574,66 +572,112 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
   const currentStepComplete = isStepComplete(activeStep);
 
-  return (
-    <Dialog
-      open={open}
-      maxWidth='md'
-      fullWidth
-      disableEscapeKeyDown
-      PaperProps={{
-        sx: {
-          maxHeight: '90vh',
-        },
-      }}
-    >
-      <DialogTitle>
-        <Box>
-          <Typography variant='h6'>
-            Progressão de Nível - Nível {currentLevel}
-          </Typography>
-          <Typography variant='caption' color='text.secondary'>
-            Progresso geral: Nível {currentLevel} de {targetLevel}
-          </Typography>
-        </Box>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+  // Handle close attempt - show confirmation dialog
+  const handleCloseAttempt = () => {
+    setConfirmCloseOpen(true);
+  };
 
-        <Box sx={{ minHeight: 300 }}>{getStepContent(activeStep)}</Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onCancel} color='inherit'>
-          Cancelar
-        </Button>
-        <Box sx={{ flex: '1 1 auto' }} />
-        <Button
-          onClick={handleBack}
-          disabled={activeStep === 0 && currentLevel === 2}
-        >
-          Voltar
-        </Button>
-        <Button
-          variant='contained'
-          onClick={handleNext}
-          disabled={!currentStepComplete}
-        >
-          {(() => {
-            if (activeStep === steps.length - 1) {
-              return currentLevel < targetLevel
-                ? `Próximo Nível (${currentLevel + 1})`
-                : 'Finalizar';
-            }
-            return 'Próximo';
-          })()}
-        </Button>
-      </DialogActions>
-    </Dialog>
+  // Handle confirmed close
+  const handleConfirmClose = () => {
+    setConfirmCloseOpen(false);
+    onCancel();
+  };
+
+  // Handle cancel close (stay in wizard)
+  const handleCancelClose = () => {
+    setConfirmCloseOpen(false);
+  };
+
+  return (
+    <>
+      <Dialog
+        open={open}
+        onClose={handleCloseAttempt}
+        maxWidth='md'
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+          },
+        }}
+      >
+        <DialogTitle>
+          <Box>
+            <Typography variant='h6'>
+              Progressão de Nível - Nível {currentLevel}
+            </Typography>
+            <Typography variant='caption' color='text.secondary'>
+              Progresso geral: Nível {currentLevel} de {targetLevel}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          <Box sx={{ minHeight: 300 }}>{getStepContent(activeStep)}</Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAttempt} color='inherit'>
+            Cancelar
+          </Button>
+          <Box sx={{ flex: '1 1 auto' }} />
+          <Button
+            onClick={handleBack}
+            disabled={activeStep === 0 && currentLevel === 2}
+          >
+            Voltar
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleNext}
+            disabled={!currentStepComplete}
+          >
+            {(() => {
+              if (activeStep === steps.length - 1) {
+                return currentLevel < targetLevel
+                  ? `Próximo Nível (${currentLevel + 1})`
+                  : 'Finalizar';
+              }
+              return 'Próximo';
+            })()}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmCloseOpen}
+        onClose={handleCancelClose}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>Cancelar progressão de nível?</DialogTitle>
+        <DialogContent>
+          <Typography variant='body1'>
+            Tem certeza que deseja cancelar? Todas as seleções feitas até agora
+            serão perdidas.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelClose} color='inherit'>
+            Continuar editando
+          </Button>
+          <Button
+            onClick={handleConfirmClose}
+            variant='contained'
+            color='error'
+          >
+            Sim, cancelar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

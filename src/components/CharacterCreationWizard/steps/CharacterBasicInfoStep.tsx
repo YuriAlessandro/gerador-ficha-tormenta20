@@ -9,6 +9,7 @@ import {
   FormControlLabel,
   Radio,
   Alert,
+  Link,
 } from '@mui/material';
 
 interface CharacterBasicInfo {
@@ -43,6 +44,32 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Alert severity='warning' sx={{ mb: 1 }}>
+        <Typography variant='body2' gutterBottom>
+          O Fichas de Nimb <strong>não substitui</strong> a necessidade de
+          possuir os materiais de jogo. Você deve conhecer as regras do sistema
+          e estar ciente sobre o processo de criação de fichas.
+        </Typography>
+        <Typography variant='body2' gutterBottom>
+          Se você não possui Tormenta 20 ou seus suplementos, nunca jogou
+          utilizando esse sistema e não possui domínio sobre as regras, compre o
+          material no site oficial da{' '}
+          <Link
+            href='https://jamboeditora.com.br/'
+            target='_blank'
+            rel='noopener noreferrer'
+            sx={{ fontWeight: 'bold' }}
+          >
+            Jambô Editora
+          </Link>
+          .
+        </Typography>
+        <Typography variant='body2'>
+          É importante salientar que o Fichas de Nimb pode cometer erros.
+          Verifique suas fichas com atenção.
+        </Typography>
+      </Alert>
+
       <Typography variant='body1' color='text.secondary'>
         Defina as informações básicas do seu personagem.
       </Typography>

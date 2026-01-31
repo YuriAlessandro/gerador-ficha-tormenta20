@@ -218,7 +218,20 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
                             </Typography>
                           </Box>
                         }
-                        sx={{ mb: 2, alignItems: 'flex-start' }}
+                        sx={{
+                          mb: 2,
+                          alignItems: 'flex-start',
+                          ml: 0,
+                          py: 1,
+                          px: 1,
+                          borderRadius: 1,
+                          transition: 'background-color 0.2s',
+                          ...(isSelected && {
+                            bgcolor: 'action.selected',
+                            borderLeft: 3,
+                            borderColor: 'primary.main',
+                          }),
+                        }}
                       />
                     );
                   })}
