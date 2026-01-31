@@ -565,6 +565,9 @@ const CharacterCreationWizardModal: React.FC<
             }
             usedSkills={getAllUsedSkills()}
             cachedBenefits={selections.cachedOriginBenefits}
+            baseAttributes={selections.baseAttributes}
+            raceAttributes={selections.raceAttributes}
+            race={race}
           />
         );
 
@@ -668,6 +671,7 @@ const CharacterCreationWizardModal: React.FC<
                 powerEffectSelections: effectSelections,
               })
             }
+            arcanistaSubtype={selections.arcanistaSubtype}
           />
         );
 
@@ -929,13 +933,40 @@ const CharacterCreationWizardModal: React.FC<
 
         <DialogContent>
           <Box sx={{ width: '100%', mt: 2 }}>
-            <Stepper activeStep={activeStep}>
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </Stepper>
+            <Box
+              sx={{
+                overflowX: 'auto',
+                pb: 1,
+                '&::-webkit-scrollbar': {
+                  height: 6,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 3,
+                },
+              }}
+            >
+              <Stepper
+                activeStep={activeStep}
+                sx={{
+                  minWidth: 'max-content',
+                }}
+              >
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel
+                      sx={{
+                        '& .MuiStepLabel-label': {
+                          whiteSpace: 'nowrap',
+                        },
+                      }}
+                    >
+                      {label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
 
             <Box sx={{ mt: 4, mb: 2 }}>{getStepContent(activeStep)}</Box>
           </Box>
