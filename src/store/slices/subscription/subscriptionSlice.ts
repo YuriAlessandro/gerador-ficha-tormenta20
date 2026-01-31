@@ -107,12 +107,17 @@ const subscriptionSlice = createSlice({
       })
       .addCase(fetchSubscription.fulfilled, (state, action) => {
         state.loading = false;
-        state.subscription = action.payload;
-        if (action.payload) {
+        // Only update subscription if we got actual data from the API
+        // This prevents overwriting persisted subscription with null when
+        // API call happens before Firebase Auth is fully initialized (race condition on mobile)
+        if (action.payload !== null) {
+          state.subscription = action.payload;
           state.limits = getSubscriptionLimits(action.payload.tier);
-        } else {
+        } else if (!state.subscription) {
+          // Only set to FREE if we don't have any persisted subscription data
           state.limits = getSubscriptionLimits(SubscriptionTier.FREE);
         }
+        // If payload is null but we have persisted subscription, keep the persisted data
       })
       .addCase(fetchSubscription.rejected, (state, action) => {
         state.loading = false;
