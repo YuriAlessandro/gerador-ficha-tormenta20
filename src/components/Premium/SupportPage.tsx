@@ -124,9 +124,9 @@ const SupportPage: React.FC = () => {
           color='text.secondary'
           sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
         >
-          Por muito tempo, o Fichas de Nimb foi um projeto feito completamente
-          no tempo livre, por vontade própria, com custos mínimos de operação.
-          Um verdadeiro projeto de fans para fans.
+          Por muito tempo, fomos um projeto feito completamente no tempo livre,
+          por vontade própria, com custos mínimos de operação. Um verdadeiro
+          projeto de fans para fans.
         </Typography>
         <Typography
           variant='body1'
@@ -137,18 +137,6 @@ const SupportPage: React.FC = () => {
           plataforma. Porém, com tudo isso, vieram vários custos. Agora
           precisamos manter servidores, banco de dados e mais infraestrutura no
           geral.
-        </Typography>
-        <Typography
-          variant='body1'
-          color='text.secondary'
-          sx={{ textAlign: 'left', lineHeight: 1.8, mt: 2 }}
-        >
-          É importante salientar: o Fichas de Nimb é um projeto sem fins
-          lucrativos. Todos os desenvolvedores trabalham no projeto no tempo
-          livre, por vontade própria, quando podem e se estiverem dispostos.
-          Isso quer dizer que nem sempre temos desenvolvedores disponíveis para
-          o projeto o tempo todo, e por isso as coisas andam bem devagar por
-          aqui.
         </Typography>
         <Typography
           variant='body1'
