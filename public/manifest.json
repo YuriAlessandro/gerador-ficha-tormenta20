@@ -1,20 +1,22 @@
 {
   "name": "Fichas de Nimb",
   "short_name": "FdN",
-  "description": "Gerador de fichas e ameaças para Tormenta 20 - Crie personagens e NPCs completos offline",
+  "description": "Plataforma completa para Tormenta 20",
   "version": "3.2.1",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1976d2",
+  "background_color": "#1a1a1a",
+  "theme_color": "#d13235",
   "orientation": "portrait-primary",
-  "categories": [
-    "games",
-    "utilities",
-    "entertainment"
-  ],
+  "categories": ["games", "utilities", "entertainment"],
   "lang": "pt-BR",
   "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/android-icon-36x36.png",
       "sizes": "36x36",
@@ -56,6 +58,12 @@
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/apple-icon-180x180.png",

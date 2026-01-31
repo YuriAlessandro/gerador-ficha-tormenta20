@@ -74,8 +74,8 @@ export function useNotifications() {
       });
 
       // Listen for count updates
-      socket.on('notification:count', (data: { count: number }) => {
-        dispatch(setUnreadCount(data.count));
+      socket.on('notification:count', (data: { unreadCount: number }) => {
+        dispatch(setUnreadCount(data.unreadCount));
       });
 
       socketRef.current = socket;
