@@ -24,9 +24,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const atk = atkBonus ? atkBonus + modAtk : modAtk;
 
   const damageModifier = isRange ? 0 : modDano;
-  const damage = `${dano}${
-    isRange ? '' : `+${modDano >= 0 ? modDano : `-${Math.abs(modDano)}`}`
-  }`;
+  const damageModStr =
+    damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
+  const damage = isRange ? dano : `${dano}${damageModStr}`;
 
   const handleWeaponClick = () => {
     const attackRoll = rollD20();
@@ -38,8 +38,11 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     const isFumble = attackRoll === 1;
 
     // Parsear e rolar dano
-    const damageString = `${dano}+${damageModifier}`;
-    const damageRollResult = rollDamage(damageString);
+    const damageRollString =
+      damageModifier >= 0
+        ? `${dano}+${damageModifier}`
+        : `${dano}${damageModifier}`;
+    const damageRollResult = rollDamage(damageRollString);
 
     if (!damageRollResult) {
       // Fallback se o parse falhar - não rola dano
