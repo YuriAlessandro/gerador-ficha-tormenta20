@@ -16,6 +16,7 @@ import { FAMILIAR_NAMES } from '@/data/systems/tormenta20/familiars';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getAttributeIncreasesInSamePlateau } from './general';
+import { isPowerAvailable } from '../powers';
 
 /**
  * Check if a power requires manual selection from the user
@@ -209,12 +210,21 @@ export function getFilteredAvailableOptions(
     case 'getGeneralPower': {
       const powers = availableOptions as GeneralPower[];
       return powers
-        .filter(
-          (power) =>
-            !sheet.generalPowers?.some(
+        .filter((power) => {
+          // Filter out powers the character already has
+          if (
+            sheet.generalPowers?.some(
               (existing) => existing.name === power.name
             )
-        )
+          ) {
+            return false;
+          }
+          // Filter out powers whose requirements are not met
+          if (!isPowerAvailable(sheet, power)) {
+            return false;
+          }
+          return true;
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
     }
 

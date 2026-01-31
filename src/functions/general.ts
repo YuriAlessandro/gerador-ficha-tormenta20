@@ -1997,6 +1997,10 @@ export const applyPower = (
                   ).length;
                   return count < 1;
                 }
+                case 'TEXT':
+                  // TEXT requirements are always considered met - the user reads
+                  // the text description and judges if they meet the requirement
+                  return true;
                 default:
                   return true;
               }

@@ -641,12 +641,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   // Handlers for General Items
-  const handleGeneralItemToggle = (item: Equipment) => {
+  const handleAddGeneralItem = (item: Equipment) => {
     setSelectedEquipment((prev) => ({
       ...prev,
-      generalItems: prev.generalItems.some((i) => i.nome === item.nome)
-        ? prev.generalItems.filter((i) => i.nome !== item.nome)
-        : [...prev.generalItems, item],
+      generalItems: [...prev.generalItems, item],
     }));
   };
 
@@ -658,12 +656,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   // Handlers for Clothing
-  const handleClothingToggle = (item: Equipment) => {
+  const handleAddClothing = (item: Equipment) => {
     setSelectedEquipment((prev) => ({
       ...prev,
-      clothing: prev.clothing.some((i) => i.nome === item.nome)
-        ? prev.clothing.filter((i) => i.nome !== item.nome)
-        : [...prev.clothing, item],
+      clothing: [...prev.clothing, item],
     }));
   };
 
@@ -675,12 +671,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   // Handlers for Alchemy
-  const handleAlchemyToggle = (item: Equipment) => {
+  const handleAddAlchemy = (item: Equipment) => {
     setSelectedEquipment((prev) => ({
       ...prev,
-      alchemy: prev.alchemy.some((i) => i.nome === item.nome)
-        ? prev.alchemy.filter((i) => i.nome !== item.nome)
-        : [...prev.alchemy, item],
+      alchemy: [...prev.alchemy, item],
     }));
   };
 
@@ -692,12 +686,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   // Handlers for Food
-  const handleFoodToggle = (item: Equipment) => {
+  const handleAddFood = (item: Equipment) => {
     setSelectedEquipment((prev) => ({
       ...prev,
-      food: prev.food.some((i) => i.nome === item.nome)
-        ? prev.food.filter((i) => i.nome !== item.nome)
-        : [...prev.food, item],
+      food: [...prev.food, item],
     }));
   };
 
@@ -1009,26 +1001,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     onClose();
   };
 
-  const isWeaponSelected = (weapon: Equipment) =>
-    selectedEquipment.weapons.some((w) => w.nome === weapon.nome);
-
   const isArmorSelected = (armor: DefenseEquipment) =>
     selectedEquipment.armors.some((a) => a.nome === armor.nome);
 
   const isShieldSelected = (shield: DefenseEquipment) =>
     selectedEquipment.shields.some((s) => s.nome === shield.nome);
-
-  const isGeneralItemSelected = (item: Equipment) =>
-    selectedEquipment.generalItems.some((i) => i.nome === item.nome);
-
-  const isClothingSelected = (item: Equipment) =>
-    selectedEquipment.clothing.some((i) => i.nome === item.nome);
-
-  const isAlchemySelected = (item: Equipment) =>
-    selectedEquipment.alchemy.some((i) => i.nome === item.nome);
-
-  const isFoodSelected = (item: Equipment) =>
-    selectedEquipment.food.some((i) => i.nome === item.nome);
 
   return (
     <Drawer
@@ -1538,17 +1515,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement simple weapons */}
@@ -1561,17 +1537,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -1607,17 +1582,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement martial weapons */}
@@ -1630,17 +1604,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -1676,17 +1649,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement exotic weapons */}
@@ -1699,17 +1671,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -1745,17 +1716,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement firearms */}
@@ -1768,17 +1738,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isWeaponSelected(weapon)}
-                              onChange={() => handleWeaponToggle(weapon)}
-                              size='small'
-                            />
-                          }
-                          label={`${weapon.nome} (Dano: ${weapon.dano})`}
-                          sx={{ flex: 1 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleWeaponToggle(weapon)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {weapon.nome} (Dano: {weapon.dano})
+                        </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2077,17 +2046,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isGeneralItemSelected(item)}
-                              onChange={() => handleGeneralItemToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddGeneralItem(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2101,17 +2069,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             gap: 1,
                           }}
                         >
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={isGeneralItemSelected(item)}
-                                onChange={() => handleGeneralItemToggle(item)}
-                                size='small'
-                              />
-                            }
-                            label={`${item.nome} (T$ ${item.preco || 0})`}
-                            sx={{ flex: 1, minWidth: 0 }}
-                          />
+                          <IconButton
+                            size='small'
+                            color='primary'
+                            onClick={() => handleAddGeneralItem(item)}
+                          >
+                            <AddCircleOutlineIcon />
+                          </IconButton>
+                          <Typography variant='body2' sx={{ flex: 1 }}>
+                            {item.nome} (T$ {item.preco || 0})
+                          </Typography>
                           {item.supplementId &&
                             item.supplementId !==
                               SupplementId.TORMENTA20_CORE && (
@@ -2148,17 +2115,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isGeneralItemSelected(item)}
-                              onChange={() => handleGeneralItemToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddGeneralItem(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                   </Stack>
@@ -2182,17 +2148,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isGeneralItemSelected(item)}
-                              onChange={() => handleGeneralItemToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddGeneralItem(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2205,17 +2170,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isGeneralItemSelected(item)}
-                              onChange={() => handleGeneralItemToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddGeneralItem(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2264,17 +2228,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isClothingSelected(item)}
-                              onChange={() => handleClothingToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddClothing(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2287,17 +2250,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isClothingSelected(item)}
-                              onChange={() => handleClothingToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddClothing(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2356,17 +2318,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2379,17 +2340,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2426,17 +2386,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2449,17 +2408,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2496,17 +2454,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2519,17 +2476,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isAlchemySelected(item)}
-                              onChange={() => handleAlchemyToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAlchemy(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (
@@ -2578,17 +2534,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isFoodSelected(item)}
-                              onChange={() => handleFoodToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddFood(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                       </Box>
                     ))}
                     {/* Supplement items */}
@@ -2601,17 +2556,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isFoodSelected(item)}
-                              onChange={() => handleFoodToggle(item)}
-                              size='small'
-                            />
-                          }
-                          label={`${item.nome} (T$ ${item.preco || 0})`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddFood(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
                         {item.supplementId &&
                           item.supplementId !==
                             SupplementId.TORMENTA20_CORE && (

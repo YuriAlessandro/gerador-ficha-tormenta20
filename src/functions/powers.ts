@@ -124,6 +124,10 @@ export function isPowerAvailable(
             const count = getPowerCountInCurrentTier(sheet, category);
             return count < 1; // Máximo 1 bênção por patamar
           }
+          case RequirementType.TEXT:
+            // TEXT requirements are always considered met - the user reads
+            // the text description and judges if they meet the requirement
+            return true;
           default:
             return true;
         }
