@@ -13,6 +13,7 @@ import {
   Chip,
   Typography,
   Divider,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -136,6 +137,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
   defaultOpen,
 }) => {
   const [open, setOpen] = useState(false);
+  const theme = useTheme();
 
   useEffect(() => {
     setOpen(defaultOpen);
@@ -147,7 +149,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
         sx={{
           '& > *': { borderBottom: 'unset' },
           '&:hover': {
-            backgroundColor: 'rgba(209, 50, 53, 0.02)',
+            backgroundColor: `${theme.palette.primary.main}05`,
           },
         }}
       >
@@ -202,7 +204,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               itemName={spell.nome}
               itemType='magia'
               size='small'
-              variant='integrated'
+              variant='minimal'
             />
           </Box>
         </TableCell>
@@ -222,7 +224,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
               sx={{
                 margin: 1,
                 p: 2,
-                borderLeft: '3px solid #d13235',
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 maxWidth: '100%',
@@ -314,6 +316,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
 
 const UnifiedSpellsTable: React.FC = () => {
   const { user } = useAuth();
+  const theme = useTheme();
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >(
@@ -456,16 +459,19 @@ const UnifiedSpellsTable: React.FC = () => {
 
     setFilteredSpells(filtered);
 
-    // Handle URL navigation for single results
+    // Handle URL navigation for single results only (enables deep linking)
+    // We don't push for multiple results to avoid unnecessary navigation
     if (filtered.length === 1 && filters.search.trim()) {
       const spellName = filtered[0].nome.toLowerCase();
-      history.push(`/database/magias/${spellName}`);
-    } else if (filtered.length > 1 && filters.search.trim()) {
-      history.push('/database/magias');
+      const targetUrl = `/database/magias/${spellName}`;
+      // Only push if we're not already at this URL
+      if (!history.location.pathname.endsWith(spellName)) {
+        history.push(targetUrl);
+      }
     }
   }, [filters, allSpells, history]);
 
-  // Handle URL parameters
+  // Handle URL parameters - only set search from URL on initial load or direct navigation
   useEffect(() => {
     const { selectedSpell } = params as { selectedSpell?: string };
     if (selectedSpell) {
@@ -486,15 +492,8 @@ const UnifiedSpellsTable: React.FC = () => {
         }
         return prev;
       });
-    } else {
-      // Clear search when no spell is selected
-      setFilters((prev) => {
-        if (prev.search !== '') {
-          return { ...prev, search: '' };
-        }
-        return prev;
-      });
     }
+    // Note: We don't clear search when no selectedSpell - the user controls the search field
   }, [params, allSpells]);
 
   const handleFilterChange = (newFilters: Partial<SpellFilters>) => {
@@ -638,7 +637,10 @@ const UnifiedSpellsTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Nome da Magia
                   </Typography>
@@ -646,7 +648,10 @@ const UnifiedSpellsTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Círculo
                   </Typography>
@@ -654,7 +659,10 @@ const UnifiedSpellsTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Escola
                   </Typography>
@@ -662,7 +670,10 @@ const UnifiedSpellsTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Execução
                   </Typography>

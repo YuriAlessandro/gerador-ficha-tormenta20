@@ -14,6 +14,7 @@ import {
   Typography,
   Divider,
   Chip,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -33,6 +34,7 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
   origin,
   defaultOpen,
 }) => {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -69,13 +71,12 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                 }}
               />
             )}
-            <Box sx={{ ml: 'auto' }}>
-              <CopyUrlButton
-                itemName={origin.name}
-                itemType='origem'
-                size='small'
-              />
-            </Box>
+            <CopyUrlButton
+              itemName={origin.name}
+              itemType='origem'
+              size='small'
+              variant='minimal'
+            />
           </Box>
         </TableCell>
         <TableCell />
@@ -83,7 +84,13 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -202,6 +209,7 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
 };
 
 const OriginsTable: React.FC = () => {
+  const theme = useTheme();
   const [value, setValue] = useState('');
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
@@ -334,7 +342,10 @@ const OriginsTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Nome da Origem
                   </Typography>

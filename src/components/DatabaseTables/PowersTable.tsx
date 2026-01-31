@@ -16,6 +16,7 @@ import {
   Typography,
   Divider,
   Chip,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -71,6 +72,7 @@ const Row: React.FC<{
   power: GeneralPowerWithSupplement;
   defaultOpen: boolean;
 }> = ({ power, defaultOpen }) => {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ const Row: React.FC<{
           '& > *': { borderBottom: 'unset' },
           position: 'relative',
           '&:hover': {
-            backgroundColor: 'rgba(209, 50, 53, 0.02)',
+            backgroundColor: `${theme.palette.primary.main}05`,
           },
         }}
       >
@@ -127,7 +129,7 @@ const Row: React.FC<{
             itemName={power.name}
             itemType='poder'
             size='small'
-            variant='floating'
+            variant='minimal'
           />
         </TableCell>
         <TableCell />
@@ -135,7 +137,13 @@ const Row: React.FC<{
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+              }}
+            >
               <Typography
                 variant='h6'
                 color='primary'
@@ -196,6 +204,7 @@ const Row: React.FC<{
 };
 
 const PowersTable: React.FC = () => {
+  const theme = useTheme();
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >([
@@ -312,12 +321,16 @@ const PowersTable: React.FC = () => {
       <TableRow>
         <TableCell
           colSpan={3}
-          sx={{ py: 2, backgroundColor: 'rgba(209, 50, 53, 0.05)' }}
+          sx={{ py: 2, backgroundColor: `${theme.palette.primary.main}0D` }}
         >
           <Box ref={ref} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography
               variant='h5'
-              sx={{ fontFamily: 'Tfont, serif', color: '#d13235', m: 0 }}
+              sx={{
+                fontFamily: 'Tfont, serif',
+                color: theme.palette.primary.main,
+                m: 0,
+              }}
             >
               {title}
             </Typography>
@@ -396,7 +409,7 @@ const PowersTable: React.FC = () => {
             variant='scrollable'
             scrollButtons='auto'
             sx={{
-              background: 'linear-gradient(135deg, #d13235 0%, #922325 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               borderRadius: 1,
               '& .MuiTab-root': {
                 fontFamily: 'Tfont, serif',
@@ -437,7 +450,10 @@ const PowersTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Nome do Poder
                   </Typography>

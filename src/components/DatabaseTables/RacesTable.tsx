@@ -14,6 +14,7 @@ import {
   Typography,
   Divider,
   Chip,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -80,6 +81,7 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
   race,
   defaultOpen,
 }) => {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -142,7 +144,13 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -237,6 +245,7 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
 };
 
 const RacesTable: React.FC = () => {
+  const theme = useTheme();
   const [value, setValue] = useState('');
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
@@ -370,7 +379,10 @@ const RacesTable: React.FC = () => {
                 <TableCell>
                   <Typography
                     variant='h6'
-                    sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
                   >
                     Nome da Raça
                   </Typography>
