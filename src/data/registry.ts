@@ -16,6 +16,9 @@ import {
   GOLPE_PESSOAL_EFFECTS,
   GolpePessoalEffect,
 } from './systems/tormenta20/golpePessoal';
+import { MarketEquipment } from '../interfaces/MarketEquipment';
+import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
+import { Armas, Armaduras, Escudos } from './systems/tormenta20/equipamentos';
 
 /**
  * Tipos para dados com informação de origem do suplemento
@@ -536,6 +539,92 @@ class DataRegistry {
     });
 
     return combinedEffects;
+  }
+
+  /**
+   * Retorna equipamentos combinados de todos os suplementos ativos
+   * Inclui armas, armaduras, escudos e itens gerais do core e suplementos
+   */
+  // eslint-disable-next-line class-methods-use-this
+  getEquipmentBySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = SystemId.TORMENTA20
+  ): MarketEquipment {
+    const result: MarketEquipment = {
+      weapons: [],
+      armors: [],
+      shields: [],
+      generalItems: [],
+      clothing: [],
+      alchemy: [],
+      food: [],
+    };
+
+    const systemData = SYSTEMS_MAP[systemId];
+    if (!systemData) return result;
+
+    // Add core weapons from equipamentos.ts
+    result.weapons.push(...Object.values(Armas));
+
+    // Add core armors (separating armors and shields)
+    Object.values(Armaduras).forEach((armor) => {
+      result.armors.push(armor);
+    });
+
+    // Add core shields
+    Object.values(Escudos).forEach((shield) => {
+      result.shields.push(shield);
+    });
+
+    // Add equipment from supplements
+    supplementIds.forEach((id) => {
+      const supplementEquipment = systemData.supplements[id]?.equipment;
+      if (supplementEquipment) {
+        // Add supplement weapons
+        if (supplementEquipment.weapons) {
+          result.weapons.push(
+            ...Object.values(
+              supplementEquipment.weapons as Record<string, Equipment>
+            )
+          );
+        }
+
+        // Add supplement armors (separating armors and shields by group)
+        if (supplementEquipment.armors) {
+          Object.values(
+            supplementEquipment.armors as Record<string, DefenseEquipment>
+          ).forEach((item) => {
+            if (item.group === 'Escudo') {
+              result.shields.push(item);
+            } else {
+              result.armors.push(item);
+            }
+          });
+        }
+
+        // Add supplement general items
+        if (supplementEquipment.generalItems) {
+          result.generalItems.push(...supplementEquipment.generalItems);
+        }
+
+        // Add supplement clothing
+        if (supplementEquipment.clothing) {
+          result.clothing.push(...supplementEquipment.clothing);
+        }
+
+        // Add supplement alchemy
+        if (supplementEquipment.alchemy) {
+          result.alchemy.push(...supplementEquipment.alchemy);
+        }
+
+        // Add supplement food
+        if (supplementEquipment.food) {
+          result.food.push(...supplementEquipment.food);
+        }
+      }
+    });
+
+    return result;
   }
 
   /**

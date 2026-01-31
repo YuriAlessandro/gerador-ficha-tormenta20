@@ -3667,7 +3667,9 @@ export function generateEmptySheet(
     sheetBonuses: [],
     sheetActionHistory: [],
     defesa: 10,
-    bag: new Bag(),
+    bag: wizardSelections?.marketSelections
+      ? new Bag(wizardSelections.marketSelections.bagEquipments)
+      : new Bag(),
     devoto: undefined,
     origin: undefined,
     displacement: 0,
@@ -3680,7 +3682,9 @@ export function generateEmptySheet(
       ...(wizardSelections?.classSkills || []),
     ], // Add class base skills + wizard selected skills
     spells: [],
-    dinheiro: getInitialMoney(selectedOptions.nivel),
+    dinheiro: wizardSelections?.marketSelections
+      ? wizardSelections.marketSelections.remainingMoney
+      : getInitialMoney(selectedOptions.nivel),
   };
 
   // Apply wizard character name and gender if provided

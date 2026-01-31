@@ -28,7 +28,10 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
+import { getInitialMoneyWithDetails } from '@/functions/general';
 import Skill from '@/interfaces/Skills';
+import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
+import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -44,6 +47,7 @@ import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
+import MarketStep from './steps/MarketStep';
 
 interface RaceCustomization {
   // Golem Desperto
@@ -367,6 +371,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
+    stepsArray.push('Mercado'); // Always show as final step
     return stepsArray;
   };
 
@@ -429,6 +434,97 @@ const CharacterCreationWizardModal: React.FC<
       skills.push(...selections.intelligenceSkills);
     }
     return skills;
+  };
+
+  // Helper function to build pre-populated bag from origin and selections
+  const buildPrePopulatedBag = (
+    currentOrigin: Origin | undefined,
+    currentSelections: WizardSelections
+  ): BagEquipments => {
+    const bag: BagEquipments = {
+      Arma: [],
+      Armadura: [],
+      Escudo: [],
+      'Item Geral': [
+        { nome: 'Mochila', group: 'Item Geral', spaces: 0 },
+        { nome: 'Saco de dormir', group: 'Item Geral', spaces: 1 },
+        { nome: 'Traje de viajante', group: 'Item Geral', spaces: 0 },
+      ],
+      Alquimía: [],
+      Vestuário: [],
+      Hospedagem: [],
+      Alimentação: [],
+      Animal: [],
+      Veículo: [],
+      Serviço: [],
+    };
+
+    // Add origin items (for regional origins)
+    if (currentOrigin?.isRegional) {
+      const originItems = currentOrigin.getItems();
+      originItems?.forEach((equip) => {
+        if (typeof equip.equipment === 'string') {
+          bag['Item Geral'].push({
+            nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+            group: 'Item Geral',
+          });
+        } else if (equip.equipment) {
+          const equipValue = equip.equipment;
+          // Check if it's an armor
+          if (
+            Object.values(Armaduras).find(
+              (armor) => armor.nome === equipValue.nome
+            )
+          ) {
+            bag.Armadura.push(equipValue as DefenseEquipment);
+          }
+          // Check if it's a shield
+          else if (
+            Object.values(Escudos).find(
+              (shield) => shield.nome === equipValue.nome
+            )
+          ) {
+            bag.Escudo.push(equipValue as DefenseEquipment);
+          }
+          // Otherwise it's a weapon or general item
+          else if (equipValue.group === 'Arma') {
+            bag.Arma.push(equipValue);
+          } else {
+            bag['Item Geral'].push(equipValue);
+          }
+        }
+      });
+    }
+
+    // Add items from non-regional origin benefits if selected as 'item' type
+    if (
+      currentSelections.originBenefits &&
+      currentOrigin &&
+      !currentOrigin.isRegional
+    ) {
+      const originItems = currentOrigin.getItems();
+      currentSelections.originBenefits
+        .filter((b) => b.type === 'item')
+        .forEach((benefit) => {
+          const item = originItems.find((i) => {
+            const itemName =
+              typeof i.equipment === 'string' ? i.equipment : i.equipment.nome;
+            return itemName === benefit.name;
+          });
+          if (item) {
+            if (typeof item.equipment === 'string') {
+              bag['Item Geral'].push({
+                nome: `${item.qtd ? `${item.qtd}x ` : ''}${item.equipment}`,
+                group: 'Item Geral',
+              });
+            } else {
+              bag['Item Geral'].push(item.equipment);
+            }
+          }
+        });
+    }
+
+    return bag;
   };
 
   // Get current step content
@@ -675,6 +771,44 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Mercado': {
+        // Calculate initial money
+        const moneyInfo = getInitialMoneyWithDetails(
+          selectedOptions.nivel || 1
+        );
+        let baseMoney = moneyInfo.amount;
+
+        // Add origin bonus money if regional
+        if (origin?.isRegional && origin?.getMoney) {
+          baseMoney += origin.getMoney();
+        }
+
+        // Build pre-populated bag
+        const prePopulatedBag = buildPrePopulatedBag(origin, selections);
+
+        // Use existing market selections if available, otherwise use defaults
+        const currentMarketSelections = selections.marketSelections || {
+          initialMoney: baseMoney,
+          remainingMoney: baseMoney,
+          bagEquipments: prePopulatedBag,
+        };
+
+        // Get all available equipment from supplements
+        const availableEquipment =
+          dataRegistry.getEquipmentBySupplements(supplements);
+
+        return (
+          <MarketStep
+            initialMoney={currentMarketSelections.initialMoney}
+            bagEquipments={currentMarketSelections.bagEquipments}
+            availableEquipment={availableEquipment}
+            onChange={(marketData) =>
+              setSelections({ ...selections, marketSelections: marketData })
+            }
+          />
+        );
+      }
+
       default:
         return null;
     }
@@ -844,6 +978,10 @@ const CharacterCreationWizardModal: React.FC<
           return count >= pick;
         });
       }
+
+      case 'Mercado':
+        // Always allow proceeding from market step
+        return true;
 
       default:
         return false;

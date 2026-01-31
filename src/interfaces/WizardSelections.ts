@@ -5,6 +5,7 @@ import { Spell, SpellSchool } from './Spells';
 import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
+import { MarketSelections } from './MarketEquipment';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -92,4 +93,7 @@ export interface WizardSelections {
 
   // Level up selections (for levels 2+)
   levelUpSelections?: LevelUpSelections[];
+
+  // Market step selections (equipment and money)
+  marketSelections?: MarketSelections;
 }
