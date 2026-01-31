@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import authService from '../../../services/auth.service';
 import { AuthState, DbUser } from '../../../types/auth.types';
 import { AccentColorId } from '../../../theme/accentColors';
+import { DiceColorId } from '../../../types/diceColors';
 
 const initialState: AuthState = {
   firebaseUser: null,
@@ -84,9 +85,12 @@ export const saveSystemSetup = createAsyncThunk(
 
 export const saveDice3DSettings = createAsyncThunk(
   'auth/saveDice3DSettings',
-  async (enabled: boolean, { rejectWithValue }) => {
+  async (
+    settings: { enabled?: boolean; color?: DiceColorId },
+    { rejectWithValue }
+  ) => {
     try {
-      const updatedUser = await authService.saveDice3DSettings(enabled);
+      const updatedUser = await authService.saveDice3DSettings(settings);
       return updatedUser;
     } catch (error) {
       if (error instanceof Error) {

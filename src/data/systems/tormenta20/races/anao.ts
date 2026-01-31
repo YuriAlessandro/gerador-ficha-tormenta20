@@ -50,21 +50,6 @@ const ANAO: Race = {
       name: 'Devagar e Sempre',
       description:
         'Seu deslocamento é 6m (em vez de 9m). Porém, seu deslocamento não é reduzido por uso de armadura ou excesso de carga.',
-      sheetBonuses: [
-        {
-          source: {
-            type: 'power',
-            name: 'Devagar e Sempre',
-          },
-          target: {
-            type: 'Displacement',
-          },
-          modifier: {
-            type: 'Fixed',
-            value: -3,
-          },
-        },
-      ],
     },
     {
       name: 'Tradição de Heredrimm',

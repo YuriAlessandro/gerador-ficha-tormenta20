@@ -266,7 +266,7 @@ const PALADINO: ClassDescription = {
     },
   ],
   probDevoto: 0.8,
-  qtdPoderesConcedidos: 'all',
+  qtdPoderesConcedidos: 2,
   faithProbability: {
     AZGHER: 1,
     KHALMYR: 1,

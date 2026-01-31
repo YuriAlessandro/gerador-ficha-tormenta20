@@ -38,19 +38,6 @@ const HYNNE: Race = {
             name: 'Pequeno e Rechonchudo',
           },
           target: {
-            type: 'Displacement',
-          },
-          modifier: {
-            type: 'Fixed',
-            value: -3,
-          },
-        },
-        {
-          source: {
-            type: 'power',
-            name: 'Pequeno e Rechonchudo',
-          },
-          target: {
             type: 'Skill',
             name: Skill.ENGANACAO,
           },

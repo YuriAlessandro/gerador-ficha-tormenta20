@@ -6,7 +6,6 @@ import { CharacterAttributes } from '@/interfaces/Character';
 import { addSign } from './common/StringHelper';
 import FancyBox from './common/FancyBox';
 import { rollD20 } from '../../functions/diceRoller';
-import { useDice3D } from '../../contexts/Dice3DContext';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 type Props = {
@@ -16,7 +15,6 @@ type Props = {
 
 const AttributeDisplay = ({ attributes, characterName }: Props) => {
   const theme = useTheme();
-  const { settings, roll3D, isReady } = useDice3D();
   const { showDiceResult } = useDiceRoll();
 
   const Title = styled.span`
@@ -44,26 +42,9 @@ const AttributeDisplay = ({ attributes, characterName }: Props) => {
     }
   `;
 
-  const handleAttributeClick = async (
-    attributeName: string,
-    modifier: number
-  ) => {
-    let d20Roll: number;
-
-    // Try to use 3D dice if enabled
-    if (settings.enabled && isReady) {
-      try {
-        const results = await roll3D('1d20');
-        d20Roll = results[0]?.value || rollD20();
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn('3D dice roll failed, falling back to 2D:', error);
-        d20Roll = rollD20();
-      }
-    } else {
-      d20Roll = rollD20();
-    }
-
+  const handleAttributeClick = (attributeName: string, modifier: number) => {
+    // Roll the d20 locally - 3D animation will be handled by showDiceResult
+    const d20Roll = rollD20();
     const total = Math.max(1, d20Roll + modifier);
     const isCritical = d20Roll === 20;
     const isFumble = d20Roll === 1;

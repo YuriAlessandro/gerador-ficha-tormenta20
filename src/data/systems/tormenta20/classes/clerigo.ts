@@ -220,7 +220,7 @@ const CLERIGO: ClassDescription = {
     },
   ],
   probDevoto: 0.95,
-  qtdPoderesConcedidos: 'all',
+  qtdPoderesConcedidos: 2,
   faithProbability: standardFaithProbability,
   attrPriority: [Atributo.SABEDORIA],
   setup: (classe) => {

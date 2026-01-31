@@ -2,6 +2,7 @@ import { User } from 'firebase/auth';
 import { SystemId } from './system.types';
 import { SupplementId } from './supplement.types';
 import { AccentColorId } from '../theme/accentColors';
+import { DiceColorId } from './diceColors';
 
 export interface DbUser {
   _id: string;
@@ -20,6 +21,7 @@ export interface DbUser {
   enabledSupplements?: SupplementId[];
   hasCompletedInitialSetup?: boolean;
   dice3DEnabled?: boolean;
+  diceColor?: DiceColorId;
   accentColor?: AccentColorId;
   darkMode?: boolean;
   termsAcceptedVersion?: number;

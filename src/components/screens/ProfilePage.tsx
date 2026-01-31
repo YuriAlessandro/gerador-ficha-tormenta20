@@ -62,13 +62,14 @@ import { AppDispatch } from '../../store';
 import {
   updateProfile,
   saveSystemSetup,
-  // saveDice3DSettings, // DISABLED: 3D Dice feature temporarily disabled
+  saveDice3DSettings,
 } from '../../store/slices/auth/authSlice';
 import {
   SupplementId,
   SUPPLEMENT_METADATA,
 } from '../../types/supplement.types';
 import { SystemId } from '../../types/system.types';
+import { DiceColorId, getDiceColorsArray } from '../../types/diceColors';
 import { SEO, createProfileSchema } from '../SEO';
 
 interface TabPanelProps {
@@ -143,24 +144,28 @@ const ProfilePage: React.FC = () => {
   const [subscriptionActionSuccess, setSubscriptionActionSuccess] = useState<
     string | null
   >(null);
-  // DISABLED: 3D Dice feature temporarily disabled
-  // const [dice3DEnabled, setDice3DEnabled] = useState(
-  //   currentUser?.dice3DEnabled || false
-  // );
-  // const [dice3DLoading, setDice3DLoading] = useState(false);
-  // const [dice3DError, setDice3DError] = useState<string | null>(null);
-  // const [dice3DSuccess, setDice3DSuccess] = useState(false);
+  const [dice3DEnabled, setDice3DEnabled] = useState(
+    currentUser?.dice3DEnabled || false
+  );
+  const [diceColor, setDiceColor] = useState<DiceColorId>(
+    currentUser?.diceColor || 'red'
+  );
+  const [dice3DLoading, setDice3DLoading] = useState(false);
+  const [dice3DError, setDice3DError] = useState<string | null>(null);
+  const [dice3DSuccess, setDice3DSuccess] = useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
 
-  // DISABLED: 3D Dice feature temporarily disabled
   // Sync dice3D state with user data
-  // useEffect(() => {
-  //   if (currentUser?.dice3DEnabled !== undefined) {
-  //     setDice3DEnabled(currentUser.dice3DEnabled);
-  //   }
-  // }, [currentUser?.dice3DEnabled]);
+  useEffect(() => {
+    if (currentUser?.dice3DEnabled !== undefined) {
+      setDice3DEnabled(currentUser.dice3DEnabled);
+    }
+    if (currentUser?.diceColor !== undefined) {
+      setDiceColor(currentUser.diceColor);
+    }
+  }, [currentUser?.dice3DEnabled, currentUser?.diceColor]);
 
   // Load subscription and invoices when support tab is selected (tab index 2)
   useEffect(() => {
@@ -355,27 +360,47 @@ const ProfilePage: React.FC = () => {
     return 'error';
   };
 
-  // DISABLED: 3D Dice feature temporarily disabled
-  // const handleToggleDice3D = async (checked: boolean) => {
-  //   try {
-  //     setDice3DLoading(true);
-  //     setDice3DError(null);
-  //     setDice3DSuccess(false);
-  //     setDice3DEnabled(checked);
-  //     await dispatch(saveDice3DSettings(checked)).unwrap();
-  //     setDice3DSuccess(true);
-  //     // Auto-hide success message after 3 seconds
-  //     setTimeout(() => setDice3DSuccess(false), 3000);
-  //   } catch (err) {
-  //     const errorMessage =
-  //       err instanceof Error ? err.message : 'Erro ao salvar configuração';
-  //     setDice3DError(errorMessage);
-  //     // Revert on error
-  //     setDice3DEnabled(!checked);
-  //   } finally {
-  //     setDice3DLoading(false);
-  //   }
-  // };
+  const handleToggleDice3D = async (checked: boolean) => {
+    try {
+      setDice3DLoading(true);
+      setDice3DError(null);
+      setDice3DSuccess(false);
+      setDice3DEnabled(checked);
+      await dispatch(saveDice3DSettings({ enabled: checked })).unwrap();
+      setDice3DSuccess(true);
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setDice3DSuccess(false), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar configuração';
+      setDice3DError(errorMessage);
+      // Revert on error
+      setDice3DEnabled(!checked);
+    } finally {
+      setDice3DLoading(false);
+    }
+  };
+
+  const handleChangeDiceColor = async (color: DiceColorId) => {
+    const previousColor = diceColor;
+    try {
+      setDice3DLoading(true);
+      setDice3DError(null);
+      setDice3DSuccess(false);
+      setDiceColor(color);
+      await dispatch(saveDice3DSettings({ color })).unwrap();
+      setDice3DSuccess(true);
+      setTimeout(() => setDice3DSuccess(false), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar configuração';
+      setDice3DError(errorMessage);
+      // Revert on error
+      setDiceColor(previousColor);
+    } finally {
+      setDice3DLoading(false);
+    }
+  };
 
   const formatDate = (date: Date) => {
     const d = new Date(date);
@@ -781,7 +806,6 @@ const ProfilePage: React.FC = () => {
                       </Box>
                     </Box>
 
-                    {/* DISABLED: 3D Dice feature temporarily disabled
                     <Box>
                       <Typography variant='h6' fontWeight='bold' gutterBottom>
                         Configurações Visuais
@@ -794,60 +818,182 @@ const ProfilePage: React.FC = () => {
                         Personalize sua experiência visual
                       </Typography>
 
-                      {dice3DError && (
-                        <Alert severity='error' sx={{ mb: 2 }}>
-                          {dice3DError}
-                        </Alert>
-                      )}
+                      {isUserSupporter ? (
+                        <>
+                          {dice3DError && (
+                            <Alert severity='error' sx={{ mb: 2 }}>
+                              {dice3DError}
+                            </Alert>
+                          )}
 
-                      {dice3DSuccess && (
-                        <Alert severity='success' sx={{ mb: 2 }}>
-                          Configuração salva com sucesso!
-                        </Alert>
-                      )}
+                          {dice3DSuccess && (
+                            <Alert severity='success' sx={{ mb: 2 }}>
+                              Configuração salva com sucesso!
+                            </Alert>
+                          )}
 
-                      <Box
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: dice3DEnabled
-                            ? 'primary.main'
-                            : 'divider',
-                          backgroundColor: dice3DEnabled
-                            ? 'action.selected'
-                            : 'transparent',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={dice3DEnabled}
-                              onChange={(e) =>
-                                handleToggleDice3D(e.target.checked)
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: dice3DEnabled
+                                ? 'primary.main'
+                                : 'divider',
+                              backgroundColor: dice3DEnabled
+                                ? 'action.selected'
+                                : 'transparent',
+                              transition: 'all 0.2s',
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={dice3DEnabled}
+                                  onChange={(e) =>
+                                    handleToggleDice3D(e.target.checked)
+                                  }
+                                  disabled={dice3DLoading}
+                                />
                               }
-                              disabled={dice3DLoading}
+                              label={
+                                <Stack spacing={0.5}>
+                                  <Typography
+                                    variant='body1'
+                                    fontWeight='medium'
+                                  >
+                                    Dados 3D
+                                  </Typography>
+                                  <Typography
+                                    variant='caption'
+                                    color='text.secondary'
+                                  >
+                                    Ativa animações 3D ao rolar dados nas mesas
+                                    de jogo
+                                  </Typography>
+                                </Stack>
+                              }
                             />
-                          }
-                          label={
-                            <Stack spacing={0.5}>
-                              <Typography variant='body1' fontWeight='medium'>
-                                Dados 3D
+                          </Box>
+
+                          {/* Dice Color Picker - Only visible when 3D dice is enabled */}
+                          {dice3DEnabled && (
+                            <Box sx={{ mt: 2 }}>
+                              <Typography
+                                variant='body2'
+                                fontWeight='medium'
+                                gutterBottom
+                              >
+                                Cor dos Dados
                               </Typography>
+                              <Stack
+                                direction='row'
+                                spacing={1.5}
+                                flexWrap='wrap'
+                                useFlexGap
+                              >
+                                {getDiceColorsArray().map((color) => (
+                                  <Tooltip
+                                    key={color.id}
+                                    title={color.name}
+                                    arrow
+                                  >
+                                    <Box
+                                      onClick={() =>
+                                        !dice3DLoading &&
+                                        handleChangeDiceColor(color.id)
+                                      }
+                                      sx={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: '50%',
+                                        backgroundColor: color.hex,
+                                        cursor: dice3DLoading
+                                          ? 'not-allowed'
+                                          : 'pointer',
+                                        border:
+                                          diceColor === color.id
+                                            ? '3px solid'
+                                            : '2px solid transparent',
+                                        borderColor:
+                                          diceColor === color.id
+                                            ? 'text.primary'
+                                            : 'transparent',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow:
+                                          diceColor === color.id
+                                            ? `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${color.hex}`
+                                            : 'none',
+                                        '&:hover': {
+                                          transform: 'scale(1.1)',
+                                          boxShadow: `0 4px 12px ${color.hex}50`,
+                                        },
+                                      }}
+                                    >
+                                      {diceColor === color.id && (
+                                        <CheckIcon
+                                          sx={{
+                                            color: color.textColor,
+                                            fontSize: 18,
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                  </Tooltip>
+                                ))}
+                              </Stack>
+                            </Box>
+                          )}
+                        </>
+                      ) : (
+                        <Box
+                          sx={{
+                            p: 1.5,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            backgroundColor: 'action.disabledBackground',
+                            opacity: 0.7,
+                          }}
+                        >
+                          <Stack
+                            direction='row'
+                            spacing={1}
+                            alignItems='center'
+                          >
+                            <Checkbox disabled checked={false} />
+                            <Stack spacing={0.5}>
+                              <Stack
+                                direction='row'
+                                spacing={1}
+                                alignItems='center'
+                              >
+                                <Typography variant='body1' fontWeight='medium'>
+                                  Dados 3D
+                                </Typography>
+                                <Chip
+                                  label='Apoiadores'
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                  icon={<FavoriteIcon />}
+                                />
+                              </Stack>
                               <Typography
                                 variant='caption'
                                 color='text.secondary'
                               >
-                                Ativa animações 3D ao rolar dados na ficha de
-                                personagem
+                                Recurso exclusivo para apoiadores. Ativa
+                                animações 3D ao rolar dados nas mesas de jogo.
                               </Typography>
                             </Stack>
-                          }
-                        />
-                      </Box>
+                          </Stack>
+                        </Box>
+                      )}
                     </Box>
-                    */}
 
                     <Box>
                       <Typography variant='h6' fontWeight='bold' gutterBottom>
