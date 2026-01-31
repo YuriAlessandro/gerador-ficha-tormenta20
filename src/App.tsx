@@ -277,7 +277,7 @@ function ThemedApp(): JSX.Element {
                                 <TermsOfUse />
                               </Route>
                               <Route path='/recompensas'>
-                                <Rewards isDarkMode={darkMode} />
+                                <Rewards />
                               </Route>
                               <Route path='/itens-superiores'>
                                 <SuperiorItems isDarkMode={darkMode} />
