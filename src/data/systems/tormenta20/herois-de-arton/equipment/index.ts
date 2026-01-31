@@ -1,15 +1,38 @@
 import { SupplementEquipment } from '../../core';
+import { HEROIS_ARTON_ARMORS } from './armors';
+import {
+  HEROIS_ARTON_ADVENTURE_EQUIPMENT,
+  HEROIS_ARTON_ALCHEMY_CATALYSTS,
+  HEROIS_ARTON_ALCHEMY_POISONS,
+  HEROIS_ARTON_ALCHEMY_PREPARED,
+  HEROIS_ARTON_ANIMALS,
+  HEROIS_ARTON_CLOTHING,
+  HEROIS_ARTON_MUSICAL_INSTRUMENTS,
+  HEROIS_ARTON_TOOLS,
+  HEROIS_ARTON_VEHICLES,
+} from './general-items';
+import { HEROIS_ARTON_WEAPONS } from './weapons';
 
 /**
  * Equipamentos do suplemento Heróis de Arton - Tormenta 20
  */
 
 const HEROIS_ARTON_EQUIPMENT: SupplementEquipment = {
-  weapons: {},
-  armors: {},
-  generalItems: [],
-  clothing: [],
-  alchemy: [],
+  weapons: HEROIS_ARTON_WEAPONS,
+  armors: HEROIS_ARTON_ARMORS,
+  generalItems: [
+    ...HEROIS_ARTON_ADVENTURE_EQUIPMENT,
+    ...HEROIS_ARTON_TOOLS,
+    ...HEROIS_ARTON_MUSICAL_INSTRUMENTS,
+    ...HEROIS_ARTON_ANIMALS,
+    ...HEROIS_ARTON_VEHICLES,
+  ],
+  clothing: HEROIS_ARTON_CLOTHING,
+  alchemy: [
+    ...HEROIS_ARTON_ALCHEMY_PREPARED,
+    ...HEROIS_ARTON_ALCHEMY_CATALYSTS,
+    ...HEROIS_ARTON_ALCHEMY_POISONS,
+  ],
   food: [],
 };
 
