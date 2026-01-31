@@ -416,21 +416,22 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                             sx={{
                               p: 2,
                               border: 2,
-                              borderColor: canCast
-                                ? 'success.main'
-                                : 'error.main',
-                              borderRadius: 1,
-                              backgroundColor: (() => {
-                                if (isSpellSelected(spell)) {
-                                  return canCast
-                                    ? 'success.light'
-                                    : 'error.light';
-                                }
-                                return canCast
-                                  ? 'success.50'
-                                  : 'background.paper';
+                              borderColor: (() => {
+                                if (isSpellSelected(spell))
+                                  return 'primary.main';
+                                if (canCast) return 'success.main';
+                                return 'grey.400';
                               })(),
-                              opacity: canCast ? 1 : 0.7,
+                              borderRadius: 1,
+                              backgroundColor: isSpellSelected(spell)
+                                ? 'primary.50'
+                                : 'background.paper',
+                              opacity: canCast ? 1 : 0.6,
+                              '&:hover': {
+                                backgroundColor: isSpellSelected(spell)
+                                  ? 'primary.100'
+                                  : 'action.hover',
+                              },
                             }}
                           >
                             <FormControlLabel
@@ -454,7 +455,9 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                                       variant='body1'
                                       fontWeight='bold'
                                       color={
-                                        canCast ? 'text.primary' : 'error.main'
+                                        isSpellSelected(spell)
+                                          ? 'primary.main'
+                                          : 'text.primary'
                                       }
                                     >
                                       {spell.nome}
