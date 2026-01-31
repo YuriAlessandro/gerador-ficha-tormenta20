@@ -169,8 +169,8 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
     maxSheets: 10,
     maxMenaceSheets: 10,
     canComment: false,
-    maxGameTables: 0,
-    maxPlayersPerTable: 0,
+    maxGameTables: 1,
+    maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
@@ -293,11 +293,12 @@ export function getSupportLevelName(level: SupportLevel): string {
 }
 
 /**
- * Helper to check if user can access game tables (NIVEL_2 or higher)
+ * Helper to check if user can access game tables
+ * Returns true if maxGameTables is not 0 (-1 means unlimited)
  */
 export function canAccessGameTables(level: SupportLevel): boolean {
   const limits = getSupportLimits(level);
-  return limits.maxGameTables > 0;
+  return limits.maxGameTables !== 0;
 }
 
 /**
