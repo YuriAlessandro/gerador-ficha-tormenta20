@@ -113,6 +113,10 @@ const ModeCard: React.FC<ModeCardProps> = ({
         border: `1px solid ${getBorderColor()}`,
         '&:hover': {
           borderColor: getHoverBorderColor(),
+          boxShadow:
+            variant === 'primary'
+              ? `0 8px 24px ${theme.palette.primary.main}4D`
+              : undefined,
         },
       }}
     >

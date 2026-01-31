@@ -603,8 +603,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
   return (
-    <BackgroundBox isDarkMode={isDarkMode} sx={{ p: 2 }}>
-      <Container maxWidth='xl'>
+    <BackgroundBox isDarkMode={isDarkMode} sx={{ p: isMobile ? 0 : 2 }}>
+      <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
         <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
           {/* LADO ESQUERDO, 60% */}
           <Box width={isMobile ? '100%' : '60%'}>

@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import React from 'react';
 
-import sectionBg from '@/assets/images/sectionBg.png';
+import sectionBg from '@/assets/images/sectionBg/sectionBg.png';
 
 const BookTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const Title = styled.h1`

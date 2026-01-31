@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import debounce from 'lodash/debounce';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -37,6 +38,39 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   );
   const [selectedSkillTotal, setSelectedSkillTotal] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  // Debounced search update
+  const debouncedSetSearchQuery = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearchQuery(value);
+      }, 300),
+    []
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(
+    () => () => {
+      debouncedSetSearchQuery.cancel();
+    },
+    [debouncedSetSearchQuery]
+  );
+
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setLocalSearchQuery(value);
+      debouncedSetSearchQuery(value);
+    },
+    [debouncedSetSearchQuery]
+  );
+
+  const handleClearSearch = useCallback(() => {
+    setLocalSearchQuery('');
+    setSearchQuery('');
+    debouncedSetSearchQuery.cancel();
+  }, [debouncedSetSearchQuery]);
 
   const filteredSkills = useMemo(() => {
     if (!skills) return [];
@@ -164,8 +198,8 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
         fullWidth
         size='small'
         placeholder='Buscar perícia...'
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        value={localSearchQuery}
+        onChange={handleSearchChange}
         sx={{ mb: 1.5 }}
         InputProps={{
           startAdornment: (
@@ -173,13 +207,9 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
               <SearchIcon color='action' fontSize='small' />
             </InputAdornment>
           ),
-          endAdornment: searchQuery && (
+          endAdornment: localSearchQuery && (
             <InputAdornment position='end'>
-              <IconButton
-                size='small'
-                onClick={() => setSearchQuery('')}
-                edge='end'
-              >
+              <IconButton size='small' onClick={handleClearSearch} edge='end'>
                 <ClearIcon fontSize='small' />
               </IconButton>
             </InputAdornment>

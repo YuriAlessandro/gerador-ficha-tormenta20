@@ -257,6 +257,46 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
         passo a passo.
       </Typography>
 
+      {/* System & Supplements Indicator */}
+      {enabledSupplements && enabledSupplements.length > 0 && (
+        <Box
+          sx={{
+            mt: 3,
+            mb: 3,
+            p: 1.5,
+            borderRadius: 1,
+            bgcolor: 'action.hover',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ fontWeight: 'medium' }}
+            >
+              Sistema e Suplementos Ativos:
+            </Typography>
+            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+              {enabledSupplements.map((suppId) => {
+                const supplement = SUPPLEMENT_METADATA[suppId];
+                return supplement ? (
+                  <Chip
+                    key={suppId}
+                    label={supplement.name}
+                    size='small'
+                    color='primary'
+                    variant='outlined'
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                ) : null;
+              })}
+            </Stack>
+          </Stack>
+        </Box>
+      )}
+
       <Grid container spacing={2}>
         {/* Race Selection - NO "Aleatoria" */}
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -394,45 +434,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
           />
         </Grid>
       </Grid>
-
-      {/* System & Supplements Indicator */}
-      {enabledSupplements && enabledSupplements.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            p: 1.5,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Stack spacing={1}>
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ fontWeight: 'medium' }}
-            >
-              Sistema e Suplementos Ativos:
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-              {enabledSupplements.map((suppId) => {
-                const supplement = SUPPLEMENT_METADATA[suppId];
-                return supplement ? (
-                  <Chip
-                    key={suppId}
-                    label={supplement.name}
-                    size='small'
-                    color='primary'
-                    variant='outlined'
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-                ) : null;
-              })}
-            </Stack>
-          </Stack>
-        </Box>
-      )}
 
       {/* Required fields note */}
       <Typography

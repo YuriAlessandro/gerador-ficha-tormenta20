@@ -309,24 +309,13 @@
   color: #b0b0b0;
 }
 
-/* Primary variant for highlighted card */
+/* Primary variant for highlighted card - colors controlled by MUI theme */
 .mode-card.primary {
-  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
-  border: 1px solid #c62828;
   color: #ffffff;
-}
-
-.mode-card.primary:hover {
-  box-shadow: 0 8px 24px rgba(211, 47, 47, 0.3);
 }
 
 .mode-card.primary .mode-card-description {
   color: rgba(255, 255, 255, 0.85);
-}
-
-/* Minimized card with primary styling */
-.mode-card.minimized.primary {
-  background: linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);
 }
 
 /* Secondary variant */

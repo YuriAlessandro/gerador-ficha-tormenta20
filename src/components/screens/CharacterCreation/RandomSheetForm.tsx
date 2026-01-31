@@ -285,9 +285,49 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
         color='text.secondary'
         sx={{ mb: 2, fontStyle: 'italic' }}
       >
-        Configure os parametros (opcional). Deixe como &ldquo;Aleatoria&rdquo;
-        para uma ficha totalmente aleatoria.
+        Configure os parâmetros (opcional). Deixe como &ldquo;Aleatória&rdquo;
+        para uma ficha totalmente aleatória.
       </Typography>
+
+      {/* System & Supplements Indicator */}
+      {enabledSupplements && enabledSupplements.length > 0 && (
+        <Box
+          sx={{
+            mt: 3,
+            mb: 3,
+            p: 1.5,
+            borderRadius: 1,
+            bgcolor: 'action.hover',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Stack spacing={1}>
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ fontWeight: 'medium' }}
+            >
+              Sistema e Suplementos Ativos:
+            </Typography>
+            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+              {enabledSupplements.map((suppId) => {
+                const supplement = SUPPLEMENT_METADATA[suppId];
+                return supplement ? (
+                  <Chip
+                    key={suppId}
+                    label={supplement.name}
+                    size='small'
+                    color='primary'
+                    variant='outlined'
+                    sx={{ fontSize: '0.75rem' }}
+                  />
+                ) : null;
+              })}
+            </Stack>
+          </Stack>
+        </Box>
+      )}
 
       <Grid container spacing={2}>
         {/* Race Selection */}
@@ -297,7 +337,14 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
           </Typography>
           <Select
             options={[{ value: '', label: 'Aleatória' }, ...racas]}
-            placeholder='Aleatoria'
+            placeholder='Aleatória'
+            value={
+              selectedOptions.raca
+                ? [{ value: '', label: 'Aleatória' }, ...racas].find(
+                    (r) => r.value === selectedOptions.raca
+                  ) || null
+                : null
+            }
             onChange={onSelectRaca}
             isSearchable
             styles={selectStyles}
@@ -328,7 +375,14 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
                 options: [{ value: '', label: 'Aleatória' }, ...rolesopt],
               },
             ]}
-            placeholder='Aleatoria'
+            placeholder='Aleatória'
+            value={
+              selectedOptions.classe
+                ? [...classesopt, ...rolesopt].find(
+                    (c) => c.value === selectedOptions.classe
+                  ) || null
+                : null
+            }
             formatGroupLabel={fmtGroupLabel}
             formatOptionLabel={formatOptionLabel}
             onChange={onSelectClasse}
@@ -350,12 +404,21 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             Origem
           </Typography>
           <Select
-            placeholder='Aleatoria'
+            placeholder='Aleatória'
             options={[
               { value: '', label: 'Aleatória' },
               { value: '__NO_ORIGIN__', label: 'Sem Origem' },
               ...origens,
             ]}
+            value={
+              selectedOptions.origin
+                ? [
+                    { value: '', label: 'Aleatória' },
+                    { value: '__NO_ORIGIN__', label: 'Sem Origem' },
+                    ...origens,
+                  ].find((o) => o.value === selectedOptions.origin) || null
+                : null
+            }
             isSearchable
             onChange={onSelectOrigin}
             isDisabled={selectedOptions.raca === 'Golem'}
@@ -502,45 +565,6 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
         </Grid>
       </Grid>
 
-      {/* System & Supplements Indicator */}
-      {enabledSupplements && enabledSupplements.length > 0 && (
-        <Box
-          sx={{
-            mt: 3,
-            p: 1.5,
-            borderRadius: 1,
-            bgcolor: 'action.hover',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Stack spacing={1}>
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ fontWeight: 'medium' }}
-            >
-              Sistema e Suplementos Ativos:
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
-              {enabledSupplements.map((suppId) => {
-                const supplement = SUPPLEMENT_METADATA[suppId];
-                return supplement ? (
-                  <Chip
-                    key={suppId}
-                    label={supplement.name}
-                    size='small'
-                    color='primary'
-                    variant='outlined'
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-                ) : null;
-              })}
-            </Stack>
-          </Stack>
-        </Box>
-      )}
-
       {/* Action Button */}
       <Box sx={{ mt: 3 }}>
         <Button
@@ -554,7 +578,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             fontSize: isMobile ? '16px' : '14px',
           }}
         >
-          Gerar Ficha Aleatoria
+          Gerar Ficha Aleatória
         </Button>
       </Box>
     </Box>
