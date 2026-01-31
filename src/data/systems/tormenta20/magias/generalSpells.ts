@@ -321,7 +321,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Alarme',
     execucao: 'Padrão',
     alcance: 'Curto',
-    area: 'Esfera de 9m de raio',
+    area: 'Esfera com 9m de raio',
     duracao: '1 dia',
     school: 'Abjur',
     description:
@@ -372,13 +372,12 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Área Escorregadia',
     execucao: 'Padrão',
     alcance: 'Curto',
-    area: 'Quadrado de 3m',
-    alvo: '1 objeto',
+    area: 'Quadrado de 3m ou 1 objeto',
     duracao: 'Cena',
     resistencia: 'Reflexos (veja texto)',
     school: 'Conv',
     description:
-      'Esta magia recobre uma superfície com uma substância gordurosa e escorregadia. Criaturas na área devem passar na resistência para não cair. Nas rodadas seguintes, criaturas que tentem movimentar-se pela área devem fazer testes de Acrobacia para equilíbrio (CD 10). Área Escorregadia pode tornar um escorregadio. Uma criatura segurando um objeto afetado deve passar na resistência para não deixar o cair cada vez que usá-lo.',
+      'Esta magia recobre uma superfície com uma substância gordurosa e escorregadia. Criaturas na área devem passar na resistência para não cair. Nas rodadas seguintes, criaturas que tentem movimentar-se pela área devem fazer testes de Acrobacia para equilíbrio (CD 10). Área Escorregadia pode tornar um item escorregadio. Uma criatura segurando um objeto afetado deve passar na resistência para não deixar o item cair cada vez que usá-lo.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -493,7 +492,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Armamento da Natureza',
     execucao: 'Padrão',
     alcance: 'Toque',
-    alvo: '1 arma  (veja texto)',
+    alvo: '1 arma (veja texto)',
     duracao: 'Cena',
     school: 'Trans',
     description:
@@ -526,7 +525,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Instantânea',
     school: 'Adiv',
     description:
-      'Envia um aviso telepático para uma criatura, mesmo que não possa vê-la nem tenha linha de efeito. Escolha um na pág. 182.',
+      'Envia um aviso telepático para uma criatura, mesmo que não possa vê-la nem tenha linha de efeito. Escolha um: Alerta: o alvo recebe +5 em seu próximo teste de Iniciativa e de Percepção dentro da cena. Mensagem: o alvo recebe uma mensagem sua de até 25 palavras. Vocês devem ter um idioma em comum para o alvo poder entendê-lo. Localização: o alvo sabe onde você está naquele momento. Se você mudar de posição, ele não saberá.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -572,7 +571,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Caminhos da Natureza',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: 'Criaturas escolhida',
+    area: 'Criaturas escolhidas',
     duracao: '1 dia',
     school: 'Conv',
     description:
@@ -602,7 +601,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     resistencia: 'Vontade anula',
     school: 'Encan',
     description:
-      'Você dá uma ordem irresistível, que o alvo deve ser capaz de ouvir (mas não precisa entender). Se falhar na resistência, ele deve obedecer ao comando em seu próprio turno da melhor maneira possível. Escolha um dos efeitos na página 184.',
+      'Você dá uma ordem irresistível, que o alvo deve ser capaz de ouvir (mas não precisa entender). Se falhar na resistência, ele deve obedecer ao comando em seu próprio turno da melhor maneira possível. Escolha um dos efeitos: Fuja. O alvo se afasta de você de qualquer forma. Largue. O alvo solta qualquer coisa que estiver segurando. Pare. O alvo fica paralisado. Senta. O alvo fica caído. Venha. O alvo se aproxima de você de qualquer forma.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -678,11 +677,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Conjurar Monstro',
     execucao: 'Completa',
     alcance: 'Curto',
-    alvo: '1 criatura conjurada',
+    area: '1 criatura conjurada',
     duracao: 'Sustentada',
     school: 'Conv',
     description:
-      'Você conjura um monstro Pequeno que ataca seus inimigos. Você escolhe a aparência do monstro e o tipo de dano que ele pode causar, entre corte, impacto e perfuração. No entanto, ele não é uma criatura real, e sim um construto feito de energia. Se for destruído, ou quando a magia acaba, desaparece com um brilho, sem deixar nada para trás. Você só pode ter um monstro conjurado por esta magia por vez. O monstro surge em um espaço desocupado a sua escolha dentro do alcance e age no início de cada um de seus turnos, a partir da próxima rodada. O monstro tem deslocamento 9m e pode fazer uma ação de movimento por rodada. Você pode gastar uma ação padrão para dar uma das ordens da página 185 a ele.',
+      'Você conjura um monstro Pequeno que ataca seus inimigos. Você escolhe a aparência do monstro e o tipo de dano que ele pode causar, entre corte, impacto e perfuração. No entanto, ele não é uma criatura real, e sim um construto feito de energia. Se for destruído, ou quando a magia acaba, desaparece com um brilho, sem deixar nada para trás. Você só pode ter um monstro conjurado por esta magia por vez. O monstro surge em um espaço desocupado a sua escolha dentro do alcance e age no início de cada um de seus turnos, a partir da próxima rodada. O monstro tem deslocamento 9m e pode fazer uma ação de movimento por rodada. Você pode gastar uma ação padrão para dar uma das seguintes ordens a ele. Mover: o monstro se movimenta o dobro do deslocamento nessa rodada. Atacar: o monstro causa 2d4+2 pontos de dano a uma criatura adjacente. Lançar Magia: o monstro pode servir como ponto de origem para uma magia lançada por você com execução de uma ação padrão ou menor. Ele pode descarregar um Toque Chocante em um inimigo distante, ou mesmo "cuspir" uma Bola de Fogo! Você gasta PM normalmente para lançar a magia. Outros usos criativos para monstros conjurados ficam a critério do mestre. O monstro não age sem receber uma ordem. Para efeitos de jogo, o monstro conjurado tem For 2, Des 3 e todos os outros atributos nulos. Ele tem Defesa igual a sua, 20 pontos de vida e usa o seu bônus para teste de Reflexos. Ele é imune a efeitos que pedem um teste de Fortitude ou Vontade.',
     rolls: [
       {
         id: uuid(),
@@ -786,7 +785,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Controlar Plantas',
     execucao: 'Padrão',
     alcance: 'Curto',
-    area: 'quadrado com 9m de lado',
+    area: 'Quadrado com 9m de lado',
     duracao: 'Cena',
     resistencia: 'Reflexos anula',
     school: 'Trans',
@@ -816,11 +815,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Criar Elementos',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: 'Elemento escolhido',
+    area: 'Elemento escolhido',
     duracao: 'Instantânea',
     school: 'Conv',
     description:
-      'Você cria uma pequena porção de um elemento, a sua escolha. Os elementos criados são reais, não mágicos. Elementos físicos devem surgir em uma superfície. Em vez de um cubo, pode- -se criar objetos simples (sem partes móveis) feitos de gelo, terra ou pedra.',
+      'Você cria uma pequena porção de um elemento, a sua escolha. Os elementos criados são reais, não mágicos. Elementos físicos devem surgir em uma superfície. Em vez de um cubo, pode-se criar objetos simples (sem partes móveis) feitos de gelo, terra ou pedra. Água: enche um recipiente de tamanho Minúsculo (como um odre) com água potável ou cria um cubo de gelo de tamanho Minúsculo. Ar: cria um vento fraco em um quadrado de 1,5m. Isso purifica a área de qualquer gás ou fumaça, ou remove névoa por uma rodada. Fogo: cria uma chama que ilumina como uma tocha. Você pode segurá-la na palma de sua mão sem se queimar, ou fazê-la surgir em um quadrado de 1,5m. Se uma criatura ou objeto estiver no quadrado, sofre 1d6 pontos de dano de fogo; se falhar num teste de Reflexos, fica em chamas. Terra: cria um cubo de tamanho Minúsculo feito de terra, argila ou pedra.',
     rolls: [
       {
         id: uuid(),
@@ -848,7 +847,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Criar Ilusão',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: 'Ilusão que se estende a até 4 cubos de 1,5m',
+    area: 'Ilusão que se estende a até 4 cubos de 1,5m',
     duracao: 'Cena',
     resistencia: 'Vontade desacredita',
     school: 'Ilusão',
@@ -885,7 +884,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 5,
-        text: 'muda a duração para sustentada. Além do normal, você pode gastar uma ação livre para modificar livremente a ilusão (mas não pode acrescentar novos aprimoramentos após lançá-la). Requer 3º círculo',
+        text: 'muda a duração para sustentada. Além do normal, você pode gastar uma ação livre para modificar livremente a ilusão (mas não pode acrescentar novos aprimoramentos após lançá-la). Requer 3º círculo.',
       },
     ],
   },
@@ -934,7 +933,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Despedaçar',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: '1 critura ou objeto mundano Pequeno',
+    alvo: '1 criatura ou objeto mundano Pequeno',
     duracao: 'Instantânea',
     resistencia: 'Fortitude parcial',
     school: 'Evoc',
@@ -979,8 +978,8 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Detectar Ameaças',
     execucao: 'Padrão',
     alcance: 'Pessoal',
-    area: 'Esfera de 9m de raio',
-    duracao: 'Instantânea',
+    area: 'Esfera com 18m de raio',
+    duracao: 'Cena, até ser descarregada',
     school: 'Adiv',
     description:
       'Você recebe uma intuição aguçada sobre perigos ao seu redor. Quando uma criatura hostil ou armadilha entra na área do efeito, você faz um teste de Percepção (CD determinada pelo mestre de acordo com a situação). Se passar, sabe a origem (criatura ou armadilha), direção e distância do perigo. Se falhar, sabe apenas que o perigo existe.',
@@ -1072,7 +1071,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 1,
-        text: 'também fornece ao alvo camuflagem contra ataques à distância.',
+        text: 'também fornece ao alvo camuflagem leve contra ataques à distância.',
       },
       {
         addPm: 2,
@@ -1095,7 +1094,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 objeto',
     duracao: 'Cena',
-    resistencia: 'Vontade anula',
+    resistencia: 'Vontade anula (veja texto)',
     school: 'Necro',
     description:
       'O alvo emana sombras em uma área com 6m de raio. Criaturas dentro da área recebem camuflagem leve por escuridão leve. As sombras não podem ser iluminadas por nenhuma fonte de luz natural. O objeto pode ser guardado (em um bolso, por exemplo) para interromper a escuridão, que voltará a funcionar caso o objeto seja revelado. Se lançar a magia num objeto de uma criatura involuntária, ela tem direito a um teste de Vontade para anulá-la. Escuridão anula Luz.',
@@ -1114,7 +1113,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'muda a duração para 1 dia.',
+        text: 'muda a duração para um dia.',
       },
       {
         addPm: 5,
@@ -1126,9 +1125,10 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     spellCircle: spellsCircles.c1,
     nome: 'Explosão de Chamas',
     execucao: 'Padrão',
-    alcance: '6m',
+    alcance: 'Pessoal',
     area: 'Cone de 6m',
     duracao: 'Instantânea',
+    resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
     description:
       'Um leque de chamas irrompe de suas mãos, causando 2d6 pontos de dano de fogo às criaturas na área.',
@@ -1223,7 +1223,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     resistencia: 'Fortitude reduz à metade',
     school: 'Necro',
     description:
-      'Você canaliza energia negativa contra um alvo, causando 2d8+2 pontos de dano de trevas (ou curando 2d8+2 PV, se for um morto-vivo). Infligir Ferimentos anula Curar Ferimentos',
+      'Você canaliza energia negativa contra um alvo, causando 2d8+2 pontos de dano de trevas (ou curando 2d8+2 PV, se for um morto-vivo). Infligir Ferimentos anula Curar Ferimentos.',
     rolls: [
       {
         id: uuid(),
@@ -1254,8 +1254,8 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     spellCircle: spellsCircles.c1,
     nome: 'Leque Cromático',
     execucao: 'Padrão',
-    alcance: '4,5m',
-    area: 'Cone',
+    alcance: 'Pessoal',
+    area: 'Cone de 4,5m',
     duracao: 'Instantânea',
     resistencia: 'Vontade parcial',
     school: 'Ilusão',
@@ -1272,7 +1272,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 5,
-        text: ' também afeta construtos, espíritos, monstros e mortos-vivos na área. Requer 3º círculo.',
+        text: 'também afeta construtos, espíritos, monstros e mortos-vivos na área. Requer 3º círculo.',
       },
     ],
   },
@@ -1283,7 +1283,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 objeto',
     duracao: 'Cena',
-    resistencia: 'Vontade anula',
+    resistencia: 'Vontade anula (veja texto)',
     school: 'Evoc',
     description:
       'O alvo emite luz (mas não produz calor) em uma área com 6m de raio. O objeto pode ser guardado (em um bolso, por exemplo) para interromper a luz, que voltará a funcionar caso o objeto seja revelado. Se lançar a magia num objeto de uma criatura involuntária, ela tem direito a um teste de Vontade para anulá-la. Luz anula Escuridão.',
@@ -1294,11 +1294,27 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 2,
-        text: 'muda a duração para 1 dia.',
+        text: 'muda a duração para um dia.',
       },
       {
         addPm: 2,
         text: 'muda a duração para permanente e adiciona componente material (pó de rubi no valor de T$ 50). Não pode ser usado em conjunto com outros aprimoramentos. Requer 2º círculo.',
+      },
+      {
+        addPm: 0,
+        text: '(Apenas Arcanos): muda o alvo para 1 criatura. Você lança a magia nos olhos do alvo, que fica ofuscado pela cena. Não afeta criaturas cegas.',
+      },
+      {
+        addPm: 2,
+        text: '(Apenas Arcanos): muda o alcance para longo e o efeito para cria 4 pequenos globos flutuantes de pura luz. Você pode posicionar os globos onde quiser dentro do alcance. Você pode enviar um à frente, outra para trás, outra para cima e manter um perto de você, por exemplo. Uma vez por rodada, você pode mover os globos com uma ação livre. Cada um ilumina como uma tocha, mas não produz calor. Se um globo ocupar o espaço de uma criatura, ela fica ofuscada e sua silhueta pode ser vista claramente (ela não recebe camuflagem por escuridão ou invisibilidade). Requer 2º círculo.',
+      },
+      {
+        addPm: 2,
+        text: '(Apenas Divinos): a luz é cálida como a do sol. Criaturas que sofrem penalidades e dano pela luz solar sofrem seus efeitos como se estivessem expostos à luz solar real. Seus aliados na área estabilizam automaticamente e ficam imunes à condição sangrando, e seus inimigos ficam ofuscados. Requer 2º círculo.',
+      },
+      {
+        addPm: 5,
+        text: '(Apenas Divinos): muda o alcance para toque e o alvo para 1 criatura. Em vez do normal, o alvo é envolto por um halo de luz, recebendo +10 em testes de Diplomacia e redução de trevas 10. Requer 2º círculo.',
       },
     ],
   },
@@ -1730,7 +1746,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Permanente',
     school: 'Abjur',
     description:
-      'Esta magia tranca uma porta ou outro que possa ser aberto ou fechado (como um baú, caixa etc.), aumentando a CD de testes de Força ou Ladinagem para abri-lo em +10. Você pode abrir livremente sua própria tranca sem problemas.',
+      'Esta magia tranca uma porta ou outro item que possa ser aberto ou fechado (como um baú, caixa etc.), aumentando a CD de testes de Força ou Ladinagem para abri-lo em +10. Você pode abrir livremente sua própria tranca sem problemas. Componente material: chave de bronze no valor de T$ 25.',
     aprimoramentos: [
       {
         addPm: 0,
@@ -1771,10 +1787,6 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
         text: 'aumenta o número de alvos em +1.',
       },
       {
-        addPm: 2,
-        text: 'aumenta a penalidade em –1.',
-      },
-      {
         addPm: 5,
         text: 'muda o alcance para médio e o alvo para criaturas escolhidas. Requer 3º círculo.',
       },
@@ -1785,7 +1797,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     nome: 'Transmutar Objetos',
     execucao: 'Padrão',
     alcance: 'Toque',
-    alvo: 'Matéria-prima, como madeeira, rochas, ossos',
+    alvo: 'Matéria-prima, como madeira, rochas, ossos',
     duracao: 'Cena',
     school: 'Trans',
     description:
@@ -1793,7 +1805,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     aprimoramentos: [
       {
         addPm: 0,
-        text: 'muda o alvo para 1 objeto mundano Mínusculo (ou material em quantidade equivalente) e a duração para instantânea. Em vez do normal, você pode alterar as propriedades físicas do alvo, como colorir, limpar ou sujar itens pequenos (incluindo peças de roupa), aquecer, esfriar e/ou temperar (mas não produzir) ou curar 1 PV do objeto, consertando pequenas falhas como colar um frasco de cerâmica quebrado, unir os elos de uma corrente ou costurar uma roupa rasgada. Um objeto só pode ser afetado por este truque uma vez por dia.',
+        text: 'muda o alvo para 1 objeto mundano Minúsculo (ou material em quantidade equivalente) e a duração para instantânea. Em vez do normal, você pode alterar as propriedades físicas do alvo, como colorir, limpar ou sujar itens pequenos (incluindo peças de roupa), aquecer, esfriar e/ou temperar (mas não produzir) ou curar 1 PV do objeto, consertando pequenas falhas como colar um frasco de cerâmica quebrado, unir os elos de uma corrente ou costurar uma roupa rasgada. Um objeto só pode ser afetado por este truque uma vez por dia.',
       },
       {
         addPm: 1,
@@ -1805,15 +1817,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'aumenta o preço máximo do objeto criado em um fator de x10 (+3 PM por T$ 250 de preço, +6 PM por T$ 2.500 de preço e assim por diante)',
+        text: 'aumenta o preço máximo do objeto criado em um fator de x10 (+3 PM por T$ 250 de preço, +6 PM por T$ 2.500 de preço e assim por diante).',
       },
       {
         addPm: 5,
-        text: 'muda o alvo para 1 objeto mundano e a duração para instantânea. Em vez do normal, você cura todos os PV do alvo, restaurando o objeto totalmente. Este aprimoramento está sujeito aos limites de tamanho e preço do objeto conforme a magia original e não funciona se o objeto tiver sido completamente destruído (queimado até virar cinzas ou desintegrado, por exemplo). Requer 3º círculo.',
-      },
-      {
-        addPm: 9,
-        text: 'como o aprimoramento anterior, mas passa a afetar itens mágicos.',
+        text: 'muda o alvo para 1 objeto mundano e a duração para instantânea. Em vez do normal, você pode extrapolar a matéria-prima de um objeto, reduzindo-o à sua forma bruta. Por exemplo, pode transformar uma espada em uma barra de ferro, ou uma porta em tábuas de madeira. Requer 3º círculo.',
       },
     ],
   },
@@ -1826,19 +1834,19 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Cena',
     school: 'Adiv',
     description:
-      'Seus olhos brilham com uma luz azul e passam a enxergar auras mágicas. Este efeito é similar ao uso de Misticismo para detectar magia, mas você detecta todas as auras mágicas em alcance médio e recebe todas as informações sobre elas sem gastar ações. Além disso, você pode gastar uma ação de movimento para descobrir se uma criatura que possa perceber em alcance médio é capaz de lançar magias e qual a aura gerada pelas magias de círculo mais alto que ela pode lançar.',
+      'Você consegue enxergar auras mágicas de criaturas, objetos e áreas. Você pode gastar uma ação de movimento para se concentrar e descobrir se um objeto ou criatura é mágico (ou se está sob um efeito mágico), além de identificar a magia (como se fizesse um teste de Misticismo). Se concentrar-se na mesma criatura ou objeto por 3 rodadas, você também descobre a intensidade da aura (fraca, moderada, forte ou avassaladora, de acordo com o círculo máximo da magia ou efeito): 1º círculo é fraca, 2º e 3º são moderadas, 4º é forte e 5º é avassaladora. No caso de itens, efeitos permanentes contam como 5º círculo.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'recebe visão no escuro.',
+        text: 'muda a execução para ação de movimento.',
+      },
+      {
+        addPm: 2,
+        text: 'além do normal, você enxerga objetos e criaturas invisíveis.',
       },
       {
         addPm: 2,
         text: 'muda a duração para um dia.',
-      },
-      {
-        addPm: 2,
-        text: 'também pode enxergar objetos e criaturas invisíveis. Eles aparecem como formas translúcidas.',
       },
     ],
   },
@@ -1851,22 +1859,19 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Instantânea',
     school: 'Necro',
     description:
-      'Você suga energia vital da terra, recebendo 2d10 pontos de vida temporários. Os PV temporários desaparecem ao final da cena.',
-    rolls: [
-      {
-        id: uuid(),
-        label: 'Dano de Trevas (aprimoramento)',
-        dice: '1d10',
-      },
-    ],
+      'Você recebe 2d10 pontos de vida temporários. O máximo de PV temporários que você pode ter com esta magia é igual ao seu nível.',
     aprimoramentos: [
       {
         addPm: 2,
-        text: 'aumenta os PV temporários recebidos em +1d10. Caso a magia cause dano, em vez disso aumenta o dano causado em +1d10.',
+        text: 'aumenta os PV temporários em +1d10, extrapola o limite de PV temporários pelo mesmo valor e muda o limite máximo de PV temporários para o dobro do seu nível.',
       },
       {
-        addPm: 5,
-        text: 'muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d10 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo.',
+        addPm: 2,
+        text: 'muda a duração para cena. Você recebe +2 na Defesa.',
+      },
+      {
+        addPm: 3,
+        text: 'muda o alcance para curto e o alvo para criaturas escolhidas. Você pode usar esse aprimoramento uma vez por cena. Requer 3º círculo.',
       },
     ],
   },
@@ -1904,7 +1909,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
   },
   [spellsCircle2Names.sussurosInsanos]: {
     spellCircle: spellsCircles.c2,
-    nome: 'Sussuros Insanos',
+    nome: 'Sussurros Insanos',
     execucao: 'Padrão',
     alcance: 'Curto',
     alvo: '1 humanoide',
@@ -1935,14 +1940,13 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Abjur',
     description:
       'Esta magia cria uma película protetora sobre você. Você recebe 30 pontos de vida temporários.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'muda a execução para reação e a duração para instantânea. Em vez do normal, você recebe RD 30 contra o próximo dano que sofrer',
+        text: 'muda a execução para reação e a duração para instantânea. Em vez do normal, você recebe RD 30 contra o próximo dano que sofrer.',
       },
       {
         addPm: 3,
@@ -1967,13 +1971,11 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Dissipar Magia',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: '1 criatura ou 1 objeto mágico',
-    area: 'Esfera com 3m de raio',
+    area: '1 criatura ou 1 objeto mágico ou esfera com 3m de raio',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Abjur',
     description:
-      'Você dissipa outras magias que estejam ativas, como se sua duração tivesse acabado. Note que efeitos de magias instantâneas não podem ser dissipados (não se pode dissipar uma Bola de Fogo ou Relâmpago depois que já causaram dano...). Se lançar essa magia em uma criatura ou área, faça um teste de Misticismo; você dissipa as magias com CD igual ou menor que o resultado do teste. Se lançada contra um mágico, o transforma em um mundano por 1d6 rodadas (Vontade anula).',
+      'Você dissipa outras magias que estejam ativas, como se sua duração tivesse acabado. Note que efeitos de magias instantâneas não podem ser dissipados (não se pode dissipar uma Bola de Fogo ou Relâmpago depois que já causaram dano...). Se lançar essa magia em uma criatura ou área, faça um teste de Misticismo; você dissipa as magias com CD igual ou menor que o resultado do teste. Se lançada contra um item mágico, o transforma em um item mundano por 1d6 rodadas (Vontade anula).',
     aprimoramentos: [
       {
         addPm: 12,
@@ -1988,7 +1990,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     area: 'Domo com 6m de raio',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Abjur',
     description:
       'Esta magia cria um domo imóvel e quase opaco por fora, mas transparente pelo lado de dentro. Ele protege contra calor, frio e forças pequenas, mas não contra qualquer coisa capaz de causar dano. Assim, o domo protege contra neve e vento comuns, mas não contra uma flecha ou Bola de Fogo. Porém, como o domo é quase opaco, qualquer criatura dentro dele tem camuflagem total contra ataques vindos de fora. Criaturas podem entrar e sair do domo livremente. Descansar dentro do Refúgio concede recuperação normal de PV e PM.',
@@ -2016,24 +2017,24 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Runa de Proteção',
     execucao: '1 hora',
     alcance: 'Toque',
-    alvo: 'Uma área de 6m de raio',
-    duracao: 'Permanente ou até descarregar',
-    resistencia: 'Veja o texto',
+    area: 'Uma área de 6m de raio',
+    duracao: 'Permanente até ser descarregada',
+    resistencia: 'Varia (veja o texto)',
     school: 'Abjur',
     description:
-      'Você escreve uma runa pessoal em uma superfície fixa, como uma parede ou o chão, que protege uma pequena área ao redor. Quando uma criatura entra na área afetada a runa explode, causando 6d6 pontos de dano em todos os alvos a até 6m. A criatura que ativa a runa não tem direito a teste de resistência; outras criaturas na área têm direito a um teste de Reflexos para reduzir o dano à metade. Quando lança a magia, você escolhe o tipo de dano, entre ácido, eletricidade, fogo, frio, luz ou trevas. Você pode determinar que a runa se ative apenas em condições específicas — por exemplo, apenas por goblins ou apenas por mortos-vivos. Você também pode criar uma palavra mágica que impeça a runa de se ativar. Um personagem pode encontrar a runa com um teste de Investigação e desarmá-la com um teste de Ladinagem.',
+      'Você escreve uma runa pessoal em uma superfície fixa, como uma parede ou o chão, que protege uma pequena área ao redor. Quando uma criatura entra na área afetada a runa explode, causando 6d6 pontos de dano em todos os alvos a até 6m. A criatura que ativa a runa não tem direito a teste de resistência; outras criaturas na área têm direito a um teste de Reflexos para reduzir o dano à metade. Quando lança a magia, você escolhe o tipo de dano, entre ácido, eletricidade, fogo, frio, luz ou trevas. Você pode determinar que a runa se ative apenas em condições específicas — por exemplo, apenas por goblins ou apenas por mortos-vivos. Você também pode criar uma palavra mágica que impeça a runa de se ativar. Um personagem pode encontrar a runa com um teste de Investigação e desarmá-la com um teste de Ladinagem. Componente material: pó de diamante no valor de T$ 200, com o qual o conjurador desenha a runa, que brilha por alguns instantes e depois se torna praticamente invisível.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'aumenta o dano em +2d6',
+        text: 'aumenta o dano em +2d6.',
       },
       {
         addPm: 1,
-        text: 'muda o alvo para “você” e o alcance para “pessoal”. Ao invés do normal, escolha uma magia de 1º círculo que você conhece e pode lançar, com tempo de execução de uma ação padrão ou menor. Você escreve a runa em seu corpo e especifica uma condição de ativação como, por exemplo, “quando eu for alvo de um ataque” ou “quando for alvo de uma magia”. Quando a condição for cumprida, você pode ativar a runa e lançar a magia escolhida como uma reação. Você só pode escrever uma runa em seu corpo ao mesmo tempo.',
+        text: 'muda o alvo para "você" e o alcance para "pessoal". Ao invés do normal, escolha uma magia de 1º círculo que você conhece e pode lançar, com tempo de execução de uma ação padrão ou menor. Você escreve a runa em seu corpo e especifica uma condição de ativação como, por exemplo, "quando eu for alvo de um ataque" ou "quando for alvo de uma magia". Quando a condição for cumprida, você pode ativar a runa e lançar a magia escolhida como uma reação. Você só pode escrever uma runa em seu corpo ao mesmo tempo.',
       },
       {
         addPm: 3,
-        text: ' como o aprimoramento anterior, mas você pode escolher magias de 2º círculo. Requer 3º círculo.',
+        text: 'como o aprimoramento anterior, mas você pode escolher magias de 2º círculo. Requer 3º círculo.',
       },
     ],
   },
@@ -2044,7 +2045,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Toque',
     alvo: '2 criaturas voluntárias',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Você cria um elo mental entre duas criaturas com Inteligência 3 ou maior (você pode ser uma delas). As criaturas podem se comunicar independente de idioma ou distância, mas não em mundos diferentes.',
@@ -2066,7 +2066,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Pessoal',
     area: 'Esfera com 90m de raio',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Esta magia pode encontrar uma criatura ou objeto a sua escolha. Você pode pensar em termos gerais (“um elfo”, “algo de metal”) ou específicos (“Gwen, a elfa”, “uma espada longa”). A magia indica a direção e distância da criatura ou objeto mais próximo desse tipo, caso esteja ao alcance. Você pode movimentar-se para continuar procurando. Procurar algo muito específico (“a espada longa encantada do Barão Rulyn”) exige que você tenha em mente uma imagem precisa do objeto; caso a imagem não seja muito próxima da verdade, a magia falha, mas você gasta os PM mesmo assim. Esta magia pode ser bloqueada por uma fina camada de chumbo.',
@@ -2086,9 +2085,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Mapear',
     execucao: 'Padrão',
     alcance: 'Toque',
-    alvo: 'superfície ou objeto plano, como uma mesa ou papel',
+    alvo: 'Superfície ou objeto plano, como uma mesa ou papel',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Uma fagulha percorre a superfície afetada, queimando-a enquanto esboça um mapa da região onde o conjurador está. Se você conhece o lugar, o mapa será completo. Caso contrário, apresentará apenas um esboço geral, além de um ponto de referência (para possibilitar localização) e um lugar de interesse, ambos definidos pelo mestre. A região representada no mapa tem tamanho máximo de um quadrado de 10km de lado. Caso você esteja dentro de uma construção, o mapa mostrará o andar no qual você se encontra.',
@@ -2130,9 +2128,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Montaria Arcana',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: '',
+    area: 'Criatura conjurada',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Conv',
     description:
       'Esta magia convoca um parceiro cavalo (ou pônei) de guerra veterano. Sua aparência é de um animal negro com crina e cauda cinzentas e cascos feitos de fumaça, mas você pode mudá-la se quiser. Além dos benefícios normais, a Montaria Arcana pode atravessar terreno difícil sem redução em seu deslocamento. Você pode usar Misticismo no lugar de Cavalgar para efeitos desta montaria (incluindo ser considerado treinado).',
@@ -2162,7 +2159,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Você',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Conv',
     description:
       'Esta magia transporta você para outro lugar dentro do alcance. Você não precisa perceber nem ter linha de efeito ao seu destino, podendo simplesmente imaginá-lo. Por exemplo, pode se transportar 3m adiante para ultrapassar uma porta fechada. Uma vez transportadas, criaturas não podem agir até a rodada seguinte. Esta magia não permite que você apareça dentro de um corpo sólido; se o ponto de chegada não tem espaço livre, você ressurge na área vazia mais próxima.',
@@ -2190,9 +2186,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Servos Invisíveis',
     execucao: 'Padrão',
     alcance: 'Longo',
-    alvo: 'Criaturas Conjuradas',
+    area: 'Criaturas conjuradas',
     duracao: '1 cena',
-    resistencia: '',
     school: 'Conv',
     description:
       'Você cria até três servos invisíveis e silenciosos, capazes de realizar tarefas simples como apanhar lenha, colher frutos, varrer o chão ou alimentar um cavalo. Os servos podem ser usados para manter arrumada e organizada uma mansão ou pequena torre ou para preparar um acampamento nos ermos para você e seus aliados (veja a perícia Sobrevivência, na página 123). Eles também podem ajudá-lo em tarefas mais complexas, como fazer uma pesquisa ou preparar uma poção, mas isso consome sua energia mágica. Você pode “gastar” um servo para receber um bônus não cumulativo de +2 em um teste de perícia (exceto testes de ataque e resistência). Os servos não são criaturas reais; não podem lutar, nem resistir a qualquer dano ou efeito que exija um teste de resistência ou teste oposto — falharão automaticamente no teste e serão destruídos.',
@@ -2211,10 +2206,10 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Desespero Esmagador',
     execucao: 'Padrão',
-    alcance: '6m',
+    alcance: 'Pessoal',
     area: 'Cone de 6m',
     duracao: 'Cena',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
       'Humanoides na área são acometidos de grande tristeza, adquirindo as condições fraco e frustrado. Se passarem na resistência, adquirem essas condições por uma rodada.',
@@ -2240,7 +2235,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: 'Vontade Anula',
+    resistencia: 'Vontade anula',
     school: 'Encan',
     description:
       'Você toca uma criatura, gravando uma marca mística no corpo dela enquanto profere uma ordem, como “não ataque a mim ou meus aliados”, “siga-me” ou “não saia desta sala”. A criatura deve seguir essa ordem, gastando todas as ações de seu turno para isso. A ordem não pode ser genérica demais (como “ajude-me”, por exemplo), nem forçar o alvo a atos suicidas. A cada rodada, o alvo pode fazer um teste de Vontade. Se passar, a magia é dissipada.',
@@ -2260,7 +2255,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Bola de Fogo',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: 'Esfera com 6m de raio',
+    area: 'Esfera com 6m de raio',
     duracao: 'Instantânea',
     resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
@@ -2295,7 +2290,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura ou objeto',
     duracao: 'Instantânea',
-    resistencia: 'Reflexos Parcial',
+    resistencia: 'Reflexos parcial',
     school: 'Evoc',
     description:
       'Você dispara um projétil que causa 4d6 pontos de dano de ácido. Se falhar no teste de resistência, o alvo fica coberto por um muco corrosivo, sofrendo mais 2d6 de dano de ácido no início de seus dois próximos turnos. Se lançada contra um objeto que não esteja em posse de uma criatura a magia causa dano dobrado e ignora a RD do objeto.',
@@ -2336,7 +2331,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
     description:
-      'Você dispara um poderoso raio que causa 6d6 pontos de dano de eletricidade em todas as criaturas e objetos livres na área. ',
+      'Você dispara um poderoso raio que causa 6d6 pontos de dano de eletricidade em todas as criaturas e objetos livres na área.',
     rolls: [
       {
         id: uuid(),
@@ -2346,7 +2341,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     ],
     aprimoramentos: [
       {
-        addPm: 1,
+        addPm: 2,
         text: 'aumenta o dano em +2d6.',
       },
       {
@@ -2359,8 +2354,8 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Sopro das Uivantes',
     execucao: 'Padrão',
-    alcance: '9m',
-    area: 'Cone',
+    alcance: 'Pessoal',
+    area: 'Cone de 9m',
     duracao: 'Instantânea',
     resistencia: 'Fortitude parcial',
     school: 'Evoc',
@@ -2396,7 +2391,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Ilusão',
     description:
       'Esta magia lhe concede um rosto idealizado, porte físico garboso, voz melodiosa e olhar sedutor. Caso seu Carisma seja 5 ou mais, você recebe +2 neste atributo. Do contrário, ele se torna 5 (isso conta como um bônus). Além disso, você recebe +5 em Diplomacia e Enganação. Quando a magia acaba, quaisquer observadores percebem a mudança e tendem a suspeitar de você. Da mesma maneira, pessoas que o viram sob o efeito da magia sentirão que “algo está errado” ao vê-lo em condições normais. Quando a cena acabar, você pode gastar os PM da magia novamente como uma ação livre para mantê-la ativa. Este efeito não fornece PV ou PM adicionais.',
@@ -2414,7 +2408,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Ilusão',
     description:
       'O alvo fica com sua imagem nublada, como se vista através de um líquido, recebendo os efeitos de camuflagem leve.',
@@ -2436,7 +2429,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura ou objeto',
     duracao: 'Cena',
-    resistencia: 'Vontade Anula',
+    resistencia: 'Vontade anula',
     school: 'Ilusão',
     description:
       'Esta magia altera os sons emitidos pelo alvo. Ela não é capaz de criar sons, mas pode omiti-los (como fazer uma carroça ficar silenciosa) ou transformá-los (como fazer uma pessoa ficar com voz de passarinho). Você não pode criar sons que não conhece (não pode fazer uma criatura falar num idioma que não conheça). Uma vez que escolha a alteração, ela não pode ser mudada. Um conjurador que tenha a voz modificada drasticamente não poderá lançar magias.',
@@ -2453,8 +2446,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     execucao: 'Livre',
     alcance: 'Pessoal',
     alvo: 'Você',
-    duracao: '1 Rodada',
-    resistencia: '',
+    duracao: '1 rodada',
     school: 'Ilusão',
     description:
       'O alvo fica invisível (incluindo seu equipamento). Um personagem invisível recebe camuflagem total, +10 em testes de Furtividade contra ouvir e criaturas que não possam vê-lo ficam desprevenidas contra seus ataques. A magia termina se o alvo faz uma ação hostil contra uma criatura. Ações contra objetos livres não dissipam a Invisibilidade (você pode tocar ou apanhar objetos que não estejam sendo segurados por outras criaturas). Causar dano indiretamente — por exemplo, acendendo o pavio de um barril de pólvora que vai detonar mais tarde — não é considerado um ataque. Objetos soltos pelo alvo voltam a ser visíveis e objetos apanhados por ele ficam invisíveis. Qualquer parte de um carregado que se estenda além de seu alcance corpo a corpo natural se torna visível. Uma luz nunca fica invisível (mesmo que sua fonte seja).',
@@ -2469,7 +2461,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'muda a duração para sustentada. Em vez do normal, o alvo gera uma esfera de invisibilidade. Não pode ser usado em conjunto com outros aprimoramentos. O alvo e todas as criaturas a até 3m dele se tornam invisíveis, como no efeito normal da magia (ainda ficam visíveis caso façam uma ação hostial). A esfera se move juntamente com o alvo; qualquer coisa que saia da esfera fica visível. Requer 3º círculo.',
+        text: 'muda a duração para sustentada. Em vez do normal, o alvo gera uma esfera de invisibilidade. Não pode ser usado em conjunto com outros aprimoramentos. O alvo e todas as criaturas a até 3m dele se tornam invisíveis, como no efeito normal da magia (ainda ficam visíveis caso façam uma ação hostil). A esfera se move juntamente com o alvo; qualquer coisa que saia da esfera fica visível. Requer 3º círculo.',
       },
       {
         addPm: 7,
@@ -2482,11 +2474,11 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Conjurar Mortos-Vivos',
     execucao: 'Completa',
     alcance: 'Curto',
+    area: '6 mortos-vivos',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Necro',
     description:
-      'Você conjura seis esqueletos capangas de tamanho Médio feitos de energia negativa em espaços desocupados dentro do alcance. Você pode gastar uma ação de movimento para fazer os mortos-vivos andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6+2 pontos de dano de trevas cada). Os esqueletos têm For 2, Des 2, Defesa 18 e todos os outros atributos nulos; eles têm 1 PV e falham automaticamente em qualquer teste de resistência ou oposto, mas são imunes a atordoamento, dano não letal, doença, encantamento, fadiga, frio, ilusão, paralisia, sono e veneno. Eles desaparecem quando são reduzidos a 0 PV ou no fim da cena. Os mortos- -vivos não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre.',
+      'Você conjura seis esqueletos capangas de tamanho Médio feitos de energia negativa em espaços desocupados dentro do alcance. Você pode gastar uma ação de movimento para fazer os mortos-vivos andarem (eles têm deslocamento 9m) ou uma ação padrão para fazê-los causar dano a criaturas adjacentes (1d6+2 pontos de dano de trevas cada). Os esqueletos têm For 2, Des 2, Defesa 18 e todos os outros atributos nulos; eles têm 1 PV e falham automaticamente em qualquer teste de resistência ou oposto, mas são imunes a atordoamento, dano não letal, doença, encantamento, fadiga, frio, ilusão, paralisia, sono e veneno. Eles desaparecem quando são reduzidos a 0 PV ou no fim da cena. Os mortos-vivos não agem sem receber uma ordem. Usos criativos para capangas fora de combate ficam a critério do mestre.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -2494,11 +2486,11 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'em vez de esqueletos, conjura carniçais. Requer 3º círculo.',
+        text: 'em vez de esqueletos, conjura carniçais. Carniçal: como esqueletos, mas têm For 3, Des 3, Defesa 27 e causam 1d8+3 pontos de dano de trevas mais perda de 1d8 PV por veneno. Além disso, criaturas atingidas por um carniçal devem passar num teste de Fortitude ou ficam paralisadas por 1 rodada. Uma criatura que passe no teste de resistência fica imune à paralisia dos carniçais por um dia. Requer 3º círculo.',
       },
       {
         addPm: 7,
-        text: 'em vez de esqueletos, conjura sombras. Requer 4º círculo.',
+        text: 'em vez de esqueletos, conjura sombras. Sombra: como esqueletos, mas têm Des 4, Defesa 35, a habilidade incorpóreo e causam 2d10 pontos de dano de trevas. Além disso, criaturas vivas atingidas por uma sombra devem passar num teste de Fortitude ou perdem 1d4 PM. Sombras perdem a habilidade incorpóreo quando expostas à luz do sol. Requer 4º círculo.',
       },
     ],
   },
@@ -2571,10 +2563,9 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 objeto',
     duracao: '1 dia',
-    resistencia: '',
-    description:
-      'Esta magia aumenta ou diminui o tamanho de um mundano em até três categorias (um objeto Enorme vira Pequeno, por exemplo). Você também pode mudar a consistência do item, deixando-o rígido como pedra ou flexível como seda (isso não altera sua RD ou PV, apenas suas propriedades físicas). Se lançar a magia num objeto de uma criatura involuntária, ela pode fazer um teste de Vontade para anulá-la.',
     school: 'Trans',
+    description:
+      'Esta magia aumenta ou diminui o tamanho de um item mundano em até três categorias (um objeto Enorme vira Pequeno, por exemplo). Você também pode mudar a consistência do item, deixando-o rígido como pedra ou flexível como seda (isso não altera sua RD ou PV, apenas suas propriedades físicas). Se lançar a magia num objeto de uma criatura involuntária, ela pode fazer um teste de Vontade para anulá-la.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -2601,7 +2592,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você muda sua aparência e forma — incluindo seu equipamento — para qualquer outra criatura, existente ou imaginada. Independentemente da forma escolhida, você recebe +20 em testes de Enganação para disfarce. Características não mencionadas não mudam. Se mudar para uma forma humanoide, pode mudar o tipo de dano (entre corte, impacto e perfuração) de suas armas (se usa uma maça e transformá-la em espada longa, ela pode causar dano de corte, por exemplo). Se quiser, pode assumir uma forma humanoide com uma categoria de tamanho acima ou abaixo da sua; nesse caso aplique os modificadores em Furtividade e testes de manobra. Se mudar para outras formas, você pode escolher uma Forma Selvagem do druida (veja no Capítulo 1). Nesse caso você não pode atacar com suas armas, falar ou lançar magias até voltar ao normal, mas recebe uma ou mais armas naturais e os bônus da forma selvagem escolhida.',
@@ -2643,22 +2633,17 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
-      'O alvo pode realizar uma ação padrão ou de movimento adicional por turno. Esta ação não pode ser usada para lançar magias e ativar engenhocas.',
+      'O alvo pode realizar uma ação de movimento adicional em seu turno. Essa ação de movimento não pode ser usada para lançar magias.',
     aprimoramentos: [
       {
-        addPm: 0,
-        text: 'muda a duração para cena. A ação adicional que você pode fazer é apenas de movimento. Uma criatura só pode receber uma ação adicional por turno como efeito de Velocidade.',
+        addPm: 5,
+        text: 'muda o alvo para criaturas escolhidas. Requer 3º círculo.',
       },
       {
         addPm: 7,
-        text: 'muda o alvo para criaturas escolhidas no alcance. Requer 4º círculo.',
-      },
-      {
-        addPm: 7,
-        text: 'muda o alcance para pessoal e o alvo para você. Você acelera sua mente, além de seu corpo. A ação adicional pode ser usada para lançar magias e ativar engenhocas. Requer 4º círculo.',
+        text: 'muda a ação de movimento em ação padrão. Essa ação padrão pode ser usada para lançar magias (mas não para usar Velocidade novamente). Requer 4º círculo.',
       },
     ],
   },
@@ -2667,7 +2652,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Círculo da Justiça',
     execucao: 'Completa',
     alcance: 'Curto',
-    area: 'Esfera com 9m de lado',
+    area: 'Esfera com 9m de raio',
     duracao: '1 dia',
     resistencia: 'Vontade parcial',
     school: 'Abjur',
@@ -2693,24 +2678,23 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Vestimenta da Fé',
     execucao: 'Padrão',
     alcance: 'Toque',
-    alvo: '1 armadura, escudo ou vestuário',
-    duracao: '1 dia',
-    resistencia: '',
+    alvo: '1 traje, armadura ou escudo',
+    duracao: 'Cena',
     school: 'Abjur',
     description:
-      'Você fortalece um item, aumentando o bônus de Defesa de uma armadura ou escudo em +2. No caso de um vestuário, ele passa a oferecer +2 na Defesa (não cumulativo com armadura). Os efeitos desta magia contam como um bônus de encanto.',
+      'Você abençoa uma vestimenta, armadura ou escudo, transformando-a em um símbolo de sua fé. Um traje se torna uma armadura que fornece +5 na Defesa (para um total de Defesa 15). Se lançada sobre uma armadura ou escudo mundanos, você pode substituir seu bônus na Defesa pelo bônus de sua Sabedoria (se for maior). Em qualquer caso, o item abençoado também fornece redução de trevas 10. Você pode lançar esta magia como uma reação, caso seja alvo de um ataque ou de um efeito que exija um teste de Reflexos. Neste caso, o bônus de Sabedoria na Defesa se aplica imediatamente contra esse ataque ou efeito.',
     aprimoramentos: [
       {
+        addPm: 1,
+        text: 'o alvo também se torna extravagante. Um estandarte, manto ou tabardo estampado com o símbolo de sua divindade aparece sobre o alvo, exteriorizando sua devoção mesmo sob uma armadura. Você recebe +2 em Diplomacia e Intimidação.',
+      },
+      {
+        addPm: 2,
+        text: 'você pode gastar 1 PM quando um aliado adjacente sofre dano para transferir o dano a você. Este dano ignora qualquer forma de redução de dano que você possua. Você pode usar esta habilidade mesmo se já tiver usado uma reação nesta rodada.',
+      },
+      {
         addPm: 3,
-        text: 'o objeto oferece o mesmo bônus em testes de resistência. Requer 3º círculo.',
-      },
-      {
-        addPm: 4,
-        text: 'aumenta o bônus em +1.',
-      },
-      {
-        addPm: 7,
-        text: 'o objeto também oferece redução de dano 5. Requer 4º círculo.',
+        text: 'aumenta a redução de trevas em +5.',
       },
     ],
   },
@@ -2721,7 +2705,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Até 5 criaturas',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Pela duração da magia, você sabe a posição e status (PV atuais, se estão com uma condição ou sob efeito de magia...) dos alvos. Depois de lançada, a distância dos alvos não importa — a magia só deixa de detectar um alvo se ele morrer ou for para outro plano.',
@@ -2732,7 +2715,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 1,
-        text: 'aumenta a duração para um dia.',
+        text: 'muda a duração para um dia.',
       },
     ],
   },
@@ -2743,7 +2726,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: '',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Cria um globo flutuante e intangível, com 50cm de diâmetro. O globo mostra uma cena vista até uma semana atrás por você ou por uma criatura que você toque ao lançar a magia (mediante uma pergunta; a criatura pode fazer um teste de Vontade para anular o efeito), permitindo que outras pessoas a vejam.',
@@ -2773,7 +2755,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Você fortalece a mente do alvo. Ele recebe +2 em Inteligência, Sabedoria ou Carisma, a sua escolha. Esse aumento não oferece PV, PM ou perícias adicionais.',
@@ -2800,21 +2781,20 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     spellCircle: spellsCircles.c2,
     nome: 'Voz Divina',
     execucao: 'Padrão',
-    alcance: 'Pessoal',
-    alvo: 'Você',
+    alcance: 'Curto',
+    alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
-      'Você pode conversar com criaturas de qualquer raça e tipo: animal, construto, espírito, humanoide, monstro ou morto-vivo. Pode fazer perguntas e entende suas respostas, mesmo sem um idioma em comum ou se a criatura não for capaz de falar, mas respeitando os limites da Inteligência dela. A atitude dessas criaturas não é alterada, mas você pode usar a perícia Diplomacia para tentar mudar sua atitude.',
+      'Você fortalece os laços com sua divindade, clamando por sua palavra. Você consegue falar com a criatura alvo pela duração da magia, uma conversa mental. Se quiser falar com a criatura novamente após a duração, deve lançar esta magia de novo. Esta magia não permite que você veja a criatura (embora você saiba se ela está viva ou morta) e não funciona entre planos.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'você concede um pouco de vida a um cadáver, suficiente para que ele responda a suas perguntas. O conhecimento do corpo é limitado ao que ele tinha enquanto vivo e suas respostas são curtas e enigmáticas. Um corpo só pode ser alvo desta magia uma vez. Ela também não funciona em um corpo cuja cabeça tenha sido destruída.',
+        text: 'aumenta o número de alvos em +1.',
       },
       {
-        addPm: 1,
-        text: 'você pode falar com plantas (normais ou monstruosas) e rochas. Plantas e rochas têm percepção limitada de seus arredores e normalmente fornecem respostas simplórias.',
+        addPm: 5,
+        text: 'além do normal, você pode ver e ouvir através da criatura alvo, como se estivesse onde ela está. Requer 3º círculo.',
       },
     ],
   },
@@ -2823,9 +2803,9 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Enxame de Pestes',
     execucao: 'Completa',
     alcance: 'Médio',
-    alvo: '1 enxame Médio (quadrado de 1,5m)',
+    area: '1 enxame Médio (quadrado de 1,5m)',
     duracao: 'Sustentada',
-    resistencia: 'Fortitude Reduz à Metade',
+    resistencia: 'Fortitude reduz à metade',
     school: 'Conv',
     description:
       'Você conjura um enxame de criaturas a sua escolha, como besouros, gafanhotos, ratos, morcegos ou serpentes. O enxame pode passar pelo espaço de outras criaturas e não impede que outras criaturas entrem no espaço dele. No final de seus turnos, o enxame causa 2d12 pontos de dano de corte a qualquer criatura em seu espaço (Fortitude reduz à metade). Você pode gastar uma ação de movimento para mover o enxame 12m.',
@@ -2885,7 +2865,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 animal prestativo',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Encan',
     description:
       'Você cria um vínculo mental com um animal prestativo em relação a você. O Aliado Animal obedece a você no melhor de suas capacidades, mesmo que isso arrisque a vida dele. Ele funciona como um parceiro veterano, de um tipo a sua escolha entre ajudante, combatente, fortão, guardião, montaria ou perseguidor.',
@@ -2896,7 +2875,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 7,
-        text: 'muda o aliado para mestre. Requer 3º círculo.',
+        text: 'muda o parceiro para mestre. Requer 3º círculo.',
       },
       {
         addPm: 12,
@@ -2911,7 +2890,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Curto',
     alvo: 'Todas as criaturas (veja texto)',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Encan',
     description:
       'Você e os seus aliados no alcance recebem +2 em testes de perícia e rolagens de dano, e todos os seus inimigos no alcance sofrem –2 em testes de perícia e rolagens de dano. Esse efeito é cumulativo com outras magias. Componente material: T$ 25 por PM gasto em incensos ou outras oferendas.',
@@ -2939,12 +2917,11 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Controlar Fogo',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: 'Ver texto',
+    alvo: 'Veja texto',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Evoc',
     description:
-      'Você pode criar, moldar, mover ou extinguir chamas e emanações de calor. Ao lançar a magia, escolha um dos efeitos na página 187.',
+      'Você pode criar, moldar, mover ou extinguir chamas e emanações de calor. Ao lançar a magia, escolha um dos efeitos. Chamejar: o alvo é armas escolhidas. Elas causam +1d6 de dano de fogo. Também afeta armas naturais e ataques desarmados. Esquentar: o alvo é 1 objeto, que começa a esquentar. Ele sofre 1d6 pontos de dano de fogo por rodada e causa o mesmo dano a qualquer criatura que o esteja segurando ou vestindo. A critério do mestre, o objeto ou a criatura vestindo-o também podem ficar em chamas. Uma criatura pode gastar uma ação completa para resfriar o objeto (jogando areia ou se jogando numa fonte de água próxima, por exemplo) e cancelar o efeito da magia. Extinguir: o alvo é 1 chama de tamanho Grande ou menor, que é apagada. Isso cria uma nuvem de fumaça que ocupa uma esfera com 3m de raio centrada onde estava a chama. Dentro da fumaça, criaturas têm camuflagem leve. Modelar: o alvo é 1 chama de tamanho Grande ou menor. A cada rodada, você pode gastar uma ação livre para movimentá-la 9m em qualquer direção. Se atravessar o espaço ocupado por uma criatura, causa 2d6 pontos de dano de fogo. Uma criatura só pode receber dano dessa maneira uma vez por rodada.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -2982,7 +2959,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       },
       {
         addPm: 3,
-        text: 'também permite que o alvo solte qualquer amaldiçoado que esteja segurando (mas não remove a maldição do em si).',
+        text: 'também permite que o alvo solte qualquer item amaldiçoado que esteja segurando (mas não remove a maldição do item em si).',
       },
       {
         addPm: 7,
@@ -3026,8 +3003,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     execucao: 'Completa',
     alcance: 'Longo',
     area: 'Cilindro com 15m de raio e 15m de altura',
-    duracao: 'Cena',
-    resistencia: '',
+    duracao: 'Sustentada',
     school: 'Evoc',
     description:
       'Esta magia só pode ser usada em ambientes abertos. A área fica sujeita a um vendaval — ataques à distância sofrem penalidade de –5, chamas são apagadas e névoas são dissipadas. Você também pode gerar chuva (–5 em testes de Percepção), neve (como chuva, e a área se torna terreno difícil) ou granizo (como chuva, mais 1 ponto de dano de impacto por rodada, no início de seus turnos).',
@@ -3123,7 +3099,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     resistencia: 'Fortitude anula',
     school: 'Necro',
     description:
-      'Você entoa cânticos maléficos que amaldiçoam uma vítima, criando efeitos variados. Ao lançar a magia, escolha entre um dos efeitos na página 204.',
+      'Você entoa cânticos maléficos que amaldiçoam uma vítima, criando efeitos variados. Ao lançar a magia, escolha entre os seguintes. Debilidade: o alvo fica esmorecido e não pode se comunicar ou lançar magias. Ainda reconhece seus aliados e pode segui-los e ajudá-los, mas sempre de maneira simplória. Doença: muda a duração para instantânea. O alvo contrai uma doença a sua escolha, que o afeta imediatamente (sem período de incubação). Fraqueza: o alvo fica debilitado e lento. Isolamento: o alvo perde o uso de um de seus cinco sentidos a sua escolha. Se perder a visão, fica cego. Se perder a audição, fica surdo. Se perder o olfato ou paladar, não pode usar a habilidade faro. Se perder o tato, fica caído e não pode se levantar. Você também pode inventar sua própria maldição, usando esses exemplos como sugestões, mas o mestre tem a palavra final sobre o efeito.',
     aprimoramentos: [
       {
         addPm: 3,
@@ -3142,10 +3118,9 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 objeto de madeira Grande ou menor',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
-      'Você molda, retorce, altera ou repele madeira. Se lançar esta magia num objeto de uma criatura involuntária, ela tem direito a um teste de Vontade para anulá-la. Ao lançar a magia, escolha um dos efeitos na página 187.',
+      'Você molda, retorce, altera ou repele madeira. Se lançar esta magia num objeto de uma criatura involuntária, ela tem direito a um teste de Vontade para anulá-la. Ao lançar a magia, escolha. Fortalecer: deixa o alvo mais resistente. Armas têm seu dano aumentado em um passo. Escudos têm seu bônus de Defesa aumentado em +2 (isso é uma melhoria no item, portanto é cumulativa com outras magias). Esses e outros itens de madeira recebem +5 na RD e dobram seus PV. Modelar: muda a forma do alvo. Pode transformar um galho em espada, criar uma porta onde antes havia apenas uma parede, transformar um tronco em uma caixa... Mas não pode criar mecanismos complexos (como uma besta) ou itens consumíveis. Repelir: o alvo é repelido por você. Se for uma arma, ataques feitos com ela contra você falham automaticamente. Se for uma porta ou outro objeto que possa ser aberto, ele vai se abrir quando você se aproximar, mesmo que esteja trancado. Um objeto que vá atingi-lo, como uma carroça, tronco ou barril, vai desviar ou parar adjacente a você, sem lhe causar dano. Os efeitos de regras em outros objetos de madeira ficam a cargo do mestre. Retorcer: estraga o alvo. Uma porta retorcida emperra (exigindo um teste de Força contra CD 25 para ser aberta). Armas e itens retorcidos impõem –5 em testes de perícia. Escudos retorcidos deixam de oferecer bônus (mas ainda impõem penalidades). Um barco retorcido começa a afundar e naufraga ao final da cena. Os efeitos de regras em outros objetos de madeira ficam a cargo do mestre.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -3172,7 +3147,6 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você fortalece o corpo do alvo. Ele recebe +2 em Força, Destreza ou Constituição, a sua escolha. Esse aumento não oferece PV ou PM adicionais.',
@@ -3205,7 +3179,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura ou objeto',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Abjur',
     description:
       'O alvo é envolvido por um campo de força cor de esmeralda que impede qualquer movimento planar. Isso inclui magias de convocação (como Salto Dimensional e Teletransporte), viagens astrais e a habilidade incorpóreo.',
@@ -3239,7 +3212,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura ou objeto',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Abjur',
     description:
       'Esta magia oculta a presença do alvo contra qualquer meio mágico de detecção, inclusive detectar magia. Um conjurador que lance uma magia de adivinhação para detectar a presença ou localização do alvo deve fazer um teste de Vontade. Se falhar, a magia não funciona, mas os PM são gastos mesmo assim. Se for lançada sobre uma criatura, Dificultar Detecção protege tanto a criatura quanto seu equipamento.',
@@ -3250,7 +3222,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       },
       {
         addPm: 4,
-        text: 'muda a duração para 1 semana',
+        text: 'muda a duração para 1 semana.',
       },
     ],
   },
@@ -3261,7 +3233,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Abjur',
     description:
       'Você é envolto por uma esfera mágica brilhante com 3m de raio, que detém qualquer magia de 2º círculo ou menor. Nenhuma magia pode ser lançada contra um alvo dentro do globo e magias de área não o penetram. No entanto, magias ainda podem ser lançadas de dentro para fora. Uma magia que dissipe outras magias só dissipa o globo se for usada diretamente sobre você, não o afetando se usada em área. Efeitos mágicos não são dissipados quando entram na esfera, apenas suprimidos (voltam a funcionar fora do globo, caso sua duração não tenha acabado). O globo é imóvel e não tem efeito sobre criaturas ou objetos. Após lançá-lo, você pode entrar ou sair livremente.',
@@ -3283,10 +3254,9 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Adiv',
     description:
-      'Sua mente viaja até outro plano de existência, onde entra em contato com seres extraplanares como gênios e demônios. Você firma um contrato com uma dessas entidades para que o auxilie durante o dia, em troca de se alimentar de seu mana. Quando a magia é lançada, você recebe 6d6 dados de auxílio. Enquanto a magia durar, sempre que for realizar um teste de perícia, você pode gastar 1d6 (mais 1d6 para cada círculo de magias acima do 3º que puder lançar) e adicionar o resultado como bônus no teste. No entanto, sempre que rolar um “6” num desses dados, a entidade “suga” 1 PM de você. A magia termina se você gastar todos os dados, ficar sem PM ou no fim do dia (o que acontecer primeiro).',
+      'Sua mente viaja até outro plano de existência, onde entra em contato com seres extraplanares como gênios e demônios. Você firma um contrato com uma dessas entidades para que o auxilie durante o dia, em troca de se alimentar de seu mana. Quando a magia é lançada, você recebe 6d6 dados de auxílio. Enquanto a magia durar, sempre que for realizar um teste de perícia, você pode gastar 1d6 (mais 1d6 para cada círculo de magias acima do 3º que puder lançar) e adicionar o resultado como bônus no teste. No entanto, sempre que rolar um "6" num desses dados, a entidade "suga" 1 PM de você. A magia termina se você gastar todos os dados, ficar sem PM ou no fim do dia (o que acontecer primeiro).',
     aprimoramentos: [
       {
         addPm: 2,
@@ -3294,7 +3264,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       },
       {
         addPm: 8,
-        text: 'Muda os dados de auxílio para d12. Sempre que rolar um resultado 12 num desses dados, a entidade “suga” 2 PM de você. Requer 4º círculo.',
+        text: 'muda os dados de auxílio para d12. Sempre que rolar um resultado 12 num desses dados, a entidade "suga" 2 PM de você. Requer 4º círculo.',
       },
     ],
   },
@@ -3305,10 +3275,9 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura, objeto ou local',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Adiv',
     description:
-      'Você descobre informações sobre uma criatura, objeto ou local que esteja tocando. O que exatamente você descobre depende do mestre: talvez você não descubra tudo que há para saber, mas ganhe pistas para continuar a investigação.',
+      'Você descobre informações sobre uma criatura, objeto ou local que esteja tocando. O que exatamente você descobre depende do mestre: talvez você não descubra tudo que há para saber, mas ganhe pistas para continuar a investigação. A cada rodada que mantiver a magia, você descobre: Todas as informações sobre o alvo, como se tivesse passado em todos os testes de Conhecimento para tal. Todas as habilidades do alvo. Se for uma criatura, você sabe suas estatísticas de jogo como raça, classe, nível, atributos, magias, resistências e fraquezas. Se for um item mágico, aprende seu efeito e funcionamento. Se o alvo está sob influência de alguma magia e todas as informações sobre as magias ativas, se houver alguma.',
     aprimoramentos: [
       {
         addPm: 4,
@@ -3316,6 +3285,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
       },
     ],
   },
+  // 3º Círculo
   [spellsCircle3Names.videncia]: {
     spellCircle: spellsCircles.c3,
     nome: 'Vidência',
@@ -3323,10 +3293,15 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Ilimitado',
     alvo: '1 criatura',
     duracao: 'Sustentada',
-    resistencia: 'Vontade anula',
     school: 'Adiv',
     description:
-      'Através de uma superfície reflexiva (bacia de água benta para clérigos, lago para druidas, bola de cristal para magos, espelho para feiticeiros etc.) você pode ver e ouvir uma criatura escolhida e seus arredores (cerca de 6m em qualquer direção), mesmo que ela se mova. O alvo pode estar a qualquer distância, mas se passar em um teste de Vontade, a magia falha. A vítima recebe bônus ou penalidades em seu teste de resistência, dependendo do conhecimento que você tiver dela.',
+      'Esta magia cria um sensor mágico, semelhante a um pequeno globo ocular, que aparece próximo ao alvo. Através da vidência, você vê e ouve o alvo e tudo em volta dele, como se estivesse em seu lugar. O alvo tem direito a um teste de Vontade para resistir à magia. Se passar, você não poderá usar Vidência sobre ele pelo resto do dia. Se falhar, o alvo pode fazer um teste de Percepção (CD 25) para notar a presença do sensor. Alguns modificadores se aplicam ao teste de resistência do alvo, de acordo com o conhecimento que você tem dele e conexões físicas (como uma mecha de cabelo). Conhecimento: Nenhum: +10 na CD do teste. Indireto (ouviu falar): +5. Direto (já encontrou): +0. Familiar (conhece bem): –5. Conexão: Retrato (ou semelhante): –2. Posse ou peça de roupa: –4. Parte do corpo: –10.',
+    aprimoramentos: [
+      {
+        addPm: 5,
+        text: 'muda a área de alvo para esfera com 9m de raio. Em vez de conjurar um sensor sobre uma criatura, você pode conjurar uma esfera de observação numa área (como uma sala ou uma parte da floresta). Nesse caso, a magia não sofre os modificadores acima. Você pode mover a esfera de observação 9m usando uma ação de movimento.',
+      },
+    ],
   },
   [spellsCircle3Names.convocacaoInstantenea]: {
     spellCircle: spellsCircles.c3,
@@ -3335,10 +3310,9 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Ilimitado',
     alvo: '1 objeto de até 2 espaços',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Conv',
     description:
-      'Você invoca um objeto de qualquer lugar para sua mão. O deve ter sido previamente preparado com uma runa pessoal sua (ao custo de T$ 5). A magia não funciona se o objeto estiver com outra criatura, mas você saberá onde ele está e quem o está carregando (ou sua descrição física, caso não conheça a criatura).',
+      'Você invoca um objeto de qualquer lugar para sua mão. O item deve ter sido previamente preparado com uma runa pessoal sua (ao custo de T$ 5). A magia não funciona se o objeto estiver com outra criatura, mas você saberá onde ele está e quem o está carregando (ou sua descrição física, caso não conheça a criatura).',
     aprimoramentos: [
       {
         addPm: 1,
@@ -3363,6 +3337,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Enxame Rubro de Ichabod',
     execucao: 'Padrão',
     alcance: 'Médio',
+    area: '1 enxame Grande (quadrado de 3m)',
     duracao: 'Sustentada',
     resistencia: 'Reflexos reduz à metade',
     school: 'Conv',
@@ -3378,7 +3353,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     aprimoramentos: [
       {
         addPm: 1,
-        text: ' além do normal, uma criatura que falhe no teste de Reflexos fica agarrada (o enxame escala e cobre o corpo dela). A criatura pode gastar uma ação padrão e fazer um teste de Acrobacia ou Atletismo para escapar. Se você mover o enxame, a criatura fica livre.',
+        text: 'além do normal, uma criatura que falhe no teste de Reflexos fica agarrada (o enxame escala e cobre o corpo dela). A criatura pode gastar uma ação padrão e fazer um teste de Acrobacia ou Atletismo para escapar. Se você mover o enxame, a criatura fica livre.',
       },
       {
         addPm: 2,
@@ -3409,10 +3384,9 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: 'Até 5 criaturas voluntárias',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Conv',
     description:
-      'Esta magia transporta os alvos para um lugar a sua escolha a até 1.000km. Você precisa fazer um teste de Misticismo, com dificuldade que depende de seu conhecimento sobre o local de destino. Você não pode se teletransportar para um lugar que nunca visitou sem a descrição de alguém. Ou seja, não pode se transportar para a “sala de tesouro do rei” se nunca esteve nela nem falou com alguém que esteve. Se passar no teste, os alvos chegam ao lugar desejado. Se falhar, os alvos surgem 1d10 x 10km afastados em qualquer direção (se o destino é uma cidade costeira, você pode surgir em alto-mar). Se falhar por 5 ou mais, você chega em um lugar parecido, mas errado. E se você rolar 1 natural no teste a magia falha (mas você gasta os PM) e fica atordoado por 1d4 rodadas.',
+      'Esta magia transporta os alvos para um lugar a sua escolha a até 1.000km. Você precisa fazer um teste de Misticismo, com dificuldade que depende de seu conhecimento sobre o local de destino. CD 20: Um lugar familiar, que você visita com frequência. CD 30: Um lugar conhecido, que você já visitou pelo menos uma vez. CD 40: Um lugar que você nunca visitou e só conhece a partir da descrição de outra pessoa que esteve lá. Você não pode se teletransportar para um lugar que nunca visitou sem a descrição de alguém. Ou seja, não pode se transportar para a "sala de tesouro do rei" se nunca esteve nela nem falou com alguém que esteve. Se passar no teste, os alvos chegam ao lugar desejado. Se falhar, os alvos surgem 1d10 x 10km afastados em qualquer direção (se o destino é uma cidade costeira, você pode surgir em alto-mar). Se falhar por 5 ou mais, você chega em um lugar parecido, mas errado. E se você rolar 1 natural no teste a magia falha (mas você gasta os PM) e fica atordoado por 1d4 rodadas.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -3435,7 +3409,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 humanoide ou animal',
     duracao: 'Cena',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
       'O alvo fica paralisado; se passar na resistência, em vez disso fica lento. A cada rodada, pode gastar uma ação completa para fazer um novo teste de Vontade. Se passar, se liberta do efeito.',
@@ -3461,7 +3435,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
       'Seu toque manifesta um selo mágico na pele do alvo, que atrapalha o fluxo de mana. Pela duração da magia, sempre que o alvo realizar qualquer ação que gaste PM, deve fazer um teste de Vontade; se passar, faz a ação normalmente. Se falhar, a ação não tem efeito (mas os PM são gastos mesmo assim).',
@@ -3501,7 +3475,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura',
     duracao: 'Instantânea',
-    resistencia: 'Reflexos Parcial',
+    resistencia: 'Reflexos parcial',
     school: 'Evoc',
     description:
       'Esta magia foi desenvolvida pelo mago imortal Aleph Olhos Vermelhos, um entusiasta dos estudos vulcânicos. Ela dispara um projétil de magma contra o alvo, que sofre 4d6 pontos de dano de fogo e 4d6 pontos de dano de perfuração e fica em chamas. As chamas causam 2d6 pontos de dano por rodada, em vez do dano normal. Se passar no teste de resistência, o alvo sofre metade do dano e não fica em chamas. Respingos de rocha incandescente se espalham com a explosão, atingindo todas as criaturas adjacentes ao alvo, que devem fazer um teste de Reflexos. Se falharem, ficam em chamas, como descrito acima.',
@@ -3521,12 +3495,12 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Muralha Elemental',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Muralha de energia',
     duracao: 'Cena',
-    resistencia: 'Veja o texto',
+    resistencia: 'Veja texto',
     school: 'Evoc',
     description:
-      'Uma muralha de um elemento a sua escolha se eleva da terra. Ela pode ser um muro de até 30m de comprimento e 3m de altura (ou o contrário) ou uma cúpula de 3m de raio. Os efeitos variam conforme o elemento escolhido.',
+      'Uma muralha de um elemento a sua escolha se eleva da terra. Ela pode ser um muro de até 30m de comprimento e 3m de altura (ou o contrário) ou uma cúpula de 3m de raio. Os efeitos variam conforme o elemento escolhido. Fogo. A muralha é opaca e composta de chamas crepitantes. Qualquer criatura que atravessá-la ou iniciar seu turno nela sofre 6d6 pontos de dano de fogo. Gelo. A muralha é composta de gelo branco-azulado. Ela possui Defesa 10, 30 PV por trecho de 3m de comprimento, redução de fogo 0 e é imune a frio, trevas e essência. Qualquer criatura que atravessá-la ou iniciar seu turno nela sofre 6d6 pontos de dano de frio.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -3546,10 +3520,10 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     spellCircle: spellsCircles.c3,
     nome: 'Ilusão Lacerante',
     execucao: 'Padrão',
-    alcance: 'Curto',
+    alcance: 'Médio',
     area: 'Cubo de 9m',
-    duracao: 'Cena',
-    resistencia: 'Vontade Anula',
+    duracao: 'Sustentada',
+    resistencia: 'Vontade anula',
     school: 'Ilusão',
     description:
       'Você cria uma ilusão de algum perigo mortal. Quando a magia é lançada, criaturas na área devem fazer um teste de Vontade; uma falha significa que a criatura acredita que a ilusão é real e sofre 3d6 pontos de dano psíquico não letal. Sempre que uma criatura iniciar seu turno dentro da área, deve repetir o teste de Vontade. Se falhar, sofre o dano novamente. Somente criaturas que falham veem a ilusão, e racionalizam o efeito sempre que falham no teste (por exemplo, acredita que o mesmo teto pode cair sobre ela várias vezes).',
@@ -3571,7 +3545,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Ilusão',
     description:
       'Você fica coberto por um manto de energia sombria. Nesta forma, torna-se incorpóreo (inclui seu equipamento): só pode ser afetado por armas e habilidades mágicas, ou por outras criaturas incorpóreas, e pode atravessar objetos sólidos, mas não manipulá-los. Também não pode atacar criaturas normais (mas ainda pode lançar magias nelas). Além disso, se torna vulnerável à luz direta: se exposto a uma fonte de luz, sofre 1 ponto de dano por rodada. Você pode gastar uma ação de movimento e 1 PM para “entrar” em uma sombra do seu tamanho ou maior e se teletransportar para outra sombra, também do seu tamanho ou maior, em alcance médio.',
@@ -3611,13 +3584,14 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Sustentada',
-    resistencia: 'Fortitude reduz à metade',
+    resistencia: 'Fortitude parcial',
     school: 'Necro',
-    description: '',
+    description:
+      'O sangue do alvo aquece até entrar em ebulição. Quando a magia é lançada, e no início de cada um de seus turnos, o alvo sofre 4d8 pontos de dano de fogo e fica enjoado por uma rodada (Fortitude reduz o dano à metade e evita a condição). Esta magia não afeta criaturas sem sangue.',
     aprimoramentos: [
       {
         addPm: 2,
-        text: 'aumenta o dano em +1d6.',
+        text: 'aumenta o dano em +1d8.',
       },
       {
         addPm: 9,
@@ -3639,7 +3613,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     aprimoramentos: [
       {
         addPm: 2,
-        text: 'umenta o raio da área em +3m.',
+        text: 'aumenta o raio da área em +3m.',
       },
       {
         addPm: 2,
@@ -3654,7 +3628,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
       'Sua pele ganha aspecto e dureza de rocha. Você recebe redução de dano 5.',
@@ -3686,12 +3659,11 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Telecinesia',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: 'Veja o texto',
-    duracao: 'Sustentada ou Intantânea',
-    resistencia: '',
+    alvo: 'Veja texto',
+    duracao: 'Sustentada ou instantânea (veja texto)',
     school: 'Trans',
     description:
-      'Você move objetos ou criaturas se concentrando. Ao lançar a magia, escolha uma das opções da página 208.',
+      'Você move objetos ou criaturas se concentrando. Ao lançar a magia, escolha uma das opções a seguir. Força Contínua: você move uma criatura Média ou menor, ou objeto de até 10 espaços, a até 6m por rodada. Uma criatura pode anular o efeito sobre ela, ou sobre um objeto que possua, passando num teste de Vontade. O alvo pode ser movido em qualquer direção dentro do alcance. Ele cai no chão se sair do alcance ou a magia terminar. Duração: sustentada. Empurrão Violento: nesta versão a energia mágica é expelida de uma única vez e arremessa até 10 objetos (no máximo 10 espaços). Os objetos devem estar a até 3m uns dos outros e podem ser arremessados até o alcance da magia. Objetos arremessados podem atingir criaturas em seu caminho, causando de 1 ponto de dano de impacto por espaço (objetos macios, sem pontas ou sem fio) até 1d6 pontos de dano por espaço (objetos duros, pontudos ou afiados). Criaturas atingidas têm direito a um teste de Reflexos para reduzir o dano à metade. Criaturas Médias ou menores podem ser arremessadas, mas têm direito a um teste de Vontade para evitar o efeito (em si mesmas ou em objetos que estejam segurando). Uma criatura arremessada contra uma superfície sólida sofre 1d6 pontos de dano de impacto para cada 3m que "voou" no deslocamento (incluindo outras criaturas; nesse caso, ambas sofrem o dano). Duração: instantânea.',
     aprimoramentos: [
       {
         addPm: 3,
@@ -3706,7 +3678,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você se torna uma máquina de combate, ficando mais forte, rápido e resistente. Você recebe +6 na Defesa, testes de ataque e rolagens de dano corpo a corpo, e 30 PV temporários. Durante a Transformação de Guerra você não pode lançar magias, mas se torna proficiente em todas as armas.',
@@ -3725,25 +3696,24 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     spellCircle: spellsCircles.c3,
     nome: 'Voo',
     execucao: 'Padrão',
-    alcance: 'Pessoal',
-    alvo: 'Você',
+    alcance: 'Toque',
+    alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
-      'Você recebe deslocamento de voo 12m. Voar por meio desta magia é simples como andar — você pode atacar e lançar magias normalmente enquanto voa. Quando a magia termina, você desce lentamente até o chão, como se estivesse sob efeito de Queda Suave.',
+      'O alvo recebe deslocamento de voo 12m. Se a magia acabar enquanto o alvo estiver no ar, ele cai.',
     aprimoramentos: [
       {
-        addPm: 1,
-        text: 'muda o alcance para toque e o alvo para 1 criatura.',
+        addPm: 2,
+        text: 'aumenta o deslocamento de voo em +6m.',
       },
       {
-        addPm: 4,
-        text: 'muda a duração para um dia. Requer 4º círculo.',
+        addPm: 2,
+        text: 'muda o alcance para curto e o alvo para até 5 criaturas. Requer 4º círculo.',
       },
       {
-        addPm: 4,
-        text: 'muda o alcance para curto e o alvo para até 10 criaturas. Requer 4° círculo.',
+        addPm: 5,
+        text: 'muda a duração para um dia.',
       },
     ],
   },
@@ -3754,10 +3724,10 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Instantânea',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Abjur',
     description:
-      'Você expulsa uma criatura não nativa de Arton. Um alvo nativo de outro mundo (como muitos espíritos), é teletransportado de volta para um lugar aleatório de seu mundo de origem. Já um alvo morto-vivo tem sua conexão com as energias negativas rompidas, sendo reduzido a 0 PV. Se passar na resistência, em vez dos efeitos acima, o alvo fica enjoado por 1d4 rodadas. Se você tiver um ou mais itens que se oponham ao alvo de alguma maneira, a CD do teste de resistência aumenta em +2 por item. Por exemplo, se lançar a magia contra demônios do frio (vulneráveis a água benta e que odeiam luz e calor) enquanto segura um frasco de água benta e uma tocha acesa, a CD aumenta em +4. O mestre decide se determinado é forte o bastante contra a criatura para isso.',
+      'Você expulsa uma criatura não nativa de Arton. Um alvo nativo de outro mundo (como muitos espíritos), é teletransportado de volta para um lugar aleatório de seu mundo de origem. Já um alvo morto-vivo tem sua conexão com as energias negativas rompidas, sendo reduzido a 0 PV. Se passar na resistência, em vez dos efeitos acima, o alvo fica enjoado por 1d4 rodadas. Se você tiver um ou mais itens que se oponham ao alvo de alguma maneira, a CD do teste de resistência aumenta em +2 por item. Por exemplo, se lançar a magia contra demônios do frio (vulneráveis a água benta e que odeiam luz e calor) enquanto segura um frasco de água benta e uma tocha acesa, a CD aumenta em +4. O mestre decide se determinado item é forte o bastante contra a criatura para isso.',
     aprimoramentos: [
       {
         addPm: 0,
@@ -3798,7 +3768,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Após uma breve união com a natureza local, você obtém informações e intuições sobre a região em que está, numa distância equivalente a um dia de viagem. Você recebe 6d4 dados de auxílio. Enquanto a magia durar, sempre que for realizar um teste de perícia em áreas naturais, você pode gastar 2d4 (mais 2d4 para cada círculo de magias acima do 3º que puder lançar) e adicionar o resultado rolado como bônus no teste. A magia termina se você ficar sem dados.',
@@ -3826,12 +3795,11 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Servo Divino',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: '',
-    duracao: 'Cena ou até descarregar',
-    resistencia: '',
+    area: 'Criatura conjurada',
+    duracao: 'Cena ou até ser descarregada',
     school: 'Conv',
     description:
-      'Você pede a sua divindade que envie um espírito para ajudá-lo. Esse espírito realiza uma tarefa a sua escolha que possa ser cumprida em até uma hora — desde algo simples como “use suas asas para nos levar até o topo da montanha” até algo complexo como “escolte esses camponeses até o castelo”. A magia é descarregada quando a criatura cumpre a tarefa, retornando a seu plano natal. O tipo de criatura é escolhido pelo mestre, de acordo com as necessidades da tarefa.',
+      'Você pede a sua divindade que envie um espírito para ajudá-lo. Esse espírito realiza uma tarefa a sua escolha que possa ser cumprida em até uma hora — desde algo simples como "use suas asas para nos levar até o topo da montanha" até algo complexo como "escolte esses camponeses até o castelo". A magia é descarregada quando a criatura cumpre a tarefa, retornando a seu plano natal. O tipo de criatura é escolhido pelo mestre, de acordo com as necessidades da tarefa. Componente material: um pagamento de T$ 100 ao espírito. A forma de pagamento varia — doações a um templo, um item mágico ou mesmo dinheiro.',
     aprimoramentos: [
       {
         addPm: 4,
@@ -3868,7 +3836,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 animal ou planta',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Encan',
     description:
       'Você desperta a consciência de um animal ou planta. O alvo se torna um parceiro veterano de um tipo a sua escolha entre ajudante, combatente, fortão, guardião, médico, perseguidor ou vigilante. Se usar esta magia em um parceiro que já possua, o nível de poder de um de seus tipos aumenta em um passo (iniciante para veterano, veterano para mestre). Se já for um parceiro mestre, recebe o bônus de outro tipo de parceiro iniciante (entre as escolhas acima). O alvo se torna uma criatura racional, com Inteligência –1, e pode falar.',
@@ -3890,7 +3857,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Encan',
     description:
       'Esta magia imbui uma criatura com coragem e valentia. O alvo fica imune a medo e recebe 40 PV temporários e +4 em testes de ataque e rolagens de dano contra o inimigo de maior ND na cena.',
@@ -3907,7 +3873,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Curto',
     alvo: '1 criatura',
-    duracao: '1 semana ou até descarregar',
+    duracao: '1 semana ou até ser descarregada',
     resistencia: 'Vontade anula (veja texto)',
     school: 'Encan',
     description:
@@ -3928,7 +3894,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Coluna de Chamas',
     execucao: 'Padrão',
     alcance: 'Longo',
-    area: 'cilindro com 3m de raio e 30m de altura.',
+    area: 'Cilindro com 3m de raio e 30m de altura',
     duracao: 'Instantânea',
     resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
@@ -3951,8 +3917,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Pessoal',
     area: 'Esfera com 6m de raio',
-    duracao: 'Veja o texto',
-    resistencia: '',
+    duracao: 'Veja texto',
     school: 'Evoc',
     description:
       'Esta magia cria um forte brilho (multicolorido ou de uma cor que remeta a sua divindade) que causa diversos efeitos. Todas as magias de 3º círculo ou menor ativas na área são dissipadas se você passar num teste de Religião contra a CD de cada magia. Seus aliados na área recebem +4 em testes de resistência e redução de trevas 10 até o fim da cena, protegidos por uma aura sutil da mesma cor. Inimigos na área ficam cegos por 1d4 rodadas (apenas uma vez por cena). Dispersar as Trevas anula Anular a Luz (este efeito tem duração instantânea).',
@@ -3989,7 +3954,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     aprimoramentos: [
       {
         addPm: 2,
-        text: 'aumenta a quantidade de cura em 1d8+2.',
+        text: 'aumenta a cura em +1d8+2.',
       },
       {
         addPm: 4,
@@ -4006,9 +3971,8 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Anular a Luz',
     execucao: 'Padrão',
     alcance: 'Pessoal',
-    alvo: 'Área de 6m de raio',
-    duracao: 'Ver texto',
-    resistencia: '',
+    area: 'Esfera com 6m de raio',
+    duracao: 'Veja texto',
     school: 'Necro',
     description:
       'Esta magia cria uma onda de escuridão que causa diversos efeitos. Magias de até 3º círculo na área são dissipadas se você passar num teste de Religião contra a CD de cada uma. Seus aliados na área são protegidos por uma aura sombria e recebem +4 na Defesa até o fim da cena. Inimigos na área ficam enjoados por 1d4 rodadas (apenas uma vez por cena). Anular a Luz anula Dispersar as Trevas (este efeito tem duração instantânea).',
@@ -4052,10 +4016,9 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 cadáver',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Necro',
     description:
-      'Esta magia transforma o cadáver de um humanoide, animal ou monstro em um esqueleto ou zumbi (conforme o estado de conservação do corpo). O morto-vivo então obedece a todos os seus comandos, mesmo suicidas. Se quiser que o morto-vivo o acompanhe, ele funciona como um parceiro iniciante, de um tipo a sua escolha entre ajudante, atirador, combatente, fortão, guardião ou montaria. Uma vez por rodada, quando sofre dano, você pode sacrificar um servo morto-vivo e evitar esse dano. O servo é destruído no processo e não pode ser reanimado.',
+      'Esta magia transforma o cadáver de um humanoide, animal ou monstro em um esqueleto ou zumbi (conforme o estado de conservação do corpo). O morto-vivo então obedece a todos os seus comandos, mesmo suicidas. Se quiser que o morto-vivo o acompanhe, ele funciona como um parceiro iniciante, de um tipo a sua escolha entre ajudante, atirador, combatente, fortão, guardião ou montaria. Uma vez por rodada, quando sofre dano, você pode sacrificar um servo morto-vivo e evitar esse dano. O servo é destruído no processo e não pode ser reanimado. Componente material: um ônix negro (T$ 100), inserido na boca ou olho do cadáver.',
     aprimoramentos: [
       {
         addPm: 3,
@@ -4078,10 +4041,10 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Longo',
     area: 'Esfera com 30m de raio',
     duracao: 'Cena',
-    resistencia: 'Ver texto',
+    resistencia: 'Veja texto',
     school: 'Trans',
     description:
-      'Você controlar os movimentos e comportamentos da água. Ao lançar a magia, escolha um dos efeitos na página 186.',
+      "Você controla os movimentos e comportamentos da água. Ao lançar a magia, escolha um dos efeitos abaixo. Congelar: toda a água mundana na área é congelada. Criaturas nadando na área ficam imóveis; escapar exige gastar uma ação padrão e passar num teste de Atletismo ou Acrobacia. Derreter: gelo mundano na área vira água e a magia termina. A critério do mestre, isso pode criar terreno difícil. Enchente: eleva o nível da água mundana na área em até 4,5m. A sua escolha, muda área para alvo: uma embarcação. O alvo recebe +3m em seu deslocamento pela duração do efeito. Evaporar: toda a água e gelo mundano na área evaporam instantaneamente e a magia termina. Elementais da água, plantas monstruosas e criaturas com imunidade a frio na área sofrem 10d8 pontos de dano de fogo; outras criaturas vivas recebem metade desse dano (Fortitude reduz à metade). Partir: diminui o nível de toda água mundana na área em até 4,5m. Em um corpo d'água raso, isso abre um caminho seco, que pode ser atravessado a pé. Em um corpo d'água profundo, cria um redemoinho que pode prender barcos (um teste de Pilotagem permite ao piloto livrar a embarcação). Elementais da água na área ficam lentos.",
     aprimoramentos: [
       {
         addPm: 2,
@@ -4094,12 +4057,12 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     nome: 'Controlar Terra',
     execucao: 'Padrão',
     alcance: 'Longo',
-    area: '9 cubos com 1,5 metros de lado',
+    area: '9 cubos com 1,5m de lado',
     duracao: 'Instantânea',
-    resistencia: 'Ver texto',
+    resistencia: 'Veja texto',
     school: 'Trans',
     description:
-      'Você manipula a densidade e a forma de toda terra, pedra, lama, argila ou areia na área. Ao lançar a magia, escolha um dos efeitos na página 188.',
+      'Você manipula a densidade e a forma de toda terra, pedra, lama, argila ou areia na área. Ao lançar a magia, escolha. Amolecer: se afetar o teto, uma coluna ou suporte, provoca um desabamento que causa 10d6 pontos de dano de impacto às criaturas na área (Reflexos reduz à metade). Se afetar um piso de terra ou pedra, cria terreno difícil de areia ou argila, respectivamente. Modelar: pode usar pedra ou argila para criar um ou mais objetos simples de tamanho Enorme ou menor (sem mecanismos ou partes móveis). Por exemplo, pode transformar um tijolo em uma maça, criar uma passagem onde antes havia apenas uma parede ou levantar uma ou mais paredes que oferecem cobertura total (RD 8 e 50 PV para cada 3m). Solidificar: transforma lama ou areia em terra ou pedra. Criaturas com os pés na superfície ficam agarradas. Elas podem se soltar com uma ação padrão e um teste de Acrobacia ou Atletismo.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -4118,7 +4081,6 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você canaliza o poder de sua divindade. Você aumenta uma categoria de tamanho (seu equipamento muda de acordo) e recebe Força +4 e RD 10. Você não pode lançar magias enquanto estiver sob efeito de Potência Divina.',
@@ -4147,10 +4109,10 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Abjur',
     description:
-      'Você é cercado por uma barreira invisível com 3m de raio que o acompanha. Qualquer habilidade mágica ou mágico que entre na área da barreira é suprimida enquanto estiver lá. Criaturas convocadas que entrem em um Campo Antimagia desaparecem. Elas reaparecem na mesma posição quando a duração do Campo termina — supondo que a duração da magia que as convocou ainda não tenha terminado. Criaturas mágicas ou imbuídas com magia durante sua criação não são diretamente afetadas pelo Campo Antimagia. Entretanto, como qualquer criatura, não poderão usar magias ou habilidades mágicas dentro dele. Uma magia que dissipa outras não dissipa um Campo Antimagia, e dois Campos na mesma área não se neutralizam. Artefatos e deuses maiores não são afetados por um Campo Antimagia.',
+      'Você é cercado por uma barreira invisível com 3m de raio que o acompanha. Qualquer habilidade mágica ou item mágico que entre na área da barreira é suprimida enquanto estiver lá. Criaturas convocadas que entrem em um Campo Antimagia desaparecem. Elas reaparecem na mesma posição quando a duração do Campo termina — supondo que a duração da magia que as convocou ainda não tenha terminado. Criaturas mágicas ou imbuídas com magia durante sua criação não são diretamente afetadas pelo Campo Antimagia. Entretanto, como qualquer criatura, não poderão usar magias ou habilidades mágicas dentro dele. Uma magia que dissipa outras não dissipa um Campo Antimagia, e dois Campos na mesma área não se neutralizam. Artefatos e deuses maiores não são afetados por um Campo Antimagia.',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.libertacao]: {
     spellCircle: spellsCircles.c4,
@@ -4159,7 +4121,6 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Abjur',
     description:
       'O alvo fica imune a efeitos de movimento e ignora qualquer efeito que impeça ou restrinja seu deslocamento. Por fim, pode usar habilidades que exigem liberdade de movimentos mesmo se estiver usando armadura ou escudo.',
@@ -4192,8 +4153,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     execucao: '10 minutos',
     alcance: 'Ilimitado',
     alvo: '1 criatura viva',
-    duracao: 'Veja o texto',
-    resistencia: '',
+    duracao: 'Veja texto',
     school: 'Adiv',
     description:
       'Você entra nos sonhos de uma criatura. Uma vez lá, pode conversar com ela até que ela acorde. Se o alvo não estiver dormindo quando você lançar a magia, você pode permanecer em transe até que ele adormeça. Durante o transe, você fica indefeso e sem consciência dos arredores. Você pode sair do transe quando quiser, mas a magia termina.',
@@ -4243,12 +4203,11 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Conjurar Elemental',
     execucao: 'Completa',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Parceiro elemental',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Conv',
     description:
-      'Esta magia transforma uma porção de um elemento inerte em uma criatura elemental Grande do tipo do elemento alvo. Por exemplo, lançar esta magia numa fogueira ou tocha cria um elemental do fogo. Você pode criar elementais do ar, água, fogo e terra com essa magia. O elemental obedece a todos os seus comandos e pode funcionar como um parceiro do tipo destruidor (cuja habilidade custa apenas 2 PM para ser usada) e mais um tipo entre os indicados na lista (pág. 185), ambos mestres. O elemental auxilia apenas você e não conta em seu limite de parceiros.',
+      'Esta magia transforma uma porção de um elemento inerte em uma criatura elemental Grande do tipo do elemento alvo. Por exemplo, lançar esta magia numa fogueira ou tocha cria um elemental do fogo. Você pode criar elementais do ar, água, fogo e terra com essa magia. O elemental obedece a todos os seus comandos e pode funcionar como um parceiro do tipo destruidor (cuja habilidade custa apenas 2 PM para ser usada) e mais um tipo entre os indicados na lista abaixo, ambos mestres. O elemental auxilia apenas você e não conta em seu limite de parceiros. Ar: assassino, perseguidor ou vigilante. Dano de eletricidade. Água: ajudante, guardião ou médico. Dano de frio. Fogo: atirador, combatente ou fortão. Dano de fogo. Terra: combatente, guardião ou montaria. Dano de impacto.',
     aprimoramentos: [
       {
         addPm: 5,
@@ -4265,9 +4224,8 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Mão Poderosa de Talude',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Mão gigante de energia',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Conv',
     description:
       'Esta magia cria uma mão flutuante Grande que sempre se posiciona entre você e um oponente a sua escolha. A mão fornece cobertura leve (+5 na Defesa) contra esse oponente. Nada é capaz de enganar a mão — coisas como escuridão, invisibilidade, metamorfose e disfarces mundanos não a impedem de protegê-lo. A mão tem Defesa 20 e PV e resistências iguais aos seus. Com uma ação de movimento, você pode comandar a mão para que o proteja de outro oponente ou para que realize uma das ações da página 198.',
@@ -4329,10 +4287,11 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura',
     duracao: 'Sustentada',
-    resistencia: 'Fortitude Anula',
+    resistencia: 'Fortitude anula',
     school: 'Encan',
     description:
       'Esta magia manipula o sistema nervoso do alvo. Ao sofrer a magia, e no início de cada um de seus turnos, a vítima faz um teste de Fortitude. Se passar, a magia é anulada. Se falhar, todas as suas ações físicas naquele turno estarão sob controle do conjurador. A vítima ainda tem consciência de tudo que acontece à sua volta, podendo ver, ouvir e até falar com certo esforço (mas não para lançar magias). Contudo, seu corpo realiza apenas os movimentos que o conjurador deseja. A vítima pode ser manipulada para se movimentar, lutar, usar habilidades de combate... Enfim, qualquer coisa de que seja fisicamente capaz. Você precisa de linha de efeito para controlar a vítima. Se perder o contato, não poderá controlá-la — mas ela estará paralisada até que o conjurador recupere o controle ou a magia termine.',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.raioPolar]: {
     spellCircle: spellsCircles.c4,
@@ -4341,7 +4300,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura',
     duracao: 'Instantânea',
-    resistencia: 'Fortitude Parcial',
+    resistencia: 'Fortitude parcial',
     school: 'Evoc',
     description:
       'Você dispara um raio azul esbranquiçado de gelo e ar congelante. O alvo sofre 10d8 pontos de dano de frio e fica preso em um bloco de gelo (paralisado). Se passar no teste de resistência, sofre metade do dano e, em vez de paralisado, fica lento por uma rodada. É possível quebrar o gelo para libertar uma criatura presa: o bloco tem 20 PV, RD 10 e é vulnerável a fogo. Uma criatura presa pode gastar uma ação completa para fazer um teste de Atletismo e se libertar do gelo; cada vez que passar no teste causa 10 pontos de dano ao bloco, ignorando a RD.',
@@ -4361,7 +4320,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Relâmpago Flamejante de Reynard',
     execucao: 'Duas rodadas',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Bolas de fogo e relâmpagos',
     duracao: 'Sustentada',
     resistencia: 'Reflexos reduz à metade',
     school: 'Evoc',
@@ -4369,7 +4328,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
       'Esta é uma magia poderosa, desenvolvida pelo metódico e impassível arquimago Reynard. Você invoca as energias elementais do fogo e do relâmpago, fazendo com que uma de suas mãos fique em chamas e a outra mão eletrificada. Pela duração da magia, você pode gastar uma ação de movimento para disparar uma bola de fogo (10d6 pontos de dano de fogo numa esfera com 6m de raio) ou um relâmpago (10d6 pontos de dano de eletricidade numa linha). Você também pode, como uma ação padrão, usar as duas mãos num ataque de energia mista (20d12 pontos de dano, metade de fogo e metade de eletricidade, numa esfera com 9m de raio). Você precisa estar com as duas mãos livres para invocar o efeito misto e isso consome toda a energia da magia, terminando-a imediatamente. Por se tratar de um ritual complexo, o tempo de execução dessa magia não pode ser reduzido.',
     aprimoramentos: [
       {
-        addPm: 4,
+        addPm: 2,
         text: 'aumenta o dano das rajadas em +1d6 e o dano da rajada mista em +2d12.',
       },
     ],
@@ -4401,9 +4360,8 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Duplicata Ilusória',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Cópia ilusória',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Ilusão',
     description:
       'Você cria uma cópia ilusória semirreal de... você mesmo! Ela é idêntica em aparência, som e cheiro, mas é intangível. A cada turno, você escolhe se verá e ouvirá através da duplicata ou de seu corpo original. A cópia reproduz todas as suas ações, incluindo fala. Qualquer magia com alcance de toque ou maior que você lançar pode se originar da duplicata, em vez do seu corpo original. As magias afetam outros alvos normalmente, com a única diferença de se originarem da cópia, em vez de você. Se quiser que a duplicata faça algo diferente de você, você deve gastar uma ação de movimento. Qualquer criatura que interagir com a cópia tem direito a um teste de Vontade para perceber que é uma ilusão. As magias que se originam dela, no entanto, são reais. A cópia desaparece se sair do alcance.',
@@ -4419,12 +4377,13 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     nome: 'Explosão Caleidoscópica',
     execucao: 'Padrão',
     alcance: 'Curto',
-    area: 'Esfera de 6m',
+    area: 'Esfera com 6m de raio',
     duracao: 'Instantânea',
-    resistencia: 'Fortitude Parcial',
+    resistencia: 'Fortitude parcial',
     school: 'Ilusão',
     description:
       'Esta magia cria uma forte explosão de luzes estroboscópicas e sons cacofônicos que desorientam as criaturas atingidas. O efeito que cada criatura sofre depende do nível ou ND dela (ver página 193).',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.assassinoFantasmagorico]: {
     spellCircle: spellsCircles.c4,
@@ -4433,19 +4392,19 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Longo',
     alvo: '1 criatura',
     duracao: 'Cena, até ser descarregada',
-    resistencia: 'Vontade anula, Fortitude Parcial',
+    resistencia: 'Vontade anula, Fortitude parcial',
     school: 'Necro',
     description:
       'Usando os medos subconscientes do alvo, você cria uma imagem daquilo que ele mais teme. Apenas a própria vítima pode ver o Assassino Fantasmagórico com nitidez; outras criaturas presentes (incluindo o conjurador) enxergam apenas um espectro sombrio. Quando você lança a magia, o espectro surge adjacente a você e a vítima faz um teste de Vontade. Se ela passar, percebe que o espectro é uma ilusão e a magia é dissipada. Se falhar, acredita na existência do espectro, que então flutua 18m por rodada em direção à vítima, sempre no fim do seu turno. Ele é incorpóreo e imune a magias (exceto magias que dissipam outras). Se o espectro terminar seu turno adjacente à vítima, ela deve fazer um teste de Fortitude. Se passar, sofre 6d6 pontos de dano de trevas (este dano não pode reduzir o alvo a menos de 0 PV e não o deixa sangrando). Se falhar, sofre um colapso, ficando imediatamente com –1 PV e sangrando. O espectro persegue o alvo implacavelmente. Ele desaparece se o alvo ficar inconsciente ou se afastar além de alcance longo dele, ou se for dissipado.',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.muralhaDeOssos]: {
     spellCircle: spellsCircles.c4,
     nome: 'Muralha de Ossos',
     execucao: 'Padrão',
     alcance: 'Médio',
-    alvo: '',
+    area: 'Muro de ossos',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Necro',
     description:
       'Uma parede de ossos se eleva da terra. A parede tem 15m de comprimento, 9m de altura e 1,5m de espessura. Ela pode ter qualquer forma — não precisa ser uma linha reta —, mas sua base precisa estar sempre tocando o solo. Quando a parede surge, criaturas na área ocupada ou adjacentes sofrem 4d8 pontos de dano de corte e precisam fazer um teste de Reflexos para não ficarem presas no emaranhado de ossos. Uma criatura presa dessa maneira fica agarrada, e pode gastar uma ação padrão para fazer um teste de Atletismo para se soltar. Se passar no teste, sai da muralha para um dos lados adjacentes. Se falhar, sofre 4d8 pontos de dano de corte. É possível destruir o muro para atravessá-lo ou libertar uma criatura agarrada. Cada trecho de 3m do muro tem Defesa 8, 40 PV e redução de corte, frio e perfuração 10. Também é possível escalar a parede. Isso exige um teste de Atletismo e causa 4d8 pontos de dano de corte para cada 3m escalados.',
@@ -4467,10 +4426,9 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     alvo: 'Até 8 objetos Minúsculos ou Pequenos, 4 objetos Médios, 2 objetos Grandes ou 1 objeto Enorme',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Trans',
     description:
-      'Você concede vida a objetos inanimados. Cada objeto se torna um parceiro sob seu controle. O tipo dele é escolhido da lista de tamanho e ele não conta em seu limite de parceiros. Com uma ação de movimento, você pode comandar mentalmente qualquer objeto animado dentro do alcance para que auxilie você ou outra criatura. Outros usos criativos para os objetos ficam a cargo do mestre. Objetos animados são construtos com valores de Força, Destreza e PV de acordo com seu tamanho. Todos os outros atributos são nulos, eles não têm valor de Defesa ou testes de resistência e falham automaticamente em qualquer teste oposto. Diferente de parceiros comuns, um objeto pode ser alvo de um ataque direto. Esta magia não afeta itens mágicos, nem objetos que estejam sendo carregados por outra criatura.',
+      'Você concede vida a objetos inanimados. Cada objeto se torna um parceiro sob seu controle. O tipo dele é escolhido da lista de tamanho e ele não conta em seu limite de parceiros. Com uma ação de movimento, você pode comandar mentalmente qualquer objeto animado dentro do alcance para que auxilie você ou outra criatura. Outros usos criativos para os objetos ficam a cargo do mestre. Objetos animados são construtos com valores de Força, Destreza e PV de acordo com seu tamanho. Todos os outros atributos são nulos, eles não têm valor de Defesa ou testes de resistência e falham automaticamente em qualquer teste oposto. Diferente de parceiros comuns, um objeto pode ser alvo de um ataque direto. Esta magia não afeta itens mágicos, nem objetos que estejam sendo carregados por outra criatura. Estatísticas de objetos animados: Minúsculo: For –3, Des 4, 5 PV; Assassino ou Combatente Iniciante. Pequeno: For –2, Des 2, 10 PV; Combatente ou Guardião Iniciante. Médio: For 0, Des 1, 20 PV; Combatente ou Guardião Veterano. Grande: For 2, Des 0, 40 PV; Fortão, Guardião ou Montaria (cavalo) Veterano. Enorme: For 4, Des –2, 60 PV; Fortão, Guardião ou Montaria (cavalo) Mestre.',
     aprimoramentos: [
       {
         addPm: 5,
@@ -4485,10 +4443,10 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     area: 'Cubo de 12m de lado',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Trans',
     description:
-      'Você controla os efeitos da gravidade dentro da área. Ao lançar a magia, escolha um dos efeitos na página 186. Enquanto a magia durar, você pode gastar uma ação padrão para mudar o efeito.',
+      'Você controla os efeitos da gravidade dentro da área. Ao lançar a magia, escolha um dos efeitos abaixo. Enquanto a magia durar, você pode gastar uma ação padrão para mudar o efeito. Aumentar: no início de seus turnos, cada criatura na área deve fazer um teste de Atletismo. Se passar, fica fatigada. Se falhar, fica fatigada e caída. Inverter: inverte a gravidade da área, fazendo com que criaturas e objetos "caiam" para cima, atingindo o topo (12m) em uma rodada. Se um obstáculo (como um teto) impedir o movimento das criaturas, elas sofrem 1d6 pontos de dano de impacto para cada 1,5m de "queda". Elas podem então se levantar e caminhar no obstáculo, de cabeça para baixo. Se não houver obstáculo, as criaturas e objetos ficam flutuando no topo da área afetada, sem poder sair do lugar. Criaturas voadoras podem se movimentar normalmente. Alguém adjacente a algo que possa agarrar tem direito a um teste de Reflexos para evitar a "queda". A criatura deve permanecer presa pela duração da magia; caso contrário "cairá". Reduzir: criaturas ou objetos livres Médios ou menores flutuam para cima e para baixo conforme sua vontade, com deslocamento de voo 6m. Criaturas na área recebem +20 em testes de Atletismo para escalar e saltar. Uma criatura levitando fica instável, sofrendo –2 em testes de ataque.',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.desintegrar]: {
     spellCircle: spellsCircles.c4,
@@ -4497,7 +4455,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     alvo: '1 criatura ou objeto',
     duracao: 'Instantânea',
-    resistencia: 'Fortitude Parcial',
+    resistencia: 'Fortitude parcial',
     school: 'Trans',
     description:
       'Você dispara um raio fino e esverdeado que causa 10d12 pontos de dano de essência. Se o alvo passar no teste de resistência, em vez disso sofre 2d12 pontos de dano. Independentemente do resultado do teste de Fortitude, se os PV do alvo forem reduzidos a 0 ou menos, ele será completamente desintegrado, restando apenas pó.',
@@ -4515,7 +4473,6 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você e todo o equipamento que está com você são transportados para o plano etéreo, que existe paralelamente ao plano material (o mundo físico). Na prática, é como ser transformado em um fantasma (mas você ainda é considerado uma criatura viva). Uma criatura etérea é invisível (pode alterar entre visível e invisível como ação livre), incorpórea e capaz de se mover em qualquer direção, inclusive para cima e para baixo. Ela enxerga o plano material, mas tudo parece cinza e insubstancial, reduzindo o alcance da visão e audição para 18m. Magias de abjuração e essência afetam criaturas etéreas, mas outras magias, não. Da mesma forma, uma criatura etérea não pode atacar nem lançar magias contra criaturas no plano material. Duas criaturas etéreas podem se afetar normalmente. Uma criatura afetada pode se materializar como uma ação de movimento, encerrando a magia. Uma criatura etérea que se materialize em um espaço ocupado é jogada para o espaço não ocupado mais próximo e sofre 1d6 pontos de dano de impacto para cada 1,5m de deslocamento.',
@@ -4532,7 +4489,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Pessoal',
     alvo: 'Você',
-    duracao: 'Cena',
+    duracao: 'Sustentada',
     resistencia: 'Vontade anula',
     school: 'Abjur',
     description:
@@ -4555,7 +4512,6 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Vislumbres do futuro permitem que você reavalie suas ações. Uma vez por rodada, você pode rolar novamente um teste recém realizado, mas deve aceitar o resultado da nova rolagem.',
@@ -4565,7 +4521,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
         text: 'muda a execução para reação, o alcance para curto, o alvo para 1 criatura e a duração para instantânea. Esta magia só pode ser usada em uma criatura que tenha acabado de fazer um teste. Obriga a criatura a fazer uma nova rolagem de dados e aceitar o novo resultado, seja ele um sucesso ou falha. Criaturas involuntárias têm direito a um teste de Vontade para negar o efeito.',
       },
       {
-        addPm: 5,
+        addPm: 10,
         text: 'muda a duração para um dia.',
       },
     ],
@@ -4577,7 +4533,6 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Curto',
     alvo: '',
     duracao: 'Cena ou até ser descarregado',
-    resistencia: '',
     school: 'Conv',
     description:
       'A magia invoca um elemental Pequeno, com a forma de um orbe feito de luz divina. A criatura é incorpórea, imune a dano e ilumina como uma tocha. O elemental tem 100 pontos de luz. Uma vez por rodada, durante o seu turno, o elemental pode se movimentar (deslocamento de voo 18m) e gastar quantos pontos de luz quiser para curar dano ou condições de criaturas em alcance curto, à taxa de 1 PV por 1 ponto de luz ou uma condição por 3 pontos de luz (entre abalado, apavorado, alquebrado, atordoado, cego, confuso, debilitado, enjoado, esmorecido, exausto, fascinado, fatigado, fraco, frustrado, ofuscado, pasmo, sangrando, surdo ou vulnerável). A magia é encerrada quando o elemental fica sem pontos de luz.',
@@ -4588,8 +4543,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Toque',
     alvo: '1 criatura',
-    duracao: 'Permanente até ser descarregada.',
-    resistencia: '',
+    duracao: 'Permanente até ser descarregada',
     school: 'Encan',
     description:
       'Você transfere um pouco de seu poder divino a outra criatura. Escolha uma magia de até 2º círculo que você conheça; o alvo pode lançar essa magia uma vez, sem pagar o custo dela em PM (aprimoramentos podem ser usados, mas o alvo deve gastar seus próprios PM). Você sofre uma penalidade de –3 PM até que o alvo lance a magia.',
@@ -4607,7 +4561,6 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Curto',
     area: 'Esfera com 3m de raio',
     duracao: '5 rodadas',
-    resistencia: '',
     school: 'Evoc',
     description:
       'Você evoca um círculo de luz que emana uma energia poderosa. Qualquer criatura viva que termine o turno dentro do círculo recupera 3d8+3 PV e 1 PM. Mortos-vivos e criaturas que sofrem dano por luz perdem PV e PM na mesma quantidade. Uma criatura pode recuperar no máximo 5 PM por dia com esta magia.',
@@ -4625,7 +4578,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Médio',
     area: 'Esfera com 6m de raio',
     duracao: 'Instantânea',
-    resistencia: 'Reflexos Parcial',
+    resistencia: 'Reflexos parcial',
     school: 'Evoc',
     description:
       'Você cria um fulgor dourado e intenso. Criaturas na área ficam cegas por 1d4 rodadas e em chamas, e sofrem 10d6 pontos de dano de fogo (mortos-vivos sofrem 10d8 pontos de dano). Uma criatura que passe no teste de resistência não fica cega nem em chamas e sofre metade do dano.',
@@ -4651,10 +4604,10 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Evoc',
     description:
-      'Você invoca o poder de sua divindade na forma de um manto de energia que reveste seu corpo. Esta magia tem duas versões. Você escolhe qual versão pode lançar quando aprende esta magia. Ela não pode ser mudada.',
+      'Você invoca o poder de sua divindade na forma de um manto de energia que reveste seu corpo. Esta magia tem duas versões. Você escolhe qual versão pode lançar quando aprende esta magia. Ela não pode ser mudada. Manto de Luz: um manto dourado e luminoso. No início de cada um de seus turnos, você e todos os seus aliados em alcance curto recuperam 2d8 PV. Você recebe imunidade a dano de trevas e seus ataques corpo a corpo causam +2d8 pontos de dano de luz. Manto de Trevas: um manto negro como a noite. No início de cada um de seus turnos, todos os inimigos em alcance curto sofrem 4d8 pontos de dano de trevas. Você cura metade de todo o dano causado pela magia.',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.terremoto]: {
     spellCircle: spellsCircles.c4,
@@ -4663,10 +4616,11 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Longo',
     area: 'Esfera com 30m de raio',
     duracao: '1 rodada',
-    resistencia: 'Veja o texto',
+    resistencia: 'Veja texto',
     school: 'Evoc',
     description:
-      'Esta magia cria um tremor de terra que rasga o solo. O terremoto dura uma rodada, durante a qual criaturas sobre o solo ficam atordoadas (apenas uma vez por cena). Barreiras físicas não interrompem a área de Terremoto.',
+      'Esta magia cria um tremor de terra que rasga o solo. O terremoto dura uma rodada, durante a qual criaturas sobre o solo ficam atordoadas (apenas uma vez por cena). Barreiras físicas não interrompem a área de Terremoto. O efeito exato depende do terreno. Caverna ou subterrâneo: a magia derruba o teto, causando 12d6 pontos de dano de impacto e agarrando todas as criaturas na área. Um teste de Reflexos reduz o dano à metade e evita a condição. Construção: todas as estruturas na área sofrem 200 pontos de dano de impacto, o suficiente para derrubar construções de madeira ou alvenaria simples, mas não de alvenaria reforçada. Criaturas em uma construção que desmorone sofrem o mesmo efeito de criaturas em uma caverna (veja acima). Espaço aberto: fendas se abrem no chão. Cada criatura na área precisa rolar um dado; em um resultado ímpar, uma fenda se abre sob ela e ela precisa fazer um teste de Reflexos; se falhar, cai na fenda. A criatura pode escapar gastando uma ação completa e passando em um teste de Atletismo. No início do seu próximo turno as fendas se fecham, matando todos que estejam dentro delas. Penhasco: o penhasco racha, criando um desmoronamento que percorre uma distância horizontal igual à distância da queda. Por exemplo, um penhasco com 30m de altura desmorona em uma área de 30m de comprimento além da base. Qualquer criatura no caminho sofre 12d6 pontos de dano de impacto e fica agarrada. Um teste de Reflexos reduz o dano à metade e evita ficar agarrado. Rio, lago ou pântano: fissuras se abrem sob a água, drenando-a e formando um lamaçal. Criaturas na área precisam fazer um teste de Reflexos para não afundarem na lama e ficarem agarradas. No início do seu próximo turno as fissuras se fecham, possivelmente afogando as criaturas que ficaram agarradas. Criaturas agarradas (efeito possível de caverna, construção, penhasco e rio, lago ou pântano) sofrem 1d6 pontos de dano por rodada até serem libertadas, o que exige uma ação completa e um teste de Atletismo (por parte da própria criatura ou de um aliado adjacente).',
+    aprimoramentos: [],
   },
   [spellsCircle4Names.ligacaoSombria]: {
     spellCircle: spellsCircles.c4,
@@ -4675,7 +4629,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: 'Longo',
     alvo: '1 criatura',
     duracao: '1 dia',
-    resistencia: 'Fortitude Anula',
+    resistencia: 'Fortitude anula',
     school: 'Necro',
     description:
       'Cria uma conexão entre seu corpo e o da criatura alvo, deixando uma marca idêntica na pele de ambos. Enquanto a magia durar, sempre que você sofrer qualquer dano ou condição, o alvo desta magia deve fazer um teste de Fortitude; se falhar, sofre o mesmo dano que você ou adquire a mesma condição. A magia termina se o alvo chegar a 0 pontos de vida.',
@@ -4693,14 +4647,13 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     alcance: '2km',
     area: 'Esfera com 2km de raio',
     duracao: '4d12 horas',
-    resistencia: '',
     school: 'Trans',
     description:
       'Você muda o clima da área onde se encontra, podendo criar qualquer condição climática: chuva, neve, ventos, névoas... Veja o Capítulo 6: O Mestre para os efeitos do clima.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: '(APENAS DRUIDAS) muda o raio da área para 3km e duração para 1d4 dias.',
+        text: '(Apenas Druidas): muda o raio da área para 3km e duração para 1d4 dias.',
       },
     ],
   },
@@ -4712,9 +4665,9 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     nome: 'Aura Divina',
     execucao: 'Padrão',
     alcance: 'Pessoal',
-    alvo: 'Emanação de 9m de raio',
+    area: 'Esfera com 9m de raio',
     duracao: 'Cena',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Abjur',
     description:
       'Você se torna um conduíte da energia de sua divindade, emanando uma aura brilhante. Você e aliados devotos da mesma divindade ficam imunes a encantamento e recebem +10 na Defesa e em testes de resistência. Aliados não devotos da mesma divindade recebem +5 na Defesa e em testes de resistência. Além disso, inimigos que entrem na área devem fazer um teste de Vontade; em caso de falha, recebem uma condição a sua escolha entre esmorecido, debilitado ou lento até o fim da cena. O teste deve ser refeito cada vez que a criatura entrar novamente na área.',
@@ -4732,10 +4685,9 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Cena',
-    resistencia: '',
     school: 'Abjur',
     description:
-      'Esta magia cria uma barreira mágica impenetrável que protege você contra efeitos nocivos mentais ou físicos, a sua escolha.',
+      'Esta magia cria uma barreira mágica impenetrável que protege você contra efeitos nocivos mentais ou físicos, a sua escolha. Proteção mental: você fica imune às condições abalado, alquebrado, apavorado, atordoado, confuso, esmorecido, fascinado, frustrado e pasmo, além de efeitos de encantamento e ilusão. Proteção física: você fica imune às condições atordoado, cego, debilitado, enjoado, envenenado, exausto, fatigado, fraco, lento, ofuscado e paralisado, além de acertos críticos, ataques furtivos e doenças.',
     aprimoramentos: [
       {
         addPm: 5,
@@ -4750,7 +4702,7 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Instantânea',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Abjur',
     description:
       'Se falhar no teste de resistência, o alvo perde a habilidade de lançar magias arcanas até o fim da cena. Se passar, perde a habilidade por uma rodada.',
@@ -4788,12 +4740,12 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     nome: 'Buraco Negro',
     execucao: 'Completa',
     alcance: 'Longo',
-    alvo: '',
+    area: 'Buraco negro',
     duracao: '3 rodadas',
-    resistencia: 'Fortitude Parcial',
+    resistencia: 'Fortitude parcial',
     school: 'Conv',
     description:
-      'Esta magia cria um vácuo capaz de sugar tudo nas proximidades. Escolha um espaço desocupado para o buraco negro. No início de cada um de seus três turnos seguintes, todas as criaturas a até alcance longo do buraco negro, incluindo você, devem fazer um teste de Fortitude. Em caso de falha, ficam caídas e são puxadas 30m na direção do buraco. Objetos soltos também são puxados. Criaturas podem gastar uma ação de movimento para se segurar em algum objeto fixo, recebendo +2 em seus testes de resistência. Criaturas e objetos que iniciem seu turno no espaço do buraco negro devem gastar uma ação de movimento e fazer um teste de Fortitude. Se passarem, podem escapar se arrastando (deslocamento de 1,5m) para longe dele. Se falharem, perdem a ação (mas podem gastar outra para tentar novamente). Se terminarem seu turno no espaço do buraco negro, são sugadas, desaparecendo para sempre. Não se conhece o destino das coisas sugadas pelo buraco negro. Alguns estudiosos sugerem que são enviadas para outros mundos — provavelmente Sombria, reino da deusa Tenebra',
+      'Esta magia cria um vácuo capaz de sugar tudo nas proximidades. Escolha um espaço desocupado para o buraco negro. No início de cada um de seus três turnos seguintes, todas as criaturas a até alcance longo do buraco negro, incluindo você, devem fazer um teste de Fortitude. Em caso de falha, ficam caídas e são puxadas 30m na direção do buraco. Objetos soltos também são puxados. Criaturas podem gastar uma ação de movimento para se segurar em algum objeto fixo, recebendo +2 em seus testes de resistência. Criaturas e objetos que iniciem seu turno no espaço do buraco negro devem gastar uma ação de movimento e fazer um teste de Fortitude. Se passarem, podem escapar se arrastando (deslocamento de 1,5m) para longe dele. Se falharem, perdem a ação (mas podem gastar outra para tentar novamente). Se terminarem seu turno no espaço do buraco negro, são sugadas, desaparecendo para sempre. Não se conhece o destino das coisas sugadas pelo buraco negro. Alguns estudiosos sugerem que são enviadas para outros mundos — provavelmente Sombria, reino da deusa Tenebra.',
     aprimoramentos: [
       {
         addPm: 5,
@@ -4805,12 +4757,14 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     spellCircle: spellsCircles.c5,
     nome: 'Intervenção Divina',
     execucao: 'Completa',
-    alcance: 'Veja o texto',
-    alvo: 'Veja o texto',
-    duracao: 'Veja o texto',
-    resistencia: 'Veja o texto',
+    alcance: 'Veja texto',
+    alvo: 'Veja texto',
+    duracao: 'Veja texto',
+    resistencia: 'Veja texto',
     school: 'Conv',
-    description: 'Você pede a sua divindade para interceder diretamente.',
+    description:
+      'Você pede a sua divindade para interceder diretamente. Você pode: Curar todos os PV e condições de até 10 criaturas em alcance longo (este efeito cura mortos-vivos, em vez de causar dano). Dissipar os efeitos de qualquer magia de 4º círculo ou menor. Você pode implorar por algo ainda mais poderoso. Nesse caso, a magia requer o sacrifício de 2 PM e pode fazer coisas como: Criar um item mundano de até T$ 30.000. Duplicar os efeitos de qualquer magia de até 4º círculo. Caso a magia precise de um componente material para ser lançada, ainda é necessário providenciar o componente. Proteger uma cidade de um desastre, como uma erupção vulcânica, enchente ou terremoto. Ressuscitar uma criatura em alcance longo que tenha morrido há até uma rodada. A criatura acorda com 1 PV. Qualquer outra coisa que o mestre autorize, conforme os desejos e objetivos da divindade do conjurador.',
+    aprimoramentos: [],
   },
   [spellsCircle5Names.palavraPrimordial]: {
     spellCircle: spellsCircles.c5,
@@ -4881,7 +4835,7 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Curto',
     alvo: '1 criatura',
     duracao: 'Permanente',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Necro',
     description:
       'Você rouba a alma da vítima, armazenando-a em um objeto. Se o alvo passar no teste de resistência, sente o impacto de sua alma ser puxada para fora do corpo e fica abalado por 1 rodada. Se falhar, seu corpo fica caído, inconsciente e inerte, enquanto sua alma é transportada para dentro do objeto. O corpo não envelhece nem se decompõe, permanecendo em estase. Ele pode ser atacado e destruído normalmente. O objeto escolhido deve custar T$ 1.000 por nível ou ND da criatura e não possuir uma alma presa ou se quebrará quando a magia for lançada (embora personagens não conheçam o conceito de “nível” dentro do mundo de jogo, podem ter noção do poder geral de uma criatura, estimando assim o valor do objeto). Se o objeto for destruído, a magia se esvai. Se o corpo ainda estiver disponível, a alma retorna para ele. Caso contrário, escapa para os Mundos dos Deuses. Custo adicional: sacrifício de 1 PM.',
@@ -4903,7 +4857,7 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Toque',
     alvo: '1 criatura',
     duracao: 'Instantânea',
-    resistencia: 'Fortitude Parcial',
+    resistencia: 'Veja texto',
     school: 'Necro',
     description:
       'Sua mão exala energias letais. A criatura sofre 10d8+10 pontos de dano de trevas. Se estiver com menos da metade de seus PV, em vez disso deve fazer um teste de Fortitude. Se passar, sofre o dano normal. Se falhar, seus PV são reduzidos a –10.',
@@ -4928,16 +4882,16 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     resistencia: 'Vontade anula',
     school: 'Abjur',
     description:
-      'Você cria uma prisão mágica para aprisionar uma criatura. Se falhar no teste de resistência, o alvo sofre o efeito da magia; se passar, fica imune a esta magia por uma semana. Enquanto estiver aprisionada, a criatura não precisa respirar e alimentar-se, e não envelhece. Magias de adivinhação não conseguem localizar ou perceber o alvo. Ao lançar a magia, você escolhe uma das formas de prisão (pág. 180). O componente material varia, mas todos custam T$ 1.000.',
+      'Você cria uma prisão mágica para aprisionar uma criatura. Se falhar no teste de resistência, o alvo sofre o efeito da magia; se passar, fica imune a esta magia por uma semana. Enquanto estiver aprisionada, a criatura não precisa respirar e alimentar-se, e não envelhece. Magias de adivinhação não conseguem localizar ou perceber o alvo. Ao lançar a magia, você escolhe uma das seguintes formas de prisão. O componente material varia, mas todos custam T$ 1.000. Acorrentamento: o alvo é preso por correntes firmemente enraizadas no chão, que o mantém no lugar. O alvo fica paralisado e não pode se mover ou ser movido por qualquer meio. Componente Material: uma fina corrente de mitral. Contenção Mínima: o alvo diminui para 2 cm de altura e é preso dentro de uma pedra preciosa ou objeto semelhante. Luz passa através da pedra, permitindo que o alvo veja o lado de fora e seja visto, mas nada mais pode passar, nem por meio de teletransporte ou viagem planar. A pedra não pode ser quebrada enquanto o alvo estiver dentro. Componente Material: uma pedra preciosa, como um diamante ou rubi. Prisão Dimensional: o alvo é transportado para um semiplano protegido contra teletransporte e viagens planares. Pode ser um labirinto, uma gaiola, uma torre ou qualquer estrutura ou área confinada e pequena a sua escolha. Componente Material: uma representação em miniatura da prisão, feita de jade. Sepultamento: o alvo é sepultado nas profundezas da terra, em uma esfera mágica. Nada pode destruir ou atravessar a esfera, nem mesmo teletransporte ou viagens planares. Componente Material: um pequeno orbe de adamante. Sono Eterno: o alvo adormece e não pode ser acordado. Componente Material: fruta preparada com ervas soníferas raras. Quando a magia é lançada, você deve especificar uma condição que fará com que ela termine e solte o alvo. A condição pode ser tão específica ou elaborada quanto você quiser, mas deve ser possível de acontecer. As condições podem se basear no nome, identidade ou divindade padroeira de uma criatura, ou em ações ou qualidades observáveis, mas nunca em estatísticas intangíveis, como nível, classe ou pontos de vida. O mestre tem a palavra final sobre se uma condição é válida ou não.',
+    aprimoramentos: [],
   },
   [spellsCircle5Names.engenhoDeMana]: {
     spellCircle: spellsCircles.c5,
     nome: 'Engenho de Mana',
-    execucao: 'padrão',
+    execucao: 'Padrão',
     alcance: 'Médio',
-    area: 'Disco de Energia com 1,5m de diâmetro',
+    area: 'Disco de energia com 1,5m de diâmetro',
     duracao: 'Sustentada',
-    resistencia: '',
     school: 'Abjur',
     description:
       'Você cria um disco de energia que lembra uma roda de engenho e flutua no ponto em que foi conjurado. O disco é imune a dano, não pode ser movido e faz uma contramágica automática contra qualquer magia lançada em alcance médio dele (exceto as suas), usando seu teste de Misticismo. Caso vença o teste, o engenho não só anula a magia como absorve os PM usados para lançá-la, acumulando PM temporários. No seu turno, se estiver ao alcance do disco, você pode gastar PM nele para lançar magias.',
@@ -4959,10 +4913,10 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Pessoal',
     alvo: 'Você',
     duracao: 'Instantânea',
-    resistencia: '',
     school: 'Adiv',
     description:
       'Sua mente visualiza todas as possibilidades de um evento, permitindo a você escolher o melhor curso de ação. Você pode rolar novamente um teste de resistência com um bônus de +10 ou um inimigo deve rolar novamente um ataque contra você com uma penalidade de –10.',
+    aprimoramentos: [],
   },
   [spellsCircle5Names.chuvaDeMeteoros]: {
     spellCircle: spellsCircles.c5,
@@ -4987,9 +4941,8 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     nome: 'Semiplano',
     execucao: 'Completa',
     alcance: 'Curto',
-    alvo: '',
+    area: 'Semiplano com 30m de lado',
     duracao: '1 dia',
-    resistencia: '',
     school: 'Conv',
     description:
       'Você cria uma dimensão particular. Você pode entrar no semiplano gastando uma ação padrão e 10 PM, desaparecendo do plano material como se tivesse se teletransportado. Você pode levar criaturas voluntárias que esteja tocando, ao custo de 1 PM por criatura extra. Você também pode levar objetos que esteja tocando, ao custo de 1 PM por objeto Médio ou menor, 2 PM por objeto Grande, 5 PM por Enorme e 10 PM por Colossal. Uma vez no semiplano, pode gastar uma ação completa para voltar ao plano material, no mesmo local onde estava. Caso conheça a magia Viagem Planar, pode lançá-la para voltar ao plano material em outro local. Você escolhe a forma e a aparência do semiplano — uma caverna, um asteroide que singra o éter, um palacete de cristal etc. Ele contém ar, luz e calor, mas além disso é vazio. Entretanto, você pode levar itens (mobília, ferramentas etc.) a cada viagem.',
@@ -5011,10 +4964,10 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     alcance: 'Médio',
     alvo: 'Até 10 criaturas na área',
     duracao: 'Sustentada',
-    resistencia: 'Vontade Parcial',
+    resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
-      'Você domina a mente dos alvos. Os alvos obedecem cegamente a seus comandos, exceto ordens claramente suicidas. Um alvo tem direito a um teste no final de cada um de seus turnos para se livrar do efeito. Alvos que passarem no teste ficam abalados por 1 rodada enquanto recuperam a consciência',
+      'Você domina a mente dos alvos. Os alvos obedecem cegamente a seus comandos, exceto ordens claramente suicidas. Um alvo tem direito a um teste no final de cada um de seus turnos para se livrar do efeito. Alvos que passarem no teste ficam abalados por 1 rodada enquanto recuperam a consciência.',
     aprimoramentos: [
       {
         addPm: 1,
@@ -5053,12 +5006,12 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     nome: 'Barragem Elemental de Vectorius',
     execucao: 'Padrão',
     alcance: 'Longo',
-    alvo: '4 esferas elementais',
+    area: '4 esferas elementais',
     duracao: 'Instantânea',
     resistencia: 'Reflexos parcial',
     school: 'Evoc',
     description:
-      'Criada pelo arquimago Vectorius, esta magia produz quatro esferas, de ácido, eletricidade, fogo e frio, que voam até um ponto a sua escolha. Quando atingem o ponto escolhido, explodem causando 6d6 pontos de dano de seu respectivo tipo numa área com 12m de raio. Um teste de Reflexos reduz o dano à metade. Você pode mirar cada esfera em uma criatura ou ponto diferente. Uma criatura ao alcance da explosão de mais de uma esfera deve fazer um teste de resistência para cada uma. Além disso, as esferas causam efeitos (pág. 182) em criaturas que falharem em seus testes de resistência.',
+      'Criada pelo arquimago Vectorius, esta magia produz quatro esferas, de ácido, eletricidade, fogo e frio, que voam até um ponto a sua escolha. Quando atingem o ponto escolhido, explodem causando 6d6 pontos de dano de seu respectivo tipo numa área com 12m de raio. Um teste de Reflexos reduz o dano à metade. Você pode mirar cada esfera em uma criatura ou ponto diferente. Uma criatura ao alcance da explosão de mais de uma esfera deve fazer um teste de resistência para cada uma. Além disso, as esferas causam os seguintes efeitos em criaturas que falharem em seus testes de resistência: Ácido: vulnerável até o fim da cena. Elétrica: atordoado por 1 rodada (apenas uma vez por cena). Fogo: em chamas. Frio: lento até o fim da cena.',
     aprimoramentos: [
       {
         addPm: 5,
@@ -5076,15 +5029,15 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     execucao: 'Completa',
     alcance: 'Pessoal',
     area: 'Esfera com 15m de raio',
-    duracao: '',
-    resistencia: 'Fortitude Parcial',
+    duracao: 'Instantânea',
+    resistencia: 'Fortitude parcial',
     school: 'Evoc',
     description:
       'Após concentrar seu mana, você emana energia, como uma estrela em plena terra. Todas as criaturas na área sofrem 150 pontos de dano de essência e todos os itens mágicos (exceto artefatos) tornam-se mundanos. Você não é afetado pela magia. Alvos que passem no teste de Fortitude sofrem metade do dano e seus itens mágicos voltam a funcionar após um dia.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'aumenta o dano em 10',
+        text: 'aumenta o dano em 10.',
       },
       {
         addPm: 5,
@@ -5145,24 +5098,25 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     nome: 'Controlar o Tempo',
     execucao: 'Padrão',
     alcance: 'Curto',
-    alvo: 'Veja o texto',
-    duracao: 'Veja o texto',
-    resistencia: '',
+    alvo: 'Veja texto',
+    duracao: 'Veja texto',
     school: 'Trans',
     description:
-      'Aquele que controla o tempo controla o mundo. Escolha um dos efeitos na página 187.',
+      'Aquele que controla o tempo controla o mundo. Escolha um dos efeitos a seguir. Congelar o tempo: você gera uma bolha do seu tamanho na qual o tempo passa mais lentamente. Para outras criaturas, a bolha surge e desaparece instantaneamente, mas, para você, ela dura 3 rodadas, durante as quais você pode agir e não é afetado por efeitos contínuos (como chamas). Porém, durante essas 3 rodadas, você e quaisquer efeitos que você gerar não podem sair da área que você ocupava quando lançou esta magia. Efeitos de área com duração maior que a da bolha voltam a agir normalmente quando ela termina. Saltar no tempo: você e até 5 criaturas voluntárias são transportadas de 1 a 24 horas para o futuro, desaparecendo com um brilho. Vocês ressurgem no mesmo lugar, com a mesma velocidade e orientação; do seu ponto de vista, nenhum tempo se passou. Se um objeto sólido agora ocupa o espaço de uma criatura, ela ressurge na área vazia mais próxima. Voltar no tempo: você revive os últimos segundos. Todas as ações da rodada anterior são desfeitas (incluindo perda de PV e PM — exceto os gastos nesta magia). Tudo retorna à posição em que estava no início do seu turno na última rodada e você é o único que sabe o que acontecerá. Outros personagens devem repetir as mesmas ações — exceto se você fizer algo a respeito (como avisar seus aliados sobre o que vai acontecer). Você só pode reviver uma mesma rodada uma vez.',
+    aprimoramentos: [],
   },
   [spellsCircle5Names.desejo]: {
     spellCircle: spellsCircles.c5,
     nome: 'Desejo',
     execucao: 'Completa',
-    alcance: 'Veja o texto',
-    alvo: 'Veja o texto',
-    duracao: 'Veja o texto',
-    resistencia: 'Veja o texto',
+    alcance: 'Veja texto',
+    alvo: 'Veja texto',
+    duracao: 'Veja texto',
+    resistencia: 'Veja texto',
     school: 'Trans',
     description:
-      'Esta é a mais poderosa das magias arcanas, permitindo alterar a realidade a seu bel-prazer. Consulte página 190 para mais informações.',
+      'Esta é a mais poderosa das magias arcanas, permitindo alterar a realidade a seu bel-prazer. Você pode: Dissipar os efeitos de qualquer magia de 4º círculo ou menor. Transportar até 10 criaturas voluntárias em alcance longo para qualquer outro local, em qualquer plano. Desfazer um acontecimento recente. A magia permite que um teste realizado por uma criatura em alcance longo na última rodada seja realizado novamente. Por exemplo, se um aliado morreu na última rodada devido ao ataque de um inimigo, você pode obrigar o inimigo a refazer esse ataque. Você pode desejar por algo ainda mais poderoso. Nesse caso, a magia requer o sacrifício de 2 PM e pode fazer coisas como: Criar um item mundano de até T$ 30.000. Duplicar os efeitos de qualquer magia de até 4º círculo. Caso a magia precise de um componente material para ser lançada, ainda é necessário providenciar o componente. Aumentar um atributo de uma criatura em +1. Cada atributo só pode ser aumentado uma vez com Desejo. Desejo pode gerar efeitos ainda mais poderosos, mas cuidado! Desejar a fortuna de um rei pode transportá-lo para a sala de tesouro real, onde você poderá ser preso ou morto; desejar ser imortal pode transformá-lo em morto-vivo, e assim por diante. Qualquer efeito que não se encaixe na lista acima deve ser decidido pelo mestre.',
+    aprimoramentos: [],
   },
 };
 
