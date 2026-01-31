@@ -280,7 +280,7 @@ const ARCANISTA: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.TIPO_ARCANISTA, name: 'Mago' },
-          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRITA },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRIBA },
         ],
       ],
     },
@@ -407,7 +407,7 @@ const ARCANISTA: ClassDescription = {
       requirements: [
         [
           { type: RequirementType.TIPO_ARCANISTA, name: 'MAGO' },
-          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRITA },
+          { type: RequirementType.PERICIA, name: Skill.OFICIO_ESCRIBA },
         ],
       ],
     },

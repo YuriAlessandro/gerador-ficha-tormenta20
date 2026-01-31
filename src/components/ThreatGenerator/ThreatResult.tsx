@@ -16,7 +16,7 @@ import {
   PictureAsPdf as PdfIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
-  Casino as CasinoIcon,
+  Extension as ExtensionIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
   History as HistoryIcon,
@@ -431,7 +431,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                   loadingFoundry ? (
                     <CircularProgress size={20} />
                   ) : (
-                    <CasinoIcon />
+                    <ExtensionIcon />
                   )
                 }
               >

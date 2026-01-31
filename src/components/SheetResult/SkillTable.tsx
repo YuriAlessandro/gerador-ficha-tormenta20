@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -6,7 +6,15 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { Box, useTheme } from '@mui/material';
+import {
+  Box,
+  useTheme,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { CompleteSkill, SkillsAttrs } from '../../interfaces/Skills';
@@ -28,6 +36,15 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     null
   );
   const [selectedSkillTotal, setSelectedSkillTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSkills = useMemo(() => {
+    if (!skills) return [];
+    if (!searchQuery) return skills;
+    return skills.filter((skill) =>
+      skill.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [skills, searchQuery]);
 
   const DefaultTbCell = styled(TableCell)`
     border: none;
@@ -143,6 +160,32 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   return (
     <Box>
       <BookTitle>Perícias</BookTitle>
+      <TextField
+        fullWidth
+        size='small'
+        placeholder='Buscar perícia...'
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        sx={{ mb: 1.5 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position='start'>
+              <SearchIcon color='action' fontSize='small' />
+            </InputAdornment>
+          ),
+          endAdornment: searchQuery && (
+            <InputAdornment position='end'>
+              <IconButton
+                size='small'
+                onClick={() => setSearchQuery('')}
+                edge='end'
+              >
+                <ClearIcon fontSize='small' />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
       <TableContainer component={Paper}>
         <Table
           aria-label='Perícias'
@@ -172,7 +215,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
             </TableRow>
           </TableHead>
           <TableBody sx={{ border: 'none' }}>
-            {skills?.map((skill) => {
+            {filteredSkills.map((skill) => {
               const attrValue = skill.modAttr
                 ? sheet.atributos[skill.modAttr].value
                 : 0;

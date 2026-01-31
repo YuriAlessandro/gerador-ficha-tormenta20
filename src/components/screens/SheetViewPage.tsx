@@ -19,7 +19,7 @@ import {
 import HomeIcon from '@mui/icons-material/Home';
 import ShareIcon from '@mui/icons-material/Share';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import CasinoIcon from '@mui/icons-material/Casino';
+import ExtensionIcon from '@mui/icons-material/Extension';
 import Result from '@/components/SheetResult/Result';
 import SheetsService from '@/services/sheets.service';
 import { SEO } from '@/components/SEO';
@@ -385,7 +385,7 @@ const SheetViewPage: React.FC = () => {
                       loadingFoundry ? (
                         <CircularProgress size={20} />
                       ) : (
-                        <CasinoIcon />
+                        <ExtensionIcon />
                       )
                     }
                   >

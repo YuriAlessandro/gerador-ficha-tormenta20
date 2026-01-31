@@ -14,6 +14,7 @@ import {
   Stack,
   Typography,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
@@ -50,6 +51,7 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
     const theme = useTheme();
+    const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
 
     const historySources = useMemo(
       () =>
@@ -139,7 +141,7 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
           }}
         >
           <Stack direction='row' alignItems='center' spacing={0.5}>
-            {powerRolls.length > 0 && (
+            {powerRolls.length > 0 ? (
               <Box onClick={(e) => e.stopPropagation()}>
                 <RollButton
                   rolls={powerRolls}
@@ -148,6 +150,9 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
                   characterName={characterName}
                 />
               </Box>
+            ) : (
+              // Spacer to align power names consistently (desktop only)
+              isDesktop && <Box sx={{ width: 28, flexShrink: 0 }} />
             )}
             <Typography
               sx={{

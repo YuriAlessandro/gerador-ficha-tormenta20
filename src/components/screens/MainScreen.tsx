@@ -31,7 +31,7 @@ import {
   PictureAsPdf as PdfIcon,
   CloudUpload as CloudUploadIcon,
   CheckCircle as CheckCircleIcon,
-  Casino as CasinoIcon,
+  Extension as ExtensionIcon,
   Warning as WarningIcon,
   Cloud as CloudIcon,
   HelpOutline as HelpIcon,
@@ -1833,7 +1833,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                     loadingFoundry ? (
                       <CircularProgress size={20} />
                     ) : (
-                      <CasinoIcon />
+                      <ExtensionIcon />
                     )
                   }
                 >

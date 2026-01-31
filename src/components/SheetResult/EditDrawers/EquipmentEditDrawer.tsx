@@ -39,7 +39,6 @@ import EQUIPAMENTOS, {
 import Bag from '@/interfaces/Bag';
 import { GENERAL_EQUIPMENT } from '@/data/systems/tormenta20/equipamentos-gerais';
 import { recalculateSheet } from '@/functions/recalculateSheet';
-import { useAuth } from '@/hooks/useAuth';
 import { v4 as uuid } from 'uuid';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import RollsEditDialog from '@/components/RollsEditDialog';
@@ -77,10 +76,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
-  const { user } = useAuth();
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  // Use all available supplements for equipment editing (not just user's enabled ones)
+  const allSupplements = Object.keys(
+    TORMENTA20_SYSTEM.supplements
+  ) as SupplementId[];
 
   const [selectedEquipment, setSelectedEquipment] = useState<SelectedEquipment>(
     {
@@ -131,7 +130,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       firearms: [] as EquipmentWithSupplement[],
     };
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.weapons) {
         Object.entries(supplement.equipment.weapons).forEach(
@@ -169,7 +168,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return categorized;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Categorize supplement armors and shields
   const getCategorizedArmors = useMemo(() => {
@@ -179,7 +178,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       shields: [] as DefenseEquipmentWithSupplement[],
     };
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.armors) {
         Object.entries(supplement.equipment.armors).forEach(([, armor]) => {
@@ -202,7 +201,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return categorized;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Get supplement general items categorized
   const getCategorizedGeneralItems = useMemo(() => {
@@ -211,7 +210,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       esoteric: [] as EquipmentWithSupplement[],
     };
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.generalItems) {
         supplement.equipment.generalItems.forEach((item) => {
@@ -229,13 +228,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return categorized;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Get supplement clothing
   const getSupplementClothing = useMemo(() => {
     const items: EquipmentWithSupplement[] = [];
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.clothing) {
         supplement.equipment.clothing.forEach((item) => {
@@ -245,7 +244,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return items;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Get supplement alchemy items categorized
   const getCategorizedAlchemy = useMemo(() => {
@@ -255,7 +254,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       poisons: [] as EquipmentWithSupplement[],
     };
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.alchemy) {
         supplement.equipment.alchemy.forEach((item) => {
@@ -282,13 +281,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return categorized;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Get supplement food
   const getSupplementFood = useMemo(() => {
     const items: EquipmentWithSupplement[] = [];
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.food) {
         supplement.equipment.food.forEach((item) => {
@@ -298,7 +297,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     });
 
     return items;
-  }, [userSupplements]);
+  }, [allSupplements]);
 
   // Refs for accordion auto-scroll
   const weaponsAccordionRef = useRef<HTMLDivElement>(null);

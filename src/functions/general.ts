@@ -291,7 +291,7 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
     Skill.OFICIO_ARTESANATO,
   ],
   Arcanista: [
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_JOALHEIRO,
     Skill.OFICIO_ALQUIMIA,
     Skill.OFICIO_ARTESANATO,
@@ -299,11 +299,11 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
   Nobre: [
     Skill.OFICIO_JOALHEIRO,
     Skill.OFICIO_ALFAIATE,
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_ARTESANATO,
   ],
   Clérigo: [
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_CULINARIA,
     Skill.OFICIO_ARTESANATO,
     Skill.OFICIO_ALFAIATE,
@@ -311,7 +311,7 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
   Ladino: [
     Skill.OFICIO_ALFAIATE,
     Skill.OFICIO_JOALHEIRO,
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_ARTESANATO,
   ],
   Caçador: [
@@ -334,7 +334,7 @@ export const DEFAULT_CONTEXTUAL_OFICIOS: Skill[] = [
   Skill.OFICIO_CARPINTEIRO,
   Skill.OFICIO_ALFAIATE,
   Skill.OFICIO_JOALHEIRO,
-  Skill.OFICIO_ESCRITA,
+  Skill.OFICIO_ESCRIBA,
 ];
 
 function replaceGenericOficioWithSpecific(

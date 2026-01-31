@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -20,9 +20,11 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 
@@ -54,7 +56,7 @@ const AVAILABLE_OFICIOS = [
   'Ofício (Fazendeiro)',
   'Ofício (Pescador)',
   'Ofício (Estalajadeiro)',
-  'Ofício (Escrita)',
+  'Ofício (Escriba)',
   'Ofício (Escultor)',
   'Ofício (Engenhoqueiro)',
   'Ofício (Pintor)',
@@ -69,6 +71,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 }) => {
   const [editedSkills, setEditedSkills] = useState<EditedSkill[]>([]);
   const [selectedOficio, setSelectedOficio] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     if (sheet.completeSkills && open) {
@@ -78,6 +81,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         others: skill.others ?? 0,
       }));
       setEditedSkills(skills);
+      setSearchQuery(''); // Reset search when opening
     }
   }, [sheet.completeSkills, open]);
 
@@ -294,9 +298,14 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     onClose();
   };
 
-  const sortedSkills = [...editedSkills].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+  const sortedSkills = useMemo(() => {
+    const filtered = searchQuery
+      ? editedSkills.filter((skill) =>
+          skill.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : editedSkills;
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }, [editedSkills, searchQuery]);
 
   return (
     <Drawer
@@ -334,6 +343,22 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           Marque as perícias treinadas e ajuste os valores de
           &ldquo;Outros&rdquo; conforme necessário.
         </Typography>
+
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Buscar perícia...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ mb: 2 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon color='action' />
+              </InputAdornment>
+            ),
+          }}
+        />
 
         <TableContainer
           component={Paper}
@@ -467,7 +492,12 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         )}
 
         <Stack direction='row' spacing={2} sx={{ mt: 4, flexShrink: 0 }}>
-          <Button fullWidth variant='contained' onClick={handleSave}>
+          <Button
+            fullWidth
+            variant='contained'
+            color='warning'
+            onClick={handleSave}
+          >
             Salvar
           </Button>
           <Button fullWidth variant='outlined' onClick={handleCancel}>

@@ -26,7 +26,6 @@ import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import { Spell, spellsCircles } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
-import { useAuth } from '@/hooks/useAuth';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 
@@ -72,10 +71,10 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   sheet,
   onSave,
 }) => {
-  const { user } = useAuth();
-  const userSupplements = user?.enabledSupplements || [
-    SupplementId.TORMENTA20_CORE,
-  ];
+  // Use all available supplements for spell editing (not just user's enabled ones)
+  const allSupplements = Object.keys(
+    TORMENTA20_SYSTEM.supplements
+  ) as SupplementId[];
 
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -94,7 +93,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   const getSupplementSpells = useMemo(() => {
     const spells: SpellWithSupplement[] = [];
 
-    userSupplements.forEach((supplementId) => {
+    allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.spells) {
         // For arcane or both types
@@ -124,7 +123,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     });
 
     return spells;
-  }, [userSupplements, spellType]);
+  }, [allSupplements, spellType]);
 
   // Get all available spells based on type and circle
   const getAllSpells = (): SpellCategory[] => {
