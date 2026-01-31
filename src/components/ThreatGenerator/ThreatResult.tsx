@@ -43,6 +43,37 @@ import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import { rollD20, rollDamage } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
+// Styled components for threat sheet (uses theme accent color)
+const ThreatDivisor: React.FC = () => (
+  <Box
+    sx={{
+      display: 'block',
+      height: '1px',
+      border: 0,
+      borderTop: '4px solid',
+      borderColor: 'primary.main',
+      p: 0,
+    }}
+  />
+);
+
+interface ThreatTextProps {
+  children: React.ReactNode;
+}
+
+const ThreatText: React.FC<ThreatTextProps> = ({ children }) => (
+  <Box
+    component='span'
+    sx={{
+      textTransform: 'uppercase',
+      color: 'primary.main',
+      fontWeight: 800,
+    }}
+  >
+    {children}
+  </Box>
+);
+
 interface ThreatResultProps {
   threat: ThreatSheet;
   onEdit?: () => void;
@@ -480,10 +511,29 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
         )}
 
         <Card ref={resultRef} sx={{ p: 2, mt: viewOnly ? 0 : 2 }}>
-          <div className='simpleSeetName'>{threat.name}</div>
+          <Box
+            sx={{
+              fontSize: '30px',
+              mb: '10px',
+              textTransform: 'uppercase',
+              color: 'primary.main',
+              fontWeight: 800,
+            }}
+          >
+            {threat.name}
+          </Box>
           {threat.type} {threat.size} {threat.role}, ND {threat.challengeLevel}{' '}
           ({tier})
-          <div className='simpleSheetDivisor' />
+          <Box
+            sx={{
+              display: 'block',
+              height: '1px',
+              border: 0,
+              borderTop: '4px solid',
+              borderColor: 'primary.main',
+              p: 0,
+            }}
+          />
           <Box display='inline'>
             <Box
               component='span'
@@ -501,7 +551,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }}
               title='Rolar Iniciativa'
             >
-              <span className='simpleSheetText'>Iniciativa</span>{' '}
+              <ThreatText>Iniciativa</ThreatText>{' '}
               {initiativeValue > 0
                 ? `+${initiativeValue}`
                 : `${initiativeValue}`}
@@ -523,15 +573,14 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }}
               title='Rolar Percepção'
             >
-              <span className='simpleSheetText'>Percepção</span>{' '}
+              <ThreatText>Percepção</ThreatText>{' '}
               {perceptionValue > 0
                 ? `+${perceptionValue}`
                 : `${perceptionValue}`}
             </Box>
           </Box>
           <Box display='inline'>
-            <span className='simpleSheetText'>Defesa</span>{' '}
-            {threat.combatStats.defense},{' '}
+            <ThreatText>Defesa</ThreatText> {threat.combatStats.defense},{' '}
             <Box
               component='span'
               onClick={() => handleSkillRoll('Fortitude', fortResistNum)}
@@ -548,7 +597,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }}
               title='Rolar Fortitude'
             >
-              <span className='simpleSheetText'>Fort</span> {fortResist}
+              <ThreatText>Fort</ThreatText> {fortResist}
             </Box>
             ,{' '}
             <Box
@@ -567,7 +616,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }}
               title='Rolar Reflexos'
             >
-              <span className='simpleSheetText'>Ref</span> {refResist}
+              <ThreatText>Ref</ThreatText> {refResist}
             </Box>
             ,{' '}
             <Box
@@ -586,33 +635,32 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               }}
               title='Rolar Vontade'
             >
-              <span className='simpleSheetText'>Von</span> {wonResist}
+              <ThreatText>Von</ThreatText> {wonResist}
             </Box>
             {threat.abilities && threat.abilities.length > 0 && (
               <>
-                , <span className='simpleSheetText'>CD</span>{' '}
+                , <ThreatText>CD</ThreatText>{' '}
                 {threat.combatStats.standardEffectDC}
               </>
             )}
           </Box>
           <div>
-            <span className='simpleSheetText'>Pontos de Vida</span>{' '}
+            <ThreatText>Pontos de Vida</ThreatText>{' '}
             {threat.combatStats.hitPoints}
           </div>
           <div>
-            <span className='simpleSheetText'>Deslocamento</span>{' '}
-            {threat.displacement}
+            <ThreatText>Deslocamento</ThreatText> {threat.displacement}
           </div>
-          <div className='simpleSheetDivisor' />
+          <ThreatDivisor />
           {threat.combatStats.manaPoints &&
             threat.combatStats.manaPoints > 0 && (
               <div>
-                <span className='simpleSheetText'>Pontos de Mana</span>{' '}
+                <ThreatText>Pontos de Mana</ThreatText>{' '}
                 {threat.combatStats.manaPoints}
               </div>
             )}
           <div>
-            <span className='simpleSheetText'>Ataques</span>
+            <ThreatText>Ataques</ThreatText>
           </div>
           {threat.attacks.length === 0 ? (
             <div>Nenhum ataque configurado</div>
@@ -645,30 +693,29 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               </Box>
             ))
           )}
-          <div className='simpleSheetDivisor' />
+          <ThreatDivisor />
           <div>
-            <span className='simpleSheetText'>
+            <ThreatText>
               {formatAttribute(Atributo.FORCA)},{' '}
               {formatAttribute(Atributo.DESTREZA)},{' '}
               {formatAttribute(Atributo.CONSTITUICAO)},{' '}
               {formatAttribute(Atributo.INTELIGENCIA)},{' '}
               {formatAttribute(Atributo.SABEDORIA)},{' '}
               {formatAttribute(Atributo.CARISMA)}
-            </span>
+            </ThreatText>
           </div>
-          <div className='simpleSheetDivisor' />
+          <ThreatDivisor />
           <div>
-            <span className='simpleSheetText'>Equipamento</span>{' '}
+            <ThreatText>Equipamento</ThreatText>{' '}
             {threat.equipment || 'Nenhum equipamento especificado.'}
           </div>
-          <div className='simpleSheetDivisor' />
+          <ThreatDivisor />
           <div>
-            <span className='simpleSheetText'>Tesouro</span>{' '}
-            {threat.treasureLevel}
+            <ThreatText>Tesouro</ThreatText> {threat.treasureLevel}
           </div>
           {threat.abilities.length > 0 && (
             <>
-              <div className='simpleSheetDivisor' />
+              <ThreatDivisor />
 
               {threat.abilities.map((ability) => (
                 <div key={getKey(ability.name)}>
@@ -695,10 +742,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       }}
                       title={`Rolar ${ability.name}`}
                     >
-                      <span className='simpleSheetText'>{ability.name}:</span>
+                      <ThreatText>{ability.name}:</ThreatText>
                     </Box>
                   ) : (
-                    <span className='simpleSheetText'>{ability.name}: </span>
+                    <ThreatText>{ability.name}: </ThreatText>
                   )}{' '}
                   {ability.description}
                   {ability.rolls && ability.rolls.length > 0 && (
@@ -745,10 +792,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               !['Vontade', 'Fortitude', 'Reflexos'].includes(skill.name)
           ).length > 0 && (
             <>
-              <div className='simpleSheetDivisor' />
+              <ThreatDivisor />
 
               <div>
-                <span className='simpleSheetText'>Perícias</span>{' '}
+                <ThreatText>Perícias</ThreatText>{' '}
                 {threat.skills
                   .filter(
                     (skill) =>
