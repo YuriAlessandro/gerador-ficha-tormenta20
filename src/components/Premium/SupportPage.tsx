@@ -187,6 +187,25 @@ const SupportPage: React.FC = () => {
         </Typography>
       </Box>
 
+      {/* 3D Dice highlight */}
+      <Box
+        sx={{
+          mt: 3,
+          p: 2,
+          bgcolor: 'primary.main',
+          borderRadius: 2,
+          color: 'primary.contrastText',
+        }}
+      >
+        <Typography
+          variant='body1'
+          fontWeight='bold'
+          sx={{ textAlign: 'center' }}
+        >
+          Apoiadores de qualquer nível têm acesso ao dado 3D nas mesas de jogo!
+        </Typography>
+      </Box>
+
       {/* Footer info - only on desktop */}
       {!isMobile && (
         <Box sx={{ mt: 4 }}>
