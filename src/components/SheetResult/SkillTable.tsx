@@ -303,7 +303,9 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                   <DefaultTbCell align='center'>
                     <CellFgText>{attrValue ?? 0}</CellFgText>
                     <CellBgText>
-                      {fmtSkillName(SkillsAttrs[skill.name])}
+                      {SkillsAttrs[skill.name]
+                        ? fmtSkillName(SkillsAttrs[skill.name])
+                        : '(???)'}
                     </CellBgText>
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
