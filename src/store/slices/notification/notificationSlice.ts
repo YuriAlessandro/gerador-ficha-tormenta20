@@ -74,6 +74,10 @@ const notificationSlice = createSlice({
     },
     // For real-time socket updates
     addNotification: (state, action: PayloadAction<Notification>) => {
+      // Ensure notifications array exists (handles persisted state edge cases)
+      if (!state.notifications) {
+        state.notifications = [];
+      }
       // Check if notification with same id already exists
       const existingIndex = state.notifications.findIndex(
         // eslint-disable-next-line no-underscore-dangle
@@ -109,7 +113,7 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload.reset) {
+        if (action.payload.reset || !state.notifications) {
           state.notifications = action.payload.notifications;
         } else {
           // Append to existing notifications (pagination)
@@ -141,6 +145,9 @@ const notificationSlice = createSlice({
     // Mark as read
     builder
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
+        if (!state.notifications) {
+          state.notifications = [];
+        }
         const index = state.notifications.findIndex(
           // eslint-disable-next-line no-underscore-dangle
           (n) => n._id === action.payload._id

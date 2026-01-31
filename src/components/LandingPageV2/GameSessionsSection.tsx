@@ -225,7 +225,7 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
             startIcon={<TableRestaurantIcon />}
             onClick={() => onClickButton('/mesas')}
           >
-            {lastTable ? 'Ver Minhas Mesas' : 'Criar Mesa'}
+            Ver Minhas Mesas
           </Button>
         </Stack>
       </Box>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Box,
   Chip,
@@ -13,6 +13,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import HotelIcon from '@mui/icons-material/Hotel';
+
+const DEBOUNCE_DELAY = 500; // ms to wait before sending update
 
 interface StatControlProps {
   type: 'PV' | 'PM';
@@ -38,22 +40,66 @@ const StatControl: React.FC<StatControlProps> = ({
   const theme = useTheme();
   const [isHovering, setIsHovering] = useState(false);
 
-  // Detect over-max state (temporary bonuses)
-  const isOverMax = current > max;
-  const bonus = isOverMax ? current - max : 0;
+  // Debounced update state
+  const [pendingValue, setPendingValue] = useState<number | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The displayed value is the pending value if set, otherwise the actual current
+  const displayedCurrent = pendingValue !== null ? pendingValue : current;
+
+  // Sync pending value when current changes externally
+  useEffect(() => {
+    if (pendingValue !== null && current === pendingValue) {
+      setPendingValue(null);
+    }
+  }, [current, pendingValue]);
+
+  // Cleanup timer on unmount
+  useEffect(
+    () => () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    },
+    []
+  );
+
+  // Debounced update function
+  const debouncedUpdate = useCallback(
+    (newValue: number) => {
+      setPendingValue(newValue);
+
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Set new timer
+      debounceTimerRef.current = setTimeout(() => {
+        onUpdateCurrent(newValue);
+        debounceTimerRef.current = null;
+      }, DEBOUNCE_DELAY);
+    },
+    [onUpdateCurrent]
+  );
+
+  // Detect over-max state (temporary bonuses) - use displayedCurrent for UI
+  const isOverMax = displayedCurrent > max;
+  const bonus = isOverMax ? displayedCurrent - max : 0;
 
   // Calculate PV minimum (only for PV, not PM)
   // Minimum is -10 or -2*max, whichever is lower (more negative)
   const pvMinimo = type === 'PV' ? Math.min(-10, -2 * max) : 0;
 
-  // Character states
-  const isNegative = type === 'PV' && current < 0;
-  const isUnconscious = type === 'PV' && current <= 0 && current > pvMinimo;
-  const isDead = type === 'PV' && current <= pvMinimo;
+  // Character states - use displayedCurrent for UI
+  const isNegative = type === 'PV' && displayedCurrent < 0;
+  const isUnconscious =
+    type === 'PV' && displayedCurrent <= 0 && displayedCurrent > pvMinimo;
+  const isDead = type === 'PV' && displayedCurrent <= pvMinimo;
 
   // Calculate percentage for circular progress (cap at 100% when over-max, 0% when negative)
   const percentage =
-    max > 0 ? Math.max(0, Math.min((current / max) * 100, 100)) : 0;
+    max > 0 ? Math.max(0, Math.min((displayedCurrent / max) * 100, 100)) : 0;
 
   // Determine color based on type and state
   const normalColor =
@@ -89,29 +135,33 @@ const StatControl: React.FC<StatControlProps> = ({
   const darkColor = getDarkColor();
 
   const handleIncrement = useCallback(() => {
+    // Use displayed value (which includes pending changes) for calculation
+    const baseValue = displayedCurrent;
     // Se ainda não atingiu o máximo, cap no máximo (healing normal)
-    if (current < max) {
-      const newValue = Math.min(current + increment, max);
-      onUpdateCurrent(newValue);
+    if (baseValue < max) {
+      const newValue = Math.min(baseValue + increment, max);
+      debouncedUpdate(newValue);
     }
     // Se já está no máximo ou acima, adiciona como bônus temporário
     else {
-      const newValue = current + increment;
-      onUpdateCurrent(newValue);
+      const newValue = baseValue + increment;
+      debouncedUpdate(newValue);
     }
-  }, [current, increment, max, onUpdateCurrent]);
+  }, [displayedCurrent, increment, max, debouncedUpdate]);
 
   const handleDecrement = useCallback(() => {
+    // Use displayed value (which includes pending changes) for calculation
+    const baseValue = displayedCurrent;
     if (type === 'PV') {
       // For PV, allow going down to minimum (negative)
-      const newValue = Math.max(current - increment, pvMinimo);
-      onUpdateCurrent(newValue);
+      const newValue = Math.max(baseValue - increment, pvMinimo);
+      debouncedUpdate(newValue);
     } else {
       // For PM, keep minimum at 0
-      const newValue = Math.max(current - increment, 0);
-      onUpdateCurrent(newValue);
+      const newValue = Math.max(baseValue - increment, 0);
+      debouncedUpdate(newValue);
     }
-  }, [current, increment, pvMinimo, type, onUpdateCurrent]);
+  }, [displayedCurrent, increment, pvMinimo, type, debouncedUpdate]);
 
   const handleIncrementChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +176,7 @@ const StatControl: React.FC<StatControlProps> = ({
   const tooltipContent = (
     <Box>
       <Typography variant='caption'>
-        Atual: {current}/{max}
+        Atual: {displayedCurrent}/{max}
         {isOverMax && ` (+${bonus} temporário)`}
       </Typography>
       <br />
@@ -264,7 +314,7 @@ const StatControl: React.FC<StatControlProps> = ({
                     }),
                   }}
                 >
-                  {current}
+                  {displayedCurrent}
                 </Typography>
                 {isOverMax && (
                   <Typography
@@ -354,7 +404,11 @@ const StatControl: React.FC<StatControlProps> = ({
               <IconButton
                 size='small'
                 onClick={handleDecrement}
-                disabled={type === 'PV' ? current <= pvMinimo : current <= 0}
+                disabled={
+                  type === 'PV'
+                    ? displayedCurrent <= pvMinimo
+                    : displayedCurrent <= 0
+                }
                 sx={{
                   backgroundColor: color,
                   color: 'white',
@@ -393,7 +447,7 @@ const StatControl: React.FC<StatControlProps> = ({
                     lineHeight: 1.2,
                   }}
                 >
-                  {isDead ? '💀' : `${current}/${max}`}
+                  {isDead ? '💀' : `${displayedCurrent}/${max}`}
                 </Typography>
                 {isOverMax && (
                   <Typography

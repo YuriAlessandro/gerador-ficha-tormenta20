@@ -12,7 +12,7 @@ const DefenseItem: React.FC<DefenseEquipmentProps> = (props) => {
 
   return (
     <Box sx={{ borderBottom: '1px solid #ccc', padding: '8px' }}>
-      <Typography fontSize={12}>
+      <Typography fontSize={14}>
         {nome} +{defenseBonus} (-{armorPenalty} PA)
       </Typography>
     </Box>

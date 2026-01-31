@@ -45,6 +45,52 @@ import RollsEditDialog from '@/components/RollsEditDialog';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 
+// TODO: Melhorar isso
+const SIMPLE_WEAPONS = [
+  'PORRETE',
+  'ZARABATANA',
+  'BASTAO_LUDICO',
+  'BESTA_DE_MAO',
+  'VIROTES_BESTA_MAO',
+];
+
+const FIREARMS = [
+  'TRAQUE',
+  'ARCABUZ',
+  'BACAMARTE',
+  'GARRUCHA',
+  'CANHAO_PORTATIL',
+  'BOLA_DE_FERRO',
+  'SIFAO_CAUSTICO',
+];
+
+const MARTIAL_WEAPONS = [
+  'NEKO_TE',
+  'GLADIO',
+  'TETSUBO',
+  'ADAGA_OPOSTA',
+  'AGULHA_DE_AHLEN',
+  'CINQUEDEA',
+  'DIRK',
+  'MARTELO_LEVE',
+  'ESPADA_LARGA',
+  'ESPADIM',
+  'MACA_ESTRELA',
+  'SERRILHEIRA',
+  'BICO_DE_CORVO',
+  'DESMONTADOR',
+  'ESPADA_DE_EXECUCAO',
+  'LANCA_DE_JUSTA',
+  'MALHO',
+  'MARTELO_LONGO',
+  'TAN_KORAK',
+  'TAI_TAI',
+  'ARCO_MONTADO',
+  'FLECHAS',
+  'BESTA_DUPLA',
+  'VIROTES',
+];
+
 interface EquipmentEditDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -139,23 +185,15 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
             // Categorize based on weapon key and properties
             // Simple weapons
-            if (key === 'PORRETE' || key === 'ZARABATANA') {
+            if (SIMPLE_WEAPONS.includes(key)) {
               categorized.simple.push(weaponWithSupplement);
             }
             // Firearms (must check before martial to avoid misclassification)
-            else if (
-              key === 'TRAQUE' ||
-              key === 'ARCABUZ' ||
-              key === 'BACAMARTE'
-            ) {
+            else if (FIREARMS.includes(key)) {
               categorized.firearms.push(weaponWithSupplement);
             }
             // Martial weapons
-            else if (
-              key === 'NEKO_TE' ||
-              key === 'GLADIO' ||
-              key === 'TETSUBO'
-            ) {
+            else if (MARTIAL_WEAPONS.includes(key)) {
               categorized.martial.push(weaponWithSupplement);
             }
             // Everything else is exotic

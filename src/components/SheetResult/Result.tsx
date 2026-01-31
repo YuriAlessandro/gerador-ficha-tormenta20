@@ -818,7 +818,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       justifyContent: 'flex-end',
                     }}
                   >
-                    <Typography fontSize={12}>
+                    <Typography fontSize={14}>
                       <strong>Penalidade de Armadura: </strong>
                       {((bag.getArmorPenalty
                         ? bag.getArmorPenalty()

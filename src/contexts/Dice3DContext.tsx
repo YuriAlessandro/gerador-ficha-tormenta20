@@ -210,9 +210,9 @@ export function Dice3DProvider({
   return (
     <Dice3DContext.Provider value={contextValue}>
       {children}
-      {settings.enabled && (
-        <FullScreenDiceCanvas visible={showCanvas} loading={loading} />
-      )}
+      {/* Always render canvas so #dice-box-container exists in DOM */}
+      {/* Visibility is controlled by showCanvas state, not settings.enabled */}
+      <FullScreenDiceCanvas visible={showCanvas} loading={loading} />
     </Dice3DContext.Provider>
   );
 }

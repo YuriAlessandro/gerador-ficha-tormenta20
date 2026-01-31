@@ -4,6 +4,28 @@ import Equipment from '../interfaces/Equipment';
 import { rollD20, rollDamage, parseCritical } from '../functions/diceRoller';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 
+// Abbreviate damage type for display
+const abbreviateDamageType = (tipo?: string): string | undefined => {
+  if (!tipo || tipo === '-') return undefined;
+  const abbrevMap: Record<string, string> = {
+    Perfuração: 'Perf.',
+    Corte: 'Corte',
+    Impacto: 'Impacto',
+    Contusão: 'Contusão',
+    Fogo: 'Fogo',
+    Frio: 'Frio',
+    Eletricidade: 'Eletr.',
+    Ácido: 'Ácido',
+    'Energia negativa': 'Negativa',
+    'Energia positiva': 'Positiva',
+    Psíquico: 'Psíquico',
+    Trovão: 'Trovão',
+    Luz: 'Luz',
+    Trevas: 'Trevas',
+  };
+  return abbrevMap[tipo] || tipo;
+};
+
 interface WeaponProps {
   equipment: Equipment;
   rangeBonus: number;
@@ -68,6 +90,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       ? `Dano x${multiplier} (normal: ${normalDamage})`
       : 'Dano';
 
+    const damageType = abbreviateDamageType(equipment.tipo);
+
     showDiceResult(
       nome,
       [
@@ -86,6 +110,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           rolls: damageRollResult.diceRolls,
           modifier: damageRollResult.modifier,
           total: finalDamage,
+          damageType,
         },
       ],
       characterName
@@ -111,8 +136,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       onClick={handleWeaponClick}
       title={`Rolar ataque com ${nome}`}
     >
-      <Typography fontSize={12}>
+      <Typography fontSize={14}>
         {nome} {`${atk >= 0 ? '+' : ''}${atk}`} • {damage} • ({critico})
+        {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
       </Typography>
     </Box>
   );

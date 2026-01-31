@@ -153,19 +153,61 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
         </Stack>
       </DialogTitle>
       <DialogContent dividers>
-        {actions.length > 0 ? (
-          actions.map((action) => (
-            <ActionCard
-              key={action.name}
-              action={action}
-              onRoll={() => handleRoll(action.name)}
-            />
-          ))
-        ) : (
-          <Typography color='text.secondary'>
-            Nenhuma ação disponível para esta perícia.
+        {/* Roll normal skill button */}
+        <Box
+          sx={{
+            border: (t) => `2px solid ${t.palette.primary.main}`,
+            borderRadius: 1,
+            p: 2,
+            mb: 2,
+            bgcolor: (t) =>
+              t.palette.mode === 'dark'
+                ? 'rgba(33, 150, 243, 0.1)'
+                : 'rgba(33, 150, 243, 0.05)',
+          }}
+        >
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='center'
+            spacing={1}
+          >
+            <Box>
+              <Typography variant='subtitle1' fontWeight='bold'>
+                Teste de {skill.name}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Rolar 1d20{skillTotal >= 0 ? '+' : ''}
+                {skillTotal}
+              </Typography>
+            </Box>
+            <Button
+              variant='contained'
+              startIcon={<CasinoIcon />}
+              onClick={() => handleRoll(skill.name)}
+            >
+              Rolar
+            </Button>
+          </Stack>
+        </Box>
+
+        {/* Actions list */}
+        {actions.length > 0 && (
+          <Typography
+            variant='overline'
+            color='text.secondary'
+            sx={{ display: 'block', mb: 1 }}
+          >
+            Ações Específicas
           </Typography>
         )}
+        {actions.map((action) => (
+          <ActionCard
+            key={action.name}
+            action={action}
+            onRoll={() => handleRoll(action.name)}
+          />
+        ))}
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose}>Fechar</Button>
