@@ -7,6 +7,7 @@ import background from '../../assets/images/fantasybg.png';
 
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
+import RecentSheetsSection from './RecentSheetsSection';
 import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
 import GameSessionsSection from './GameSessionsSection';
@@ -66,6 +67,14 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
           {/* Support Banner */}
           <Box className='landing-section' sx={{ mt: 3 }}>
             <SupportBanner onClickButton={onClickButton} />
+          </Box>
+
+          {/* Recent Sheets Section - Only for authenticated users */}
+          <Box className='landing-section'>
+            <RecentSheetsSection
+              onClickButton={onClickButton}
+              isAuthenticated={isAuthenticated}
+            />
           </Box>
 
           {/* Main Tools Section */}

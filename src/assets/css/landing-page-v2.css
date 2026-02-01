@@ -398,6 +398,26 @@
 }
 
 /* ================================
+   RECENT SHEETS SECTION
+   ================================ */
+
+.recent-sheet-card {
+  border-radius: 12px;
+  padding: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(var(--primary-main-rgb), 0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.recent-sheet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(var(--primary-main-rgb), 0.15);
+  border-color: var(--primary-main);
+}
+
+/* ================================
    DARK MODE
    ================================ */
 
@@ -428,6 +448,12 @@
 }
 
 [data-theme='dark'] .build-card {
+  background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+  color: #ffffff;
+  border-color: rgba(var(--primary-main-rgb), 0.3);
+}
+
+[data-theme='dark'] .recent-sheet-card {
   background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
   color: #ffffff;
   border-color: rgba(var(--primary-main-rgb), 0.3);
