@@ -580,12 +580,22 @@ class DataRegistry {
     supplementIds.forEach((id) => {
       const supplementEquipment = systemData.supplements[id]?.equipment;
       if (supplementEquipment) {
+        const supplementMeta = SUPPLEMENT_METADATA[id];
+        const supplementName = supplementMeta?.name || id;
+
+        // Helper to add supplement info to item
+        const addSupplementInfo = <T extends Equipment>(item: T): T => ({
+          ...item,
+          supplementId: id,
+          supplementName,
+        });
+
         // Add supplement weapons
         if (supplementEquipment.weapons) {
           result.weapons.push(
             ...Object.values(
               supplementEquipment.weapons as Record<string, Equipment>
-            )
+            ).map(addSupplementInfo)
           );
         }
 
@@ -594,32 +604,39 @@ class DataRegistry {
           Object.values(
             supplementEquipment.armors as Record<string, DefenseEquipment>
           ).forEach((item) => {
+            const itemWithSupplement = addSupplementInfo(item);
             if (item.group === 'Escudo') {
-              result.shields.push(item);
+              result.shields.push(itemWithSupplement);
             } else {
-              result.armors.push(item);
+              result.armors.push(itemWithSupplement);
             }
           });
         }
 
         // Add supplement general items
         if (supplementEquipment.generalItems) {
-          result.generalItems.push(...supplementEquipment.generalItems);
+          result.generalItems.push(
+            ...supplementEquipment.generalItems.map(addSupplementInfo)
+          );
         }
 
         // Add supplement clothing
         if (supplementEquipment.clothing) {
-          result.clothing.push(...supplementEquipment.clothing);
+          result.clothing.push(
+            ...supplementEquipment.clothing.map(addSupplementInfo)
+          );
         }
 
         // Add supplement alchemy
         if (supplementEquipment.alchemy) {
-          result.alchemy.push(...supplementEquipment.alchemy);
+          result.alchemy.push(
+            ...supplementEquipment.alchemy.map(addSupplementInfo)
+          );
         }
 
         // Add supplement food
         if (supplementEquipment.food) {
-          result.food.push(...supplementEquipment.food);
+          result.food.push(...supplementEquipment.food.map(addSupplementInfo));
         }
       }
     });

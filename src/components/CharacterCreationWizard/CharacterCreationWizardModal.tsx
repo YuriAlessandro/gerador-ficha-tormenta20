@@ -600,11 +600,40 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
-      case 'Perícias da Classe':
+      case 'Perícias da Classe': {
         if (!classe) return null;
+
+        // Para o Inventor, substituir "Ofício (Qualquer)" por todas as opções específicas
+        // que são necessárias para habilitar os poderes de classe
+        let availableSkills = classe.periciasrestantes.list;
+        if (classe.name === 'Inventor') {
+          availableSkills = availableSkills.flatMap((skill) =>
+            skill === Skill.OFICIO
+              ? [
+                  Skill.OFICIO_ALQUIMIA,
+                  Skill.OFICIO_ARMEIRO,
+                  Skill.OFICIO_ARTESANATO,
+                  Skill.OFICIO_CULINARIA,
+                  Skill.OFICIO_ALFAIATE,
+                  Skill.OFICIO_ALVENARIA,
+                  Skill.OFICIO_CARPINTEIRO,
+                  Skill.OFICIO_JOALHEIRO,
+                  Skill.OFICIO_FAZENDEIRO,
+                  Skill.OFICIO_PESCADOR,
+                  Skill.OFICIO_ESTALAJADEIRO,
+                  Skill.OFICIO_ESCRIBA,
+                  Skill.OFICIO_ESCULTOR,
+                  Skill.OFICIO_EGENHOQUEIRO,
+                  Skill.OFICIO_PINTOR,
+                  Skill.OFICIO_MINERADOR,
+                ]
+              : [skill]
+          );
+        }
+
         return (
           <ClassSkillStep
-            availableSkills={classe.periciasrestantes.list}
+            availableSkills={availableSkills}
             selectedSkills={selections.classSkills || []}
             onChange={(skills) =>
               setSelections({ ...selections, classSkills: skills })
@@ -613,6 +642,7 @@ const CharacterCreationWizardModal: React.FC<
             className={classe.name}
           />
         );
+      }
 
       case 'Perícias por Inteligência': {
         // Get all skills except those already selected

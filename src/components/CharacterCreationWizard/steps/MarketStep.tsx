@@ -16,6 +16,7 @@ import {
   Stack,
   useMediaQuery,
   useTheme,
+  Button,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -105,11 +106,20 @@ const MarketStep: React.FC<MarketStepProps> = ({
     [bagEquipments]
   );
 
-  // Filter items by search query
+  // Filter items by search query and sort alphabetically
   const filterItems = <T extends Equipment>(items: T[]): T[] => {
-    if (!searchQuery) return items;
-    const query = searchQuery.toLowerCase();
-    return items.filter((item) => item.nome.toLowerCase().includes(query));
+    let result = [...items];
+
+    // Filter by search query if provided
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((item) => item.nome.toLowerCase().includes(query));
+    }
+
+    // Sort alphabetically by name
+    result.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+    return result;
   };
 
   // Add item to the appropriate bag category
@@ -241,14 +251,25 @@ const MarketStep: React.FC<MarketStepProps> = ({
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant='body2'
-            fontWeight='medium'
-            noWrap={!isMobile}
-            sx={{ wordBreak: isMobile ? 'break-word' : 'normal' }}
-          >
-            {item.nome}
-          </Typography>
+          <Stack direction='row' spacing={1} alignItems='center'>
+            <Typography
+              variant='body2'
+              fontWeight='medium'
+              noWrap={!isMobile}
+              sx={{ wordBreak: isMobile ? 'break-word' : 'normal' }}
+            >
+              {item.nome}
+            </Typography>
+            {item.supplementName && (
+              <Chip
+                label={item.supplementName}
+                size='small'
+                variant='outlined'
+                color='info'
+                sx={{ fontSize: '0.65rem', height: 18 }}
+              />
+            )}
+          </Stack>
           <Stack direction='row' spacing={1} flexWrap='wrap' sx={{ mt: 0.5 }}>
             {item.dano && (
               <Chip
@@ -300,19 +321,32 @@ const MarketStep: React.FC<MarketStepProps> = ({
 
           {showActions && (
             <>
-              <Tooltip title={canBuy ? 'Comprar' : 'Dinheiro insuficiente'}>
+              <Tooltip title={canBuy ? '' : 'Dinheiro insuficiente'}>
                 <span>
-                  <IconButton
+                  <Button
                     size='small'
-                    color='primary'
+                    variant='outlined'
+                    startIcon={<AttachMoneyIcon />}
                     onClick={() => handleBuyItem(item)}
                     disabled={!canBuy || price === 0}
+                    sx={{
+                      color: '#DAA520',
+                      borderColor: '#DAA520',
+                      '&:hover': {
+                        borderColor: '#B8860B',
+                        backgroundColor: 'rgba(218, 165, 32, 0.08)',
+                      },
+                      '&.Mui-disabled': {
+                        color: 'rgba(218, 165, 32, 0.4)',
+                        borderColor: 'rgba(218, 165, 32, 0.4)',
+                      },
+                    }}
                   >
-                    <AttachMoneyIcon fontSize='small' />
-                  </IconButton>
+                    Comprar
+                  </Button>
                 </span>
               </Tooltip>
-              <Tooltip title='Adicionar grátis'>
+              <Tooltip title='Adicionar de graça'>
                 <IconButton
                   size='small'
                   color='success'

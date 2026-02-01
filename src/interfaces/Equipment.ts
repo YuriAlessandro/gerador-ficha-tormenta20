@@ -82,6 +82,10 @@ export default interface Equipment {
     critico: string;
     tipo: string;
   };
+
+  // Supplement information (for items from supplements)
+  supplementId?: string;
+  supplementName?: string;
 }
 
 export type defenseEquipGroup = 'Armadura' | 'Escudo';

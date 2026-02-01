@@ -130,7 +130,7 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
-      requirements: [[]],
+      requirements: [],
       canRepeat: true,
       sheetActions: [
         {
@@ -269,12 +269,12 @@ const INVENTOR: ClassDescription = {
     {
       name: 'Invenção Potente',
       text: 'Quando usa um ou engenhoca fabricado por você mesmo, você pode pagar 1 PM para aumentar em +2 a CD para resistir a ele.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Maestria em Perícia',
       text: 'Escolha um número de perícias treinadas igual a sua Inteligência, exceto bônus temporários. Com essas perícias, você pode gastar 1 PM para escolher 10 em qualquer situação, exceto testes de ataque.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Manutenção Eficiente',

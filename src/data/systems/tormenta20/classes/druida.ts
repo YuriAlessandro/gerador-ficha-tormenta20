@@ -89,7 +89,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aspecto do Inverno',
       text: 'Você aprende e pode lançar uma magia de convocação ou evocação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, recebe redução de frio 5 e suas magias que causam dano de frio causam +1 ponto de dano por dado.',
-      requirements: [[]],
+      requirements: [],
       sheetActions: [
         {
           source: {
@@ -108,7 +108,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aspecto do Outono',
       text: 'Você aprende e pode lançar uma magia de necromancia, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para impor uma penalidade de –2 nos testes de resistência de todos os inimigos em alcance curto até o início do seu próximo turno.',
-      requirements: [[]],
+      requirements: [],
       sheetActions: [
         {
           source: {
@@ -127,7 +127,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aspecto da Primavera',
       text: 'Você aprende e pode lançar uma magia de encantamento ou ilusão, arcana ou divina, de qualquer círculo que possa lançar. Além disso, escolha uma quantidade de magias igual ao seu Carisma (mínimo 1). O custo dessas magias é reduzido em −1 PM.',
-      requirements: [[]],
+      requirements: [],
       sheetActions: [
         {
           source: {
@@ -146,7 +146,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aspecto do Verão',
       text: 'Você aprende e pode lançar uma magia de transmutação, arcana ou divina, de qualquer círculo que possa lançar. Além disso, pode gastar 1 PM para cobrir uma de suas armas com chamas até o fim da cena. A arma causa +1d6 pontos de dano de fogo. Sempre que você acertar um ataque com ela, recebe 1 PM temporário. Você pode ganhar um máximo de PM temporários por cena igual ao seu nível e eles desaparecem no final da cena.',
-      requirements: [[]],
+      requirements: [],
       rolls: [
         {
           id: uuid(),
@@ -172,7 +172,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Aumento de Atributo',
       text: 'Você recebe +1 em um atributo. Você pode escolher este poder várias vezes, mas apenas uma vez por patamar para um mesmo atributo.',
-      requirements: [[]],
+      requirements: [],
       canRepeat: true,
       sheetActions: [
         {
@@ -221,7 +221,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Coração da Selva',
       text: 'A CD para resistir a seus efeitos de veneno aumenta em +2 e estes efeitos causam +1 de perda de vida por dado.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Espírito dos Equinócios',
@@ -274,7 +274,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Forma Selvagem',
       text: 'Você pode se transformar em animais. A lista está disponível na página 63.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Forma Selvagem Aprimorada',
@@ -299,7 +299,7 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Liberdade da Pradaria',
       text: 'Você recebe +2 em Reflexos. Se estiver ao ar livre, sempre que lança uma magia, pode gastar 1 PM para aumentar o alcance dela em um passo (de toque para curto, de curto para médio ou de médio para longo).',
-      requirements: [[]],
+      requirements: [],
       sheetBonuses: [
         {
           source: {
@@ -330,12 +330,12 @@ const DRUIDA: ClassDescription = {
     {
       name: 'Segredos da Natureza',
       text: 'Você aprende duas magias de qualquer círculo que possa lançar. Elas devem pertencer às escolas que você sabe usar, mas podem ser arcanas ou divinas. Você pode escolher este poder quantas vezes quiser.',
-      requirements: [[]],
+      requirements: [],
     },
     {
       name: 'Tranquilidade dos Lagos',
       text: 'Você recebe +2 em Vontade. Se estiver portando um recipiente com água (não precisa estar empunhando), uma vez por rodada, quando faz um teste de resistência, pode pagar 1 PM para refazer a rolagem.',
-      requirements: [[]],
+      requirements: [],
       sheetBonuses: [
         {
           source: {

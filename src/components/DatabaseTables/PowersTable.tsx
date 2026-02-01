@@ -157,44 +157,45 @@ const Row: React.FC<{
                 {power.description}
               </Typography>
 
-              {power.requirements.length > 0 && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography
-                    variant='h6'
-                    gutterBottom
-                    sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
-                  >
-                    Requisitos
-                  </Typography>
-                  {power.requirements.map((reqGroup, reqIndex) => (
-                    <Box
-                      key={`${power.name}-reqGroup-${reqGroup
-                        .map((r) => r.name || r.text)
-                        .join('-')}`}
-                      sx={{ mb: 1 }}
+              {power.requirements.length > 0 &&
+                power.requirements.some((reqGroup) => reqGroup.length > 0) && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography
+                      variant='h6'
+                      gutterBottom
+                      sx={{ fontFamily: 'Tfont, serif', fontSize: '1.1rem' }}
                     >
-                      {reqGroup.map((req, _reqSubIndex) => (
-                        <Req
-                          key={`${power.name}-req-${req.name || req.text}-${
-                            req.value || 'novalue'
-                          }`}
-                          requirement={req}
-                        />
-                      ))}
-                      {power.requirements.length > 1 &&
-                        reqIndex + 1 < power.requirements.length && (
-                          <Typography
-                            variant='body2'
-                            sx={{ my: 1, fontStyle: 'italic' }}
-                          >
-                            ou
-                          </Typography>
-                        )}
-                    </Box>
-                  ))}
-                </>
-              )}
+                      Requisitos
+                    </Typography>
+                    {power.requirements.map((reqGroup, reqIndex) => (
+                      <Box
+                        key={`${power.name}-reqGroup-${reqGroup
+                          .map((r) => r.name || r.text)
+                          .join('-')}`}
+                        sx={{ mb: 1 }}
+                      >
+                        {reqGroup.map((req, _reqSubIndex) => (
+                          <Req
+                            key={`${power.name}-req-${req.name || req.text}-${
+                              req.value || 'novalue'
+                            }`}
+                            requirement={req}
+                          />
+                        ))}
+                        {power.requirements.length > 1 &&
+                          reqIndex + 1 < power.requirements.length && (
+                            <Typography
+                              variant='body2'
+                              sx={{ my: 1, fontStyle: 'italic' }}
+                            >
+                              ou
+                            </Typography>
+                          )}
+                      </Box>
+                    ))}
+                  </>
+                )}
             </Box>
           </Collapse>
         </TableCell>

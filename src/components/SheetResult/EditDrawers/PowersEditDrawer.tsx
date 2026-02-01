@@ -818,6 +818,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       return 'Nenhum pré-requisito';
     }
 
+    // Verificar se há requisitos reais (não apenas arrays vazios)
+    const hasActualRequirements = power.requirements.some(
+      (reqGroup) => reqGroup.length > 0
+    );
+
+    if (!hasActualRequirements) {
+      return 'Nenhum pré-requisito';
+    }
+
     return power.requirements
       .map((reqGroup) =>
         reqGroup
