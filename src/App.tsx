@@ -69,6 +69,7 @@ import {
   BlogList,
   BlogPostPage,
   BlogEditor,
+  AdminPage,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 // import CreatureSheet from './components/screens/CreatureSheet';
@@ -388,6 +389,12 @@ function ThemedApp(): JSX.Element {
                               </Route>
                               <Route path='/blog'>
                                 <BlogList />
+                              </Route>
+                              {/* Admin page - hidden, no links, only accessible by admin email */}
+                              <Route path='/admin'>
+                                <ProtectedRoute requireAuth redirectTo='/'>
+                                  <AdminPage />
+                                </ProtectedRoute>
                               </Route>
                               {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={darkMode} />
