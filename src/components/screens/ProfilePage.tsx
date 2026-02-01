@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
@@ -167,14 +168,25 @@ const ProfilePage: React.FC = () => {
     }
   }, [currentUser?.dice3DEnabled, currentUser?.diceColor]);
 
-  // Load subscription and invoices when support tab is selected (tab index 2)
+  // Load subscription when support tab is selected (tab index 2)
   useEffect(() => {
     if (currentTab === 2 && isOwnProfile) {
-      // Always reload subscription and invoices to ensure fresh data
+      // Always reload subscription to ensure fresh data
       loadSubscription();
-      loadInvoices(10);
     }
-  }, [currentTab, isOwnProfile, loadInvoices, loadSubscription]);
+  }, [currentTab, isOwnProfile, loadSubscription]);
+
+  // Load invoices only for Stripe subscriptions (not manual)
+  useEffect(() => {
+    if (currentTab === 2 && isOwnProfile && subscription) {
+      const isManual =
+        subscription.stripeCustomerId?.startsWith('manual_') ||
+        subscription.stripePriceId?.startsWith('manual_');
+      if (!isManual) {
+        loadInvoices(10);
+      }
+    }
+  }, [currentTab, isOwnProfile, subscription, loadInvoices]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -340,6 +352,11 @@ const ProfilePage: React.FC = () => {
     });
   };
 
+  // Check if subscription was created manually (not through Stripe)
+  const isManualSubscription =
+    subscription?.stripeCustomerId?.startsWith('manual_') ||
+    subscription?.stripePriceId?.startsWith('manual_');
+
   const formatCurrency = (amount: number, currency: string) =>
     new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -347,6 +364,7 @@ const ProfilePage: React.FC = () => {
     }).format(amount);
 
   const getSubscriptionStatusLabel = () => {
+    if (isManualSubscription) return 'Ativo';
     if (subscription?.cancelAtPeriodEnd) return 'Cancelamento Agendado';
     if (subscription?.status === SubscriptionStatus.ACTIVE) return 'Ativo';
     if (subscription?.status === SubscriptionStatus.PAST_DUE)
@@ -355,6 +373,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const getSubscriptionStatusColor = (): 'warning' | 'success' | 'error' => {
+    if (isManualSubscription) return 'success';
     if (subscription?.cancelAtPeriodEnd) return 'warning';
     if (subscription?.status === SubscriptionStatus.ACTIVE) return 'success';
     return 'error';
@@ -1210,13 +1229,19 @@ const ProfilePage: React.FC = () => {
                                     variant='body2'
                                     color='text.secondary'
                                   >
-                                    Próxima Cobrança
+                                    {isManualSubscription
+                                      ? 'Expira em'
+                                      : 'Próxima Cobrança'}
                                   </Typography>
                                   <Typography
                                     variant='body1'
                                     fontWeight='medium'
                                   >
-                                    {subscription.cancelAtPeriodEnd
+                                    {isManualSubscription
+                                      ? formatInvoiceDate(
+                                          subscription.currentPeriodEnd
+                                        )
+                                      : subscription.cancelAtPeriodEnd
                                       ? 'Não haverá renovação'
                                       : formatInvoiceDate(
                                           subscription.currentPeriodEnd
@@ -1250,175 +1275,198 @@ const ProfilePage: React.FC = () => {
                           </Grid>
 
                           {/* Cancel at period end warning */}
-                          {subscription.cancelAtPeriodEnd && (
-                            <Alert severity='warning' sx={{ mt: 2 }}>
-                              Seu apoio será encerrado em{' '}
+                          {subscription.cancelAtPeriodEnd &&
+                            !isManualSubscription && (
+                              <Alert severity='warning' sx={{ mt: 2 }}>
+                                Seu apoio será encerrado em{' '}
+                                {formatInvoiceDate(
+                                  subscription.currentPeriodEnd
+                                )}
+                                . Você ainda pode reativar antes dessa data.
+                              </Alert>
+                            )}
+
+                          {/* Manual subscription info */}
+                          {isManualSubscription && (
+                            <Alert severity='info' sx={{ mt: 2 }}>
+                              Seu apoio expira automaticamente em{' '}
                               {formatInvoiceDate(subscription.currentPeriodEnd)}
-                              . Você ainda pode reativar antes dessa data.
+                              .
                             </Alert>
                           )}
                         </Box>
 
-                        {/* Billing History */}
-                        <Box>
-                          <Typography
-                            variant='h6'
-                            fontWeight='bold'
-                            gutterBottom
-                          >
-                            <Stack
-                              direction='row'
-                              alignItems='center'
-                              spacing={1}
+                        {/* Billing History - Only for Stripe subscriptions */}
+                        {!isManualSubscription && (
+                          <Box>
+                            <Typography
+                              variant='h6'
+                              fontWeight='bold'
+                              gutterBottom
                             >
-                              <ReceiptIcon />
-                              <span>Histórico de Cobranças</span>
-                            </Stack>
-                          </Typography>
-                          {subscriptionLoading && (
-                            <Box display='flex' justifyContent='center' py={3}>
-                              <CircularProgress size={24} />
-                            </Box>
-                          )}
-                          {!subscriptionLoading &&
-                            invoices &&
-                            invoices.length > 0 && (
-                              <Stack spacing={1}>
-                                {invoices.map((invoice: Invoice) => (
-                                  <Box
-                                    key={invoice.id}
-                                    sx={{
-                                      p: 2,
-                                      borderRadius: 1,
-                                      border: '1px solid',
-                                      borderColor: 'divider',
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center',
-                                      flexWrap: 'wrap',
-                                      gap: 1,
-                                    }}
-                                  >
-                                    <Box>
-                                      <Typography
-                                        variant='body2'
-                                        fontWeight='medium'
-                                      >
-                                        {formatInvoiceDate(invoice.paidAt)}
-                                      </Typography>
-                                      <Typography
-                                        variant='caption'
-                                        color='text.secondary'
-                                      >
-                                        Período:{' '}
-                                        {formatInvoiceDate(invoice.periodStart)}{' '}
-                                        - {formatInvoiceDate(invoice.periodEnd)}
-                                      </Typography>
-                                    </Box>
-                                    <Stack
-                                      direction='row'
-                                      alignItems='center'
-                                      spacing={2}
-                                    >
-                                      <Typography
-                                        variant='body1'
-                                        fontWeight='bold'
-                                        color='primary'
-                                      >
-                                        {formatCurrency(
-                                          invoice.amount,
-                                          invoice.currency
-                                        )}
-                                      </Typography>
-                                      <Chip
-                                        label={
-                                          invoice.status === 'paid'
-                                            ? 'Pago'
-                                            : 'Pendente'
-                                        }
-                                        size='small'
-                                        color={
-                                          invoice.status === 'paid'
-                                            ? 'success'
-                                            : 'warning'
-                                        }
-                                      />
-                                      {invoice.invoiceUrl && (
-                                        <Button
-                                          size='small'
-                                          href={invoice.invoiceUrl}
-                                          target='_blank'
-                                          rel='noopener noreferrer'
-                                          endIcon={<OpenInNewIcon />}
-                                        >
-                                          Ver
-                                        </Button>
-                                      )}
-                                    </Stack>
-                                  </Box>
-                                ))}
+                              <Stack
+                                direction='row'
+                                alignItems='center'
+                                spacing={1}
+                              >
+                                <ReceiptIcon />
+                                <span>Histórico de Cobranças</span>
                               </Stack>
-                            )}
-                          {!subscriptionLoading &&
-                            (!invoices || invoices.length === 0) && (
-                              <Typography
-                                variant='body2'
-                                color='text.secondary'
-                                sx={{ py: 2 }}
+                            </Typography>
+                            {subscriptionLoading && (
+                              <Box
+                                display='flex'
+                                justifyContent='center'
+                                py={3}
                               >
-                                Nenhuma cobrança encontrada.
-                              </Typography>
+                                <CircularProgress size={24} />
+                              </Box>
                             )}
-                        </Box>
+                            {!subscriptionLoading &&
+                              invoices &&
+                              invoices.length > 0 && (
+                                <Stack spacing={1}>
+                                  {invoices.map((invoice: Invoice) => (
+                                    <Box
+                                      key={invoice.id}
+                                      sx={{
+                                        p: 2,
+                                        borderRadius: 1,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        flexWrap: 'wrap',
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <Box>
+                                        <Typography
+                                          variant='body2'
+                                          fontWeight='medium'
+                                        >
+                                          {formatInvoiceDate(invoice.paidAt)}
+                                        </Typography>
+                                        <Typography
+                                          variant='caption'
+                                          color='text.secondary'
+                                        >
+                                          Período:{' '}
+                                          {formatInvoiceDate(
+                                            invoice.periodStart
+                                          )}{' '}
+                                          -{' '}
+                                          {formatInvoiceDate(invoice.periodEnd)}
+                                        </Typography>
+                                      </Box>
+                                      <Stack
+                                        direction='row'
+                                        alignItems='center'
+                                        spacing={2}
+                                      >
+                                        <Typography
+                                          variant='body1'
+                                          fontWeight='bold'
+                                          color='primary'
+                                        >
+                                          {formatCurrency(
+                                            invoice.amount,
+                                            invoice.currency
+                                          )}
+                                        </Typography>
+                                        <Chip
+                                          label={
+                                            invoice.status === 'paid'
+                                              ? 'Pago'
+                                              : 'Pendente'
+                                          }
+                                          size='small'
+                                          color={
+                                            invoice.status === 'paid'
+                                              ? 'success'
+                                              : 'warning'
+                                          }
+                                        />
+                                        {invoice.invoiceUrl && (
+                                          <Button
+                                            size='small'
+                                            href={invoice.invoiceUrl}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            endIcon={<OpenInNewIcon />}
+                                          >
+                                            Ver
+                                          </Button>
+                                        )}
+                                      </Stack>
+                                    </Box>
+                                  ))}
+                                </Stack>
+                              )}
+                            {!subscriptionLoading &&
+                              (!invoices || invoices.length === 0) && (
+                                <Typography
+                                  variant='body2'
+                                  color='text.secondary'
+                                  sx={{ py: 2 }}
+                                >
+                                  Nenhuma cobrança encontrada.
+                                </Typography>
+                              )}
+                          </Box>
+                        )}
 
-                        {/* Actions */}
-                        <Box>
-                          <Typography
-                            variant='h6'
-                            fontWeight='bold'
-                            gutterBottom
-                          >
-                            Gerenciar Apoio
-                          </Typography>
-                          <Stack
-                            direction={isMobile ? 'column' : 'row'}
-                            spacing={2}
-                          >
-                            <Button
-                              variant='outlined'
-                              onClick={manageSubscription}
-                              startIcon={<CreditCardIcon />}
+                        {/* Actions - Only for Stripe subscriptions */}
+                        {!isManualSubscription && (
+                          <Box>
+                            <Typography
+                              variant='h6'
+                              fontWeight='bold'
+                              gutterBottom
                             >
-                              Gerenciar Pagamento
-                            </Button>
-                            {subscription.cancelAtPeriodEnd ? (
-                              <Button
-                                variant='contained'
-                                color='success'
-                                onClick={handleReactivateSubscription}
-                                disabled={reactivateLoading}
-                                startIcon={
-                                  reactivateLoading ? (
-                                    <CircularProgress size={16} />
-                                  ) : (
-                                    <RefreshIcon />
-                                  )
-                                }
-                              >
-                                Reativar Apoio
-                              </Button>
-                            ) : (
+                              Gerenciar Apoio
+                            </Typography>
+                            <Stack
+                              direction={isMobile ? 'column' : 'row'}
+                              spacing={2}
+                            >
                               <Button
                                 variant='outlined'
-                                color='error'
-                                onClick={() => setCancelDialogOpen(true)}
-                                startIcon={<CancelIcon />}
+                                onClick={manageSubscription}
+                                startIcon={<CreditCardIcon />}
                               >
-                                Cancelar Apoio
+                                Gerenciar Pagamento
                               </Button>
-                            )}
-                          </Stack>
-                        </Box>
+                              {subscription.cancelAtPeriodEnd ? (
+                                <Button
+                                  variant='contained'
+                                  color='success'
+                                  onClick={handleReactivateSubscription}
+                                  disabled={reactivateLoading}
+                                  startIcon={
+                                    reactivateLoading ? (
+                                      <CircularProgress size={16} />
+                                    ) : (
+                                      <RefreshIcon />
+                                    )
+                                  }
+                                >
+                                  Reativar Apoio
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant='outlined'
+                                  color='error'
+                                  onClick={() => setCancelDialogOpen(true)}
+                                  startIcon={<CancelIcon />}
+                                >
+                                  Cancelar Apoio
+                                </Button>
+                              )}
+                            </Stack>
+                          </Box>
+                        )}
                       </>
                     )}
 
