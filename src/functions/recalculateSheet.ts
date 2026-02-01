@@ -256,6 +256,12 @@ const applyWeaponBonuses = (
       // Start with a clean weapon (reset any previous bonuses)
       const weaponCopy = resetWeaponToBase(weapon);
 
+      // Skip automatic bonuses for manually edited weapons
+      // The user's manual values should be preserved exactly as they set them
+      if (weapon.hasManualEdits) {
+        return weaponCopy;
+      }
+
       // Calculate total bonuses for this weapon
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;

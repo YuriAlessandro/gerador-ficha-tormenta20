@@ -155,6 +155,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editNome, setEditNome] = useState<string>('');
   const [editAtkBonus, setEditAtkBonus] = useState<string>('');
   const [editDano, setEditDano] = useState<string>('');
+  const [editMargemAmeaca, setEditMargemAmeaca] = useState<string>('20');
+  const [editMultCritico, setEditMultCritico] = useState<string>('2');
 
   // Estados para item customizado
   const [showCustomItemDialog, setShowCustomItemDialog] = useState(false);
@@ -496,6 +498,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditNome(weapon.nome);
     setEditAtkBonus(weapon.atkBonus?.toString() || '0');
     setEditDano(weapon.dano || '');
+
+    // Parse critico into margem and multiplicador
+    // Formats: "19" (margem only), "x3" (mult only), "19/x3" (both)
+    const critico = weapon.critico || '20/x2';
+    if (critico.includes('/')) {
+      const parts = critico.split('/');
+      setEditMargemAmeaca(parts[0]);
+      setEditMultCritico(parts[1].replace('x', ''));
+    } else if (critico.startsWith('x')) {
+      setEditMargemAmeaca('20');
+      setEditMultCritico(critico.replace('x', ''));
+    } else {
+      setEditMargemAmeaca(critico);
+      setEditMultCritico('2');
+    }
   };
 
   const handleCloseEditWeapon = () => {
@@ -504,6 +521,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditNome('');
     setEditAtkBonus('');
     setEditDano('');
+    setEditMargemAmeaca('20');
+    setEditMultCritico('2');
   };
 
   const handleSaveEditWeapon = () => {
@@ -515,11 +534,15 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       editingWeapon.baseAtkBonus ?? editingWeapon.atkBonus ?? 0;
     const baseCritico = editingWeapon.baseCritico ?? editingWeapon.critico;
 
+    // Combine margem and multiplicador into critico format
+    const critico = `${editMargemAmeaca}/x${editMultCritico}`;
+
     const updatedWeapon: Equipment = {
       ...editingWeapon,
       nome: editNome,
       atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
       dano: editDano,
+      critico,
       // Store base values for future resets
       baseDano,
       baseAtkBonus,
@@ -2676,6 +2699,29 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               fullWidth
               helperText='Ex: 1d8, 2d6+2, 1d10+4'
             />
+            <Stack direction='row' spacing={2}>
+              <TextField
+                label='Margem de Ameaça'
+                type='number'
+                value={editMargemAmeaca}
+                onChange={(e) => setEditMargemAmeaca(e.target.value)}
+                fullWidth
+                helperText='Ex: 20, 19, 18'
+                inputProps={{ min: 1, max: 20 }}
+              />
+              <TextField
+                label='Multiplicador'
+                type='number'
+                value={editMultCritico}
+                onChange={(e) => setEditMultCritico(e.target.value)}
+                fullWidth
+                helperText='Ex: 2, 3, 4'
+                inputProps={{ min: 2 }}
+                InputProps={{
+                  startAdornment: <span style={{ marginRight: 4 }}>x</span>,
+                }}
+              />
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
