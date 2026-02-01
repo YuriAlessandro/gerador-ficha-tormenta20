@@ -94,6 +94,9 @@ export interface DefenseEquipment extends Equipment {
   defenseBonus: number;
   armorPenalty: number;
   group: defenseEquipGroup;
+  // Base values for defense equipment (original stats before modifications)
+  baseDefenseBonus?: number;
+  baseArmorPenalty?: number;
 }
 
 interface Modification {

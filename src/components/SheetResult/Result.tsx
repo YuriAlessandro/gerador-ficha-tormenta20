@@ -334,6 +334,7 @@ const Result: React.FC<ResultProps> = (props) => {
     displacement,
     size,
     maxSpaces,
+    customMaxSpaces,
     generalPowers = [],
     classPowers = [],
     steps,
@@ -1073,7 +1074,8 @@ const Result: React.FC<ResultProps> = (props) => {
                   </Box>
                   <Box mt={1}>
                     <strong>Espaços (atual/limite-máximo): </strong>
-                    {bag.getSpaces()}/{maxSpaces}-{maxSpaces * 2}
+                    {bag.getSpaces()}/{customMaxSpaces ?? maxSpaces}-
+                    {(customMaxSpaces ?? maxSpaces) * 2}
                   </Box>
                 </Box>
               </Card>

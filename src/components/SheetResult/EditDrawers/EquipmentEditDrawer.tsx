@@ -139,6 +139,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }
   );
   const [dinheiro, setDinheiro] = useState(0);
+  const [customMaxSpaces, setCustomMaxSpaces] = useState<number | null>(null);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
   const [showAddArmor, setShowAddArmor] = useState(false);
   const [showAddShield, setShowAddShield] = useState(false);
@@ -157,6 +158,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editDano, setEditDano] = useState<string>('');
   const [editMargemAmeaca, setEditMargemAmeaca] = useState<string>('20');
   const [editMultCritico, setEditMultCritico] = useState<string>('2');
+  const [editWeaponSpaces, setEditWeaponSpaces] = useState<string>('1');
 
   // Estados para item customizado
   const [showCustomItemDialog, setShowCustomItemDialog] = useState(false);
@@ -168,6 +170,66 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [showItemRollsDialog, setShowItemRollsDialog] = useState(false);
   const [itemNomeError, setItemNomeError] = useState('');
   const [itemSpacesError, setItemSpacesError] = useState('');
+
+  // Estados para edição de armadura
+  const [editingArmor, setEditingArmor] = useState<DefenseEquipment | null>(
+    null
+  );
+  const [editingArmorIndex, setEditingArmorIndex] = useState<number | null>(
+    null
+  );
+  const [editArmorNome, setEditArmorNome] = useState<string>('');
+  const [editArmorDefenseBonus, setEditArmorDefenseBonus] =
+    useState<string>('0');
+  const [editArmorPenalty, setEditArmorPenalty] = useState<string>('0');
+  const [editArmorRolls, setEditArmorRolls] = useState<DiceRoll[]>([]);
+  const [editArmorSpaces, setEditArmorSpaces] = useState<string>('0');
+  const [showArmorRollsDialog, setShowArmorRollsDialog] = useState(false);
+
+  // Estados para edição de escudo
+  const [editingShield, setEditingShield] = useState<DefenseEquipment | null>(
+    null
+  );
+  const [editingShieldIndex, setEditingShieldIndex] = useState<number | null>(
+    null
+  );
+  const [editShieldNome, setEditShieldNome] = useState<string>('');
+  const [editShieldDefenseBonus, setEditShieldDefenseBonus] =
+    useState<string>('0');
+  const [editShieldPenalty, setEditShieldPenalty] = useState<string>('0');
+  const [editShieldRolls, setEditShieldRolls] = useState<DiceRoll[]>([]);
+  const [editShieldSpaces, setEditShieldSpaces] = useState<string>('0');
+  const [showShieldRollsDialog, setShowShieldRollsDialog] = useState(false);
+
+  // Estados para edição de vestuário
+  const [editingClothing, setEditingClothing] = useState<Equipment | null>(
+    null
+  );
+  const [editingClothingIndex, setEditingClothingIndex] = useState<
+    number | null
+  >(null);
+  const [editClothingNome, setEditClothingNome] = useState<string>('');
+  const [editClothingRolls, setEditClothingRolls] = useState<DiceRoll[]>([]);
+  const [editClothingSpaces, setEditClothingSpaces] = useState<string>('0');
+  const [showClothingRollsDialog, setShowClothingRollsDialog] = useState(false);
+
+  // Estados para edição de alquimia
+  const [editingAlchemy, setEditingAlchemy] = useState<Equipment | null>(null);
+  const [editingAlchemyIndex, setEditingAlchemyIndex] = useState<number | null>(
+    null
+  );
+  const [editAlchemyNome, setEditAlchemyNome] = useState<string>('');
+  const [editAlchemyRolls, setEditAlchemyRolls] = useState<DiceRoll[]>([]);
+  const [editAlchemySpaces, setEditAlchemySpaces] = useState<string>('0');
+  const [showAlchemyRollsDialog, setShowAlchemyRollsDialog] = useState(false);
+
+  // Estados para edição de alimentação
+  const [editingFood, setEditingFood] = useState<Equipment | null>(null);
+  const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
+  const [editFoodNome, setEditFoodNome] = useState<string>('');
+  const [editFoodRolls, setEditFoodRolls] = useState<DiceRoll[]>([]);
+  const [editFoodSpaces, setEditFoodSpaces] = useState<string>('0');
+  const [showFoodRollsDialog, setShowFoodRollsDialog] = useState(false);
 
   // Categorize supplement weapons by type
   const getCategorizedWeapons = useMemo(() => {
@@ -363,8 +425,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       });
 
       setDinheiro(sheet.dinheiro || 0);
+      setCustomMaxSpaces(sheet.customMaxSpaces ?? null);
     }
-  }, [sheet.bag, sheet.dinheiro, open]);
+  }, [sheet.bag, sheet.dinheiro, sheet.customMaxSpaces, open]);
 
   // Function to scroll to accordion when it opens
   const scrollToAccordion = (ref: React.RefObject<HTMLDivElement>) => {
@@ -498,6 +561,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditNome(weapon.nome);
     setEditAtkBonus(weapon.atkBonus?.toString() || '0');
     setEditDano(weapon.dano || '');
+    setEditWeaponSpaces(weapon.spaces?.toString() || '1');
 
     // Parse critico into margem and multiplicador
     // Formats: "19" (margem only), "x3" (mult only), "19/x3" (both)
@@ -523,6 +587,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditDano('');
     setEditMargemAmeaca('20');
     setEditMultCritico('2');
+    setEditWeaponSpaces('1');
   };
 
   const handleSaveEditWeapon = () => {
@@ -543,6 +608,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
       dano: editDano,
       critico,
+      spaces: parseFloat(editWeaponSpaces) || 1,
       // Store base values for future resets
       baseDano,
       baseAtkBonus,
@@ -658,10 +724,19 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           armors: prev.armors.filter((a) => a.nome !== armor.nome),
         };
       }
+
+      // Store base values when armor is first added
+      const armorWithBase: DefenseEquipment = {
+        ...armor,
+        baseDefenseBonus: armor.defenseBonus,
+        baseArmorPenalty: armor.armorPenalty,
+        hasManualEdits: false, // Initially not manually edited
+      };
+
       // Replace with new armor (only one allowed)
       return {
         ...prev,
-        armors: [armor],
+        armors: [armorWithBase],
       };
     });
   };
@@ -671,6 +746,60 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       ...prev,
       armors: prev.armors.filter((a) => a.nome !== armor.nome),
     }));
+  };
+
+  // Handlers para edição de armadura
+  const handleOpenEditArmor = (armor: DefenseEquipment, index: number) => {
+    setEditingArmor(armor);
+    setEditingArmorIndex(index);
+    setEditArmorNome(armor.nome);
+    setEditArmorDefenseBonus(armor.defenseBonus?.toString() || '0');
+    setEditArmorPenalty(armor.armorPenalty?.toString() || '0');
+    setEditArmorRolls(armor.rolls || []);
+    setEditArmorSpaces(armor.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditArmor = () => {
+    setEditingArmor(null);
+    setEditingArmorIndex(null);
+    setEditArmorNome('');
+    setEditArmorDefenseBonus('0');
+    setEditArmorPenalty('0');
+    setEditArmorRolls([]);
+    setEditArmorSpaces('0');
+  };
+
+  const handleSaveEditArmor = () => {
+    if (!editingArmor || editingArmorIndex === null) return;
+
+    // Store base values if not already stored (for backward compatibility)
+    const baseDefenseBonus =
+      editingArmor.baseDefenseBonus ?? editingArmor.defenseBonus;
+    const baseArmorPenalty =
+      editingArmor.baseArmorPenalty ?? editingArmor.armorPenalty;
+
+    const updatedArmor: DefenseEquipment = {
+      ...editingArmor,
+      nome: editArmorNome,
+      defenseBonus: parseInt(editArmorDefenseBonus, 10) || 0,
+      armorPenalty: parseInt(editArmorPenalty, 10) || 0,
+      spaces: parseFloat(editArmorSpaces) || 0,
+      rolls: editArmorRolls.length > 0 ? editArmorRolls : undefined,
+      // Store base values for future resets
+      baseDefenseBonus,
+      baseArmorPenalty,
+      // Mark as manually edited so recalculateSheet preserves these changes
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      armors: prev.armors.map((a, i) =>
+        i === editingArmorIndex ? updatedArmor : a
+      ),
+    }));
+
+    handleCloseEditArmor();
   };
 
   const handleShieldToggle = (shield: DefenseEquipment) => {
@@ -686,10 +815,19 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           shields: prev.shields.filter((s) => s.nome !== shield.nome),
         };
       }
+
+      // Store base values when shield is first added
+      const shieldWithBase: DefenseEquipment = {
+        ...shield,
+        baseDefenseBonus: shield.defenseBonus,
+        baseArmorPenalty: shield.armorPenalty,
+        hasManualEdits: false, // Initially not manually edited
+      };
+
       // Replace with new shield (only one allowed)
       return {
         ...prev,
-        shields: [shield],
+        shields: [shieldWithBase],
       };
     });
   };
@@ -699,6 +837,60 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       ...prev,
       shields: prev.shields.filter((s) => s.nome !== shield.nome),
     }));
+  };
+
+  // Handlers para edição de escudo
+  const handleOpenEditShield = (shield: DefenseEquipment, index: number) => {
+    setEditingShield(shield);
+    setEditingShieldIndex(index);
+    setEditShieldNome(shield.nome);
+    setEditShieldDefenseBonus(shield.defenseBonus?.toString() || '0');
+    setEditShieldPenalty(shield.armorPenalty?.toString() || '0');
+    setEditShieldRolls(shield.rolls || []);
+    setEditShieldSpaces(shield.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditShield = () => {
+    setEditingShield(null);
+    setEditingShieldIndex(null);
+    setEditShieldNome('');
+    setEditShieldDefenseBonus('0');
+    setEditShieldPenalty('0');
+    setEditShieldRolls([]);
+    setEditShieldSpaces('0');
+  };
+
+  const handleSaveEditShield = () => {
+    if (!editingShield || editingShieldIndex === null) return;
+
+    // Store base values if not already stored (for backward compatibility)
+    const baseDefenseBonus =
+      editingShield.baseDefenseBonus ?? editingShield.defenseBonus;
+    const baseArmorPenalty =
+      editingShield.baseArmorPenalty ?? editingShield.armorPenalty;
+
+    const updatedShield: DefenseEquipment = {
+      ...editingShield,
+      nome: editShieldNome,
+      defenseBonus: parseInt(editShieldDefenseBonus, 10) || 0,
+      armorPenalty: parseInt(editShieldPenalty, 10) || 0,
+      spaces: parseFloat(editShieldSpaces) || 0,
+      rolls: editShieldRolls.length > 0 ? editShieldRolls : undefined,
+      // Store base values for future resets
+      baseDefenseBonus,
+      baseArmorPenalty,
+      // Mark as manually edited so recalculateSheet preserves these changes
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      shields: prev.shields.map((s, i) =>
+        i === editingShieldIndex ? updatedShield : s
+      ),
+    }));
+
+    handleCloseEditShield();
   };
 
   // Handlers for General Items
@@ -761,6 +953,120 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }));
   };
 
+  // Handlers para edição de vestuário
+  const handleOpenEditClothing = (item: Equipment, index: number) => {
+    setEditingClothing(item);
+    setEditingClothingIndex(index);
+    setEditClothingNome(item.nome);
+    setEditClothingRolls(item.rolls || []);
+    setEditClothingSpaces(item.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditClothing = () => {
+    setEditingClothing(null);
+    setEditingClothingIndex(null);
+    setEditClothingNome('');
+    setEditClothingRolls([]);
+    setEditClothingSpaces('0');
+  };
+
+  const handleSaveEditClothing = () => {
+    if (!editingClothing || editingClothingIndex === null) return;
+
+    const updatedItem: Equipment = {
+      ...editingClothing,
+      nome: editClothingNome,
+      spaces: parseFloat(editClothingSpaces) || 0,
+      rolls: editClothingRolls.length > 0 ? editClothingRolls : undefined,
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      clothing: prev.clothing.map((item, i) =>
+        i === editingClothingIndex ? updatedItem : item
+      ),
+    }));
+
+    handleCloseEditClothing();
+  };
+
+  // Handlers para edição de alquimia
+  const handleOpenEditAlchemy = (item: Equipment, index: number) => {
+    setEditingAlchemy(item);
+    setEditingAlchemyIndex(index);
+    setEditAlchemyNome(item.nome);
+    setEditAlchemyRolls(item.rolls || []);
+    setEditAlchemySpaces(item.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditAlchemy = () => {
+    setEditingAlchemy(null);
+    setEditingAlchemyIndex(null);
+    setEditAlchemyNome('');
+    setEditAlchemyRolls([]);
+    setEditAlchemySpaces('0');
+  };
+
+  const handleSaveEditAlchemy = () => {
+    if (!editingAlchemy || editingAlchemyIndex === null) return;
+
+    const updatedItem: Equipment = {
+      ...editingAlchemy,
+      nome: editAlchemyNome,
+      spaces: parseFloat(editAlchemySpaces) || 0,
+      rolls: editAlchemyRolls.length > 0 ? editAlchemyRolls : undefined,
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      alchemy: prev.alchemy.map((item, i) =>
+        i === editingAlchemyIndex ? updatedItem : item
+      ),
+    }));
+
+    handleCloseEditAlchemy();
+  };
+
+  // Handlers para edição de alimentação
+  const handleOpenEditFood = (item: Equipment, index: number) => {
+    setEditingFood(item);
+    setEditingFoodIndex(index);
+    setEditFoodNome(item.nome);
+    setEditFoodRolls(item.rolls || []);
+    setEditFoodSpaces(item.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditFood = () => {
+    setEditingFood(null);
+    setEditingFoodIndex(null);
+    setEditFoodNome('');
+    setEditFoodRolls([]);
+    setEditFoodSpaces('0');
+  };
+
+  const handleSaveEditFood = () => {
+    if (!editingFood || editingFoodIndex === null) return;
+
+    const updatedItem: Equipment = {
+      ...editingFood,
+      nome: editFoodNome,
+      spaces: parseFloat(editFoodSpaces) || 0,
+      rolls: editFoodRolls.length > 0 ? editFoodRolls : undefined,
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      food: prev.food.map((item, i) =>
+        i === editingFoodIndex ? updatedItem : item
+      ),
+    }));
+
+    handleCloseEditFood();
+  };
+
   const handleSave = () => {
     if (!sheet.bag) return;
 
@@ -780,8 +1086,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     // Create a new Bag instance with updated equipment
     const updatedBag = new Bag(updatedBagEquipments);
 
-    // Create updated sheet with new bag and dinheiro
-    const sheetWithNewBag = { ...sheet, bag: updatedBag, dinheiro };
+    // Create updated sheet with new bag, dinheiro, and customMaxSpaces
+    const sheetWithNewBag = {
+      ...sheet,
+      bag: updatedBag,
+      dinheiro,
+      customMaxSpaces: customMaxSpaces ?? undefined,
+    };
 
     // Recalculate sheet to apply weapon bonuses and other effects
     // This ensures powers like "Arsenal das Profundezas" apply to newly added weapons
@@ -1100,11 +1411,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         </Typography>
 
         <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
-          {/* Money Section */}
+          {/* Money and Spaces Section */}
           <Card sx={{ mb: 2 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
-                Dinheiro
+                Dinheiro e Carga
               </Typography>
               <TextField
                 fullWidth
@@ -1114,6 +1425,20 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 onChange={(e) => setDinheiro(Number(e.target.value) || 0)}
                 inputProps={{ min: 0 }}
                 sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type='number'
+                label='Limite de Espaços (personalizado)'
+                value={customMaxSpaces ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCustomMaxSpaces(val === '' ? null : Number(val));
+                }}
+                inputProps={{ min: 1 }}
+                helperText={`Padrão: ${
+                  10 + (sheet.atributos?.Força?.value || 0)
+                } (10 + Força). Deixe vazio para usar o padrão.`}
               />
             </CardContent>
           </Card>
@@ -1219,13 +1544,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.armors.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.armors.map((armor) => (
+                    {selectedEquipment.armors.map((armor, index) => (
                       <ListItem key={armor.nome}>
                         <ListItemText
                           primary={armor.nome}
-                          secondary={`Defesa: +${armor.defenseBonus} | Penalidade: ${armor.armorPenalty}`}
+                          secondary={`Defesa: +${
+                            armor.defenseBonus
+                          } | Penalidade: ${armor.armorPenalty}${
+                            armor.rolls && armor.rolls.length > 0
+                              ? ` | ${armor.rolls.length} rolagem(ns)`
+                              : ''
+                          }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditArmor(armor, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -1277,13 +1616,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.shields.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.shields.map((shield) => (
+                    {selectedEquipment.shields.map((shield, index) => (
                       <ListItem key={shield.nome}>
                         <ListItemText
                           primary={shield.nome}
-                          secondary={`Defesa: +${shield.defenseBonus} | Penalidade: ${shield.armorPenalty}`}
+                          secondary={`Defesa: +${
+                            shield.defenseBonus
+                          } | Penalidade: ${shield.armorPenalty}${
+                            shield.rolls && shield.rolls.length > 0
+                              ? ` | ${shield.rolls.length} rolagem(ns)`
+                              : ''
+                          }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditShield(shield, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -1428,15 +1781,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.clothing.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.clothing.map((item) => (
+                    {selectedEquipment.clothing.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
                           primary={item.nome}
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
+                          }${
+                            item.rolls && item.rolls.length > 0
+                              ? ` | ${item.rolls.length} rolagem(ns)`
+                              : ''
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditClothing(item, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -1483,15 +1848,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.alchemy.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.alchemy.map((item) => (
+                    {selectedEquipment.alchemy.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
                           primary={item.nome}
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
+                          }${
+                            item.rolls && item.rolls.length > 0
+                              ? ` | ${item.rolls.length} rolagem(ns)`
+                              : ''
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditAlchemy(item, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -1538,15 +1915,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.food.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.food.map((item) => (
+                    {selectedEquipment.food.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
                           primary={item.nome}
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
+                          }${
+                            item.rolls && item.rolls.length > 0
+                              ? ` | ${item.rolls.length} rolagem(ns)`
+                              : ''
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditFood(item, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -2740,6 +3129,15 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 }}
               />
             </Stack>
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editWeaponSpaces}
+              onChange={(e) => setEditWeaponSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -2839,6 +3237,462 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           setShowItemRollsDialog(false);
         }}
         title='Rolagens do Item'
+      />
+
+      {/* Dialog de edição de armadura */}
+      <Dialog
+        open={editingArmor !== null}
+        onClose={handleCloseEditArmor}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Armadura</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome da Armadura'
+              value={editArmorNome}
+              onChange={(e) => setEditArmorNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para a armadura'
+            />
+            <TextField
+              label='Bônus de Defesa'
+              type='number'
+              value={editArmorDefenseBonus}
+              onChange={(e) => setEditArmorDefenseBonus(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, max: 15 }}
+              helperText='Bônus que será adicionado à Defesa (geralmente 0-10)'
+            />
+            <TextField
+              label='Penalidade de Armadura'
+              type='number'
+              value={editArmorPenalty}
+              onChange={(e) => setEditArmorPenalty(e.target.value)}
+              fullWidth
+              inputProps={{ max: 0 }}
+              helperText='Penalidade em perícias (geralmente 0 ou negativo)'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editArmorSpaces}
+              onChange={(e) => setEditArmorSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editArmorRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowArmorRollsDialog(true)}
+                >
+                  {editArmorRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editArmorRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editArmorRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditArmor}>Cancelar</Button>
+          <Button onClick={handleSaveEditArmor} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens da armadura */}
+      <RollsEditDialog
+        open={showArmorRollsDialog}
+        onClose={() => setShowArmorRollsDialog(false)}
+        rolls={editArmorRolls}
+        onSave={(rolls) => {
+          setEditArmorRolls(rolls);
+          setShowArmorRollsDialog(false);
+        }}
+        title='Rolagens da Armadura'
+      />
+
+      {/* Dialog de edição de escudo */}
+      <Dialog
+        open={editingShield !== null}
+        onClose={handleCloseEditShield}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Escudo</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Escudo'
+              value={editShieldNome}
+              onChange={(e) => setEditShieldNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o escudo'
+            />
+            <TextField
+              label='Bônus de Defesa'
+              type='number'
+              value={editShieldDefenseBonus}
+              onChange={(e) => setEditShieldDefenseBonus(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, max: 10 }}
+              helperText='Bônus que será adicionado à Defesa (geralmente 1-3)'
+            />
+            <TextField
+              label='Penalidade de Armadura'
+              type='number'
+              value={editShieldPenalty}
+              onChange={(e) => setEditShieldPenalty(e.target.value)}
+              fullWidth
+              inputProps={{ max: 0 }}
+              helperText='Penalidade em perícias (geralmente 0 ou negativo)'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editShieldSpaces}
+              onChange={(e) => setEditShieldSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editShieldRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowShieldRollsDialog(true)}
+                >
+                  {editShieldRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editShieldRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editShieldRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditShield}>Cancelar</Button>
+          <Button onClick={handleSaveEditShield} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens do escudo */}
+      <RollsEditDialog
+        open={showShieldRollsDialog}
+        onClose={() => setShowShieldRollsDialog(false)}
+        rolls={editShieldRolls}
+        onSave={(rolls) => {
+          setEditShieldRolls(rolls);
+          setShowShieldRollsDialog(false);
+        }}
+        title='Rolagens do Escudo'
+      />
+
+      {/* Dialog de edição de vestuário */}
+      <Dialog
+        open={editingClothing !== null}
+        onClose={handleCloseEditClothing}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Vestuário</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Vestuário'
+              value={editClothingNome}
+              onChange={(e) => setEditClothingNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o vestuário'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editClothingSpaces}
+              onChange={(e) => setEditClothingSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editClothingRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowClothingRollsDialog(true)}
+                >
+                  {editClothingRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editClothingRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editClothingRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditClothing}>Cancelar</Button>
+          <Button onClick={handleSaveEditClothing} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens do vestuário */}
+      <RollsEditDialog
+        open={showClothingRollsDialog}
+        onClose={() => setShowClothingRollsDialog(false)}
+        rolls={editClothingRolls}
+        onSave={(rolls) => {
+          setEditClothingRolls(rolls);
+          setShowClothingRollsDialog(false);
+        }}
+        title='Rolagens do Vestuário'
+      />
+
+      {/* Dialog de edição de alquimia */}
+      <Dialog
+        open={editingAlchemy !== null}
+        onClose={handleCloseEditAlchemy}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Item de Alquimia</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Item'
+              value={editAlchemyNome}
+              onChange={(e) => setEditAlchemyNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o item de alquimia'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editAlchemySpaces}
+              onChange={(e) => setEditAlchemySpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editAlchemyRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowAlchemyRollsDialog(true)}
+                >
+                  {editAlchemyRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editAlchemyRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editAlchemyRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditAlchemy}>Cancelar</Button>
+          <Button onClick={handleSaveEditAlchemy} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens de alquimia */}
+      <RollsEditDialog
+        open={showAlchemyRollsDialog}
+        onClose={() => setShowAlchemyRollsDialog(false)}
+        rolls={editAlchemyRolls}
+        onSave={(rolls) => {
+          setEditAlchemyRolls(rolls);
+          setShowAlchemyRollsDialog(false);
+        }}
+        title='Rolagens do Item de Alquimia'
+      />
+
+      {/* Dialog de edição de alimentação */}
+      <Dialog
+        open={editingFood !== null}
+        onClose={handleCloseEditFood}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Alimentação</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Item'
+              value={editFoodNome}
+              onChange={(e) => setEditFoodNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o item de alimentação'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editFoodSpaces}
+              onChange={(e) => setEditFoodSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editFoodRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowFoodRollsDialog(true)}
+                >
+                  {editFoodRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editFoodRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editFoodRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditFood}>Cancelar</Button>
+          <Button onClick={handleSaveEditFood} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens de alimentação */}
+      <RollsEditDialog
+        open={showFoodRollsDialog}
+        onClose={() => setShowFoodRollsDialog(false)}
+        rolls={editFoodRolls}
+        onSave={(rolls) => {
+          setEditFoodRolls(rolls);
+          setShowFoodRollsDialog(false);
+        }}
+        title='Rolagens do Item de Alimentação'
       />
     </Drawer>
   );

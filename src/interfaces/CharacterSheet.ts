@@ -294,6 +294,7 @@ export default interface CharacterSheet {
   displacement: number;
   size: RaceSize;
   maxSpaces: number;
+  customMaxSpaces?: number; // Manual override for max spaces
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
   classPowers?: ClassPower[];

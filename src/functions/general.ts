@@ -1221,10 +1221,7 @@ function calcDisplacement(
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number {
-  const maxSpaces =
-    atributos.Força.value > 0
-      ? 10 + 2 * atributos.Força.value
-      : 10 - atributos.Força.value;
+  const maxSpaces = 10 + atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -3346,10 +3343,7 @@ export default function generateRandomSheet(
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
   // Passo 6.1: Gerar valores dependentes de atributos
-  const maxSpaces =
-    atributos.Força.value > 0
-      ? 10 + 2 * atributos.Força.value
-      : 10 - atributos.Força.value;
+  const maxSpaces = 10 + atributos.Força.value;
   const summedPV = initialPV + atributos.Constituição.value;
 
   steps.push({

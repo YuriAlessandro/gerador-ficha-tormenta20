@@ -372,10 +372,7 @@ const calcDisplacement = (
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number => {
-  const maxSpaces =
-    atributos.Força.value > 0
-      ? 10 + 2 * atributos.Força.value
-      : 10 - atributos.Força.value;
+  const maxSpaces = 10 + atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -782,6 +779,9 @@ export function recalculateSheet(
 
   // Step 1: Clear existing bonuses to avoid accumulation
   updatedSheet.sheetBonuses = [];
+
+  // Step 1.5: Recalculate maxSpaces based on current Força modifier
+  updatedSheet.maxSpaces = 10 + updatedSheet.atributos.Força.value;
 
   // Step 2: Apply general powers (most important for manual additions)
   updatedSheet = applyGeneralPowers(updatedSheet, manualSelections);
