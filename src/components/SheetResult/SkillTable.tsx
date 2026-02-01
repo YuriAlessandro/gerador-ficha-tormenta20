@@ -16,9 +16,10 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import CheckIcon from '@mui/icons-material/Check';
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import { CompleteSkill, SkillsAttrs } from '../../interfaces/Skills';
+import { CompleteSkill } from '../../interfaces/Skills';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
@@ -37,6 +38,8 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     null
   );
   const [selectedSkillTotal, setSelectedSkillTotal] = useState(0);
+  const [selectedAttrValue, setSelectedAttrValue] = useState(0);
+  const [selectedAttrName, setSelectedAttrName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [localSearchQuery, setLocalSearchQuery] = useState('');
 
@@ -90,6 +93,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     user-select: none;
     text-decoration: underline dotted;
     transition: all 0.2s ease;
+    font-size: 14px;
 
     &:hover {
       color: ${theme.palette.primary.main};
@@ -116,25 +120,11 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     }
   `;
 
-  const CellFgText = styled.span`
-    z-index: 1;
-  `;
-  const CellBgText = styled.span`
-    margin: 8px 0 0 5px;
-    color: #c4c4c4;
-    font-size: 10px;
-    font-align: center;
-  `;
-
   const StyledTableRow = styled(TableRow)(() => ({
     '&:nth-of-type(odd)': {
       backgroundColor: theme.palette.action.hover,
     },
   }));
-
-  const fmtSkillName = (skillName: string) =>
-    // Return first 3 letters in capital case inside parentheses
-    `(${skillName.substring(0, 3).toUpperCase()})`;
 
   const handleSkillRoll = useCallback(
     (skill: CompleteSkill, skillTotal: number, actionName?: string) => {
@@ -170,9 +160,16 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
     [showDiceResult, sheet.nome]
   );
 
-  const handleSkillNameClick = (skill: CompleteSkill, skillTotal: number) => {
+  const handleSkillNameClick = (
+    skill: CompleteSkill,
+    skillTotal: number,
+    attrValue: number,
+    attrName: string
+  ) => {
     setSelectedSkill(skill);
     setSelectedSkillTotal(skillTotal);
+    setSelectedAttrValue(attrValue);
+    setSelectedAttrName(attrName);
     setActionsDialogOpen(true);
   };
 
@@ -200,7 +197,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
         placeholder='Buscar perícia...'
         value={localSearchQuery}
         onChange={handleSearchChange}
-        sx={{ mb: 1.5 }}
+        sx={{ p: 1.5, width: '95%' }}
         InputProps={{
           startAdornment: (
             <InputAdornment position='start'>
@@ -216,6 +213,23 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
           ),
         }}
       />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 3,
+          py: 1,
+          px: 1.5,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <strong>½ Nível:</strong> {skills?.[0]?.halfLevel ?? 0}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <strong>Treino:</strong>{' '}
+          {skills?.find((s) => (s.training ?? 0) > 0)?.training ?? 0}
+        </Box>
+      </Box>
       <TableContainer component={Paper}>
         <Table
           aria-label='Perícias'
@@ -224,17 +238,11 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
         >
           <TableHead>
             <TableRow>
-              <TableCell>
-                <strong>Perícias</strong>
-              </TableCell>
               <TableCell align='center'>
                 <strong>Total</strong>
               </TableCell>
-              <TableCell align='center'>
-                <strong>1/2 do Nível</strong>
-              </TableCell>
-              <TableCell align='center'>
-                <strong>Atributo</strong>
+              <TableCell>
+                <strong>Perícias</strong>
               </TableCell>
               <TableCell align='center'>
                 <strong>Treino</strong>
@@ -256,40 +264,11 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                 (skill.others ?? 0) +
                 (skill.training ?? 0);
 
+              const isTrained = (skill.training ?? 0) > 0;
+              const attrName = skill.modAttr ?? '';
+
               return (
                 <StyledTableRow key={skill.name}>
-                  <DefaultTbCell component='th' scope='row'>
-                    {(skill.training ?? 0) > 0 ? (
-                      <Box
-                        component='span'
-                        onClick={() => handleSkillNameClick(skill, skillTotal)}
-                        title={`Ver ações de ${skill.name}`}
-                        sx={{
-                          cursor: 'pointer',
-                          userSelect: 'none',
-                          textDecoration: 'underline dotted',
-                          transition: 'all 0.2s ease',
-                          color: 'secondary.main',
-                          '&:hover': {
-                            color: 'secondary.dark',
-                            textDecoration: 'underline solid',
-                          },
-                          '&:active': {
-                            transform: 'scale(0.98)',
-                          },
-                        }}
-                      >
-                        <strong>• {skill.name}</strong>
-                      </Box>
-                    ) : (
-                      <ClickableSkillName
-                        onClick={() => handleSkillNameClick(skill, skillTotal)}
-                        title={`Ver ações de ${skill.name}`}
-                      >
-                        {skill.name}
-                      </ClickableSkillName>
-                    )}
-                  </DefaultTbCell>
                   <TableCellSkillTotal
                     align='center'
                     onClick={() => handleSkillTotalClick(skill, skillTotal)}
@@ -297,19 +276,25 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                   >
                     {skillTotal}
                   </TableCellSkillTotal>
-                  <DefaultTbCell align='center'>
-                    {skill.halfLevel ?? 0}
+                  <DefaultTbCell component='th' scope='row'>
+                    <ClickableSkillName
+                      onClick={() =>
+                        handleSkillNameClick(
+                          skill,
+                          skillTotal,
+                          attrValue,
+                          attrName
+                        )
+                      }
+                      title={`Ver ações de ${skill.name}`}
+                    >
+                      {isTrained ? <strong>{skill.name}</strong> : skill.name}
+                    </ClickableSkillName>
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    <CellFgText>{attrValue ?? 0}</CellFgText>
-                    <CellBgText>
-                      {SkillsAttrs[skill.name]
-                        ? fmtSkillName(SkillsAttrs[skill.name])
-                        : '(???)'}
-                    </CellBgText>
-                  </DefaultTbCell>
-                  <DefaultTbCell align='center'>
-                    {skill.training ?? 0}
+                    {isTrained && (
+                      <CheckIcon fontSize='small' color='success' />
+                    )}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
                     {skill.others ?? 0}
@@ -325,6 +310,8 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
         onClose={handleCloseActionsDialog}
         skill={selectedSkill}
         skillTotal={selectedSkillTotal}
+        attrValue={selectedAttrValue}
+        attrName={selectedAttrName}
         onRoll={handleActionRoll}
       />
     </Box>

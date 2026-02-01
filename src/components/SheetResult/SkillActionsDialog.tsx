@@ -24,6 +24,8 @@ interface SkillActionsDialogProps {
   onClose: () => void;
   skill: CompleteSkill | null;
   skillTotal: number;
+  attrValue: number;
+  attrName: string;
   onRoll: (actionName: string) => void;
 }
 
@@ -108,6 +110,8 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
   onClose,
   skill,
   skillTotal,
+  attrValue,
+  attrName,
   onRoll,
 }) => {
   const isMobile = useMemo(() => window.innerWidth < 720, []);
@@ -179,6 +183,15 @@ const SkillActionsDialog: React.FC<SkillActionsDialogProps> = ({
               <Typography variant='body2' color='text.secondary'>
                 Rolar 1d20{skillTotal >= 0 ? '+' : ''}
                 {skillTotal}
+              </Typography>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ display: 'block', mt: 0.5 }}
+              >
+                {attrName} ({attrValue >= 0 ? '+' : ''}
+                {attrValue}) + Treino ({skill.training ?? 0}) + ½ Nível (
+                {skill.halfLevel ?? 0}) + Outros ({skill.others ?? 0})
               </Typography>
             </Box>
             <Button
