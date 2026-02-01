@@ -22,6 +22,15 @@ export interface Dice3DSettings {
   scale: number;
   gravity: number;
   suspendSimulation: boolean;
+  mass: number;
+  friction: number;
+  restitution: number;
+  linearDamping: number;
+  angularDamping: number;
+  spinForce: number;
+  throwForce: number;
+  startingHeight: number;
+  settleTimeout: number;
 }
 
 interface Dice3DContextValue {
@@ -40,9 +49,18 @@ const defaultSettings: Dice3DSettings = {
   enabled: false,
   theme: 'default',
   themeColor: '#c41e3a', // Default red
-  scale: 8,
-  gravity: 1,
+  scale: 1,
+  gravity: 4,
   suspendSimulation: false,
+  mass: 1,
+  friction: 0.8,
+  restitution: 0,
+  linearDamping: 0.3,
+  angularDamping: 0.4,
+  spinForce: 6,
+  throwForce: 4,
+  startingHeight: 8,
+  settleTimeout: 2000,
 };
 
 const Dice3DContext = createContext<Dice3DContextValue | undefined>(undefined);
