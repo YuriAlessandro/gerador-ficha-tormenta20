@@ -14,7 +14,9 @@ import {
   Divider,
   Chip,
   useTheme,
+  Alert,
 } from '@mui/material';
+import { v4 as uuid } from 'uuid';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -62,6 +64,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const [shouldSpendPM, setShouldSpendPM] = useState(true);
   const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
   const [localRolls, setLocalRolls] = useState<DiceRoll[]>([]);
+  const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(
+    new Set()
+  );
 
   const basePM = useMemo(
     () => spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle],
@@ -121,7 +126,14 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     if (open) {
       setSelections(new Map());
       setShouldSpendPM(true);
-      setLocalRolls(spell.rolls || []);
+      // Ensure all rolls have IDs
+      const rollsWithIds = (spell.rolls || []).map((roll) => ({
+        ...roll,
+        id: roll.id || uuid(),
+      }));
+      setLocalRolls(rollsWithIds);
+      // Select all rolls by default
+      setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
     }
   }, [open, spell.rolls]);
 
@@ -168,19 +180,51 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     setRollsDialogOpen(false);
   }, []);
 
+  const handleToggleRoll = useCallback((rollId: string) => {
+    setSelectedRollIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(rollId)) {
+        newSet.delete(rollId);
+      } else {
+        newSet.add(rollId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleToggleAllRolls = useCallback(() => {
+    if (selectedRollIds.size === localRolls.length) {
+      setSelectedRollIds(new Set());
+    } else {
+      setSelectedRollIds(new Set(localRolls.map((r) => r.id as string)));
+    }
+  }, [selectedRollIds.size, localRolls]);
+
   const handleSaveRolls = useCallback(
     (newRolls: DiceRoll[]) => {
-      setLocalRolls(newRolls);
+      // Ensure all rolls have IDs
+      const rollsWithIds = newRolls.map((roll) => ({
+        ...roll,
+        id: roll.id || uuid(),
+      }));
+      setLocalRolls(rollsWithIds);
+      // Select all new rolls by default
+      setSelectedRollIds(new Set(rollsWithIds.map((r) => r.id as string)));
       if (onUpdateRolls) {
-        onUpdateRolls(spell, newRolls);
+        onUpdateRolls(spell, rollsWithIds);
       }
     },
     [onUpdateRolls, spell]
   );
 
   const handleCast = useCallback(() => {
-    if (localRolls.length > 0) {
-      const rollResults = executeMultipleDiceRolls(localRolls);
+    // Only execute selected rolls
+    const selectedRolls = localRolls.filter(
+      (roll) => roll.id && selectedRollIds.has(roll.id)
+    );
+
+    if (selectedRolls.length > 0) {
+      const rollResults = executeMultipleDiceRolls(selectedRolls);
       const rollGroups: RollGroup[] = rollResults.map((result) => ({
         label: result.label,
         diceNotation: result.dice,
@@ -198,6 +242,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     onClose();
   }, [
     localRolls,
+    selectedRollIds,
     shouldSpendPM,
     totalPMCost,
     onCast,
@@ -386,6 +431,10 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                   >
                     Aprimoramentos
                   </Typography>
+                  <Alert severity='info' variant='outlined' sx={{ mb: 2 }}>
+                    Os aprimoramentos não modificam automaticamente as rolagens.
+                    Configure suas rolagens manualmente.
+                  </Alert>
                   {spell.aprimoramentos.map((apr, idx) =>
                     renderAprimoramento(apr, idx)
                   )}
@@ -405,46 +454,69 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 <Typography variant='subtitle1' fontWeight='bold'>
                   Rolagens
                 </Typography>
-                {onUpdateRolls && (
-                  <Button
-                    size='small'
-                    startIcon={<SettingsIcon />}
-                    onClick={handleOpenRollsDialog}
-                  >
-                    Configurar
-                  </Button>
-                )}
+                <Stack direction='row' spacing={1}>
+                  {localRolls.length > 1 && (
+                    <Button size='small' onClick={handleToggleAllRolls}>
+                      {selectedRollIds.size === localRolls.length
+                        ? 'Desmarcar todas'
+                        : 'Selecionar todas'}
+                    </Button>
+                  )}
+                  {onUpdateRolls && (
+                    <Button
+                      size='small'
+                      startIcon={<SettingsIcon />}
+                      onClick={handleOpenRollsDialog}
+                    >
+                      Configurar
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
               {localRolls.length > 0 ? (
                 <Stack spacing={0.5}>
-                  {localRolls.map((roll, idx) => (
-                    <Typography
-                      key={roll.id || idx}
-                      variant='body2'
+                  {localRolls.map((roll) => (
+                    <Box
+                      key={roll.id}
                       sx={{
+                        display: 'flex',
+                        alignItems: 'center',
                         p: 1,
-                        bgcolor: 'action.hover',
+                        bgcolor: selectedRollIds.has(roll.id as string)
+                          ? 'action.selected'
+                          : 'action.hover',
                         borderRadius: 1,
+                        cursor: 'pointer',
                       }}
+                      onClick={() => roll.id && handleToggleRoll(roll.id)}
                     >
-                      <strong>{roll.label}:</strong> {roll.dice}
-                      {roll.description && (
-                        <Typography
-                          component='span'
-                          variant='caption'
-                          color='text.secondary'
-                          sx={{ ml: 1 }}
-                        >
-                          ({roll.description})
+                      <Checkbox
+                        checked={selectedRollIds.has(roll.id as string)}
+                        size='small'
+                        sx={{ p: 0, mr: 1 }}
+                      />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant='body2'>
+                          <strong>{roll.label}:</strong> {roll.dice}
                         </Typography>
-                      )}
-                    </Typography>
+                        {roll.description && (
+                          <Typography variant='caption' color='text.secondary'>
+                            {roll.description}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
                   ))}
                 </Stack>
               ) : (
                 <Typography variant='body2' color='text.secondary'>
                   Nenhuma rolagem configurada
                 </Typography>
+              )}
+              {localRolls.length > 0 && selectedRollIds.size === 0 && (
+                <Alert severity='warning' sx={{ mt: 1 }}>
+                  Selecione pelo menos uma rolagem para executar
+                </Alert>
               )}
             </Box>
 
