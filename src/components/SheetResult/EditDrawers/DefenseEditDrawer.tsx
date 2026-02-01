@@ -17,6 +17,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import ShieldIcon from '@mui/icons-material/Shield';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -28,6 +29,7 @@ interface DefenseEditDrawerProps {
   onClose: () => void;
   sheet: CharacterSheet;
   onSave: (updates: Partial<CharacterSheet> | CharacterSheet) => void;
+  onOpenEquipmentDrawer: () => void;
 }
 
 interface EditedData {
@@ -42,6 +44,7 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   onClose,
   sheet,
   onSave,
+  onOpenEquipmentDrawer,
 }) => {
   const [editedData, setEditedData] = useState<EditedData>({
     customDefenseBase: sheet.customDefenseBase,
@@ -370,6 +373,19 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
             helperText='Bônus adicional de fontes não automáticas'
             inputProps={{ min: -50, max: 50 }}
           />
+
+          {/* Botão para Editar Equipamentos de Defesa */}
+          <Button
+            variant='outlined'
+            startIcon={<ShieldIcon />}
+            onClick={() => {
+              onClose();
+              onOpenEquipmentDrawer();
+            }}
+            fullWidth
+          >
+            Editar Equipamentos de Defesa
+          </Button>
 
           {/* Preview do Cálculo */}
           <Box

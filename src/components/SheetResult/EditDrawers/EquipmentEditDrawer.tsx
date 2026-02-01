@@ -1187,6 +1187,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 )}
               </Box>
 
+              <Divider sx={{ my: 2 }} />
+
               {/* Armor */}
               <Box sx={{ mb: 2 }}>
                 <Stack
@@ -1196,21 +1198,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   sx={{ mb: 1 }}
                 >
                   <Typography variant='subtitle1' fontWeight='bold'>
-                    Armadura
+                    {`Armadura${
+                      selectedEquipment.armors.length > 0
+                        ? ' (uma por vez)'
+                        : ''
+                    }`}
                   </Typography>
-                  {selectedEquipment.armors.length === 0 && (
-                    <Button
-                      size='small'
-                      startIcon={
-                        showAddArmor ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                      }
-                      onClick={handleToggleArmor}
-                      variant={showAddArmor ? 'contained' : 'outlined'}
-                      color={showAddArmor ? 'primary' : 'inherit'}
-                    >
-                      {showAddArmor ? 'Fechar' : 'Adicionar'}
-                    </Button>
-                  )}
+                  <Button
+                    size='small'
+                    startIcon={
+                      showAddArmor ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                    }
+                    onClick={handleToggleArmor}
+                    variant={showAddArmor ? 'contained' : 'outlined'}
+                    color={showAddArmor ? 'primary' : 'inherit'}
+                    disabled={selectedEquipment.armors.length > 0}
+                  >
+                    {showAddArmor ? 'Fechar' : 'Adicionar'}
+                  </Button>
                 </Stack>
                 {selectedEquipment.armors.length > 0 ? (
                   <List dense>
@@ -1240,6 +1245,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 )}
               </Box>
 
+              <Divider sx={{ my: 2 }} />
+
               {/* Shield */}
               <Box>
                 <Stack
@@ -1249,21 +1256,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   sx={{ mb: 1 }}
                 >
                   <Typography variant='subtitle1' fontWeight='bold'>
-                    Escudo
+                    {`Escudo${
+                      selectedEquipment.shields.length > 0
+                        ? ' (um por vez)'
+                        : ''
+                    }`}
                   </Typography>
-                  {selectedEquipment.shields.length === 0 && (
-                    <Button
-                      size='small'
-                      startIcon={
-                        showAddShield ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                      }
-                      onClick={handleToggleShield}
-                      variant={showAddShield ? 'contained' : 'outlined'}
-                      color={showAddShield ? 'primary' : 'inherit'}
-                    >
-                      {showAddShield ? 'Fechar' : 'Adicionar'}
-                    </Button>
-                  )}
+                  <Button
+                    size='small'
+                    startIcon={
+                      showAddShield ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                    }
+                    onClick={handleToggleShield}
+                    variant={showAddShield ? 'contained' : 'outlined'}
+                    color={showAddShield ? 'primary' : 'inherit'}
+                    disabled={selectedEquipment.shields.length > 0}
+                  >
+                    {showAddShield ? 'Fechar' : 'Adicionar'}
+                  </Button>
                 </Stack>
                 {selectedEquipment.shields.length > 0 ? (
                   <List dense>
@@ -1292,6 +1302,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                 )}
               </Box>
+
+              <Divider sx={{ my: 2 }} />
 
               {/* General Items */}
               <Box sx={{ mb: 2 }}>
@@ -1389,6 +1401,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 )}
               </Box>
 
+              <Divider sx={{ my: 2 }} />
+
               {/* Clothing */}
               <Box sx={{ mb: 2 }}>
                 <Stack
@@ -1442,6 +1456,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 )}
               </Box>
 
+              <Divider sx={{ my: 2 }} />
+
               {/* Alchemy */}
               <Box sx={{ mb: 2 }}>
                 <Stack
@@ -1494,6 +1510,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                 )}
               </Box>
+
+              <Divider sx={{ my: 2 }} />
 
               {/* Food */}
               <Box>

@@ -136,7 +136,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       onClick={handleWeaponClick}
       title={`Rolar ataque com ${nome}`}
     >
-      <Typography fontSize={14}>
+      <Typography fontSize={16}>
         {nome} {`${atk >= 0 ? '+' : ''}${atk}`} • {damage} • ({critico})
         {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
       </Typography>

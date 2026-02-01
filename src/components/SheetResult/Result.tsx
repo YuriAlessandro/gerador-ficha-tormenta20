@@ -24,6 +24,8 @@ import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import EQUIPAMENTOS from '@/data/systems/tormenta20/equipamentos';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -522,6 +524,46 @@ const Result: React.FC<ResultProps> = (props) => {
     [bagEquipments.Armadura, bagEquipments.Escudo]
   );
 
+  const defenseFormula = useMemo(() => {
+    const base = currentSheet.customDefenseBase ?? 10;
+    const components: string[] = [];
+    components.push(`${base} (base)`);
+
+    // Armor and shield bonuses
+    defenseEquipments.forEach((equip) => {
+      if (equip.defenseBonus && equip.defenseBonus > 0) {
+        components.push(`${equip.defenseBonus} (${equip.nome})`);
+      }
+    });
+
+    // Check if character has heavy armor
+    const hasHeavyArmor = bagEquipments.Armadura?.some((armor) =>
+      EQUIPAMENTOS.armaduraPesada.find((heavy) => heavy.nome === armor.nome)
+    );
+
+    // Attribute modifier
+    const useAttr = currentSheet.useDefenseAttribute ?? true;
+    if (useAttr && !hasHeavyArmor) {
+      const defaultAttr =
+        classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+      const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
+      const attrValue = atributos[attrToUse]?.value || 0;
+      if (attrValue !== 0) {
+        const attrName = attrToUse.substring(0, 3).toUpperCase();
+        components.push(`${attrValue} (${attrName})`);
+      }
+    }
+
+    return `${components.join(' + ')} = ${defesa}`;
+  }, [
+    currentSheet,
+    defenseEquipments,
+    bagEquipments.Armadura,
+    classe.name,
+    atributos,
+    defesa,
+  ]);
+
   // const uniqueGeneralPowers = filterUnique(generalPowers);
   // const uniqueClassPowers = filterUnique(classPowers);
 
@@ -768,7 +810,7 @@ const Result: React.FC<ResultProps> = (props) => {
               </Card>
             )}
 
-            {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
+            {/* Card de Ataques */}
             <Card
               sx={{
                 p: 3,
@@ -796,52 +838,16 @@ const Result: React.FC<ResultProps> = (props) => {
                   <EditIcon />
                 </IconButton>
               )}
-              <Stack
-                direction={isMobile ? 'column' : 'row'}
-                spacing={2}
-                justifyContent='space-between'
-                alignItems='center'
-              >
-                <Box width={isMobile ? '100%' : '50%'}>
-                  <BookTitle>Ataques</BookTitle>
-                  {weaponsDiv}
-                </Box>
-                <Box width={isMobile ? '100%' : '50%'}>
-                  <BookTitle>Defesa</BookTitle>
-                  <DefenseEquipments
-                    getKey={getKey}
-                    defenseEquipments={defenseEquipments}
-                  />
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <Typography fontSize={14}>
-                      <strong>Penalidade de Armadura: </strong>
-                      {((bag.getArmorPenalty
-                        ? bag.getArmorPenalty()
-                        : bag.armorPenalty) +
-                        extraArmorPenalty) *
-                        -1}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Stack>
+              <BookTitle>Ataques</BookTitle>
+              {weaponsDiv}
             </Card>
 
-            {/* Card de Estatísticas: Defesa, Deslocamento, Tamanho */}
+            {/* Card de Defesa */}
             <Card
               sx={{
-                position: 'relative',
-                pt: 4,
-                pb: 3,
-                px: 3,
+                p: 3,
                 mb: 4,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
+                position: 'relative',
                 overflow: 'visible',
               }}
             >
@@ -864,85 +870,63 @@ const Result: React.FC<ResultProps> = (props) => {
                   <EditIcon />
                 </IconButton>
               )}
-              <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
-                <FancyBox>
+              <BookTitle>Defesa</BookTitle>
+              <Stack
+                direction={isMobile ? 'column' : 'row'}
+                spacing={2}
+                alignItems='center'
+              >
+                <Box
+                  width={isMobile ? '100%' : '20%'}
+                  display='flex'
+                  justifyContent='center'
+                  order={isMobile ? 1 : 0}
+                >
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                        fontSize: '68px',
+                      }}
+                    >
+                      <StatLabel theme={theme}>{defesa}</StatLabel>
+                      <StatTitle>Defesa</StatTitle>
+                    </Box>
+                  </FancyBox>
+                </Box>
+                <Box width={isMobile ? '100%' : '80%'} order={isMobile ? 0 : 1}>
+                  <DefenseEquipments
+                    getKey={getKey}
+                    defenseEquipments={defenseEquipments}
+                  />
                   <Box
                     sx={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.5,
-                      fontSize: '68px',
+                      justifyContent: 'flex-start',
+                      mt: 1,
                     }}
                   >
-                    <StatLabel theme={theme}>{defesa}</StatLabel>
-                    <StatTitle>Defesa</StatTitle>
+                    <Typography fontSize={12} color='text.secondary'>
+                      <strong>Penalidade de Armadura: </strong>
+                      {((bag.getArmorPenalty
+                        ? bag.getArmorPenalty()
+                        : bag.armorPenalty) +
+                        extraArmorPenalty) *
+                        -1}
+                    </Typography>
                   </Box>
-                </FancyBox>
-                <FancyBox>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.3,
-                    }}
+                  <Typography
+                    fontSize={12}
+                    color='text.secondary'
+                    sx={{ mt: 1, fontFamily: 'monospace' }}
                   >
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '35px',
-                        color: theme.palette.primary.main,
-                        textAlign: 'center',
-                        lineHeight: 1,
-                        margin: 0,
-                      }}
-                    >
-                      {displacement}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '16px',
-                        color: theme.palette.text.secondary,
-                        textAlign: 'center',
-                        margin: 0,
-                      }}
-                    >
-                      ({Math.floor(displacement / 1.5)}q)
-                    </Typography>
-                    <StatTitle>Desl.</StatTitle>
-                  </Box>
-                </FancyBox>
-                <FancyBox>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '58px',
-                        color: theme.palette.primary.main,
-                        textAlign: 'center',
-                        textTransform: 'uppercase',
-                        lineHeight: 1,
-                        margin: 0,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {size.name.charAt(0)}
-                    </Typography>
-                    <StatTitle>Tamanho</StatTitle>
-                  </Box>
-                </FancyBox>
+                    {defenseFormula}
+                  </Typography>
+                </Box>
               </Stack>
             </Card>
             <Card
@@ -1099,6 +1083,73 @@ const Result: React.FC<ResultProps> = (props) => {
                   {proficienciasDiv}
                 </Stack>
               </Card>
+              <Card sx={{ p: 2 }}>
+                <Stack spacing={2} direction='row' justifyContent='center'>
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.3,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '35px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          lineHeight: 1,
+                          margin: 0,
+                        }}
+                      >
+                        {displacement}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '16px',
+                          color: theme.palette.text.secondary,
+                          textAlign: 'center',
+                          margin: 0,
+                        }}
+                      >
+                        ({Math.floor(displacement / 1.5)}q)
+                      </Typography>
+                      <StatTitle>Desl.</StatTitle>
+                    </Box>
+                  </FancyBox>
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '58px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          lineHeight: 1,
+                          margin: 0,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {size.name.charAt(0)}
+                      </Typography>
+                      <StatTitle>Tamanho</StatTitle>
+                    </Box>
+                  </FancyBox>
+                </Stack>
+              </Card>
             </Stack>
           </Box>
         </Stack>
@@ -1178,6 +1229,7 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setDefenseDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
+          onOpenEquipmentDrawer={() => setEquipmentDrawerOpen(true)}
         />
       </>
     </BackgroundBox>
