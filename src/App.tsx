@@ -185,9 +185,13 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
 // Inner app component that uses the preferences hook
 function ThemedApp(): JSX.Element {
   const history = useHistory();
+  const location = useLocation();
   const { accentColor, darkMode, setDarkMode } = useUserPreferences();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
+
+  // Detectar se estamos na página de sessão (mesa virtual)
+  const isGameSession = location.pathname.startsWith('/sessao/');
 
   const theme = React.useMemo(
     () => createTormentaTheme(darkMode ? 'dark' : 'light', accentColor),
@@ -258,17 +262,22 @@ function ThemedApp(): JSX.Element {
                               isDarkTheme={darkMode}
                               onChangeTheme={onChangeTheme}
                             />
-                            <Stack
-                              alignItems='center'
-                              sx={{ width: '100%', position: 'absolute' }}
-                            >
-                              <NavbarV2
-                                onClickMenu={onClickMenu}
-                                onClickToLink={onClickToLink}
-                              />
-                            </Stack>
+                            {!isGameSession && (
+                              <Stack
+                                alignItems='center'
+                                sx={{ width: '100%', position: 'absolute' }}
+                              >
+                                <NavbarV2
+                                  onClickMenu={onClickMenu}
+                                  onClickToLink={onClickToLink}
+                                />
+                              </Stack>
+                            )}
                           </header>
-                          <Box className='mainArea' sx={{ mt: 15 }}>
+                          <Box
+                            className='mainArea'
+                            sx={{ mt: isGameSession ? 0 : 15 }}
+                          >
                             <Switch>
                               <Route path='/changelog'>
                                 <Changelog />
@@ -389,7 +398,7 @@ function ThemedApp(): JSX.Element {
                             </Switch>
                           </Box>
                         </div>
-                        <JamboFooter />
+                        {!isGameSession && <JamboFooter />}
                       </div>
                     </AuthLoadingWrapper>
                   </DiceRollProvider>
