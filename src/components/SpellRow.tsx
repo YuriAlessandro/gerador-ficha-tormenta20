@@ -71,7 +71,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         }}
       >
         <Grid container spacing={2} sx={{ width: '100%' }}>
-          <Grid size={isMobile ? 12 : 3}>
+          <Grid size={isMobile ? 12 : 2.5}>
             <Stack direction='row' alignItems='center' spacing={0.5}>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
                 <IconButton
@@ -102,18 +102,21 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
               <Grid size={1}>
                 <Typography noWrap>{spell.school}</Typography>
               </Grid>
-              <Grid size={2}>
+              <Grid size={1.5}>
                 <Typography noWrap>{spell.execucao}</Typography>
               </Grid>
               <Grid size={1}>
                 <Typography noWrap>{spell.alcance}</Typography>
               </Grid>
-              <Grid size={2.5}>
+              <Grid size={2}>
                 <Typography noWrap>
                   {spell.alvo || spell.area || '-'}
                 </Typography>
               </Grid>
-              <Grid size={2.5}>
+              <Grid size={2}>
+                <Typography noWrap>{spell.duracao}</Typography>
+              </Grid>
+              <Grid size={2}>
                 <Typography noWrap>{spell.resistencia || '-'}</Typography>
               </Grid>
             </>
@@ -150,7 +153,13 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
           </Grid>
         </Grid>
         <Grid container spacing={2} marginBottom={2}>
-          <Grid size={12}>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Duração:
+            </Typography>
+            <Typography>{spell.duracao}</Typography>
+          </Grid>
+          <Grid size={6}>
             <Typography variant='caption' fontWeight='bold'>
               Resistência:
             </Typography>

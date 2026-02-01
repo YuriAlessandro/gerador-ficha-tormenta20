@@ -75,7 +75,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
                 py: 1,
               }}
             >
-              <Grid size={3}>
+              <Grid size={2.5}>
                 <span />
               </Grid>
               <Grid size={1}>
@@ -83,7 +83,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   Escola
                 </Typography>
               </Grid>
-              <Grid size={2}>
+              <Grid size={1.5}>
                 <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Execução
                 </Typography>
@@ -93,12 +93,17 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   Alcance
                 </Typography>
               </Grid>
-              <Grid size={2.5}>
+              <Grid size={2}>
                 <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Alvo/Área
                 </Typography>
               </Grid>
-              <Grid size={2.5}>
+              <Grid size={2}>
+                <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
+                  Duração
+                </Typography>
+              </Grid>
+              <Grid size={2}>
                 <Typography sx={{ fontSize: 12, fontWeight: 'bold' }}>
                   Resistência
                 </Typography>
