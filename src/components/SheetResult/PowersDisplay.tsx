@@ -9,8 +9,13 @@ import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-s
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerDisplay from './PowerDisplay';
 
-function filterUnique<T>(array: T[]) {
-  return array.filter((v, i, a) => a.indexOf(v) === i);
+function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
+  const seen = new Set<string>();
+  return array.filter((item) => {
+    if (seen.has(item.name)) return false;
+    seen.add(item.name);
+    return true;
+  });
 }
 
 const PowersDisplay: React.FC<{
@@ -83,13 +88,13 @@ const PowersDisplay: React.FC<{
   });
 
   const uniquePowers = [
-    ...filterUnique(processedClassPowers),
-    ...filterUnique(raceAbilities),
-    ...filterUnique(classAbilities),
-    ...filterUnique(originPowers),
-    ...filterUnique(deityPowers),
-    ...filterUnique(generalPowers),
-    ...filterUnique(customPowers || []),
+    ...filterUniqueByName(processedClassPowers),
+    ...filterUniqueByName(raceAbilities),
+    ...filterUniqueByName(classAbilities),
+    ...filterUniqueByName(originPowers),
+    ...filterUniqueByName(deityPowers),
+    ...filterUniqueByName(generalPowers),
+    ...filterUniqueByName(customPowers || []),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const getPowerOrigin = (

@@ -7,8 +7,13 @@ import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import { PDFDocument } from 'pdf-lib';
 
-function filterUnique<T>(array: T[]) {
-  return array.filter((v, i, a) => a.indexOf(v) === i);
+function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
+  const seen = new Set<string>();
+  return array.filter((item) => {
+    if (seen.has(item.name)) return false;
+    seen.add(item.name);
+    return true;
+  });
 }
 
 const generateClassPowerText = (power: ClassPower | ClassAbility) =>
@@ -195,22 +200,37 @@ const preparePDF: (
   const originPowers = sheet.origin?.powers || [];
   const deityPowers = sheet.devoto?.poderes || [];
 
+  // Count how many times a power with the same name appears
+  const allPowers = [
+    ...classPowers,
+    ...raceAbilities,
+    ...classAbilities,
+    ...originPowers,
+    ...deityPowers,
+    ...generalPowers,
+  ];
+  const powerCount: Record<string, number> = {};
+  allPowers.forEach((power) => {
+    powerCount[power.name] = (powerCount[power.name] || 0) + 1;
+  });
+
   const uniquePowers = [
-    ...filterUnique(classPowers),
-    ...filterUnique(raceAbilities),
-    ...filterUnique(classAbilities),
-    ...filterUnique(originPowers),
-    ...filterUnique(deityPowers),
-    ...filterUnique(generalPowers),
+    ...filterUniqueByName(classPowers),
+    ...filterUniqueByName(raceAbilities),
+    ...filterUniqueByName(classAbilities),
+    ...filterUniqueByName(originPowers),
+    ...filterUniqueByName(deityPowers),
+    ...filterUniqueByName(generalPowers),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const powersText = uniquePowers
-    .map(
-      (power) =>
-        `- ${power.name}: ${generateClassPowerText(
-          power as ClassPower
-        )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`
-    )
+    .map((power) => {
+      const count = powerCount[power.name];
+      const countSuffix = count > 1 ? ` (x${count})` : '';
+      return `- ${power.name}${countSuffix}: ${generateClassPowerText(
+        power as ClassPower
+      )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`;
+    })
     .join('\n');
   powersField.setText(powersText);
   const powersFieldFontSize = () => {
