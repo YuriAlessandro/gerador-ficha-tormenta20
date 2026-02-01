@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -23,9 +23,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import { Spell } from '@/interfaces/Spells';
-import { getSpellsOfCircle } from '@/data/magias/generalSpells';
-import { getArcaneSpellsOfCircle } from '@/data/magias/arcane';
+import { Spell, spellsCircles } from '@/interfaces/Spells';
+import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
+import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
+import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
+import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
 
 interface SpellsEditDrawerProps {
   open: boolean;
@@ -40,12 +42,40 @@ interface SpellCategory {
   circle: number;
 }
 
+interface SpellWithSupplement {
+  spell: Spell;
+  supplementId: SupplementId;
+}
+
+// Helper function to convert spellsCircles enum to number
+const getCircleNumber = (spellCircle: spellsCircles): number => {
+  switch (spellCircle) {
+    case spellsCircles.c1:
+      return 1;
+    case spellsCircles.c2:
+      return 2;
+    case spellsCircles.c3:
+      return 3;
+    case spellsCircles.c4:
+      return 4;
+    case spellsCircles.c5:
+      return 5;
+    default:
+      return 1;
+  }
+};
+
 const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   open,
   onClose,
   sheet,
   onSave,
 }) => {
+  // Use all available supplements for spell editing (not just user's enabled ones)
+  const allSupplements = Object.keys(
+    TORMENTA20_SYSTEM.supplements
+  ) as SupplementId[];
+
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCircle, setFilterCircle] = useState<number | 'all'>('all');
@@ -58,6 +88,42 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       setSelectedSpells([...sheet.spells]);
     }
   }, [sheet.spells, open]);
+
+  // Get spells from active supplements
+  const getSupplementSpells = useMemo(() => {
+    const spells: SpellWithSupplement[] = [];
+
+    allSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.spells) {
+        // For arcane or both types
+        if (spellType === 'arcane' || spellType === 'both') {
+          supplement.spells.arcane?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+          // Universal spells appear in arcane list
+          supplement.spells.universal?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+        }
+
+        // For divine or both types
+        if (spellType === 'divine' || spellType === 'both') {
+          supplement.spells.divine?.forEach((spell) => {
+            spells.push({ spell, supplementId });
+          });
+          // Universal spells appear in divine list (only add if not 'both' to avoid duplicates)
+          if (spellType === 'divine') {
+            supplement.spells.universal?.forEach((spell) => {
+              spells.push({ spell, supplementId });
+            });
+          }
+        }
+      }
+    });
+
+    return spells;
+  }, [allSupplements, spellType]);
 
   // Get all available spells based on type and circle
   const getAllSpells = (): SpellCategory[] => {
@@ -79,6 +145,13 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         spells = [...spells, ...getSpellsOfCircle(circle)];
       }
 
+      // Add supplement spells for this circle
+      const supplementSpellsForCircle = getSupplementSpells.filter(
+        ({ spell }) => getCircleNumber(spell.spellCircle) === circle
+      );
+
+      spells = [...spells, ...supplementSpellsForCircle.map((s) => s.spell)];
+
       // Remove duplicates (some spells might be in both arcane and divine)
       const uniqueSpells = spells.filter(
         (spell, index, self) =>
@@ -99,10 +172,18 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
 
   const handleSpellToggle = (spell: Spell) => {
     setSelectedSpells((prev) => {
-      const isSelected = prev.some((s) => s.nome === spell.nome);
-      if (isSelected) {
+      const existingSpell = prev.find((s) => s.nome === spell.nome);
+      if (existingSpell) {
+        // Remove spell
         return prev.filter((s) => s.nome !== spell.nome);
       }
+      // Add spell - check if it was previously in the sheet with rolls
+      const originalSpell = sheet.spells?.find((s) => s.nome === spell.nome);
+      if (originalSpell && originalSpell.rolls) {
+        // Preserve existing rolls
+        return [...prev, { ...spell, rolls: originalSpell.rolls }];
+      }
+      // Add new spell without rolls
       return [...prev, spell];
     });
   };
@@ -195,10 +276,18 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       open={open}
       onClose={handleCancel}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 800 } },
+        sx: { width: { xs: '100%', sm: 800 }, overflow: 'hidden' },
       }}
     >
-      <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
         <Stack
           direction='row'
           justifyContent='space-between'
@@ -296,7 +385,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           </Box>
         )}
 
-        <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+        <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
           {spellCategories.map((category) => {
             const filteredSpells = filterSpells(category.spells);
 
@@ -315,70 +404,102 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                   <Stack spacing={2}>
                     {filteredSpells
                       .sort((a, b) => a.nome.localeCompare(b.nome))
-                      .map((spell) => (
-                        <Box
-                          key={spell.nome}
-                          sx={{
-                            p: 2,
-                            border: 2,
-                            borderColor: canCast
-                              ? 'success.main'
-                              : 'error.main',
-                            borderRadius: 1,
-                            backgroundColor: (() => {
-                              if (isSpellSelected(spell)) {
-                                return canCast
-                                  ? 'success.light'
-                                  : 'error.light';
+                      .map((spell) => {
+                        // Find if this spell is from a supplement
+                        const supplementSpell = getSupplementSpells.find(
+                          (s) => s.spell.nome === spell.nome
+                        );
+
+                        return (
+                          <Box
+                            key={spell.nome}
+                            sx={{
+                              p: 2,
+                              border: 2,
+                              borderColor: (() => {
+                                if (isSpellSelected(spell))
+                                  return 'primary.main';
+                                if (canCast) return 'success.main';
+                                return 'grey.400';
+                              })(),
+                              borderRadius: 1,
+                              backgroundColor: isSpellSelected(spell)
+                                ? 'primary.50'
+                                : 'background.paper',
+                              opacity: canCast ? 1 : 0.6,
+                              '&:hover': {
+                                backgroundColor: isSpellSelected(spell)
+                                  ? 'primary.100'
+                                  : 'action.hover',
+                              },
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={isSpellSelected(spell)}
+                                  onChange={() => handleSpellToggle(spell)}
+                                  size='small'
+                                />
                               }
-                              return canCast
-                                ? 'success.50'
-                                : 'background.paper';
-                            })(),
-                            opacity: canCast ? 1 : 0.7,
-                          }}
-                        >
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={isSpellSelected(spell)}
-                                onChange={() => handleSpellToggle(spell)}
-                                size='small'
-                              />
-                            }
-                            label={
-                              <Box sx={{ width: '100%' }}>
-                                <Typography
-                                  variant='body1'
-                                  fontWeight='bold'
-                                  color={
-                                    canCast ? 'text.primary' : 'error.main'
-                                  }
-                                >
-                                  {spell.nome}
-                                </Typography>
-                                <Typography
-                                  variant='caption'
-                                  color='text.secondary'
-                                  sx={{ display: 'block', mb: 1 }}
-                                >
-                                  {spell.school} • {spell.execucao} •{' '}
-                                  {spell.alcance} • {spell.duracao}
-                                  {spell.manaExpense &&
-                                    ` • ${spell.manaExpense} PM`}
-                                </Typography>
-                                <Typography
-                                  variant='body2'
-                                  color='text.secondary'
-                                >
-                                  {spell.description}
-                                </Typography>
-                              </Box>
-                            }
-                            sx={{ alignItems: 'flex-start', width: '100%' }}
-                          />
-                        </Box>
-                      ))}
+                              label={
+                                <Box sx={{ width: '100%' }}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant='body1'
+                                      fontWeight='bold'
+                                      color={
+                                        isSpellSelected(spell)
+                                          ? 'primary.main'
+                                          : 'text.primary'
+                                      }
+                                    >
+                                      {spell.nome}
+                                    </Typography>
+                                    {supplementSpell &&
+                                      supplementSpell.supplementId !==
+                                        SupplementId.TORMENTA20_CORE && (
+                                        <Chip
+                                          label={
+                                            SUPPLEMENT_METADATA[
+                                              supplementSpell.supplementId
+                                            ]?.abbreviation || ''
+                                          }
+                                          size='small'
+                                          color='primary'
+                                          variant='outlined'
+                                        />
+                                      )}
+                                  </Box>
+                                  <Typography
+                                    variant='caption'
+                                    color='text.secondary'
+                                    sx={{ display: 'block', mb: 1 }}
+                                  >
+                                    {spell.school} • {spell.execucao} •{' '}
+                                    {spell.alcance} • {spell.duracao}
+                                    {spell.manaExpense &&
+                                      ` • ${spell.manaExpense} PM`}
+                                  </Typography>
+                                  <Typography
+                                    variant='body2'
+                                    color='text.secondary'
+                                  >
+                                    {spell.description}
+                                  </Typography>
+                                </Box>
+                              }
+                              sx={{ alignItems: 'flex-start', width: '100%' }}
+                            />
+                          </Box>
+                        );
+                      })}
                   </Stack>
                 </AccordionDetails>
               </Accordion>
@@ -386,7 +507,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           })}
         </Box>
 
-        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
+        <Stack direction='row' spacing={2} sx={{ mt: 3, flexShrink: 0 }}>
           <Button fullWidth variant='contained' onClick={handleSave}>
             Salvar
           </Button>

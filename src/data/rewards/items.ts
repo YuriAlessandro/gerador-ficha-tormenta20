@@ -6,7 +6,7 @@ import {
   ItemWeapons,
   ITEM_TYPE,
 } from '../../interfaces/Rewards';
-import { Armaduras, Armas, Escudos } from '../equipamentos';
+import { Armaduras, Armas, Escudos } from '../systems/tormenta20/equipamentos';
 
 export const itemsRewards: Items = {
   S4: [
@@ -1504,7 +1504,7 @@ export const armorEnchantments: ItemE[] = [
     min: 57,
     max: 58,
     enchantment: 'Ilusório',
-    effect: 'Camufla-se como item comum',
+    effect: 'Camufla-se como comum',
   },
   {
     min: 59,

@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   Typography,
+  useTheme,
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
@@ -26,6 +27,7 @@ import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
 import OriginsTable from '../DatabaseTables/OriginsTable';
 import TormentaTitle from '../Database/TormentaTitle';
+import { SEO, getPageSEO } from '../SEO';
 
 interface IProps {
   isDarkMode?: boolean;
@@ -77,6 +79,8 @@ const Database: React.FC<IProps> = () => {
   const { path, url } = useRouteMatch();
   const history = useHistory();
   const isMobile = useMediaQuery('(max-width: 720px)');
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const onSelectMenu = (menu: number, route: string) => {
     setSelectedMenu(menu);
@@ -111,275 +115,294 @@ const Database: React.FC<IProps> = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  return (
-    <Container className='database-container' maxWidth='xl'>
-      <Fade in={isLoaded} timeout={800}>
-        <Box>
-          <TormentaTitle
-            variant='h3'
-            centered
-            gradient
-            glow
-            sx={{ mb: 4, mt: 2 }}
-          >
-            Enciclópedia de Tanah-Toh
-          </TormentaTitle>
+  const databaseSEO = getPageSEO('database');
 
-          {/* Modern Navigation */}
-          <Box sx={{ mb: 3 }}>
-            {selectedMenu === -1 ? (
-              // Welcome screen with beautiful card grid
-              <Grid container spacing={3} sx={{ mt: 2 }}>
-                {menuItems.map((item, index) => (
-                  <Grid item xs={12} sm={6} md={4} key={item.id}>
-                    <Card
-                      onClick={() => onSelectMenu(item.id, item.route)}
-                      sx={{
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background:
-                          'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                        border: '1px solid rgba(209, 50, 53, 0.1)',
-                        '&:hover': {
-                          transform: 'translateY(-8px) scale(1.02)',
-                          boxShadow: '0 12px 24px rgba(209, 50, 53, 0.2)',
-                          background:
-                            'linear-gradient(135deg, #d13235 0%, #922325 100%)',
-                          color: 'white',
-                          '& .MuiCardContent-root': {
-                            color: 'white',
-                          },
-                          '& .card-icon': {
-                            color: 'white',
-                            transform: 'scale(1.2)',
-                          },
-                        },
-                        animation: `fadeInUp 0.6s ease-out ${
-                          index * 0.1
-                        }s both`,
-                        '@keyframes fadeInUp': {
-                          from: {
-                            opacity: 0,
-                            transform: 'translateY(30px)',
-                          },
-                          to: {
-                            opacity: 1,
-                            transform: 'translateY(0)',
-                          },
-                        },
-                      }}
-                    >
-                      <CardContent
+  return (
+    <>
+      <SEO
+        title={databaseSEO.title}
+        description={databaseSEO.description}
+        url='/database'
+      />
+      <Container className='database-container' maxWidth='xl'>
+        <Fade in={isLoaded} timeout={800}>
+          <Box>
+            <TormentaTitle
+              variant='h3'
+              centered
+              gradient
+              glow
+              sx={{ mb: 4, mt: 2 }}
+            >
+              Enciclópedia de Tanah-Toh
+            </TormentaTitle>
+
+            {/* Modern Navigation */}
+            <Box sx={{ mb: 3 }}>
+              {selectedMenu === -1 ? (
+                // Welcome screen with beautiful card grid
+                <Grid container spacing={3} sx={{ mt: 2 }}>
+                  {menuItems.map((item, index) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.id}>
+                      <Card
+                        onClick={() => onSelectMenu(item.id, item.route)}
                         sx={{
-                          textAlign: 'center',
-                          py: 4,
-                          transition: 'color 0.3s ease',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          background: isDark
+                            ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
+                            : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                          border: `1px solid ${
+                            isDark
+                              ? 'rgba(255, 255, 255, 0.1)'
+                              : `rgba(${
+                                  theme.palette.mode === 'dark'
+                                    ? '255, 255, 255'
+                                    : '0, 0, 0'
+                                }, 0.1)`
+                          }`,
+                          '&:hover': {
+                            transform: 'translateY(-8px) scale(1.02)',
+                            boxShadow: `0 12px 24px ${theme.palette.primary.main}40`,
+                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                            color: 'white',
+                            '& .MuiCardContent-root': {
+                              color: 'white',
+                            },
+                            '& .card-icon': {
+                              color: 'white',
+                              transform: 'scale(1.2)',
+                            },
+                          },
+                          animation: `fadeInUp 0.6s ease-out ${
+                            index * 0.1
+                          }s both`,
+                          '@keyframes fadeInUp': {
+                            from: {
+                              opacity: 0,
+                              transform: 'translateY(30px)',
+                            },
+                            to: {
+                              opacity: 1,
+                              transform: 'translateY(0)',
+                            },
+                          },
                         }}
                       >
-                        <Box
-                          className='card-icon'
+                        <CardContent
                           sx={{
-                            mb: 2,
-                            color: '#d13235',
-                            fontSize: '3rem',
-                            transition: 'all 0.3s ease',
+                            textAlign: 'center',
+                            py: 4,
+                            transition: 'color 0.3s ease',
                           }}
                         >
-                          {item.icon}
-                        </Box>
-                        <Typography
-                          variant='h5'
-                          sx={{
-                            fontFamily: 'Tfont, serif',
-                            fontWeight: 600,
-                            mb: 1,
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
-                        <Typography
-                          variant='body2'
-                          color='text.secondary'
-                          sx={{ fontSize: '0.9rem' }}
-                        >
-                          Explorar {item.title.toLowerCase()}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              // Tab navigation when content is selected
-              <>
-                {isMobile ? (
-                  // Mobile: 2x3 Grid layout
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    {menuItems.map((item) => (
-                      <Grid item xs={4} key={item.id}>
-                        <Card
-                          onClick={() => onSelectMenu(item.id, item.route)}
-                          sx={{
-                            cursor: 'pointer',
-                            minHeight: 80,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.3s ease',
-                            background:
-                              selectedMenu === item.id
-                                ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
-                                : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                            border: '1px solid rgba(209, 50, 53, 0.2)',
-                            color:
-                              selectedMenu === item.id ? 'white' : 'inherit',
-                            '&:hover': {
-                              transform: 'scale(1.05)',
-                              boxShadow: '0 4px 12px rgba(209, 50, 53, 0.3)',
-                              background:
-                                selectedMenu === item.id
-                                  ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
-                                  : 'linear-gradient(135deg, rgba(209, 50, 53, 0.1) 0%, rgba(209, 50, 53, 0.05) 100%)',
-                            },
-                          }}
-                        >
-                          <CardContent
+                          <Box
+                            className='card-icon'
                             sx={{
-                              textAlign: 'center',
-                              py: 1,
-                              px: 0.5,
-                              '&:last-child': { pb: 1 },
+                              mb: 2,
+                              color: theme.palette.primary.main,
+                              fontSize: '3rem',
+                              transition: 'all 0.3s ease',
                             }}
                           >
-                            <Box
-                              sx={{
-                                fontSize: '1.5rem',
-                                mb: 0.5,
-                                color:
+                            {item.icon}
+                          </Box>
+                          <Typography
+                            variant='h5'
+                            sx={{
+                              fontFamily: 'Tfont, serif',
+                              fontWeight: 600,
+                              mb: 1,
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                            sx={{ fontSize: '0.9rem' }}
+                          >
+                            Explorar {item.title.toLowerCase()}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              ) : (
+                // Tab navigation when content is selected
+                <>
+                  {isMobile ? (
+                    // Mobile: 2x3 Grid layout
+                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                      {menuItems.map((item) => (
+                        <Grid size={4} key={item.id}>
+                          <Card
+                            onClick={() => onSelectMenu(item.id, item.route)}
+                            sx={{
+                              cursor: 'pointer',
+                              minHeight: 80,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.3s ease',
+                              background:
+                                // eslint-disable-next-line no-nested-ternary
+                                selectedMenu === item.id
+                                  ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+                                  : isDark
+                                  ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
+                                  : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                              border: `1px solid ${theme.palette.primary.main}33`,
+                              color:
+                                selectedMenu === item.id ? 'white' : 'inherit',
+                              '&:hover': {
+                                transform: 'scale(1.05)',
+                                boxShadow: `0 4px 12px ${theme.palette.primary.main}4D`,
+                                background:
                                   selectedMenu === item.id
-                                    ? 'white'
-                                    : '#d13235',
+                                    ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+                                    : `linear-gradient(135deg, ${theme.palette.primary.main}1A 0%, ${theme.palette.primary.main}0D 100%)`,
+                              },
+                            }}
+                          >
+                            <CardContent
+                              sx={{
+                                textAlign: 'center',
+                                py: 1,
+                                px: 0.5,
+                                '&:last-child': { pb: 1 },
                               }}
                             >
-                              {item.icon}
-                            </Box>
-                            <Typography
-                              variant='caption'
-                              sx={{
-                                fontFamily: 'Tfont, serif',
-                                fontWeight: 600,
-                                fontSize: '0.75rem',
-                                color:
-                                  selectedMenu === item.id
-                                    ? 'white'
-                                    : 'inherit',
-                              }}
-                            >
-                              {item.title}
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                ) : (
-                  // Desktop: Horizontal tabs
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      mb: 3,
-                      background:
-                        'linear-gradient(135deg, #d13235 0%, #922325 100%)',
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Tabs
-                      value={selectedMenu}
-                      onChange={handleTabChange}
-                      variant='fullWidth'
+                              <Box
+                                sx={{
+                                  fontSize: '1.5rem',
+                                  mb: 0.5,
+                                  color:
+                                    selectedMenu === item.id
+                                      ? 'white'
+                                      : theme.palette.primary.main,
+                                }}
+                              >
+                                {item.icon}
+                              </Box>
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  fontFamily: 'Tfont, serif',
+                                  fontWeight: 600,
+                                  fontSize: '0.75rem',
+                                  color:
+                                    selectedMenu === item.id
+                                      ? 'white'
+                                      : 'inherit',
+                                }}
+                              >
+                                {item.title}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    // Desktop: Horizontal tabs
+                    <Paper
+                      elevation={0}
                       sx={{
-                        '& .MuiTab-root': {
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          fontFamily: 'Tfont, serif',
-                          fontWeight: 600,
-                          textTransform: 'none',
-                          fontSize: '1rem',
-                          minHeight: 60,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            color: 'white',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                          },
-                          '&.Mui-selected': {
-                            color: 'white',
-                            backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                          },
-                        },
-                        '& .MuiTabs-indicator': {
-                          backgroundColor: 'white',
-                          height: 3,
-                        },
+                        mb: 3,
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                        borderRadius: 2,
                       }}
                     >
-                      {menuItems.map((item) => (
-                        <Tab
-                          key={item.id}
-                          label={item.title}
-                          icon={item.icon}
-                          iconPosition='start'
-                          sx={{ gap: 1 }}
-                        />
-                      ))}
-                    </Tabs>
-                  </Paper>
-                )}
-              </>
-            )}
-          </Box>
+                      <Tabs
+                        value={selectedMenu}
+                        onChange={handleTabChange}
+                        variant='fullWidth'
+                        sx={{
+                          '& .MuiTab-root': {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            fontFamily: 'Tfont, serif',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            fontSize: '1rem',
+                            minHeight: 60,
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                              color: 'white',
+                              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            '&.Mui-selected': {
+                              color: 'white',
+                              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                            },
+                          },
+                          '& .MuiTabs-indicator': {
+                            backgroundColor: 'white',
+                            height: 3,
+                          },
+                        }}
+                      >
+                        {menuItems.map((item) => (
+                          <Tab
+                            key={item.id}
+                            label={item.title}
+                            icon={item.icon}
+                            iconPosition='start'
+                            sx={{ gap: 1 }}
+                          />
+                        ))}
+                      </Tabs>
+                    </Paper>
+                  )}
+                </>
+              )}
+            </Box>
 
-          {/* Content Section */}
-          <Box
-            className='database-content'
-            sx={{ minHeight: selectedMenu === -1 ? 'auto' : '500px' }}
-          >
-            {selectedMenu !== -1 && (
-              <Switch>
-                <Route path={`${path}/raças/:selectedRace?`}>
-                  <Box className='table-container'>
-                    <RacesTable />
-                  </Box>
-                </Route>
-                <Route path={`${path}/classes/:selectedClass?`}>
-                  <Box className='table-container'>
-                    <ClassesTable />
-                  </Box>
-                </Route>
-                <Route path={`${path}/origens/:selectedOrigin?`}>
-                  <Box className='table-container'>
-                    <OriginsTable />
-                  </Box>
-                </Route>
-                <Route path={`${path}/divindades/:selectedGod?`}>
-                  <Box className='table-container'>
-                    <DivindadesTable />
-                  </Box>
-                </Route>
-                <Route path={`${path}/poderes/:selectedPower?`}>
-                  <Box className='table-container'>
-                    <PowersTable />
-                  </Box>
-                </Route>
-                <Route path={`${path}/magias/:selectedSpell?`}>
-                  <Box className='table-container'>
-                    <SpellsTable />
-                  </Box>
-                </Route>
-              </Switch>
-            )}
+            {/* Content Section */}
+            <Box
+              className='database-content'
+              sx={{ minHeight: selectedMenu === -1 ? 'auto' : '500px' }}
+            >
+              {selectedMenu !== -1 && (
+                <Switch>
+                  <Route path={`${path}/raças/:selectedRace?`}>
+                    <Box className='table-container'>
+                      <RacesTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/classes/:selectedClass?`}>
+                    <Box className='table-container'>
+                      <ClassesTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/origens/:selectedOrigin?`}>
+                    <Box className='table-container'>
+                      <OriginsTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/divindades/:selectedGod?`}>
+                    <Box className='table-container'>
+                      <DivindadesTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/poderes/:selectedPower?`}>
+                    <Box className='table-container'>
+                      <PowersTable />
+                    </Box>
+                  </Route>
+                  <Route path={`${path}/magias/:selectedSpell?`}>
+                    <Box className='table-container'>
+                      <SpellsTable />
+                    </Box>
+                  </Route>
+                </Switch>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Fade>
-    </Container>
+        </Fade>
+      </Container>
+    </>
   );
 };
 

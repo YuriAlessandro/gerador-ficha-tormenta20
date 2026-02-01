@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -20,13 +20,15 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import Skill, { CompleteSkill } from '@/interfaces/Skills';
 
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 
 interface SkillsEditDrawerProps {
   open: boolean;
@@ -54,7 +56,7 @@ const AVAILABLE_OFICIOS = [
   'Ofício (Fazendeiro)',
   'Ofício (Pescador)',
   'Ofício (Estalajadeiro)',
-  'Ofício (Escrita)',
+  'Ofício (Escriba)',
   'Ofício (Escultor)',
   'Ofício (Engenhoqueiro)',
   'Ofício (Pintor)',
@@ -69,6 +71,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 }) => {
   const [editedSkills, setEditedSkills] = useState<EditedSkill[]>([]);
   const [selectedOficio, setSelectedOficio] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     if (sheet.completeSkills && open) {
@@ -78,6 +81,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         others: skill.others ?? 0,
       }));
       setEditedSkills(skills);
+      setSearchQuery(''); // Reset search when opening
     }
   }, [sheet.completeSkills, open]);
 
@@ -117,7 +121,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
     // For new Oficio skills, calculate manually
     if (!originalSkill && skill.name.startsWith('Ofício')) {
-      const intMod = sheet.atributos.Inteligência.mod;
+      const intMod = sheet.atributos.Inteligência.value;
       const halfLevel = Math.floor(sheet.nivel / 2);
       const training = skillTrainingMod(skill.trained, sheet.nivel);
       return halfLevel + intMod + training + skill.others;
@@ -126,7 +130,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     if (!originalSkill) return 0;
 
     const attrBonus = originalSkill.modAttr
-      ? sheet.atributos[originalSkill.modAttr].mod
+      ? sheet.atributos[originalSkill.modAttr].value
       : 0;
     const halfLevel = originalSkill.halfLevel ?? 0;
     const training = skillTrainingMod(skill.trained, sheet.nivel);
@@ -294,9 +298,14 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     onClose();
   };
 
-  const sortedSkills = [...editedSkills].sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+  const sortedSkills = useMemo(() => {
+    const filtered = searchQuery
+      ? editedSkills.filter((skill) =>
+          skill.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : editedSkills;
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }, [editedSkills, searchQuery]);
 
   return (
     <Drawer
@@ -304,10 +313,18 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       open={open}
       onClose={handleCancel}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } },
+        sx: { width: { xs: '100%', sm: 600 }, overflow: 'hidden' },
       }}
     >
-      <Box sx={{ p: 3 }}>
+      <Box
+        sx={{
+          p: 3,
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
         <Stack
           direction='row'
           justifyContent='space-between'
@@ -327,14 +344,68 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           &ldquo;Outros&rdquo; conforme necessário.
         </Typography>
 
-        <TableContainer component={Paper} sx={{ maxHeight: '60vh' }}>
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Buscar perícia...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ mb: 2 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon color='action' />
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <TableContainer
+          component={Paper}
+          sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}
+        >
           <Table stickyHeader size='small'>
             <TableHead>
               <TableRow>
-                <TableCell>Perícia</TableCell>
-                <TableCell align='center'>Treinada</TableCell>
-                <TableCell align='center'>Outros</TableCell>
-                <TableCell align='center'>Total</TableCell>
+                <TableCell
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Perícia
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Treinada
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Outros
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Total
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -385,6 +456,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
               p: 2,
               backgroundColor: 'action.hover',
               borderRadius: 1,
+              flexShrink: 0,
             }}
           >
             <Typography variant='subtitle2' sx={{ mb: 2 }}>
@@ -419,8 +491,13 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           </Box>
         )}
 
-        <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
-          <Button fullWidth variant='contained' onClick={handleSave}>
+        <Stack direction='row' spacing={2} sx={{ mt: 4, flexShrink: 0 }}>
+          <Button
+            fullWidth
+            variant='contained'
+            color='warning'
+            onClick={handleSave}
+          >
             Salvar
           </Button>
           <Button fullWidth variant='outlined' onClick={handleCancel}>

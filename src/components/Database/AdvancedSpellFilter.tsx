@@ -12,6 +12,7 @@ import {
   Collapse,
   IconButton,
   useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -41,6 +42,8 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
 }) => {
   const [expanded, setExpanded] = React.useState(false);
   const isMobile = useMediaQuery('(max-width: 720px)');
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const handleClearFilters = () => {
     onFilterChange({
@@ -101,7 +104,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
       sx={{
         mb: 3,
         borderRadius: 2,
-        border: '1px solid rgba(209, 50, 53, 0.2)',
+        border: `1px solid ${theme.palette.primary.main}33`,
         overflow: 'hidden',
       }}
     >
@@ -109,9 +112,11 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
       <Box
         sx={{
           p: 2,
-          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+          background: isDark
+            ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
+            : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
           borderBottom: hasActiveFilters
-            ? '1px solid rgba(209, 50, 53, 0.3)'
+            ? `1px solid ${theme.palette.primary.main}4D`
             : 'none',
           display: 'flex',
           alignItems: 'center',
@@ -126,7 +131,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             variant='h6'
             sx={{
               fontFamily: 'Tfont, serif',
-              color: '#d13235',
+              color: theme.palette.primary.main,
               fontWeight: 600,
             }}
           >
@@ -151,12 +156,12 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
                 handleClearFilters();
               }}
               title='Limpar filtros'
-              sx={{ color: '#d13235' }}
+              sx={{ color: theme.palette.primary.main }}
             >
               <ClearIcon />
             </IconButton>
           )}
-          <IconButton size='small' sx={{ color: '#d13235' }}>
+          <IconButton size='small' sx={{ color: theme.palette.primary.main }}>
             {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         </Box>
@@ -191,7 +196,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={isMobile ? 2 : 3}>
             {/* Circle Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='circle-filter-label'>Círculo</InputLabel>
                 <Select
@@ -213,7 +218,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* School Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='school-filter-label'>Escola</InputLabel>
                 <Select
@@ -233,7 +238,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* Execution Time Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='execution-filter-label'>Execução</InputLabel>
                 <Select
@@ -255,7 +260,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             </Grid>
 
             {/* Spell Type Filter */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel id='type-filter-label'>Tipo</InputLabel>
                 <Select
@@ -281,7 +286,7 @@ const AdvancedSpellFilter: React.FC<AdvancedSpellFilterProps> = ({
             sx={{
               mt: 3,
               p: 2,
-              backgroundColor: 'rgba(209, 50, 53, 0.05)',
+              backgroundColor: `${theme.palette.primary.main}0D`,
               borderRadius: 1,
             }}
           >

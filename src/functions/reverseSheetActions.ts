@@ -2,7 +2,7 @@ import _ from 'lodash';
 import CharacterSheet, {
   SheetActionReceipt,
 } from '@/interfaces/CharacterSheet';
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { ClassPower } from '@/interfaces/Class';
 import Skill from '@/interfaces/Skills';
@@ -32,9 +32,9 @@ function reverseAttributeChange(
 
     if (attributeChange) {
       // Subtract the modification value that was applied
-      const originalValue = sheet.atributos[attribute].mod;
+      const originalValue = sheet.atributos[attribute].value;
       const modificationValue = attributeChange.value - originalValue;
-      sheet.atributos[attribute].mod -= modificationValue;
+      sheet.atributos[attribute].value -= modificationValue;
     }
   }
 }
@@ -131,7 +131,7 @@ function reverseAttributeIncrease(
   _plateau: number
 ): void {
   // Decrease the attribute by 1
-  sheet.atributos[attribute].mod -= 1;
+  sheet.atributos[attribute].value -= 1;
 }
 
 /**

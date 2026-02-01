@@ -983,7 +983,7 @@ export const minorRych: Rych[] = [
       'Cadeira de madeira Tollon (5 espaços)',
       'Cavalo de balanço com crina de verdade (5 espaços)',
       'Conjunto de velas de um galeão (10 espaços)',
-      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1028,7 +1028,7 @@ export const minorRych: Rych[] = [
       'Lingote de ouro (2 espaços)',
       'Pintura antiga (2 espaços)',
       'Barril de especiarias de Moreania (5 espaços)',
-      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1136,7 +1136,7 @@ export const mediumRych: Rych[] = [
       'Cadeira de madeira Tollon (5 espaços)',
       'Cavalo de balanço com crina de verdade (5 espaços)',
       'Conjunto de velas de um galeão (10 espaços)',
-      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1181,7 +1181,7 @@ export const mediumRych: Rych[] = [
       'Lingote de ouro (2 espaços)',
       'Pintura antiga (2 espaços)',
       'Barril de especiarias de Moreania (5 espaços)',
-      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1289,7 +1289,7 @@ export const majorRych: Rych[] = [
       'Cadeira de madeira Tollon (5 espaços)',
       'Cavalo de balanço com crina de verdade (5 espaços)',
       'Conjunto de velas de um galeão (10 espaços)',
-      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carruagem (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1334,7 +1334,7 @@ export const majorRych: Rych[] = [
       'Lingote de ouro (2 espaços)',
       'Pintura antiga (2 espaços)',
       'Barril de especiarias de Moreania (5 espaços)',
-      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carroça cheia de mercadorias comuns (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {
@@ -1430,7 +1430,7 @@ export const majorRych: Rych[] = [
       'Altar religioso em granito e ônix com inscrições em ouro (10 espaços)',
       'Sarcófago de ouro cravejado de gemas (10 espaços)',
       'Arca de madeira reforçada repleta de lingotes de prata e ouro e pedras preciosas de vários tipos (20 espaços)',
-      'Carruagem de luxo em madeira Tollon banhada a ouro com detalhes em metais finos e pedras preciosas (pode ser puxada por um animal de tração ou arrastada por um personagem como um item que ocupa 20 espaços) (20 espaços)',
+      'Carruagem de luxo em madeira Tollon banhada a ouro com detalhes em metais finos e pedras preciosas (pode ser puxada por um animal de tração ou arrastada por um personagem como um que ocupa 20 espaços) (20 espaços)',
     ],
   },
   {

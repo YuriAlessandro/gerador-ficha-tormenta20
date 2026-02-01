@@ -1,19 +1,19 @@
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { CharacterAttributes } from '../interfaces/Character';
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import Skill, { SkillsAttrs } from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
-import GUERREIRO from '../data/classes/guerreiro';
+import GUERREIRO from '../data/systems/tormenta20/classes/guerreiro';
 import { ClassDescription } from '../interfaces/Class';
-import { RACE_SIZES } from '../data/races/raceSizes/raceSizes';
+import { RACE_SIZES } from '../data/systems/tormenta20/races/raceSizes/raceSizes';
 
 const createMockAttributes = (): CharacterAttributes => ({
-  [Atributo.FORCA]: { name: Atributo.FORCA, value: 14, mod: 2 },
-  [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 12, mod: 1 },
-  [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: 13, mod: 1 },
-  [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 10, mod: 0 },
-  [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 11, mod: 0 },
-  [Atributo.CARISMA]: { name: Atributo.CARISMA, value: 8, mod: -1 },
+  [Atributo.FORCA]: { name: Atributo.FORCA, value: 2 },
+  [Atributo.DESTREZA]: { name: Atributo.DESTREZA, value: 1 },
+  [Atributo.CONSTITUICAO]: { name: Atributo.CONSTITUICAO, value: 1 },
+  [Atributo.INTELIGENCIA]: { name: Atributo.INTELIGENCIA, value: 0 },
+  [Atributo.SABEDORIA]: { name: Atributo.SABEDORIA, value: 0 },
+  [Atributo.CARISMA]: { name: Atributo.CARISMA, value: -1 },
 });
 
 const createMockCompleteSkills = () =>

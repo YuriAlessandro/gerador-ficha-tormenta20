@@ -1,4 +1,4 @@
-import { Atributo } from '@/data/atributos';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import Equipment from '@/interfaces/Equipment';
@@ -7,8 +7,13 @@ import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import { PDFDocument } from 'pdf-lib';
 
-function filterUnique<T>(array: T[]) {
-  return array.filter((v, i, a) => a.indexOf(v) === i);
+function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
+  const seen = new Set<string>();
+  return array.filter((item) => {
+    if (seen.has(item.name)) return false;
+    seen.add(item.name);
+    return true;
+  });
 }
 
 const generateClassPowerText = (power: ClassPower | ClassAbility) =>
@@ -63,12 +68,12 @@ const preparePDF: (
   originField.setText(sheet.origin?.name || '');
   classField.setText(`${sheet.classe.name} ${sheet.nivel}`);
   deytiField.setText(sheet.devoto?.divindade.name || '');
-  forceField.setText(sheet.atributos.Força.mod.toString());
-  dexterityField.setText(sheet.atributos.Destreza.mod.toString());
-  constitutionField.setText(sheet.atributos.Constituição.mod.toString());
-  intelligenceField.setText(sheet.atributos.Inteligência.mod.toString());
-  wisdomField.setText(sheet.atributos.Sabedoria.mod.toString());
-  charismaField.setText(sheet.atributos.Carisma.mod.toString());
+  forceField.setText(sheet.atributos.Força.value.toString());
+  dexterityField.setText(sheet.atributos.Destreza.value.toString());
+  constitutionField.setText(sheet.atributos.Constituição.value.toString());
+  intelligenceField.setText(sheet.atributos.Inteligência.value.toString());
+  wisdomField.setText(sheet.atributos.Sabedoria.value.toString());
+  charismaField.setText(sheet.atributos.Carisma.value.toString());
   displacimentField.setText(sheet.displacement.toString());
   halfLevelField.setText(Math.floor(sheet.nivel / 2).toString());
 
@@ -87,7 +92,7 @@ const preparePDF: (
   );
 
   const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].mod
+    ? sheet.atributos[fightSkill.modAttr].value
     : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
@@ -96,7 +101,7 @@ const preparePDF: (
     (fightSkill?.training ?? 0);
 
   const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].mod
+    ? sheet.atributos[rangeSkill.modAttr].value
     : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
@@ -195,22 +200,37 @@ const preparePDF: (
   const originPowers = sheet.origin?.powers || [];
   const deityPowers = sheet.devoto?.poderes || [];
 
+  // Count how many times a power with the same name appears
+  const allPowers = [
+    ...classPowers,
+    ...raceAbilities,
+    ...classAbilities,
+    ...originPowers,
+    ...deityPowers,
+    ...generalPowers,
+  ];
+  const powerCount: Record<string, number> = {};
+  allPowers.forEach((power) => {
+    powerCount[power.name] = (powerCount[power.name] || 0) + 1;
+  });
+
   const uniquePowers = [
-    ...filterUnique(classPowers),
-    ...filterUnique(raceAbilities),
-    ...filterUnique(classAbilities),
-    ...filterUnique(originPowers),
-    ...filterUnique(deityPowers),
-    ...filterUnique(generalPowers),
+    ...filterUniqueByName(classPowers),
+    ...filterUniqueByName(raceAbilities),
+    ...filterUniqueByName(classAbilities),
+    ...filterUniqueByName(originPowers),
+    ...filterUniqueByName(deityPowers),
+    ...filterUniqueByName(generalPowers),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const powersText = uniquePowers
-    .map(
-      (power) =>
-        `- ${power.name}: ${generateClassPowerText(
-          power as ClassPower
-        )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`
-    )
+    .map((power) => {
+      const count = powerCount[power.name];
+      const countSuffix = count > 1 ? ` (x${count})` : '';
+      return `- ${power.name}${countSuffix}: ${generateClassPowerText(
+        power as ClassPower
+      )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`;
+    })
     .join('\n');
   powersField.setText(powersText);
   const powersFieldFontSize = () => {
@@ -274,7 +294,9 @@ const preparePDF: (
       const skillIsTrainedField = form.getCheckBox(`treinado${index + 1}`);
       const skillOthersField = form.getTextField(`outros${index + 1}`);
 
-      const attrValue = skill.modAttr ? sheet.atributos[skill.modAttr].mod : 0;
+      const attrValue = skill.modAttr
+        ? sheet.atributos[skill.modAttr].value
+        : 0;
 
       const skillTotal =
         (skill.halfLevel ?? 0) +

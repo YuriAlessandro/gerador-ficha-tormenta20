@@ -1,18 +1,115 @@
 import _ from 'lodash';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+
+import Bag from '@/interfaces/Bag';
+import { CharacterAttributes } from '@/interfaces/Character';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+  Step,
+} from '@/interfaces/CharacterSheet';
+import Equipment from '@/interfaces/Equipment';
+import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
 } from '@/interfaces/Skills';
-import { Atributo } from '@/data/atributos';
-import { calcDefense } from '@/data/equipamentos';
-import { getRaceDisplacement } from '@/data/races/functions/functions';
-import Bag from '@/interfaces/Bag';
-import { CharacterAttributes } from '@/interfaces/Character';
-import Equipment from '@/interfaces/Equipment';
-import { ManualPowerSelections } from '@/interfaces/PowerSelections';
+import { Spell } from '@/interfaces/Spells';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
+import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
+
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
+
+// Note: resetAttributesToBase was removed as part of attribute system simplification.
+// The value field now directly contains the modifier (no separate base/mod distinction).
+
+/**
+ * Removes duplicate entries from sheetActionHistory based on source
+ */
+function deduplicateHistory(
+  history: SheetActionHistoryEntry[]
+): SheetActionHistoryEntry[] {
+  const seen = new Map<string, SheetActionHistoryEntry>();
+
+  history.forEach((action) => {
+    // Create a key based on source type and identifying properties
+    let key = `${action.source.type}`;
+
+    if (action.source.type === 'race' && 'raceName' in action.source) {
+      key += `-${action.source.raceName}`;
+    } else if (action.source.type === 'class' && 'className' in action.source) {
+      key += `-${action.source.className}`;
+    } else if (
+      action.source.type === 'origin' &&
+      'originName' in action.source
+    ) {
+      key += `-${action.source.originName}`;
+    } else if (action.source.type === 'levelUp' && 'level' in action.source) {
+      key += `-${action.source.level}`;
+    } else if (action.source.type === 'power' && 'name' in action.source) {
+      key += `-${action.source.name}`;
+      // For powers with multiple instances (like Aumento de Atributo), include changes in key
+      if (action.changes && action.changes.length > 0) {
+        const changesKey = JSON.stringify(action.changes);
+        key += `-${changesKey}`;
+      }
+    }
+
+    // Only keep the first occurrence
+    if (!seen.has(key)) {
+      seen.set(key, action);
+    }
+  });
+
+  return Array.from(seen.values());
+}
+
+/**
+ * Removes duplicate steps from the steps array
+ */
+function deduplicateSteps(steps: Step[]): Step[] {
+  const seen = new Set<string>();
+  const uniqueSteps: Step[] = [];
+
+  steps.forEach((step) => {
+    // Create a key based on label and type
+    const key = `${step.type || ''}-${step.label}`;
+
+    // For defense increments, keep only the last one
+    if (step.label.includes('Incrementou Defesa')) {
+      // Remove previous defense increments
+      const previousIndex = uniqueSteps.findIndex((s) =>
+        s.label.includes('Incrementou Defesa')
+      );
+      if (previousIndex !== -1) {
+        uniqueSteps.splice(previousIndex, 1);
+      }
+      uniqueSteps.push(step);
+    } else if (!seen.has(key)) {
+      seen.add(key);
+      uniqueSteps.push(step);
+    }
+  });
+
+  return uniqueSteps;
+}
+
+/**
+ * Removes duplicate spells from the spells array
+ */
+function deduplicateSpells(spells: Spell[]): Spell[] {
+  const seen = new Set<string>();
+  const uniqueSpells: Spell[] = [];
+
+  spells.forEach((spell) => {
+    if (!seen.has(spell.nome)) {
+      seen.add(spell.nome);
+      uniqueSpells.push(spell);
+    }
+  });
+
+  return uniqueSpells;
+}
 
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
@@ -27,12 +124,12 @@ const calculateBonusValue = (
   }
   if (bonus.type === 'Attribute') {
     const attr = bonus.attribute as Atributo;
-    return sheet.atributos[attr]?.mod || 0;
+    return sheet.atributos[attr]?.value || 0;
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
       const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].mod;
+      return sheet.atributos[attr].value;
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
@@ -91,19 +188,34 @@ const weaponMatchesBonus = (
 const resetWeaponToBase = (weapon: Equipment): Equipment => {
   const resetWeapon = { ...weapon };
 
-  // Reset atkBonus to 0 (base value)
-  resetWeapon.atkBonus = 0;
-
-  // Reset damage string to remove any added bonuses
-  if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
-    // Extract base damage (everything before the first '+')
-    [resetWeapon.dano] = resetWeapon.dano.split('+');
+  // If weapon has manual edits, preserve the current values
+  // Only reset weapons that don't have manual edits (i.e., system-added weapons)
+  if (resetWeapon.hasManualEdits) {
+    // Preserve user edits - only reset atkBonus if it's a system bonus
+    // User-edited damage and critical are kept as-is
+    return resetWeapon;
   }
 
-  // Reset critical to base value - this is more complex as we need to handle
-  // various formats like "x2", "19", "19/x3", etc.
-  // For now, we'll store original values or use a more sophisticated approach
-  // TODO: Consider storing original weapon data separately
+  // For weapons without manual edits, reset to base values
+  // If base values exist, use them; otherwise, extract from current values
+
+  // Reset atkBonus to base or 0
+  resetWeapon.atkBonus = resetWeapon.baseAtkBonus ?? 0;
+
+  // Reset damage to base value or extract base if not stored
+  if (resetWeapon.baseDano) {
+    resetWeapon.dano = resetWeapon.baseDano;
+  } else if (resetWeapon.dano && resetWeapon.dano.includes('+')) {
+    // Fallback: Extract base damage (everything before the first '+')
+    // and store it for future use
+    [resetWeapon.dano] = resetWeapon.dano.split('+');
+    resetWeapon.baseDano = resetWeapon.dano;
+  }
+
+  // Reset critical to base value
+  if (resetWeapon.baseCritico) {
+    resetWeapon.critico = resetWeapon.baseCritico;
+  }
 
   return resetWeapon;
 };
@@ -123,7 +235,7 @@ const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
     const attributeBonus =
-      updatedSheet.atributos[newAttribute].mod * updatedSheet.nivel;
+      updatedSheet.atributos[newAttribute].value * updatedSheet.nivel;
 
     updatedSheet.pv = baseHp + attributeBonus;
   }
@@ -143,6 +255,12 @@ const applyWeaponBonuses = (
     (weapon) => {
       // Start with a clean weapon (reset any previous bonuses)
       const weaponCopy = resetWeaponToBase(weapon);
+
+      // Skip automatic bonuses for manually edited weapons
+      // The user's manual values should be preserved exactly as they set them
+      if (weapon.hasManualEdits) {
+        return weaponCopy;
+      }
 
       // Calculate total bonuses for this weapon
       let totalAttackBonus = 0;
@@ -255,9 +373,9 @@ const calcDisplacement = (
   baseDisplacement: number
 ): number => {
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -409,6 +527,105 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Checks if the character has a specific class ability
+ */
+function hasClassAbility(sheet: CharacterSheet, abilityName: string): boolean {
+  // Check in class abilities
+  const classAbilities = sheet.classe.abilities || [];
+  if (
+    classAbilities.some(
+      (ability) => ability.name === abilityName && ability.nivel <= sheet.nivel
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if equipment bonus condition is met
+ */
+function isConditionMet(
+  sheet: CharacterSheet,
+  condition: { type: string; value: string }
+): boolean {
+  if (condition.type === 'hasClassAbility') {
+    return hasClassAbility(sheet, condition.value);
+  }
+
+  if (condition.type === 'isClass') {
+    return sheet.classe.name === condition.value;
+  }
+
+  return false;
+}
+
+/**
+ * Collects and applies bonuses from all equipment in the bag
+ */
+function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updatedSheet = _.cloneDeep(sheet);
+
+  // Collect all equipment from the bag
+  const allEquipment: Equipment[] = [
+    ...(updatedSheet.bag.equipments['Item Geral'] || []),
+    ...(updatedSheet.bag.equipments.Vestuário || []),
+    ...(updatedSheet.bag.equipments.Alquimía || []),
+    ...(updatedSheet.bag.equipments.Arma || []),
+    ...(updatedSheet.bag.equipments.Armadura || []),
+    ...(updatedSheet.bag.equipments.Escudo || []),
+    ...(updatedSheet.bag.equipments.Alimentação || []),
+    ...(updatedSheet.bag.equipments.Animal || []),
+    ...(updatedSheet.bag.equipments.Veículo || []),
+    ...(updatedSheet.bag.equipments.Serviço || []),
+    ...(updatedSheet.bag.equipments.Hospedagem || []),
+  ];
+
+  // Process each equipment
+  allEquipment.forEach((equip) => {
+    // Add direct sheet bonuses
+    if (equip.sheetBonuses) {
+      updatedSheet.sheetBonuses.push(...equip.sheetBonuses);
+    }
+
+    // Process conditional bonuses
+    if (equip.conditionalBonuses) {
+      equip.conditionalBonuses.forEach((conditional) => {
+        if (isConditionMet(updatedSheet, conditional.condition)) {
+          updatedSheet.sheetBonuses.push(...conditional.bonuses);
+        }
+      });
+    }
+
+    // Process selectable bonus (if a skill was selected)
+    if (equip.selectableBonus && equip.selectedBonusSkill) {
+      const skillBonus = {
+        source: { type: 'equipment' as const, equipmentName: equip.nome },
+        target: { type: 'Skill' as const, name: equip.selectedBonusSkill },
+        modifier: {
+          type: 'Fixed' as const,
+          value: equip.selectableBonus.bonusValue,
+        },
+      };
+      updatedSheet.sheetBonuses.push(skillBonus);
+    }
+  });
+
+  return updatedSheet;
+}
+
+/**
+ * Options for controlling what gets recalculated
+ */
+export interface RecalculateOptions {
+  /** Skip PM (Pontos de Mana) recalculation - use when only equipment changes */
+  skipPMRecalc?: boolean;
+  /** Skip PV (Pontos de Vida) recalculation - use when only equipment changes */
+  skipPVRecalc?: boolean;
+}
+
+/**
  * Recalculates the entire character sheet after changes have been made.
  * This function applies all powers, abilities, and bonuses to ensure
  * the sheet is consistent and up-to-date.
@@ -416,14 +633,19 @@ function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
  * @param sheet - The updated character sheet
  * @param originalSheet - Optional original sheet state to detect removed powers
  * @param manualSelections - Optional manual selections for powers that require them
+ * @param options - Optional flags to control what gets recalculated
  */
 export function recalculateSheet(
   sheet: CharacterSheet,
   originalSheet?: CharacterSheet,
-  manualSelections?: ManualPowerSelections
+  manualSelections?: ManualPowerSelections,
+  options?: RecalculateOptions
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
+
+  // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.
+  // Race bonuses are already included in value from initial creation.
 
   // Step 0: If we have the original sheet, identify removed powers
   if (originalSheet) {
@@ -474,10 +696,10 @@ export function recalculateSheet(
                 ) as { type: 'Attribute'; attribute: Atributo; value: number };
                 if (attributeChange) {
                   const originalValue =
-                    updatedSheet.atributos[change.attribute].mod;
+                    updatedSheet.atributos[change.attribute].value;
                   const modificationValue =
                     attributeChange.value - originalValue;
-                  updatedSheet.atributos[change.attribute].mod -=
+                  updatedSheet.atributos[change.attribute].value -=
                     modificationValue;
                 }
               }
@@ -541,7 +763,7 @@ export function recalculateSheet(
             }
 
             case 'AttributeIncreasedByAumentoDeAtributo':
-              updatedSheet.atributos[change.attribute].mod -= 1;
+              updatedSheet.atributos[change.attribute].value -= 1;
               break;
 
             default:
@@ -579,10 +801,132 @@ export function recalculateSheet(
   // Step 7: Apply origin powers
   updatedSheet = applyOriginPowers(updatedSheet);
 
-  // Step 7: Recalculate skills first (resets others to 0)
+  // Step 7.3: Apply equipment bonuses
+  updatedSheet = applyEquipmentBonuses(updatedSheet);
+
+  // Check for manual max overrides - when set, skip ALL recalculation for that stat
+  // Player takes full control of these values when manually defined
+  const hasManualMaxPV =
+    updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0;
+  const hasManualMaxPM =
+    updatedSheet.manualMaxPM !== undefined && updatedSheet.manualMaxPM > 0;
+
+  // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
+  // Skip PV recalculation if flag is set (e.g., equipment-only changes)
+  if (!options?.skipPVRecalc) {
+    if (hasManualMaxPV) {
+      // Player has set manual max - skip all calculations, just use the manual value
+      updatedSheet.pv = updatedSheet.manualMaxPV!;
+    } else {
+      // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
+      const basePV = updatedSheet.classe.pv || 0;
+      const addPVPerLevel =
+        updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
+      const conMod = updatedSheet.atributos.Constituição?.value || 0;
+      updatedSheet.pv =
+        basePV +
+        addPVPerLevel * (updatedSheet.nivel - 1) +
+        conMod * updatedSheet.nivel;
+
+      // Add bonus PV if defined
+      if (updatedSheet.bonusPV) {
+        updatedSheet.pv += updatedSheet.bonusPV;
+      }
+
+      // Add manual PV edit if defined (applied after all calculations)
+      if (updatedSheet.manualPVEdit) {
+        updatedSheet.pv += updatedSheet.manualPVEdit;
+      }
+    }
+
+    // Initialize current PV if not set (first time or reset)
+    if (updatedSheet.currentPV === undefined) {
+      updatedSheet.currentPV = updatedSheet.pv;
+    }
+
+    // Initialize increment if not set
+    if (updatedSheet.pvIncrement === undefined) {
+      updatedSheet.pvIncrement = 1;
+    }
+  }
+
+  // Skip PM recalculation if flag is set (e.g., equipment-only changes)
+  if (!options?.skipPMRecalc) {
+    if (hasManualMaxPM) {
+      // Player has set manual max - skip all calculations, just use the manual value
+      updatedSheet.pm = updatedSheet.manualMaxPM!;
+    } else {
+      // PM base = classe.pm + (classe.addpm * (level - 1))
+      // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
+      // class abilities (e.g., "Magias") via sheetBonuses to avoid double-counting
+      const basePM = updatedSheet.classe.pm || 0;
+      const addPMPerLevel =
+        updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0; // Use custom value if defined
+
+      // Calculate PM: base + perLevel * (level - 1)
+      updatedSheet.pm = basePM + addPMPerLevel * (updatedSheet.nivel - 1);
+
+      // Add bonus PM if defined
+      if (updatedSheet.bonusPM) {
+        updatedSheet.pm += updatedSheet.bonusPM;
+      }
+
+      // Add manual PM edit if defined (applied after all calculations)
+      if (updatedSheet.manualPMEdit) {
+        updatedSheet.pm += updatedSheet.manualPMEdit;
+      }
+    }
+
+    // Initialize current PM if not set (first time or reset)
+    if (updatedSheet.currentPM === undefined) {
+      updatedSheet.currentPM = updatedSheet.pm;
+    }
+
+    // Initialize increment if not set
+    if (updatedSheet.pmIncrement === undefined) {
+      updatedSheet.pmIncrement = 1;
+    }
+  }
+
+  // Note: We allow current values to exceed maximums for temporary bonuses
+  // (buffs, magic items, etc.). No validation needed here.
+
+  // Step 7.7: Recalculate skills (resets others to 0)
   updatedSheet = recalculateCompleteSkills(updatedSheet);
 
   // Step 8: Apply non-defense bonuses (PV, PM, skills, etc.)
+  // PM Debug - Initial state (calculate values for debug even if skipped)
+  const debugBasePM = updatedSheet.classe.pm || 0;
+  const debugAddPMPerLevel =
+    updatedSheet.customPMPerLevel ?? updatedSheet.classe.addpm ?? 0;
+  const pmDebug = {
+    initialPM: updatedSheet.pm, // After reset with level progression and bonus
+    classeBasePM: debugBasePM,
+    classePMPerLevel: debugAddPMPerLevel,
+    customPMPerLevel: updatedSheet.customPMPerLevel,
+    bonusPM: updatedSheet.bonusPM,
+    nivel: updatedSheet.nivel,
+    pmFromLevels: debugAddPMPerLevel * (updatedSheet.nivel - 1),
+    atributos: {
+      INT: updatedSheet.atributos.Inteligência?.value || 0,
+      CAR: updatedSheet.atributos.Carisma?.value || 0,
+      SAB: updatedSheet.atributos.Sabedoria?.value || 0,
+    },
+    spellKeyAttr: updatedSheet.classe.spellPath?.keyAttribute || 'N/A',
+    spellKeyAttrMod: updatedSheet.classe.spellPath?.keyAttribute
+      ? updatedSheet.atributos[updatedSheet.classe.spellPath.keyAttribute]
+          ?.value || 0
+      : 0,
+    bonuses: [] as Array<{
+      source: string;
+      bonusType: string;
+      formula?: string;
+      calculatedValue: number;
+      pmBefore: number;
+      pmAfter: number;
+    }>,
+  };
+
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (
       bonus.target.type !== 'Defense' &&
@@ -590,10 +934,40 @@ export function recalculateSheet(
     ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
-      if (bonus.target.type === 'PV') {
+      if (
+        bonus.target.type === 'PV' &&
+        !options?.skipPVRecalc &&
+        !hasManualMaxPV
+      ) {
         updatedSheet.pv += bonusValue;
-      } else if (bonus.target.type === 'PM') {
+      } else if (
+        bonus.target.type === 'PM' &&
+        !options?.skipPMRecalc &&
+        !hasManualMaxPM
+      ) {
+        const pmBefore = updatedSheet.pm;
         updatedSheet.pm += bonusValue;
+        const pmAfter = updatedSheet.pm;
+
+        // Track PM bonus details
+        let sourceLabel = 'Unknown';
+        if (bonus.source?.type === 'power') {
+          sourceLabel = `Power: ${bonus.source.name}`;
+        } else if (bonus.source?.type === 'origin') {
+          sourceLabel = `Origin: ${bonus.source.originName}`;
+        } else if (bonus.source?.type === 'race') {
+          sourceLabel = `Race: ${bonus.source.raceName}`;
+        }
+
+        pmDebug.bonuses.push({
+          source: sourceLabel,
+          bonusType: bonus.modifier.type,
+          formula:
+            'formula' in bonus.modifier ? bonus.modifier.formula : undefined,
+          calculatedValue: bonusValue,
+          pmBefore,
+          pmAfter,
+        });
       } else if (bonus.target.type === 'Skill') {
         const skillName = bonus.target.name;
         addOtherBonusToSkill(updatedSheet, skillName, bonusValue);
@@ -626,13 +1000,68 @@ export function recalculateSheet(
       } else if (bonus.target.type === 'ArmorPenalty') {
         updatedSheet.extraArmorPenalty =
           (updatedSheet.extraArmorPenalty || 0) + bonusValue;
+      } else if (bonus.target.type === 'MaxSpaces') {
+        updatedSheet.maxSpaces = (updatedSheet.maxSpaces || 0) + bonusValue;
+      } else if (bonus.target.type === 'SpellDC') {
+        // SpellDC bonuses are tracked in sheetBonuses for display
+        // The actual calculation is done when casting spells
+        // (stored for reference but not directly applied to sheet)
       }
     }
   });
 
   // Step 9: Reset defense to base and recalculate from ground up
-  updatedSheet.defesa = 10; // Reset to base defense
+  const baseDefense = updatedSheet.customDefenseBase ?? 10;
+  updatedSheet.defesa = baseDefense;
   updatedSheet = calcDefense(updatedSheet); // Calculate base + equipment + attributes
+
+  // Check if heavy armor is equipped
+  const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
+  const heavyArmor = equippedArmors.some(
+    (armor) =>
+      // Check if this is a heavy armor from the EQUIPAMENTOS list
+      armor.nome &&
+      [
+        'Brunea',
+        'Cota de Malha',
+        'Loriga Segmentada',
+        'Armadura de Placas',
+        'Armadura Completa',
+      ].includes(armor.nome)
+  );
+
+  // Apply custom attribute logic if defined
+  if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {
+    // User explicitly disabled attribute, remove it
+    const defaultAttr =
+      updatedSheet.classe.name === 'Nobre'
+        ? updatedSheet.atributos.Carisma.value
+        : updatedSheet.atributos.Destreza.value;
+    updatedSheet.defesa -= defaultAttr;
+  } else if (
+    updatedSheet.customDefenseAttribute &&
+    updatedSheet.useDefenseAttribute !== false &&
+    !heavyArmor
+  ) {
+    // User specified a custom attribute (and didn't disable it)
+    const defaultAttr =
+      updatedSheet.classe.name === 'Nobre'
+        ? Atributo.CARISMA
+        : Atributo.DESTREZA;
+
+    if (updatedSheet.customDefenseAttribute !== defaultAttr) {
+      // Remove default attribute value and add custom
+      const defaultValue = updatedSheet.atributos[defaultAttr].value;
+      const customValue =
+        updatedSheet.atributos[updatedSheet.customDefenseAttribute].value;
+      updatedSheet.defesa = updatedSheet.defesa - defaultValue + customValue;
+    }
+  }
+
+  // Add manual bonus
+  if (updatedSheet.bonusDefense) {
+    updatedSheet.defesa += updatedSheet.bonusDefense;
+  }
 
   // Step 10: Apply defense bonuses from powers AFTER base calculation
   updatedSheet = applyDefenseBonuses(updatedSheet);
@@ -657,6 +1086,22 @@ export function recalculateSheet(
 
   // Step 13: Apply weapon bonuses
   updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
+
+  // PM Debug - Final output
+  pmDebug.bonuses.push({
+    source: '=== FINAL PM ===',
+    bonusType: 'Total',
+    calculatedValue: updatedSheet.pm - pmDebug.initialPM,
+    pmBefore: pmDebug.initialPM,
+    pmAfter: updatedSheet.pm,
+  });
+
+  // Step 14: Deduplicate arrays to prevent accumulation
+  updatedSheet.spells = deduplicateSpells(updatedSheet.spells);
+  updatedSheet.sheetActionHistory = deduplicateHistory(
+    updatedSheet.sheetActionHistory
+  );
+  updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
 
   return updatedSheet;
 }

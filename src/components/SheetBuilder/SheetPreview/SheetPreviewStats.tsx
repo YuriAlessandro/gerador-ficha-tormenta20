@@ -7,6 +7,10 @@ import SheetPreviewAttributes from './SheetPreviewAttributes';
 const SheetPreviewStats = () => {
   const attributes = useSelector(selectPreviewAttributes);
 
+  if (!attributes) {
+    return null;
+  }
+
   return (
     <Stack justifyContent='space-around' direction='row' flexWrap='wrap'>
       <SheetPreviewAttributes attributes={attributes} />

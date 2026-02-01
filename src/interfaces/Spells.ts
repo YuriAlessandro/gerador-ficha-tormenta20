@@ -1,4 +1,5 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
+import { DiceRoll } from './DiceRoll';
 
 export interface Aprimoramento {
   addPm: number;
@@ -28,6 +29,7 @@ export type Spell = {
   customKeyAttr?: Atributo;
   school: SpellSchool;
   aprimoramentos?: Aprimoramento[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type SpellSchool =

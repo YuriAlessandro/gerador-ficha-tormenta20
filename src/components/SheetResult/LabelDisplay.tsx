@@ -1,8 +1,9 @@
 import React from 'react';
 import styled from '@emotion/styled';
 
-import lineBg from '@/assets/images/fndLineBorder.svg';
+import lineBgRaw from '@/assets/images/fndLineBorder.svg?raw';
 import { useTheme } from '@mui/material';
+import { useDynamicSvg } from '@/hooks/useDynamicSvg';
 
 interface Props {
   title?: string;
@@ -12,6 +13,7 @@ interface Props {
 
 const LabelDisplay: React.FC<Props> = ({ title, text, size }) => {
   const theme = useTheme();
+  const dynamicLineBgUrl = useDynamicSvg(lineBgRaw);
 
   const Container = styled.div`
     align-items: flex-start;
@@ -22,7 +24,8 @@ const LabelDisplay: React.FC<Props> = ({ title, text, size }) => {
       return '100px';
     }};
     display: flex;
-    background: url(${size === 'large' && lineBg}) bottom left no-repeat;
+    background: ${size === 'large' ? `url("${dynamicLineBgUrl}")` : 'none'}
+      bottom left no-repeat;
     backgrounb-size: cover;
     font-size: ${() => {
       if (size === 'small') return '16px';

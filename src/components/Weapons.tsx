@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import Equipment from '../interfaces/Equipment';
 import Weapon from './Weapon';
 
@@ -9,10 +9,21 @@ interface WeaponsProps {
   rangeBonus: number;
   fightBonus: number;
   modFor: number;
+  characterName?: string;
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
-  const { weapons, getKey, rangeBonus, fightBonus, modFor } = props;
+  const { weapons, getKey, rangeBonus, fightBonus, modFor, characterName } =
+    props;
+
+  if (!weapons || weapons.length === 0) {
+    return (
+      <Box>
+        <Typography>Nenhuma arma equipada.</Typography>
+      </Box>
+    );
+  }
+
   const weaponsDiv = weapons.map((equip) => (
     <Weapon
       key={getKey(equip.nome)}
@@ -20,6 +31,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       fightBonus={fightBonus}
       rangeBonus={rangeBonus}
       modDano={modFor}
+      characterName={characterName}
     />
   ));
 

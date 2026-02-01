@@ -1,32 +1,43 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
-import { Atributo } from '../data/atributos';
-import RACAS, { getRaceByName } from '../data/racas';
-import CLASSES from '../data/classes';
+import { Atributo } from '../data/systems/tormenta20/atributos';
+import { dataRegistry } from '../data/registry';
+import { SupplementId } from '../types/supplement.types';
+import { recalculateSheet } from './recalculateSheet';
 import {
   getClassBaseSkills,
   getNotRepeatedSkillsByQtd,
   getRemainingSkills,
-} from '../data/pericias';
+} from '../data/systems/tormenta20/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
   Armaduras,
   Escudos,
   bardInstruments,
   Armas,
-} from '../data/equipamentos';
-import { FAMILIARS, FAMILIAR_NAMES } from '../data/familiars';
-import { ANIMAL_TOTEMS, ANIMAL_TOTEM_NAMES } from '../data/animalTotems';
-import { standardFaithProbability, DivindadeEnum } from '../data/divindades';
-import { generateRandomName } from '../data/nomes';
+} from '../data/systems/tormenta20/equipamentos';
+import {
+  FAMILIARS,
+  FAMILIAR_NAMES,
+} from '../data/systems/tormenta20/familiars';
+import {
+  ANIMAL_TOTEMS,
+  ANIMAL_TOTEM_NAMES,
+} from '../data/systems/tormenta20/animalTotems';
+import {
+  standardFaithProbability,
+  DivindadeEnum,
+  DIVINDADES,
+} from '../data/systems/tormenta20/divindades';
+import { generateRandomName } from '../data/systems/tormenta20/nomes';
 import {
   CharacterAttribute,
   CharacterAttributes,
   CharacterReligion,
 } from '../interfaces/Character';
 import Race, { RaceAttributeAbility } from '../interfaces/Race';
-import { ClassDescription } from '../interfaces/Class';
+import { ClassDescription, ClassPower } from '../interfaces/Class';
 import SelectedOptions from '../interfaces/SelectedOptions';
 import {
   countTormentaPowers,
@@ -37,17 +48,21 @@ import {
   pickFromArray,
   rollDice,
 } from './randomUtils';
-import todasProficiencias from '../data/proficiencias';
+import todasProficiencias from '../data/systems/tormenta20/proficiencias';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
-import { getOriginBenefits, ORIGINS, origins } from '../data/origins';
+import {
+  getOriginBenefits,
+  ORIGINS,
+  raceHasOrigin,
+} from '../data/systems/tormenta20/origins';
 import Equipment, {
   BagEquipments,
   DefenseEquipment,
 } from '../interfaces/Equipment';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
-import GRANTED_POWERS from '../data/powers/grantedPowers';
+import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
-import { GOLPE_PESSOAL_EFFECTS } from '../data/golpePessoal';
+import { GOLPE_PESSOAL_EFFECTS } from '../data/systems/tormenta20/golpePessoal';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
@@ -60,7 +75,7 @@ import {
   arcaneSpellsCircle4,
   arcaneSpellsCircle5,
   getArcaneSpellsOfCircle,
-} from '../data/magias/arcane';
+} from '../data/systems/tormenta20/magias/arcane';
 import {
   allDivineSpellsCircle1,
   allDivineSpellsCircle2,
@@ -72,18 +87,19 @@ import {
   divineSpellsCircle3,
   divineSpellsCircle4,
   divineSpellsCircle5,
-} from '../data/magias/divine';
+} from '../data/systems/tormenta20/magias/divine';
 import { Spell } from '../interfaces/Spells';
 import {
   getRaceDisplacement,
   getRaceSize,
-} from '../data/races/functions/functions';
+} from '../data/systems/tormenta20/races/functions/functions';
 import Origin from '../interfaces/Origin';
 import {
   GeneralPower,
   OriginPower,
   PowerGetter,
   PowersGetters,
+  Requirement,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   SheetChangeSource,
@@ -96,7 +112,7 @@ import Skill, {
   SkillsWithArmorPenalty,
 } from '../interfaces/Skills';
 import Bag from '../interfaces/Bag';
-import roles from '../data/roles';
+import roles from '../data/systems/tormenta20/roles';
 import { RoleNames } from '../interfaces/Role';
 import {
   getAllowedClassPowers,
@@ -107,17 +123,54 @@ import {
   addOrCheapenRandomSpells,
   getSpellsOfCircle,
   spellsCircle1,
-} from '../data/magias/generalSpells';
+} from '../data/systems/tormenta20/magias/generalSpells';
 import {
   applyHumanoVersatil,
   applyLefouDeformidade,
   applyOsteonMemoriaPostuma,
+  applyYidishanNaturezaOrganica,
+  applyMeioElfoAmbicaoHerdada,
 } from './powers/special';
+import {
+  applyMoreauSapiencia,
+  applyMoreauEspertezaVulpina,
+} from './powers/moreau-special';
+import {
+  MOREAU_HERITAGES,
+  MoreauHeritageName,
+} from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { applyGolemDespertoSagrada } from './powers/golem-desperto-special';
+import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
+import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
+import { applyGolemDespertoCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
+import { applyDuendeCustomization } from '../data/systems/tormenta20/herois-de-arton/races/duende';
+import { applyMoreauCustomization } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau';
 import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
+
+// Race customization interface for races with customization options
+export interface RaceCustomization {
+  // Golem Desperto
+  golemChassis?: string;
+  golemEnergySource?: string;
+  golemSize?: string;
+  // Duende
+  duendeNature?: string;
+  duendeSize?: string;
+  duendeBonusAttributes?: Atributo[];
+  duendePresentes?: string[];
+  duendeTabuSkill?: Skill;
+  // Moreau
+  moreauHeritage?: string;
+  moreauBonusAttributes?: Atributo[];
+}
+
+// Helper function to normalize deity names for comparison (removes hyphens and spaces)
+const normalizeDeityName = (name: string): string =>
+  name.toLowerCase().replace(/[-\s]/g, '');
 
 // Inventor Specializations System
 export enum InventorSpecialization {
@@ -238,7 +291,7 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
     Skill.OFICIO_ARTESANATO,
   ],
   Arcanista: [
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_JOALHEIRO,
     Skill.OFICIO_ALQUIMIA,
     Skill.OFICIO_ARTESANATO,
@@ -246,11 +299,11 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
   Nobre: [
     Skill.OFICIO_JOALHEIRO,
     Skill.OFICIO_ALFAIATE,
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_ARTESANATO,
   ],
   Clérigo: [
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_CULINARIA,
     Skill.OFICIO_ARTESANATO,
     Skill.OFICIO_ALFAIATE,
@@ -258,7 +311,7 @@ export const CONTEXTUAL_OFICIOS_BY_CLASS: Record<string, Skill[]> = {
   Ladino: [
     Skill.OFICIO_ALFAIATE,
     Skill.OFICIO_JOALHEIRO,
-    Skill.OFICIO_ESCRITA,
+    Skill.OFICIO_ESCRIBA,
     Skill.OFICIO_ARTESANATO,
   ],
   Caçador: [
@@ -281,7 +334,7 @@ export const DEFAULT_CONTEXTUAL_OFICIOS: Skill[] = [
   Skill.OFICIO_CARPINTEIRO,
   Skill.OFICIO_ALFAIATE,
   Skill.OFICIO_JOALHEIRO,
-  Skill.OFICIO_ESCRITA,
+  Skill.OFICIO_ESCRIBA,
 ];
 
 function replaceGenericOficioWithSpecific(
@@ -463,11 +516,12 @@ function getModifiedAttribute(
   atributosModificados: CharacterAttributes,
   attrDaRaca: RaceAttributeAbility
 ): CharacterAttribute {
-  const newMod = atributosModificados[selectedAttrName].mod + attrDaRaca.mod;
+  const newValue =
+    atributosModificados[selectedAttrName].value + attrDaRaca.mod;
 
   return {
     ...atributosModificados[selectedAttrName],
-    mod: newMod,
+    value: newValue,
   };
 }
 
@@ -481,12 +535,17 @@ export function modifyAttributesBasedOnRace(
   atributosRolados: CharacterAttributes,
   priorityAttrs: Atributo[],
   steps: Step[],
-  manualAttributeChoices?: Atributo[]
+  manualAttributeChoices?: Atributo[],
+  sex?: 'Masculino' | 'Feminino'
 ): CharacterAttributes {
   const values: { name: string; value: string | number }[] = [];
   let manualChoiceIndex = 0; // Track which manual choice to use next
 
-  const reducedAttrs = raca.attributes.attrs.reduce<ReduceAttributesParams>(
+  // Use getAttributes if available (for sex-dependent attributes like Nagah)
+  const raceAttributes =
+    raca.getAttributes && sex ? raca.getAttributes(sex) : raca.attributes.attrs;
+
+  const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
       // Definir que atributo muda (se for any é um random ou escolha manual)
       let selectedAttrName: Atributo;
@@ -550,7 +609,8 @@ export function modifyAttributesBasedOnRace(
 function generateFinalAttributes(
   classe: ClassDescription,
   race: Race,
-  steps: Step[]
+  steps: Step[],
+  sex?: 'Masculino' | 'Feminino'
 ) {
   const atributosNumericos = rollAttributeValues();
   let freeAttrs = Object.values(Atributo);
@@ -562,8 +622,7 @@ function generateFinalAttributes(
     const maxAttr = Math.max(...atributosNumericos);
     priorityGeneratedAttrs[attr] = {
       name: attr,
-      value: maxAttr,
-      mod: getModValue(maxAttr),
+      value: getModValue(maxAttr), // Armazena diretamente o modificador
     };
 
     atributosNumericos.splice(atributosNumericos.indexOf(maxAttr), 1);
@@ -572,10 +631,10 @@ function generateFinalAttributes(
   });
 
   const charAttributes = freeAttrs.reduce((acc, attr, index) => {
-    const mod = getModValue(atributosNumericos[index]);
+    const modValue = getModValue(atributosNumericos[index]);
     return {
       ...acc,
-      [attr]: { name: attr, value: atributosNumericos[index], mod },
+      [attr]: { name: attr, value: modValue }, // Armazena diretamente o modificador
     };
   }, priorityGeneratedAttrs) as CharacterAttributes;
 
@@ -592,7 +651,7 @@ function generateFinalAttributes(
     type: 'Atributos',
     value: Object.values(sortedAttributes).map((attr) => ({
       name: attr.name,
-      value: attr.mod,
+      value: attr.value,
     })),
   });
 
@@ -600,16 +659,26 @@ function generateFinalAttributes(
     race,
     sortedAttributes,
     classe.attrPriority,
-    steps
+    steps,
+    undefined,
+    sex
   );
 }
 
 export function selectRace(selectedOptions: SelectedOptions): Race {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  const races = dataRegistry.getRacesBySupplements(supplements);
+
   if (selectedOptions.raca) {
-    return getRaceByName(selectedOptions.raca);
+    const race = dataRegistry.getRaceByName(selectedOptions.raca, supplements);
+    if (race) return race;
   }
 
-  return getRaceByName(getRandomItemFromArray(RACAS).name);
+  const randomRace = getRandomItemFromArray(races);
+  // Use randomRace directly to support race variants with same name
+  return randomRace;
 }
 
 function getRaceAndName(
@@ -618,10 +687,17 @@ function getRaceAndName(
 ) {
   // Passo 2.2: Escolher raça
   const race = selectRace(selectedOptions);
-  // Passo 2.3: Definir nome
-  const nome = generateRandomName(race, sex);
 
-  return { nome, race };
+  // Forçar sexo feminino para raças exclusivamente femininas
+  let finalSex = sex;
+  if (race.name === 'Voracis') {
+    finalSex = 'Mulher';
+  }
+
+  // Passo 2.3: Definir nome
+  const nome = generateRandomName(race, finalSex);
+
+  return { nome, race, sex: finalSex };
 }
 
 function classByName(classe: ClassDescription, classeName: string) {
@@ -629,7 +705,12 @@ function classByName(classe: ClassDescription, classeName: string) {
 }
 
 function getClassByFilter(selectedOptions: SelectedOptions) {
-  const foundClass = CLASSES.find((classe) =>
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  const classes = dataRegistry.getClassesBySupplements(supplements);
+
+  const foundClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 
@@ -642,7 +723,7 @@ function getClassByFilter(selectedOptions: SelectedOptions) {
   if (foundRole) {
     const choosenClassName = getRandomItemFromArray(roles[foundRole]);
 
-    return CLASSES.find((classe) => classByName(classe, choosenClassName));
+    return classes.find((classe) => classByName(classe, choosenClassName));
   }
 
   return null;
@@ -651,15 +732,19 @@ function getClassByFilter(selectedOptions: SelectedOptions) {
 export function selectClass(
   selectedOptions: SelectedOptions
 ): ClassDescription {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  let allClasses = dataRegistry.getClassesBySupplements(supplements);
+
   let selectedClass: ClassDescription | undefined | null;
-  let allClasses = CLASSES;
   if (selectedOptions.classe) {
     selectedClass = getClassByFilter(selectedOptions);
   }
 
   const dv = selectedOptions.devocao.value;
   if (dv) {
-    allClasses = CLASSES.filter(
+    allClasses = allClasses.filter(
       (cl) => cl.faithProbability?.[dv as DivindadeNames] !== 0
     );
   }
@@ -674,8 +759,8 @@ export function getAttributesSkills(
   attributes: CharacterAttributes,
   usedSkills: Skill[]
 ): Skill[] {
-  if (attributes.Inteligência.mod > 0) {
-    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.mod);
+  if (attributes.Inteligência.value > 0) {
+    return getNotRepeatedSkillsByQtd(usedSkills, attributes.Inteligência.value);
   }
 
   return [];
@@ -887,32 +972,62 @@ function getClassEquipments(
   };
 }
 
-function getInitialBag(origin: Origin | undefined, level: number = 1): Bag {
+function getInitialBag(origin: Origin | undefined): Bag {
   // 6.1 A depender da classe os itens podem variar
-  const initialMoney = getInitialMoney(level);
   const equipments: Partial<BagEquipments> = {
-    'Item Geral': [
-      {
-        nome: `T$ ${initialMoney}`,
-        group: 'Item Geral',
-      },
-    ],
+    'Item Geral': [],
   };
 
-  const originItems = origin?.getItems();
+  // Apenas origens regionais (isRegional = true) adicionam itens automaticamente
+  // Origens do core não adicionam itens aqui (apenas se escolhidos nos 2 benefícios)
+  if (origin?.isRegional) {
+    const originItems = origin.getItems();
 
-  originItems?.forEach((equip) => {
-    if (typeof equip.equipment === 'string') {
-      const newEquip: Equipment = {
-        nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
-        group: 'Item Geral',
-      };
-      equipments['Item Geral']?.push(newEquip);
-    } else {
-      // É uma arma
-      equipments.Arma?.push(equip.equipment);
-    }
-  });
+    originItems?.forEach((equip) => {
+      if (typeof equip.equipment === 'string') {
+        const newEquip: Equipment = {
+          nome: `${equip.qtd ? `${equip.qtd}x ` : ''}${equip.equipment}`,
+          group: 'Item Geral',
+        };
+        if (equipments['Item Geral']) {
+          equipments['Item Geral'].push(newEquip);
+        }
+      } else if (equip.equipment) {
+        // Verificar se é Armadura, Escudo ou Arma
+        const equipValue = equip.equipment;
+
+        // Verifica se é uma armadura
+        if (
+          Object.values(Armaduras).includes(
+            equipValue as unknown as DefenseEquipment
+          )
+        ) {
+          if (!equipments.Armadura) {
+            equipments.Armadura = [];
+          }
+          equipments.Armadura.push(equipValue as DefenseEquipment);
+        }
+        // Verifica se é um escudo
+        else if (
+          Object.values(Escudos).includes(
+            equipValue as unknown as DefenseEquipment
+          )
+        ) {
+          if (!equipments.Escudo) {
+            equipments.Escudo = [];
+          }
+          equipments.Escudo.push(equipValue as DefenseEquipment);
+        }
+        // Se não for armadura nem escudo, é uma arma
+        else {
+          if (!equipments.Arma) {
+            equipments.Arma = [];
+          }
+          equipments.Arma.push(equipValue);
+        }
+      }
+    });
+  }
 
   return new Bag(equipments);
 }
@@ -1107,9 +1222,9 @@ function calcDisplacement(
   baseDisplacement: number
 ): number {
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -1133,16 +1248,56 @@ export const applyPower = (
     if (source.type === 'levelUp') {
       return `Nível ${source.level}`;
     }
+    if (source.type === 'origin') {
+      return source.originName;
+    }
     return '';
   };
+
+  // Helper to check if this specific sheetAction was already applied
+  // This prevents duplicating effects when recalculateSheet is called multiple times
+  // Map action types to their corresponding history change types
+  const actionToChangeTypeMap: Record<string, string[]> = {
+    ModifyAttribute: ['Attribute'],
+    increaseAttribute: ['AttributeIncreasedByAumentoDeAtributo'],
+    addProficiency: ['ProficiencyAdded'],
+    learnSkill: ['SkillsAdded'],
+    addSense: ['SenseAdded'],
+    addEquipment: ['EquipmentAdded'],
+    getGeneralPower: ['PowerAdded'],
+    learnSpell: ['SpellsLearned'],
+    learnAnySpellFromHighestCircle: ['SpellsLearned'],
+    learnClassAbility: ['ClassAbilityLearned'],
+    getClassPower: ['ClassPowerAdded'],
+  };
+
+  const isActionAlreadyApplied = (
+    actionType: string,
+    powerName: string
+  ): boolean =>
+    sheet.sheetActionHistory.some(
+      (historyEntry) =>
+        historyEntry.powerName === powerName &&
+        historyEntry.changes.some((change) => {
+          const expectedChangeTypes = actionToChangeTypeMap[actionType] || [];
+          return expectedChangeTypes.includes(change.type);
+        })
+    );
 
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Skip if this action was already applied (prevents duplication during recalculation)
+      if (
+        isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
+      ) {
+        return;
+      }
+
       if (sheetAction.action.type === 'ModifyAttribute') {
         const { attribute, value } = sheetAction.action;
-        const newValue = sheet.atributos[attribute].mod + value;
-        sheet.atributos[attribute].mod = newValue;
+        const newValue = sheet.atributos[attribute].value + value;
+        sheet.atributos[attribute].value = newValue;
 
         subSteps.push({
           name: getSourceName(sheetAction.source),
@@ -1377,7 +1532,7 @@ export const applyPower = (
           (attr) => availableAttributes.includes(attr)
         );
 
-        let targetAttribute: Atributo;
+        let targetAttribute: Atributo | undefined;
 
         // Use manual selection if provided
         if (
@@ -1387,27 +1542,40 @@ export const applyPower = (
           targetAttribute = manualSelections.attributes[0] as Atributo;
         } else if (firstPriorityAttribute) {
           targetAttribute = firstPriorityAttribute;
-        } else {
-          // If no priority attributes available, pick any
+        } else if (availableAttributes.length > 0) {
+          // If no priority attributes available, pick any from available
           targetAttribute = getRandomItemFromArray(availableAttributes);
         }
 
-        sheet.atributos[targetAttribute].mod += 1;
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'AttributeIncreasedByAumentoDeAtributo',
-              attribute: targetAttribute,
-              plateau: getCurrentPlateau(sheet),
-            },
-          ],
-        });
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Aumenta o atributo ${targetAttribute} por +1`,
-        });
+        // Only apply if we found a valid target attribute
+        if (targetAttribute && sheet.atributos[targetAttribute]) {
+          sheet.atributos[targetAttribute].value += 1;
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'AttributeIncreasedByAumentoDeAtributo',
+                attribute: targetAttribute,
+                plateau: getCurrentPlateau(sheet),
+              },
+            ],
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aumenta o atributo ${targetAttribute} por +1`,
+          });
+        } else {
+          // Skip this attribute increase if no valid target found
+          // eslint-disable-next-line no-console
+          console.warn(
+            `No valid attribute found for increase in plateau ${getCurrentPlateau(
+              sheet
+            )}`
+          );
+          // Skip adding to history or substeps when no valid attribute found
+        }
       } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
         // Get all available weapons
         const allWeaponNames = Object.values(Armas).map(
@@ -1565,6 +1733,95 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Adicionando ${alwaysActiveSpell.nome} à sua lista de magias.`,
         });
+      } else if (sheetAction.action.type === 'learnClassAbility') {
+        const { availableClasses: classNames, level } = sheetAction.action;
+
+        // Get all available classes
+        const allClasses = dataRegistry.getClassesBySupplements([
+          SupplementId.TORMENTA20_CORE,
+        ]);
+
+        // Filter classes by the available list and exclude current class
+        const availableClasses = allClasses.filter(
+          (cls) =>
+            classNames.includes(cls.name) && cls.name !== sheet.classe.name
+        );
+
+        let selectedClass: ClassDescription;
+        let selectedAbility: ClassDescription['abilities'][number];
+
+        // Use manual selection if provided, otherwise random
+        if (
+          manualSelections?.classAbilities &&
+          manualSelections.classAbilities.length > 0
+        ) {
+          // Manual selection provides { className, abilityName }
+          const selection = manualSelections.classAbilities[0];
+          selectedClass =
+            availableClasses.find((cls) => cls.name === selection.className) ||
+            getRandomItemFromArray(availableClasses);
+        } else {
+          // Random selection
+          selectedClass = getRandomItemFromArray(availableClasses);
+        }
+
+        // Get abilities of the specified level
+        const levelAbilities = selectedClass.abilities.filter(
+          (ability) => ability.nivel === level
+        );
+
+        if (levelAbilities.length > 0) {
+          if (
+            manualSelections?.classAbilities &&
+            manualSelections.classAbilities.length > 0
+          ) {
+            const selection = manualSelections.classAbilities[0];
+            selectedAbility =
+              levelAbilities.find(
+                (ability) => ability.name === selection.abilityName
+              ) || getRandomItemFromArray(levelAbilities);
+          } else {
+            selectedAbility = getRandomItemFromArray(levelAbilities);
+          }
+
+          // Add the ability to classPowers array
+          if (!sheet.classPowers) {
+            sheet.classPowers = [];
+          }
+
+          // Convert ClassAbility to ClassPower format and add to classPowers
+          sheet.classPowers.push({
+            name: `${selectedAbility.name} (${selectedClass.name})`,
+            text: selectedAbility.text,
+            sheetActions: selectedAbility.sheetActions,
+            sheetBonuses: selectedAbility.sheetBonuses,
+          });
+
+          // Apply sheetBonuses from the learned ability
+          if (selectedAbility.sheetBonuses) {
+            sheet.sheetBonuses.push(...selectedAbility.sheetBonuses);
+          }
+
+          // Note: sheetActions from learned abilities are NOT automatically applied
+          // The user will need to manually trigger them or they will be shown in the power description
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'ClassAbilityLearned',
+                className: selectedClass.name,
+                abilityName: selectedAbility.name,
+              },
+            ],
+          });
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Aprendeu ${selectedAbility.name} de ${selectedClass.name}`,
+          });
+        }
       } else if (sheetAction.action.type === 'buildGolpePessoal') {
         // For automatic generation, create a random Golpe Pessoal
         const golpePessoalBuild = generateRandomGolpePessoal(sheet);
@@ -1611,6 +1868,28 @@ export const applyPower = (
           sheetAction.action.specialAction === 'osteonMemoriaPostuma'
         ) {
           currentSteps = applyOsteonMemoriaPostuma(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
+        ) {
+          currentSteps = applyYidishanNaturezaOrganica(sheet);
+        } else if (sheetAction.action.specialAction === 'moreauSapiencia') {
+          currentSteps = applyMoreauSapiencia(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'moreauEspertezaVulpina'
+        ) {
+          currentSteps = applyMoreauEspertezaVulpina(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'golemDespertoSagrada'
+        ) {
+          currentSteps = applyGolemDespertoSagrada(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'fradeAutoridadeEclesiastica'
+        ) {
+          currentSteps = applyFradeAutoridadeEclesiastica(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'meioElfoAmbicaoHerdada'
+        ) {
+          currentSteps = applyMeioElfoAmbicaoHerdada(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
@@ -1618,6 +1897,214 @@ export const applyPower = (
         }
 
         subSteps.push(...currentSteps);
+      } else if (sheetAction.action.type === 'getClassPower') {
+        const { minLevel = 2, ignoreOnlyLevelRequirement = true } =
+          sheetAction.action;
+
+        // Helper function to check if power meets requirements (ignoring level if specified)
+        const checkPowerRequirements = (power: ClassPower): boolean => {
+          if (!power.requirements || power.requirements.length === 0) {
+            return true;
+          }
+
+          return power.requirements.some((req: Requirement[]) =>
+            req.every((rule: Requirement) => {
+              // Skip level requirement check if ignoreOnlyLevelRequirement is true
+              if (ignoreOnlyLevelRequirement && rule.type === 'NIVEL') {
+                return true;
+              }
+
+              // Check all other requirements using the same logic as isPowerAvailable
+              switch (rule.type) {
+                case 'PODER': {
+                  const allPowers = [
+                    ...sheet.generalPowers,
+                    ...(sheet.origin?.powers || []),
+                    ...(sheet.classPowers || []),
+                  ];
+                  return allPowers.some(
+                    (currPower) => currPower.name === rule.name
+                  );
+                }
+                case 'ATRIBUTO': {
+                  const attr = rule.name as Atributo;
+                  return (
+                    rule.name &&
+                    sheet.atributos[attr].value >= (rule?.value || 0)
+                  );
+                }
+                case 'PERICIA': {
+                  const pericia = rule.name as Skill;
+                  return rule.name && sheet.skills.includes(pericia);
+                }
+                case 'HABILIDADE': {
+                  const result = sheet.classe.abilities.some(
+                    (ability) => ability.name === rule.name
+                  );
+                  if (rule.not) return !result;
+                  return result;
+                }
+                case 'PODER_TORMENTA': {
+                  const qtdPowers = rule.value as number;
+                  return (
+                    sheet.generalPowers.filter(
+                      (actualPower) => actualPower.type === 'TORMENTA'
+                    ).length >=
+                    qtdPowers + 1
+                  );
+                }
+                case 'PROFICIENCIA': {
+                  const proficiencia = rule.value as unknown as string;
+                  return (
+                    rule.name &&
+                    sheet.classe.proficiencias.includes(proficiencia)
+                  );
+                }
+                case 'NIVEL': {
+                  const nivel = rule.value as number;
+                  return sheet.nivel >= nivel;
+                }
+                case 'CLASSE': {
+                  const className = rule.value as unknown as string;
+                  return rule.name && sheet.classe.name === className;
+                }
+                case 'TIPO_ARCANISTA': {
+                  const classSubName = rule.name;
+                  return sheet.classe.subname === classSubName;
+                }
+                case 'MAGIA': {
+                  const spellName = rule.name;
+                  return (
+                    sheet.spells.filter((spell) => spell.nome === spellName)
+                      .length >= 1
+                  );
+                }
+                case 'DEVOTO': {
+                  const godName = rule.name;
+                  const result = sheet.devoto?.divindade.name === godName;
+                  if (rule.not) return !result;
+                  return result;
+                }
+                case 'RACA': {
+                  const raceName = rule.name;
+                  return sheet.raca.name === raceName;
+                }
+                case 'TIER_LIMIT': {
+                  const category = rule.name as string;
+                  // Count powers in the category
+                  const count = sheet.generalPowers.filter((p) =>
+                    p.name.includes(category)
+                  ).length;
+                  return count < 1;
+                }
+                case 'TEXT':
+                  // TEXT requirements are always considered met - the user reads
+                  // the text description and judges if they meet the requirement
+                  return true;
+                default:
+                  return true;
+              }
+            })
+          );
+        };
+
+        // Filter class powers by minimum level and requirements
+        const availablePowers = sheet.classe.powers.filter((power) => {
+          // Check if power already exists and if it can be repeated
+          const existingClassPowers = sheet.classPowers || [];
+          const isRepeatedPower = existingClassPowers.find(
+            (existingPower) => existingPower.name === power.name
+          );
+
+          if (isRepeatedPower && !power.canRepeat) {
+            return false;
+          }
+
+          // Check minimum level requirement in power requirements
+          let meetsMinLevel = true;
+          if (power.requirements && power.requirements.length > 0) {
+            // Check if any requirement path has a level requirement >= minLevel
+            meetsMinLevel = power.requirements.some((req: Requirement[]) =>
+              req.some(
+                (rule: Requirement) =>
+                  rule.type === 'NIVEL' && (rule.value as number) >= minLevel
+              )
+            );
+
+            // If no level requirement found, check if it's a basic power (usually level 1)
+            if (
+              !meetsMinLevel &&
+              !power.requirements.some((req: Requirement[]) =>
+                req.some((rule: Requirement) => rule.type === 'NIVEL')
+              )
+            ) {
+              // Power has no level requirement, assume it's available from level 1
+              meetsMinLevel = minLevel <= 1;
+            }
+          } else {
+            // No requirements, assume level 1 power
+            meetsMinLevel = minLevel <= 1;
+          }
+
+          return meetsMinLevel && checkPowerRequirements(power);
+        });
+
+        if (availablePowers.length === 0) {
+          throw new Error(
+            `Nenhum poder de classe disponível com nível mínimo ${minLevel}`
+          );
+        }
+
+        // Select power (manual or random)
+        let selectedPower: ClassPower;
+        if (manualSelections?.powers && manualSelections.powers.length > 0) {
+          const manualPower = manualSelections.powers[0];
+          selectedPower =
+            availablePowers.find((p) => p.name === manualPower.name) ||
+            getRandomItemFromArray(availablePowers);
+        } else {
+          selectedPower = getRandomItemFromArray(availablePowers);
+        }
+
+        // Add power to classPowers array
+        if (!sheet.classPowers) {
+          sheet.classPowers = [];
+        }
+        sheet.classPowers.push(selectedPower);
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Poder de classe adquirido: ${selectedPower.name}`,
+        });
+
+        // Apply the selected power's sheetActions and sheetBonuses
+        if (selectedPower.sheetActions || selectedPower.sheetBonuses) {
+          const [updatedSheet, powerSubSteps] = applyPower(
+            sheet,
+            selectedPower,
+            manualSelections
+          );
+          // Update sheet reference with changes from applying the power
+          Object.assign(sheet, updatedSheet);
+          // Add substeps from the power application with proper context
+          powerSubSteps.forEach((subStep) => {
+            subSteps.push({
+              name: subStep.name || selectedPower.name,
+              value: subStep.value,
+            });
+          });
+        }
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'PowerAdded',
+              powerName: selectedPower.name,
+            },
+          ],
+        });
       } else {
         throw new Error(
           `Ação de ficha desconhecida: ${JSON.stringify(sheetAction)}`
@@ -1630,27 +2117,59 @@ export const applyPower = (
   if (powerOrAbility.sheetBonuses) {
     sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
 
-    // Check if there's an HP attribute replacement and apply it immediately
-    const hpReplacement = powerOrAbility.sheetBonuses.find(
-      (bonus) => bonus.target.type === 'HPAttributeReplacement'
-    );
+    // Generate substeps for important bonuses so they appear in the step-by-step
+    powerOrAbility.sheetBonuses.forEach((bonus) => {
+      const sourceName = getSourceName(bonus.source);
 
-    if (
-      hpReplacement &&
-      hpReplacement.target.type === 'HPAttributeReplacement'
-    ) {
-      const { newAttribute } = hpReplacement.target;
-      const baseHp = sheet.classe.pv;
-      const attributeBonus = sheet.atributos[newAttribute].mod * sheet.nivel;
+      if (bonus.target.type === 'PM') {
+        // Generate description based on modifier type
+        let bonusDescription = '';
+        if (bonus.modifier.type === 'LevelCalc') {
+          bonusDescription = '+1 PM por nível';
+        } else if (
+          bonus.modifier.type === 'Fixed' &&
+          'value' in bonus.modifier
+        ) {
+          bonusDescription = `+${bonus.modifier.value} PM`;
+        } else {
+          bonusDescription = '+PM';
+        }
+        subSteps.push({
+          name: sourceName,
+          value: bonusDescription,
+        });
+      } else if (bonus.target.type === 'PV') {
+        let bonusDescription = '';
+        if (bonus.modifier.type === 'LevelCalc') {
+          bonusDescription = '+1 PV por nível';
+        } else if (
+          bonus.modifier.type === 'Fixed' &&
+          'value' in bonus.modifier
+        ) {
+          bonusDescription = `+${bonus.modifier.value} PV`;
+        } else {
+          bonusDescription = '+PV';
+        }
+        subSteps.push({
+          name: sourceName,
+          value: bonusDescription,
+        });
+      } else if (bonus.target.type === 'HPAttributeReplacement') {
+        // Special handling for HP attribute replacement
+        const { newAttribute } = bonus.target;
+        const baseHp = sheet.classe.pv;
+        const attributeBonus =
+          sheet.atributos[newAttribute].value * sheet.nivel;
 
-      const oldPv = sheet.pv;
-      sheet.pv = baseHp + attributeBonus;
+        const oldPv = sheet.pv;
+        sheet.pv = baseHp + attributeBonus;
 
-      subSteps.push({
-        name: getSourceName(hpReplacement.source),
-        value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].mod} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
-      });
-    }
+        subSteps.push({
+          name: sourceName,
+          value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].value} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
+        });
+      }
+    });
   }
 
   return [sheet, subSteps];
@@ -1792,16 +2311,16 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
     ) {
       let remainingPenalty = totalPenalty;
       while (remainingPenalty > 0) {
-        // Ache o atributo com maior mod que não seja carisma
+        // Ache o atributo com maior value que não seja carisma
         const highestAttribute = Object.values(sheetClone.atributos).reduce(
           (prev, curr) => {
             if (curr.name === 'Carisma') return prev;
-            if (prev.mod > curr.mod) return prev;
+            if (prev.value > curr.value) return prev;
             return curr;
           }
         );
 
-        sheetClone.atributos[highestAttribute.name].mod -= 1;
+        sheetClone.atributos[highestAttribute.name].value -= 1;
         remainingPenalty -= 1;
 
         subSteps.push({
@@ -1810,7 +2329,7 @@ function applyGeneralPowers(sheet: CharacterSheet): CharacterSheet {
         });
       }
     } else {
-      sheetClone.atributos.Carisma.mod -= totalPenalty;
+      sheetClone.atributos.Carisma.value -= totalPenalty;
       subSteps.push({
         name: 'Carisma',
         value: `-${totalPenalty} por ${tormentaPowersQtd} poderes da Tormenta`,
@@ -1904,12 +2423,44 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   }
 
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].mod;
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].value;
 
   if (addPv < 1) addPv = 1;
 
   const newPvTotal = updatedSheet.pv + addPv;
-  const newPmTotal = updatedSheet.pm + updatedSheet.classe.addpm;
+
+  // Calculate PM bonus from sheetBonuses that scale with level
+  // We need to add the incremental bonus for the new level
+  let levelCalcPMBonus = 0;
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
+      // For LevelCalc, calculate the bonus at new level vs old level
+      // Since we already incremented nivel, old level is nivel - 1
+      const oldLevel = updatedSheet.nivel - 1;
+      const newLevel = updatedSheet.nivel;
+      const { formula } = bonus.modifier as {
+        type: 'LevelCalc';
+        formula: string;
+      };
+
+      const calcBonus = (level: number) => {
+        const filledFormula = formula.replace('{level}', level.toString());
+        try {
+          // eslint-disable-next-line no-eval
+          return eval(filledFormula);
+        } catch {
+          return 0;
+        }
+      };
+
+      const oldBonus = calcBonus(oldLevel);
+      const newBonus = calcBonus(newLevel);
+      levelCalcPMBonus += newBonus - oldBonus;
+    }
+  });
+
+  const newPmTotal =
+    updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
 
   const subSteps = [];
 
@@ -1920,7 +2471,9 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
       value: newPvTotal,
     },
     {
-      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm} por nível)`,
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm}${
+        levelCalcPMBonus > 0 ? ` + ${levelCalcPMBonus} bônus racial` : ''
+      } por nível)`,
       value: newPmTotal,
     }
   );
@@ -1955,7 +2508,12 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
     sheet.classe,
     sheet.spells
   );
-  updatedSheet.spells.push(...newSpells);
+  // Filter out duplicates before adding
+  const uniqueNewSpells = newSpells.filter(
+    (newSpell) =>
+      !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+  );
+  updatedSheet.spells.push(...uniqueNewSpells);
 
   newSpells.forEach((spell) => {
     subSteps.push({
@@ -2111,9 +2669,276 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
+export function applyManualLevelUp(
+  sheet: CharacterSheet,
+  selections: import('../interfaces/WizardSelections').LevelUpSelections
+): CharacterSheet {
+  let updatedSheet = cloneDeep(sheet);
+  updatedSheet.nivel += 1;
+
+  // Check if there's an HP attribute replacement (Dom da Esperança)
+  const hpReplacement = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'HPAttributeReplacement'
+  );
+
+  let hpAttribute = Atributo.CONSTITUICAO;
+  if (hpReplacement && hpReplacement.target.type === 'HPAttributeReplacement') {
+    hpAttribute = hpReplacement.target.newAttribute;
+  }
+
+  let addPv =
+    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].value;
+
+  if (addPv < 1) addPv = 1;
+
+  const newPvTotal = updatedSheet.pv + addPv;
+
+  // Calculate PM bonus from sheetBonuses that scale with level
+  // We need to add the incremental bonus for the new level
+  let levelCalcPMBonus = 0;
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
+      // For LevelCalc, calculate the bonus at new level vs old level
+      // Since we already incremented nivel, old level is nivel - 1
+      const oldLevel = updatedSheet.nivel - 1;
+      const newLevel = updatedSheet.nivel;
+      const { formula } = bonus.modifier as {
+        type: 'LevelCalc';
+        formula: string;
+      };
+
+      const calcBonus = (level: number) => {
+        const filledFormula = formula.replace('{level}', level.toString());
+        try {
+          // eslint-disable-next-line no-eval
+          return eval(filledFormula);
+        } catch {
+          return 0;
+        }
+      };
+
+      const oldBonus = calcBonus(oldLevel);
+      const newBonus = calcBonus(newLevel);
+      levelCalcPMBonus += newBonus - oldBonus;
+    }
+  });
+
+  const newPmTotal =
+    updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
+
+  const subSteps = [];
+
+  // Aumentar PV e PM
+  subSteps.push(
+    {
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível - ${hpAttribute})`,
+      value: newPvTotal,
+    },
+    {
+      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm}${
+        levelCalcPMBonus > 0 ? ` + ${levelCalcPMBonus} bônus racial` : ''
+      } por nível)`,
+      value: newPmTotal,
+    }
+  );
+
+  updatedSheet.pv = newPvTotal;
+  updatedSheet.pm = newPmTotal;
+
+  // Recalcular valor das perícias
+  const skillTrainingMod = (trained: boolean, level: number) => {
+    if (!trained) return 0;
+
+    if (level >= 7 && level < 15) return 4;
+    if (level >= 15) return 6;
+
+    return 2;
+  };
+
+  const newCompleteSkills = updatedSheet.completeSkills?.map((sk) => ({
+    ...sk,
+    halfLevel: Math.floor(updatedSheet.nivel / 2),
+    training: skillTrainingMod(
+      Object.values(updatedSheet.skills).includes(sk.name),
+      updatedSheet.nivel
+    ),
+  }));
+
+  updatedSheet.completeSkills = newCompleteSkills;
+
+  // Aplicar magias selecionadas manualmente
+  if (selections.spellsLearned && selections.spellsLearned.length > 0) {
+    // Filter out duplicates before adding
+    const uniqueSelectedSpells = selections.spellsLearned.filter(
+      (newSpell) =>
+        !updatedSheet.spells.some((existing) => existing.nome === newSpell.nome)
+    );
+    updatedSheet.spells.push(...uniqueSelectedSpells);
+
+    selections.spellsLearned.forEach((spell) => {
+      subSteps.push({
+        name: `Nova magia (${spell.spellCircle})`,
+        value: spell.nome,
+      });
+    });
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: [
+        {
+          type: 'SpellsLearned',
+          spellNames: selections.spellsLearned.map((spell) => spell.nome),
+        },
+      ],
+    });
+  }
+
+  updatedSheet.steps.push({
+    type: 'Poderes',
+    label: `Nível ${updatedSheet.nivel}`,
+    value: subSteps,
+  });
+
+  // Aplicar poder escolhido (classe ou geral)
+  if (selections.powerChoice === 'class' && selections.selectedClassPower) {
+    const nSubSteps: SubStep[] = [];
+    const newPower = selections.selectedClassPower;
+
+    if (updatedSheet.classPowers) {
+      updatedSheet.classPowers.push(newPower);
+
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        newPower,
+        selections.powerEffectSelections
+      );
+      nSubSteps.push(...newSubSteps);
+      if (newSheet) updatedSheet = newSheet;
+
+      if (nSubSteps.length) {
+        updatedSheet.steps.push({
+          type: 'Poderes',
+          label: `Novo poder de ${updatedSheet.classe.name}`,
+          value: nSubSteps,
+        });
+      } else {
+        subSteps.push({
+          name: `Novo poder de ${updatedSheet.classe.name}`,
+          value: newPower.name,
+        });
+      }
+
+      updatedSheet.sheetActionHistory.push({
+        source: {
+          type: 'levelUp',
+          level: updatedSheet.nivel,
+        },
+        changes: [
+          {
+            type: 'PowerAdded',
+            powerName: newPower.name,
+          },
+        ],
+      });
+    }
+  } else if (
+    selections.powerChoice === 'general' &&
+    selections.selectedGeneralPower
+  ) {
+    const nSubSteps: SubStep[] = [];
+    const newPower = selections.selectedGeneralPower;
+    updatedSheet.generalPowers.push(newPower);
+
+    const [newSheet, newSubSteps] = applyPower(
+      updatedSheet,
+      newPower,
+      selections.powerEffectSelections
+    );
+    nSubSteps.push(...newSubSteps);
+    if (newSheet) updatedSheet = newSheet;
+
+    if (nSubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novo poder Geral`,
+        value: nSubSteps,
+      });
+    } else {
+      subSteps.push({
+        name: `Novo poder Geral`,
+        value: newPower.name,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: [
+        {
+          type: 'PowerAdded',
+          powerName: newPower.name,
+        },
+      ],
+    });
+  }
+
+  // Apply newly available class abilities for this level
+  const originalAbilities =
+    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
+  const newlyAvailableAbilities = originalAbilities.filter(
+    (ability) => ability.nivel === updatedSheet.nivel
+  );
+
+  if (newlyAvailableAbilities.length > 0) {
+    const abilitySubSteps: SubStep[] = [];
+
+    newlyAvailableAbilities.forEach((ability) => {
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        ability,
+        selections.abilityEffectSelections
+      );
+      updatedSheet = newSheet;
+      abilitySubSteps.push(...newSubSteps);
+    });
+
+    if (abilitySubSteps.length) {
+      updatedSheet.steps.push({
+        type: 'Poderes',
+        label: `Novas habilidades de classe (Nível ${updatedSheet.nivel})`,
+        value: abilitySubSteps,
+      });
+    }
+
+    updatedSheet.sheetActionHistory.push({
+      source: {
+        type: 'levelUp',
+        level: updatedSheet.nivel,
+      },
+      changes: newlyAvailableAbilities.map((ability) => ({
+        type: 'PowerAdded',
+        powerName: ability.name,
+      })),
+    });
+
+    // Update displayed abilities to include newly available ones
+    const allAvailableAbilities = originalAbilities.filter(
+      (ability) => ability.nivel <= updatedSheet.nivel
+    );
+    updatedSheet.classe.abilities = allAvailableAbilities;
+  }
+
+  return updatedSheet;
+}
+
 const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   if (bonus.type === 'Attribute') {
-    return sheet.atributos[bonus.attribute].mod;
+    return sheet.atributos[bonus.attribute].value;
   }
   if (bonus.type === 'LevelCalc') {
     const filledFormula = bonus.formula.replace(
@@ -2134,7 +2959,7 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
       const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].mod;
+      return sheet.atributos[attr].value;
     }
   }
   if (bonus.type === 'Fixed') {
@@ -2333,6 +3158,9 @@ const applyStatModifiers = (
 export default function generateRandomSheet(
   selectedOptions: SelectedOptions
 ): CharacterSheet {
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
   const targetLevel = selectedOptions.nivel;
   let powersGetters: PowersGetters = {
     Origem: [],
@@ -2345,26 +3173,36 @@ export default function generateRandomSheet(
   const sexos = ['Homem', 'Mulher'] as ('Homem' | 'Mulher')[];
   const sexo = getRandomItemFromArray<'Homem' | 'Mulher'>(sexos);
 
-  // Passo 2: Definir raça
-  const { race, nome } = getRaceAndName(selectedOptions, sexo);
+  // Passo 2: Definir raça (pode sobrescrever o sexo para raças exclusivas)
+  const { race, nome, sex: finalSex } = getRaceAndName(selectedOptions, sexo);
 
-  if (race.name !== 'Golem') {
+  if (raceHasOrigin(race.name)) {
     steps.push({
       label: 'Gênero',
-      value: [{ value: `${sexo === 'Homem' ? 'Masculino' : 'Feminino'}` }],
+      value: [{ value: `${finalSex === 'Homem' ? 'Masculino' : 'Feminino'}` }],
     });
   }
 
-  steps.push(
-    {
-      label: 'Raça',
-      value: [{ value: race.name }],
-    },
-    {
-      label: 'Nome',
-      value: [{ value: nome }],
+  steps.push({
+    label: 'Raça',
+    value: [{ value: race.name }],
+  });
+
+  // Add heritage step if race has heritage (e.g., Moreau)
+  if (race.heritage) {
+    const heritage = MOREAU_HERITAGES[race.heritage];
+    if (heritage) {
+      steps.push({
+        label: 'Herança',
+        value: [{ value: heritage.name }],
+      });
     }
-  );
+  }
+
+  steps.push({
+    label: 'Nome',
+    value: [{ value: nome }],
+  });
 
   // Passo 3: Definir a classe
   const classe = selectClass(selectedOptions);
@@ -2377,24 +3215,27 @@ export default function generateRandomSheet(
   // Passo 4: Definir origem (se houver)
   let origin: Origin | undefined;
 
-  if (race.name !== 'Golem') {
+  if (raceHasOrigin(race.name)) {
     if (selectedOptions.origin) {
-      origin = ORIGINS[selectedOptions.origin as origins];
+      // Busca origem em todos os suplementos ativos
+      const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
+      origin = allOrigins.find((o) => o.name === selectedOptions.origin);
     } else {
       origin = getRandomItemFromArray(Object.values(ORIGINS));
     }
   }
 
-  if (origin) {
-    steps.push({
-      label: 'Origem',
-      value: [{ value: origin?.name }],
-    });
-  }
+  // Nada aqui - o step de origem será criado em getSkillsAndPowersByClassAndOrigin
 
   // Passo 5: itens, feitiços, e valores iniciais
-  const initialBag = getInitialBag(origin, targetLevel);
+  const initialBag = getInitialBag(origin);
   let initialMoney = getInitialMoney(targetLevel);
+
+  // Adicionar dinheiro da origem, apenas se for origem regional
+  if (origin?.isRegional && origin?.getMoney) {
+    initialMoney += origin.getMoney();
+  }
+
   const initialMoneyWithDetails = getInitialMoneyWithDetails(targetLevel);
   const initialSpells: Spell[] = [];
   const initialPV = classe.pv;
@@ -2433,7 +3274,7 @@ export default function generateRandomSheet(
         value: `${equipmentResult.generationDetails} (Custo total: ${equipmentGenerationCost} T$)`,
       });
 
-      // Adicionar cada item gerado como substep
+      // Adicionar cada gerado como substep
       equipmentGenerationStep.push(...equipmentResult.itemsForSteps);
     }
   }
@@ -2479,14 +3320,37 @@ export default function generateRandomSheet(
   }
 
   // Passo 6: Gerar atributos finais
-  const atributos = generateFinalAttributes(classe, race, steps);
+  const sexForAttributes: 'Masculino' | 'Feminino' =
+    finalSex === 'Homem' ? 'Masculino' : 'Feminino';
+  const atributos = generateFinalAttributes(
+    classe,
+    race,
+    steps,
+    sexForAttributes
+  );
+
+  // Aplicar modificador de atributo da origem, apenas se for origem regional
+  let attributeModifierText: string | undefined;
+  if (origin?.isRegional && origin?.getAttributeModifier) {
+    const attributeModifier = origin.getAttributeModifier(classe.attrPriority);
+    const currentAttr = atributos[attributeModifier.attribute];
+    const newValue = currentAttr.value + attributeModifier.modifier;
+    atributos[attributeModifier.attribute] = {
+      ...currentAttr,
+      value: newValue,
+    };
+
+    attributeModifierText = `+${attributeModifier.modifier} ${attributeModifier.attribute} (${currentAttr.value} → ${newValue})`;
+  }
+
+  // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
   // Passo 6.1: Gerar valores dependentes de atributos
   const maxSpaces =
-    atributos.Força.mod > 0
-      ? 10 + 2 * atributos.Força.mod
-      : 10 - atributos.Força.mod;
-  const summedPV = initialPV + atributos.Constituição.mod;
+    atributos.Força.value > 0
+      ? 10 + 2 * atributos.Força.value
+      : 10 - atributos.Força.value;
+  const summedPV = initialPV + atributos.Constituição.value;
 
   steps.push({
     label: 'Vida máxima (+CON)',
@@ -2517,6 +3381,58 @@ export default function generateRandomSheet(
 
   powersGetters = generalGetters;
 
+  // Adicionar substeps faltantes ao step "Benefícios da origem"
+  if (origin) {
+    // Encontrar o step "Benefícios da origem"
+    const originStepIndex = steps.findIndex((step) =>
+      step.label.startsWith('Benefícios da origem')
+    );
+
+    if (originStepIndex >= 0) {
+      const additionalSubsteps: SubStep[] = [];
+
+      // Adicionar bônus de atributo
+      if (attributeModifierText) {
+        additionalSubsteps.push({
+          name: 'Bônus de Atributo',
+          value: attributeModifierText,
+        });
+      }
+
+      // Adicionar itens (apenas para origens regionais)
+      if (origin.isRegional) {
+        const originItems = origin.getItems();
+        if (originItems && originItems.length > 0) {
+          const itemsList = originItems.map((item) => {
+            if (typeof item.equipment === 'string') {
+              const qtd = item.qtd ? `${item.qtd}x ` : '';
+              return `${qtd}${item.equipment}`;
+            }
+            return item.equipment.nome;
+          });
+          additionalSubsteps.push({
+            name: 'Itens',
+            value: itemsList.join(', '),
+          });
+        }
+
+        // Adicionar dinheiro (apenas para origens regionais)
+        if (origin.getMoney) {
+          const money = origin.getMoney();
+          additionalSubsteps.push({
+            name: 'Dinheiro adicional',
+            value: `T$ ${money}`,
+          });
+        }
+      }
+
+      // Adicionar os novos substeps aos existentes
+      if (additionalSubsteps.length > 0) {
+        steps[originStepIndex].value.push(...additionalSubsteps);
+      }
+    }
+  }
+
   let sheetOrigin;
   if (origin) {
     sheetOrigin = {
@@ -2528,11 +3444,12 @@ export default function generateRandomSheet(
   let charSheet: CharacterSheet = {
     id: uuid(),
     nome,
-    sexo: sexo === 'Homem' ? 'Masculino' : 'Feminino',
+    sexo: finalSex === 'Homem' ? 'Masculino' : 'Feminino',
     nivel: 1,
     atributos,
     maxSpaces,
     raca: race,
+    raceHeritage: race.heritage,
     classe,
     pv: summedPV,
     pm: initialPM,
@@ -2626,7 +3543,12 @@ export default function generateRandomSheet(
 
   // Passo 13: Gerar magias se possível
   const newSpells = getNewSpells(1, charSheet.classe, charSheet.spells);
-  charSheet.spells.push(...newSpells);
+  // Filter out duplicates before adding
+  const uniqueNewSpells = newSpells.filter(
+    (newSpell) =>
+      !charSheet.spells.some((existing) => existing.nome === newSpell.nome)
+  );
+  charSheet.spells.push(...uniqueNewSpells);
 
   if (newSpells.length) {
     charSheet.steps.push({
@@ -2655,12 +3577,68 @@ export default function generateRandomSheet(
 }
 
 export function generateEmptySheet(
-  selectedOptions: SelectedOptions
+  selectedOptions: SelectedOptions,
+  wizardSelections?: import('../interfaces/WizardSelections').WizardSelections,
+  raceCustomization?: RaceCustomization
 ): CharacterSheet {
-  // console.log(selectedOptions);
-  const race = selectRace(selectedOptions);
+  const supplements = selectedOptions.supplements || [
+    SupplementId.TORMENTA20_CORE,
+  ];
+  let race = selectRace(selectedOptions);
+
+  // Apply race customization if provided (from pre-wizard modal)
+  if (raceCustomization) {
+    // Golem Desperto customization
+    if (
+      race.name === 'Golem Desperto' &&
+      raceCustomization.golemChassis &&
+      raceCustomization.golemEnergySource &&
+      raceCustomization.golemSize
+    ) {
+      race = applyGolemDespertoCustomization(
+        race,
+        raceCustomization.golemChassis,
+        raceCustomization.golemEnergySource,
+        raceCustomization.golemSize
+      );
+    }
+
+    // Duende customization
+    if (
+      race.name === 'Duende' &&
+      raceCustomization.duendeNature &&
+      raceCustomization.duendeSize &&
+      raceCustomization.duendeBonusAttributes &&
+      raceCustomization.duendePresentes &&
+      raceCustomization.duendeTabuSkill
+    ) {
+      race = applyDuendeCustomization(
+        race,
+        raceCustomization.duendeNature,
+        raceCustomization.duendeSize,
+        raceCustomization.duendeBonusAttributes,
+        raceCustomization.duendePresentes,
+        raceCustomization.duendeTabuSkill
+      );
+    }
+
+    // Moreau customization
+    if (
+      race.name === 'Moreau' &&
+      raceCustomization.moreauHeritage &&
+      raceCustomization.moreauBonusAttributes
+    ) {
+      race = applyMoreauCustomization(
+        race,
+        raceCustomization.moreauHeritage as MoreauHeritageName,
+        raceCustomization.moreauBonusAttributes
+      );
+    }
+  }
+
   const size = getRaceSize(race);
-  const generatedClass = CLASSES.find((classe) =>
+  const classes = dataRegistry.getClassesBySupplements(supplements);
+  const generatedClass = classes.find((classe) =>
     classByName(classe, selectedOptions.classe)
   );
 
@@ -2672,14 +3650,14 @@ export function generateEmptySheet(
     id: uuid(),
     nome: '',
     sexo: '',
-    nivel: selectedOptions.nivel,
+    nivel: 1,
     atributos: {
-      Força: { name: Atributo.FORCA, mod: 0, value: 10 },
-      Destreza: { name: Atributo.DESTREZA, mod: 0, value: 10 },
-      Constituição: { name: Atributo.CONSTITUICAO, mod: 0, value: 10 },
-      Inteligência: { name: Atributo.INTELIGENCIA, mod: 0, value: 10 },
-      Sabedoria: { name: Atributo.SABEDORIA, mod: 0, value: 10 },
-      Carisma: { name: Atributo.CARISMA, mod: 0, value: 10 },
+      Força: { name: Atributo.FORCA, value: 0 },
+      Destreza: { name: Atributo.DESTREZA, value: 0 },
+      Constituição: { name: Atributo.CONSTITUICAO, value: 0 },
+      Inteligência: { name: Atributo.INTELIGENCIA, value: 0 },
+      Sabedoria: { name: Atributo.SABEDORIA, value: 0 },
+      Carisma: { name: Atributo.CARISMA, value: 0 },
     },
     maxSpaces: 10,
     raca: race,
@@ -2689,7 +3667,9 @@ export function generateEmptySheet(
     sheetBonuses: [],
     sheetActionHistory: [],
     defesa: 10,
-    bag: new Bag(),
+    bag: wizardSelections?.marketSelections
+      ? new Bag(wizardSelections.marketSelections.bagEquipments)
+      : new Bag(),
     devoto: undefined,
     origin: undefined,
     displacement: 0,
@@ -2697,10 +3677,408 @@ export function generateEmptySheet(
     generalPowers: [],
     classPowers: [],
     steps: [],
-    skills: [],
+    skills: [
+      ...getClassBaseSkills(generatedClass),
+      ...(wizardSelections?.classSkills || []),
+    ], // Add class base skills + wizard selected skills
     spells: [],
-    dinheiro: getInitialMoney(selectedOptions.nivel),
+    dinheiro: wizardSelections?.marketSelections
+      ? wizardSelections.marketSelections.remainingMoney
+      : getInitialMoney(selectedOptions.nivel),
   };
+
+  // Apply wizard character name and gender if provided
+  if (wizardSelections?.characterName) {
+    emptySheet.nome = wizardSelections.characterName;
+  }
+  if (wizardSelections?.characterGender) {
+    emptySheet.sexo = wizardSelections.characterGender;
+  }
+
+  // Apply wizard base attribute values if provided
+  // Note: baseAttributes now contains modifiers directly (not D&D-style base values)
+  if (wizardSelections?.baseAttributes) {
+    Object.keys(wizardSelections.baseAttributes).forEach((attrKey) => {
+      const attr = attrKey as Atributo;
+      const modValue = wizardSelections.baseAttributes![attr];
+      emptySheet.atributos[attr].value = modValue;
+    });
+  }
+
+  // Apply wizard race attribute choices if provided
+  if (wizardSelections?.raceAttributes) {
+    emptySheet.raceAttributeChoices = wizardSelections.raceAttributes;
+  }
+
+  // Apply Suraggel alternative ability if selected
+  if (
+    wizardSelections?.suragelAbility &&
+    emptySheet.raca.name.startsWith('Suraggel')
+  ) {
+    const alternativeAbility = SURAGEL_ALTERNATIVE_ABILITIES.find(
+      (a) => a.name === wizardSelections.suragelAbility
+    );
+    if (alternativeAbility) {
+      // Clone the race to avoid mutating the original
+      const modifiedRace = _.cloneDeep(emptySheet.raca);
+
+      // Find the default ability to replace (Luz Sagrada for Aggelus, Sombras Profanas for Sulfure)
+      const defaultAbilityName = modifiedRace.name.includes('Aggelus')
+        ? 'Luz Sagrada'
+        : 'Sombras Profanas';
+
+      const abilityIndex = modifiedRace.abilities.findIndex(
+        (a) => a.name === defaultAbilityName
+      );
+
+      if (abilityIndex !== -1) {
+        // Replace the default ability with the alternative
+        modifiedRace.abilities[abilityIndex] = {
+          name: alternativeAbility.name,
+          description: alternativeAbility.description,
+          sheetBonuses: alternativeAbility.sheetBonuses,
+          sheetActions: alternativeAbility.sheetActions,
+        };
+      }
+
+      emptySheet.raca = modifiedRace;
+      emptySheet.suragelAbility = wizardSelections.suragelAbility;
+    }
+  }
+
+  // Handle Arcanista subtype selection specially
+  if (
+    generatedClass.name === 'Arcanista' &&
+    wizardSelections?.arcanistaSubtype
+  ) {
+    // Manually apply Arcanista subtype based on wizard selection
+    // instead of calling the random setup() function
+    const modifiedClasse = _.cloneDeep(generatedClass);
+    const subtype = wizardSelections.arcanistaSubtype;
+    modifiedClasse.subname = subtype;
+
+    // Set spellPath based on subtype
+    if (subtype === 'Bruxo') {
+      modifiedClasse.spellPath = {
+        initialSpells: 3,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level: number) => (level === 1 ? 0 : 1),
+        spellCircleAvailableAtLevel: (level: number) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.INTELIGENCIA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um bruxo, capaz de lançar magias através de um foco como uma varinha, cajado, chapéu, etc.',
+        nivel: 1,
+      });
+    } else if (subtype === 'Mago') {
+      modifiedClasse.spellPath = {
+        initialSpells: 4,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level) =>
+          [5, 9, 13, 17].includes(level) ? 2 : 1,
+        spellCircleAvailableAtLevel: (level) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.INTELIGENCIA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um mago, capaz de lançar magia através de todo o seu estudo mágico.',
+        nivel: 1,
+      });
+    } else if (subtype === 'Feiticeiro') {
+      modifiedClasse.attrPriority = [Atributo.CARISMA];
+      modifiedClasse.spellPath = {
+        initialSpells: 3,
+        spellType: 'Arcane' as const,
+        qtySpellsLearnAtLevel: (level) => (level % 2 === 1 ? 1 : 0),
+        spellCircleAvailableAtLevel: (level) => {
+          if (level < 5) return 1;
+          if (level < 9) return 2;
+          if (level < 13) return 3;
+          if (level < 17) return 4;
+          return 5;
+        },
+        keyAttribute: Atributo.CARISMA,
+      };
+      modifiedClasse.abilities.push({
+        name: 'Caminho do Arcanista',
+        text: 'Você é um feiticeiro, capaz de lançar magias através de um poder inato que corre no seu sangue.',
+        nivel: 1,
+      });
+
+      // Handle Feiticeiro linhagem
+      if (wizardSelections.feiticeiroLinhagem === 'Linhagem Dracônica') {
+        const damageType = getRandomItemFromArray([
+          'Ácido',
+          'Elétrico',
+          'Fogo',
+          'Frio',
+        ]);
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Dracônica',
+          text: `Um de seus antepassados foi um majestoso dragão. Tipo escolhido: ${damageType}. Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5.`,
+          nivel: 1,
+          sheetBonuses: [
+            {
+              source: { type: 'power', name: 'Linhagem Dracônica' },
+              target: { type: 'PV' },
+              modifier: { type: 'Attribute', attribute: Atributo.CARISMA },
+            },
+          ],
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Feérica') {
+        modifiedClasse.periciasbasicas.push({
+          type: 'and',
+          list: [Skill.ENGANACAO],
+        });
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Feérica',
+          text: 'Seu sangue foi tocado pelas fadas. Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão.',
+          nivel: 1,
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Rubra') {
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Rubra',
+          text: 'Seu sangue foi corrompido pela Tormenta. Você recebe um poder da Tormenta.',
+          nivel: 1,
+        });
+      } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
+        const deusEscolhido =
+          wizardSelections.linhagemAbencoada?.deus || 'um deus maior';
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Abençoada',
+          text: `Seu poder vem de ${deusEscolhido}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
+          nivel: 1,
+        });
+
+        // Buscar poderes concedidos da divindade escolhida
+        const divindade = DIVINDADES.find((d) => d.name === deusEscolhido);
+        const poderesDisponiveis = divindade?.poderes || [];
+
+        // Habilidade de nível 2: poder concedido com escolha
+        modifiedClasse.abilities.push({
+          name: 'Linhagem Abençoada (Poder Concedido)',
+          text: `Você recebe um poder concedido de ${deusEscolhido}, aprovado pelo mestre, sem precisar ser devoto.`,
+          nivel: 2,
+          sheetActions:
+            poderesDisponiveis.length > 0
+              ? [
+                  {
+                    source: {
+                      type: 'power',
+                      name: 'Linhagem Abençoada (Poder Concedido)',
+                    },
+                    action: {
+                      type: 'getGeneralPower',
+                      availablePowers: poderesDisponiveis,
+                      pick: 1,
+                    },
+                  },
+                ]
+              : undefined,
+        });
+      }
+    }
+
+    emptySheet.classe = modifiedClasse;
+  } else if (wizardSelections?.spellSchools && generatedClass.setup) {
+    // Apply wizard spell school selections if provided (for Bardo/Druida)
+    // Execute setup first to initialize spellPath
+    const setupClass = generatedClass.setup(generatedClass);
+    // Override schools with wizard selections
+    if (setupClass.spellPath) {
+      setupClass.spellPath.schools = wizardSelections.spellSchools;
+      // Update emptySheet with the modified class
+      emptySheet.classe = setupClass;
+    }
+  } else if (generatedClass.setup) {
+    // No wizard selection, use random setup
+    emptySheet.classe = generatedClass.setup(generatedClass);
+  } else {
+    emptySheet.classe = generatedClass;
+  }
+
+  // Apply wizard initial spell selections if provided
+  if (
+    wizardSelections?.initialSpells &&
+    wizardSelections.initialSpells.length > 0
+  ) {
+    emptySheet.spells = [...wizardSelections.initialSpells];
+  }
+
+  // === STEP RECORDING FOR WIZARD-CREATED SHEETS ===
+  // Record character creation steps similar to generateRandomSheet
+
+  // Step: Gender
+  if (wizardSelections?.characterGender) {
+    emptySheet.steps.push({
+      label: 'Gênero',
+      value: [
+        {
+          value: wizardSelections.characterGender,
+        },
+      ],
+    });
+  }
+
+  // Step: Race
+  emptySheet.steps.push({
+    label: 'Raça',
+    value: [{ value: race.name }],
+  });
+
+  // Step: Heritage (for Moreau)
+  if (race.heritage) {
+    const heritage = MOREAU_HERITAGES[race.heritage];
+    if (heritage) {
+      emptySheet.steps.push({
+        label: 'Herança',
+        value: [{ value: heritage.name }],
+      });
+    }
+  }
+
+  // Step: Name
+  if (wizardSelections?.characterName) {
+    emptySheet.steps.push({
+      label: 'Nome',
+      value: [{ value: wizardSelections.characterName }],
+    });
+  }
+
+  // Step: Class (with subtype for Arcanista)
+  const classValue = wizardSelections?.arcanistaSubtype
+    ? `${generatedClass.name} (${wizardSelections.arcanistaSubtype})`
+    : generatedClass.name;
+  emptySheet.steps.push({
+    label: 'Classe',
+    value: [{ value: classValue }],
+  });
+
+  // Step: Initial values
+  const initialPV = generatedClass.pv + generatedClass.addpv;
+  const initialPM = generatedClass.pm;
+  const initialDefense = 10;
+  const initialMoney = getInitialMoney(selectedOptions.nivel);
+
+  emptySheet.steps.push(
+    {
+      label: 'PV Inicial',
+      value: [{ value: initialPV }],
+    },
+    {
+      label: 'PM Inicial',
+      value: [{ value: initialPM }],
+    },
+    {
+      label: 'Defesa Inicial',
+      value: [{ value: initialDefense }],
+    },
+    {
+      label: 'Dinheiro Inicial',
+      value: [{ value: `T$ ${initialMoney}` }],
+    }
+  );
+
+  // Step: Base Attributes
+  if (wizardSelections?.baseAttributes) {
+    const attrSubsteps: SubStep[] = Object.entries(
+      wizardSelections.baseAttributes
+    ).map(([attr, value]) => ({
+      name: attr,
+      value: value >= 0 ? `+${value}` : `${value}`,
+    }));
+
+    emptySheet.steps.push({
+      label: 'Atributos Base',
+      type: 'Atributos',
+      value: attrSubsteps,
+    });
+  }
+
+  // Step: Origin benefits
+  if (selectedOptions.origin && wizardSelections?.originBenefits) {
+    const benefitSubsteps: SubStep[] = wizardSelections.originBenefits.map(
+      (benefit) => ({
+        name: benefit.type === 'skill' ? 'Perícia' : 'Poder',
+        value: benefit.name,
+      })
+    );
+
+    if (benefitSubsteps.length > 0) {
+      emptySheet.steps.push({
+        label: `Benefícios da origem: ${selectedOptions.origin}`,
+        type: 'Origem',
+        value: benefitSubsteps,
+      });
+    }
+  }
+
+  // Step: Trained Skills (from class and wizard selection)
+  if (emptySheet.skills.length > 0) {
+    const skillSubsteps: SubStep[] = emptySheet.skills.map((skill) => ({
+      name: skill,
+      value: 'Treinada',
+    }));
+
+    emptySheet.steps.push({
+      label: 'Perícias Treinadas',
+      type: 'Perícias',
+      value: skillSubsteps,
+    });
+  }
+
+  // Step: Deity
+  if (selectedOptions.devocao && selectedOptions.devocao.value !== '--') {
+    const deityPowerNames =
+      wizardSelections?.deityPowers ||
+      emptySheet.devoto?.poderes?.map((p) => p.name) ||
+      [];
+
+    const deitySubsteps: SubStep[] =
+      deityPowerNames.length > 0
+        ? deityPowerNames.map((powerName) => ({
+            name: 'Poder Concedido',
+            value: powerName,
+          }))
+        : [];
+
+    emptySheet.steps.push({
+      label: `Devoto de ${
+        selectedOptions.devocao.label || selectedOptions.devocao.value
+      }`,
+      type: 'Devoção',
+      value: deitySubsteps,
+    });
+  }
+
+  // Step: Initial Spells
+  if (emptySheet.spells.length > 0) {
+    const spellSubsteps: SubStep[] = emptySheet.spells.map((spell) => ({
+      name: spell.nome,
+      value: spell.spellCircle,
+    }));
+
+    emptySheet.steps.push({
+      label: 'Magias Iniciais',
+      type: 'Magias',
+      value: spellSubsteps,
+    });
+  }
+
+  // === END STEP RECORDING ===
 
   // Gerar equipamentos de recompensa para ficha vazia se solicitado
   if (
@@ -2752,7 +4130,7 @@ export function generateEmptySheet(
         value: `${equipmentResult.generationDetails} (Custo total: ${equipmentResult.totalCost} T$)`,
       });
 
-      // Adicionar cada item gerado como substep
+      // Adicionar cada gerado como substep
       equipmentSteps.push(...equipmentResult.itemsForSteps);
 
       // Adicionar step ao histórico
@@ -2764,32 +4142,111 @@ export function generateEmptySheet(
     }
   }
 
+  // Apply race abilities (this adds sheetBonuses and abilities from race)
+  emptySheet = applyRaceAbilities(emptySheet);
+
+  // Apply race attribute modifiers
+  const tempSteps: Step[] = [];
+  emptySheet.atributos = modifyAttributesBasedOnRace(
+    emptySheet.raca,
+    emptySheet.atributos,
+    emptySheet.classe.attrPriority || [],
+    tempSteps,
+    undefined, // No manual choices for empty sheet
+    undefined // Sex not defined in empty sheet yet
+  );
+  emptySheet.steps.push(...tempSteps);
+
   // Apply class abilities filtering by level
   emptySheet = applyClassAbilities(emptySheet);
 
   // Process origin if selected
   if (selectedOptions.origin) {
-    const selectedOrigin = Object.values(ORIGINS).find(
+    // Busca origem em todos os suplementos ativos
+    const allOrigins = dataRegistry.getOriginsBySupplements(supplements);
+    const selectedOrigin = allOrigins.find(
       (origin) => origin.name === selectedOptions.origin
     );
     if (selectedOrigin) {
+      let originPowers = selectedOrigin.poderes || [];
+
+      // Apply wizard origin benefit selections for non-regional origins
+      if (
+        wizardSelections?.originBenefits &&
+        wizardSelections.originBenefits.length > 0 &&
+        selectedOrigin.isRegional === false
+      ) {
+        // Apply selected benefits
+        wizardSelections.originBenefits.forEach((benefit) => {
+          if (benefit.type === 'skill') {
+            // Add skill if not already added
+            if (!emptySheet.skills.includes(benefit.name as Skill)) {
+              emptySheet.skills.push(benefit.name as Skill);
+            }
+          } else if (benefit.type === 'power') {
+            // Power is already in the origin powers list, no need to add
+          } else if (benefit.type === 'item') {
+            // TODO: Add item to bag (requires equipment lookup)
+          }
+        });
+
+        // Filter origin powers to only include selected ones
+        const selectedPowerNames = wizardSelections.originBenefits
+          .filter((b) => b.type === 'power')
+          .map((b) => b.name);
+
+        if (selectedPowerNames.length > 0) {
+          originPowers = originPowers.filter((p) =>
+            selectedPowerNames.includes(p.name)
+          );
+        }
+      }
+
       emptySheet.origin = {
         name: selectedOrigin.name,
-        powers: selectedOrigin.poderes || [],
+        powers: originPowers,
       };
     }
   }
 
   // Process deity if selected
   if (selectedOptions.devocao && selectedOptions.devocao.value) {
+    const normalizedSearch = normalizeDeityName(selectedOptions.devocao.value);
     const selectedDeity = Object.values(DivindadeEnum).find(
-      (deity) =>
-        deity.name.toLowerCase() === selectedOptions.devocao.value.toLowerCase()
+      (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
+      // Determine which deity powers to add based on wizard selections
+      let deityPowers: import('../interfaces/Poderes').GeneralPower[] = [];
+
+      if (
+        wizardSelections?.deityPowers &&
+        wizardSelections.deityPowers.length > 0
+      ) {
+        // Use wizard selections
+        deityPowers = selectedDeity.poderes.filter((p) =>
+          wizardSelections.deityPowers?.includes(p.name)
+        );
+      } else {
+        // Use automatic selection (random or all)
+        const todosPoderes = generatedClass.qtdPoderesConcedidos === 'all';
+        const qtdPoderesConcedidos = isNumber(
+          generatedClass.qtdPoderesConcedidos
+        )
+          ? (generatedClass.qtdPoderesConcedidos as number)
+          : 1; // Default to 1 if undefined
+
+        deityPowers = getPoderesConcedidos(
+          selectedDeity,
+          todosPoderes,
+          generatedClass,
+          qtdPoderesConcedidos
+        );
+      }
+
       emptySheet.devoto = {
         divindade: selectedDeity,
-        poderes: [],
+        poderes: deityPowers,
       };
     }
   }
@@ -2812,6 +4269,9 @@ export function generateEmptySheet(
         !skill.name.startsWith('Of') ||
         (skill.name.startsWith('Of') && skill.training > 0)
     );
+
+  // Recalculate sheet to apply all bonuses (attributes, PV/PM, defense, skills)
+  emptySheet = recalculateSheet(emptySheet);
 
   return emptySheet;
 }

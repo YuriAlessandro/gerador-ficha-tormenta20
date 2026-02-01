@@ -63,7 +63,7 @@ export const FOUNDRY_SKILLS = {
   [Skill.OFICIO_CARPINTEIRO]: 'ofic',
   [Skill.OFICIO_CULINARIA]: 'ofic',
   [Skill.OFICIO_EGENHOQUEIRO]: 'ofic',
-  [Skill.OFICIO_ESCRITA]: 'ofic',
+  [Skill.OFICIO_ESCRIBA]: 'ofic',
   [Skill.OFICIO_ESCULTOR]: 'ofic',
   [Skill.OFICIO_ESTALAJADEIRO]: 'ofic',
   [Skill.OFICIO_FAZENDEIRO]: 'ofic',

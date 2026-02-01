@@ -1,6 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
-import { manaExpenseByCircle } from '../data/magias/generalSpells';
+import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
@@ -15,7 +15,7 @@ interface SpellsProp {
 const SpellsMobile: React.FC<SpellsProp> = (props) => {
   const { spells, spellPath, keyAttr, nivel } = props;
 
-  const mod = keyAttr ? keyAttr.mod : 0;
+  const mod = keyAttr ? keyAttr.value : 0;
   const resistence = 10 + Math.floor(nivel * 0.5) + mod;
 
   return (
@@ -27,7 +27,7 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
           </span>
           <span>
             <strong>Modificador:</strong>{' '}
-            {`${mod > 0 ? '+' : ''}${keyAttr?.mod}`}
+            {`${mod > 0 ? '+' : ''}${keyAttr?.value}`}
           </span>
           <span>
             <strong>Teste de Resistência:</strong> {resistence}

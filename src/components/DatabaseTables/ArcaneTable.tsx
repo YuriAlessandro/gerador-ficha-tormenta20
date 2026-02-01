@@ -11,21 +11,21 @@ import {
   IconButton,
   Collapse,
   Box,
-  Snackbar,
   Tabs,
   Tab,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CopyUrlButton from '../Database/CopyUrlButton';
 import {
   allArcaneSpellsCircle1,
   allArcaneSpellsCircle2,
   allArcaneSpellsCircle3,
   allArcaneSpellsCircle4,
   allArcaneSpellsCircle5,
-} from '../../data/magias/arcane';
+} from '../../data/systems/tormenta20/magias/arcane';
 
 import { Spell } from '../../interfaces/Spells';
 
@@ -36,27 +36,13 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
   defaultOpen,
 }) => {
   const [open, setOpen] = useState(false);
-  const [alert, setAlert] = useState(false);
 
   useEffect(() => {
     setOpen(defaultOpen);
   }, [defaultOpen]);
 
-  const onCopy = (name: string) => {
-    navigator.clipboard.writeText(
-      `${window.location.href}/${name.toLowerCase()}`
-    );
-    setAlert(true);
-  };
-
   return (
     <>
-      <Snackbar
-        open={alert}
-        autoHideDuration={5000}
-        message='Link copiado para a área de transferência.'
-        onClose={() => setAlert(false)}
-      />
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell width={10}>
           <IconButton
@@ -73,9 +59,12 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
         <TableCell>{spell.spellCircle}</TableCell>
         <TableCell>{spell.school}</TableCell>
         <TableCell>
-          <IconButton title='Copiar URL' onClick={() => onCopy(spell.nome)}>
-            <ContentCopyIcon />
-          </IconButton>
+          <CopyUrlButton
+            itemName={spell.nome}
+            itemType='magia'
+            size='small'
+            variant='minimal'
+          />
         </TableCell>
       </TableRow>
       <TableRow>
@@ -137,6 +126,7 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
 };
 
 const ArcaneTable: React.FC = () => {
+  const theme = useTheme();
   const allSpells = [
     ...allArcaneSpellsCircle1,
     ...allArcaneSpellsCircle2,
@@ -219,7 +209,7 @@ const ArcaneTable: React.FC = () => {
         aria-label='basic tabs example'
         variant='fullWidth'
         sx={{
-          background: '#da5b5d',
+          background: theme.palette.primary.main,
         }}
       >
         <Tab label='1º' id='tab1' />

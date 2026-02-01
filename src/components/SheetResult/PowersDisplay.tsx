@@ -2,12 +2,20 @@ import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { Box } from '@mui/material';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { DiceRoll } from '@/interfaces/DiceRoll';
 import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
+import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
+import { CustomPower } from '@/interfaces/CustomPower';
 import PowerDisplay from './PowerDisplay';
 
-function filterUnique<T>(array: T[]) {
-  return array.filter((v, i, a) => a.indexOf(v) === i);
+function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
+  const seen = new Set<string>();
+  return array.filter((item) => {
+    if (seen.has(item.name)) return false;
+    seen.add(item.name);
+    return true;
+  });
 }
 
 const PowersDisplay: React.FC<{
@@ -18,8 +26,21 @@ const PowersDisplay: React.FC<{
   originPowers: OriginPower[];
   deityPowers: GeneralPower[];
   generalPowers: GeneralPower[];
+  customPowers?: CustomPower[];
   className: string;
   raceName: string;
+  deityName?: string;
+  onUpdateRolls?: (
+    power:
+      | ClassPower
+      | RaceAbility
+      | ClassAbility
+      | OriginPower
+      | GeneralPower
+      | CustomPower,
+    newRolls: DiceRoll[]
+  ) => void;
+  characterName?: string;
 }> = ({
   sheetHistory,
   classPowers,
@@ -28,16 +49,35 @@ const PowersDisplay: React.FC<{
   originPowers,
   deityPowers,
   generalPowers,
+  customPowers,
   className,
   raceName,
+  deityName,
+  onUpdateRolls,
+  characterName,
 }) => {
+  // Aplica texto dinâmico para poderes que dependem da divindade
+  const processedClassPowers = useMemo(
+    () =>
+      classPowers.map((power) => {
+        if (power.name === 'Autoridade Eclesiástica') {
+          const dynamicText = getAutoridadeEclesiasticaDynamicText(deityName);
+          if (dynamicText) {
+            return { ...power, dynamicText };
+          }
+        }
+        return power;
+      }),
+    [classPowers, deityName]
+  );
   const powers = [
-    ...classPowers,
+    ...processedClassPowers,
     ...raceAbilities,
     ...classAbilities,
     ...originPowers,
     ...deityPowers,
     ...generalPowers,
+    ...(customPowers || []),
   ];
 
   // Count how many times a power if the same name appears
@@ -48,18 +88,19 @@ const PowersDisplay: React.FC<{
   });
 
   const uniquePowers = [
-    ...filterUnique(classPowers),
-    ...filterUnique(raceAbilities),
-    ...filterUnique(classAbilities),
-    ...filterUnique(originPowers),
-    ...filterUnique(deityPowers),
-    ...filterUnique(generalPowers),
+    ...filterUniqueByName(processedClassPowers),
+    ...filterUniqueByName(raceAbilities),
+    ...filterUniqueByName(classAbilities),
+    ...filterUniqueByName(originPowers),
+    ...filterUniqueByName(deityPowers),
+    ...filterUniqueByName(generalPowers),
+    ...filterUniqueByName(customPowers || []),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const getPowerOrigin = (
-    pw: ClassPower | RaceAbility | ClassAbility | OriginPower
+    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
   ) => {
-    if (classPowers.includes(pw as ClassPower)) {
+    if (processedClassPowers.some((p) => p.name === pw.name)) {
       return `Poder de ${className}`;
     }
     if (raceAbilities.includes(pw as RaceAbility)) {
@@ -74,6 +115,9 @@ const PowersDisplay: React.FC<{
     if (deityPowers.includes(pw as GeneralPower)) {
       return 'Poder Divino';
     }
+    if (customPowers?.some((p) => p.name === pw.name)) {
+      return 'Poder Personalizado';
+    }
     return 'Poder Geral';
   };
 
@@ -86,6 +130,8 @@ const PowersDisplay: React.FC<{
           power={power}
           type={getPowerOrigin(power)}
           count={powerCount[power.name]}
+          onUpdateRolls={onUpdateRolls}
+          characterName={characterName}
         />
       ))}
     </Box>

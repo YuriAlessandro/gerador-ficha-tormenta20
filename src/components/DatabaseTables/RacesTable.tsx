@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -14,17 +14,21 @@ import {
   Typography,
   Divider,
   Chip,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import GroupIcon from '@mui/icons-material/Group';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import RACAS from '../../data/racas';
 import Race from '../../interfaces/Race';
 import SearchInput from './SearchInput';
+import { SEO, getPageSEO } from '../SEO';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, RaceWithSupplement } from '../../data/registry';
 
 interface ProcessedAttribute {
   label: string;
@@ -73,10 +77,11 @@ const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
   return result;
 };
 
-const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
+const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
   race,
   defaultOpen,
 }) => {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -113,6 +118,18 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
               <Typography variant='body1' fontWeight={500}>
                 {race.name}
               </Typography>
+              {race.supplementId !== SupplementId.TORMENTA20_CORE && (
+                <Chip
+                  label={race.supplementName}
+                  size='small'
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    backgroundColor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                  }}
+                />
+              )}
             </Box>
             <CopyUrlButton
               itemName={race.name}
@@ -127,15 +144,40 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
-                {race.name}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                >
+                  {race.name}
+                </Typography>
+                <Chip
+                  label={race.supplementName}
+                  size='small'
+                  variant='outlined'
+                  color={
+                    race.supplementId === SupplementId.TORMENTA20_CORE
+                      ? 'default'
+                      : 'secondary'
+                  }
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
 
               {/* Attribute Bonuses */}
               <Box sx={{ mb: 2 }}>
@@ -203,119 +245,174 @@ const Row: React.FC<{ race: Race; defaultOpen: boolean }> = ({
 };
 
 const RacesTable: React.FC = () => {
+  const theme = useTheme();
   const [value, setValue] = useState('');
-  const [races, setRaces] = useState<Race[]>(RACAS);
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
   const { params } = useRouteMatch<{ selectedRace?: string }>();
   const history = useHistory();
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered races using useMemo - this ensures data is always in sync with state
+  const races = useMemo(() => {
+    const allRaces =
+      dataRegistry.getRacesWithSupplementInfo(selectedSupplements);
+    const search = value.toLocaleLowerCase();
+
     if (search.length > 0) {
-      const filteredRaces = RACAS.filter((race) => {
+      return allRaces.filter((race) => {
         if (race.name.toLowerCase().includes(search)) {
           return true;
         }
         const abltNames = race.abilities.map((ablt) => ablt.name);
-
         if (abltNames.find((name) => name.toLowerCase().includes(search)))
           return true;
-
         return false;
       });
-
-      if (filteredRaces.length > 1) history.push('/database/raças');
-
-      setRaces(filteredRaces);
-    } else {
-      setRaces(RACAS);
     }
+    return allRaces;
+  }, [selectedSupplements, value]);
+
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        // Don't allow deselecting all supplements
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
+      return [...prev, supplementId];
+    });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedRace } = params;
-    if (selectedRace) {
+    if (selectedRace && selectedRace !== value) {
       setValue(selectedRace);
-      filter(selectedRace);
     }
   }, [params]);
 
+  // Handle URL navigation when filtering results in single match
+  useEffect(() => {
+    if (races.length > 1 && value) {
+      history.push('/database/raças');
+    }
+  }, [races.length, value, history]);
+
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
+  // Get selected race for SEO
+  const selectedRaceData =
+    races.length === 1 && params.selectedRace ? races[0] : null;
+  const racesSEO = getPageSEO('races');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Raças e Habilidades Raciais
-      </TormentaTitle>
+    <>
+      <SEO
+        title={
+          selectedRaceData
+            ? `${selectedRaceData.name} - Raça de Tormenta 20`
+            : racesSEO.title
+        }
+        description={
+          selectedRaceData
+            ? `Atributos, habilidades e modificadores da raça ${selectedRaceData.name} em Tormenta 20.`
+            : racesSEO.description
+        }
+        url={`/database/raças${
+          selectedRaceData ? `/${params.selectedRace}` : ''
+        }`}
+      />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Raças e Habilidades Raciais
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {races.length === 0
-            ? 'Nenhuma raça encontrada com os filtros aplicados'
-            : `${races.length} raça${races.length !== 1 ? 's' : ''} encontrada${
-                races.length !== 1 ? 's' : ''
-              }`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {races.length === 0
+              ? 'Nenhuma raça encontrada com os filtros aplicados'
+              : `${races.length} raça${
+                  races.length !== 1 ? 's' : ''
+                } encontrada${races.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Races Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='races table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Raça
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {races.length === 0 ? (
+        {/* Races Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='races table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma raça encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    Nome da Raça
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              races.map((race) => (
-                <Row
-                  key={race.name}
-                  race={race}
-                  defaultOpen={races.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {races.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma raça encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                races.map((race) => (
+                  <Row
+                    key={race.name}
+                    race={race}
+                    defaultOpen={races.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

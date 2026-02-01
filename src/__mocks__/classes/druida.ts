@@ -1,8 +1,8 @@
 import { GeneralPowerType } from '../../interfaces/Poderes';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
-import { Atributo } from '../../data/atributos';
-import { spellsCircle1 } from '../../data/magias/generalSpells';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { spellsCircle1 } from '../../data/systems/tormenta20/magias/generalSpells';
 import Race from '../../interfaces/Race';
 import Bag from '../../interfaces/Bag';
 
@@ -15,12 +15,12 @@ export function druida(race: Race): CharacterSheet {
     sexo: 'Masculino',
     steps: [],
     atributos: {
-      Força: { name: Atributo.FORCA, value: 10, mod: 0 },
-      Destreza: { name: Atributo.DESTREZA, value: 13, mod: 1 },
-      Constituição: { name: Atributo.CONSTITUICAO, value: 11, mod: 0 },
-      Inteligência: { name: Atributo.INTELIGENCIA, value: 12, mod: 1 },
-      Sabedoria: { name: Atributo.SABEDORIA, value: 18, mod: 4 },
-      Carisma: { name: Atributo.CARISMA, value: 16, mod: 3 },
+      Força: { name: Atributo.FORCA, value: 0 },
+      Destreza: { name: Atributo.DESTREZA, value: 1 },
+      Constituição: { name: Atributo.CONSTITUICAO, value: 0 },
+      Inteligência: { name: Atributo.INTELIGENCIA, value: 1 },
+      Sabedoria: { name: Atributo.SABEDORIA, value: 4 },
+      Carisma: { name: Atributo.CARISMA, value: 3 },
     },
     bag: new Bag({
       'Item Geral': [

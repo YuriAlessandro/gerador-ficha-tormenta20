@@ -1,8 +1,9 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
 import CharacterSheet, { SheetAction, SheetBonus } from './CharacterSheet';
 import { ClassDescription } from './Class';
+import { DiceRoll } from './DiceRoll';
 import { FaithProbability } from './Divindade';
 import Origin from './Origin';
 import { OriginPower, GeneralPower } from './Poderes';
@@ -58,6 +59,7 @@ export type RaceAbility = {
   description: string;
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
+  rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
 export type RaceNames =
@@ -80,7 +82,42 @@ export type RaceNames =
   | 'Suraggel'
   | 'Trog'
   | 'Suraggel (Aggelus)'
-  | 'Suraggel (Sulfure)';
+  | 'Suraggel (Sulfure)'
+  | 'Bugbear'
+  | 'Centauro'
+  | 'Ceratops'
+  | 'Elfo-do-Mar'
+  | 'Fintroll'
+  | 'Gnoll'
+  | 'Harpia'
+  | 'Hobgoblin'
+  | 'Kaijin'
+  | 'Kallyanach'
+  | 'Kappa'
+  | 'Kobolds'
+  | 'Mashin'
+  | 'Meio-Orc'
+  | 'Minauro'
+  | 'Moreau'
+  | 'Golem Desperto'
+  | 'Nagah'
+  | 'Nezumi'
+  | 'Ogro'
+  | 'Orc'
+  | 'Pteros'
+  | 'Soterrado'
+  | 'Tabrachi'
+  | 'Tengu'
+  | 'Trog Anão'
+  | 'Velocis'
+  | 'Voracis'
+  | 'Yidishan'
+  // Heróis de Arton
+  | 'Duende'
+  | 'Eiradaan'
+  | 'Galokk'
+  | 'Meio-Elfo'
+  | 'Sátiro';
 
 export default interface Race {
   name: RaceNames;
@@ -89,9 +126,17 @@ export default interface Race {
   };
   abilities: RaceAbility[];
   oldRace?: Race;
+  heritage?: string; // For races with heritages (like Moreau)
+  chassis?: string; // For Golem Desperto
+  energySource?: string; // For Golem Desperto
+  sizeCategory?: string; // For Golem Desperto and Duende
+  nature?: string; // For Duende (animal/vegetal/mineral)
+  presentPowers?: string[]; // For Duende (3 selected powers)
+  tabuSkill?: Skill; // For Duende (skill with -5 penalty)
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;
+  getAttributes?: (sex: 'Masculino' | 'Feminino') => RaceAttributeAbility[];
   faithProbability?: FaithProbability;
   size?: RaceSize;
 }

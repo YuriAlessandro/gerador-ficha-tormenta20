@@ -137,7 +137,7 @@ const SheetPreviewSkills = () => {
             </TableRow>
           </TableHead>
           <TableBody sx={{ border: 'none' }}>
-            {Object.entries(skills)
+            {Object.entries(skills || {})
               .sort(([skill], [skill2]) => {
                 const skillNameTranslation = Translator.getSkillTranslation(
                   skill as SkillName

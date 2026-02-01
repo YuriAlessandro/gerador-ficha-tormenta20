@@ -51,7 +51,7 @@ export function rewardGenerator(nd: LEVELS): RewardGenerated {
     (r) => moneyValue >= r.min && moneyValue <= r.max
   );
 
-  const item = itemsReward.find(
+  const items = itemsReward.find(
     (r) => itemValue >= r.min && itemValue <= r.max
   );
 
@@ -59,7 +59,7 @@ export function rewardGenerator(nd: LEVELS): RewardGenerated {
     itemRoll: itemValue,
     moneyRoll: moneyValue,
     money,
-    item,
+    item: items,
   };
 }
 
@@ -463,7 +463,7 @@ export function applyItemReward(item: ItemReward, isDouble?: boolean): string {
 
   for (let index = 0; index < l; index += 1) {
     if (item.reward?.type === ITEM_TYPE.DIVERSO) {
-      // Item diverso, rola 1d100 para determinar qual item é encontrado.
+      // Item diverso, rola 1d100 para determinar qual é encontrado.
       rtn += getMiscellaneousItem(diceRoll);
     }
     if (
@@ -471,7 +471,7 @@ export function applyItemReward(item: ItemReward, isDouble?: boolean): string {
       item.reward?.type === ITEM_TYPE.SUPERIOR
     ) {
       /* Armas e armaduras. Rola 1d6. Um resultado 1 a 4 é uma arma. Um resultado 5 ou 6, uma armadura ou escudo.
-      Então, rola 1d100 para determinar o item encontrado. */
+      Então, rola 1d100 para determinar o encontrado. */
       rtn += getWeaponOrArmor(diceRoll, item.reward.mods || 0);
     }
     if (item.reward?.type === ITEM_TYPE.POCAO) {

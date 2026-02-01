@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -15,21 +15,24 @@ import {
   Divider,
   Chip,
   Grid,
+  useTheme,
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import CLASSES from '../../data/classes';
 import SearchInput from './SearchInput';
-import { ClassDescription } from '../../interfaces/Class';
+import { SEO, getPageSEO } from '../SEO';
 import { Requirement, RequirementType } from '../../interfaces/Poderes';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import SupplementFilter from './SupplementFilter';
+import { SupplementId } from '../../types/supplement.types';
+import { dataRegistry, ClassWithSupplement } from '../../data/registry';
 
 interface IProps {
-  classe: ClassDescription;
+  classe: ClassWithSupplement;
   defaultOpen: boolean;
 }
 
@@ -70,6 +73,7 @@ const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
 };
 
 const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -116,6 +120,18 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   </Typography>
                 )}
               </Typography>
+              {classe.supplementId !== SupplementId.TORMENTA20_CORE && (
+                <Chip
+                  label={classe.supplementName}
+                  size='small'
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                    backgroundColor: 'secondary.main',
+                    color: 'secondary.contrastText',
+                  }}
+                />
+              )}
             </Box>
             <CopyUrlButton
               itemName={classe.name}
@@ -130,20 +146,45 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1, p: 2, borderLeft: '3px solid #d13235' }}>
-              <Typography
-                variant='h6'
-                color='primary'
-                gutterBottom
-                sx={{ fontFamily: 'Tfont, serif' }}
+            <Box
+              sx={{
+                margin: 1,
+                p: 2,
+                borderLeft: `3px solid ${theme.palette.primary.main}`,
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 1,
+                }}
               >
-                {classe.name}
-                {classe.subname && ` (${classe.subname})`}
-              </Typography>
+                <Typography
+                  variant='h6'
+                  color='primary'
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                >
+                  {classe.name}
+                  {classe.subname && ` (${classe.subname})`}
+                </Typography>
+                <Chip
+                  label={classe.supplementName}
+                  size='small'
+                  variant='outlined'
+                  color={
+                    classe.supplementId === SupplementId.TORMENTA20_CORE
+                      ? 'default'
+                      : 'secondary'
+                  }
+                  sx={{ fontFamily: 'Tfont, serif' }}
+                />
+              </Box>
 
               {/* Basic Stats */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: 2,
@@ -167,7 +208,7 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: 2,
@@ -368,15 +409,22 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
 };
 
 const ClassesTable: React.FC = () => {
+  const theme = useTheme();
   const [value, setValue] = useState('');
-  const [classes, setClasses] = useState<ClassDescription[]>(CLASSES);
+  const [selectedSupplements, setSelectedSupplements] = useState<
+    SupplementId[]
+  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
   const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
-  const filter = (searchValue: string) => {
-    const search = searchValue.toLocaleLowerCase();
+  // Derive filtered classes using useMemo - this ensures data is always in sync with state
+  const classes = useMemo(() => {
+    const allClasses =
+      dataRegistry.getClassesWithSupplementInfo(selectedSupplements);
+    const search = value.toLocaleLowerCase();
+
     if (search.length > 0) {
-      const filteredRaces = CLASSES.filter((classe) => {
+      return allClasses.filter((classe) => {
         if (
           classe.name.toLowerCase().includes(search) ||
           classe.subname?.toLowerCase().includes(search)
@@ -394,100 +442,149 @@ const ClassesTable: React.FC = () => {
 
         return false;
       });
-
-      if (filteredRaces.length > 1) history.push('/database/classes');
-
-      setClasses(filteredRaces);
-    } else {
-      setClasses(CLASSES);
     }
+    return allClasses;
+  }, [selectedSupplements, value]);
+
+  const handleToggleSupplement = (supplementId: SupplementId) => {
+    setSelectedSupplements((prev) => {
+      if (prev.includes(supplementId)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((id) => id !== supplementId);
+      }
+      // Keep CORE at the top when adding
+      if (supplementId === SupplementId.TORMENTA20_CORE) {
+        return [supplementId, ...prev];
+      }
+      return [...prev, supplementId];
+    });
   };
 
+  // Handle URL params for deep linking
   useEffect(() => {
     const { selectedClass } = params;
-    if (selectedClass) {
+    if (selectedClass && selectedClass !== value) {
       setValue(selectedClass);
-      filter(selectedClass);
     }
   }, [params]);
 
+  // Handle URL navigation when filtering results in single match
+  useEffect(() => {
+    if (classes.length > 1 && value) {
+      history.push('/database/classes');
+    }
+  }, [classes.length, value, history]);
+
   const onVoiceSearch = (newValue: string) => {
     setValue(newValue);
-    filter(newValue);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
-    filter(event.target.value);
   };
 
+  // Get selected class for SEO
+  const selectedClassData =
+    classes.length === 1 && params.selectedClass ? classes[0] : null;
+  const classesSEO = getPageSEO('classes');
+
   return (
-    <Box>
-      <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
-        Classes e Poderes de Classe
-      </TormentaTitle>
+    <>
+      <SEO
+        title={
+          selectedClassData
+            ? `${selectedClassData.name} - Classe de Tormenta 20`
+            : classesSEO.title
+        }
+        description={
+          selectedClassData
+            ? `Habilidades, poderes e progressão da classe ${selectedClassData.name} em Tormenta 20.`
+            : classesSEO.description
+        }
+        url={`/database/classes${
+          selectedClassData ? `/${params.selectedClass}` : ''
+        }`}
+      />
+      <Box>
+        <TormentaTitle variant='h4' centered sx={{ mb: 3 }}>
+          Classes e Poderes de Classe
+        </TormentaTitle>
 
-      {/* Search Input */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <Box sx={{ width: '100%', maxWidth: 500 }}>
-          <SearchInput
-            value={value}
-            handleChange={handleChange}
-            onVoiceSearch={onVoiceSearch}
-          />
+        {/* Supplement Filter */}
+        <SupplementFilter
+          selectedSupplements={selectedSupplements}
+          availableSupplements={[
+            SupplementId.TORMENTA20_CORE,
+            SupplementId.TORMENTA20_AMEACAS_ARTON,
+          ]}
+          onToggleSupplement={handleToggleSupplement}
+        />
+
+        {/* Search Input */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ width: '100%', maxWidth: 500 }}>
+            <SearchInput
+              value={value}
+              handleChange={handleChange}
+              onVoiceSearch={onVoiceSearch}
+            />
+          </Box>
         </Box>
-      </Box>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 2, textAlign: 'center' }}>
-        <Typography variant='body1' color='text.secondary'>
-          {classes.length === 0
-            ? 'Nenhuma classe encontrada com os filtros aplicados'
-            : `${classes.length} classe${
-                classes.length !== 1 ? 's' : ''
-              } encontrada${classes.length !== 1 ? 's' : ''}`}
-        </Typography>
-      </Box>
+        {/* Results Summary */}
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
+          <Typography variant='body1' color='text.secondary'>
+            {classes.length === 0
+              ? 'Nenhuma classe encontrada com os filtros aplicados'
+              : `${classes.length} classe${
+                  classes.length !== 1 ? 's' : ''
+                } encontrada${classes.length !== 1 ? 's' : ''}`}
+          </Typography>
+        </Box>
 
-      {/* Classes Table */}
-      <TableContainer component={Paper} className='table-container'>
-        <Table aria-label='classes table'>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>
-                <Typography
-                  variant='h6'
-                  sx={{ fontFamily: 'Tfont, serif', color: '#d13235' }}
-                >
-                  Nome da Classe
-                </Typography>
-              </TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {classes.length === 0 ? (
+        {/* Classes Table */}
+        <TableContainer component={Paper} className='table-container'>
+          <Table aria-label='classes table'>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
-                  <Typography variant='body1' color='text.secondary'>
-                    Nenhuma classe encontrada. Tente ajustar a busca.
+                <TableCell />
+                <TableCell>
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      fontFamily: 'Tfont, serif',
+                      color: theme.palette.primary.main,
+                    }}
+                  >
+                    Nome da Classe
                   </Typography>
                 </TableCell>
+                <TableCell />
               </TableRow>
-            ) : (
-              classes.map((cl) => (
-                <Row
-                  key={cl.name}
-                  classe={cl}
-                  defaultOpen={classes.length === 1}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+            </TableHead>
+            <TableBody>
+              {classes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} align='center' sx={{ py: 4 }}>
+                    <Typography variant='body1' color='text.secondary'>
+                      Nenhuma classe encontrada. Tente ajustar a busca.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                classes.map((cl) => (
+                  <Row
+                    key={cl.name}
+                    classe={cl}
+                    defaultOpen={classes.length === 1}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </>
   );
 };
 

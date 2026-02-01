@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* eslint-disable no-console */
+import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -8,6 +9,7 @@ import {
   Chip,
   Container,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
   IconButton,
@@ -18,9 +20,18 @@ import {
   Link,
 } from '@mui/material';
 import styled from '@emotion/styled';
-import bgImage from '@/assets/images/fantasybg.png';
-import bigBoxDark from '@/assets/images/bigBoxDark.svg';
-import bigBox from '@/assets/images/bigBox.svg';
+import {
+  MOREAU_HERITAGES,
+  MoreauHeritageName,
+} from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import EQUIPAMENTOS from '@/data/systems/tormenta20/equipamentos';
+import { DiceRoll } from '@/interfaces/DiceRoll';
+import { Spell } from '@/interfaces/Spells';
+import { ClassAbility, ClassPower } from '@/interfaces/Class';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import { RaceAbility } from '@/interfaces/Race';
+import { CustomPower } from '@/interfaces/CustomPower';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
@@ -33,11 +44,48 @@ import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
+import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
 import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
+import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
+import StatControl from './StatControl';
+
+// Styled components defined outside to prevent recreation on every render
+const BackgroundBox = styled(Box)<{ isDarkMode: boolean }>`
+  background-color: ${(props) => (props.isDarkMode ? '#212121' : '#f3f2f1')};
+`;
+
+interface ThemeProp {
+  theme: {
+    palette: {
+      primary: {
+        main: string;
+      };
+    };
+  };
+}
+
+const StatTitle = styled.h4`
+  font-family: 'Tfont';
+  position: relative;
+  font-size: 16px;
+  text-transform: uppercase;
+  margin: 0;
+  white-space: nowrap;
+`;
+
+const StatLabel = styled.div<ThemeProp>`
+  font-family: 'Tfont';
+  text-align: center;
+  width: 100%;
+  font-size: 45px;
+  color: ${(props) => props.theme.palette.primary.main};
+  line-height: 1;
+  margin: 0;
+`;
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -53,6 +101,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [equipmentDrawerOpen, setEquipmentDrawerOpen] = useState(false);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
+  const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
 
   const theme = useTheme();
 
@@ -61,63 +110,210 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
-  const handleSheetInfoUpdate = (
-    updates: Partial<CharacterSheet> | CharacterSheet
-  ) => {
-    // Check if it's a full sheet (has required properties) or partial updates
-    const isFullSheet =
-      'id' in updates && 'nome' in updates && 'atributos' in updates;
+  const handleSheetInfoUpdate = useCallback(
+    (updates: Partial<CharacterSheet> | CharacterSheet) => {
+      // Check if it's a full sheet (has required properties) or partial updates
+      const isFullSheet =
+        'id' in updates && 'nome' in updates && 'atributos' in updates;
 
-    const updatedSheet = isFullSheet
-      ? (updates as CharacterSheet)
-      : { ...currentSheet, ...updates };
+      const updatedSheet = isFullSheet
+        ? (updates as CharacterSheet)
+        : { ...currentSheet, ...updates };
 
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleSkillsUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleSkillsUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleEquipmentUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleEquipmentUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handlePowersUpdate = (
-    updates: Partial<CharacterSheet> | CharacterSheet
-  ) => {
-    // Check if it's a full sheet (has required properties) or partial updates
-    const isFullSheet =
-      'id' in updates && 'nome' in updates && 'atributos' in updates;
+  const handlePowersUpdate = useCallback(
+    (updates: Partial<CharacterSheet> | CharacterSheet) => {
+      // Check if it's a full sheet (has required properties) or partial updates
+      const isFullSheet =
+        'id' in updates && 'nome' in updates && 'atributos' in updates;
 
-    const updatedSheet = isFullSheet
-      ? (updates as CharacterSheet)
-      : { ...currentSheet, ...updates };
+      const updatedSheet = isFullSheet
+        ? (updates as CharacterSheet)
+        : { ...currentSheet, ...updates };
 
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
-  const handleSpellsUpdate = (updates: Partial<CharacterSheet>) => {
-    const updatedSheet = { ...currentSheet, ...updates };
-    setCurrentSheet(updatedSheet);
-    if (onSheetUpdate) {
-      onSheetUpdate(updatedSheet);
-    }
-  };
+  const handleSpellsUpdate = useCallback(
+    (updates: Partial<CharacterSheet>) => {
+      const updatedSheet = { ...currentSheet, ...updates };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleSpellRollsUpdate = useCallback(
+    (spell: Spell, newRolls: DiceRoll[]) => {
+      const updatedSpells = currentSheet.spells?.map((s) =>
+        s.nome === spell.nome ? { ...s, rolls: newRolls } : s
+      );
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePowerRollsUpdate = useCallback(
+    (
+      power:
+        | ClassPower
+        | RaceAbility
+        | ClassAbility
+        | OriginPower
+        | GeneralPower
+        | CustomPower,
+      newRolls: DiceRoll[]
+    ) => {
+      // Update in all possible power arrays
+      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, rolls: newRolls } : a
+      );
+      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, rolls: newRolls } : a
+      );
+      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
+        p.name === power.name ? { ...p, rolls: newRolls } : p
+      );
+
+      const updatedSheet = {
+        ...currentSheet,
+        generalPowers: updatedGeneralPowers,
+        classPowers: updatedClassPowers,
+        customPowers: updatedCustomPowers,
+        origin:
+          currentSheet.origin && updatedOriginPowers
+            ? { ...currentSheet.origin, powers: updatedOriginPowers }
+            : currentSheet.origin,
+        raca:
+          currentSheet.raca && updatedRaceAbilities
+            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
+            : currentSheet.raca,
+        classe:
+          currentSheet.classe && updatedClassAbilities
+            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
+            : currentSheet.classe,
+        devoto:
+          currentSheet.devoto && updatedDeityPowers
+            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
+            : currentSheet.devoto,
+      };
+
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVCurrentUpdate = useCallback(
+    (newCurrent: number) => {
+      const updatedSheet = { ...currentSheet, currentPV: newCurrent };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVIncrementUpdate = useCallback(
+    (newIncrement: number) => {
+      const updatedSheet = { ...currentSheet, pvIncrement: newIncrement };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMCurrentUpdate = useCallback(
+    (newCurrent: number) => {
+      const updatedSheet = { ...currentSheet, currentPM: newCurrent };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMIncrementUpdate = useCallback(
+    (newIncrement: number) => {
+      const updatedSheet = { ...currentSheet, pmIncrement: newIncrement };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleSpellCast = useCallback(
+    (pmSpent: number) => {
+      const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
+      const newPM = Math.max(0, currentPMValue - pmSpent);
+      const updatedSheet = { ...currentSheet, currentPM: newPM };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
 
   const {
     nome,
@@ -125,6 +321,7 @@ const Result: React.FC<ResultProps> = (props) => {
     nivel,
     atributos,
     raca,
+    raceHeritage,
     classe,
     pv,
     pm,
@@ -152,86 +349,146 @@ const Result: React.FC<ResultProps> = (props) => {
   let className = `${classe.name}`;
   if (classe.subname) className = `${className} (${classe.subname})`;
 
-  const periciasSorted = completeSkills?.sort((skillA, skillB) =>
-    skillA.name < skillB.name ? -1 : 1
+  const periciasSorted = completeSkills
+    ? [...completeSkills].sort((skillA, skillB) =>
+        skillA.name < skillB.name ? -1 : 1
+      )
+    : undefined;
+
+  const periciasDiv = useMemo(
+    () => <SkillTable sheet={currentSheet} skills={periciasSorted} />,
+    [currentSheet, periciasSorted]
   );
 
-  const periciasDiv = (
-    <SkillTable sheet={currentSheet} skills={periciasSorted} />
+  const proficienciasDiv = useMemo(
+    () =>
+      classe.proficiencias.map((proe) => (
+        <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
+      )),
+    [classe.proficiencias]
   );
 
-  const proficienciasDiv = classe.proficiencias.map((proe) => (
-    <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
-  ));
+  const bagEquipments = useMemo(() => {
+    if (bag.getEquipments) {
+      return bag.getEquipments();
+    }
+    return bag.equipments;
+  }, [bag]);
 
-  let bagEquipments;
-  if (bag.getEquipments) {
-    bagEquipments = bag.getEquipments();
-  } else {
-    bagEquipments = bag.equipments;
-  }
-
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(bagEquipments)
-    .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
-    .flatMap((value) => value[1]);
+  const equipsEntriesNoWeapons: Equipment[] = useMemo(
+    () =>
+      Object.entries(bagEquipments)
+        .filter(
+          ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
+        )
+        .flatMap((value) => value[1]),
+    [bagEquipments]
+  );
 
   const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
-    <Chip
+    <Box
       key={equip.nome}
-      sx={{ margin: 0.5 }}
-      label={`${equip.nome} ${
-        equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''
-      }`}
-    />
+      sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+    >
+      <Chip
+        sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
+        label={`${equip.nome} ${
+          equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''
+        }`}
+      />
+      {equip.rolls && equip.rolls.length > 0 && (
+        <RollButton
+          rolls={equip.rolls}
+          iconOnly
+          size='small'
+          characterName={nome}
+        />
+      )}
+    </Box>
   ));
 
   equipamentosDiv.push(
     ...bagEquipments.Arma.map((weapon) => (
-      <Chip
+      <Box
         key={getKey(weapon.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${weapon.nome} ${
-          weapon.spaces
-            ? weapon.spaces > 0 && `[${weapon.spaces} espaço(s)]`
-            : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${weapon.nome} ${
+            weapon.spaces
+              ? weapon.spaces > 0 && `[${weapon.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {weapon.rolls && weapon.rolls.length > 0 && (
+          <RollButton
+            rolls={weapon.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 
   equipamentosDiv.push(
     ...bagEquipments.Armadura.map((armor) => (
-      <Chip
+      <Box
         key={getKey(armor.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${armor.nome} ${
-          armor.spaces ? armor.spaces > 0 && `[${armor.spaces} espaço(s)]` : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${armor.nome} ${
+            armor.spaces
+              ? armor.spaces > 0 && `[${armor.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {armor.rolls && armor.rolls.length > 0 && (
+          <RollButton
+            rolls={armor.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 
   equipamentosDiv.push(
     ...bagEquipments.Escudo.map((shield) => (
-      <Chip
+      <Box
         key={getKey(shield.nome)}
-        sx={{ margin: 0.5 }}
-        label={`${shield.nome} ${
-          shield.spaces
-            ? shield.spaces > 0 && `[${shield.spaces} espaço(s)]`
-            : ''
-        }`}
-      />
+        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
+      >
+        <Chip
+          label={`${shield.nome} ${
+            shield.spaces
+              ? shield.spaces > 0 && `[${shield.spaces} espaço(s)]`
+              : ''
+          }`}
+        />
+        {shield.rolls && shield.rolls.length > 0 && (
+          <RollButton
+            rolls={shield.rolls}
+            iconOnly
+            size='small'
+            characterName={nome}
+          />
+        )}
+      </Box>
     ))
   );
 
-  const modFor = atributos.Força.mod;
+  const modFor = atributos.Força.value;
 
   const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
   const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
 
   const fightAttrBonus = fightSkill?.modAttr
-    ? currentSheet.atributos[fightSkill.modAttr].mod
+    ? currentSheet.atributos[fightSkill.modAttr].value
     : 0;
   const fightBonus =
     (fightSkill?.halfLevel ?? 0) +
@@ -240,7 +497,7 @@ const Result: React.FC<ResultProps> = (props) => {
     (fightSkill?.training ?? 0);
 
   const rangeAttrBonus = rangeSkill?.modAttr
-    ? currentSheet.atributos[rangeSkill.modAttr].mod
+    ? currentSheet.atributos[rangeSkill.modAttr].value
     : 0;
   const rangeBonus =
     (rangeSkill?.halfLevel ?? 0) +
@@ -248,19 +505,64 @@ const Result: React.FC<ResultProps> = (props) => {
     (rangeSkill?.others ?? 0) +
     (rangeSkill?.training ?? 0);
 
-  const weaponsDiv = (
-    <Weapons
-      getKey={getKey}
-      weapons={bagEquipments.Arma}
-      fightBonus={fightBonus}
-      rangeBonus={rangeBonus}
-      modFor={modFor}
-    />
+  const weaponsDiv = useMemo(
+    () => (
+      <Weapons
+        getKey={getKey}
+        weapons={bagEquipments.Arma}
+        fightBonus={fightBonus}
+        rangeBonus={rangeBonus}
+        modFor={modFor}
+        characterName={nome}
+      />
+    ),
+    [bagEquipments.Arma, fightBonus, rangeBonus, modFor, nome]
   );
-  const defenseEquipments = [
-    ...bagEquipments.Armadura,
-    ...bagEquipments.Escudo,
-  ];
+
+  const defenseEquipments = useMemo(
+    () => [...bagEquipments.Armadura, ...bagEquipments.Escudo],
+    [bagEquipments.Armadura, bagEquipments.Escudo]
+  );
+
+  const defenseFormula = useMemo(() => {
+    const base = currentSheet.customDefenseBase ?? 10;
+    const components: string[] = [];
+    components.push(`${base} (base)`);
+
+    // Armor and shield bonuses
+    defenseEquipments.forEach((equip) => {
+      if (equip.defenseBonus && equip.defenseBonus > 0) {
+        components.push(`${equip.defenseBonus} (${equip.nome})`);
+      }
+    });
+
+    // Check if character has heavy armor
+    const hasHeavyArmor = bagEquipments.Armadura?.some((armor) =>
+      EQUIPAMENTOS.armaduraPesada.find((heavy) => heavy.nome === armor.nome)
+    );
+
+    // Attribute modifier
+    const useAttr = currentSheet.useDefenseAttribute ?? true;
+    if (useAttr && !hasHeavyArmor) {
+      const defaultAttr =
+        classe.name === 'Nobre' ? Atributo.CARISMA : Atributo.DESTREZA;
+      const attrToUse = currentSheet.customDefenseAttribute || defaultAttr;
+      const attrValue = atributos[attrToUse]?.value || 0;
+      if (attrValue !== 0) {
+        const attrName = attrToUse.substring(0, 3).toUpperCase();
+        components.push(`${attrValue} (${attrName})`);
+      }
+    }
+
+    return `${components.join(' + ')} = ${defesa}`;
+  }, [
+    currentSheet,
+    defenseEquipments,
+    bagEquipments.Armadura,
+    classe.name,
+    atributos,
+    defesa,
+  ]);
 
   // const uniqueGeneralPowers = filterUnique(generalPowers);
   // const uniqueClassPowers = filterUnique(classPowers);
@@ -270,13 +572,16 @@ const Result: React.FC<ResultProps> = (props) => {
     : null;
 
   // Helper function to format attribute modifiers correctly
-  const formatAttributeModifier = (value: number | string): string => {
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (Number.isNaN(numValue)) return String(value);
-    if (numValue === 0) return '0';
-    if (numValue > 0) return `+${numValue}`;
-    return String(numValue); // Negative values already have '-'
-  };
+  const formatAttributeModifier = useCallback(
+    (value: number | string): string => {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (Number.isNaN(numValue)) return String(value);
+      if (numValue === 0) return '0';
+      if (numValue > 0) return `+${numValue}`;
+      return String(numValue); // Negative values already have '-'
+    },
+    []
+  );
 
   const changesDiv = steps.map((step) => {
     if (step.type === 'Atributos') {
@@ -337,58 +642,11 @@ const Result: React.FC<ResultProps> = (props) => {
     );
   });
 
-  const isMobile = window.innerWidth <= 768;
-
-  const BackgroundBox = styled(Box)`
-    background: linear-gradient(
-        to top,
-        rgba(255, 255, 255, 0) 20%,
-        ${isDarkMode ? '#212121' : '#f3f2f1'}
-      ),
-      url(${bgImage});
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-  `;
-
-  const TextBox = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 50%;
-    &:first-of-type {
-      border-right: 1px solid ${theme.palette.primary.main};
-      padding-right: 10px;
-    }
-    &:last-child {
-      padding-left: 10px;
-    }
-  `;
-
-  const StatTitle = styled.h4`
-    font-family: 'Tfont';
-    position: relative;
-    font-size: 9px;
-    text-transform: uppercase;
-    margin: 0;
-    white-space: nowrap;
-  `;
-
-  const StatLabel = styled.div`
-    font-family: 'Tfont';
-    text-align: center;
-    width: 100%;
-    font-size: 45px;
-    color: ${theme.palette.primary.main};
-    line-height: 1;
-    margin: 0;
-  `;
+  const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
   return (
-    <BackgroundBox sx={{ p: 2 }}>
-      <Container maxWidth='xl'>
+    <BackgroundBox isDarkMode={isDarkMode} sx={{ p: isMobile ? 0 : 2 }}>
+      <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
         <Stack direction={isMobile ? 'column' : 'row'} spacing={2}>
           {/* LADO ESQUERDO, 60% */}
           <Box width={isMobile ? '100%' : '60%'}>
@@ -397,39 +655,49 @@ const Result: React.FC<ResultProps> = (props) => {
               sx={{
                 p: 3,
                 mb: 4,
-                minHeight: isMobile ? '500px' : '180px',
+                minHeight: isMobile ? 'inherit' : '180px',
                 position: 'relative',
                 overflow: 'visible', // Allow the button to show outside the card
               }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16, // Half the button height to position it on the edge
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1, // Makes it square with slightly rounded corners
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setSheetInfoDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16, // Half the button height to position it on the edge
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1, // Makes it square with slightly rounded corners
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSheetInfoDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               <Stack
                 direction='row'
                 spacing={2}
                 alignItems='center'
                 flexWrap='wrap'
                 justifyContent='center'
+                gap={isMobile ? 5 : 0}
               >
                 <Box sx={{ flexGrow: 1 }}>
                   <LabelDisplay text={nome} size='large' />
                   <LabelDisplay
-                    text={`${raca.name} ${className} (${sexo})`}
+                    text={`${raca.name}${
+                      raca.name === 'Moreau' && raceHeritage
+                        ? ` (${
+                            MOREAU_HERITAGES[raceHeritage as MoreauHeritageName]
+                              ?.name || raceHeritage
+                          })`
+                        : ''
+                    } ${className}${sexo ? ` (${sexo})` : ''}`}
                     size='medium'
                   />
                   <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
@@ -449,67 +717,100 @@ const Result: React.FC<ResultProps> = (props) => {
                   )}
                 </Box>
                 <Stack
-                  justifyContent='space-between'
+                  justifyContent='space-around'
                   alignItems='center'
-                  direction={isMobile ? 'column' : 'row'}
+                  direction='row'
+                  spacing={3}
                 >
                   <Box
                     sx={{
-                      backgroundImage: `url(${
-                        isDarkMode ? bigBoxDark : bigBox
-                      })`,
-                      backgroundPosition: 'center',
-                      backgroundSize: 'fill',
-                      backgroundRepeat: 'no-repeat',
-                      width: '100px',
-                      // ml: 2,
                       display: 'flex',
-                      flexDirection: 'row',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      p: 5,
-                      fontFamily: 'Tfont',
                     }}
                   >
-                    <TextBox>
-                      <Box
-                        sx={{
-                          fontSize: '50px',
-                          color: theme.palette.primary.main,
-                        }}
-                      >
-                        {pv}
-                      </Box>
-                      <Box>PV</Box>
-                    </TextBox>
-                    <TextBox>
-                      <Box
-                        sx={{
-                          fontSize: '50px',
-                          color: theme.palette.primary.main,
-                        }}
-                      >
-                        {pm}
-                      </Box>
-                      <Box>PM</Box>
-                    </TextBox>
+                    <StatControl
+                      type='PV'
+                      current={currentSheet.currentPV ?? pv}
+                      max={pv}
+                      calculatedMax={pv}
+                      increment={currentSheet.pvIncrement ?? 1}
+                      onUpdateCurrent={handlePVCurrentUpdate}
+                      onUpdateIncrement={handlePVIncrementUpdate}
+                      disabled={!onSheetUpdate}
+                    />
+                    {currentSheet.manualMaxPV !== undefined &&
+                      currentSheet.manualMaxPV > 0 && (
+                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
+                          <Chip
+                            size='small'
+                            label='Manual'
+                            color='warning'
+                            sx={{ mt: 1, fontSize: '0.7rem' }}
+                          />
+                        </Tooltip>
+                      )}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <StatControl
+                      type='PM'
+                      current={currentSheet.currentPM ?? pm}
+                      max={pm}
+                      calculatedMax={pm}
+                      increment={currentSheet.pmIncrement ?? 1}
+                      onUpdateCurrent={handlePMCurrentUpdate}
+                      onUpdateIncrement={handlePMIncrementUpdate}
+                      disabled={!onSheetUpdate}
+                    />
+                    {currentSheet.manualMaxPM !== undefined &&
+                      currentSheet.manualMaxPM > 0 && (
+                        <Tooltip title='Cálculo automático desativado. Edite nas configurações para alterar.'>
+                          <Chip
+                            size='small'
+                            label='Manual'
+                            color='warning'
+                            sx={{ mt: 1, fontSize: '0.7rem' }}
+                          />
+                        </Tooltip>
+                      )}
                   </Box>
                 </Stack>
               </Stack>
             </Card>
 
             {/* PARTE DO MEIO: Atributos */}
-            <Box
-              sx={
-                isMobile
-                  ? { mt: '-290px', position: 'relative' }
-                  : { mt: '-90px', position: 'relative' }
-              }
-            >
-              <AttributeDisplay attributes={atributos} />
-            </Box>
+            {!isMobile && (
+              <Box
+                sx={
+                  isMobile
+                    ? { mt: '-290px', position: 'relative' }
+                    : { mt: '-90px', position: 'relative' }
+                }
+              >
+                <AttributeDisplay attributes={atributos} characterName={nome} />
+              </Box>
+            )}
+            {isMobile && (
+              <Card
+                sx={{
+                  p: 3,
+                  mb: 4,
+                  position: 'relative',
+                  overflow: 'visible', // Allow the button to show outside the card
+                }}
+              >
+                <BookTitle>Atributos</BookTitle>
+                <AttributeDisplay attributes={atributos} characterName={nome} />
+              </Card>
+            )}
 
-            {/* PARTE DE BAIXO: Ataques, Poderes, Magias, Inventário */}
+            {/* Card de Ataques */}
             <Card
               sx={{
                 p: 3,
@@ -518,238 +819,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 overflow: 'visible',
               }}
             >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setEquipmentDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
-              <Stack
-                direction={isMobile ? 'column' : 'row'}
-                spacing={2}
-                justifyContent='space-between'
-                alignItems='center'
-              >
-                <Box width={isMobile ? '100%' : '50%'}>
-                  <BookTitle>Ataques</BookTitle>
-                  {weaponsDiv}
-                </Box>
-                <Box width={isMobile ? '100%' : '50%'}>
-                  <BookTitle>Defesa</BookTitle>
-                  <DefenseEquipments
-                    getKey={getKey}
-                    defenseEquipments={defenseEquipments}
-                  />
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <Typography fontSize={12}>
-                      <strong>Penalidade de Armadura: </strong>
-                      {((bag.getArmorPenalty
-                        ? bag.getArmorPenalty()
-                        : bag.armorPenalty) +
-                        extraArmorPenalty) *
-                        -1}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Stack>
-            </Card>
-
-            {/* Card de Estatísticas: Defesa, Deslocamento, Tamanho */}
-            <Card
-              sx={{
-                p: 3,
-                mb: 4,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Stack spacing={3} direction={isMobile ? 'column' : 'row'}>
-                <FancyBox>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    <StatLabel>{defesa}</StatLabel>
-                    <StatTitle>Defesa</StatTitle>
-                  </Box>
-                </FancyBox>
-                <FancyBox>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.3,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '35px',
-                        color: theme.palette.primary.main,
-                        textAlign: 'center',
-                        lineHeight: 1,
-                        margin: 0,
-                      }}
-                    >
-                      {displacement}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '11px',
-                        color: theme.palette.text.secondary,
-                        textAlign: 'center',
-                        margin: 0,
-                      }}
-                    >
-                      ({Math.floor(displacement / 1.5)}q)
-                    </Typography>
-                    <StatTitle>Deslocamento</StatTitle>
-                  </Box>
-                </FancyBox>
-                <FancyBox>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontSize: '28px',
-                        color: theme.palette.primary.main,
-                        textAlign: 'center',
-                        textTransform: 'uppercase',
-                        lineHeight: 1,
-                        margin: 0,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {size.name}
-                    </Typography>
-                    <StatTitle>Tamanho</StatTitle>
-                  </Box>
-                </FancyBox>
-              </Stack>
-            </Card>
-            <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setPowersDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
-              <Box>
-                <BookTitle>Poderes</BookTitle>
-                <PowersDisplay
-                  sheetHistory={currentSheet.sheetActionHistory}
-                  classAbilities={classe.abilities}
-                  classPowers={classPowers}
-                  raceAbilities={raca.abilities}
-                  originPowers={origin?.powers || []}
-                  deityPowers={devoto?.poderes || []}
-                  generalPowers={generalPowers}
-                  className={classe.name}
-                  raceName={raca.name}
-                />
-              </Box>
-            </Card>
-            <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              <IconButton
-                size='small'
-                sx={{
-                  position: 'absolute',
-                  top: -16,
-                  right: 16,
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  borderRadius: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                  },
-                }}
-                onClick={() => setSpellsDrawerOpen(true)}
-              >
-                <EditIcon />
-              </IconButton>
-              <Box>
-                <BookTitle>Magias</BookTitle>
-                <Spells
-                  spells={spells}
-                  spellPath={classe.spellPath}
-                  keyAttr={keyAttr}
-                  nivel={nivel}
-                />
-              </Box>
-            </Card>
-          </Box>
-          {/* LADO DIREITO, 40% */}
-          <Box width={isMobile ? '100%' : '40%'}>
-            <Stack spacing={4}>
-              <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSkillsDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-                {periciasDiv}
-              </Card>
-              <Card sx={{ position: 'relative', overflow: 'visible' }}>
+              {onSheetUpdate && (
                 <IconButton
                   size='small'
                   sx={{
@@ -767,6 +837,226 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <EditIcon />
                 </IconButton>
+              )}
+              <BookTitle>Ataques</BookTitle>
+              {weaponsDiv}
+            </Card>
+
+            {/* Card de Defesa */}
+            <Card
+              sx={{
+                p: 3,
+                mb: 4,
+                position: 'relative',
+                overflow: 'visible',
+              }}
+            >
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setDefenseDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
+              <BookTitle>Defesa</BookTitle>
+              <Stack
+                direction={isMobile ? 'column' : 'row'}
+                spacing={2}
+                alignItems='center'
+              >
+                <Box
+                  width={isMobile ? '100%' : '20%'}
+                  display='flex'
+                  justifyContent='center'
+                  order={isMobile ? 1 : 0}
+                >
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                        fontSize: '68px',
+                      }}
+                    >
+                      <StatLabel theme={theme}>{defesa}</StatLabel>
+                      <StatTitle>Defesa</StatTitle>
+                    </Box>
+                  </FancyBox>
+                </Box>
+                <Box width={isMobile ? '100%' : '80%'} order={isMobile ? 0 : 1}>
+                  <DefenseEquipments
+                    getKey={getKey}
+                    defenseEquipments={defenseEquipments}
+                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      mt: 1,
+                    }}
+                  >
+                    <Typography fontSize={12} color='text.secondary'>
+                      <strong>Penalidade de Armadura: </strong>
+                      {((bag.getArmorPenalty
+                        ? bag.getArmorPenalty()
+                        : bag.armorPenalty) +
+                        extraArmorPenalty) *
+                        -1}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    fontSize={12}
+                    color='text.secondary'
+                    sx={{ mt: 1, fontFamily: 'monospace' }}
+                  >
+                    {defenseFormula}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Card>
+            <Card
+              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+            >
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setPowersDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
+              <Box>
+                <BookTitle>Poderes</BookTitle>
+                <PowersDisplay
+                  sheetHistory={currentSheet.sheetActionHistory || []}
+                  classAbilities={classe.abilities}
+                  classPowers={classPowers}
+                  raceAbilities={raca.abilities}
+                  originPowers={origin?.powers || []}
+                  deityPowers={devoto?.poderes || []}
+                  generalPowers={generalPowers}
+                  customPowers={currentSheet.customPowers || []}
+                  className={classe.name}
+                  raceName={raca.name}
+                  deityName={devoto?.divindade?.name}
+                  onUpdateRolls={
+                    onSheetUpdate ? handlePowerRollsUpdate : undefined
+                  }
+                  characterName={nome}
+                />
+              </Box>
+            </Card>
+            <Card
+              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
+            >
+              {onSheetUpdate && (
+                <IconButton
+                  size='small'
+                  sx={{
+                    position: 'absolute',
+                    top: -16,
+                    right: 16,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                  onClick={() => setSpellsDrawerOpen(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
+              <Box>
+                <BookTitle>Magias</BookTitle>
+                <Spells
+                  spells={spells}
+                  spellPath={classe.spellPath}
+                  keyAttr={keyAttr}
+                  nivel={nivel}
+                  onUpdateRolls={
+                    onSheetUpdate ? handleSpellRollsUpdate : undefined
+                  }
+                  characterName={nome}
+                  currentPM={currentSheet.currentPM ?? pm}
+                  maxPM={pm}
+                  onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
+                />
+              </Box>
+            </Card>
+          </Box>
+          {/* LADO DIREITO, 40% */}
+          <Box width={isMobile ? '100%' : '40%'}>
+            <Stack spacing={4}>
+              <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSkillsDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
+                {periciasDiv}
+              </Card>
+              <Card sx={{ position: 'relative', overflow: 'visible' }}>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setEquipmentDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Box p={2}>
                   <BookTitle>Equipamentos</BookTitle>
                   <Stack
@@ -791,6 +1081,73 @@ const Result: React.FC<ResultProps> = (props) => {
                 <BookTitle>Proficiências</BookTitle>
                 <Stack direction='row' flexWrap='wrap'>
                   {proficienciasDiv}
+                </Stack>
+              </Card>
+              <Card sx={{ p: 2 }}>
+                <Stack spacing={2} direction='row' justifyContent='center'>
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.3,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '35px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          lineHeight: 1,
+                          margin: 0,
+                        }}
+                      >
+                        {displacement}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '16px',
+                          color: theme.palette.text.secondary,
+                          textAlign: 'center',
+                          margin: 0,
+                        }}
+                      >
+                        ({Math.floor(displacement / 1.5)}q)
+                      </Typography>
+                      <StatTitle>Desl.</StatTitle>
+                    </Box>
+                  </FancyBox>
+                  <FancyBox>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontSize: '58px',
+                          color: theme.palette.primary.main,
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          lineHeight: 1,
+                          margin: 0,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {size.name.charAt(0)}
+                      </Typography>
+                      <StatTitle>Tamanho</StatTitle>
+                    </Box>
+                  </FancyBox>
                 </Stack>
               </Card>
             </Stack>
@@ -865,6 +1222,14 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setSpellsDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSpellsUpdate}
+        />
+
+        <DefenseEditDrawer
+          open={defenseDrawerOpen}
+          onClose={() => setDefenseDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
+          onOpenEquipmentDrawer={() => setEquipmentDrawerOpen(true)}
         />
       </>
     </BackgroundBox>

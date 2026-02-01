@@ -1,5 +1,5 @@
 import 'regenerator-runtime';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Stack,
   TextField,
@@ -14,6 +14,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition';
+import debounce from 'lodash/debounce';
 
 interface IProps {
   value: string;
@@ -29,8 +30,48 @@ const SearchInput: React.FC<IProps> = ({
   const { transcript, listening, browserSupportsSpeechRecognition } =
     useSpeechRecognition();
 
+  // Local state for immediate UI feedback
+  const [localValue, setLocalValue] = useState(value);
+
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
+
+  // Sync local value when parent value changes (e.g., from voice search)
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  // Debounced callback to parent - only triggers filter after 300ms of no typing
+  // We pass the value directly since React events are pooled and recycled
+  const debouncedSetValue = useMemo(
+    () =>
+      debounce((newValue: string) => {
+        // Create a synthetic event-like object for compatibility with parent
+        const syntheticEvent = {
+          target: { value: newValue },
+        } as React.ChangeEvent<HTMLInputElement>;
+        handleChange(syntheticEvent);
+      }, 300),
+    [handleChange]
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(
+    () => () => {
+      debouncedSetValue.cancel();
+    },
+    [debouncedSetValue]
+  );
+
+  // Handle input change - update local state immediately, debounce parent callback
+  const onInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = event.target.value;
+      setLocalValue(newValue);
+      debouncedSetValue(newValue);
+    },
+    [debouncedSetValue]
+  );
 
   const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -41,7 +82,9 @@ const SearchInput: React.FC<IProps> = ({
   };
 
   useEffect(() => {
-    onVoiceSearch(transcript);
+    if (transcript) {
+      onVoiceSearch(transcript);
+    }
   }, [transcript]);
 
   return (
@@ -50,8 +93,8 @@ const SearchInput: React.FC<IProps> = ({
         id='races-search'
         label='Filtrar'
         variant='outlined'
-        value={value}
-        onChange={handleChange}
+        value={localValue}
+        onChange={onInputChange}
         InputProps={{
           endAdornment: (
             <InputAdornment position='end'>
@@ -65,7 +108,9 @@ const SearchInput: React.FC<IProps> = ({
                     </IconButton>
                   ) : (
                     <IconButton
-                      onClick={() => SpeechRecognition.startListening()}
+                      onClick={() =>
+                        SpeechRecognition.startListening({ language: 'pt-BR' })
+                      }
                     >
                       <MicIcon />
                     </IconButton>

@@ -1,5 +1,11 @@
 import React from 'react';
-import { Typography, TypographyProps, SxProps, Theme } from '@mui/material';
+import {
+  Typography,
+  TypographyProps,
+  SxProps,
+  Theme,
+  useTheme,
+} from '@mui/material';
 
 interface TormentaTitleProps extends Omit<TypographyProps, 'children'> {
   children: React.ReactNode;
@@ -17,13 +23,15 @@ const TormentaTitle: React.FC<TormentaTitleProps> = ({
   variant = 'h4',
   ..._props
 }) => {
+  const theme = useTheme();
+
   const baseStyles = {
     fontFamily: 'Tfont, serif',
-    color: '#d13235',
+    color: 'primary.main',
     fontWeight: 600,
     textAlign: centered ? 'center' : 'inherit',
     textShadow: glow
-      ? '2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(209, 50, 53, 0.3)'
+      ? `2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px ${theme.palette.primary.main}4D`
       : '2px 2px 4px rgba(0, 0, 0, 0.1)',
     marginBottom: '1rem',
     letterSpacing: '0.5px',
@@ -31,8 +39,7 @@ const TormentaTitle: React.FC<TormentaTitleProps> = ({
 
   const gradientStyles = gradient
     ? {
-        background:
-          'linear-gradient(135deg, #d13235 0%, #922325 70%, #7a1d1f 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 70%, #7a1d1f 100%)`,
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, useMediaQuery } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 
 interface AnimatedCardProps {
   selected: boolean;
@@ -19,10 +19,11 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
   index = 0,
 }) => {
   const isMobile = useMediaQuery('(max-width: 720px)');
+  const theme = useTheme();
 
   const cardStyles = {
     position: 'relative',
-    border: '2px solid #d13235',
+    border: `2px solid ${theme.palette.primary.main}`,
     borderRadius: '12px',
     padding: isMobile ? '0.8rem' : '1.5rem',
     display: 'flex',
@@ -31,14 +32,14 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
     alignItems: 'center',
     cursor: disabled ? 'not-allowed' : 'pointer',
     background: selected
-      ? 'linear-gradient(135deg, #d13235 0%, #922325 100%)'
-      : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-    color: selected ? 'white' : '#d13235',
+      ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+      : `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${theme.palette.grey[100]} 100%)`,
+    color: selected
+      ? theme.palette.primary.contrastText
+      : theme.palette.primary.main,
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     overflow: 'hidden',
-    boxShadow: selected
-      ? '0 8px 25px rgba(209, 50, 53, 0.4), 0 0 20px rgba(209, 50, 53, 0.2)'
-      : '0 2px 8px rgba(209, 50, 53, 0.15)',
+    boxShadow: selected ? theme.shadows[4] : theme.shadows[1],
     fontFamily: 'Tfont, serif',
     fontWeight: 500,
     width: isMobile ? 'calc(33% - 8px)' : '150px',
@@ -54,17 +55,14 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
       left: '-100%',
       width: '100%',
       height: '100%',
-      background:
-        'linear-gradient(90deg, transparent, rgba(209, 50, 53, 0.1), transparent)',
+      background: `linear-gradient(90deg, transparent, ${theme.palette.primary.main}1A, transparent)`,
       transition: 'left 0.6s ease-in-out',
     },
     '&:hover': !disabled
       ? {
           transform: 'translateY(-4px) scale(1.02)',
-          boxShadow: selected
-            ? '0 12px 35px rgba(209, 50, 53, 0.5), 0 0 30px rgba(209, 50, 53, 0.3)'
-            : '0 8px 25px rgba(209, 50, 53, 0.3)',
-          borderColor: '#922325',
+          boxShadow: selected ? theme.shadows[5] : theme.shadows[4],
+          borderColor: theme.palette.primary.dark,
           '&::before': {
             left: '100%',
           },

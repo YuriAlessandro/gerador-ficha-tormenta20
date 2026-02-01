@@ -4,7 +4,6 @@ import '../assets/css/result.css';
 interface AttributeProps {
   id: string;
   name: string;
-  value: number;
   mod: number;
   isDarkMode: boolean;
 }

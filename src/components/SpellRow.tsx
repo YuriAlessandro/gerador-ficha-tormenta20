@@ -1,87 +1,176 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Grid,
   Typography,
   useTheme,
+  IconButton,
+  Stack,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { manaExpenseByCircle } from '../data/magias/generalSpells';
+import CasinoIcon from '@mui/icons-material/Casino';
+import { DiceRoll } from '@/interfaces/DiceRoll';
+import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { Spell } from '../interfaces/Spells';
+import SpellCastDialog from './SpellCastDialog';
 
 interface SpellProps {
   spell: Spell;
+  onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
+  characterName?: string;
+  currentPM?: number;
+  maxPM?: number;
+  onSpellCast?: (pmSpent: number) => void;
 }
 
-const SpellRow: React.FC<SpellProps> = (props) => {
-  const { spell } = props;
+const SpellRow: React.FC<SpellProps> = React.memo((props) => {
+  const { spell, onUpdateRolls, characterName, currentPM, maxPM, onSpellCast } =
+    props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [castDialogOpen, setCastDialogOpen] = useState(false);
   const theme = useTheme();
 
-  const isMobile = window.innerWidth < 720;
+  const isMobile = useMemo(() => window.innerWidth < 720, []);
+
+  const handleToggle = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
+
+  const handleOpenCastDialog = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCastDialogOpen(true);
+  }, []);
+
+  const handleCloseCastDialog = useCallback(() => {
+    setCastDialogOpen(false);
+  }, []);
+
+  const handleSpellCast = useCallback(
+    (pmSpent: number) => {
+      if (onSpellCast) {
+        onSpellCast(pmSpent);
+      }
+    },
+    [onSpellCast]
+  );
 
   return (
-    <Accordion
-      expanded={isExpanded}
-      onChange={() => setIsExpanded(!isExpanded)}
-    >
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} id={spell.nome}>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <Typography
-              sx={{
-                flexShrink: 0,
-                fontWeight: 'semi-bold',
-                color: theme.palette.primary.main,
-                fontSize: '0.9rem',
-              }}
-            >
-              {spell.nome} {spell.customKeyAttr && `(${spell.customKeyAttr})`}
-            </Typography>
+    <Accordion expanded={isExpanded} onChange={handleToggle}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        id={spell.nome}
+        sx={{
+          '& .MuiAccordionSummary-content': {
+            width: '100%',
+            margin: 0,
+          },
+        }}
+      >
+        <Grid container spacing={2} sx={{ width: '100%' }}>
+          <Grid size={isMobile ? 12 : 2.5}>
+            <Stack direction='row' alignItems='center' spacing={0.5}>
+              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
+                <IconButton
+                  size='small'
+                  onClick={handleOpenCastDialog}
+                  color={spell.rolls?.length ? 'primary' : 'default'}
+                  title='Usar magia'
+                >
+                  <CasinoIcon fontSize='small' />
+                </IconButton>
+              </Box>
+              <Typography
+                sx={{
+                  fontWeight: 'semi-bold',
+                  color: theme.palette.primary.main,
+                  fontSize: '0.9rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {spell.nome} {spell.customKeyAttr && `(${spell.customKeyAttr})`}
+              </Typography>
+            </Stack>
           </Grid>
           {!isMobile && (
             <>
-              <Grid item xs={2}>
-                <Typography>{spell.school}</Typography>
+              <Grid size={1}>
+                <Typography noWrap>{spell.school}</Typography>
               </Grid>
-              <Grid item xs={2}>
-                <Typography>{spell.execucao}</Typography>
+              <Grid size={1.5}>
+                <Typography noWrap>{spell.execucao}</Typography>
               </Grid>
-              <Grid item xs={2}>
-                <Typography>{spell.alcance}</Typography>
+              <Grid size={1}>
+                <Typography noWrap>{spell.alcance}</Typography>
               </Grid>
-              <Grid item xs={2}>
-                <Typography>{spell.resistencia || '-'}</Typography>
+              <Grid size={2}>
+                <Typography noWrap>
+                  {spell.alvo || spell.area || '-'}
+                </Typography>
+              </Grid>
+              <Grid size={2}>
+                <Typography noWrap>{spell.duracao}</Typography>
+              </Grid>
+              <Grid size={2}>
+                <Typography noWrap>{spell.resistencia || '-'}</Typography>
               </Grid>
             </>
           )}
         </Grid>
       </AccordionSummary>
       <AccordionDetails>
-        {isMobile && (
-          <Grid container spacing={2} marginBottom={2}>
-            <Grid item xs={3}>
-              <Typography>{spell.school}</Typography>
-            </Grid>
-            <Grid item xs={3}>
-              <Typography>{spell.execucao}</Typography>
-            </Grid>
-            <Grid item xs={3}>
-              <Typography>{spell.alcance}</Typography>
-            </Grid>
-            <Grid item xs={3}>
-              <Typography>{spell.resistencia || '-'}</Typography>
-            </Grid>
+        <Grid container spacing={2} marginBottom={1}>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Escola:
+            </Typography>
+            <Typography>{spell.school}</Typography>
           </Grid>
-        )}
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Execução:
+            </Typography>
+            <Typography>{spell.execucao}</Typography>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} marginBottom={2}>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Alcance:
+            </Typography>
+            <Typography>{spell.alcance}</Typography>
+          </Grid>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Alvo/Área:
+            </Typography>
+            <Typography>{spell.alvo || spell.area || '-'}</Typography>
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} marginBottom={2}>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Duração:
+            </Typography>
+            <Typography>{spell.duracao}</Typography>
+          </Grid>
+          <Grid size={6}>
+            <Typography variant='caption' fontWeight='bold'>
+              Resistência:
+            </Typography>
+            <Typography>{spell.resistencia || '-'}</Typography>
+          </Grid>
+        </Grid>
         <Grid container>
-          <Grid item xs={10}>
+          <Grid size={10}>
             <Typography fontWeight='bold'>{spell.spellCircle}</Typography>
           </Grid>
-          <Grid item xs={2}>
+          <Grid size={2}>
             <Typography
               sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}
             >
@@ -117,8 +206,20 @@ const SpellRow: React.FC<SpellProps> = (props) => {
           </div>
         )}
       </AccordionDetails>
+      <SpellCastDialog
+        open={castDialogOpen}
+        onClose={handleCloseCastDialog}
+        spell={spell}
+        currentPM={currentPM ?? 0}
+        maxPM={maxPM ?? 0}
+        onCast={handleSpellCast}
+        onUpdateRolls={onUpdateRolls}
+        characterName={characterName}
+      />
     </Accordion>
   );
-};
+});
+
+SpellRow.displayName = 'SpellRow';
 
 export default SpellRow;

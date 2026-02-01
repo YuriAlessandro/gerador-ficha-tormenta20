@@ -1,4 +1,4 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 
 enum Skill {
   ACROBACIA = 'Acrobacia',
@@ -34,7 +34,7 @@ enum Skill {
   OFICIO_FAZENDEIRO = 'Ofício (Fazendeiro)',
   OFICIO_PESCADOR = 'Ofício (Pescador)',
   OFICIO_ESTALAJADEIRO = 'Ofício (Estalajadeiro)',
-  OFICIO_ESCRITA = 'Ofício (Escrita)',
+  OFICIO_ESCRIBA = 'Ofício (Escriba)',
   OFICIO_ESCULTOR = 'Ofício (Escultor)',
   OFICIO_EGENHOQUEIRO = 'Ofício (Engenhoqueiro)',
   OFICIO_PINTOR = 'Ofício (Pintor)',
@@ -82,7 +82,7 @@ export enum SkillsAttrs {
   'Ofício (Fazendeiro)' = Atributo.INTELIGENCIA,
   'Ofício (Pescador)' = Atributo.INTELIGENCIA,
   'Ofício (Estalajadeiro)' = Atributo.INTELIGENCIA,
-  'Ofício (Escrita)' = Atributo.INTELIGENCIA,
+  'Ofício (Escriba)' = Atributo.INTELIGENCIA,
   'Ofício (Escultor)' = Atributo.INTELIGENCIA,
   'Ofício (Engenhoqueiro)' = Atributo.INTELIGENCIA,
   'Ofício (Pintor)' = Atributo.INTELIGENCIA,

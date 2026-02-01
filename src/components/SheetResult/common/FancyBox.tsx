@@ -1,13 +1,16 @@
 import { Box, useTheme } from '@mui/material';
 import React from 'react';
-import attrBox from '@/assets/images/attrBox.svg';
-import attrBoxDark from '@/assets/images/attrBoxDark.svg';
+import attrBoxRaw from '@/assets/images/attrBox.svg?raw';
+import attrBoxDarkRaw from '@/assets/images/attrBoxDark.svg?raw';
+import { useDynamicSvg } from '@/hooks/useDynamicSvg';
 
 const FancyBox: React.FC<{
   children: React.ReactNode;
   onClick?: () => void;
 }> = ({ children, onClick }) => {
   const isDarkTheme = useTheme().palette.mode === 'dark';
+  const svgContent = isDarkTheme ? attrBoxDarkRaw : attrBoxRaw;
+  const dynamicSvgUrl = useDynamicSvg(svgContent);
 
   return (
     <Box
@@ -16,7 +19,7 @@ const FancyBox: React.FC<{
         width: '30px',
         height: '80px',
         p: 5,
-        backgroundImage: `url(${isDarkTheme ? attrBoxDark : attrBox})`,
+        backgroundImage: `url("${dynamicSvgUrl}")`,
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         display: 'flex',

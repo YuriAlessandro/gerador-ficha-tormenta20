@@ -17,6 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { styled, Stack } from '@mui/material';
 import { HistoricI } from '../../interfaces/Historic';
 import CharacterSheet from '../../interfaces/CharacterSheet';
+import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 
 const Historic: React.FC<{
   isDarkTheme: boolean;
@@ -26,9 +27,28 @@ const Historic: React.FC<{
   const [sheetToDelete, setSheetToDelete] = useState<HistoricI | null>(null);
   const [historicData, setHistoricData] = useState<HistoricI[]>(() => {
     const lsHistoric = localStorage.getItem('fdnHistoric');
-    const data = lsHistoric ? JSON.parse(lsHistoric) : [];
-    data.reverse();
-    return data;
+    const data: HistoricI[] = lsHistoric ? JSON.parse(lsHistoric) : [];
+
+    // Migrar fichas antigas para o novo formato de atributos
+    let needsSave = false;
+    const migratedData = data.map((item) => {
+      if (needsMigration(item.sheet)) {
+        needsSave = true;
+        return {
+          ...item,
+          sheet: migrateSheet(item.sheet),
+        };
+      }
+      return item;
+    });
+
+    // Salvar as fichas migradas de volta no localStorage
+    if (needsSave) {
+      localStorage.setItem('fdnHistoric', JSON.stringify(migratedData));
+    }
+
+    migratedData.reverse();
+    return migratedData;
   });
 
   const StyledTableCell = styled(TableCell)(() => ({

@@ -1,10 +1,39 @@
-import { Atributo } from '../data/atributos';
+import { Atributo } from '../data/systems/tormenta20/atributos';
 import generalPowers from '../data/poderes';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
 import { INVENTOR_SPECIALIZATIONS, InventorSpecialization } from './general';
+
+export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
+
+/**
+ * Retorna o patamar de nível do personagem
+ */
+export function getLevelTier(level: number): LevelTier {
+  if (level <= 4) return 'Iniciante';
+  if (level <= 10) return 'Veterano';
+  if (level <= 16) return 'Campeão';
+  return 'Herói';
+}
+
+/**
+ * Conta quantos poderes de uma categoria específica foram escolhidos no patamar atual
+ * Para Bênçãos Dracônicas: category = "Bênção Dracônica"
+ */
+export function getPowerCountInCurrentTier(
+  sheet: CharacterSheet,
+  category: string
+): number {
+  // Conta poderes gerais que contêm a categoria no nome
+  // Para Bênçãos Dracônicas, todos começam com esse nome
+  const count = sheet.generalPowers.filter((power) =>
+    power.name.includes(category)
+  ).length;
+
+  return count;
+}
 
 export function isPowerAvailable(
   sheet: CharacterSheet,
@@ -25,7 +54,9 @@ export function isPowerAvailable(
           }
           case RequirementType.ATRIBUTO: {
             const attr = rule.name as Atributo;
-            return rule.name && sheet.atributos[attr].mod >= (rule?.value || 0);
+            return (
+              rule.name && sheet.atributos[attr].value >= (rule?.value || 0)
+            );
           }
           case RequirementType.PERICIA: {
             const pericia = rule.name as Skill;
@@ -74,10 +105,29 @@ export function isPowerAvailable(
           }
           case RequirementType.DEVOTO: {
             const godName = rule.name;
+            // 'any' significa que o personagem deve ser devoto de qualquer divindade
+            if (godName === 'any') {
+              const result = !!sheet.devoto?.divindade;
+              if (rule.not) return !result;
+              return result;
+            }
             const result = sheet.devoto?.divindade.name === godName;
             if (rule.not) return !result;
             return result;
           }
+          case RequirementType.RACA: {
+            const raceName = rule.name;
+            return sheet.raca.name === raceName;
+          }
+          case RequirementType.TIER_LIMIT: {
+            const category = rule.name as string; // "Bênção Dracônica"
+            const count = getPowerCountInCurrentTier(sheet, category);
+            return count < 1; // Máximo 1 bênção por patamar
+          }
+          case RequirementType.TEXT:
+            // TEXT requirements are always considered met - the user reads
+            // the text description and judges if they meet the requirement
+            return true;
           default:
             return true;
         }

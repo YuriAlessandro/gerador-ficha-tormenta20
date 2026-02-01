@@ -41,7 +41,7 @@ const SheetPreview: React.FC<{ handleChange: (idx: number) => void }> = ({
     return raceText && roleText ? `${raceText} ${roleText}, ${originText}` : '';
   };
 
-  const devotionName = devotion.devotion
+  const devotionName = devotion?.devotion
     ? Translator.getTranslation(devotion.devotion?.deity.name)
     : '';
 

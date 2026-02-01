@@ -1,10 +1,55 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import ReactToPrint from 'react-to-print';
-import { Card, Container } from '@mui/material';
+import { Box, Card, Container } from '@mui/material';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import Equipment from '../interfaces/Equipment';
 import { SkillsTotals } from '../interfaces/Skills';
+
+// Styled components for character sheet (uses theme accent color)
+const SheetDivisor: React.FC = () => (
+  <Box
+    sx={{
+      display: 'block',
+      height: '1px',
+      border: 0,
+      borderTop: '4px solid',
+      borderColor: 'primary.main',
+      p: 0,
+    }}
+  />
+);
+
+interface SheetTextProps {
+  children: React.ReactNode;
+}
+
+const SheetText: React.FC<SheetTextProps> = ({ children }) => (
+  <Box
+    component='span'
+    sx={{
+      textTransform: 'uppercase',
+      color: 'primary.main',
+      fontWeight: 800,
+    }}
+  >
+    {children}
+  </Box>
+);
+
+const SheetName: React.FC<SheetTextProps> = ({ children }) => (
+  <Box
+    sx={{
+      fontSize: '30px',
+      mb: '10px',
+      textTransform: 'uppercase',
+      color: 'primary.main',
+      fontWeight: 800,
+    }}
+  >
+    {children}
+  </Box>
+);
 
 interface ResultProps {
   sheet: CharacterSheet;
@@ -28,7 +73,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
   const skillsTotals = {} as SkillsTotals;
 
   sheet.completeSkills?.forEach((sk) => {
-    const attributeValue = sk.modAttr ? sheet.atributos[sk.modAttr].mod : 0;
+    const attributeValue = sk.modAttr ? sheet.atributos[sk.modAttr].value : 0;
 
     const skTotal =
       (sk.halfLevel ?? 0) +
@@ -76,49 +121,49 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
         </div>
       </div>
       <Card ref={resultRef} sx={{ p: 2, mt: 2 }}>
-        <div className='simpleSeetName'>{sheet.nome}</div>
+        <SheetName>{sheet.nome}</SheetName>
         {sheet.raca.name} {sheet.nivel}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         <div>
-          <span className='simpleSheetText'>Iniciativa</span>{' '}
+          <SheetText>Iniciativa</SheetText>{' '}
           {skillsTotals.Iniciativa > 0
             ? `+${skillsTotals.Iniciativa}`
             : skillsTotals.Iniciativa}
-          ,<span className='simpleSheetText'> Percepção</span>{' '}
+          ,<SheetText> Percepção</SheetText>{' '}
           {skillsTotals['Percepção'] > 0
             ? `+${skillsTotals['Percepção']}`
             : skillsTotals['Percepção']}
         </div>
         <div>
-          <span className='simpleSheetText'>Defesa</span> {sheet.defesa},
-          <span className='simpleSheetText'> Fort</span>{' '}
+          <SheetText>Defesa</SheetText> {sheet.defesa},
+          <SheetText> Fort</SheetText>{' '}
           {skillsTotals.Fortitude > 0
             ? `+${skillsTotals.Fortitude}`
             : skillsTotals.Fortitude}
-          ,<span className='simpleSheetText'> Ref</span>{' '}
+          ,<SheetText> Ref</SheetText>{' '}
           {skillsTotals.Reflexos > 0
             ? `+${skillsTotals.Reflexos}`
             : skillsTotals.Reflexos}
-          ,<span className='simpleSheetText'> Von</span>{' '}
+          ,<SheetText> Von</SheetText>{' '}
           {skillsTotals.Vontade > 0
             ? `+${skillsTotals.Vontade}`
             : skillsTotals.Vontade}
         </div>
         <div>
-          <span className='simpleSheetText'>Pontos de Vida</span> {sheet.pv}
+          <SheetText>Pontos de Vida</SheetText> {sheet.pv}
         </div>
         <div>
-          <span className='simpleSheetText'>Deslocamento</span>{' '}
-          {sheet.displacement}m ({sheet.displacement / 1.5}q)
+          <SheetText>Deslocamento</SheetText> {sheet.displacement}m (
+          {sheet.displacement / 1.5}q)
         </div>
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {sheet.pm > 0 && (
           <div>
-            <span className='simpleSheetText'>Pontos de Mana</span> {sheet.pm}
+            <SheetText>Pontos de Mana</SheetText> {sheet.pm}
           </div>
         )}
         <div>
-          <span className='simpleSheetText'>Ataques</span>
+          <SheetText>Ataques</SheetText>
         </div>
         {sheet.bag.equipments.Arma.map((eq) => {
           const isRange = eq.alcance && eq.alcance !== '-';
@@ -126,24 +171,24 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           return (
             <div key={getKey(eq.nome)}>
               {eq.nome} {modAtk > 0 ? `+${modAtk}` : modAtk} ({eq.dano}
-              {isRange ? '' : `+${sheet.atributos.Força.mod}`}, {eq.critico})
+              {isRange ? '' : `+${sheet.atributos.Força.value}`}, {eq.critico})
             </div>
           );
         })}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         <div>
-          <span className='simpleSheetText'>
+          <SheetText>
             FOR {sheet.atributos.Força.value}, DES{' '}
             {sheet.atributos.Destreza.value}, CON{' '}
             {sheet.atributos.Constituição.value}, INT{' '}
             {sheet.atributos.Inteligência.value}, SAB{' '}
             {sheet.atributos.Sabedoria.value}, CAR{' '}
             {sheet.atributos.Carisma.value}
-          </span>
+          </SheetText>
         </div>
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         <div>
-          <span className='simpleSheetText'>Equipamento</span>{' '}
+          <SheetText>Equipamento</SheetText>{' '}
           {equipsEntriesNoWeapons.map((eq, idx) => (
             <span key={getKey(eq.nome)}>
               {eq.nome}
@@ -151,61 +196,61 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
             </span>
           ))}
         </div>
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {/* Poderes de Raça */}
         {sheet.raca.abilities?.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.description}
           </div>
         ))}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {/* Habilidades de Classe */}
         {sheet.classe.abilities?.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.text}
           </div>
         ))}
         {/* Poderes de Classe */}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {sheet.classPowers?.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.text}
           </div>
         ))}
         {sheet.origin?.powers && sheet.origin?.powers.length > 0 && (
-          <div className='simpleSheetDivisor' />
+          <SheetDivisor />
         )}
         {/* Poderes de Origem */}
         {sheet.origin?.powers.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.description}
           </div>
         ))}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {/* Poderes gerais */}
         {sheet.generalPowers?.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.description}
           </div>
         ))}
         {/* Poderes concedidos */}
-        <div className='simpleSheetDivisor' />
+        <SheetDivisor />
         {sheet.devoto?.poderes.map((power) => (
           <div key={getKey(power.name)}>
-            <span className='simpleSheetText'>{power.name}: </span>
+            <SheetText>{power.name}: </SheetText>
             {power.description}
           </div>
         ))}
         {/* Mágias */}
         {sheet.spells.length > 0 && (
           <div>
-            <div className='simpleSheetDivisor' />
-            <span className='simpleSheetText'>Magias </span>
+            <SheetDivisor />
+            <SheetText>Magias </SheetText>
             {sheet.spells.map((spl, idx) => (
               <span key={getKey(spl.nome)}>
                 {spl.nome}
