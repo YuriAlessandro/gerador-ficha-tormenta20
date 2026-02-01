@@ -49,10 +49,10 @@ const defaultSettings: Dice3DSettings = {
   enabled: false,
   theme: 'default',
   themeColor: '#c41e3a', // Default red
-  scale: 1,
-  gravity: 4,
+  scale: 8,
+  gravity: 5,
   suspendSimulation: false,
-  mass: 1,
+  mass: 2,
   friction: 0.8,
   restitution: 0,
   linearDamping: 0.3,
