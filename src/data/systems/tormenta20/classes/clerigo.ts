@@ -38,6 +38,7 @@ const CLERIGO: ClassDescription = {
   proficiencias: [
     PROFICIENCIAS.SIMPLES,
     PROFICIENCIAS.LEVES,
+    PROFICIENCIAS.PESADAS,
     PROFICIENCIAS.ESCUDOS,
   ],
   abilities: [
