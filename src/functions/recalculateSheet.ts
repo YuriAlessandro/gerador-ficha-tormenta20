@@ -442,20 +442,27 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
-function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+function applyDivinePowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   if (!sheetClone.devoto?.poderes) return sheetClone;
 
   sheetClone = (sheetClone.devoto.poderes || []).reduce((acc, power) => {
-    const [newAcc] = applyPower(acc, power);
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
   return sheetClone;
 }
 
-function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
+function applyClassAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   const availableAbilities = sheetClone.classe.abilities.filter(
@@ -465,7 +472,8 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   sheetClone.classe.abilities = availableAbilities;
 
   sheetClone = availableAbilities.reduce((acc, ability) => {
-    const [newAcc] = applyPower(acc, ability);
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc] = applyPower(acc, ability, abilitySelections);
     return newAcc;
   }, sheetClone);
 
@@ -510,13 +518,17 @@ function applyClassPowers(
   return sheetClone;
 }
 
-function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
+function applyOriginPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   if (!sheetClone.origin?.powers) return sheetClone;
 
   sheetClone = (sheetClone.origin.powers || []).reduce((acc, power) => {
-    const [newAcc] = applyPower(acc, power);
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
@@ -790,16 +802,18 @@ export function recalculateSheet(
   updatedSheet = applyClassPowers(updatedSheet, manualSelections);
 
   // Step 4: Apply race abilities
+  // Note: applyRaceAbilities is imported from general.ts and expects SelectionOptions (flat)
+  // Race ability selections are already applied during initial creation
   updatedSheet = applyRaceAbilities(updatedSheet);
 
   // Step 5: Apply class abilities (filter by level)
-  updatedSheet = applyClassAbilities(updatedSheet);
+  updatedSheet = applyClassAbilities(updatedSheet, manualSelections);
 
   // Step 6: Apply divine powers
-  updatedSheet = applyDivinePowers(updatedSheet);
+  updatedSheet = applyDivinePowers(updatedSheet, manualSelections);
 
   // Step 7: Apply origin powers
-  updatedSheet = applyOriginPowers(updatedSheet);
+  updatedSheet = applyOriginPowers(updatedSheet, manualSelections);
 
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);

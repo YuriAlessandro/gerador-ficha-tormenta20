@@ -2172,7 +2172,10 @@ export const applyPower = (
   return [sheet, subSteps];
 };
 
-export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
+export function applyRaceAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2190,7 +2193,7 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    const [newAcc, newSubSteps] = applyPower(acc, ability, manualSelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2206,7 +2209,10 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   return sheetClone;
 }
 
-function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+function applyDivinePowers(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2224,7 +2230,7 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
-    const [newAcc, newSubSteps] = applyPower(acc, power);
+    const [newAcc, newSubSteps] = applyPower(acc, power, manualSelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2240,7 +2246,10 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   return sheetClone;
 }
 
-function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
+function applyClassAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2262,7 +2271,7 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    const [newAcc, newSubSteps] = applyPower(acc, ability, manualSelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -4137,7 +4146,10 @@ export function generateEmptySheet(
   }
 
   // Apply race abilities (this adds sheetBonuses and abilities from race)
-  emptySheet = applyRaceAbilities(emptySheet);
+  emptySheet = applyRaceAbilities(
+    emptySheet,
+    wizardSelections?.powerEffectSelections
+  );
 
   // Apply race attribute modifiers
   const tempSteps: Step[] = [];
@@ -4152,7 +4164,10 @@ export function generateEmptySheet(
   emptySheet.steps.push(...tempSteps);
 
   // Apply class abilities filtering by level
-  emptySheet = applyClassAbilities(emptySheet);
+  emptySheet = applyClassAbilities(
+    emptySheet,
+    wizardSelections?.powerEffectSelections
+  );
 
   // Process origin if selected
   if (selectedOptions.origin) {
