@@ -48,12 +48,18 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   const hasClassPowers = classPowers.length > 0;
   const hasGeneralPowers = generalPowers.length > 0;
 
-  // Helper to check if power is already known
+  // Helper to check if power is already known and cannot be repeated
   const isPowerKnown = (powerName: string, isClassPower: boolean): boolean => {
     if (isClassPower) {
-      return knownClassPowers.includes(powerName);
+      if (!knownClassPowers.includes(powerName)) return false;
+      // Power is known - check if it can repeat
+      const power = classPowers.find((p) => p.name === powerName);
+      return !power?.canRepeat;
     }
-    return knownGeneralPowers.includes(powerName);
+    if (!knownGeneralPowers.includes(powerName)) return false;
+    // Power is known - check if it can be picked several times
+    const power = generalPowers.find((p) => p.name === powerName);
+    return !power?.allowSeveralPicks;
   };
 
   // Filter powers by search query

@@ -28,6 +28,9 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { getCurrentPlateau } from '@/functions/powers/general';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -407,6 +410,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               })
             }
             actualSheet={simulatedSheet}
+            skipRaceAbilities
           />
         );
       }
@@ -433,6 +437,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 })
               }
               actualSheet={simulatedSheet}
+              skipRaceAbilities
+              classAbilityLevel={currentLevel}
             />
           </Box>
         );
@@ -527,6 +533,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ];
         }
 
+        // Add attribute increases to sheetActionHistory for plateau validation
+        const selectedPower =
+          currentLevelSelection.powerChoice === 'class'
+            ? currentLevelSelection.selectedClassPower
+            : currentLevelSelection.selectedGeneralPower;
+
+        if (selectedPower && currentLevelSelection.powerEffectSelections) {
+          const powerEffects =
+            currentLevelSelection.powerEffectSelections[selectedPower.name];
+          if (powerEffects?.attributes && powerEffects.attributes.length > 0) {
+            const plateau = getCurrentPlateau({
+              nivel: currentLevel,
+            } as CharacterSheet);
+            const newHistoryEntries: SheetActionHistoryEntry[] =
+              powerEffects.attributes.map((attr) => ({
+                source: { type: 'power' as const, name: selectedPower.name },
+                powerName: selectedPower.name,
+                changes: [
+                  {
+                    type: 'AttributeIncreasedByAumentoDeAtributo' as const,
+                    attribute: attr as Atributo,
+                    plateau,
+                  },
+                ],
+              }));
+
+            nextSheet.sheetActionHistory = [
+              ...(nextSheet.sheetActionHistory || []),
+              ...newHistoryEntries,
+            ];
+          }
+        }
+
         setSimulatedSheet(nextSheet);
       } else {
         // All levels complete - confirm
@@ -585,6 +624,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           prevSheet.spells = (prevSheet.spells || []).filter(
             (s) => !spellNamesToRemove.includes(s.nome)
           );
+        }
+
+        // Remove sheetActionHistory entries for attribute increases from the level we're returning to
+        const previousPower =
+          previousLevelSelection.powerChoice === 'class'
+            ? previousLevelSelection.selectedClassPower
+            : previousLevelSelection.selectedGeneralPower;
+
+        if (previousPower && previousLevelSelection.powerEffectSelections) {
+          const effectSelections =
+            previousLevelSelection.powerEffectSelections[previousPower.name];
+          if (
+            effectSelections?.attributes &&
+            effectSelections.attributes.length > 0
+          ) {
+            // Only remove entries that match the specific attributes selected in this level
+            prevSheet.sheetActionHistory = (
+              prevSheet.sheetActionHistory || []
+            ).filter((entry) => {
+              if (entry.powerName !== previousPower.name) return true;
+              // Check if this entry's attribute matches one we selected at this level
+              const hasMatchingAttribute = entry.changes.some(
+                (change) =>
+                  change.type === 'AttributeIncreasedByAumentoDeAtributo' &&
+                  effectSelections.attributes!.includes(
+                    change.attribute as Atributo
+                  )
+              );
+              return !hasMatchingAttribute;
+            });
+          }
         }
       }
 
