@@ -45,6 +45,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 // import { useDice3D } from '../../contexts/Dice3DContext';
 
+const APP_VERSION = '4.0.1';
+
 interface SidebarV2Props {
   visible: boolean;
   onCloseSidebar: () => void;
@@ -494,7 +496,9 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
           </MenuList>
 
           {/* Footer spacing - extra space for iOS safe areas */}
-          <Box sx={{ height: 60 }} />
+          <Box sx={{ height: 60, pl: 2 }}>
+            <span>${APP_VERSION}</span>
+          </Box>
         </StyledPaper>
       </Slide>
     </>

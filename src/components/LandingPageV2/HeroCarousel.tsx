@@ -205,7 +205,6 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     <Box
       className='hero-section'
       sx={{
-        mt: { xs: 2, md: 3 },
         minHeight: { xs: '35vh', sm: '40vh', md: '50vh' },
         position: 'relative',
       }}
