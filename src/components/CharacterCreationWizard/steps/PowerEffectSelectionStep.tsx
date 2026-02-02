@@ -15,6 +15,7 @@ import {
   AccordionDetails,
   TextField,
   InputAdornment,
+  Paper,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
@@ -22,8 +23,12 @@ import Race from '@/interfaces/Race';
 import { ClassDescription, ClassPower } from '@/interfaces/Class';
 import Origin from '@/interfaces/Origin';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import { SelectionOptions } from '@/interfaces/PowerSelections';
+import {
+  SelectionOptions,
+  PowerSelectionRequirement,
+} from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
+import { Spell } from '@/interfaces/Spells';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -557,6 +562,139 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         ('description' in opt || 'descricao' in opt)
     );
 
+    // Helper to get nested requirements from a selected power
+    const getNestedRequirements = (
+      selectedPowerObj: GeneralPower | null
+    ): PowerSelectionRequirement[] => {
+      if (!selectedPowerObj) return [];
+      const nestedReqs = getPowerSelectionRequirements(selectedPowerObj);
+      return nestedReqs?.requirements || [];
+    };
+
+    // Render nested spell selection for powers with learnSpell
+    const renderNestedSpellSelection = (
+      nestedPower: GeneralPower,
+      nestedReq: PowerSelectionRequirement
+    ) => {
+      // Filter available spells (exclude already known)
+      const filteredSpells = getFilteredAvailableOptions(
+        nestedReq,
+        sheetForFiltering
+      ) as Spell[];
+
+      const nestedSearchKey = `nested-${nestedPower.name}-spell`;
+      const nestedSearchQuery =
+        searchQueries[nestedSearchKey as unknown as number] || '';
+      const displayedSpells = filterOptions(filteredSpells, nestedSearchQuery);
+
+      const selectedSpellName =
+        selections.spells && selections.spells.length > 0
+          ? getItemName(selections.spells[0])
+          : '';
+
+      return (
+        <Paper
+          key={`nested-${nestedPower.name}-learnSpell`}
+          elevation={0}
+          sx={{
+            mt: 2,
+            p: 2,
+            bgcolor: 'action.hover',
+            borderLeft: 3,
+            borderColor: 'secondary.main',
+          }}
+        >
+          <Typography variant='subtitle2' color='secondary' gutterBottom>
+            ✨ O poder selecionado requer escolha adicional:
+          </Typography>
+          <Typography variant='subtitle1' gutterBottom>
+            {nestedReq.label} (de {nestedPower.name})
+          </Typography>
+
+          {filteredSpells.length > 15 && (
+            <TextField
+              fullWidth
+              size='small'
+              placeholder='Buscar magia por nome...'
+              value={nestedSearchQuery}
+              onChange={(e) =>
+                setSearchQueries((prev) => ({
+                  ...prev,
+                  [nestedSearchKey]: e.target.value,
+                }))
+              }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+          )}
+
+          {displayedSpells.length === 0 ? (
+            <Alert severity='info' sx={{ mt: 1 }}>
+              {nestedSearchQuery
+                ? `Nenhuma magia encontrada para "${nestedSearchQuery}"`
+                : 'Você já conhece todas as magias disponíveis.'}
+            </Alert>
+          ) : (
+            <FormControl component='fieldset' fullWidth>
+              <RadioGroup
+                value={selectedSpellName}
+                onChange={(e) => {
+                  const spell = displayedSpells.find(
+                    (s) => getItemName(s) === e.target.value
+                  );
+                  if (spell) {
+                    handleSelection('learnSpell', spell, true, nestedReq.pick);
+                  }
+                }}
+              >
+                {displayedSpells.map((spell) => {
+                  const spellName = getItemName(spell);
+                  const isSelected = selectedSpellName === spellName;
+                  return (
+                    <FormControlLabel
+                      key={spellName}
+                      value={spellName}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant='body1'>{spellName}</Typography>
+                          {spell.description && (
+                            <Typography variant='body2' color='text.secondary'>
+                              {spell.description.length > 150
+                                ? `${spell.description.substring(0, 150)}...`
+                                : spell.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      }
+                      sx={{
+                        ml: 0,
+                        py: 1,
+                        px: 1,
+                        borderRadius: 1,
+                        transition: 'background-color 0.2s',
+                        ...(isSelected && {
+                          bgcolor: 'action.selected',
+                          borderLeft: 3,
+                          borderColor: 'secondary.main',
+                        }),
+                      }}
+                    />
+                  );
+                })}
+              </RadioGroup>
+            </FormControl>
+          )}
+        </Paper>
+      );
+    };
+
     if (isSingleSelection) {
       // Single selection - use radio buttons
       const getValue = () => {
@@ -589,6 +727,23 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         if (!firstItem) return '';
         return getItemName(firstItem);
       };
+
+      // For getGeneralPower, check if selected power has nested requirements
+      const selectedPowerForNested =
+        type === 'getGeneralPower' && selections.powers?.[0]
+          ? (availableOptions.find(
+              (opt) => getItemName(opt) === getItemName(selections.powers![0])
+            ) as GeneralPower | undefined)
+          : null;
+
+      const nestedRequirements = selectedPowerForNested
+        ? getNestedRequirements(selectedPowerForNested)
+        : [];
+
+      // Filter for learnSpell requirements
+      const nestedSpellReqs = nestedRequirements.filter(
+        (req) => req.type === 'learnSpell'
+      );
 
       return (
         <Box key={requirementIndex} mb={2}>
@@ -651,6 +806,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 });
                 if (selectedOption) {
                   handleSelection(type, selectedOption, true, pick);
+                  // Clear spell selection when power changes (nested requirement may change)
+                  if (type === 'getGeneralPower') {
+                    onChange({
+                      ...selections,
+                      powers: [selectedOption],
+                      spells: [], // Reset spell selection when power changes
+                    });
+                  }
                 }
               }}
             >
@@ -705,6 +868,12 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
+
+          {/* Render nested spell requirements if selected power has them */}
+          {selectedPowerForNested &&
+            nestedSpellReqs.map((nestedReq) =>
+              renderNestedSpellSelection(selectedPowerForNested, nestedReq)
+            )}
         </Box>
       );
     }

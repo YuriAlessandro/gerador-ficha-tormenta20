@@ -1423,6 +1423,18 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Recebe o poder geral ${power.name}`,
           });
+
+          // Apply the picked power's sheetActions (e.g., learnSpell in Prática Arcana)
+          // Pass the same manual selections so nested requirements (spells) are honored
+          if (power.sheetActions && power.sheetActions.length > 0) {
+            const [updatedSheet, nestedSubSteps] = applyPower(
+              sheet,
+              power,
+              manualSelections
+            );
+            Object.assign(sheet, updatedSheet);
+            subSteps.push(...nestedSubSteps);
+          }
         });
       } else if (sheetAction.action.type === 'learnSpell') {
         let learnedSpells: Spell[];
