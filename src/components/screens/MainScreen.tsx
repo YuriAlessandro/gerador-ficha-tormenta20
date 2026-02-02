@@ -1802,14 +1802,13 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
               >
                 {/* Save to Cloud Button */}
                 <Button
-                  variant={sheetSavedToCloud ? 'contained' : 'outlined'}
+                  variant='contained'
                   color={sheetSavedToCloud ? 'success' : 'warning'}
                   onClick={handleSaveToCloud}
                   fullWidth={isMobile}
                   disabled={loadingSaveToCloud || sheetSavedToCloud}
                   sx={{
                     justifyContent: 'flex-start',
-                    borderWidth: sheetSavedToCloud ? 1 : 2,
                     fontWeight: sheetSavedToCloud ? 'normal' : 'bold',
                   }}
                   startIcon={

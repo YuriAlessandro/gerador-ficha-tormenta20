@@ -242,8 +242,9 @@ const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
 
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
-    const attributeBonus =
-      updatedSheet.atributos[newAttribute].value * updatedSheet.nivel;
+    // Atributo negativo não reduz PV por nível (mínimo é 0)
+    const attrValue = Math.max(updatedSheet.atributos[newAttribute].value, 0);
+    const attributeBonus = attrValue * updatedSheet.nivel;
 
     updatedSheet.pv = baseHp + attributeBonus;
   }
@@ -868,10 +869,12 @@ export function recalculateSheet(
       const addPVPerLevel =
         updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
       const conMod = updatedSheet.atributos.Constituição?.value || 0;
+      // Constituição negativa não reduz PV por nível (mínimo é 0)
+      const conModForPV = Math.max(conMod, 0);
       updatedSheet.pv =
         basePV +
         addPVPerLevel * (updatedSheet.nivel - 1) +
-        conMod * updatedSheet.nivel;
+        conModForPV * updatedSheet.nivel;
 
       // Add bonus PV if defined
       if (updatedSheet.bonusPV) {

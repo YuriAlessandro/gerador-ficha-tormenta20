@@ -13,17 +13,28 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import { CompleteSkill } from '../../interfaces/Skills';
+import { CompleteSkill, TrainedOnlySkills } from '../../interfaces/Skills';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
+
+const ATTR_ABBREVIATIONS: Record<Atributo, string> = {
+  [Atributo.FORCA]: 'For',
+  [Atributo.DESTREZA]: 'Des',
+  [Atributo.CONSTITUICAO]: 'Con',
+  [Atributo.INTELIGENCIA]: 'Int',
+  [Atributo.SABEDORIA]: 'Sab',
+  [Atributo.CARISMA]: 'Car',
+};
 
 interface IProps {
   sheet: CharacterSheet;
@@ -266,6 +277,10 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
 
               const isTrained = (skill.training ?? 0) > 0;
               const attrName = skill.modAttr ?? '';
+              const isTrainedOnly = TrainedOnlySkills.includes(skill.name);
+              const attrAbbr = skill.modAttr
+                ? ATTR_ABBREVIATIONS[skill.modAttr]
+                : '';
 
               return (
                 <StyledTableRow key={skill.name}>
@@ -289,6 +304,12 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                       title={`Ver ações de ${skill.name}`}
                     >
                       {isTrained ? <strong>{skill.name}</strong> : skill.name}
+                      {isTrainedOnly && '*'}
+                      {attrAbbr && (
+                        <span style={{ opacity: 0.6, marginLeft: 4 }}>
+                          ({attrAbbr})
+                        </span>
+                      )}
                     </ClickableSkillName>
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
@@ -305,6 +326,13 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Typography
+        variant='caption'
+        color='text.secondary'
+        sx={{ display: 'block', mt: 1, px: 1.5 }}
+      >
+        * Somente treinada
+      </Typography>
       <SkillActionsDialog
         open={actionsDialogOpen}
         onClose={handleCloseActionsDialog}
