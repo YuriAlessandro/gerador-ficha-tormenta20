@@ -981,8 +981,10 @@ const CharacterCreationWizardModal: React.FC<
       case 'Efeitos de Poderes': {
         if (!race || !classe) return false;
 
-        // Collect all requirements from race, class, and origin
+        // Collect all requirements from race, class, origin, and deity powers
+        // Each requirement is tied to its power name for per-power validation
         const allRequirements: Array<{
+          powerName: string;
           type: string;
           pick: number;
         }> = [];
@@ -991,7 +993,9 @@ const CharacterCreationWizardModal: React.FC<
         race.abilities.forEach((ability) => {
           const reqs = getPowerSelectionRequirements(ability);
           if (reqs) {
-            allRequirements.push(...reqs.requirements);
+            reqs.requirements.forEach((req) => {
+              allRequirements.push({ powerName: ability.name, ...req });
+            });
           }
         });
 
@@ -999,7 +1003,9 @@ const CharacterCreationWizardModal: React.FC<
         classe.abilities?.forEach((ability) => {
           const reqs = getPowerSelectionRequirements(ability);
           if (reqs) {
-            allRequirements.push(...reqs.requirements);
+            reqs.requirements.forEach((req) => {
+              allRequirements.push({ powerName: ability.name, ...req });
+            });
           }
         });
 
@@ -1012,45 +1018,87 @@ const CharacterCreationWizardModal: React.FC<
           originBenefits.powers.origin.forEach((power) => {
             const reqs = getPowerSelectionRequirements(power);
             if (reqs) {
-              allRequirements.push(...reqs.requirements);
+              reqs.requirements.forEach((req) => {
+                allRequirements.push({ powerName: power.name, ...req });
+              });
             }
           });
         }
 
-        // Validate all requirements are met
-        const effectSelections = selections.powerEffectSelections || {};
-        return allRequirements.every((req) => {
-          const { type, pick } = req;
-          let count = 0;
+        // Check deity granted powers (selected in previous step)
+        if (
+          deity &&
+          selections.deityPowers &&
+          selections.deityPowers.length > 0
+        ) {
+          const selectedDeityPowers = deity.poderes.filter((p) =>
+            selections.deityPowers?.includes(p.name)
+          );
+          selectedDeityPowers.forEach((power) => {
+            const reqs = getPowerSelectionRequirements(power);
+            if (reqs) {
+              reqs.requirements.forEach((req) => {
+                allRequirements.push({ powerName: power.name, ...req });
+              });
+            }
+          });
+        }
 
+        // Helper to count selections for a specific power and type
+        const effectSelections = selections.powerEffectSelections || {};
+        const getSelectionCount = (powerName: string, type: string): number => {
+          const powerSelections = effectSelections[powerName] || {};
           switch (type) {
             case 'learnSkill':
-              count = effectSelections.skills?.length || 0;
-              break;
+              return powerSelections.skills?.length || 0;
             case 'addProficiency':
-              count = effectSelections.proficiencies?.length || 0;
-              break;
+              return powerSelections.proficiencies?.length || 0;
             case 'getGeneralPower':
-              count = effectSelections.powers?.length || 0;
-              break;
+              return powerSelections.powers?.length || 0;
             case 'learnSpell':
             case 'learnAnySpellFromHighestCircle':
-              count = effectSelections.spells?.length || 0;
-              break;
+              return powerSelections.spells?.length || 0;
             case 'increaseAttribute':
-              count = effectSelections.attributes?.length || 0;
-              break;
+              return powerSelections.attributes?.length || 0;
             case 'selectWeaponSpecialization':
-              count = effectSelections.weapons?.length || 0;
-              break;
+              return powerSelections.weapons?.length || 0;
             case 'selectFamiliar':
-              count = effectSelections.familiars?.length || 0;
-              break;
+              return powerSelections.familiars?.length || 0;
             case 'selectAnimalTotem':
-              count = effectSelections.animalTotems?.length || 0;
-              break;
+              return powerSelections.animalTotems?.length || 0;
             default:
-              break;
+              return 0;
+          }
+        };
+
+        // Validate all requirements are met
+        return allRequirements.every((req) => {
+          const { powerName, type, pick } = req;
+          const count = getSelectionCount(powerName, type);
+
+          // For getGeneralPower, also check if nested power requirements are met
+          if (type === 'getGeneralPower' && count >= pick) {
+            const powerSelections = effectSelections[powerName] || {};
+            const selectedPower = powerSelections.powers?.[0] as
+              | { name?: string; sheetActions?: unknown[] }
+              | undefined;
+            if (selectedPower?.name && selectedPower.sheetActions) {
+              const nestedReqs = getPowerSelectionRequirements(
+                selectedPower as Parameters<
+                  typeof getPowerSelectionRequirements
+                >[0]
+              );
+              if (nestedReqs) {
+                // Check nested requirements under the nested power's name
+                return nestedReqs.requirements.every((nestedReq) => {
+                  const nestedCount = getSelectionCount(
+                    selectedPower.name!,
+                    nestedReq.type
+                  );
+                  return nestedCount >= nestedReq.pick;
+                });
+              }
+            }
           }
 
           return count >= pick;

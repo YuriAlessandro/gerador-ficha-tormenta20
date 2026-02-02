@@ -1,6 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
-import { SelectionOptions } from '@/interfaces/PowerSelections';
+import {
+  SelectionOptions,
+  ManualPowerSelections,
+} from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -2186,7 +2189,7 @@ export const applyPower = (
 
 export function applyRaceAbilities(
   sheet: CharacterSheet,
-  manualSelections?: SelectionOptions
+  manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
@@ -2205,7 +2208,9 @@ export function applyRaceAbilities(
   });
 
   sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability, manualSelections);
+    // Extract selections for this specific ability
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2223,7 +2228,7 @@ export function applyRaceAbilities(
 
 function applyDivinePowers(
   sheet: CharacterSheet,
-  manualSelections?: SelectionOptions
+  manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
@@ -2242,7 +2247,9 @@ function applyDivinePowers(
   });
 
   sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
-    const [newAcc, newSubSteps] = applyPower(acc, power, manualSelections);
+    // Extract selections for this specific power
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc, newSubSteps] = applyPower(acc, power, powerSelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2260,7 +2267,7 @@ function applyDivinePowers(
 
 function applyClassAbilities(
   sheet: CharacterSheet,
-  manualSelections?: SelectionOptions
+  manualSelections?: ManualPowerSelections
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
@@ -2283,7 +2290,9 @@ function applyClassAbilities(
   });
 
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability, manualSelections);
+    // Extract selections for this specific ability
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -4292,7 +4301,12 @@ export function generateEmptySheet(
     );
 
   // Recalculate sheet to apply all bonuses (attributes, PV/PM, defense, skills)
-  emptySheet = recalculateSheet(emptySheet);
+  // Pass powerEffectSelections so deity/origin powers with learnSpell work correctly
+  emptySheet = recalculateSheet(
+    emptySheet,
+    undefined,
+    wizardSelections?.powerEffectSelections
+  );
 
   return emptySheet;
 }

@@ -240,8 +240,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const requirements = getPowerSelectionRequirements(power);
         if (!requirements) return true;
 
-        const effectSelections =
+        // Get selections keyed by power name
+        const allEffectSelections =
           currentLevelSelection.powerEffectSelections || {};
+        const effectSelections = allEffectSelections[power.name] || {};
+
+        // Helper to get selection count
+        const getSelectionCount = (powerName: string, type: string): number => {
+          const pSelections = allEffectSelections[powerName] || {};
+          switch (type) {
+            case 'learnSkill':
+              return pSelections.skills?.length || 0;
+            case 'addProficiency':
+              return pSelections.proficiencies?.length || 0;
+            case 'getGeneralPower':
+              return pSelections.powers?.length || 0;
+            case 'learnSpell':
+            case 'learnAnySpellFromHighestCircle':
+              return pSelections.spells?.length || 0;
+            case 'increaseAttribute':
+              return pSelections.attributes?.length || 0;
+            case 'selectWeaponSpecialization':
+              return pSelections.weapons?.length || 0;
+            case 'selectFamiliar':
+              return pSelections.familiars?.length || 0;
+            case 'selectAnimalTotem':
+              return pSelections.animalTotems?.length || 0;
+            default:
+              return 0;
+          }
+        };
+
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
 
@@ -255,36 +284,29 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           // If fewer options than required, adjust the effective pick count
           const effectivePick = Math.min(pick, availableOptions.length);
 
-          let count = 0;
+          const count = getSelectionCount(power.name, type);
 
-          switch (type) {
-            case 'learnSkill':
-              count = effectSelections.skills?.length || 0;
-              break;
-            case 'addProficiency':
-              count = effectSelections.proficiencies?.length || 0;
-              break;
-            case 'getGeneralPower':
-              count = effectSelections.powers?.length || 0;
-              break;
-            case 'learnSpell':
-            case 'learnAnySpellFromHighestCircle':
-              count = effectSelections.spells?.length || 0;
-              break;
-            case 'increaseAttribute':
-              count = effectSelections.attributes?.length || 0;
-              break;
-            case 'selectWeaponSpecialization':
-              count = effectSelections.weapons?.length || 0;
-              break;
-            case 'selectFamiliar':
-              count = effectSelections.familiars?.length || 0;
-              break;
-            case 'selectAnimalTotem':
-              count = effectSelections.animalTotems?.length || 0;
-              break;
-            default:
-              break;
+          // For getGeneralPower, also check if nested power requirements are met
+          if (type === 'getGeneralPower' && count >= effectivePick) {
+            const selectedPower = effectSelections.powers?.[0] as
+              | { name?: string; sheetActions?: unknown[] }
+              | undefined;
+            if (selectedPower?.name && selectedPower.sheetActions) {
+              const nestedReqs = getPowerSelectionRequirements(
+                selectedPower as Parameters<
+                  typeof getPowerSelectionRequirements
+                >[0]
+              );
+              if (nestedReqs) {
+                return nestedReqs.requirements.every((nestedReq) => {
+                  const nestedCount = getSelectionCount(
+                    selectedPower.name!,
+                    nestedReq.type
+                  );
+                  return nestedCount >= nestedReq.pick;
+                });
+              }
+            }
           }
 
           return count >= effectivePick;

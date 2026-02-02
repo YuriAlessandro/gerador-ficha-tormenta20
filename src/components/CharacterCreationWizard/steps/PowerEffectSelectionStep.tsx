@@ -24,8 +24,8 @@ import { ClassDescription, ClassPower } from '@/interfaces/Class';
 import Origin from '@/interfaces/Origin';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import {
-  SelectionOptions,
   PowerSelectionRequirement,
+  ManualPowerSelections,
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
@@ -43,8 +43,9 @@ interface PowerEffectSelectionStepProps {
   origin?: Origin;
   deity?: Divindade | null;
   selectedDeityPowers?: string[];
-  selections: SelectionOptions;
-  onChange: (selections: SelectionOptions) => void;
+  // Each power has its own SelectionOptions keyed by power name
+  selections: ManualPowerSelections;
+  onChange: (selections: ManualPowerSelections) => void;
   // Optional selected power for level-up wizard
   selectedPower?: ClassPower | GeneralPower;
   powerSource?: 'class' | 'general';
@@ -262,13 +263,16 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     });
   };
 
-  // Helper to handle single/multiple selection
+  // Helper to handle single/multiple selection for a specific power
   const handleSelection = (
+    powerName: string,
     selectionType: string,
     item: string | object,
     isChecked: boolean,
     pick: number
   ) => {
+    // Get current selections for this power
+    const powerSelections = selections[powerName] || {};
     let currentItems: Array<string | object> = [];
     let newItems: Array<string | object> = [];
     let updateKey = '';
@@ -276,36 +280,36 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Determine which selection array to update
     switch (selectionType) {
       case 'learnSkill':
-        currentItems = selections.skills || [];
+        currentItems = powerSelections.skills || [];
         updateKey = 'skills';
         break;
       case 'addProficiency':
-        currentItems = selections.proficiencies || [];
+        currentItems = powerSelections.proficiencies || [];
         updateKey = 'proficiencies';
         break;
       case 'getGeneralPower':
-        currentItems = selections.powers || [];
+        currentItems = powerSelections.powers || [];
         updateKey = 'powers';
         break;
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
-        currentItems = selections.spells || [];
+        currentItems = powerSelections.spells || [];
         updateKey = 'spells';
         break;
       case 'increaseAttribute':
-        currentItems = selections.attributes || [];
+        currentItems = powerSelections.attributes || [];
         updateKey = 'attributes';
         break;
       case 'selectWeaponSpecialization':
-        currentItems = selections.weapons || [];
+        currentItems = powerSelections.weapons || [];
         updateKey = 'weapons';
         break;
       case 'selectFamiliar':
-        currentItems = selections.familiars || [];
+        currentItems = powerSelections.familiars || [];
         updateKey = 'familiars';
         break;
       case 'selectAnimalTotem':
-        currentItems = selections.animalTotems || [];
+        currentItems = powerSelections.animalTotems || [];
         updateKey = 'animalTotems';
         break;
       default:
@@ -332,45 +336,50 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       });
     }
 
-    // Update selections
+    // Update selections for this specific power
     onChange({
       ...selections,
-      [updateKey]: newItems,
+      [powerName]: {
+        ...powerSelections,
+        [updateKey]: newItems,
+      },
     });
   };
 
-  // Helper to check if item is selected
+  // Helper to check if item is selected for a specific power
   const isItemSelected = (
+    powerName: string,
     selectionType: string,
     item: string | object
   ): boolean => {
+    const powerSelections = selections[powerName] || {};
     let currentItems: Array<string | object> = [];
 
     switch (selectionType) {
       case 'learnSkill':
-        currentItems = selections.skills || [];
+        currentItems = powerSelections.skills || [];
         break;
       case 'addProficiency':
-        currentItems = selections.proficiencies || [];
+        currentItems = powerSelections.proficiencies || [];
         break;
       case 'getGeneralPower':
-        currentItems = selections.powers || [];
+        currentItems = powerSelections.powers || [];
         break;
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
-        currentItems = selections.spells || [];
+        currentItems = powerSelections.spells || [];
         break;
       case 'increaseAttribute':
-        currentItems = selections.attributes || [];
+        currentItems = powerSelections.attributes || [];
         break;
       case 'selectWeaponSpecialization':
-        currentItems = selections.weapons || [];
+        currentItems = powerSelections.weapons || [];
         break;
       case 'selectFamiliar':
-        currentItems = selections.familiars || [];
+        currentItems = powerSelections.familiars || [];
         break;
       case 'selectAnimalTotem':
-        currentItems = selections.animalTotems || [];
+        currentItems = powerSelections.animalTotems || [];
         break;
       default:
         return false;
@@ -384,33 +393,38 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     });
   };
 
-  // Helper to count current selections
-  const getSelectionCount = (selectionType: string): number => {
+  // Helper to count current selections for a specific power
+  const getSelectionCount = (
+    powerName: string,
+    selectionType: string
+  ): number => {
+    const powerSelections = selections[powerName] || {};
     switch (selectionType) {
       case 'learnSkill':
-        return selections.skills?.length || 0;
+        return powerSelections.skills?.length || 0;
       case 'addProficiency':
-        return selections.proficiencies?.length || 0;
+        return powerSelections.proficiencies?.length || 0;
       case 'getGeneralPower':
-        return selections.powers?.length || 0;
+        return powerSelections.powers?.length || 0;
       case 'learnSpell':
       case 'learnAnySpellFromHighestCircle':
-        return selections.spells?.length || 0;
+        return powerSelections.spells?.length || 0;
       case 'increaseAttribute':
-        return selections.attributes?.length || 0;
+        return powerSelections.attributes?.length || 0;
       case 'selectWeaponSpecialization':
-        return selections.weapons?.length || 0;
+        return powerSelections.weapons?.length || 0;
       case 'selectFamiliar':
-        return selections.familiars?.length || 0;
+        return powerSelections.familiars?.length || 0;
       case 'selectAnimalTotem':
-        return selections.animalTotems?.length || 0;
+        return powerSelections.animalTotems?.length || 0;
       default:
         return 0;
     }
   };
 
-  // Render a single requirement
+  // Render a single requirement for a specific power
   const renderRequirement = (
+    powerName: string,
     requirement: {
       type:
         | 'learnSkill'
@@ -452,7 +466,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const shouldShowSearch = allAvailableOptions.length > 15;
 
     const isSingleSelection = pick === 1;
-    const currentCount = getSelectionCount(type);
+    const currentCount = getSelectionCount(powerName, type);
+    const powerSelections = selections[powerName] || {};
 
     if (allAvailableOptions.length === 0) {
       return (
@@ -480,14 +495,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </Typography>
           <FormControl component='fieldset' fullWidth>
             <RadioGroup
-              value={selections.familiars?.[0] || ''}
+              value={powerSelections.familiars?.[0] || ''}
               onChange={(e) =>
-                handleSelection(type, e.target.value, true, pick)
+                handleSelection(powerName, type, e.target.value, true, pick)
               }
             >
               {availableOptions.map((familiarKey) => {
                 const familiar = FAMILIARS[familiarKey];
-                const isSelected = selections.familiars?.[0] === familiarKey;
+                const isSelected =
+                  powerSelections.familiars?.[0] === familiarKey;
                 return (
                   <FormControlLabel
                     key={familiarKey}
@@ -534,14 +550,15 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           </Typography>
           <FormControl component='fieldset' fullWidth>
             <RadioGroup
-              value={selections.animalTotems?.[0] || ''}
+              value={powerSelections.animalTotems?.[0] || ''}
               onChange={(e) =>
-                handleSelection(type, e.target.value, true, pick)
+                handleSelection(powerName, type, e.target.value, true, pick)
               }
             >
               {availableOptions.map((totemKey) => {
                 const totem = ANIMAL_TOTEMS[totemKey];
-                const isSelected = selections.animalTotems?.[0] === totemKey;
+                const isSelected =
+                  powerSelections.animalTotems?.[0] === totemKey;
                 return (
                   <FormControlLabel
                     key={totemKey}
@@ -594,6 +611,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     };
 
     // Render nested spell selection for powers with learnSpell
+    // Nested powers (e.g., "Prática Arcana" selected via "Bênção de Kallyadranoch")
+    // store their selections under their own name
     const renderNestedSpellSelection = (
       nestedPower: GeneralPower,
       nestedReq: PowerSelectionRequirement
@@ -609,9 +628,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         searchQueries[nestedSearchKey as unknown as number] || '';
       const displayedSpells = filterOptions(filteredSpells, nestedSearchQuery);
 
+      // Get selections for the nested power (stored under the nested power's name)
+      const nestedPowerSelections = selections[nestedPower.name] || {};
       const selectedSpellName =
-        selections.spells && selections.spells.length > 0
-          ? getItemName(selections.spells[0])
+        nestedPowerSelections.spells && nestedPowerSelections.spells.length > 0
+          ? getItemName(nestedPowerSelections.spells[0])
           : '';
 
       return (
@@ -671,7 +692,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     (s) => getItemName(s) === e.target.value
                   );
                   if (spell) {
-                    handleSelection('learnSpell', spell, true, nestedReq.pick);
+                    // Store under the nested power's name, not the parent power
+                    handleSelection(
+                      nestedPower.name,
+                      'learnSpell',
+                      spell,
+                      true,
+                      nestedReq.pick
+                    );
                   }
                 }}
               >
@@ -724,23 +752,23 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
         switch (type) {
           case 'learnSkill':
-            firstItem = selections.skills?.[0];
+            firstItem = powerSelections.skills?.[0];
             break;
           case 'addProficiency':
-            firstItem = selections.proficiencies?.[0];
+            firstItem = powerSelections.proficiencies?.[0];
             break;
           case 'getGeneralPower':
-            firstItem = selections.powers?.[0];
+            firstItem = powerSelections.powers?.[0];
             break;
           case 'learnSpell':
           case 'learnAnySpellFromHighestCircle':
-            firstItem = selections.spells?.[0];
+            firstItem = powerSelections.spells?.[0];
             break;
           case 'increaseAttribute':
-            firstItem = selections.attributes?.[0];
+            firstItem = powerSelections.attributes?.[0];
             break;
           case 'selectWeaponSpecialization':
-            firstItem = selections.weapons?.[0];
+            firstItem = powerSelections.weapons?.[0];
             break;
           default:
             firstItem = undefined;
@@ -752,9 +780,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
 
       // For getGeneralPower, check if selected power has nested requirements
       const selectedPowerForNested =
-        type === 'getGeneralPower' && selections.powers?.[0]
+        type === 'getGeneralPower' && powerSelections.powers?.[0]
           ? (availableOptions.find(
-              (opt) => getItemName(opt) === getItemName(selections.powers![0])
+              (opt) =>
+                getItemName(opt) === getItemName(powerSelections.powers![0])
             ) as GeneralPower | undefined)
           : null;
 
@@ -827,13 +856,33 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   return optName === e.target.value;
                 });
                 if (selectedOption) {
-                  handleSelection(type, selectedOption, true, pick);
-                  // Clear spell selection when power changes (nested requirement may change)
+                  handleSelection(powerName, type, selectedOption, true, pick);
+                  // Clear nested power's spell selection when power changes (nested requirement may change)
                   if (type === 'getGeneralPower') {
+                    // Get the old selected power to clear its nested selections
+                    const oldSelectedPower = powerSelections.powers?.[0];
+                    if (oldSelectedPower) {
+                      const oldPowerName = getItemName(oldSelectedPower);
+                      // Clear the old nested power's selections if it exists
+                      if (selections[oldPowerName]) {
+                        onChange({
+                          ...selections,
+                          [powerName]: {
+                            ...powerSelections,
+                            powers: [selectedOption],
+                          },
+                          [oldPowerName]: {}, // Reset old nested power selections
+                        });
+                        return;
+                      }
+                    }
+                    // Just update this power's selection
                     onChange({
                       ...selections,
-                      powers: [selectedOption],
-                      spells: [], // Reset spell selection when power changes
+                      [powerName]: {
+                        ...powerSelections,
+                        powers: [selectedOption],
+                      },
                     });
                   }
                 }
@@ -963,7 +1012,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                 }
               }
 
-              const isSelected = isItemSelected(type, option);
+              const isSelected = isItemSelected(powerName, type, option);
               const isDisabled = !isSelected && currentCount >= pick;
 
               return (
@@ -973,7 +1022,13 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                     <Checkbox
                       checked={isSelected}
                       onChange={(e) =>
-                        handleSelection(type, option, e.target.checked, pick)
+                        handleSelection(
+                          powerName,
+                          type,
+                          option,
+                          e.target.checked,
+                          pick
+                        )
                       }
                       disabled={isDisabled}
                     />
@@ -1054,7 +1109,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               <React.Fragment
                 key={`${powerReq.powerName}-req-${requirement.type}-${requirement.label}`}
               >
-                {renderRequirement(requirement, reqIndex)}
+                {renderRequirement(powerReq.powerName, requirement, reqIndex)}
                 {reqIndex < powerReq.requirements.length - 1 && (
                   <Divider sx={{ my: 2 }} />
                 )}
