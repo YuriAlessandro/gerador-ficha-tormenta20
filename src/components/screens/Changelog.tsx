@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            01/02/2026.
+            02/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,105 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.0.1</h3>
+              <ul>
+                <li>
+                  <strong>🐺 Heranças de Moreau:</strong> Adicionadas as 12
+                  heranças da raça Moreau (do suplemento Ameaças de Arton) com
+                  bônus de perícias, armas naturais e habilidades específicas de
+                  cada animal.
+                </li>
+                <li>
+                  <strong>🧙 Wizard de Criação e Level-Up Aprimorado:</strong>
+                  <ul>
+                    <li>
+                      Poderes de suplementos agora aparecem corretamente nas
+                      opções de seleção.
+                    </li>
+                    <li>
+                      Poderes repetíveis (como Aumento de Atributo) podem ser
+                      selecionados múltiplas vezes.
+                    </li>
+                    <li>
+                      Seleção manual de perícias e poderes para a habilidade
+                      Versátil do Humano.
+                    </li>
+                    <li>
+                      Bênçãos dracônicas agora permitem escolher magias
+                      corretamente.
+                    </li>
+                    <li>
+                      Kallyanach permite escolher qual atributo aumentar (+1 For
+                      ou +1 Des).
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>✨ Novos Efeitos Automáticos:</strong>
+                  <ul>
+                    <li>
+                      Poder &quot;Coração Heroico&quot; agora adiciona +2 PM
+                      automaticamente.
+                    </li>
+                    <li>
+                      Poder &quot;Aspirante a Herói&quot; (Atlas de Arton) agora
+                      permite escolher o atributo a aumentar.
+                    </li>
+                    <li>
+                      Bênção &quot;Prática Arcana&quot; permite escolher uma
+                      magia para aprender.
+                    </li>
+                    <li>
+                      Bônus de perícias de poderes agora são aplicados
+                      corretamente no recálculo da ficha.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>⚔️ Correções de Equipamentos:</strong>
+                  <ul>
+                    <li>
+                      Armaduras pesadas mantêm sua identificação ao editar o
+                      nome.
+                    </li>
+                    <li>
+                      Crítico base das armas é preservado ao recalcular a ficha.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>🎲 Melhorias de Magias:</strong>
+                  <ul>
+                    <li>
+                      Magia &quot;Curar Ferimentos&quot; agora exibe a rolagem
+                      de cura corretamente.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>🔧 Correções Gerais:</strong>
+                  <ul>
+                    <li>
+                      Validação de requisitos de proficiência para poderes de
+                      combate corrigida.
+                    </li>
+                    <li>
+                      Aviso de alterações não salvas antes de fazer logout.
+                    </li>
+                    <li>
+                      Atributos negativos agora são permitidos na edição manual.
+                    </li>
+                    <li>
+                      Edições manuais de perícias são preservadas ao recalcular.
+                    </li>
+                    <li>
+                      Escolhas de atributos de raças com opções
+                      (&quot;any&quot;) são propagadas corretamente.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.0.0</h3>
               <ul>
                 <li>
