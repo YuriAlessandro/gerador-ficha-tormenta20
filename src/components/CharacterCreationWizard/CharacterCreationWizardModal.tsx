@@ -841,6 +841,7 @@ const CharacterCreationWizardModal: React.FC<
               })
             }
             arcanistaSubtype={selections.arcanistaSubtype}
+            supplements={supplements}
           />
         );
 

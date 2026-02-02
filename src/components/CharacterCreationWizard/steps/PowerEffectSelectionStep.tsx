@@ -36,8 +36,10 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
-import { getPowersAllowedByRequirements } from '@/functions/powers';
+import { isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 import VersatilSelectionField from './VersatilSelectionField';
 
 interface PowerEffectSelectionStepProps {
@@ -60,6 +62,8 @@ interface PowerEffectSelectionStepProps {
   skipRaceAbilities?: boolean;
   // Only show class abilities for this specific level (useful for level-up)
   classAbilityLevel?: number;
+  // Active supplements for power filtering
+  supplements?: SupplementId[];
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -76,6 +80,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   arcanistaSubtype,
   skipRaceAbilities = false,
   classAbilityLevel,
+  supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -619,9 +624,19 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       const availableSkillsForVersatil =
         allAvailableOptions as unknown as Skill[];
 
-      // Get available powers for Versátil
-      const availablePowersForVersatil =
-        getPowersAllowedByRequirements(sheetForFiltering);
+      // Get available powers for Versátil using dataRegistry
+      const allPowers = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowers = Object.values(allPowers).flat();
+      const existingGeneralPowers = sheetForFiltering.generalPowers || [];
+      const availablePowersForVersatil = allGeneralPowers.filter((power) => {
+        const isRepeatedPower = existingGeneralPowers.find(
+          (existingPower) => existingPower.name === power.name
+        );
+        if (isRepeatedPower) {
+          return power.allowSeveralPicks;
+        }
+        return isPowerAvailable(sheetForFiltering, power);
+      });
 
       return (
         <Box key={requirementIndex} mb={2}>

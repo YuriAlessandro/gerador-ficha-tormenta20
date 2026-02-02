@@ -14,7 +14,6 @@ import {
 import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
-import { getPowersAllowedByRequirements } from '@/functions/powers';
 
 interface VersatilSelectionFieldProps {
   availableSkills: Skill[];
@@ -249,8 +248,5 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
     </Box>
   );
 };
-
-// Helper to get available powers for Versátil (export for use in PowerEffectSelectionStep)
-export { getPowersAllowedByRequirements };
 
 export default VersatilSelectionField;

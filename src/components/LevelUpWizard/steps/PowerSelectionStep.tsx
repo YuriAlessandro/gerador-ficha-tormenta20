@@ -252,7 +252,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
                                     case RequirementType.TEXT:
-                                      return req.name || '';
+                                      return req.text || '';
                                     default:
                                       return '';
                                   }
@@ -401,7 +401,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
                                     case RequirementType.TEXT:
-                                      return req.name || '';
+                                      return req.text || '';
                                     default:
                                       return '';
                                   }

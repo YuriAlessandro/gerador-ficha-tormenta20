@@ -1693,6 +1693,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           open={levelUpWizardModalOpen}
           initialSheet={pendingLevel1Sheet}
           targetLevel={selectedOptions.nivel}
+          supplements={
+            selectedOptions.supplements || [SupplementId.TORMENTA20_CORE]
+          }
           onConfirm={handleLevelUpWizardConfirm}
           onCancel={handleLevelUpWizardCancel}
         />

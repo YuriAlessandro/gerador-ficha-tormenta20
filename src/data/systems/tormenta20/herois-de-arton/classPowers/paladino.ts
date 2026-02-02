@@ -1,6 +1,7 @@
 import { ClassPower } from '../../../../../interfaces/Class';
 import { RequirementType } from '../../../../../interfaces/Poderes';
 import { spellsCircle2 } from '../../magias/generalSpells';
+import PROFICIENCIAS from '../../proficiencias';
 
 const PALADINO_POWERS: ClassPower[] = [
   {
@@ -29,7 +30,7 @@ const PALADINO_POWERS: ClassPower[] = [
     name: 'Bloqueio Divino',
     text: 'Quando sofre um ataque, se estiver empunhando um escudo, você pode gastar 2 PM para receber +5 na Defesa contra esse ataque.',
     requirements: [
-      [{ type: RequirementType.TEXT, text: 'Proficiência com escudos' }],
+      [{ type: RequirementType.PROFICIENCIA, name: PROFICIENCIAS.ESCUDOS }],
     ],
   },
   {

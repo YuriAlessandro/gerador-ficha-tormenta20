@@ -20,9 +20,11 @@ import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
 import {
   getAllowedClassPowers,
-  getPowersAllowedByRequirements,
+  isPowerAvailable,
   getWeightedInventorClassPowers,
 } from '@/functions/powers';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { getDivineSpellsOfCircle } from '@/data/systems/tormenta20/magias/divine';
@@ -40,6 +42,7 @@ interface LevelUpWizardModalProps {
   open: boolean;
   initialSheet: CharacterSheet; // Level 1 sheet
   targetLevel: number; // Final level to reach
+  supplements: SupplementId[]; // Active supplements for power filtering
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
   onCancel: () => void;
 }
@@ -48,6 +51,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
   initialSheet,
   targetLevel,
+  supplements,
   onConfirm,
   onCancel,
 }) => {
@@ -96,13 +100,59 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
   } => {
+    // Get class with merged supplement powers from registry
+    const classWithSupplementPowers = dataRegistry.getClassByName(
+      simulatedSheet.classe.name,
+      supplements
+    );
+
+    // Create a sheet with the class that has supplement powers for filtering
+    const sheetForFiltering: CharacterSheet = classWithSupplementPowers
+      ? {
+          ...simulatedSheet,
+          classe: {
+            ...simulatedSheet.classe,
+            powers: classWithSupplementPowers.powers,
+          },
+        }
+      : simulatedSheet;
+
+    // Get class powers using the merged powers
     const classPowers =
       simulatedSheet.classe.name === 'Inventor'
-        ? getWeightedInventorClassPowers(simulatedSheet)
-        : getAllowedClassPowers(simulatedSheet);
-    const generalPowers = getPowersAllowedByRequirements(simulatedSheet);
+        ? getWeightedInventorClassPowers(sheetForFiltering)
+        : getAllowedClassPowers(sheetForFiltering);
 
-    return { classPowers, generalPowers };
+    // Use dataRegistry to get powers from all active supplements
+    const allPowers = dataRegistry.getPowersBySupplements(supplements);
+    const allGeneralPowers = Object.values(allPowers).flat();
+
+    // Filter by requirements and already chosen powers
+    const existingGeneralPowers = simulatedSheet.generalPowers;
+    const generalPowers = allGeneralPowers.filter((power) => {
+      const isRepeatedPower = existingGeneralPowers.find(
+        (existingPower) => existingPower.name === power.name
+      );
+
+      if (isRepeatedPower) {
+        return power.allowSeveralPicks;
+      }
+
+      return isPowerAvailable(simulatedSheet, power);
+    });
+
+    // Sort powers alphabetically
+    const sortedClassPowers = [...classPowers].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+    const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+
+    return {
+      classPowers: sortedClassPowers,
+      generalPowers: sortedGeneralPowers,
+    };
   };
 
   // Get spell info for current level
@@ -412,6 +462,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             }
             actualSheet={simulatedSheet}
             skipRaceAbilities
+            supplements={supplements}
           />
         );
       }
@@ -440,6 +491,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               actualSheet={simulatedSheet}
               skipRaceAbilities
               classAbilityLevel={currentLevel}
+              supplements={supplements}
             />
           </Box>
         );
