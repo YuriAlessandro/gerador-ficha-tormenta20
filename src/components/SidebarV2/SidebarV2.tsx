@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -15,10 +15,8 @@ import {
   styled,
   Link,
   Avatar,
-  CircularProgress,
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import HistoryIcon from '@mui/icons-material/History';
@@ -44,8 +42,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
-import { AppDispatch } from '../../store';
-import { logout } from '../../store/slices/auth/authSlice';
+import { useAuthContext } from '../../contexts/AuthContext';
 // import { useDice3D } from '../../contexts/Dice3DContext';
 
 interface SidebarV2Props {
@@ -90,19 +87,13 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   onChangeTheme,
 }) => {
   const history = useHistory();
-  const dispatch = useDispatch<AppDispatch>();
   const { isAuthenticated, user } = useAuth();
-  const [loggingOut, setLoggingOut] = useState(false);
+  const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
 
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await dispatch(logout()).unwrap();
-      onCloseSidebar();
-    } finally {
-      setLoggingOut(false);
-    }
+  const handleLogout = () => {
+    onCloseSidebar();
+    requestLogout();
   };
 
   const getInitials = () => {
@@ -268,18 +259,14 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   {user?.email}
                 </Typography>
               </Box>
-              {loggingOut ? (
-                <CircularProgress size={20} />
-              ) : (
-                <LogoutIcon
-                  onClick={handleLogout}
-                  sx={{
-                    cursor: 'pointer',
-                    color: 'text.secondary',
-                    '&:hover': { color: 'error.main' },
-                  }}
-                />
-              )}
+              <LogoutIcon
+                onClick={handleLogout}
+                sx={{
+                  cursor: 'pointer',
+                  color: 'text.secondary',
+                  '&:hover': { color: 'error.main' },
+                }}
+              />
             </Box>
           )}
 

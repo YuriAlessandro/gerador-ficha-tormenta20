@@ -260,7 +260,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated, user } = useAuth();
-  const { openLoginModal } = useAuthContext();
+  const {
+    openLoginModal,
+    registerUnsavedChangesChecker,
+    unregisterUnsavedChangesChecker,
+  } = useAuthContext();
   const {
     sheets,
     createSheet: createSheetAction,
@@ -419,6 +423,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [randomSheet, sheetSavedToCloud, showHistoric]);
+
+  // Register unsaved changes checker for logout flow
+  React.useEffect(() => {
+    registerUnsavedChangesChecker(() =>
+      Boolean(randomSheet && !sheetSavedToCloud && !showHistoric)
+    );
+    return () => unregisterUnsavedChangesChecker();
+  }, [
+    randomSheet,
+    sheetSavedToCloud,
+    showHistoric,
+    registerUnsavedChangesChecker,
+    unregisterUnsavedChangesChecker,
+  ]);
 
   // For empty sheets, user must select a specific deity option (not "Aleatório")
   // Valid options: specific deity, "Não devoto" (--), or "Qualquer divindade" (**)

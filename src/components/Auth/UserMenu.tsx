@@ -13,12 +13,10 @@ import {
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
-import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
-import { AppDispatch } from '../../store';
-import { logout } from '../../store/slices/auth/authSlice';
 import AuthModal from './AuthModal';
 import SupporterBadge from '../Premium/SupporterBadge';
 import { NotificationBell } from '../Notifications';
@@ -29,13 +27,12 @@ interface UserMenuProps {
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
-  const dispatch = useDispatch<AppDispatch>();
   const history = useHistory();
   const { user, isAuthenticated, loading } = useAuth();
+  const { requestLogout } = useAuthContext();
   const { subscription } = useSubscription();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
 
   const supportLevel = subscription?.tier || SupportLevel.FREE;
 
@@ -54,14 +51,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     handleMenuClose();
-    setLoggingOut(true);
-    try {
-      await dispatch(logout()).unwrap();
-    } finally {
-      setLoggingOut(false);
-    }
+    requestLogout();
   };
 
   const getInitials = () => {
@@ -85,7 +77,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ isMobile = false }) => {
   const getDisplayName = () =>
     user?.fullName || user?.username || user?.email || 'Usuário';
 
-  if (loading || loggingOut) {
+  if (loading) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <CircularProgress size={24} color='inherit' />
