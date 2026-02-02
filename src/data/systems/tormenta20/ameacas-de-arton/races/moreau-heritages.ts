@@ -4,6 +4,7 @@ import {
 } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
 import Skill from '../../../../../interfaces/Skills';
+import Equipment from '../../../../../interfaces/Equipment';
 
 export interface MoreauHeritage {
   name: string;
@@ -11,6 +12,47 @@ export interface MoreauHeritage {
   abilities: RaceAbility[];
   displacement?: number;
 }
+
+// Armas Naturais dos Moreau
+const garraMoreau: Equipment = {
+  group: 'Arma',
+  nome: 'Garra',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Corte',
+  spaces: 0,
+  preco: 0,
+};
+
+const mordidaMoreau: Equipment = {
+  group: 'Arma',
+  nome: 'Mordida',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf.',
+  spaces: 0,
+  preco: 0,
+};
+
+const mordidaLeao: Equipment = {
+  group: 'Arma',
+  nome: 'Mordida',
+  dano: '1d8',
+  critico: 'x2',
+  tipo: 'Perf.',
+  spaces: 0,
+  preco: 0,
+};
+
+const chifresMoreau: Equipment = {
+  group: 'Arma',
+  nome: 'Chifres',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf.',
+  spaces: 0,
+  preco: 0,
+};
 
 export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
   Coruja: {
@@ -41,6 +83,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Garras',
         description:
           'Você tem duas armas naturais de garra (dano 1d6, crítico x2, corte), uma em cada mão. Uma vez por rodada, quando usa a ação agredir para atacar com uma arma, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com uma das garras, desde que ela esteja livre e não tenha sido usada para atacar neste turno. Como alternativa, se tiver habilidades que exijam uma arma secundária (como Estilo de Duas Armas), você pode usá-las com suas garras.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Garras' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [garraMoreau] },
+              description: 'Garra pode ser usada como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Sapiência',
@@ -80,6 +132,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Mordida',
         description:
           'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Mordida' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [mordidaMoreau] },
+              description: 'Mordida pode ser usada como arma.',
+            },
+          },
+        ],
       },
     ],
   },
@@ -176,6 +238,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Chifres',
         description:
           'Você possui uma arma natural de chifres (dano 1d6, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com os chifres.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Chifres' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [chifresMoreau] },
+              description: 'Chifres pode ser usado como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Faro',
@@ -246,6 +318,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Mordida Poderosa',
         description:
           'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração), com a qual recebe +2 em testes de agarrar. Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Mordida Poderosa' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [mordidaMoreau] },
+              description: 'Mordida pode ser usada como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Predador Aquático',
@@ -283,6 +365,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Mordida',
         description:
           'Você possui uma arma natural de mordida (dano 1d8, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Mordida' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [mordidaLeao] },
+              description: 'Mordida pode ser usada como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Rugido Imponente',
@@ -293,6 +385,18 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Sentidos da Realeza',
         description:
           'Você recebe visão na penumbra e +2 em Intimidação e Percepção.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Sentidos da Realeza' },
+            target: { type: 'Skill', name: Skill.INTIMIDACAO },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+          {
+            source: { type: 'power', name: 'Sentidos da Realeza' },
+            target: { type: 'Skill', name: Skill.PERCEPCAO },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+        ],
       },
     ],
   },
@@ -313,11 +417,33 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Garras',
         description:
           'Você tem duas armas naturais de garra (dano 1d6, crítico x2, corte), uma em cada mão. Uma vez por rodada, quando usa a ação agredir para atacar com uma arma, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com uma das garras, desde que ela esteja livre e não tenha sido usada para atacar neste turno. Como alternativa, se tiver habilidades que exijam uma arma secundária (como Estilo de Duas Armas), você pode usá-las com suas garras.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Garras' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [garraMoreau] },
+              description: 'Garra pode ser usada como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Sentidos Felinos',
         description:
           'Você recebe visão na penumbra e +2 em Furtividade e Percepção.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Sentidos Felinos' },
+            target: { type: 'Skill', name: Skill.FURTIVIDADE },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+          {
+            source: { type: 'power', name: 'Sentidos Felinos' },
+            target: { type: 'Skill', name: Skill.PERCEPCAO },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+        ],
       },
     ],
   },
@@ -338,6 +464,16 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Mordida',
         description:
           'Você possui uma arma natural de mordida (dano 1d6, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Mordida' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [mordidaMoreau] },
+              description: 'Mordida pode ser usada como arma.',
+            },
+          },
+        ],
       },
       {
         name: 'Táticas de Matilha',
@@ -363,6 +499,18 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
         name: 'Criatura da Noite',
         description:
           'Você recebe visão no escuro e +2 em Furtividade e Percepção.',
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Criatura da Noite' },
+            target: { type: 'Skill', name: Skill.FURTIVIDADE },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+          {
+            source: { type: 'power', name: 'Criatura da Noite' },
+            target: { type: 'Skill', name: Skill.PERCEPCAO },
+            modifier: { type: 'Fixed', value: 2 },
+          },
+        ],
       },
       {
         name: 'Ecolocalização',
