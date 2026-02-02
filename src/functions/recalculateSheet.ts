@@ -213,8 +213,13 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   }
 
   // Reset critical to base value
+  // If baseCritico doesn't exist yet, initialize it with the current critico value
+  // This prevents cumulative bonus application on subsequent recalculateSheet calls
   if (resetWeapon.baseCritico) {
     resetWeapon.critico = resetWeapon.baseCritico;
+  } else if (resetWeapon.critico) {
+    // First time processing this weapon - store current critico as base
+    resetWeapon.baseCritico = resetWeapon.critico;
   }
 
   return resetWeapon;
