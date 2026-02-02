@@ -123,6 +123,12 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     name: 'Aspirante a Herói',
     description: 'Você recebe +1 em um atributo à sua escolha.',
     type: ORIGIN_POWER_TYPE,
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Aspirante a Herói' },
+        action: { type: 'increaseAttribute' },
+      },
+    ],
   },
   ASSISTENTE_FORENSE: {
     name: 'Assistente Forense',

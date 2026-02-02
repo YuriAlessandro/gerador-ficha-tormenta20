@@ -1,9 +1,7 @@
 import Origin, {
   Items,
   OriginBenefits,
-  AttributeModifier,
 } from '../../../../../interfaces/Origin';
-import { Atributo } from '../../atributos';
 import atlasOriginPowers from '../powers/originPowers';
 
 function getAllRegionalBenefits(): OriginBenefits {
@@ -30,14 +28,6 @@ const ASPIRANTE_A_HEROI: Origin = {
       equipment: 'Mochila de aventureiro',
     },
   ],
-  getAttributeModifier: (classPriority: Atributo[]): AttributeModifier => {
-    // Escolhe o atributo de maior prioridade da classe
-    const attribute = classPriority[0];
-    return {
-      attribute,
-      modifier: 1,
-    };
-  },
 };
 
 export default ASPIRANTE_A_HEROI;
