@@ -4214,10 +4214,11 @@ export function generateEmptySheet(
       let originPowers = selectedOrigin.poderes || [];
 
       // Apply wizard origin benefit selections for non-regional origins
+      // Note: isRegional is undefined for base book origins, so use !isRegional instead of === false
       if (
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0 &&
-        selectedOrigin.isRegional === false
+        !selectedOrigin.isRegional
       ) {
         // Apply selected benefits
         wizardSelections.originBenefits.forEach((benefit) => {
@@ -4238,11 +4239,11 @@ export function generateEmptySheet(
           .filter((b) => b.type === 'power')
           .map((b) => b.name);
 
-        if (selectedPowerNames.length > 0) {
-          originPowers = originPowers.filter((p) =>
-            selectedPowerNames.includes(p.name)
-          );
-        }
+        // Always filter origin powers based on selected powers
+        // If user selected only skills (no powers), this results in empty powers array
+        originPowers = originPowers.filter((p) =>
+          selectedPowerNames.includes(p.name)
+        );
       }
 
       emptySheet.origin = {
