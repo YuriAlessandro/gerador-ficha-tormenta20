@@ -160,6 +160,19 @@ const originPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +3 pontos de mana. Quando atinge um novo patamar (no 5º, 11º e 17º níveis), recebe +3 PM.',
     type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Coração Heroico' },
+        target: {
+          type: 'PM',
+        },
+        modifier: {
+          type: 'LevelCalc',
+          formula:
+            '({level} >= 17 ? 4 : {level} >= 11 ? 3 : {level} >= 5 ? 2 : 1) * 3',
+        },
+      },
+    ],
   },
   PASSAGEM_DE_NAVIO: {
     name: 'Passagem de Navio',
