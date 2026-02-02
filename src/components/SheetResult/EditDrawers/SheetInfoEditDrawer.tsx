@@ -1961,29 +1961,26 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     Ajuste os modificadores dos atributos. O valor será definido
                     automaticamente.
                   </Typography>
-                  {Object.values(Atributo).map((atributo) => {
-                    const attribute = editedData.attributes[atributo];
-                    return (
-                      <Stack
-                        key={atributo}
-                        direction='row'
-                        spacing={2}
-                        alignItems='center'
-                      >
-                        <Box sx={{ minWidth: '120px' }}>
-                          <Typography variant='body2'>{atributo}:</Typography>
-                        </Box>
-                        <TextField
-                          size='small'
-                          value={attributeInputValues[atributo]}
-                          onChange={(e) =>
-                            handleAttributeInputChange(atributo, e.target.value)
-                          }
-                          sx={{ width: '80px' }}
-                        />
-                      </Stack>
-                    );
-                  })}
+                  {Object.values(Atributo).map((atributo) => (
+                    <Stack
+                      key={atributo}
+                      direction='row'
+                      spacing={2}
+                      alignItems='center'
+                    >
+                      <Box sx={{ minWidth: '120px' }}>
+                        <Typography variant='body2'>{atributo}:</Typography>
+                      </Box>
+                      <TextField
+                        size='small'
+                        value={attributeInputValues[atributo]}
+                        onChange={(e) =>
+                          handleAttributeInputChange(atributo, e.target.value)
+                        }
+                        sx={{ width: '80px' }}
+                      />
+                    </Stack>
+                  ))}
                 </Stack>
               </AccordionDetails>
             </Accordion>

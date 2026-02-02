@@ -2,7 +2,7 @@
   "name": "Fichas de Nimb",
   "short_name": "FdN",
   "description": "Plataforma completa para Tormenta 20",
-  "version": "3.2.1",
+  "version": "4.0.1",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a1a",
