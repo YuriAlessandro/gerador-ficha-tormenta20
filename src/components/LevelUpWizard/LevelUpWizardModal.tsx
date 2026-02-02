@@ -11,16 +11,20 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
 import {
   getAllowedClassPowers,
-  getPowersAllowedByRequirements,
+  isPowerAvailable,
   getWeightedInventorClassPowers,
 } from '@/functions/powers';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { getDivineSpellsOfCircle } from '@/data/systems/tormenta20/magias/divine';
@@ -28,6 +32,8 @@ import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
+import { getCurrentPlateau } from '@/functions/powers/general';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -36,6 +42,7 @@ interface LevelUpWizardModalProps {
   open: boolean;
   initialSheet: CharacterSheet; // Level 1 sheet
   targetLevel: number; // Final level to reach
+  supplements: SupplementId[]; // Active supplements for power filtering
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
   onCancel: () => void;
 }
@@ -44,6 +51,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   open,
   initialSheet,
   targetLevel,
+  supplements,
   onConfirm,
   onCancel,
 }) => {
@@ -92,13 +100,59 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
   } => {
+    // Get class with merged supplement powers from registry
+    const classWithSupplementPowers = dataRegistry.getClassByName(
+      simulatedSheet.classe.name,
+      supplements
+    );
+
+    // Create a sheet with the class that has supplement powers for filtering
+    const sheetForFiltering: CharacterSheet = classWithSupplementPowers
+      ? {
+          ...simulatedSheet,
+          classe: {
+            ...simulatedSheet.classe,
+            powers: classWithSupplementPowers.powers,
+          },
+        }
+      : simulatedSheet;
+
+    // Get class powers using the merged powers
     const classPowers =
       simulatedSheet.classe.name === 'Inventor'
-        ? getWeightedInventorClassPowers(simulatedSheet)
-        : getAllowedClassPowers(simulatedSheet);
-    const generalPowers = getPowersAllowedByRequirements(simulatedSheet);
+        ? getWeightedInventorClassPowers(sheetForFiltering)
+        : getAllowedClassPowers(sheetForFiltering);
 
-    return { classPowers, generalPowers };
+    // Use dataRegistry to get powers from all active supplements
+    const allPowers = dataRegistry.getPowersBySupplements(supplements);
+    const allGeneralPowers = Object.values(allPowers).flat();
+
+    // Filter by requirements and already chosen powers
+    const existingGeneralPowers = simulatedSheet.generalPowers;
+    const generalPowers = allGeneralPowers.filter((power) => {
+      const isRepeatedPower = existingGeneralPowers.find(
+        (existingPower) => existingPower.name === power.name
+      );
+
+      if (isRepeatedPower) {
+        return power.allowSeveralPicks;
+      }
+
+      return isPowerAvailable(simulatedSheet, power);
+    });
+
+    // Sort powers alphabetically
+    const sortedClassPowers = [...classPowers].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+    const sortedGeneralPowers = [...generalPowers].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+
+    return {
+      classPowers: sortedClassPowers,
+      generalPowers: sortedGeneralPowers,
+    };
   };
 
   // Get spell info for current level
@@ -240,8 +294,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const requirements = getPowerSelectionRequirements(power);
         if (!requirements) return true;
 
-        const effectSelections =
+        // Get selections keyed by power name
+        const allEffectSelections =
           currentLevelSelection.powerEffectSelections || {};
+        const effectSelections = allEffectSelections[power.name] || {};
+
+        // Helper to get selection count
+        const getSelectionCount = (powerName: string, type: string): number => {
+          const pSelections = allEffectSelections[powerName] || {};
+          switch (type) {
+            case 'learnSkill':
+              return pSelections.skills?.length || 0;
+            case 'addProficiency':
+              return pSelections.proficiencies?.length || 0;
+            case 'getGeneralPower':
+              return pSelections.powers?.length || 0;
+            case 'learnSpell':
+            case 'learnAnySpellFromHighestCircle':
+              return pSelections.spells?.length || 0;
+            case 'increaseAttribute':
+              return pSelections.attributes?.length || 0;
+            case 'selectWeaponSpecialization':
+              return pSelections.weapons?.length || 0;
+            case 'selectFamiliar':
+              return pSelections.familiars?.length || 0;
+            case 'selectAnimalTotem':
+              return pSelections.animalTotems?.length || 0;
+            default:
+              return 0;
+          }
+        };
+
         return requirements.requirements.every((req) => {
           const { type, pick } = req;
 
@@ -255,36 +338,29 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           // If fewer options than required, adjust the effective pick count
           const effectivePick = Math.min(pick, availableOptions.length);
 
-          let count = 0;
+          const count = getSelectionCount(power.name, type);
 
-          switch (type) {
-            case 'learnSkill':
-              count = effectSelections.skills?.length || 0;
-              break;
-            case 'addProficiency':
-              count = effectSelections.proficiencies?.length || 0;
-              break;
-            case 'getGeneralPower':
-              count = effectSelections.powers?.length || 0;
-              break;
-            case 'learnSpell':
-            case 'learnAnySpellFromHighestCircle':
-              count = effectSelections.spells?.length || 0;
-              break;
-            case 'increaseAttribute':
-              count = effectSelections.attributes?.length || 0;
-              break;
-            case 'selectWeaponSpecialization':
-              count = effectSelections.weapons?.length || 0;
-              break;
-            case 'selectFamiliar':
-              count = effectSelections.familiars?.length || 0;
-              break;
-            case 'selectAnimalTotem':
-              count = effectSelections.animalTotems?.length || 0;
-              break;
-            default:
-              break;
+          // For getGeneralPower, also check if nested power requirements are met
+          if (type === 'getGeneralPower' && count >= effectivePick) {
+            const selectedPower = effectSelections.powers?.[0] as
+              | { name?: string; sheetActions?: unknown[] }
+              | undefined;
+            if (selectedPower?.name && selectedPower.sheetActions) {
+              const nestedReqs = getPowerSelectionRequirements(
+                selectedPower as Parameters<
+                  typeof getPowerSelectionRequirements
+                >[0]
+              );
+              if (nestedReqs) {
+                return nestedReqs.requirements.every((nestedReq) => {
+                  const nestedCount = getSelectionCount(
+                    selectedPower.name!,
+                    nestedReq.type
+                  );
+                  return nestedCount >= nestedReq.pick;
+                });
+              }
+            }
           }
 
           return count >= effectivePick;
@@ -385,6 +461,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               })
             }
             actualSheet={simulatedSheet}
+            skipRaceAbilities
+            supplements={supplements}
           />
         );
       }
@@ -411,6 +489,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 })
               }
               actualSheet={simulatedSheet}
+              skipRaceAbilities
+              classAbilityLevel={currentLevel}
+              supplements={supplements}
             />
           </Box>
         );
@@ -505,6 +586,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ];
         }
 
+        // Add attribute increases to sheetActionHistory for plateau validation
+        const selectedPower =
+          currentLevelSelection.powerChoice === 'class'
+            ? currentLevelSelection.selectedClassPower
+            : currentLevelSelection.selectedGeneralPower;
+
+        if (selectedPower && currentLevelSelection.powerEffectSelections) {
+          const powerEffects =
+            currentLevelSelection.powerEffectSelections[selectedPower.name];
+          if (powerEffects?.attributes && powerEffects.attributes.length > 0) {
+            const plateau = getCurrentPlateau({
+              nivel: currentLevel,
+            } as CharacterSheet);
+            const newHistoryEntries: SheetActionHistoryEntry[] =
+              powerEffects.attributes.map((attr) => ({
+                source: { type: 'power' as const, name: selectedPower.name },
+                powerName: selectedPower.name,
+                changes: [
+                  {
+                    type: 'AttributeIncreasedByAumentoDeAtributo' as const,
+                    attribute: attr as Atributo,
+                    plateau,
+                  },
+                ],
+              }));
+
+            nextSheet.sheetActionHistory = [
+              ...(nextSheet.sheetActionHistory || []),
+              ...newHistoryEntries,
+            ];
+          }
+        }
+
         setSimulatedSheet(nextSheet);
       } else {
         // All levels complete - confirm
@@ -563,6 +677,37 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           prevSheet.spells = (prevSheet.spells || []).filter(
             (s) => !spellNamesToRemove.includes(s.nome)
           );
+        }
+
+        // Remove sheetActionHistory entries for attribute increases from the level we're returning to
+        const previousPower =
+          previousLevelSelection.powerChoice === 'class'
+            ? previousLevelSelection.selectedClassPower
+            : previousLevelSelection.selectedGeneralPower;
+
+        if (previousPower && previousLevelSelection.powerEffectSelections) {
+          const effectSelections =
+            previousLevelSelection.powerEffectSelections[previousPower.name];
+          if (
+            effectSelections?.attributes &&
+            effectSelections.attributes.length > 0
+          ) {
+            // Only remove entries that match the specific attributes selected in this level
+            prevSheet.sheetActionHistory = (
+              prevSheet.sheetActionHistory || []
+            ).filter((entry) => {
+              if (entry.powerName !== previousPower.name) return true;
+              // Check if this entry's attribute matches one we selected at this level
+              const hasMatchingAttribute = entry.changes.some(
+                (change) =>
+                  change.type === 'AttributeIncreasedByAumentoDeAtributo' &&
+                  effectSelections.attributes!.includes(
+                    change.attribute as Atributo
+                  )
+              );
+              return !hasMatchingAttribute;
+            });
+          }
         }
       }
 

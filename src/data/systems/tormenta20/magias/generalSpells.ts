@@ -901,6 +901,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     rolls: [
       {
         id: uuid(),
+        label: 'Recuperar vida',
+        dice: '2d8+2',
+      },
+      {
+        id: uuid(),
         label: 'Dano de Luz vs Mortos-vivos (truque)',
         dice: '1d8',
       },

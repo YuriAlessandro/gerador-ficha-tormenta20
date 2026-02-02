@@ -617,6 +617,20 @@ const EQUIPAMENTOS: CombatItems = {
 
 export default EQUIPAMENTOS;
 
+/**
+ * Verifica se uma armadura é pesada.
+ * Primeiro verifica a propriedade isHeavyArmor (para armaduras editadas pelo usuário),
+ * depois faz fallback para verificação por nome (compatibilidade com dados antigos).
+ */
+export function isHeavyArmor(armor: DefenseEquipment): boolean {
+  // Se a propriedade estiver definida, usar ela
+  if (armor.isHeavyArmor !== undefined) {
+    return armor.isHeavyArmor;
+  }
+  // Fallback: verificar por nome (compatibilidade com dados antigos)
+  return EQUIPAMENTOS.armaduraPesada.some((heavy) => heavy.nome === armor.nome);
+}
+
 export const bardInstruments: string[] = [
   'Violão',
   'Violino',
@@ -670,8 +684,8 @@ export function calcDefense(charSheet: CharacterSheet): CharacterSheet {
       return acc;
     }, cloneSheet.defesa);
 
-  const heavyArmor = equipped.some((equip) =>
-    EQUIPAMENTOS.armaduraPesada.find((armadura) => armadura.nome === equip.nome)
+  const heavyArmor = equipped.some(
+    (equip) => isDefenseEquip(equip) && isHeavyArmor(equip)
   );
 
   // Se não tem armadura pesada

@@ -48,12 +48,18 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   const hasClassPowers = classPowers.length > 0;
   const hasGeneralPowers = generalPowers.length > 0;
 
-  // Helper to check if power is already known
+  // Helper to check if power is already known and cannot be repeated
   const isPowerKnown = (powerName: string, isClassPower: boolean): boolean => {
     if (isClassPower) {
-      return knownClassPowers.includes(powerName);
+      if (!knownClassPowers.includes(powerName)) return false;
+      // Power is known - check if it can repeat
+      const power = classPowers.find((p) => p.name === powerName);
+      return !power?.canRepeat;
     }
-    return knownGeneralPowers.includes(powerName);
+    if (!knownGeneralPowers.includes(powerName)) return false;
+    // Power is known - check if it can be picked several times
+    const power = generalPowers.find((p) => p.name === powerName);
+    return !power?.allowSeveralPicks;
   };
 
   // Filter powers by search query
@@ -230,7 +236,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         ? `Não ter ${req.name}`
                                         : req.name;
                                     case RequirementType.PROFICIENCIA:
-                                      return `Proficiência: ${req.value}`;
+                                      return req.name === 'all'
+                                        ? 'Proficiência em qualquer arma'
+                                        : `Proficiência: ${req.name}`;
                                     case RequirementType.CLASSE:
                                       return `Classe: ${req.value}`;
                                     case RequirementType.TIPO_ARCANISTA:
@@ -244,7 +252,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
                                     case RequirementType.TEXT:
-                                      return req.name || '';
+                                      return req.text || '';
                                     default:
                                       return '';
                                   }
@@ -377,7 +385,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         ? `Não ter ${req.name}`
                                         : req.name;
                                     case RequirementType.PROFICIENCIA:
-                                      return `Proficiência: ${req.value}`;
+                                      return req.name === 'all'
+                                        ? 'Proficiência em qualquer arma'
+                                        : `Proficiência: ${req.name}`;
                                     case RequirementType.CLASSE:
                                       return `Classe: ${req.value}`;
                                     case RequirementType.TIPO_ARCANISTA:
@@ -391,7 +401,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
                                     case RequirementType.TEXT:
-                                      return req.name || '';
+                                      return req.text || '';
                                     default:
                                       return '';
                                   }

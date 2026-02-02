@@ -1,11 +1,12 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import Skill from './Skills';
-import { SelectionOptions } from './PowerSelections';
+import { SelectionOptions, ManualPowerSelections } from './PowerSelections';
 import { Spell, SpellSchool } from './Spells';
 import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
+import { AttributeVariant } from './Race';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -19,10 +20,10 @@ export interface LevelUpSelections {
   powerChoice: 'class' | 'general';
   selectedClassPower?: ClassPower;
   selectedGeneralPower?: GeneralPower;
-  // Seleções manuais para ações de poderes (learnSkill, addProficiency, etc)
-  powerEffectSelections?: SelectionOptions;
-  // Seleções para habilidades automáticas com pick actions
-  abilityEffectSelections?: SelectionOptions;
+  // Seleções manuais para ações de poderes (keyed by power name)
+  powerEffectSelections?: ManualPowerSelections;
+  // Seleções para habilidades automáticas com pick actions (keyed by ability name)
+  abilityEffectSelections?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
 }
@@ -34,6 +35,9 @@ export interface WizardSelections {
 
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;
+
+  // Race attribute variant selection (for races with multiple attribute options like Kallyanach)
+  attributeVariant?: AttributeVariant;
 
   // Race attribute choices for races with 'any' attributes
   raceAttributes?: Atributo[];
@@ -60,7 +64,8 @@ export interface WizardSelections {
   deityPowers?: string[];
 
   // Power effect selections (for race/class/origin powers with "pick" actions)
-  powerEffectSelections?: SelectionOptions;
+  // Each power has its own SelectionOptions to support multiple powers needing the same type
+  powerEffectSelections?: ManualPowerSelections;
 
   // Spell school selections (for classes like Bardo, Druida)
   spellSchools?: SpellSchool[];

@@ -105,7 +105,7 @@ export function druida(race: Race): CharacterSheet {
       ],
       powers: [],
       probDevoto: 1,
-      qtdPoderesConcedidos: 'all',
+      qtdPoderesConcedidos: 3,
       faithProbability: {
         AHARADAK: 1,
         OCEANO: 1,

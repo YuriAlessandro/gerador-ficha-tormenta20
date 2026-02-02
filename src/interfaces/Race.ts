@@ -16,6 +16,11 @@ export interface RaceAttributeAbility {
   mod: number;
 }
 
+export interface AttributeVariant {
+  label: string;
+  attrs: RaceAttributeAbility[];
+}
+
 export type raceSize =
   | 'MINUSCULO'
   | 'PEQUENO'
@@ -133,6 +138,7 @@ export default interface Race {
   nature?: string; // For Duende (animal/vegetal/mineral)
   presentPowers?: string[]; // For Duende (3 selected powers)
   tabuSkill?: Skill; // For Duende (skill with -5 penalty)
+  attributeVariants?: AttributeVariant[];
   setup?: (race: Race, allRaces: Race[]) => Race;
   getSize?: (race: Race) => RaceSize;
   getDisplacement?: (race: Race) => number;

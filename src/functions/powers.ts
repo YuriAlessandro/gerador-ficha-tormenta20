@@ -1,5 +1,6 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import generalPowers from '../data/poderes';
+import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
@@ -79,10 +80,21 @@ export function isPowerAvailable(
             );
           }
           case RequirementType.PROFICIENCIA: {
-            const proficiencia = rule.value as unknown as string;
-            return (
-              rule.name && sheet.classe.proficiencias.includes(proficiencia)
-            );
+            const proficiencia = rule.name as string;
+
+            // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples, que todas as classes têm)
+            if (proficiencia === 'all') {
+              const weaponProficiencies = [
+                PROFICIENCIAS.MARCIAIS,
+                PROFICIENCIAS.FOGO,
+                PROFICIENCIAS.EXOTICAS,
+              ];
+              return weaponProficiencies.some((wp) =>
+                sheet.classe.proficiencias.includes(wp)
+              );
+            }
+
+            return sheet.classe.proficiencias.includes(proficiencia);
           }
           case RequirementType.NIVEL: {
             const nivel = rule.value as number;

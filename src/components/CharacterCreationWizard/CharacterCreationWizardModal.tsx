@@ -16,7 +16,7 @@ import { dataRegistry } from '@/data/registry';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
-import Race from '@/interfaces/Race';
+import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription } from '@/interfaces/Class';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
@@ -47,6 +47,7 @@ import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
+import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 
 interface RaceCustomization {
@@ -213,9 +214,18 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   // Determine which steps are needed
+  const needsRaceAttributeVariant = (): boolean => {
+    if (!race) return false;
+    return (
+      race.attributeVariants !== undefined && race.attributeVariants.length > 1
+    );
+  };
+
   const needsRaceAttributes = (): boolean => {
     if (!race) return false;
-    return race.attributes.attrs.some((attr) => attr.attr === 'any');
+    // If variant is selected, use variant's attrs, otherwise use race's attrs
+    const attrs = selections.attributeVariant?.attrs || race.attributes.attrs;
+    return attrs.some((attr) => attr.attr === 'any');
   };
 
   const needsClassSkills = (): boolean => {
@@ -264,6 +274,18 @@ const CharacterCreationWizardModal: React.FC<
         }
       );
       if (hasOriginRequirements) return true;
+    }
+
+    // Check deity granted powers (selected in previous step)
+    if (deity && selections.deityPowers && selections.deityPowers.length > 0) {
+      const selectedDeityPowers = deity.poderes.filter((p) =>
+        selections.deityPowers?.includes(p.name)
+      );
+      const hasDeityRequirements = selectedDeityPowers.some((power) => {
+        const reqs = getPowerSelectionRequirements(power);
+        return reqs !== null;
+      });
+      if (hasDeityRequirements) return true;
     }
 
     return false;
@@ -355,8 +377,9 @@ const CharacterCreationWizardModal: React.FC<
   const getSteps = (): string[] => {
     const stepsArray: string[] = [];
     stepsArray.push('Informações Básicas'); // Always first step
-    stepsArray.push('Valores dos Atributos');
+    if (needsRaceAttributeVariant()) stepsArray.push('Variante de Atributos');
     if (needsRaceAttributes()) stepsArray.push('Atributos da Raça');
+    stepsArray.push('Valores dos Atributos');
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
@@ -572,16 +595,34 @@ const CharacterCreationWizardModal: React.FC<
         );
       }
 
+      case 'Variante de Atributos': {
+        if (!race || !race.attributeVariants) return null;
+        return (
+          <RaceAttributeVariantStep
+            variants={race.attributeVariants}
+            selectedVariant={selections.attributeVariant || null}
+            onChange={(variant: AttributeVariant) =>
+              setSelections({
+                ...selections,
+                attributeVariant: variant,
+                raceAttributes: [], // Reset race attributes when variant changes
+              })
+            }
+          />
+        );
+      }
+
       case 'Atributos da Raça': {
         if (!race) return null;
-        const attrCount = race.attributes.attrs.filter(
-          (a) => a.attr === 'any'
-        ).length;
+        // Use variant's attrs if selected, otherwise use race's default attrs
+        const attrs =
+          selections.attributeVariant?.attrs || race.attributes.attrs;
+        const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}
-            onChange={(attrs) =>
-              setSelections({ ...selections, raceAttributes: attrs })
+            onChange={(raceAttrs) =>
+              setSelections({ ...selections, raceAttributes: raceAttrs })
             }
             requiredCount={attrCount}
           />
@@ -790,6 +831,8 @@ const CharacterCreationWizardModal: React.FC<
             race={race}
             classe={classe}
             origin={origin}
+            deity={deity}
+            selectedDeityPowers={selections.deityPowers}
             selections={selections.powerEffectSelections || {}}
             onChange={(effectSelections) =>
               setSelections({
@@ -798,6 +841,7 @@ const CharacterCreationWizardModal: React.FC<
               })
             }
             arcanistaSubtype={selections.arcanistaSubtype}
+            supplements={supplements}
           />
         );
 
@@ -860,11 +904,16 @@ const CharacterCreationWizardModal: React.FC<
         // Always allow - player can set any values
         return true;
 
+      case 'Variante de Atributos':
+        // Must have selected a variant
+        return selections.attributeVariant !== undefined;
+
       case 'Atributos da Raça': {
         if (!race) return false;
-        const attrCount = race.attributes.attrs.filter(
-          (a) => a.attr === 'any'
-        ).length;
+        // Use variant's attrs if selected, otherwise use race's default attrs
+        const attrs =
+          selections.attributeVariant?.attrs || race.attributes.attrs;
+        const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&
           new Set(selections.raceAttributes).size === attrCount
@@ -933,8 +982,10 @@ const CharacterCreationWizardModal: React.FC<
       case 'Efeitos de Poderes': {
         if (!race || !classe) return false;
 
-        // Collect all requirements from race, class, and origin
+        // Collect all requirements from race, class, origin, and deity powers
+        // Each requirement is tied to its power name for per-power validation
         const allRequirements: Array<{
+          powerName: string;
           type: string;
           pick: number;
         }> = [];
@@ -943,7 +994,9 @@ const CharacterCreationWizardModal: React.FC<
         race.abilities.forEach((ability) => {
           const reqs = getPowerSelectionRequirements(ability);
           if (reqs) {
-            allRequirements.push(...reqs.requirements);
+            reqs.requirements.forEach((req) => {
+              allRequirements.push({ powerName: ability.name, ...req });
+            });
           }
         });
 
@@ -951,7 +1004,9 @@ const CharacterCreationWizardModal: React.FC<
         classe.abilities?.forEach((ability) => {
           const reqs = getPowerSelectionRequirements(ability);
           if (reqs) {
-            allRequirements.push(...reqs.requirements);
+            reqs.requirements.forEach((req) => {
+              allRequirements.push({ powerName: ability.name, ...req });
+            });
           }
         });
 
@@ -964,45 +1019,96 @@ const CharacterCreationWizardModal: React.FC<
           originBenefits.powers.origin.forEach((power) => {
             const reqs = getPowerSelectionRequirements(power);
             if (reqs) {
-              allRequirements.push(...reqs.requirements);
+              reqs.requirements.forEach((req) => {
+                allRequirements.push({ powerName: power.name, ...req });
+              });
             }
           });
         }
 
-        // Validate all requirements are met
-        const effectSelections = selections.powerEffectSelections || {};
-        return allRequirements.every((req) => {
-          const { type, pick } = req;
-          let count = 0;
+        // Check deity granted powers (selected in previous step)
+        if (
+          deity &&
+          selections.deityPowers &&
+          selections.deityPowers.length > 0
+        ) {
+          const selectedDeityPowers = deity.poderes.filter((p) =>
+            selections.deityPowers?.includes(p.name)
+          );
+          selectedDeityPowers.forEach((power) => {
+            const reqs = getPowerSelectionRequirements(power);
+            if (reqs) {
+              reqs.requirements.forEach((req) => {
+                allRequirements.push({ powerName: power.name, ...req });
+              });
+            }
+          });
+        }
 
+        // Helper to count selections for a specific power and type
+        const effectSelections = selections.powerEffectSelections || {};
+        const getSelectionCount = (powerName: string, type: string): number => {
+          const powerSelections = effectSelections[powerName] || {};
           switch (type) {
             case 'learnSkill':
-              count = effectSelections.skills?.length || 0;
-              break;
+              return powerSelections.skills?.length || 0;
             case 'addProficiency':
-              count = effectSelections.proficiencies?.length || 0;
-              break;
+              return powerSelections.proficiencies?.length || 0;
             case 'getGeneralPower':
-              count = effectSelections.powers?.length || 0;
-              break;
+              return powerSelections.powers?.length || 0;
             case 'learnSpell':
             case 'learnAnySpellFromHighestCircle':
-              count = effectSelections.spells?.length || 0;
-              break;
+              return powerSelections.spells?.length || 0;
             case 'increaseAttribute':
-              count = effectSelections.attributes?.length || 0;
-              break;
+              return powerSelections.attributes?.length || 0;
             case 'selectWeaponSpecialization':
-              count = effectSelections.weapons?.length || 0;
-              break;
+              return powerSelections.weapons?.length || 0;
             case 'selectFamiliar':
-              count = effectSelections.familiars?.length || 0;
-              break;
+              return powerSelections.familiars?.length || 0;
             case 'selectAnimalTotem':
-              count = effectSelections.animalTotems?.length || 0;
-              break;
+              return powerSelections.animalTotems?.length || 0;
+            case 'humanoVersatil': {
+              // For Versátil: need 1 skill + (1 skill OR 1 power)
+              const skillCount = powerSelections.skills?.length || 0;
+              const powerCount = powerSelections.powers?.length || 0;
+              // Must have at least 1 skill, and either 2 skills or 1 skill + 1 power
+              if (skillCount >= 2) return 2; // 2 skills selected
+              if (skillCount >= 1 && powerCount >= 1) return 2; // 1 skill + 1 power
+              return skillCount; // Incomplete
+            }
             default:
-              break;
+              return 0;
+          }
+        };
+
+        // Validate all requirements are met
+        return allRequirements.every((req) => {
+          const { powerName, type, pick } = req;
+          const count = getSelectionCount(powerName, type);
+
+          // For getGeneralPower, also check if nested power requirements are met
+          if (type === 'getGeneralPower' && count >= pick) {
+            const powerSelections = effectSelections[powerName] || {};
+            const selectedPower = powerSelections.powers?.[0] as
+              | { name?: string; sheetActions?: unknown[] }
+              | undefined;
+            if (selectedPower?.name && selectedPower.sheetActions) {
+              const nestedReqs = getPowerSelectionRequirements(
+                selectedPower as Parameters<
+                  typeof getPowerSelectionRequirements
+                >[0]
+              );
+              if (nestedReqs) {
+                // Check nested requirements under the nested power's name
+                return nestedReqs.requirements.every((nestedReq) => {
+                  const nestedCount = getSelectionCount(
+                    selectedPower.name!,
+                    nestedReq.type
+                  );
+                  return nestedCount >= nestedReq.pick;
+                });
+              }
+            }
           }
 
           return count >= pick;

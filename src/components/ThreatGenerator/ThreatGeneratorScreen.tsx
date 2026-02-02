@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { SEO, getPageSEO } from '../SEO';
 import { useAlert } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useSheets } from '../../hooks/useSheets';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -69,6 +70,8 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     useSheets();
   const { tier } = useSubscription();
   const { menaceCount, maxMenaceSheets, canCreateMenace } = useSheetLimit();
+  const { registerUnsavedChangesChecker, unregisterUnsavedChangesChecker } =
+    useAuthContext();
 
   // Get threats from store for editing
   const threats = useSelector(
@@ -117,6 +120,21 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [threat?.name, isSavedToCloud, showResult]);
+
+  // Register unsaved changes checker for logout flow
+  React.useEffect(() => {
+    registerUnsavedChangesChecker(() => {
+      const hasProgress = threat?.name && threat.name.trim() !== '';
+      return Boolean(hasProgress && !isSavedToCloud && !showResult);
+    });
+    return () => unregisterUnsavedChangesChecker();
+  }, [
+    threat?.name,
+    isSavedToCloud,
+    showResult,
+    registerUnsavedChangesChecker,
+    unregisterUnsavedChangesChecker,
+  ]);
 
   // Check for edit mode on component mount
   React.useEffect(() => {

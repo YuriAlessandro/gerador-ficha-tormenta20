@@ -1,5 +1,7 @@
 import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
+import { SelectionOptions } from '@/interfaces/PowerSelections';
+import { GeneralPower } from '@/interfaces/Poderes';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import HUMANO from '@/data/systems/tormenta20/races/humano';
@@ -12,34 +14,70 @@ import { getPowersAllowedByRequirements } from '../powers';
 import { addOtherBonusToSkill } from '../skills/general';
 import { applyPower } from '../general';
 
-export function applyHumanoVersatil(sheet: CharacterSheet): SubStep[] {
+export function applyHumanoVersatil(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
   const substeps: SubStep[] = [];
-  const randomSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
-  sheet.skills.push(randomSkill);
 
-  const shouldGetSkill = Math.random() > 0.5;
+  // Check for manual selections
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
 
-  if (shouldGetSkill) {
-    const randomSecondSkill = getNotRepeatedRandom(
-      sheet.skills,
-      Object.values(Skill)
-    );
-    sheet.skills.push(randomSecondSkill);
+  // First skill (always required)
+  let firstSkill: Skill;
+  if (hasManualSkills) {
+    firstSkill = manualSelections.skills![0] as Skill;
+  } else {
+    firstSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
+  }
+  sheet.skills.push(firstSkill);
+
+  // Second choice: either a skill OR a general power
+  if (hasManualPowers) {
+    // User chose a power for the second selection
+    const selectedPower = manualSelections.powers![0] as GeneralPower;
+    sheet.generalPowers.push(selectedPower);
     substeps.push({
       name: 'Versátil',
-      value: `Perícia treinada (${randomSecondSkill})`,
+      value: `Poder geral recebido (${selectedPower.name})`,
+    });
+  } else if (hasManualSkills && manualSelections.skills!.length >= 2) {
+    // User chose a second skill
+    const secondSkill = manualSelections.skills![1] as Skill;
+    sheet.skills.push(secondSkill);
+    substeps.push({
+      name: 'Versátil',
+      value: `Perícia treinada (${secondSkill})`,
     });
   } else {
-    const allowedPowers = getPowersAllowedByRequirements(sheet);
-    const randomPower = getNotRepeatedRandom(
-      sheet.generalPowers,
-      allowedPowers
-    );
-    sheet.generalPowers.push(randomPower);
-    substeps.push({
-      name: 'Versátil',
-      value: `Poder geral recebido (${randomPower.name})`,
-    });
+    // Random selection (backwards compatibility for random generation)
+    const shouldGetSkill = Math.random() > 0.5;
+
+    if (shouldGetSkill) {
+      const randomSecondSkill = getNotRepeatedRandom(
+        sheet.skills,
+        Object.values(Skill)
+      );
+      sheet.skills.push(randomSecondSkill);
+      substeps.push({
+        name: 'Versátil',
+        value: `Perícia treinada (${randomSecondSkill})`,
+      });
+    } else {
+      const allowedPowers = getPowersAllowedByRequirements(sheet);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+      substeps.push({
+        name: 'Versátil',
+        value: `Poder geral recebido (${randomPower.name})`,
+      });
+    }
   }
 
   return substeps;

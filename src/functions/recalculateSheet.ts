@@ -14,7 +14,10 @@ import Skill, {
 } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
+import {
+  calcDefense,
+  isHeavyArmor,
+} from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
 
 import { applyRaceAbilities, applyPower } from './general';
@@ -213,8 +216,13 @@ const resetWeaponToBase = (weapon: Equipment): Equipment => {
   }
 
   // Reset critical to base value
+  // If baseCritico doesn't exist yet, initialize it with the current critico value
+  // This prevents cumulative bonus application on subsequent recalculateSheet calls
   if (resetWeapon.baseCritico) {
     resetWeapon.critico = resetWeapon.baseCritico;
+  } else if (resetWeapon.critico) {
+    // First time processing this weapon - store current critico as base
+    resetWeapon.baseCritico = resetWeapon.critico;
   }
 
   return resetWeapon;
@@ -234,8 +242,9 @@ const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
 
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
-    const attributeBonus =
-      updatedSheet.atributos[newAttribute].value * updatedSheet.nivel;
+    // Atributo negativo não reduz PV por nível (mínimo é 0)
+    const attrValue = Math.max(updatedSheet.atributos[newAttribute].value, 0);
+    const attributeBonus = attrValue * updatedSheet.nivel;
 
     updatedSheet.pv = baseHp + attributeBonus;
   }
@@ -399,21 +408,44 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
     return 2;
   };
 
-  // If completeSkills already exists, update it
+  // If completeSkills already exists, update it while preserving manual edits
   if (updatedSheet.completeSkills) {
-    updatedSheet.completeSkills = updatedSheet.completeSkills.map((skill) => ({
-      ...skill,
-      halfLevel: Math.floor(updatedSheet.nivel / 2),
-      training: skillTrainingMod(
-        Object.values(updatedSheet.skills).includes(skill.name),
+    updatedSheet.completeSkills = updatedSheet.completeSkills.map((skill) => {
+      // Check if skill is in the skills array (base training from character creation)
+      const isBaseSkillTrained = Object.values(updatedSheet.skills).includes(
+        skill.name
+      );
+
+      // Preserve existing training value if skill was manually trained/untrained
+      // (i.e., if completeSkills has training but skills array doesn't, or vice versa)
+      // We keep the existing training value in completeSkills as it may have been manually edited
+      const existingTraining = skill.training || 0;
+      const baseTraining = skillTrainingMod(
+        isBaseSkillTrained,
         updatedSheet.nivel
-      ),
-      // Reset others to 0 and only apply armor penalty if affected
-      others:
-        SkillsWithArmorPenalty.includes(skill.name) && armorPenalty > 0
-          ? armorPenalty * -1
-          : 0,
-    }));
+      );
+
+      // If skill has training in completeSkills but not in base skills array,
+      // it was manually trained - preserve it
+      // If skill is in base skills array, use the calculated training
+      const finalTraining =
+        existingTraining > 0 && !isBaseSkillTrained
+          ? existingTraining // Manually trained - preserve
+          : baseTraining; // Use base calculation
+
+      // Preserve existing 'others' value completely
+      // This keeps any manual edits intact
+      // Note: armor penalty was already calculated when the skill was first created
+      // or when the user manually edited it
+      const existingOthers = skill.others || 0;
+
+      return {
+        ...skill,
+        halfLevel: Math.floor(updatedSheet.nivel / 2),
+        training: finalTraining,
+        others: existingOthers,
+      };
+    });
   } else {
     // Create completeSkills from SkillsAttrs if it doesn't exist
     updatedSheet.completeSkills = Object.entries(SkillsAttrs)
@@ -442,20 +474,27 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   return updatedSheet;
 }
 
-function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+function applyDivinePowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   if (!sheetClone.devoto?.poderes) return sheetClone;
 
   sheetClone = (sheetClone.devoto.poderes || []).reduce((acc, power) => {
-    const [newAcc] = applyPower(acc, power);
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
   return sheetClone;
 }
 
-function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
+function applyClassAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   const availableAbilities = sheetClone.classe.abilities.filter(
@@ -465,7 +504,8 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   sheetClone.classe.abilities = availableAbilities;
 
   sheetClone = availableAbilities.reduce((acc, ability) => {
-    const [newAcc] = applyPower(acc, ability);
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc] = applyPower(acc, ability, abilitySelections);
     return newAcc;
   }, sheetClone);
 
@@ -510,13 +550,17 @@ function applyClassPowers(
   return sheetClone;
 }
 
-function applyOriginPowers(sheet: CharacterSheet): CharacterSheet {
+function applyOriginPowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
   if (!sheetClone.origin?.powers) return sheetClone;
 
   sheetClone = (sheetClone.origin.powers || []).reduce((acc, power) => {
-    const [newAcc] = applyPower(acc, power);
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc] = applyPower(acc, power, powerSelections);
     return newAcc;
   }, sheetClone);
 
@@ -790,16 +834,18 @@ export function recalculateSheet(
   updatedSheet = applyClassPowers(updatedSheet, manualSelections);
 
   // Step 4: Apply race abilities
+  // Note: applyRaceAbilities is imported from general.ts and expects SelectionOptions (flat)
+  // Race ability selections are already applied during initial creation
   updatedSheet = applyRaceAbilities(updatedSheet);
 
   // Step 5: Apply class abilities (filter by level)
-  updatedSheet = applyClassAbilities(updatedSheet);
+  updatedSheet = applyClassAbilities(updatedSheet, manualSelections);
 
   // Step 6: Apply divine powers
-  updatedSheet = applyDivinePowers(updatedSheet);
+  updatedSheet = applyDivinePowers(updatedSheet, manualSelections);
 
   // Step 7: Apply origin powers
-  updatedSheet = applyOriginPowers(updatedSheet);
+  updatedSheet = applyOriginPowers(updatedSheet, manualSelections);
 
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);
@@ -823,10 +869,12 @@ export function recalculateSheet(
       const addPVPerLevel =
         updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
       const conMod = updatedSheet.atributos.Constituição?.value || 0;
+      // Constituição negativa não reduz PV por nível (mínimo é 0)
+      const conModForPV = Math.max(conMod, 0);
       updatedSheet.pv =
         basePV +
         addPVPerLevel * (updatedSheet.nivel - 1) +
-        conMod * updatedSheet.nivel;
+        conModForPV * updatedSheet.nivel;
 
       // Add bonus PV if defined
       if (updatedSheet.bonusPV) {
@@ -1006,6 +1054,22 @@ export function recalculateSheet(
         // SpellDC bonuses are tracked in sheetBonuses for display
         // The actual calculation is done when casting spells
         // (stored for reference but not directly applied to sheet)
+      } else if (bonus.target.type === 'ModifySkillAttribute') {
+        const { attribute, skill: skillName } = bonus.target;
+
+        if (updatedSheet.completeSkills) {
+          updatedSheet.completeSkills = updatedSheet.completeSkills.map(
+            (skill) => {
+              if (skill.name === skillName) {
+                return {
+                  ...skill,
+                  modAttr: attribute,
+                };
+              }
+              return skill;
+            }
+          );
+        }
       }
     }
   });
@@ -1017,18 +1081,7 @@ export function recalculateSheet(
 
   // Check if heavy armor is equipped
   const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
-  const heavyArmor = equippedArmors.some(
-    (armor) =>
-      // Check if this is a heavy armor from the EQUIPAMENTOS list
-      armor.nome &&
-      [
-        'Brunea',
-        'Cota de Malha',
-        'Loriga Segmentada',
-        'Armadura de Placas',
-        'Armadura Completa',
-      ].includes(armor.nome)
-  );
+  const heavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
 
   // Apply custom attribute logic if defined
   if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {

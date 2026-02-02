@@ -97,6 +97,8 @@ export interface DefenseEquipment extends Equipment {
   // Base values for defense equipment (original stats before modifications)
   baseDefenseBonus?: number;
   baseArmorPenalty?: number;
+  // Flag to indicate if this is a heavy armor (affects defense calculation)
+  isHeavyArmor?: boolean;
 }
 
 interface Modification {

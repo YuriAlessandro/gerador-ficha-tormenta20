@@ -6,6 +6,9 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
+// Version used for cache naming - changing this invalidates all PWA caches
+const APP_VERSION = '4.0.1';
+
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
 function spaFallbackPlugin(): Plugin {
@@ -123,7 +126,7 @@ export default defineConfig({
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'html-cache',
+              cacheName: `fdn-v${APP_VERSION}-html`,
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24, // 1 day
@@ -139,7 +142,7 @@ export default defineConfig({
               url.pathname.match(/\.[a-f0-9]{8}\./), // Match Vite hash pattern
             handler: 'CacheFirst',
             options: {
-              cacheName: 'static-resources',
+              cacheName: `fdn-v${APP_VERSION}-static`,
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (immutable)
@@ -152,7 +155,7 @@ export default defineConfig({
               request.destination === 'image' || request.destination === 'font',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'assets-cache',
+              cacheName: `fdn-v${APP_VERSION}-assets`,
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
@@ -165,7 +168,7 @@ export default defineConfig({
             urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'general-cache',
+              cacheName: `fdn-v${APP_VERSION}-general`,
               expiration: {
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days

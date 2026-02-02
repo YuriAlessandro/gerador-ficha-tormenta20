@@ -102,6 +102,36 @@ export const SkillsWithArmorPenalty: Skill[] = [
   Skill.LADINAGEM,
 ];
 
+// Skills that can only be used if the character is trained in them
+export const TrainedOnlySkills: Skill[] = [
+  Skill.ADESTRAMENTO,
+  Skill.CONHECIMENTO,
+  Skill.GUERRA,
+  Skill.JOGATINA,
+  Skill.LADINAGEM,
+  Skill.MISTICISMO,
+  Skill.NOBREZA,
+  Skill.OFICIO,
+  Skill.OFICIO_ARMEIRO,
+  Skill.OFICIO_ARTESANATO,
+  Skill.OFICIO_ALQUIMIA,
+  Skill.OFICIO_CULINARIA,
+  Skill.OFICIO_ALFAIATE,
+  Skill.OFICIO_ALVENARIA,
+  Skill.OFICIO_CARPINTEIRO,
+  Skill.OFICIO_JOALHEIRO,
+  Skill.OFICIO_FAZENDEIRO,
+  Skill.OFICIO_PESCADOR,
+  Skill.OFICIO_ESTALAJADEIRO,
+  Skill.OFICIO_ESCRIBA,
+  Skill.OFICIO_ESCULTOR,
+  Skill.OFICIO_EGENHOQUEIRO,
+  Skill.OFICIO_PINTOR,
+  Skill.OFICIO_MINERADOR,
+  Skill.PILOTAGEM,
+  Skill.RELIGIAO,
+];
+
 export type CompleteSkill = {
   name: Skill;
   halfLevel?: number;

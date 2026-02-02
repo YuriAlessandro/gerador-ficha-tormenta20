@@ -1,7 +1,7 @@
 {
   "homepage": "https://yurialessandro.github.io/",
   "name": "gerador-ficha-tormenta20",
-  "version": "3.4.3",
+  "version": "4.0.1",
   "private": true,
   "dependencies": {
     "@3d-dice/dice-box": "^1.1.4",

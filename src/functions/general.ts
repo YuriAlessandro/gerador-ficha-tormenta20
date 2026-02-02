@@ -1,6 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import _, { cloneDeep, isNumber } from 'lodash';
-import { SelectionOptions } from '@/interfaces/PowerSelections';
+import {
+  SelectionOptions,
+  ManualPowerSelections,
+} from '@/interfaces/PowerSelections';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { dataRegistry } from '../data/registry';
 import { SupplementId } from '../types/supplement.types';
@@ -473,8 +476,21 @@ export function getInitialMoneyWithDetails(level: number): {
 //   return getRandomItemFromArray(keys);
 // }
 
+// Valor mínimo de atributo para geração aleatória (modificador -1)
+const MIN_ATTRIBUTE_VALUE = 8;
+
+function rollAttributeWithMinimum(): number {
+  let value = rollDice(4, 6, 1);
+  while (value < MIN_ATTRIBUTE_VALUE) {
+    value = rollDice(4, 6, 1);
+  }
+  return value;
+}
+
 function rollAttributeValues(): number[] {
-  const rolledValues = Object.values(Atributo).map(() => rollDice(4, 6, 1));
+  const rolledValues = Object.values(Atributo).map(() =>
+    rollAttributeWithMinimum()
+  );
 
   // eslint-disable-next-line
   while (true) {
@@ -483,7 +499,7 @@ function rollAttributeValues(): number[] {
     if (modSum >= 6) break;
     rolledValues.sort((a, b) => a - b);
     rolledValues.shift();
-    rolledValues.push(rollDice(4, 6, 1));
+    rolledValues.push(rollAttributeWithMinimum());
   }
 
   return rolledValues;
@@ -1423,6 +1439,18 @@ export const applyPower = (
             name: getSourceName(sheetAction.source),
             value: `Recebe o poder geral ${power.name}`,
           });
+
+          // Apply the picked power's sheetActions (e.g., learnSpell in Prática Arcana)
+          // Pass the same manual selections so nested requirements (spells) are honored
+          if (power.sheetActions && power.sheetActions.length > 0) {
+            const [updatedSheet, nestedSubSteps] = applyPower(
+              sheet,
+              power,
+              manualSelections
+            );
+            Object.assign(sheet, updatedSheet);
+            subSteps.push(...nestedSubSteps);
+          }
         });
       } else if (sheetAction.action.type === 'learnSpell') {
         let learnedSpells: Spell[];
@@ -1858,7 +1886,7 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];
         if (sheetAction.action.specialAction === 'humanoVersatil') {
-          currentSteps = applyHumanoVersatil(sheet);
+          currentSteps = applyHumanoVersatil(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'lefouDeformidade') {
           currentSteps = applyLefouDeformidade(sheet);
         } else if (
@@ -2172,7 +2200,10 @@ export const applyPower = (
   return [sheet, subSteps];
 };
 
-export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
+export function applyRaceAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2190,7 +2221,9 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (sheetClone.raca.abilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    // Extract selections for this specific ability
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2206,7 +2239,10 @@ export function applyRaceAbilities(sheet: CharacterSheet): CharacterSheet {
   return sheetClone;
 }
 
-function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
+function applyDivinePowers(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2224,7 +2260,9 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (sheetClone.devoto?.poderes || []).reduce((acc, power) => {
-    const [newAcc, newSubSteps] = applyPower(acc, power);
+    // Extract selections for this specific power
+    const powerSelections = manualSelections?.[power.name];
+    const [newAcc, newSubSteps] = applyPower(acc, power, powerSelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -2240,7 +2278,10 @@ function applyDivinePowers(sheet: CharacterSheet): CharacterSheet {
   return sheetClone;
 }
 
-function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
+function applyClassAbilities(
+  sheet: CharacterSheet,
+  manualSelections?: ManualPowerSelections
+): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
   const subSteps: SubStep[] = [];
 
@@ -2262,7 +2303,9 @@ function applyClassAbilities(sheet: CharacterSheet): CharacterSheet {
   });
 
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
-    const [newAcc, newSubSteps] = applyPower(acc, ability);
+    // Extract selections for this specific ability
+    const abilitySelections = manualSelections?.[ability.name];
+    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
     subSteps.push(...newSubSteps);
     return newAcc;
   }, sheetClone);
@@ -3674,7 +3717,8 @@ export function generateEmptySheet(
     skills: [
       ...getClassBaseSkills(generatedClass),
       ...(wizardSelections?.classSkills || []),
-    ], // Add class base skills + wizard selected skills
+      ...(wizardSelections?.intelligenceSkills || []),
+    ], // Add class base skills + wizard selected skills + intelligence bonus skills
     spells: [],
     dinheiro: wizardSelections?.marketSelections
       ? wizardSelections.marketSelections.remainingMoney
@@ -4137,7 +4181,10 @@ export function generateEmptySheet(
   }
 
   // Apply race abilities (this adds sheetBonuses and abilities from race)
-  emptySheet = applyRaceAbilities(emptySheet);
+  emptySheet = applyRaceAbilities(
+    emptySheet,
+    wizardSelections?.powerEffectSelections
+  );
 
   // Apply race attribute modifiers
   const tempSteps: Step[] = [];
@@ -4146,13 +4193,16 @@ export function generateEmptySheet(
     emptySheet.atributos,
     emptySheet.classe.attrPriority || [],
     tempSteps,
-    undefined, // No manual choices for empty sheet
+    wizardSelections?.raceAttributes,
     undefined // Sex not defined in empty sheet yet
   );
   emptySheet.steps.push(...tempSteps);
 
   // Apply class abilities filtering by level
-  emptySheet = applyClassAbilities(emptySheet);
+  emptySheet = applyClassAbilities(
+    emptySheet,
+    wizardSelections?.powerEffectSelections
+  );
 
   // Process origin if selected
   if (selectedOptions.origin) {
@@ -4165,10 +4215,11 @@ export function generateEmptySheet(
       let originPowers = selectedOrigin.poderes || [];
 
       // Apply wizard origin benefit selections for non-regional origins
+      // Note: isRegional is undefined for base book origins, so use !isRegional instead of === false
       if (
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0 &&
-        selectedOrigin.isRegional === false
+        !selectedOrigin.isRegional
       ) {
         // Apply selected benefits
         wizardSelections.originBenefits.forEach((benefit) => {
@@ -4189,11 +4240,11 @@ export function generateEmptySheet(
           .filter((b) => b.type === 'power')
           .map((b) => b.name);
 
-        if (selectedPowerNames.length > 0) {
-          originPowers = originPowers.filter((p) =>
-            selectedPowerNames.includes(p.name)
-          );
-        }
+        // Always filter origin powers based on selected powers
+        // If user selected only skills (no powers), this results in empty powers array
+        originPowers = originPowers.filter((p) =>
+          selectedPowerNames.includes(p.name)
+        );
       }
 
       emptySheet.origin = {
@@ -4265,7 +4316,12 @@ export function generateEmptySheet(
     );
 
   // Recalculate sheet to apply all bonuses (attributes, PV/PM, defense, skills)
-  emptySheet = recalculateSheet(emptySheet);
+  // Pass powerEffectSelections so deity/origin powers with learnSpell work correctly
+  emptySheet = recalculateSheet(
+    emptySheet,
+    undefined,
+    wizardSelections?.powerEffectSelections
+  );
 
   return emptySheet;
 }

@@ -9,8 +9,47 @@ import {
   GeneralPowerType,
   RequirementType,
 } from '../../../../../interfaces/Poderes';
+import Equipment from '../../../../../interfaces/Equipment';
+import { allArcaneSpellsCircle1 } from '../../magias/arcane';
+import { Atributo } from '../../atributos';
+
+// Arma natural da Bênção Dracônica: Armamento Kallyanach
+const armaNaturalDraconica: Equipment = {
+  group: 'Arma',
+  nome: 'Arma Natural Dracônica',
+  dano: '1d6',
+  critico: 'x2',
+  tipo: 'Perf./Imp.',
+  preco: 0,
+};
 
 const DRACONIC_BLESSINGS: GeneralPower[] = [
+  {
+    type: GeneralPowerType.DESTINO,
+    name: 'Bênção Dracônica: Armamento Kallyanach',
+    description:
+      'Você possui uma arma natural (dano 1d6, crítico x2) escolhida entre cauda (impacto), chifres (perfuração) ou mordida (perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com essa arma.',
+    requirements: [
+      [
+        { type: RequirementType.RACA, name: 'Kallyanach' },
+        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
+      ],
+    ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Armamento Kallyanach',
+        },
+        action: {
+          type: 'addEquipment',
+          equipment: { Arma: [armaNaturalDraconica] },
+          description:
+            'Arma natural dracônica (cauda, chifres ou mordida) pode ser usada como ataque extra.',
+        },
+      },
+    ],
+  },
   {
     type: GeneralPowerType.DESTINO,
     name: 'Bênção Dracônica: Asas Dracônicas',
@@ -25,63 +64,96 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
   },
   {
     type: GeneralPowerType.DESTINO,
-    name: 'Bênção Dracônica: Escamas Brilhantes',
-    description:
-      'Você recebe +2 de Defesa contra criaturas que possuam escamas resistentes e brilhantes (ref. CD Constituição) e +2 de Defesa contra criaturas que possuem resistência a seu tipo de dano de herança Dracônica (ref. CD Constituição), cumulativo.',
-    requirements: [
-      [
-        { type: RequirementType.RACA, name: 'Kallyanach' },
-        { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
-      ],
-    ],
-  },
-  {
-    type: GeneralPowerType.DESTINO,
     name: 'Bênção Dracônica: Escamas Elementais',
     description:
-      'Você pode lançar uma magia arcana de 1º círculo (escolha dentre as escolas de evocação e transmutação) relacionada ao elemento da sua Herança Dracônica (tipo de dano do sopro). Caso não exista magia de 1º círculo com esse tipo de dano dentre essas escolas, escolha uma magia arcana de 1º círculo.',
+      'Sua pele é recoberta de escamas resistentes e brilhantes, que fornecem +2 na Defesa e aumentam a RD de sua Herança Dracônica para 10.',
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
+    ],
+    sheetBonuses: [
+      {
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Escamas Elementais',
+        },
+        target: {
+          type: 'Defense',
+        },
+        modifier: {
+          type: 'Fixed',
+          value: 2,
+        },
+      },
     ],
   },
   {
     type: GeneralPowerType.DESTINO,
-    name: 'Bênção Dracônica: Fúria Arcana',
+    name: 'Bênção Dracônica: Prática Arcana',
     description:
-      'Após usar uma magia arcana de 1º círculo ou maior, você ganha +1 PM por rodada (isso pode ultrapassar o seu máximo de PM). Quando usa seu sopro, ele causa +1d12 de dano adicional.',
+      'Escolha uma magia arcana de 1º círculo que cause dano do mesmo tipo de sua Herança Dracônica. Você pode lançar essa magia (atributo-chave Inteligência). Caso aprenda novamente essa magia, seu custo diminui em –1 PM. Você pode escolher esta bênção mais de uma vez para outras magias.',
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
     ],
-    rolls: [
+    sheetActions: [
       {
-        id: uuid(),
-        label: 'Dano Adicional (Sopro)',
-        dice: '1d12',
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Prática Arcana',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: allArcaneSpellsCircle1,
+          pick: 1,
+          customAttribute: Atributo.INTELIGENCIA,
+        },
       },
     ],
   },
   {
     type: GeneralPowerType.DESTINO,
     name: 'Bênção Dracônica: Sentidos Dracônicos',
-    description: 'Você possui faro e visão no escuro.',
+    description:
+      'Seus sentidos são impregnados com poder dracônico. Você recebe faro e visão no escuro.',
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
     ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Sentidos Dracônicos',
+        },
+        action: {
+          type: 'addSense',
+          sense: 'Faro',
+        },
+      },
+      {
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Sentidos Dracônicos',
+        },
+        action: {
+          type: 'addSense',
+          sense: 'Visão no Escuro',
+        },
+      },
+    ],
   },
   {
     type: GeneralPowerType.DESTINO,
     name: 'Bênção Dracônica: Sopro de Dragão',
     description:
-      'Você pode gastar uma ação padrão e 1 PM para soprar um cone de 6m que causa 1d12 pontos de dano do tipo de sua Herança Dracônica (Ref CD Constituição reduz à metade). A cada quatro níveis após 1º, você pode gastar +1 PM para aumentar o dano do sopro em +1d12.',
+      'Você pode gastar uma ação padrão e 1 PM para soprar um cone de 6m que causa 1d12 pontos de dano do tipo de sua Herança Dracônica (Ref CD Constituição reduz à metade). A cada quatro níveis após o 1º, você pode gastar +1 PM para aumentar o dano do sopro em +1d12.',
     requirements: [
       [
         { type: RequirementType.RACA, name: 'Kallyanach' },

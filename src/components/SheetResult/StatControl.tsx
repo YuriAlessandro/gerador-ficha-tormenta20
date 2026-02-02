@@ -163,11 +163,32 @@ const StatControl: React.FC<StatControlProps> = ({
     }
   }, [displayedCurrent, increment, pvMinimo, type, debouncedUpdate]);
 
+  // Estado local para o input de incremento (permite campo vazio)
+  const [incrementInputValue, setIncrementInputValue] = useState(
+    String(increment)
+  );
+
+  // Sincroniza o estado local quando increment muda externamente
+  useEffect(() => {
+    setIncrementInputValue(String(increment));
+  }, [increment]);
+
   const handleIncrementChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const value = parseInt(event.target.value, 10);
-      if (!Number.isNaN(value) && value >= 1) {
-        onUpdateIncrement(value);
+      const inputValue = event.target.value;
+
+      // Só aceita números (sem negativo, pois incremento é sempre positivo)
+      if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
+        return;
+      }
+
+      // Sempre atualiza o estado local
+      setIncrementInputValue(inputValue);
+
+      // Propaga para o parent se for número válido >= 1
+      const numValue = parseInt(inputValue, 10);
+      if (!Number.isNaN(numValue) && numValue >= 1) {
+        onUpdateIncrement(numValue);
       }
     },
     [onUpdateIncrement]
@@ -509,11 +530,9 @@ const StatControl: React.FC<StatControlProps> = ({
               </Typography>
               <TextField
                 size='small'
-                type='number'
-                value={increment}
+                value={incrementInputValue}
                 onChange={handleIncrementChange}
                 inputProps={{
-                  min: 1,
                   style: {
                     textAlign: 'center',
                     padding: '2px 4px',
