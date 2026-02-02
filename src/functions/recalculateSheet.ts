@@ -1051,6 +1051,22 @@ export function recalculateSheet(
         // SpellDC bonuses are tracked in sheetBonuses for display
         // The actual calculation is done when casting spells
         // (stored for reference but not directly applied to sheet)
+      } else if (bonus.target.type === 'ModifySkillAttribute') {
+        const { attribute, skill: skillName } = bonus.target;
+
+        if (updatedSheet.completeSkills) {
+          updatedSheet.completeSkills = updatedSheet.completeSkills.map(
+            (skill) => {
+              if (skill.name === skillName) {
+                return {
+                  ...skill,
+                  modAttr: attribute,
+                };
+              }
+              return skill;
+            }
+          );
+        }
       }
     }
   });
