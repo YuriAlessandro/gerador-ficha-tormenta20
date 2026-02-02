@@ -203,6 +203,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const [deityEditDrawerOpen, setDeityEditDrawerOpen] = useState(false);
   const [pendingDeity, setPendingDeity] = useState<Divindade | null>(null);
 
+  // Estado local para inputs de atributos (permite campo vazio)
+  const [attributeInputValues, setAttributeInputValues] = useState<
+    Record<Atributo, string>
+  >(() =>
+    Object.values(Atributo).reduce(
+      (acc, attr) => ({
+        ...acc,
+        [attr]: String(sheet.atributos[attr]?.value ?? 0),
+      }),
+      {} as Record<Atributo, string>
+    )
+  );
+
   useEffect(() => {
     setEditedData({
       nome: sheet.nome,
@@ -234,6 +247,19 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       )
     );
   }, [sheet, open, userSupplements]);
+
+  // Sincroniza os valores dos inputs de atributos quando o sheet muda
+  useEffect(() => {
+    setAttributeInputValues(
+      Object.values(Atributo).reduce(
+        (acc, attr) => ({
+          ...acc,
+          [attr]: String(sheet.atributos[attr]?.value ?? 0),
+        }),
+        {} as Record<Atributo, string>
+      )
+    );
+  }, [sheet, open]);
 
   // Update name suggestions when race or gender changes
   useEffect(() => {
@@ -465,23 +491,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     return total;
   };
 
-  const handleAttributeModifierChange = (
-    atributo: Atributo,
-    newValue: number
-  ) => {
-    // Clamp the value to reasonable bounds (-5 to 10)
-    const clampedValue = Math.max(-5, Math.min(10, newValue));
+  const handleAttributeInputChange = (atributo: Atributo, value: string) => {
+    // Só aceita números e o símbolo '-'
+    if (value !== '' && !/^-?\d*$/.test(value)) {
+      return;
+    }
 
-    setEditedData((prev) => ({
-      ...prev,
-      attributes: {
-        ...prev.attributes,
-        [atributo]: {
-          ...prev.attributes[atributo],
-          value: clampedValue,
+    // Sempre atualiza o estado local (permite vazio ou apenas '-')
+    setAttributeInputValues((prev) => ({ ...prev, [atributo]: value }));
+
+    // Só propaga para editedData se for número válido
+    const numValue = parseInt(value, 10);
+    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 10) {
+      setEditedData((prev) => ({
+        ...prev,
+        attributes: {
+          ...prev.attributes,
+          [atributo]: {
+            ...prev.attributes[atributo],
+            value: numValue,
+          },
         },
-      },
-    }));
+      }));
+    }
   };
 
   const handleAccordionChange = (panel: string) => {
@@ -1943,16 +1975,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         </Box>
                         <TextField
                           size='small'
-                          type='number'
-                          value={attribute.value}
-                          onChange={(e) => {
-                            const newValue = parseInt(e.target.value, 10) || 0;
-                            handleAttributeModifierChange(atributo, newValue);
-                          }}
-                          inputProps={{
-                            min: -5,
-                            max: 10,
-                          }}
+                          value={attributeInputValues[atributo]}
+                          onChange={(e) =>
+                            handleAttributeInputChange(atributo, e.target.value)
+                          }
                           sx={{ width: '80px' }}
                         />
                       </Stack>

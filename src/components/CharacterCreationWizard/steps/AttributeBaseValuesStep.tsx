@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, TextField, Typography, Paper, Divider } from '@mui/material';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import Race, { RaceAttributeAbility } from '@/interfaces/Race';
@@ -16,9 +16,26 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   raceAttributeChoices,
   onChange,
 }) => {
+  // Estado local para permitir input vazio temporariamente
+  const [inputValues, setInputValues] = useState<Record<Atributo, string>>(() =>
+    Object.values(Atributo).reduce(
+      (acc, attr) => ({ ...acc, [attr]: String(baseAttributes[attr] ?? 0) }),
+      {} as Record<Atributo, string>
+    )
+  );
+
   const handleChange = (atributo: Atributo, value: string) => {
+    // Só aceita números e o símbolo '-'
+    if (value !== '' && !/^-?\d*$/.test(value)) {
+      return;
+    }
+
+    // Sempre atualiza o estado local (permite vazio ou apenas '-')
+    setInputValues((prev) => ({ ...prev, [atributo]: value }));
+
+    // Só propaga para o parent se for número válido
     const numValue = parseInt(value, 10);
-    if (!Number.isNaN(numValue) && numValue >= -5 && numValue <= 10) {
+    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 10) {
       onChange({
         ...baseAttributes,
         [atributo]: numValue,
@@ -91,11 +108,9 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
 
               <TextField
                 size='small'
-                type='number'
                 label='Modificador'
-                value={baseModifier}
+                value={inputValues[atributo]}
                 onChange={(e) => handleChange(atributo, e.target.value)}
-                inputProps={{ min: -5, max: 10 }}
                 sx={{
                   width: 100,
                   mb: 1,

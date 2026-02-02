@@ -476,8 +476,21 @@ export function getInitialMoneyWithDetails(level: number): {
 //   return getRandomItemFromArray(keys);
 // }
 
+// Valor mínimo de atributo para geração aleatória (modificador -1)
+const MIN_ATTRIBUTE_VALUE = 8;
+
+function rollAttributeWithMinimum(): number {
+  let value = rollDice(4, 6, 1);
+  while (value < MIN_ATTRIBUTE_VALUE) {
+    value = rollDice(4, 6, 1);
+  }
+  return value;
+}
+
 function rollAttributeValues(): number[] {
-  const rolledValues = Object.values(Atributo).map(() => rollDice(4, 6, 1));
+  const rolledValues = Object.values(Atributo).map(() =>
+    rollAttributeWithMinimum()
+  );
 
   // eslint-disable-next-line
   while (true) {
@@ -486,7 +499,7 @@ function rollAttributeValues(): number[] {
     if (modSum >= 6) break;
     rolledValues.sort((a, b) => a - b);
     rolledValues.shift();
-    rolledValues.push(rollDice(4, 6, 1));
+    rolledValues.push(rollAttributeWithMinimum());
   }
 
   return rolledValues;
