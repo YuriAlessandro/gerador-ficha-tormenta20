@@ -56,6 +56,10 @@ interface PowerEffectSelectionStepProps {
   actualSheet?: CharacterSheet;
   // Optional arcanista subtype for requirement checking
   arcanistaSubtype?: string;
+  // Skip race abilities (useful for level-up where race abilities are already applied)
+  skipRaceAbilities?: boolean;
+  // Only show class abilities for this specific level (useful for level-up)
+  classAbilityLevel?: number;
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -70,6 +74,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   powerSource,
   actualSheet,
   arcanistaSubtype,
+  skipRaceAbilities = false,
+  classAbilityLevel,
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -126,20 +132,26 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     }
   }
 
-  // Check race abilities
-  race.abilities.forEach((ability) => {
-    const reqs = getPowerSelectionRequirements(ability);
-    if (reqs) {
-      allRequirements.push({
-        powerName: ability.name,
-        source: 'race',
-        requirements: reqs.requirements,
-      });
-    }
-  });
+  // Check race abilities (skip during level-up since they're already applied at level 1)
+  if (!skipRaceAbilities) {
+    race.abilities.forEach((ability) => {
+      const reqs = getPowerSelectionRequirements(ability);
+      if (reqs) {
+        allRequirements.push({
+          powerName: ability.name,
+          source: 'race',
+          requirements: reqs.requirements,
+        });
+      }
+    });
+  }
 
-  // Check class abilities
-  classe.abilities?.forEach((ability) => {
+  // Check class abilities (optionally filter by level for level-up context)
+  const classAbilitiesToCheck = classAbilityLevel
+    ? classe.abilities?.filter((ability) => ability.nivel === classAbilityLevel)
+    : classe.abilities;
+
+  classAbilitiesToCheck?.forEach((ability) => {
     const reqs = getPowerSelectionRequirements(ability);
     if (reqs) {
       allRequirements.push({
