@@ -189,7 +189,7 @@ const combatPowers: Record<string, GeneralPower> = {
       [
         {
           type: RequirementType.PROFICIENCIA,
-          name: 'Armaduras Pesadas',
+          name: PROFICIENCIAS.PESADAS,
         },
       ],
     ],
@@ -238,7 +238,7 @@ const combatPowers: Record<string, GeneralPower> = {
         },
         {
           type: RequirementType.PROFICIENCIA,
-          name: 'Escudos',
+          name: PROFICIENCIAS.ESCUDOS,
         },
       ],
     ],

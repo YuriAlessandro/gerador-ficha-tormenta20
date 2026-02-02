@@ -236,7 +236,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         ? `Não ter ${req.name}`
                                         : req.name;
                                     case RequirementType.PROFICIENCIA:
-                                      return `Proficiência: ${req.value}`;
+                                      return req.name === 'all'
+                                        ? 'Proficiência em qualquer arma'
+                                        : `Proficiência: ${req.name}`;
                                     case RequirementType.CLASSE:
                                       return `Classe: ${req.value}`;
                                     case RequirementType.TIPO_ARCANISTA:
@@ -383,7 +385,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         ? `Não ter ${req.name}`
                                         : req.name;
                                     case RequirementType.PROFICIENCIA:
-                                      return `Proficiência: ${req.value}`;
+                                      return req.name === 'all'
+                                        ? 'Proficiência em qualquer arma'
+                                        : `Proficiência: ${req.name}`;
                                     case RequirementType.CLASSE:
                                       return `Classe: ${req.value}`;
                                     case RequirementType.TIPO_ARCANISTA:

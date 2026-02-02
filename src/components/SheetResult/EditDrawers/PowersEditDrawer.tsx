@@ -716,9 +716,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             return skill && (skill.training || 0) > 0;
           }
 
-          case RequirementType.PROFICIENCIA:
-            // Check if character has the required proficiency
+          case RequirementType.PROFICIENCIA: {
+            // Caso especial: 'all' significa qualquer proficiência de arma (exceto Simples)
+            if (req.name === 'all') {
+              const weaponProficiencies = [
+                'Armas Marciais',
+                'Armas de Fogo',
+                'Armas Exóticas',
+              ];
+              return weaponProficiencies.some((wp) =>
+                sheet.classe.proficiencias.includes(wp)
+              );
+            }
             return sheet.classe.proficiencias.includes(req.name as string);
+          }
 
           case RequirementType.CLASSE:
             return sheet.classe.name === req.name;
@@ -841,7 +852,9 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               case RequirementType.PERICIA:
                 return `Perícia: ${req.name}`;
               case RequirementType.PROFICIENCIA:
-                return `Proficiência: ${req.name}`;
+                return req.name === 'all'
+                  ? 'Proficiência em qualquer arma'
+                  : `Proficiência: ${req.name}`;
               case RequirementType.CLASSE:
                 return `Classe: ${req.name}`;
               case RequirementType.DEVOTO:
