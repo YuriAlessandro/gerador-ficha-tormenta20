@@ -21,8 +21,8 @@ import ShieldIcon from '@mui/icons-material/Shield';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
-import EQUIPAMENTOS from '@/data/systems/tormenta20/equipamentos';
-import Equipment from '@/interfaces/Equipment';
+import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
+import { DefenseEquipment } from '@/interfaces/Equipment';
 
 interface DefenseEditDrawerProps {
   open: boolean;
@@ -56,10 +56,8 @@ const DefenseEditDrawer: React.FC<DefenseEditDrawerProps> = ({
   // Check if character has heavy armor equipped
   const hasHeavyArmor = (): boolean => {
     const equippedArmors = sheet.bag.equipments.Armadura || [];
-    return equippedArmors.some((armor: Equipment) =>
-      EQUIPAMENTOS.armaduraPesada.find(
-        (heavyArmor: Equipment) => heavyArmor.nome === armor.nome
-      )
+    return equippedArmors.some((armor: DefenseEquipment) =>
+      isHeavyArmor(armor)
     );
   };
 

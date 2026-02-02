@@ -11,7 +11,9 @@ import {
   Typography,
   Box,
 } from '@mui/material';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
@@ -30,7 +32,6 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';

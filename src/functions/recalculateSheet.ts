@@ -14,7 +14,10 @@ import Skill, {
 } from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { calcDefense } from '@/data/systems/tormenta20/equipamentos';
+import {
+  calcDefense,
+  isHeavyArmor,
+} from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
 
 import { applyRaceAbilities, applyPower } from './general';
@@ -1059,18 +1062,7 @@ export function recalculateSheet(
 
   // Check if heavy armor is equipped
   const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
-  const heavyArmor = equippedArmors.some(
-    (armor) =>
-      // Check if this is a heavy armor from the EQUIPAMENTOS list
-      armor.nome &&
-      [
-        'Brunea',
-        'Cota de Malha',
-        'Loriga Segmentada',
-        'Armadura de Placas',
-        'Armadura Completa',
-      ].includes(armor.nome)
-  );
+  const heavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
 
   // Apply custom attribute logic if defined
   if (updatedSheet.useDefenseAttribute === false && !heavyArmor) {

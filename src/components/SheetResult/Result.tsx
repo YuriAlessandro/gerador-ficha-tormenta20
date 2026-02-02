@@ -25,7 +25,7 @@ import {
   MoreauHeritageName,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import EQUIPAMENTOS from '@/data/systems/tormenta20/equipamentos';
+import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -539,7 +539,7 @@ const Result: React.FC<ResultProps> = (props) => {
 
     // Check if character has heavy armor
     const hasHeavyArmor = bagEquipments.Armadura?.some((armor) =>
-      EQUIPAMENTOS.armaduraPesada.find((heavy) => heavy.nome === armor.nome)
+      isHeavyArmor(armor)
     );
 
     // Attribute modifier

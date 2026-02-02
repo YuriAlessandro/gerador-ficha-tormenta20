@@ -35,6 +35,7 @@ import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, {
   calcDefense,
+  isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import Bag from '@/interfaces/Bag';
 import { GENERAL_EQUIPMENT } from '@/data/systems/tormenta20/equipamentos-gerais';
@@ -184,6 +185,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editArmorPenalty, setEditArmorPenalty] = useState<string>('0');
   const [editArmorRolls, setEditArmorRolls] = useState<DiceRoll[]>([]);
   const [editArmorSpaces, setEditArmorSpaces] = useState<string>('0');
+  const [editArmorIsHeavy, setEditArmorIsHeavy] = useState<boolean>(false);
   const [showArmorRollsDialog, setShowArmorRollsDialog] = useState(false);
 
   // Estados para edição de escudo
@@ -757,6 +759,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditArmorPenalty(armor.armorPenalty?.toString() || '0');
     setEditArmorRolls(armor.rolls || []);
     setEditArmorSpaces(armor.spaces?.toString() || '0');
+    setEditArmorIsHeavy(isHeavyArmor(armor));
   };
 
   const handleCloseEditArmor = () => {
@@ -767,6 +770,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditArmorPenalty('0');
     setEditArmorRolls([]);
     setEditArmorSpaces('0');
+    setEditArmorIsHeavy(false);
   };
 
   const handleSaveEditArmor = () => {
@@ -790,6 +794,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       baseArmorPenalty,
       // Mark as manually edited so recalculateSheet preserves these changes
       hasManualEdits: true,
+      // Heavy armor flag for defense calculation
+      isHeavyArmor: editArmorIsHeavy,
     };
 
     setSelectedEquipment((prev) => ({
@@ -3283,6 +3289,25 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
             />
+
+            <Box>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={editArmorIsHeavy}
+                    onChange={(e) => setEditArmorIsHeavy(e.target.checked)}
+                  />
+                }
+                label='Armadura Pesada'
+              />
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                display='block'
+              >
+                Armaduras pesadas não somam modificador de Destreza na Defesa
+              </Typography>
+            </Box>
 
             {/* Seção de Rolagens */}
             <Box>
