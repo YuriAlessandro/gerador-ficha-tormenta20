@@ -3717,7 +3717,8 @@ export function generateEmptySheet(
     skills: [
       ...getClassBaseSkills(generatedClass),
       ...(wizardSelections?.classSkills || []),
-    ], // Add class base skills + wizard selected skills
+      ...(wizardSelections?.intelligenceSkills || []),
+    ], // Add class base skills + wizard selected skills + intelligence bonus skills
     spells: [],
     dinheiro: wizardSelections?.marketSelections
       ? wizardSelections.marketSelections.remainingMoney

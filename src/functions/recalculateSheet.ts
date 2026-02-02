@@ -399,21 +399,44 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
     return 2;
   };
 
-  // If completeSkills already exists, update it
+  // If completeSkills already exists, update it while preserving manual edits
   if (updatedSheet.completeSkills) {
-    updatedSheet.completeSkills = updatedSheet.completeSkills.map((skill) => ({
-      ...skill,
-      halfLevel: Math.floor(updatedSheet.nivel / 2),
-      training: skillTrainingMod(
-        Object.values(updatedSheet.skills).includes(skill.name),
+    updatedSheet.completeSkills = updatedSheet.completeSkills.map((skill) => {
+      // Check if skill is in the skills array (base training from character creation)
+      const isBaseSkillTrained = Object.values(updatedSheet.skills).includes(
+        skill.name
+      );
+
+      // Preserve existing training value if skill was manually trained/untrained
+      // (i.e., if completeSkills has training but skills array doesn't, or vice versa)
+      // We keep the existing training value in completeSkills as it may have been manually edited
+      const existingTraining = skill.training || 0;
+      const baseTraining = skillTrainingMod(
+        isBaseSkillTrained,
         updatedSheet.nivel
-      ),
-      // Reset others to 0 and only apply armor penalty if affected
-      others:
-        SkillsWithArmorPenalty.includes(skill.name) && armorPenalty > 0
-          ? armorPenalty * -1
-          : 0,
-    }));
+      );
+
+      // If skill has training in completeSkills but not in base skills array,
+      // it was manually trained - preserve it
+      // If skill is in base skills array, use the calculated training
+      const finalTraining =
+        existingTraining > 0 && !isBaseSkillTrained
+          ? existingTraining // Manually trained - preserve
+          : baseTraining; // Use base calculation
+
+      // Preserve existing 'others' value completely
+      // This keeps any manual edits intact
+      // Note: armor penalty was already calculated when the skill was first created
+      // or when the user manually edited it
+      const existingOthers = skill.others || 0;
+
+      return {
+        ...skill,
+        halfLevel: Math.floor(updatedSheet.nivel / 2),
+        training: finalTraining,
+        others: existingOthers,
+      };
+    });
   } else {
     // Create completeSkills from SkillsAttrs if it doesn't exist
     updatedSheet.completeSkills = Object.entries(SkillsAttrs)
