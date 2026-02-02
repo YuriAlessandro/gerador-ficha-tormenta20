@@ -482,6 +482,41 @@ export const MOREAU_HERITAGES: Record<string, MoreauHeritage> = {
       },
     ],
   },
+  Urso: {
+    name: 'Herança do Urso',
+    attributes: [
+      { attr: Atributo.CONSTITUICAO, mod: 1 },
+      { attr: 'any', mod: 1 },
+      { attr: 'any', mod: 1 },
+    ],
+    abilities: [
+      {
+        name: 'Abraço de Urso',
+        description:
+          'Você é Grande e pode usar Constituição como atributo-chave de Intimidação (em vez de Carisma).',
+      },
+      {
+        name: 'Faro',
+        description:
+          'Você tem olfato apurado. Contra inimigos em alcance curto que não possa ver, você não fica desprevenido e camuflagem total lhe causa apenas 20% de chance de falha.',
+      },
+      {
+        name: 'Mordida',
+        description:
+          'Você possui uma arma natural de mordida (dano 1d8, crítico x2, perfuração). Uma vez por rodada, quando usa a ação agredir para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a mordida.',
+        sheetActions: [
+          {
+            source: { type: 'power', name: 'Mordida' },
+            action: {
+              type: 'addEquipment',
+              equipment: { Arma: [mordidaLeao] },
+              description: 'Mordida pode ser usada como arma.',
+            },
+          },
+        ],
+      },
+    ],
+  },
   Morcego: {
     name: 'Herança do Morcego',
     attributes: [
