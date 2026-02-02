@@ -46,15 +46,17 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
   // Calculate racial modifier bonus
   const getRacialModifier = (atributo: Atributo): number => {
     let modifier = 0;
+    let anyIndex = 0;
 
     race.attributes.attrs.forEach((attr: RaceAttributeAbility) => {
       if (attr.attr === atributo) {
         modifier += attr.mod;
-      } else if (
-        attr.attr === 'any' &&
-        raceAttributeChoices?.includes(atributo)
-      ) {
-        modifier += attr.mod;
+      } else if (attr.attr === 'any') {
+        // Each 'any' slot corresponds to one specific choice by index
+        if (raceAttributeChoices?.[anyIndex] === atributo) {
+          modifier += attr.mod;
+        }
+        anyIndex += 1;
       }
     });
 

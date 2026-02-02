@@ -4193,7 +4193,7 @@ export function generateEmptySheet(
     emptySheet.atributos,
     emptySheet.classe.attrPriority || [],
     tempSteps,
-    undefined, // No manual choices for empty sheet
+    wizardSelections?.raceAttributes,
     undefined // Sex not defined in empty sheet yet
   );
   emptySheet.steps.push(...tempSteps);
