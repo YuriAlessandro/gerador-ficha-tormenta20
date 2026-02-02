@@ -6,6 +6,7 @@ import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
+import { AttributeVariant } from './Race';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -34,6 +35,9 @@ export interface WizardSelections {
 
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;
+
+  // Race attribute variant selection (for races with multiple attribute options like Kallyanach)
+  attributeVariant?: AttributeVariant;
 
   // Race attribute choices for races with 'any' attributes
   raceAttributes?: Atributo[];

@@ -60,7 +60,7 @@ const faithProbability = {
 
 const KALLYANACH: Race = {
   name: 'Kallyanach',
-  // Atributos serão definidos pela função setup
+  // Atributos padrão (usado para geração aleatória quando setup é chamado)
   attributes: {
     attrs: [
       {
@@ -69,9 +69,23 @@ const KALLYANACH: Race = {
       },
     ],
   },
+  // Variantes para o wizard - usuário escolhe entre as opções
+  attributeVariants: [
+    {
+      label: '+2 em 1 atributo',
+      attrs: [{ attr: 'any', mod: 2 }],
+    },
+    {
+      label: '+1 em 2 atributos',
+      attrs: [
+        { attr: 'any', mod: 1 },
+        { attr: 'any', mod: 1 },
+      ],
+    },
+  ],
   faithProbability,
   abilities: kallyanachAbilities,
-  // Setup escolhe aleatoriamente entre +2 em 1 atributo ou +1 em 2 atributos
+  // Setup escolhe aleatoriamente entre +2 em 1 atributo ou +1 em 2 atributos (para geração aleatória)
   setup: (race) => {
     const useDoubleBonus = Math.random() < 0.5;
 

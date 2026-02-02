@@ -16,7 +16,7 @@ import { dataRegistry } from '@/data/registry';
 import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
-import Race from '@/interfaces/Race';
+import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription } from '@/interfaces/Class';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
@@ -47,6 +47,7 @@ import InitialSpellSelectionStep from './steps/InitialSpellSelectionStep';
 import ArcanistSubtypeSelectionStep from './steps/ArcanistSubtypeSelectionStep';
 import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelectionStep';
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
+import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 
 interface RaceCustomization {
@@ -213,9 +214,18 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   // Determine which steps are needed
+  const needsRaceAttributeVariant = (): boolean => {
+    if (!race) return false;
+    return (
+      race.attributeVariants !== undefined && race.attributeVariants.length > 1
+    );
+  };
+
   const needsRaceAttributes = (): boolean => {
     if (!race) return false;
-    return race.attributes.attrs.some((attr) => attr.attr === 'any');
+    // If variant is selected, use variant's attrs, otherwise use race's attrs
+    const attrs = selections.attributeVariant?.attrs || race.attributes.attrs;
+    return attrs.some((attr) => attr.attr === 'any');
   };
 
   const needsClassSkills = (): boolean => {
@@ -355,8 +365,9 @@ const CharacterCreationWizardModal: React.FC<
   const getSteps = (): string[] => {
     const stepsArray: string[] = [];
     stepsArray.push('Informações Básicas'); // Always first step
-    stepsArray.push('Valores dos Atributos');
+    if (needsRaceAttributeVariant()) stepsArray.push('Variante de Atributos');
     if (needsRaceAttributes()) stepsArray.push('Atributos da Raça');
+    stepsArray.push('Valores dos Atributos');
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
@@ -572,16 +583,34 @@ const CharacterCreationWizardModal: React.FC<
         );
       }
 
+      case 'Variante de Atributos': {
+        if (!race || !race.attributeVariants) return null;
+        return (
+          <RaceAttributeVariantStep
+            variants={race.attributeVariants}
+            selectedVariant={selections.attributeVariant || null}
+            onChange={(variant: AttributeVariant) =>
+              setSelections({
+                ...selections,
+                attributeVariant: variant,
+                raceAttributes: [], // Reset race attributes when variant changes
+              })
+            }
+          />
+        );
+      }
+
       case 'Atributos da Raça': {
         if (!race) return null;
-        const attrCount = race.attributes.attrs.filter(
-          (a) => a.attr === 'any'
-        ).length;
+        // Use variant's attrs if selected, otherwise use race's default attrs
+        const attrs =
+          selections.attributeVariant?.attrs || race.attributes.attrs;
+        const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}
-            onChange={(attrs) =>
-              setSelections({ ...selections, raceAttributes: attrs })
+            onChange={(raceAttrs) =>
+              setSelections({ ...selections, raceAttributes: raceAttrs })
             }
             requiredCount={attrCount}
           />
@@ -860,11 +889,16 @@ const CharacterCreationWizardModal: React.FC<
         // Always allow - player can set any values
         return true;
 
+      case 'Variante de Atributos':
+        // Must have selected a variant
+        return selections.attributeVariant !== undefined;
+
       case 'Atributos da Raça': {
         if (!race) return false;
-        const attrCount = race.attributes.attrs.filter(
-          (a) => a.attr === 'any'
-        ).length;
+        // Use variant's attrs if selected, otherwise use race's default attrs
+        const attrs =
+          selections.attributeVariant?.attrs || race.attributes.attrs;
+        const attrCount = attrs.filter((a) => a.attr === 'any').length;
         return (
           selections.raceAttributes?.length === attrCount &&
           new Set(selections.raceAttributes).size === attrCount
