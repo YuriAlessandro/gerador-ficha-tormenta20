@@ -132,6 +132,19 @@ export function getPowerSelectionRequirements(
           label: 'Construa seu Golpe Pessoal',
         });
       }
+
+      // Handle Versátil special action for humans
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'humanoVersatil'
+      ) {
+        requirements.push({
+          type: 'humanoVersatil',
+          availableOptions: [], // Will be populated dynamically with all skills
+          pick: 2, // Always 2 choices (2 skills OR 1 skill + 1 power)
+          label: 'Selecione 2 perícias (ou 1 perícia + 1 poder geral)',
+        });
+      }
     });
   }
 
@@ -330,6 +343,35 @@ export function getFilteredAvailableOptions(
 
       // Otherwise, return all available totems
       return ANIMAL_TOTEM_NAMES.sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'humanoVersatil': {
+      // Return all skills that the character doesn't already have
+      const allSkills = Object.values(Skill);
+      return allSkills
+        .filter((skill) => {
+          // Check if skill is already in the skills array
+          if (sheet.skills.includes(skill)) {
+            return false;
+          }
+
+          // Check if skill is already trained in completeSkills
+          if (sheet.completeSkills) {
+            const existingSkill = sheet.completeSkills.find(
+              (cs) => cs.name === skill
+            );
+            if (
+              existingSkill &&
+              existingSkill.training &&
+              existingSkill.training > 0
+            ) {
+              return false;
+            }
+          }
+
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
     }
 
     default:

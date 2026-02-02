@@ -36,6 +36,9 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { FAMILIARS } from '@/data/systems/tormenta20/familiars';
 import { ANIMAL_TOTEMS } from '@/data/systems/tormenta20/animalTotems';
+import { getPowersAllowedByRequirements } from '@/functions/powers';
+import Skill from '@/interfaces/Skills';
+import VersatilSelectionField from './VersatilSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -98,7 +101,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'selectAnimalTotem'
         | 'buildGolpePessoal'
         | 'learnClassAbility'
-        | 'getClassPower';
+        | 'getClassPower'
+        | 'humanoVersatil';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -206,22 +210,25 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       classe: {
         name: classe.name,
         subname: arcanistaSubtype,
-        proficiencias: [],
+        proficiencias: classe.proficiencias || [],
+        abilities: classe.abilities || [],
         spellPath: classe.spellPath,
       },
       raca: {
         name: race.name,
       },
       generalPowers: [],
+      classPowers: [],
+      origin: undefined,
       spells: [],
       nivel: 1,
       atributos: {
-        Força: 10,
-        Destreza: 10,
-        Constituição: 10,
-        Inteligência: 10,
-        Sabedoria: 10,
-        Carisma: 10,
+        Força: { value: 10 },
+        Destreza: { value: 10 },
+        Constituição: { value: 10 },
+        Inteligência: { value: 10 },
+        Sabedoria: { value: 10 },
+        Carisma: { value: 10 },
       },
       sheetActionHistory: [],
     } as unknown as CharacterSheet);
@@ -438,7 +445,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'selectAnimalTotem'
         | 'buildGolpePessoal'
         | 'learnClassAbility'
-        | 'getClassPower';
+        | 'getClassPower'
+        | 'humanoVersatil';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -589,6 +597,33 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               })}
             </RadioGroup>
           </FormControl>
+        </Box>
+      );
+    }
+
+    // Render Versátil (Humano) selection with custom component
+    if (type === 'humanoVersatil') {
+      // Get available skills from the filtered options
+      const availableSkillsForVersatil =
+        allAvailableOptions as unknown as Skill[];
+
+      // Get available powers for Versátil
+      const availablePowersForVersatil =
+        getPowersAllowedByRequirements(sheetForFiltering);
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <VersatilSelectionField
+            availableSkills={availableSkillsForVersatil}
+            availablePowers={availablePowersForVersatil}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
         </Box>
       );
     }

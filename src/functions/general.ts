@@ -1886,7 +1886,7 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'special') {
         let currentSteps: SubStep[];
         if (sheetAction.action.specialAction === 'humanoVersatil') {
-          currentSteps = applyHumanoVersatil(sheet);
+          currentSteps = applyHumanoVersatil(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'lefouDeformidade') {
           currentSteps = applyLefouDeformidade(sheet);
         } else if (

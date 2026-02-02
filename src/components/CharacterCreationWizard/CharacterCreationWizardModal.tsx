@@ -1066,6 +1066,15 @@ const CharacterCreationWizardModal: React.FC<
               return powerSelections.familiars?.length || 0;
             case 'selectAnimalTotem':
               return powerSelections.animalTotems?.length || 0;
+            case 'humanoVersatil': {
+              // For Versátil: need 1 skill + (1 skill OR 1 power)
+              const skillCount = powerSelections.skills?.length || 0;
+              const powerCount = powerSelections.powers?.length || 0;
+              // Must have at least 1 skill, and either 2 skills or 1 skill + 1 power
+              if (skillCount >= 2) return 2; // 2 skills selected
+              if (skillCount >= 1 && powerCount >= 1) return 2; // 1 skill + 1 power
+              return skillCount; // Incomplete
+            }
             default:
               return 0;
           }
