@@ -10,6 +10,8 @@ import {
   RequirementType,
 } from '../../../../../interfaces/Poderes';
 import Equipment from '../../../../../interfaces/Equipment';
+import { allArcaneSpellsCircle1 } from '../../magias/arcane';
+import { Atributo } from '../../atributos';
 
 // Arma natural da Bênção Dracônica: Armamento Kallyanach
 const armaNaturalDraconica: Equipment = {
@@ -97,6 +99,20 @@ const DRACONIC_BLESSINGS: GeneralPower[] = [
         { type: RequirementType.RACA, name: 'Kallyanach' },
         { type: RequirementType.TIER_LIMIT, name: 'Bênção Dracônica' },
       ],
+    ],
+    sheetActions: [
+      {
+        source: {
+          type: 'power',
+          name: 'Bênção Dracônica: Prática Arcana',
+        },
+        action: {
+          type: 'learnSpell',
+          availableSpells: allArcaneSpellsCircle1,
+          pick: 1,
+          customAttribute: Atributo.INTELIGENCIA,
+        },
+      },
     ],
   },
   {
