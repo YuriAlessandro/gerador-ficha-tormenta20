@@ -276,6 +276,18 @@ const CharacterCreationWizardModal: React.FC<
       if (hasOriginRequirements) return true;
     }
 
+    // Check deity granted powers (selected in previous step)
+    if (deity && selections.deityPowers && selections.deityPowers.length > 0) {
+      const selectedDeityPowers = deity.poderes.filter((p) =>
+        selections.deityPowers?.includes(p.name)
+      );
+      const hasDeityRequirements = selectedDeityPowers.some((power) => {
+        const reqs = getPowerSelectionRequirements(power);
+        return reqs !== null;
+      });
+      if (hasDeityRequirements) return true;
+    }
+
     return false;
   };
 
@@ -819,6 +831,8 @@ const CharacterCreationWizardModal: React.FC<
             race={race}
             classe={classe}
             origin={origin}
+            deity={deity}
+            selectedDeityPowers={selections.deityPowers}
             selections={selections.powerEffectSelections || {}}
             onChange={(effectSelections) =>
               setSelections({

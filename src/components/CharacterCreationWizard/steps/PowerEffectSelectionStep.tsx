@@ -29,6 +29,7 @@ import {
 } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
+import Divindade from '@/interfaces/Divindade';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -40,6 +41,8 @@ interface PowerEffectSelectionStepProps {
   race: Race;
   classe: ClassDescription;
   origin?: Origin;
+  deity?: Divindade | null;
+  selectedDeityPowers?: string[];
   selections: SelectionOptions;
   onChange: (selections: SelectionOptions) => void;
   // Optional selected power for level-up wizard
@@ -55,6 +58,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   race,
   classe,
   origin,
+  deity,
+  selectedDeityPowers,
   selections,
   onChange,
   selectedPower,
@@ -154,6 +159,23 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         allRequirements.push({
           powerName: power.name,
           source: 'origin',
+          requirements: reqs.requirements,
+        });
+      }
+    });
+  }
+
+  // Check deity granted powers (if selected)
+  if (deity && selectedDeityPowers && selectedDeityPowers.length > 0) {
+    const deityPowers = deity.poderes.filter((p) =>
+      selectedDeityPowers.includes(p.name)
+    );
+    deityPowers.forEach((power) => {
+      const reqs = getPowerSelectionRequirements(power);
+      if (reqs) {
+        allRequirements.push({
+          powerName: power.name,
+          source: 'origin', // Use 'origin' as source type for deity powers (closest match)
           requirements: reqs.requirements,
         });
       }
@@ -1011,10 +1033,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         abaixo para cada poder:
       </Typography>
 
-      {allRequirements.map((powerReq, powerIndex) => (
+      {allRequirements.map((powerReq) => (
         <Accordion
           key={`${powerReq.source}-${powerReq.powerName}`}
-          defaultExpanded={powerIndex === 0}
+          defaultExpanded={allRequirements.length === 1}
         >
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
