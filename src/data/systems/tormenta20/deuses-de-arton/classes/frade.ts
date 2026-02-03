@@ -279,7 +279,7 @@ const FRADE: ClassDescription = {
     },
   ],
   probDevoto: 0.95,
-  qtdPoderesConcedidos: 3,
+  qtdPoderesConcedidos: 2,
   faithProbability: standardFaithProbability,
   attrPriority: [Atributo.SABEDORIA, Atributo.INTELIGENCIA],
   setup: (classe) => {
