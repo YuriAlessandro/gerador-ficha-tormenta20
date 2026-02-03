@@ -1496,13 +1496,23 @@ export const applyPower = (
           sheet.classe.spellPath?.spellCircleAvailableAtLevel(sheet.nivel) || 1;
 
         let allSpellsOfCircle: Spell[] = [];
-        if (sheetAction.action.allowedType === 'Arcane') {
-          allSpellsOfCircle = getArcaneSpellsOfCircle(highestCircle);
-        } else if (sheetAction.action.allowedType === 'Divine') {
-          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
-        } else {
-          allSpellsOfCircle = getSpellsOfCircle(highestCircle);
+        for (let circle = 1; circle <= highestCircle; circle += 1) {
+          if (sheetAction.action.allowedType === 'Arcane') {
+            allSpellsOfCircle.push(...getArcaneSpellsOfCircle(circle));
+          } else if (sheetAction.action.allowedType === 'Divine') {
+            allSpellsOfCircle.push(...getSpellsOfCircle(circle));
+          } else {
+            // Both - combina arcanas e divinas
+            allSpellsOfCircle.push(...getArcaneSpellsOfCircle(circle));
+            allSpellsOfCircle.push(...getSpellsOfCircle(circle));
+          }
         }
+
+        // Remove duplicatas
+        allSpellsOfCircle = allSpellsOfCircle.filter(
+          (spell, index, array) =>
+            array.findIndex((s) => s.nome === spell.nome) === index
+        );
 
         const allowedSchools = sheetAction.action.schools || [];
         const availableSpells = allSpellsOfCircle.filter((spell) => {
@@ -2853,7 +2863,7 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections
+        selections.powerEffectSelections?.[newPower.name]
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -2895,7 +2905,7 @@ export function applyManualLevelUp(
     const [newSheet, newSubSteps] = applyPower(
       updatedSheet,
       newPower,
-      selections.powerEffectSelections
+      selections.powerEffectSelections?.[newPower.name]
     );
     nSubSteps.push(...newSubSteps);
     if (newSheet) updatedSheet = newSheet;
