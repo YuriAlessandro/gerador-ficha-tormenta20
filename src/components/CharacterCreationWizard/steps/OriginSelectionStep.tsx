@@ -154,12 +154,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           {origin.getItems().length > 0 && (
             <Box>
               <Typography variant='subtitle2'>Itens:</Typography>
-              {origin.getItems().map((item) => {
+              {origin.getItems().map((item, index) => {
+                if (!item.equipment) return null;
                 const itemName =
                   typeof item.equipment === 'string'
                     ? item.equipment
                     : item.equipment.nome;
-                const itemKey = `${itemName}-${item.qtd || 1}`;
+                const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
                 return (
                   <Typography
@@ -296,12 +297,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           <Typography variant='h6' gutterBottom>
             Itens (concedidos automaticamente)
           </Typography>
-          {items.map((item) => {
+          {items.map((item, index) => {
+            if (!item.equipment) return null;
             const itemName =
               typeof item.equipment === 'string'
                 ? item.equipment
                 : item.equipment.nome;
-            const itemKey = `${itemName}-${item.qtd || 1}`;
+            const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
             return (
               <Typography key={itemKey} variant='body2' color='text.secondary'>
