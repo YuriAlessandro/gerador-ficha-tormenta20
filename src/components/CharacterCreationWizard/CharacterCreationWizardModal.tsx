@@ -329,7 +329,8 @@ const CharacterCreationWizardModal: React.FC<
       classe.name === 'Arcanista' ||
       classe.name === 'Bardo' ||
       classe.name === 'Druida' ||
-      classe.name === 'Clérigo'
+      classe.name === 'Clérigo' ||
+      classe.name === 'Frade'
     );
   };
 
@@ -384,6 +385,9 @@ const CharacterCreationWizardModal: React.FC<
       return { spellType: 'Divine', initialSpells: 2 };
     }
     if (classe.name === 'Clérigo') {
+      return { spellType: 'Divine', initialSpells: 3 };
+    }
+    if (classe.name === 'Frade') {
       return { spellType: 'Divine', initialSpells: 3 };
     }
 
@@ -752,6 +756,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            classe={classe}
           />
         );
 
