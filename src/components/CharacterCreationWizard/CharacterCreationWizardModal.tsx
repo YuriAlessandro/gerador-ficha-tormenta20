@@ -175,15 +175,26 @@ const CharacterCreationWizardModal: React.FC<
   }, [supplements, selectedOptions.origin]);
 
   // Memoize deity to prevent infinite re-renders (used as useEffect dependency)
-  const deity: Divindade | null = useMemo(
-    () =>
-      selectedOptions.devocao?.value
-        ? DivindadeEnum[
-            selectedOptions.devocao.value as keyof typeof DivindadeEnum
-          ] || null
-        : null,
-    [selectedOptions.devocao?.value]
-  );
+  // Use registry to get deity with supplement powers merged
+  const deity: Divindade | null = useMemo(() => {
+    if (!selectedOptions.devocao?.value) return null;
+
+    // First try to get deity name from DivindadeEnum
+    const baseDeity =
+      DivindadeEnum[
+        selectedOptions.devocao.value as keyof typeof DivindadeEnum
+      ];
+
+    if (!baseDeity) return null;
+
+    // Get the deity with supplement powers from registry
+    const deityWithPowers = dataRegistry.getDeityByName(
+      baseDeity.name,
+      supplements
+    );
+
+    return deityWithPowers || baseDeity;
+  }, [selectedOptions.devocao?.value, supplements]);
 
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
@@ -820,6 +831,7 @@ const CharacterCreationWizardModal: React.FC<
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
             schools={selections.spellSchools}
+            supplements={supplements}
           />
         );
       }

@@ -15,8 +15,8 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Spell, SpellSchool } from '@/interfaces/Spells';
-import { arcaneSpellsCircle1 } from '@/data/systems/tormenta20/magias/arcane';
-import { divineSpellsCircle1 } from '@/data/systems/tormenta20/magias/divine';
+import { dataRegistry } from '@/data/registry';
+import { SupplementId } from '@/types/supplement.types';
 
 interface InitialSpellSelectionStepProps {
   selectedSpells: Spell[];
@@ -25,6 +25,7 @@ interface InitialSpellSelectionStepProps {
   className: string;
   spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
+  supplements?: SupplementId[];
 }
 
 const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
@@ -34,9 +35,16 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   className,
   spellType,
   schools,
+  supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
-  // Get available spells based on type and schools
+  // Get available spells based on type, schools, and supplements
   const availableSpells = useMemo(() => {
+    // Get spells from registry (includes supplements)
+    const spellsByCircle =
+      dataRegistry.getSpellsCircle1BySupplements(supplements);
+    const arcaneSpellsCircle1 = spellsByCircle.arcane;
+    const divineSpellsCircle1 = spellsByCircle.divine;
+
     let spellList: Spell[] = [];
 
     if (spellType === 'Arcane') {
@@ -87,7 +95,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
 
     // Sort alphabetically
     return uniqueSpells.sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [spellType, schools]);
+  }, [spellType, schools, supplements]);
 
   const handleToggle = (spell: Spell) => {
     const isSelected = selectedSpells.some((s) => s.nome === spell.nome);

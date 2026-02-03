@@ -478,7 +478,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const { type, pick, label } = requirement;
     const allAvailableOptions = getFilteredAvailableOptions(
       requirement,
-      sheetForFiltering
+      sheetForFiltering,
+      supplements
     );
 
     // Get search query for this requirement
@@ -682,7 +683,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Filter available spells (exclude already known)
       const filteredSpells = getFilteredAvailableOptions(
         nestedReq,
-        sheetForFiltering
+        sheetForFiltering,
+        supplements
       ) as Spell[];
 
       const nestedSearchKey = `nested-${nestedPower.name}-spell`;
