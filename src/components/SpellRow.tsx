@@ -196,7 +196,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
                 sx={{ marginBottom: '8px' }}
               >
                 <strong style={{ color: theme.palette.primary.main }}>
-                  {aprimoramento.addPm === 0
+                  {aprimoramento.trick
                     ? 'Truque:'
                     : `+${aprimoramento.addPm} PM:`}
                 </strong>{' '}
