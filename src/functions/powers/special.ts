@@ -26,6 +26,26 @@ export function applyHumanoVersatil(
   const hasManualPowers =
     manualSelections?.powers && manualSelections.powers.length > 0;
 
+  // Check if Versátil was already applied (to avoid re-applying during recalculation)
+  // We look for existing steps that mention "Versátil"
+  const versatilAlreadyApplied = sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Versátil'
+      )
+  );
+
+  // If Versátil was already applied and we don't have manual selections,
+  // skip re-applying to avoid random selection during recalculation
+  if (versatilAlreadyApplied && !hasManualSkills && !hasManualPowers) {
+    return substeps;
+  }
+
   // First skill (always required)
   let firstSkill: Skill;
   if (hasManualSkills) {
