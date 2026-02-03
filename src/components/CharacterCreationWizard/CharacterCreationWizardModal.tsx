@@ -204,16 +204,22 @@ const CharacterCreationWizardModal: React.FC<
 
     // Add racial modifier for Intelligence
     let racialModifier = 0;
+
+    // Count fixed modifiers for INT
     race.attributes.attrs.forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
         racialModifier += attr.mod;
-      } else if (
-        attr.attr === 'any' &&
-        selections.raceAttributes?.includes(Atributo.INTELIGENCIA)
-      ) {
-        racialModifier += attr.mod;
       }
     });
+
+    // For 'any' attributes: add the bonus only if INT was selected
+    // and only once (using the mod from the first 'any' found)
+    if (selections.raceAttributes?.includes(Atributo.INTELIGENCIA)) {
+      const anyAttr = race.attributes.attrs.find((attr) => attr.attr === 'any');
+      if (anyAttr) {
+        racialModifier += anyAttr.mod;
+      }
+    }
 
     return baseModifier + racialModifier;
   };
