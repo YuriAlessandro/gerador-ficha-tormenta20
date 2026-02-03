@@ -107,12 +107,17 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     );
 
     // Create a sheet with the class that has supplement powers for filtering
+    // Ensure proficiencias is always available from the class definition or simulatedSheet
     const sheetForFiltering: CharacterSheet = classWithSupplementPowers
       ? {
           ...simulatedSheet,
           classe: {
             ...simulatedSheet.classe,
             powers: classWithSupplementPowers.powers,
+            proficiencias:
+              simulatedSheet.classe.proficiencias ||
+              classWithSupplementPowers.proficiencias ||
+              [],
           },
         }
       : simulatedSheet;
