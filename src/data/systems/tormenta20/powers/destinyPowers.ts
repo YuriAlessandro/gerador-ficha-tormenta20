@@ -285,9 +285,7 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     description:
       'Uma vez por rodada, você pode gastar 5 PM para realizar uma ação padrão ou de movimento adicional.',
     type: GeneralPowerType.DESTINO,
-    requirements: [
-      [{ type: RequirementType.ATRIBUTO, name: 'Inteligência', value: 1 }],
-    ],
+    requirements: [],
   },
   TORCIDA: {
     name: 'Torcida',

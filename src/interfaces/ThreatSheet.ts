@@ -67,6 +67,13 @@ export enum ChallengeTier {
   L_PLUS = 'L+',
 }
 
+export type ThreatActionType =
+  | 'Padrão'
+  | 'Movimento'
+  | 'Completa'
+  | 'Livre'
+  | 'Reação';
+
 export interface ThreatAttack {
   id: string;
   name: string;
@@ -91,7 +98,12 @@ export interface ThreatAbility {
   description: string;
   category?: string;
   rolls?: AbilityRoll[];
+  pmCost?: number;
+  actionType?: ThreatActionType;
 }
+
+// Magias usam a mesma estrutura que habilidades
+export type ThreatSpell = ThreatAbility;
 
 export interface ThreatAttributes {
   [Atributo.FORCA]: number | '-';
@@ -158,6 +170,9 @@ export interface ThreatSheet {
 
   // Habilidades selecionadas
   abilities: ThreatAbility[];
+
+  // Magias
+  spells: ThreatSpell[];
 
   // Atributos e perícias
   attributes: ThreatAttributes;
