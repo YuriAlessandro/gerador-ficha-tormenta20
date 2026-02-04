@@ -462,17 +462,19 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
           ? existingTraining // Manually trained - preserve
           : baseTraining; // Use base calculation
 
-      // Preserve existing 'others' value completely
-      // This keeps any manual edits intact
-      // Note: armor penalty was already calculated when the skill was first created
-      // or when the user manually edited it
-      const existingOthers = skill.others || 0;
+      // Reset 'others' to base value (armor penalty only)
+      // This prevents accumulation of bonuses from sheetBonuses
+      // The sheetBonuses (from race abilities, powers, etc.) will be reapplied
+      // after this function is called
+      const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill.name);
+      const baseOthers =
+        isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0;
 
       return {
         ...skill,
         halfLevel: Math.floor(updatedSheet.nivel / 2),
         training: finalTraining,
-        others: existingOthers,
+        others: baseOthers,
       };
     });
   } else {

@@ -49,6 +49,14 @@ import {
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
 import { applyGolemDespertoCustomization } from '@/data/systems/tormenta20/ameacas-de-arton/races/golem-desperto';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '@/data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
+import {
+  DUENDE_SIZES,
+  DUENDE_SIZE_NAMES,
+  DUENDE_NATURES,
+  DUENDE_NATURE_NAMES,
+} from '@/data/systems/tormenta20/herois-de-arton/races/duende-config';
+import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
+import Skill from '@/interfaces/Skills';
 import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
 import {
@@ -81,6 +89,9 @@ interface EditedData {
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
   suragelAbility: string | undefined; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  duendeNature: string | undefined; // For Duende (animal/vegetal/mineral)
+  duendePresentes: string[] | undefined; // For Duende (3 selected powers)
+  duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
   className: string;
   originName: string;
   deityName: string;
@@ -165,6 +176,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
     suragelAbility: sheet.suragelAbility,
+    duendeNature: sheet.duendeNature || sheet.raca.nature,
+    duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
+    duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
@@ -227,6 +241,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
       suragelAbility: sheet.suragelAbility,
+      duendeNature: sheet.duendeNature || sheet.raca.nature,
+      duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
+      duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -534,6 +551,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
       suragelAbility: editedData.suragelAbility,
+      duendeNature: editedData.duendeNature,
+      duendePresentes: editedData.duendePresentes,
+      duendeTabuSkill: editedData.duendeTabuSkill,
       customPVPerLevel: editedData.customPVPerLevel,
       customPMPerLevel: editedData.customPMPerLevel,
       bonusPV: editedData.bonusPV,
@@ -847,7 +867,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           editedData.raceEnergySource !== sheet.raceEnergySource ||
           editedData.raceSizeCategory !== sheet.raceSizeCategory)) ||
       (editedData.raceName.startsWith('Suraggel') &&
-        editedData.suragelAbility !== sheet.suragelAbility);
+        editedData.suragelAbility !== sheet.suragelAbility) ||
+      (editedData.raceName === 'Duende' &&
+        (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
+          editedData.duendeNature !== sheet.duendeNature));
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
@@ -922,6 +945,30 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                 };
               }
             }
+          }
+        }
+
+        // For Duende, apply customization
+        if (
+          editedData.raceName === 'Duende' &&
+          editedData.duendeNature &&
+          editedData.raceSizeCategory
+        ) {
+          newRace = applyDuendeCustomization(
+            newRace,
+            editedData.duendeNature,
+            editedData.raceSizeCategory,
+            sheet.raceAttributeChoices || [],
+            editedData.duendePresentes || [],
+            (editedData.duendeTabuSkill as Skill) || Skill.DIPLOMACIA
+          );
+
+          // Update displacement and size based on customization
+          if (newRace.getDisplacement) {
+            updates.displacement = newRace.getDisplacement(newRace);
+          }
+          if (newRace.size) {
+            updates.size = newRace.size;
           }
         }
 
@@ -1132,6 +1179,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
       suragelAbility: sheet.suragelAbility,
+      duendeNature: sheet.duendeNature || sheet.raca.nature,
+      duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
+      duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -1720,6 +1770,51 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         </Select>
                       </FormControl>
                     )}
+
+                  {/* Duende Customization - Only show for Duende race */}
+                  {editedData.raceName === 'Duende' && (
+                    <>
+                      <FormControl fullWidth>
+                        <InputLabel>Natureza</InputLabel>
+                        <Select
+                          value={editedData.duendeNature || 'animal'}
+                          label='Natureza'
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              duendeNature: e.target.value as string,
+                            })
+                          }
+                        >
+                          {DUENDE_NATURE_NAMES.map((natureId) => (
+                            <MenuItem key={natureId} value={natureId}>
+                              {DUENDE_NATURES[natureId].displayName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <FormControl fullWidth>
+                        <InputLabel>Tamanho</InputLabel>
+                        <Select
+                          value={editedData.raceSizeCategory || 'medio'}
+                          label='Tamanho'
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              raceSizeCategory: e.target.value as string,
+                            })
+                          }
+                        >
+                          {DUENDE_SIZE_NAMES.map((sizeId) => (
+                            <MenuItem key={sizeId} value={sizeId}>
+                              {DUENDE_SIZES[sizeId].displayName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </>
+                  )}
 
                   {/* Race Fixed Attributes - Always show if race has fixed attributes */}
                   {fixedAttributes.length > 0 && anyAttributeCount === 0 && (

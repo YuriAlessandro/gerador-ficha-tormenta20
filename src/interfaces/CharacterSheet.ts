@@ -310,6 +310,9 @@ export default interface CharacterSheet {
   raceEnergySource?: string; // For Golem Desperto
   raceSizeCategory?: string; // For Golem Desperto (pequeno/medio/grande)
   suragelAbility?: string; // For Suraggel (Aggelus/Sulfure) alternative abilities
+  duendeNature?: string; // For Duende (animal/vegetal/mineral)
+  duendePresentes?: string[]; // For Duende (3 selected powers)
+  duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
