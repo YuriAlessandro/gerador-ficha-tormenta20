@@ -298,7 +298,7 @@ const Row: React.FC<{ spell: MergedSpell; defaultOpen: boolean }> = ({
                         )}`}
                       >
                         <strong>
-                          {apr.addPm === 0 ? 'TRUQUE' : `+${apr.addPm} PM`}:
+                          {apr.trick ? 'TRUQUE' : `+${apr.addPm} PM`}:
                         </strong>{' '}
                         {apr.text}
                       </li>

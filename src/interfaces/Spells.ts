@@ -2,6 +2,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DiceRoll } from './DiceRoll';
 
 export interface Aprimoramento {
+  trick?: boolean;
   addPm: number;
   text: string;
 }

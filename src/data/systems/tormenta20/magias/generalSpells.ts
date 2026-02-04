@@ -240,6 +240,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
 
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'o alimento é purificado (não causa nenhum efeito nocivo se estava estragado ou envenenado), mas não fornece bônus ao ser consumido.',
       },
@@ -578,6 +579,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Você invoca espíritos da natureza, pedindo que eles abram seu caminho. As criaturas afetadas recebem deslocamento +3m e ignoram penalidades por terreno difícil em terrenos naturais.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para pessoal e o alvo para você. Em vez do normal, você recebe +5 em testes de Sobrevivência para se orientar.',
       },
@@ -601,7 +603,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     resistencia: 'Vontade anula',
     school: 'Encan',
     description:
-      'Você dá uma ordem irresistível, que o alvo deve ser capaz de ouvir (mas não precisa entender). Se falhar na resistência, ele deve obedecer ao comando em seu próprio turno da melhor maneira possível. Escolha um dos efeitos: Fuja. O alvo se afasta de você de qualquer forma. Largue. O alvo solta qualquer coisa que estiver segurando. Pare. O alvo fica paralisado. Senta. O alvo fica caído. Venha. O alvo se aproxima de você de qualquer forma.',
+      'Você dá uma ordem irresistível, que o alvo deve ser capaz de ouvir (mas não precisa entender). Se falhar na resistência, ele deve obedecer ao comando em seu próprio turno da melhor maneira possível. Escolha um dos efeitos. Fuja: o alvo gasta seu turno se afastando de você (usando todas as suas ações). Largue: o alvo solta quaisquer itens que esteja segurando e não pode pegá-los novamente até o início de seu próximo turno. Como esta é uma ação livre, ele ainda pode executar outras ações (exceto pegar aquilo que largou). Pare: o alvo fica pasmo (apenas uma vez por cena). Senta: com uma ação livre, o alvo senta no chão (se estava pendurado ou voando, desce até o chão). Ele pode fazer outras ações, mas não se levantar até o início de seu próximo turno. Venha: o alvo gasta seu turno se aproximando de você (usando todas as suas ações).',
     aprimoramentos: [
       {
         addPm: 1,
@@ -793,6 +795,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Esta magia só pode ser lançada em uma área com vegetação. As plantas se enroscam nas criaturas da área. Aquelas que falharem na resistência ficam enredadas. Uma vítima pode se libertar com uma ação padrão e um teste de Acrobacia ou Atletismo. Além disso, a área é considerada terreno difícil. No início de seus turnos, a vegetação tenta enredar novamente qualquer criatura na área, exigindo um novo teste de Reflexos.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda a área para alvo de 1 planta e a resistência para nenhuma. Em vez do normal, você pode fazer a planta se mover como se fosse animada. Ela não pode causar dano ou atrapalhar a concentração de um conjurador.',
       },
@@ -912,6 +915,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     ],
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alvo para 1 morto-vivo. Em vez do normal, causa 1d8 pontos de dano de luz (Vontade reduz à metade).',
       },
@@ -1012,6 +1016,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Você muda a aparência do alvo, incluindo seu equipamento. Isso inclui altura, peso, tom de pele, cor de cabelo, timbre de voz etc. O alvo recebe +10 em testes de Enganação para disfarce. O alvo não recebe novas habilidades (você pode ficar parecido com outra raça, mas não ganhará as habilidades dela), nem modifica o equipamento (uma espada longa disfarçada de bordão continua funcionando e causando dano como uma espada).',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para toque, o alvo para 1 criatura e a duração para 1 semana. Em vez do normal, você faz uma pequena alteração na aparência do alvo, como deixar o nariz vermelho ou fazer brotar um gerânio no alto da cabeça. A mudança é inofensiva, mas persistente — se a flor for arrancada, por exemplo, outra nascerá no local.',
       },
@@ -1146,6 +1151,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     ],
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para curto, a área para alvo de 1 objeto e a resistência para Reflexos anula. Você gera uma pequena explosão que não causa dano mas pode acender uma vela, tocha ou fogueira. Também pode fazer um objeto inflamável com RD 0 (como uma corda ou pergaminho) ficar em chamas. Uma criatura em posse de um objeto pode evitar esse efeito se passar no teste de resistência.',
       },
@@ -1172,6 +1178,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Suas palavras e movimentos ritmados deixam o alvo fascinado. Esta magia só afeta criaturas que possam perceber você. Se usar esta magia em combate, o alvo recebe +5 em seu teste de resistência. Se a criatura passar, fica imune a este efeito por um dia.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda a duração para 1 rodada. Em vez de fascinado, o alvo fica pasmo (apenas uma vez por cena).',
       },
@@ -1505,6 +1512,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'O alvo cai lentamente. A velocidade da queda é reduzida para 18m por rodada — o suficiente para não causar dano. Como lançar esta magia é uma reação, você pode lançá-la rápido o bastante para salvar a si ou um aliado de quedas inesperadas. Lançada sobre um projétil — como uma flecha ou uma rocha largada do alto de um penhasco —, a magia faz com que ele cause metade do dano normal, devido à lentidão. Queda Suave só funciona em criaturas e objetos em queda livre; a magia não vai frear um golpe de espada ou o mergulho rasante de um atacante voador.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alvo para objeto Minúsculo. Em vez do normal, você pode gastar uma ação de movimento para levitar o alvo até 4,5m em qualquer direção.',
       },
@@ -1531,6 +1539,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Você dispara um raio púrpura que drena as forças do alvo. Se falhar na resistência, o alvo fica fatigado. Se passar, fica vulnerável. Note que, como efeitos de magia não acumulam, lançar esta magia duas vezes contra o mesmo alvo não irá deixá-lo exausto.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para toque e a resistência para Fortitude anula. Em vez do normal, sua mão emana um brilho púrpura e, ao tocar o alvo, ele fica fatigado.',
       },
@@ -1754,6 +1763,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'Esta magia tranca uma porta ou outro item que possa ser aberto ou fechado (como um baú, caixa etc.), aumentando a CD de testes de Força ou Ladinagem para abri-lo em +10. Você pode abrir livremente sua própria tranca sem problemas. Componente material: chave de bronze no valor de T$ 25.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para curto. Em vez do normal, pode abrir ou fechar um objeto de tamanho Médio ou menor, como uma porta ou baú. Não afeta objetos trancados.',
       },
@@ -1809,6 +1819,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       'A magia transforma matéria bruta para moldar um novo objeto. Você pode usar matéria-prima mundana para criar um objeto de tamanho Pequeno ou menor e preço máximo de T$ 25, como um balde ou uma espada. O objeto reverte à matéria-prima no final da cena, ou se for tocado por um objeto feito de chumbo. Esta magia não pode ser usada para criar objetos consumíveis, como alimentos ou itens alquímicos, nem objetos com mecanismos complexos, como bestas ou armas de fogo. Transmutar Objetos anula Despedaçar.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alvo para 1 objeto mundano Minúsculo (ou material em quantidade equivalente) e a duração para instantânea. Em vez do normal, você pode alterar as propriedades físicas do alvo, como colorir, limpar ou sujar itens pequenos (incluindo peças de roupa), aquecer, esfriar e/ou temperar (mas não produzir) ou curar 1 PV do objeto, consertando pequenas falhas como colar um frasco de cerâmica quebrado, unir os elos de uma corrente ou costurar uma roupa rasgada. Um objeto só pode ser afetado por este truque uma vez por dia.',
       },
@@ -1826,7 +1837,11 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 5,
-        text: 'muda o alvo para 1 objeto mundano e a duração para instantânea. Em vez do normal, você pode extrapolar a matéria-prima de um objeto, reduzindo-o à sua forma bruta. Por exemplo, pode transformar uma espada em uma barra de ferro, ou uma porta em tábuas de madeira. Requer 3º círculo.',
+        text: 'muda o alvo para 1 objeto mundano e a duração para instantânea. Em vez do normal, você cura todos os PV do alvo, restaurando o objeto totalmente. Este aprimoramento está sujeito aos limites de tamanho e preço do objeto conforme a magia original e não funciona se o objeto tiver sido completamente destruído (queimado até virar cinzas ou desintegrado, por exemplo). Requer 3º círculo.',
+      },
+      {
+        addPm: 9,
+        text: 'como o aprimoramento anterior, mas passa a afetar itens mágicos.',
       },
     ],
   },
@@ -1839,19 +1854,19 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Cena',
     school: 'Adiv',
     description:
-      'Você consegue enxergar auras mágicas de criaturas, objetos e áreas. Você pode gastar uma ação de movimento para se concentrar e descobrir se um objeto ou criatura é mágico (ou se está sob um efeito mágico), além de identificar a magia (como se fizesse um teste de Misticismo). Se concentrar-se na mesma criatura ou objeto por 3 rodadas, você também descobre a intensidade da aura (fraca, moderada, forte ou avassaladora, de acordo com o círculo máximo da magia ou efeito): 1º círculo é fraca, 2º e 3º são moderadas, 4º é forte e 5º é avassaladora. No caso de itens, efeitos permanentes contam como 5º círculo.',
+      'Seus olhos brilham com uma luz azul e passam a enxergar auras mágicas. Este efeito é similar ao uso de Misticismo para detectar magia, mas você detecta todas as auras mágicas em alcance médio e recebe todas as informações sobre elas sem gastar ações. Além disso, você pode gastar uma ação de movimento para descobrir se uma criatura que possa perceber em alcance médio é capaz de lançar magias e qual a aura gerada pelas magias de círculo mais alto que ela pode lançar.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'muda a execução para ação de movimento.',
+        text: 'recebe visão no escuro.',
       },
       {
         addPm: 2,
-        text: 'além do normal, você enxerga objetos e criaturas invisíveis.',
+        text: 'amuda a duração para um dia.',
       },
       {
         addPm: 2,
-        text: 'muda a duração para um dia.',
+        text: 'também pode enxergar objetos e criaturas invisíveis. Eles aparecem como formas translúcidas.',
       },
     ],
   },
@@ -1864,19 +1879,15 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
     duracao: 'Instantânea',
     school: 'Necro',
     description:
-      'Você recebe 2d10 pontos de vida temporários. O máximo de PV temporários que você pode ter com esta magia é igual ao seu nível.',
+      'Você suga energia vital da terra, recebendo 2d10 pontos de vida temporários. Os PV temporários desaparecem ao final da cena.',
     aprimoramentos: [
       {
         addPm: 2,
-        text: 'aumenta os PV temporários em +1d10, extrapola o limite de PV temporários pelo mesmo valor e muda o limite máximo de PV temporários para o dobro do seu nível.',
+        text: ' aumenta os PV temporários recebidos em +1d10. Caso a magia cause dano, em vez disso aumenta o dano causado em +1d10.',
       },
       {
-        addPm: 2,
-        text: 'muda a duração para cena. Você recebe +2 na Defesa.',
-      },
-      {
-        addPm: 3,
-        text: 'muda o alcance para curto e o alvo para criaturas escolhidas. Você pode usar esse aprimoramento uma vez por cena. Requer 3º círculo.',
+        addPm: 5,
+        text: 'muda o alvo para área: esfera com 6m de raio centrada em você e a resistência para Fortitude reduz à metade. Em vez do normal, você suga energia das criaturas vivas na área, causando 1d10 pontos de dano de trevas e recebendo PV temporários iguais ao dano total causado. Os PV temporários desaparecem ao final da cena. Requer 2º círculo.',
       },
     ],
   },
@@ -2076,6 +2087,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       'Esta magia pode encontrar uma criatura ou objeto a sua escolha. Você pode pensar em termos gerais (“um elfo”, “algo de metal”) ou específicos (“Gwen, a elfa”, “uma espada longa”). A magia indica a direção e distância da criatura ou objeto mais próximo desse tipo, caso esteja ao alcance. Você pode movimentar-se para continuar procurando. Procurar algo muito específico (“a espada longa encantada do Barão Rulyn”) exige que você tenha em mente uma imagem precisa do objeto; caso a imagem não seja muito próxima da verdade, a magia falha, mas você gasta os PM mesmo assim. Esta magia pode ser bloqueada por uma fina camada de chumbo.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda a área para alvo você. Em vez do normal, você sabe onde fica o norte e recebe +5 em testes de Sobrevivência para se orientar.',
       },
@@ -2217,7 +2229,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     resistencia: 'Vontade parcial',
     school: 'Encan',
     description:
-      'Humanoides na área são acometidos de grande tristeza, adquirindo as condições fraco e frustrado. Se passarem na resistência, adquirem essas condições por uma rodada.',
+      'Humanoides na área são acometidos de grande tristeza, ficando fracos e frustrados até o fim da cena (ou por uma rodada, se passarem no teste de resistência)',
     aprimoramentos: [
       {
         addPm: 2,
@@ -2643,12 +2655,16 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       'O alvo pode realizar uma ação de movimento adicional em seu turno. Essa ação de movimento não pode ser usada para lançar magias.',
     aprimoramentos: [
       {
-        addPm: 5,
-        text: 'muda o alvo para criaturas escolhidas. Requer 3º círculo.',
+        addPm: 0,
+        text: 'muda a duração para cena. A ação adicional que você pode fazer é apenas de movimento. Uma criatura só pode receber uma ação adicional por turno como efeito de Velocidade.',
       },
       {
         addPm: 7,
-        text: 'muda a ação de movimento em ação padrão. Essa ação padrão pode ser usada para lançar magias (mas não para usar Velocidade novamente). Requer 4º círculo.',
+        text: 'muda o alvo para criaturas escolhidas no alcance. Requer 4º círculo',
+      },
+      {
+        addPm: 7,
+        text: ' muda o alcance para pessoal e o alvo para você. Você acelera sua mente, além de seu corpo. A ação adicional pode ser usada para lançar magias e ativar engenhocas. Requer 4º círculo.',
       },
     ],
   },
@@ -2683,23 +2699,23 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     nome: 'Vestimenta da Fé',
     execucao: 'Padrão',
     alcance: 'Toque',
-    alvo: '1 traje, armadura ou escudo',
-    duracao: 'Cena',
+    alvo: '1 armadura, escudo ou vestuário',
+    duracao: '1 dia',
     school: 'Abjur',
     description:
-      'Você abençoa uma vestimenta, armadura ou escudo, transformando-a em um símbolo de sua fé. Um traje se torna uma armadura que fornece +5 na Defesa (para um total de Defesa 15). Se lançada sobre uma armadura ou escudo mundanos, você pode substituir seu bônus na Defesa pelo bônus de sua Sabedoria (se for maior). Em qualquer caso, o item abençoado também fornece redução de trevas 10. Você pode lançar esta magia como uma reação, caso seja alvo de um ataque ou de um efeito que exija um teste de Reflexos. Neste caso, o bônus de Sabedoria na Defesa se aplica imediatamente contra esse ataque ou efeito.',
+      'Você fortalece um item, aumentando o bônus de Defesa de uma armadura ou escudo em +2. No caso de um vestuário, ele passa a oferecer +2 na Defesa (não cumulativo com armadura). Os efeitos desta magia contam como um bônus de encanto.',
     aprimoramentos: [
       {
-        addPm: 1,
-        text: 'o alvo também se torna extravagante. Um estandarte, manto ou tabardo estampado com o símbolo de sua divindade aparece sobre o alvo, exteriorizando sua devoção mesmo sob uma armadura. Você recebe +2 em Diplomacia e Intimidação.',
-      },
-      {
-        addPm: 2,
-        text: 'você pode gastar 1 PM quando um aliado adjacente sofre dano para transferir o dano a você. Este dano ignora qualquer forma de redução de dano que você possua. Você pode usar esta habilidade mesmo se já tiver usado uma reação nesta rodada.',
-      },
-      {
         addPm: 3,
-        text: 'aumenta a redução de trevas em +5.',
+        text: 'o objeto oferece o mesmo bônus em testes de resistência. Requer 3º círculo.',
+      },
+      {
+        addPm: 4,
+        text: 'aumenta o bônus em +1.',
+      },
+      {
+        addPm: 7,
+        text: 'o objeto também oferece redução de dano 5. Requer 4º círculo.',
       },
     ],
   },
@@ -2791,15 +2807,15 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     duracao: 'Cena',
     school: 'Adiv',
     description:
-      'Você fortalece os laços com sua divindade, clamando por sua palavra. Você consegue falar com a criatura alvo pela duração da magia, uma conversa mental. Se quiser falar com a criatura novamente após a duração, deve lançar esta magia de novo. Esta magia não permite que você veja a criatura (embora você saiba se ela está viva ou morta) e não funciona entre planos.',
+      'Você pode conversar com criaturas de qualquer raça e tipo: animal, construto, espírito, humanoide, monstro ou morto-vivo. Pode fazer perguntas e entende suas respostas, mesmo sem um idioma em comum ou se a criatura não for capaz de falar, mas respeitando os limites da Inteligência dela. A atitude dessas criaturas não é alterada, mas você pode usar a perícia Diplomacia para tentar mudar sua atitude.',
     aprimoramentos: [
       {
         addPm: 1,
-        text: 'aumenta o número de alvos em +1.',
+        text: ' você concede um pouco de dvida a um cadáver, suficiente para que ele responda a suas perguntas. O conhecimento do corpo é limitado ao que ele tinha enquanto vivo e suas respostas são curtas e enigmáticas. Um corpo só pode ser alvo desta magia uma vez. Ela também não funciona em um corpo cuja cabeça tenha sido destruída.',
       },
       {
-        addPm: 5,
-        text: 'além do normal, você pode ver e ouvir através da criatura alvo, como se estivesse onde ela está. Requer 3º círculo.',
+        addPm: 1,
+        text: 'você pode falar com plantas (normais ou monstruosas) e rochas. Plantas e rochas têm percepção limitada de seus arredores e normalmente fornecem respostas simplórias.',
       },
     ],
   },
@@ -2897,7 +2913,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     duracao: 'Sustentada',
     school: 'Encan',
     description:
-      'Você e os seus aliados no alcance recebem +2 em testes de perícia e rolagens de dano, e todos os seus inimigos no alcance sofrem –2 em testes de perícia e rolagens de dano. Esse efeito é cumulativo com outras magias. Componente material: T$ 25 por PM gasto em incensos ou outras oferendas.',
+      'Você e os seus aliados no alcance recebem +2 em testes de perícia e rolagens de dano, e todos os seus inimigos no alcance sofrem –2 em testes de perícia e rolagens de dano. Esse efeito é cumulativo com outras magias. Componente material: T$ 20 por PM gasto em incensos ou outras oferendas.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -2985,6 +3001,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
       'Você canaliza uma poderosa rajada de energia positiva que ilumina o campo de batalha. Criaturas na área sofrem 4d8 pontos de dano de luz (ou 4d12, se forem mortos-vivos) e ficam ofuscadas por uma rodada. Se passarem na resistência, sofrem metade do dano e não ficam ofuscadas.',
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda a duração para cena e a resistência para nenhuma. Em vez do normal, cria um facho de luz que ilumina a área da magia. Uma vez por rodada, você pode mudar a direção do facho como uma ação livre.',
       },
@@ -3081,6 +3098,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     ],
     aprimoramentos: [
       {
+        trick: true,
         addPm: 0,
         text: 'muda o alcance para toque, a área para alvo (1 criatura com 0 PV ou menos), a duração para instantânea, a resistência para Fortitude anula e adiciona componente material (pó de ônix no valor de T$ 10). Em vez do normal, você canaliza o Miasma contra uma vítima. Se falhar na resistência, ela morre e você recebe +2 na CD de suas magias por um dia. Se passar, fica imune a este truque por um dia.',
       },
@@ -3300,13 +3318,8 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     duracao: 'Sustentada',
     school: 'Adiv',
     description:
-      'Esta magia cria um sensor mágico, semelhante a um pequeno globo ocular, que aparece próximo ao alvo. Através da vidência, você vê e ouve o alvo e tudo em volta dele, como se estivesse em seu lugar. O alvo tem direito a um teste de Vontade para resistir à magia. Se passar, você não poderá usar Vidência sobre ele pelo resto do dia. Se falhar, o alvo pode fazer um teste de Percepção (CD 25) para notar a presença do sensor. Alguns modificadores se aplicam ao teste de resistência do alvo, de acordo com o conhecimento que você tem dele e conexões físicas (como uma mecha de cabelo). Conhecimento: Nenhum: +10 na CD do teste. Indireto (ouviu falar): +5. Direto (já encontrou): +0. Familiar (conhece bem): –5. Conexão: Retrato (ou semelhante): –2. Posse ou peça de roupa: –4. Parte do corpo: –10.',
-    aprimoramentos: [
-      {
-        addPm: 5,
-        text: 'muda a área de alvo para esfera com 9m de raio. Em vez de conjurar um sensor sobre uma criatura, você pode conjurar uma esfera de observação numa área (como uma sala ou uma parte da floresta). Nesse caso, a magia não sofre os modificadores acima. Você pode mover a esfera de observação 9m usando uma ação de movimento.',
-      },
-    ],
+      'Através de uma superfície reflexiva (bacia de água benta para clérigos, lago para druidas, bola de cristal para magos, espelho para feiticeiros etc.) você pode ver e ouvir uma criatura escolhida e seus arredores (cerca de 6m em qualquer direção), mesmo que ela se mova. O alvo pode estar a qualquer distância, mas se passar em um teste de Vontade, a magia falha. A vítima recebe bônus ou penalidades em seu teste de resistência, dependendo do conhecimento que você tiver dela. • Não conhece o alvo: +10. • Ouviu falar do alvo: +5. • O alvo está em outro plano ou mundo: +5. • Já encontrou o alvo pessoalmente: +0. • Tem uma pintura, escultura ou outra representação do alvo: –2. • Conhece bem o alvo: –5. • Tem um pertence pessoal ou peça de roupa do alvo: –5. • Tem uma parte do corpo do alvo (unhas, cabelos...): –10',
+    aprimoramentos: [],
   },
   [spellsCircle3Names.convocacaoInstantenea]: {
     spellCircle: spellsCircles.c3,
@@ -3592,7 +3605,7 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     resistencia: 'Fortitude parcial',
     school: 'Necro',
     description:
-      'O sangue do alvo aquece até entrar em ebulição. Quando a magia é lançada, e no início de cada um de seus turnos, o alvo sofre 4d8 pontos de dano de fogo e fica enjoado por uma rodada (Fortitude reduz o dano à metade e evita a condição). Esta magia não afeta criaturas sem sangue.',
+      'O sangue do alvo aquece até entrar em ebulição. Quando a magia é lançada, e no início de cada um de seus turnos, o alvo sofre 4d8 pontos de dano de fogo e fica enjoado por uma rodada (Fortitude reduz o dano à metade e evita a condição). Se o alvo passar em dois testes de Fortitude seguidos, dissipa a magia. Se o alvo for reduzido a 0 PV pelo dano desta magia, seu corpo explode, matando-o e causando 6d6 pontos de dano de fogo em todas as criaturas a até 3m (Reflexos reduz à metade). Essa magia não afeta criaturas sem sangue, como construtos ou mortos-vivos.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -3701,24 +3714,24 @@ export const spellsCircle3: Record<spellsCircle3Names, Spell> = {
     spellCircle: spellsCircles.c3,
     nome: 'Voo',
     execucao: 'Padrão',
-    alcance: 'Toque',
-    alvo: '1 criatura',
+    alcance: 'Pessoal',
+    alvo: 'Você',
     duracao: 'Cena',
     school: 'Trans',
     description:
-      'O alvo recebe deslocamento de voo 12m. Se a magia acabar enquanto o alvo estiver no ar, ele cai.',
+      'Você recebe deslocamento de voo 12m. Voar por meio desta magia é simples como andar — você pode atacar e lançar magias normalmente enquanto voa. Quando a magia termina, você desce lentamente até o chão, como se estivesse sob efeito de Queda Suave.',
     aprimoramentos: [
       {
-        addPm: 2,
-        text: 'aumenta o deslocamento de voo em +6m.',
+        addPm: 1,
+        text: 'muda o alcance para toque e o alvo para 1 criatura.',
       },
       {
-        addPm: 2,
-        text: 'muda o alcance para curto e o alvo para até 5 criaturas. Requer 4º círculo.',
+        addPm: 4,
+        text: 'muda a duração para um dia. Requer 4º círculo',
       },
       {
-        addPm: 5,
-        text: 'muda a duração para um dia.',
+        addPm: 4,
+        text: 'muda o alcance para curto e o alvo para até 10 criaturas. Requer 4° círculo.',
       },
     ],
   },
@@ -4233,7 +4246,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     duracao: 'Sustentada',
     school: 'Conv',
     description:
-      'Esta magia cria uma mão flutuante Grande que sempre se posiciona entre você e um oponente a sua escolha. A mão fornece cobertura leve (+5 na Defesa) contra esse oponente. Nada é capaz de enganar a mão — coisas como escuridão, invisibilidade, metamorfose e disfarces mundanos não a impedem de protegê-lo. A mão tem Defesa 20 e PV e resistências iguais aos seus. Com uma ação de movimento, você pode comandar a mão para que o proteja de outro oponente ou para que realize uma das ações da página 198.',
+      'Esta magia cria uma mão flutuante Grande que sempre se posiciona entre você e um oponente a sua escolha. A mão fornece cobertura leve (+5 na Defesa) contra esse oponente. Nada é capaz de enganar a mão — coisas como escuridão, invisibilidade, metamorfose e disfarces mundanos não a impedem de protegê-lo. A mão tem Defesa 20 e PV e resistências iguais aos seus. Com uma ação de movimento, você pode comandar a mão para que o proteja de outro oponente ou para que realize uma das ações a seguir. Agarrar: a mão usa uma manobra agarrar contra o oponente, usando o seu Misticismo com um bônus adicional de +10. A mão mantém o oponente agarrado, mas não causa dano. Esmagar: a mão esmaga um oponente agarrado, causando 2d6+10 pontos de dano de impacto. Empurrar: a mão afasta o oponente (manobra empurrar usando o seu Misticismo com um bônus adicional de +10). A mão acompanha o oponente para empurrá-lo o máximo que conseguir, dentro do alcance da magia.',
     aprimoramentos: [
       {
         addPm: 2,
@@ -4387,7 +4400,7 @@ export const spellsCircle4: Record<spellsCircle4Names, Spell> = {
     resistencia: 'Fortitude parcial',
     school: 'Ilusão',
     description:
-      'Esta magia cria uma forte explosão de luzes estroboscópicas e sons cacofônicos que desorientam as criaturas atingidas. O efeito que cada criatura sofre depende do nível ou ND dela (ver página 193).',
+      'Esta magia cria uma forte explosão de luzes estroboscópicas e sons cacofônicos que desorientam as criaturas atingidas. O efeito que cada criatura sofre depende do nível ou ND dela. Nível ou ND 4 ou menor: se falhar no teste de resistência, fica inconsciente. Se passar, fica atordoada por 1d4 rodadas e enjoada pelo resto da cena. Nível ou ND entre 5 e 9: se falhar no teste de resistência, fica atordoada por 1d4 rodadas e enjoada pelo resto da cena. Se passar, fica atordoada por 1 rodada e enjoada por 1d4 rodadas. Nível ou ND 10 ou maior: se falhar no teste de resistência, fica atordoada por 1 rodada e enjoada por 1d4 rodadas. Se passar, fica desprevenida e enjoada por 1 rodada. Uma criatura só pode ser atordoada por esta magia uma vez por cena.',
     aprimoramentos: [],
   },
   [spellsCircle4Names.assassinoFantasmagorico]: {
@@ -4777,11 +4790,11 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Curto',
     alvo: '1 criatura com menos níveis do que você',
-    duracao: 'Instantânea',
+    duracao: 'Instantânea ou veja texto',
     resistencia: 'Vontade Parcial',
     school: 'Encan',
     description:
-      'Você pronuncia uma palavra do idioma primordial da Criação, que causa um dos efeitos da página 200, a sua escolha.',
+      'Você pronuncia uma palavra do idioma primordial da Criação, que causa um dos efeitos abaixo, a sua escolha. Atordoar: a criatura fica atordoada por 1d4+1 rodadas (apenas uma vez por cena). Se passar no teste de resistência, ou se já foi atordoada por esta magia, fica desprevenida por 1d4 rodadas. Cegar: a criatura fica cega. Se passar no teste de resistência, fica ofuscada por 1d4 rodadas. Matar: a criatura morre. Além do teste de Vontade, a criatura tem direito a um teste de Fortitude se tiver mais da metade de seus PV. Se passar em qualquer um deles, em vez de morrer perde 10d8 pontos de vida e fica sangrando.',
   },
   [spellsCircle5Names.furiaDoPanteao]: {
     spellCircle: spellsCircles.c5,
@@ -4793,7 +4806,7 @@ export const spellsCircle5: Record<spellsCircle5Names, Spell> = {
     resistencia: 'Veja texto',
     school: 'Evoc',
     description:
-      'Você cria uma nuvem de tempestade violenta. Os ventos tornam ataques à distância impossíveis e fazem a área contar como condição terrível para lançar magia. Além disso, inimigos na área têm a visibilidade reduzida (como a magia Névoa). Uma vez por turno, você pode gastar uma ação de movimento para gerar um dos efeitos da página 194.',
+      'Você cria uma nuvem de tempestade violenta. Os ventos tornam ataques à distância impossíveis e fazem a área contar como condição terrível para lançar magia. Além disso, inimigos na área têm a visibilidade reduzida (como a magia Névoa). Uma vez por turno, você pode gastar uma ação de movimento para gerar um dos efeitos a seguir. Nevasca. Inimigos na área sofrem 10d6 pontos de dano de frio (Fortitude reduz à metade). A área fica coberta de neve, virando terreno difícil até o fim da cena ou até você usar siroco. Raios. Até 6 inimigos a sua escolha na área sofrem 10d8 pontos de dano de eletricidade (Reflexos reduz à metade). Siroco. Transforma a chuva em uma tempestade de areia escaldante. Inimigos na área sofrem 10d6 pontos de dano (metade corte, metade fogo) e ficam sangrando (Fortitude reduz o dano à metade e evita a condição). Trovões. Inimigos sofrem 10d6 pontos de dano de impacto e ficam desprevenidos por uma rodada (Fortitude reduz o dano à metade e evita a condição).',
   },
   [spellsCircle5Names.segundaChance]: {
     spellCircle: spellsCircles.c5,

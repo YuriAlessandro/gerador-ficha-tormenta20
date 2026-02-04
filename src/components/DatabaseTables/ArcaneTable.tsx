@@ -102,7 +102,7 @@ const Row: React.FC<{ spell: Spell; defaultOpen: boolean }> = ({
                   <strong>Aprimoramentos:</strong>
                   <ul>
                     {spell.aprimoramentos.map((apr) => {
-                      if (apr.addPm === 0)
+                      if (apr.trick)
                         return (
                           <li>
                             <strong>TRUQUE:</strong> {apr.text}
