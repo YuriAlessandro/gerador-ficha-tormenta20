@@ -175,15 +175,26 @@ const CharacterCreationWizardModal: React.FC<
   }, [supplements, selectedOptions.origin]);
 
   // Memoize deity to prevent infinite re-renders (used as useEffect dependency)
-  const deity: Divindade | null = useMemo(
-    () =>
-      selectedOptions.devocao?.value
-        ? DivindadeEnum[
-            selectedOptions.devocao.value as keyof typeof DivindadeEnum
-          ] || null
-        : null,
-    [selectedOptions.devocao?.value]
-  );
+  // Use registry to get deity with supplement powers merged
+  const deity: Divindade | null = useMemo(() => {
+    if (!selectedOptions.devocao?.value) return null;
+
+    // First try to get deity name from DivindadeEnum
+    const baseDeity =
+      DivindadeEnum[
+        selectedOptions.devocao.value as keyof typeof DivindadeEnum
+      ];
+
+    if (!baseDeity) return null;
+
+    // Get the deity with supplement powers from registry
+    const deityWithPowers = dataRegistry.getDeityByName(
+      baseDeity.name,
+      supplements
+    );
+
+    return deityWithPowers || baseDeity;
+  }, [selectedOptions.devocao?.value, supplements]);
 
   // Helper to calculate intelligence modifier (including racial modifiers)
   const getIntelligenceModifier = (): number => {
@@ -193,16 +204,22 @@ const CharacterCreationWizardModal: React.FC<
 
     // Add racial modifier for Intelligence
     let racialModifier = 0;
+
+    // Count fixed modifiers for INT
     race.attributes.attrs.forEach((attr) => {
       if (attr.attr === Atributo.INTELIGENCIA) {
         racialModifier += attr.mod;
-      } else if (
-        attr.attr === 'any' &&
-        selections.raceAttributes?.includes(Atributo.INTELIGENCIA)
-      ) {
-        racialModifier += attr.mod;
       }
     });
+
+    // For 'any' attributes: add the bonus only if INT was selected
+    // and only once (using the mod from the first 'any' found)
+    if (selections.raceAttributes?.includes(Atributo.INTELIGENCIA)) {
+      const anyAttr = race.attributes.attrs.find((attr) => attr.attr === 'any');
+      if (anyAttr) {
+        racialModifier += anyAttr.mod;
+      }
+    }
 
     return baseModifier + racialModifier;
   };
@@ -312,7 +329,8 @@ const CharacterCreationWizardModal: React.FC<
       classe.name === 'Arcanista' ||
       classe.name === 'Bardo' ||
       classe.name === 'Druida' ||
-      classe.name === 'Clérigo'
+      classe.name === 'Clérigo' ||
+      classe.name === 'Frade'
     );
   };
 
@@ -367,6 +385,9 @@ const CharacterCreationWizardModal: React.FC<
       return { spellType: 'Divine', initialSpells: 2 };
     }
     if (classe.name === 'Clérigo') {
+      return { spellType: 'Divine', initialSpells: 3 };
+    }
+    if (classe.name === 'Frade') {
       return { spellType: 'Divine', initialSpells: 3 };
     }
 
@@ -735,6 +756,7 @@ const CharacterCreationWizardModal: React.FC<
             baseAttributes={selections.baseAttributes}
             raceAttributes={selections.raceAttributes}
             race={race}
+            classe={classe}
           />
         );
 
@@ -820,6 +842,7 @@ const CharacterCreationWizardModal: React.FC<
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
             schools={selections.spellSchools}
+            supplements={supplements}
           />
         );
       }
@@ -842,6 +865,7 @@ const CharacterCreationWizardModal: React.FC<
             }
             arcanistaSubtype={selections.arcanistaSubtype}
             supplements={supplements}
+            usedSkills={getAllUsedSkills()}
           />
         );
 

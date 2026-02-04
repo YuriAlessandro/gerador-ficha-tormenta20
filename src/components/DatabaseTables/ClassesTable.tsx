@@ -413,7 +413,12 @@ const ClassesTable: React.FC = () => {
   const [value, setValue] = useState('');
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
-  >([SupplementId.TORMENTA20_CORE, SupplementId.TORMENTA20_AMEACAS_ARTON]);
+  >([
+    SupplementId.TORMENTA20_CORE,
+    SupplementId.TORMENTA20_AMEACAS_ARTON,
+    SupplementId.TORMENTA20_DEUSES_ARTON,
+    SupplementId.TORMENTA20_HEROIS_ARTON,
+  ]);
   const { params } = useRouteMatch<{ selectedClass?: string }>();
   const history = useHistory();
 
@@ -516,6 +521,8 @@ const ClassesTable: React.FC = () => {
           availableSupplements={[
             SupplementId.TORMENTA20_CORE,
             SupplementId.TORMENTA20_AMEACAS_ARTON,
+            SupplementId.TORMENTA20_DEUSES_ARTON,
+            SupplementId.TORMENTA20_HEROIS_ARTON,
           ]}
           onToggleSupplement={handleToggleSupplement}
         />

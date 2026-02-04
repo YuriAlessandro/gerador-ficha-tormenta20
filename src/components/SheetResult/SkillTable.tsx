@@ -269,11 +269,18 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                 ? sheet.atributos[skill.modAttr].value
                 : 0;
 
+              // Get size modifier for stealth (Furtividade)
+              const sizeModifier =
+                skill.name === 'Furtividade'
+                  ? sheet.size?.modifiers?.stealth ?? 0
+                  : 0;
+
               const skillTotal =
                 (skill.halfLevel ?? 0) +
                 (attrValue ?? 0) +
                 (skill.others ?? 0) +
-                (skill.training ?? 0);
+                (skill.training ?? 0) +
+                sizeModifier;
 
               const isTrained = (skill.training ?? 0) > 0;
               const attrName = skill.modAttr ?? '';
@@ -318,7 +325,7 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                     )}
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
-                    {skill.others ?? 0}
+                    {(skill.others ?? 0) + sizeModifier}
                   </DefaultTbCell>
                 </StyledTableRow>
               );

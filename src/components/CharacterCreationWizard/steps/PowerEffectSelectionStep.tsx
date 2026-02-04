@@ -64,6 +64,8 @@ interface PowerEffectSelectionStepProps {
   classAbilityLevel?: number;
   // Active supplements for power filtering
   supplements?: SupplementId[];
+  // Skills already selected in wizard (for requirement checking)
+  usedSkills?: Skill[];
 }
 
 const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
@@ -81,6 +83,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   skipRaceAbilities = false,
   classAbilityLevel,
   supplements = [SupplementId.TORMENTA20_CORE],
+  usedSkills = [],
 }) => {
   // Search query state for each requirement (keyed by requirement index)
   const [searchQueries, setSearchQueries] = useState<Record<number, string>>(
@@ -222,8 +225,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   const sheetForFiltering =
     actualSheet ||
     ({
-      skills: [],
-      completeSkills: [],
+      skills: usedSkills,
+      completeSkills: usedSkills,
       classe: {
         name: classe.name,
         subname: arcanistaSubtype,
@@ -478,7 +481,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     const { type, pick, label } = requirement;
     const allAvailableOptions = getFilteredAvailableOptions(
       requirement,
-      sheetForFiltering
+      sheetForFiltering,
+      supplements
     );
 
     // Get search query for this requirement
@@ -682,7 +686,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       // Filter available spells (exclude already known)
       const filteredSpells = getFilteredAvailableOptions(
         nestedReq,
-        sheetForFiltering
+        sheetForFiltering,
+        supplements
       ) as Spell[];
 
       const nestedSearchKey = `nested-${nestedPower.name}-spell`;

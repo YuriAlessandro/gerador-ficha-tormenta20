@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { SkillName, Translator } from 't20-sheet-builder';
 import { useAppSelector } from '@/store/hooks';
 import { selectAttribute } from '@/store/slices/sheetBuilder/sheetBuilderSliceInitialAttributes';
+import { selectSheetBuilderRace } from '@/store/slices/sheetBuilder/sheetBuilderSliceRaceDefinition';
 import { setOptionReady } from '@/store/slices/sheetBuilder/sheetBuilderSliceStepConfirmed';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSkills } from '@/components/SheetBuilder/common/SkillsFilter';
@@ -15,7 +16,13 @@ import ConfirmButton from '../../ConfirmButton';
 
 const SheetBuilderFormStepIntelligenceSkillsTraining = () => {
   const storedIntelligenceSkills = useSelector(getIntelligenceSkills);
-  const intelligence = useAppSelector(selectAttribute('intelligence'));
+  const initialIntelligence = useAppSelector(selectAttribute('intelligence'));
+  const race = useAppSelector(selectSheetBuilderRace);
+
+  const intelligence = useMemo(() => {
+    const raceIntBonus = race?.attributeModifiers?.intelligence ?? 0;
+    return initialIntelligence + raceIntBonus;
+  }, [initialIntelligence, race?.attributeModifiers?.intelligence]);
   const [selectedSkills, setSelectedSkills] = React.useState<SkillName[]>([]);
   const options = Object.values(SkillName).map((skillName) => ({
     label: Translator.getSkillTranslation(skillName),

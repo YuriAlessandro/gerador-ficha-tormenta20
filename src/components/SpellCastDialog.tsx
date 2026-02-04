@@ -44,7 +44,7 @@ const isStackable = (aprimoramento: Aprimoramento): boolean =>
   /^aumenta/i.test(aprimoramento.text);
 
 const isTruque = (aprimoramento: Aprimoramento): boolean =>
-  aprimoramento.addPm === 0;
+  aprimoramento.trick === true;
 
 const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   open,

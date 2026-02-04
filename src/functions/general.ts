@@ -3758,6 +3758,35 @@ export function generateEmptySheet(
     emptySheet.raceAttributeChoices = wizardSelections.raceAttributes;
   }
 
+  // Save Duende customization fields
+  if (raceCustomization && emptySheet.raca.name === 'Duende') {
+    if (raceCustomization.duendeSize) {
+      emptySheet.raceSizeCategory = raceCustomization.duendeSize;
+    }
+    if (raceCustomization.duendeNature) {
+      emptySheet.duendeNature = raceCustomization.duendeNature;
+    }
+    if (raceCustomization.duendePresentes) {
+      emptySheet.duendePresentes = raceCustomization.duendePresentes;
+    }
+    if (raceCustomization.duendeTabuSkill) {
+      emptySheet.duendeTabuSkill = raceCustomization.duendeTabuSkill;
+    }
+  }
+
+  // Save Golem Desperto customization fields
+  if (raceCustomization && emptySheet.raca.name === 'Golem Desperto') {
+    if (raceCustomization.golemChassis) {
+      emptySheet.raceChassis = raceCustomization.golemChassis;
+    }
+    if (raceCustomization.golemEnergySource) {
+      emptySheet.raceEnergySource = raceCustomization.golemEnergySource;
+    }
+    if (raceCustomization.golemSize) {
+      emptySheet.raceSizeCategory = raceCustomization.golemSize;
+    }
+  }
+
   // Apply Suraggel alternative ability if selected
   if (
     wizardSelections?.suragelAbility &&

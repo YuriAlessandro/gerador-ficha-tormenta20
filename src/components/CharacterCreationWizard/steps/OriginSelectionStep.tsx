@@ -15,6 +15,7 @@ import Race from '@/interfaces/Race';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { isPowerAvailable } from '@/functions/powers';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
+import { ClassDescription } from '@/interfaces/Class';
 
 interface OriginSelectionStepProps {
   origin: Origin;
@@ -26,6 +27,7 @@ interface OriginSelectionStepProps {
   baseAttributes?: Record<Atributo, number>;
   raceAttributes?: Atributo[];
   race?: Race;
+  classe?: ClassDescription;
 }
 
 const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
@@ -37,6 +39,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
   baseAttributes,
   raceAttributes,
   race,
+  classe,
 }) => {
   const REQUIRED_SELECTIONS = 2;
 
@@ -81,14 +84,14 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       skills: usedSkills,
       nivel: 1,
       classe: {
-        name: '',
-        abilities: [],
-        proficiencias: [],
+        name: classe?.name || '',
+        abilities: classe?.abilities || [],
+        proficiencias: classe?.proficiencias || [],
       },
       raca: race,
       spells: [],
     } as unknown as CharacterSheet;
-  }, [baseAttributes, race, raceAttributes, usedSkills]);
+  }, [baseAttributes, race, raceAttributes, usedSkills, classe]);
 
   // Helper to check if a power meets requirements
   const checkPowerRequirements = (
@@ -154,12 +157,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           {origin.getItems().length > 0 && (
             <Box>
               <Typography variant='subtitle2'>Itens:</Typography>
-              {origin.getItems().map((item) => {
+              {origin.getItems().map((item, index) => {
+                if (!item.equipment) return null;
                 const itemName =
                   typeof item.equipment === 'string'
                     ? item.equipment
                     : item.equipment.nome;
-                const itemKey = `${itemName}-${item.qtd || 1}`;
+                const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
                 return (
                   <Typography
@@ -296,12 +300,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
           <Typography variant='h6' gutterBottom>
             Itens (concedidos automaticamente)
           </Typography>
-          {items.map((item) => {
+          {items.map((item, index) => {
+            if (!item.equipment) return null;
             const itemName =
               typeof item.equipment === 'string'
                 ? item.equipment
                 : item.equipment.nome;
-            const itemKey = `${itemName}-${item.qtd || 1}`;
+            const itemKey = `${itemName}-${item.qtd || 1}-${index}`;
 
             return (
               <Typography key={itemKey} variant='body2' color='text.secondary'>

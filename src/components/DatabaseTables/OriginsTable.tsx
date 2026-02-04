@@ -131,7 +131,15 @@ const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
                 <Typography variant='body2'>
                   {origin
                     .getItems()
-                    .map((item) => item.description || item.equipment)
+                    .map((item) => {
+                      if (item.description) return item.description;
+                      if (item.equipment) {
+                        return typeof item.equipment === 'string'
+                          ? item.equipment
+                          : item.equipment.nome;
+                      }
+                      return '';
+                    })
                     .join('; ')}
                 </Typography>
               </Box>

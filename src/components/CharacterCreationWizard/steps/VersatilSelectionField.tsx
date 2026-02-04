@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -109,6 +109,12 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
     }
   };
 
+  // Sort powers alphabetically by name
+  const sortedPowers = useMemo(
+    () => [...availablePowers].sort((a, b) => a.name.localeCompare(b.name)),
+    [availablePowers]
+  );
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Alert severity='info'>
@@ -198,7 +204,7 @@ const VersatilSelectionField: React.FC<VersatilSelectionFieldProps> = ({
             onChange={(e) => handlePowerChange(e.target.value as string)}
             disabled={!firstSkill}
           >
-            {availablePowers.map((power) => (
+            {sortedPowers.map((power) => (
               <MenuItem key={power.name} value={power.name}>
                 <Box>
                   <Typography>{power.name}</Typography>

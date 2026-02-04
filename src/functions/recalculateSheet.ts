@@ -19,9 +19,38 @@ import {
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
+import CORE_CLASSES from '@/data/systems/tormenta20/core/classes';
+import DEUSES_ARTON_CLASSES from '@/data/systems/tormenta20/deuses-de-arton/classes';
+import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/classes';
+import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
+import { ClassDescription } from '@/interfaces/Class';
 
 import { applyRaceAbilities, applyPower } from './general';
 import { getRemovedPowers } from './reverseSheetActions';
+
+// Combined list of all available classes for ability lookup
+const ALL_CLASSES: ClassDescription[] = [
+  ...CORE_CLASSES,
+  ...DEUSES_ARTON_CLASSES,
+  ...HEROIS_ARTON_CLASSES,
+  ...AMEACAS_ARTON_CLASSES,
+];
+
+/**
+ * Finds a class definition by name and optional subname
+ */
+function findClassDefinition(
+  name: string,
+  subname?: string
+): ClassDescription | undefined {
+  return ALL_CLASSES.find((c) => {
+    if (c.name !== name) return false;
+    if (subname) {
+      return c.subname === subname;
+    }
+    return !c.subname;
+  });
+}
 
 // Note: resetAttributesToBase was removed as part of attribute system simplification.
 // The value field now directly contains the modifier (no separate base/mod distinction).
@@ -433,17 +462,19 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
           ? existingTraining // Manually trained - preserve
           : baseTraining; // Use base calculation
 
-      // Preserve existing 'others' value completely
-      // This keeps any manual edits intact
-      // Note: armor penalty was already calculated when the skill was first created
-      // or when the user manually edited it
-      const existingOthers = skill.others || 0;
+      // Reset 'others' to base value (armor penalty only)
+      // This prevents accumulation of bonuses from sheetBonuses
+      // The sheetBonuses (from race abilities, powers, etc.) will be reapplied
+      // after this function is called
+      const isAffectedByArmor = SkillsWithArmorPenalty.includes(skill.name);
+      const baseOthers =
+        isAffectedByArmor && armorPenalty > 0 ? armorPenalty * -1 : 0;
 
       return {
         ...skill,
         halfLevel: Math.floor(updatedSheet.nivel / 2),
         training: finalTraining,
-        others: existingOthers,
+        others: baseOthers,
       };
     });
   } else {
@@ -497,9 +528,32 @@ function applyClassAbilities(
 ): CharacterSheet {
   let sheetClone = _.cloneDeep(sheet);
 
-  const availableAbilities = sheetClone.classe.abilities.filter(
+  // Get the full list of class abilities
+  // Priority: originalAbilities > class definition lookup > current abilities
+  let { originalAbilities } = sheetClone.classe;
+
+  if (!originalAbilities) {
+    // Look up the class definition to get the full abilities list
+    const classDefinition = findClassDefinition(
+      sheetClone.classe.name,
+      sheetClone.classe.subname
+    );
+    if (classDefinition) {
+      originalAbilities = classDefinition.abilities;
+    } else {
+      // Fallback to current abilities if class not found
+      originalAbilities = sheetClone.classe.abilities;
+    }
+  }
+
+  const availableAbilities = originalAbilities.filter(
     (ability) => ability.nivel <= sheet.nivel
   );
+
+  // Preserve originalAbilities for future level changes
+  if (!sheetClone.classe.originalAbilities) {
+    sheetClone.classe.originalAbilities = [...originalAbilities];
+  }
 
   sheetClone.classe.abilities = availableAbilities;
 

@@ -10,7 +10,11 @@ import { SupplementId, SUPPLEMENT_METADATA } from '../types/supplement.types';
 import { TORMENTA20_SYSTEM, SystemData } from './systems/tormenta20';
 import Race from '../interfaces/Race';
 import { ClassDescription, ClassNames, ClassPower } from '../interfaces/Class';
-import { GeneralPower, GeneralPowers } from '../interfaces/Poderes';
+import {
+  GeneralPower,
+  GeneralPowers,
+  RequirementType,
+} from '../interfaces/Poderes';
 import Origin from '../interfaces/Origin';
 import {
   GOLPE_PESSOAL_EFFECTS,
@@ -19,6 +23,23 @@ import {
 import { MarketEquipment } from '../interfaces/MarketEquipment';
 import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 import { Armas, Armaduras, Escudos } from './systems/tormenta20/equipamentos';
+import { Spell, SpellCircle, spellsCircles } from '../interfaces/Spells';
+import {
+  arcaneSpellsCircle1,
+  arcaneSpellsCircle2,
+  arcaneSpellsCircle3,
+  arcaneSpellsCircle4,
+  arcaneSpellsCircle5,
+} from './systems/tormenta20/magias/arcane';
+import {
+  divineSpellsCircle1,
+  divineSpellsCircle2,
+  divineSpellsCircle3,
+  divineSpellsCircle4,
+  divineSpellsCircle5,
+} from './systems/tormenta20/magias/divine';
+import Divindade from '../interfaces/Divindade';
+import { DIVINDADES } from './systems/tormenta20/divindades';
 
 /**
  * Tipos para dados com informação de origem do suplemento
@@ -642,6 +663,281 @@ class DataRegistry {
     });
 
     return result;
+  }
+
+  /**
+   * Retorna magias de 1º círculo combinadas de todos os suplementos ativos
+   * Organiza por tipo (arcano/divino) e escola
+   */
+  getSpellsCircle1BySupplements(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): { arcane: SpellCircle; divine: SpellCircle } {
+    return this.getSpellsByCircleAndSupplements(1, supplementIds, systemId);
+  }
+
+  /**
+   * Retorna magias de um círculo específico combinadas de todos os suplementos ativos
+   * @param circle - O círculo de magia (1-5)
+   * @param supplementIds - IDs dos suplementos ativos
+   * @param systemId - ID do sistema
+   */
+  getSpellsByCircleAndSupplements(
+    circle: number,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): { arcane: SpellCircle; divine: SpellCircle } {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+
+    // Começa com as magias do core baseado no círculo
+    const coreArcane = this.getCoreArcaneSpellsByCircle(circle);
+    const coreDivine = this.getCoreDivineSpellsByCircle(circle);
+
+    const result = {
+      arcane: { ...coreArcane },
+      divine: { ...coreDivine },
+    };
+
+    if (!systemData) return result;
+
+    // Adiciona magias de suplementos
+    supplements.forEach((id) => {
+      if (id === SupplementId.TORMENTA20_CORE) return; // Core já foi adicionado
+
+      const supplementSpells = systemData.supplements[id]?.spells;
+      if (!supplementSpells) return;
+
+      // Mapeia círculo para enum
+      const circleEnum = this.getCircleEnum(circle);
+
+      // Adiciona magias arcanas do suplemento
+      if (supplementSpells.arcane) {
+        supplementSpells.arcane
+          .filter((spell) => spell.spellCircle === circleEnum)
+          .forEach((spell) => {
+            if (spell.school in result.arcane) {
+              result.arcane[spell.school].push(spell);
+            }
+          });
+      }
+
+      // Adiciona magias divinas do suplemento
+      if (supplementSpells.divine) {
+        supplementSpells.divine
+          .filter((spell) => spell.spellCircle === circleEnum)
+          .forEach((spell) => {
+            if (spell.school in result.divine) {
+              result.divine[spell.school].push(spell);
+            }
+          });
+      }
+
+      // Magias universais vão para ambos os tipos
+      if (supplementSpells.universal) {
+        supplementSpells.universal
+          .filter((spell) => spell.spellCircle === circleEnum)
+          .forEach((spell) => {
+            if (spell.school in result.arcane) {
+              result.arcane[spell.school].push(spell);
+            }
+            if (spell.school in result.divine) {
+              result.divine[spell.school].push(spell);
+            }
+          });
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Retorna todas as magias arcanas de um círculo específico combinadas de suplementos
+   */
+  getArcaneSpellsByCircleAndSupplements(
+    circle: number,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Spell[] {
+    const spells = this.getSpellsByCircleAndSupplements(
+      circle,
+      supplementIds,
+      systemId
+    );
+    return Object.values(spells.arcane).flat();
+  }
+
+  /**
+   * Retorna todas as magias divinas de um círculo específico combinadas de suplementos
+   */
+  getDivineSpellsByCircleAndSupplements(
+    circle: number,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Spell[] {
+    const spells = this.getSpellsByCircleAndSupplements(
+      circle,
+      supplementIds,
+      systemId
+    );
+    return Object.values(spells.divine).flat();
+  }
+
+  /**
+   * Retorna divindades com poderes concedidos de suplementos mesclados
+   * Encontra poderes concedidos que têm requisito DEVOTO para uma divindade específica
+   * e os adiciona ao array de poderes da divindade
+   */
+  getDeitiesWithSupplementPowers(
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Divindade[] {
+    const supplements = this.ensureCore(supplementIds, systemId);
+    const systemData = SYSTEMS_MAP[systemId];
+
+    // Clona as divindades base
+    const deitiesWithPowers: Divindade[] = DIVINDADES.map((deity) => ({
+      ...deity,
+      poderes: [...deity.poderes],
+    }));
+
+    if (!systemData) return deitiesWithPowers;
+
+    // Para cada suplemento, encontra poderes concedidos e os vincula às divindades
+    supplements.forEach((id) => {
+      if (id === SupplementId.TORMENTA20_CORE) return; // Core já está nas divindades base
+
+      const supplementPowers = systemData.supplements[id]?.powers?.CONCEDIDOS;
+      if (!supplementPowers || supplementPowers.length === 0) return;
+
+      // Para cada poder concedido do suplemento
+      supplementPowers.forEach((power) => {
+        // Verifica se o poder tem requisitos de DEVOTO
+        if (!power.requirements || power.requirements.length === 0) return;
+
+        // Encontra todas as divindades que satisfazem os requisitos
+        power.requirements.forEach((reqGroup) => {
+          reqGroup.forEach((req) => {
+            if (req.type === RequirementType.DEVOTO && req.name) {
+              const deityName = req.name;
+              // Encontra a divindade correspondente
+              const deity = deitiesWithPowers.find(
+                (d) => d.name === deityName || d.name.includes(deityName)
+              );
+              if (deity) {
+                // Verifica se o poder já não está na lista
+                const alreadyHas = deity.poderes.some(
+                  (p) => p.name === power.name
+                );
+                if (!alreadyHas) {
+                  deity.poderes.push(power);
+                }
+              }
+            }
+          });
+        });
+      });
+    });
+
+    return deitiesWithPowers;
+  }
+
+  /**
+   * Busca uma divindade por nome com poderes de suplementos mesclados
+   */
+  getDeityByName(
+    name: string,
+    supplementIds: SupplementId[],
+    systemId: SystemId = this.currentSystem
+  ): Divindade | undefined {
+    const deities = this.getDeitiesWithSupplementPowers(
+      supplementIds,
+      systemId
+    );
+    return deities.find((d) => d.name === name);
+  }
+
+  /**
+   * Helper: Retorna magias arcanas do core por círculo
+   * Usa cloneDeep para evitar mutação dos arrays originais
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private getCoreArcaneSpellsByCircle(circle: number): SpellCircle {
+    switch (circle) {
+      case 1:
+        return _.cloneDeep(arcaneSpellsCircle1);
+      case 2:
+        return _.cloneDeep(arcaneSpellsCircle2);
+      case 3:
+        return _.cloneDeep(arcaneSpellsCircle3);
+      case 4:
+        return _.cloneDeep(arcaneSpellsCircle4);
+      case 5:
+        return _.cloneDeep(arcaneSpellsCircle5);
+      default:
+        return {
+          Abjur: [],
+          Adiv: [],
+          Conv: [],
+          Encan: [],
+          Evoc: [],
+          Ilusão: [],
+          Necro: [],
+          Trans: [],
+        };
+    }
+  }
+
+  /**
+   * Helper: Retorna magias divinas do core por círculo
+   * Usa cloneDeep para evitar mutação dos arrays originais
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private getCoreDivineSpellsByCircle(circle: number): SpellCircle {
+    switch (circle) {
+      case 1:
+        return _.cloneDeep(divineSpellsCircle1);
+      case 2:
+        return _.cloneDeep(divineSpellsCircle2);
+      case 3:
+        return _.cloneDeep(divineSpellsCircle3);
+      case 4:
+        return _.cloneDeep(divineSpellsCircle4);
+      case 5:
+        return _.cloneDeep(divineSpellsCircle5);
+      default:
+        return {
+          Abjur: [],
+          Adiv: [],
+          Conv: [],
+          Encan: [],
+          Evoc: [],
+          Ilusão: [],
+          Necro: [],
+          Trans: [],
+        };
+    }
+  }
+
+  /**
+   * Helper: Converte número do círculo para enum
+   */
+  // eslint-disable-next-line class-methods-use-this
+  private getCircleEnum(circle: number): spellsCircles {
+    switch (circle) {
+      case 1:
+        return spellsCircles.c1;
+      case 2:
+        return spellsCircles.c2;
+      case 3:
+        return spellsCircles.c3;
+      case 4:
+        return spellsCircles.c4;
+      case 5:
+        return spellsCircles.c5;
+      default:
+        return spellsCircles.c1;
+    }
   }
 
   /**

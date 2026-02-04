@@ -114,6 +114,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     powerToEdit?: CustomPower;
   }>({ open: false });
 
+  // State for Deity Powers (Poderes Concedidos)
+  const [selectedDeityPowers, setSelectedDeityPowers] = useState<
+    GeneralPower[]
+  >([]);
+
   useEffect(() => {
     if (open) {
       if (sheet.generalPowers) {
@@ -128,6 +133,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       if (sheet.customPowers) {
         setSelectedCustomPowers([...sheet.customPowers]);
       }
+      // Load deity powers
+      if (sheet.devoto?.poderes) {
+        setSelectedDeityPowers([...sheet.devoto.poderes]);
+      } else {
+        setSelectedDeityPowers([]);
+      }
       // Reset manual selections when opening
       setManualSelections({});
     }
@@ -136,6 +147,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     sheet.classPowers,
     sheet.origin?.powers,
     sheet.customPowers,
+    sheet.devoto?.poderes,
     open,
   ]);
 
@@ -925,6 +937,58 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   };
 
+  // Deity Power handlers
+  const isDevoto = !!sheet.devoto;
+  const deityPowers = sheet.devoto?.divindade.poderes || [];
+  const { qtdPoderesConcedidos } = sheet.classe;
+  const getsAllDeityPowers = qtdPoderesConcedidos === 'all';
+  const maxDeityPowers =
+    typeof qtdPoderesConcedidos === 'number' ? qtdPoderesConcedidos : 1;
+
+  const isDeityPowerSelected = (power: GeneralPower) =>
+    selectedDeityPowers.some((p) => p.name === power.name);
+
+  const isDeityPowerAvailable = (power: GeneralPower) => {
+    // If not a devoto, power is available (normal behavior)
+    if (!isDevoto) return true;
+    // If devoto, only powers from current deity are available
+    return deityPowers.some((p) => p.name === power.name);
+  };
+
+  const handleDeityPowerToggle = (power: GeneralPower) => {
+    // If not a devoto, use normal general power handling
+    if (!isDevoto) {
+      handlePowerToggle(power);
+      return;
+    }
+
+    // Only allow toggling powers from the current deity
+    if (!isDeityPowerAvailable(power)) {
+      return;
+    }
+
+    const isSelected = isDeityPowerSelected(power);
+
+    if (isSelected) {
+      // Remove power
+      setSelectedDeityPowers((prev) =>
+        prev.filter((p) => p.name !== power.name)
+      );
+    } else if (
+      getsAllDeityPowers ||
+      selectedDeityPowers.length < maxDeityPowers
+    ) {
+      // Add power if under limit
+      setSelectedDeityPowers((prev) => [...prev, power]);
+    }
+  };
+
+  const handleDeityPowerRemove = (powerToRemove: GeneralPower) => {
+    setSelectedDeityPowers((prev) =>
+      prev.filter((p) => p.name !== powerToRemove.name)
+    );
+  };
+
   const filterPowers = <
     T extends { name: string; text?: string; description?: string }
   >(
@@ -1111,6 +1175,50 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       });
     }
 
+    // Track deity power changes (only if character is a devoto)
+    if (sheet.devoto) {
+      const originalDeityPowerNames =
+        sheet.devoto.poderes?.map((p) => p.name) || [];
+      const newDeityPowerNames = selectedDeityPowers.map((p) => p.name);
+
+      const addedDeityPowers = selectedDeityPowers.filter(
+        (p) => !originalDeityPowerNames.includes(p.name)
+      );
+      const removedDeityPowers =
+        sheet.devoto.poderes?.filter(
+          (p) => !newDeityPowerNames.includes(p.name)
+        ) || [];
+
+      if (addedDeityPowers.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - Poderes Concedidos Adicionados',
+          type: 'Poderes',
+          value: addedDeityPowers.map((p) => ({ name: p.name, value: p.name })),
+        });
+      }
+
+      if (removedDeityPowers.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - Poderes Concedidos Removidos',
+          type: 'Poderes',
+          value: removedDeityPowers.map((p) => ({
+            name: p.name,
+            value: `${p.name} (removido)`,
+          })),
+        });
+      }
+
+      if (addedDeityPowers.length > 0) {
+        newHistoryEntries.push({
+          source: { type: 'manualEdit' },
+          changes: addedDeityPowers.map((p) => ({
+            type: 'PowerAdded' as const,
+            powerName: p.name,
+          })),
+        });
+      }
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -1121,6 +1229,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         ? {
             ...sheet.origin,
             powers: selectedOriginPowers,
+          }
+        : undefined,
+      // Update deity powers if character is a devoto
+      devoto: sheet.devoto
+        ? {
+            ...sheet.devoto,
+            poderes: selectedDeityPowers,
           }
         : undefined,
       steps: newSteps.length > 0 ? [...sheet.steps, ...newSteps] : sheet.steps,
@@ -1153,6 +1268,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
     if (sheet.customPowers) {
       setSelectedCustomPowers([...sheet.customPowers]);
+    }
+    // Reset deity powers
+    if (sheet.devoto?.poderes) {
+      setSelectedDeityPowers([...sheet.devoto.poderes]);
+    } else {
+      setSelectedDeityPowers([]);
     }
     setSearchTerm('');
     setManualSelections({});
@@ -1210,6 +1331,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         {(selectedPowers.length > 0 ||
           selectedClassPowers.length > 0 ||
           selectedCustomPowers.length > 0 ||
+          (isDevoto && selectedDeityPowers.length > 0) ||
           (sheet.classe.abilities &&
             sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
               .length > 0) ||
@@ -1277,6 +1399,30 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       size='small'
                       color='warning'
                       onDelete={() => handleOriginPowerToggle(power)}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {isDevoto && selectedDeityPowers.length > 0 && (
+              <>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Poderes Concedidos por {sheet.devoto?.divindade.name} (
+                  {selectedDeityPowers.length}):
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  flexWrap='wrap'
+                  sx={{ mb: 2 }}
+                >
+                  {selectedDeityPowers.map((power) => (
+                    <Chip
+                      key={power.name}
+                      label={power.name}
+                      size='small'
+                      color='primary'
+                      onDelete={() => handleDeityPowerRemove(power)}
                     />
                   ))}
                 </Stack>
@@ -1604,12 +1750,39 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
             if (filteredPowers.length === 0) return null;
 
+            // For granted powers section, show deity info when applicable
+            const isGrantedPowersSection =
+              category.type === GeneralPowerType.CONCEDIDOS;
+            const showDeityInfo = isGrantedPowersSection && isDevoto;
+            const deityName = sheet.devoto?.divindade.name;
+
             return (
               <Accordion key={category.type}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant='h6'>
-                    {category.name} ({filteredPowers.length})
-                  </Typography>
+                  <Box sx={{ width: '100%' }}>
+                    <Typography variant='h6'>
+                      {category.name} ({filteredPowers.length})
+                    </Typography>
+                    {showDeityInfo && (
+                      <Typography
+                        variant='caption'
+                        color={
+                          selectedDeityPowers.length ===
+                          (getsAllDeityPowers
+                            ? deityPowers.length
+                            : maxDeityPowers)
+                            ? 'success.main'
+                            : 'warning.main'
+                        }
+                      >
+                        Devoto de {deityName} - Selecionados:{' '}
+                        {selectedDeityPowers.length} /{' '}
+                        {getsAllDeityPowers
+                          ? deityPowers.length
+                          : maxDeityPowers}
+                      </Typography>
+                    )}
+                  </Box>
                 </AccordionSummary>
                 <AccordionDetails>
                   <Stack spacing={2}>
@@ -1637,20 +1810,53 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       })
                       .map((power) => {
                         const isOriginPower = category.type === 'ORIGEM';
+                        const isGrantedPower =
+                          category.type === GeneralPowerType.CONCEDIDOS;
                         const requiredOrigin = isOriginPower
                           ? getOriginForPower(power as OriginPower)
                           : null;
 
-                        // Check if character has the required origin for this power
-                        const meetsRequirements = isOriginPower
-                          ? sheet.origin?.name === requiredOrigin
-                          : checkRequirements(power as GeneralPower);
+                        // For granted powers, check if power is from current deity
+                        const isFromCurrentDeity =
+                          isGrantedPower && isDevoto
+                            ? isDeityPowerAvailable(power as GeneralPower)
+                            : true;
 
-                        const isSelected = isOriginPower
-                          ? selectedOriginPowers.some(
-                              (p) => p.name === power.name
-                            )
-                          : isPowerSelected(power as GeneralPower);
+                        // Check if character has the required origin/deity for this power
+                        let meetsRequirements: boolean;
+                        if (isOriginPower) {
+                          meetsRequirements =
+                            sheet.origin?.name === requiredOrigin;
+                        } else if (isGrantedPower && isDevoto) {
+                          // For devotos, only powers from their deity meet requirements
+                          meetsRequirements = isFromCurrentDeity;
+                        } else {
+                          meetsRequirements = checkRequirements(
+                            power as GeneralPower
+                          );
+                        }
+
+                        // Determine if selected based on power type
+                        let isSelected: boolean;
+                        if (isOriginPower) {
+                          isSelected = selectedOriginPowers.some(
+                            (p) => p.name === power.name
+                          );
+                        } else if (isGrantedPower && isDevoto) {
+                          isSelected = isDeityPowerSelected(
+                            power as GeneralPower
+                          );
+                        } else {
+                          isSelected = isPowerSelected(power as GeneralPower);
+                        }
+
+                        // For granted powers when devoto, check if at limit
+                        const atDeityLimit =
+                          isGrantedPower &&
+                          isDevoto &&
+                          !getsAllDeityPowers &&
+                          !isSelected &&
+                          selectedDeityPowers.length >= maxDeityPowers;
 
                         return (
                           <Box
@@ -1679,10 +1885,15 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                               control={
                                 <Checkbox
                                   checked={isSelected}
+                                  disabled={atDeityLimit}
                                   onChange={() => {
                                     if (isOriginPower) {
                                       handleOriginPowerToggle(
                                         power as OriginPower
+                                      );
+                                    } else if (isGrantedPower && isDevoto) {
+                                      handleDeityPowerToggle(
+                                        power as GeneralPower
                                       );
                                     } else {
                                       handlePowerToggle(power as GeneralPower);
