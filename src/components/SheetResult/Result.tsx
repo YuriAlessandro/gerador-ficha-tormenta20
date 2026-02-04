@@ -555,6 +555,11 @@ const Result: React.FC<ResultProps> = (props) => {
       }
     }
 
+    // Manual bonus
+    if (currentSheet.bonusDefense && currentSheet.bonusDefense !== 0) {
+      components.push(`${currentSheet.bonusDefense} (bônus manual)`);
+    }
+
     return `${components.join(' + ')} = ${defesa}`;
   }, [
     currentSheet,
