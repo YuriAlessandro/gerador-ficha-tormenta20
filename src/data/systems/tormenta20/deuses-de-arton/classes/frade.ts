@@ -281,7 +281,7 @@ const FRADE: ClassDescription = {
   probDevoto: 0.95,
   qtdPoderesConcedidos: 2,
   faithProbability: standardFaithProbability,
-  attrPriority: [Atributo.SABEDORIA, Atributo.INTELIGENCIA],
+  attrPriority: [Atributo.SABEDORIA],
   setup: (classe) => {
     const modifiedClasse = _.cloneDeep(classe);
     modifiedClasse.spellPath = {
