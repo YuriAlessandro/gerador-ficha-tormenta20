@@ -1102,12 +1102,13 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       updates.devoto = undefined;
     }
 
-    // Use recalculation for full sheet update if attributes, race, or deity changed
+    // Use recalculation for full sheet update if attributes, race, deity, or level changed
     const raceChanged = editedData.raceName !== sheet.raca.name;
     const deityChanged =
       editedData.deityName !== (sheet.devoto?.divindade.name || '');
+    const levelChanged = editedData.nivel !== sheet.nivel;
     const shouldUseRecalculateSheet =
-      attributesChanged || raceChanged || deityChanged;
+      attributesChanged || raceChanged || deityChanged || levelChanged;
 
     if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
