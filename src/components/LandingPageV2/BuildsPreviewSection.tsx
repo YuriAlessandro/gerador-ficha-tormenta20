@@ -132,7 +132,7 @@ const BuildsPreviewSection: React.FC<BuildsPreviewSectionProps> = ({
             </Stack>
             <Stack direction='row' spacing={0.5} mt={0.5} flexWrap='wrap'>
               <Chip
-                label={build.classe}
+                label={build.isMulticlass ? 'Multiclasse' : build.classe}
                 size='small'
                 color='primary'
                 sx={{ fontSize: '0.65rem', height: 20 }}
