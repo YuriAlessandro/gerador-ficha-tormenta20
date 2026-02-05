@@ -32,6 +32,10 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
     onUpdate({ name });
   };
 
+  const handleSpecialQualitiesChange = (specialQualities: string) => {
+    onUpdate({ specialQualities });
+  };
+
   const handleCombatStatChange = (
     field: 'defense' | 'hitPoints' | 'standardEffectDC' | 'manaPoints',
     value: number
@@ -380,6 +384,28 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
               />
             </Grid>
           </Grid>
+        </Paper>
+      </Box>
+
+      {/* Special Qualities */}
+      <Box mt={3}>
+        <Paper variant='outlined' sx={{ p: 3 }}>
+          <Typography variant='subtitle1' gutterBottom>
+            Qualidades Especiais
+          </Typography>
+          <Typography variant='body2' color='text.secondary' mb={2}>
+            Descreva sentidos especiais, redução de dano, imunidades e
+            resistências da ameaça.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label='Qualidades Especiais'
+            value={threat.specialQualities || ''}
+            onChange={(e) => handleSpecialQualitiesChange(e.target.value)}
+            placeholder='Ex: Visão no escuro, RD 5, Resistência à magia +5, Imune a veneno'
+          />
         </Paper>
       </Box>
 

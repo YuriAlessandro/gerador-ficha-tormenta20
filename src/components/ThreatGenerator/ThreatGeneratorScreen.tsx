@@ -91,6 +91,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     abilities: [],
     spells: [],
     skills: [],
+    specialQualities: '',
     equipment: '',
     treasureLevel: TreasureLevel.STANDARD,
     hasManaPoints: false,

@@ -179,6 +179,9 @@ export interface ThreatSheet {
   skills: ThreatSkill[];
   resistanceAssignments: ResistanceAssignments;
 
+  // Qualidades especiais (visão, RD, imunidades, etc.)
+  specialQualities: string;
+
   // Equipamentos e tesouro
   equipment: string;
   treasureLevel: TreasureLevel;

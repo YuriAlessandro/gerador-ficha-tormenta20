@@ -598,8 +598,9 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                 ? `+${perceptionValue}`
                 : `${perceptionValue}`}
             </Box>
+            {threat.specialQualities && <>, {threat.specialQualities}</>}
           </Box>
-          <Box display='inline'>
+          <div>
             <ThreatText>Defesa</ThreatText> {threat.combatStats.defense},{' '}
             <Box
               component='span'
@@ -663,7 +664,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                 {threat.combatStats.standardEffectDC}
               </>
             )}
-          </Box>
+          </div>
           <div>
             <ThreatText>PV</ThreatText> {threat.combatStats.hitPoints}
             {threat.combatStats.manaPoints &&
