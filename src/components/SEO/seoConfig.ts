@@ -96,6 +96,11 @@ export const SEO_CONFIG = {
       description:
         'Termos de uso e condições da plataforma Fichas de Nimb para Tormenta 20.',
     },
+    install: {
+      title: 'Instalar App',
+      description:
+        'Instale o Fichas de Nimb no seu dispositivo e acesse suas fichas de Tormenta 20 a qualquer momento, mesmo offline.',
+    },
   },
 };
 

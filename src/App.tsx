@@ -42,6 +42,7 @@ import ThreatViewWrapper from './components/ThreatGenerator/ThreatViewWrapper';
 import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloudWrapper';
 import SheetViewPage from './components/screens/SheetViewPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import InstallPage from './components/screens/InstallPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
@@ -395,6 +396,9 @@ function ThemedApp(): JSX.Element {
                                 <ProtectedRoute requireAuth redirectTo='/'>
                                   <AdminPage />
                                 </ProtectedRoute>
+                              </Route>
+                              <Route path='/instalar'>
+                                <InstallPage />
                               </Route>
                               {/* <Route path='/ficha-criatura'>
                 <CreatureSheet isDarkMode={darkMode} />

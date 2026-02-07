@@ -1,70 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Snackbar, Alert, Box } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
+import { usePWAInstall } from '../hooks/usePWAInstall';
 
 const PWAInstallPrompt: React.FC = () => {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const { isStandalone, canPromptInstall, promptInstall } = usePWAInstall();
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if app is already installed (running in standalone mode)
-    const checkStandalone = () =>
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone ||
-      document.referrer.includes('android-app://');
+    if (!canPromptInstall || isStandalone) return;
 
-    setIsStandalone(checkStandalone());
+    const lastDismissed = localStorage.getItem('pwa-install-dismissed');
+    const daysSinceLastDismiss = lastDismissed
+      ? Math.floor(
+          (Date.now() - parseInt(lastDismissed, 10)) / (1000 * 60 * 60 * 24)
+        )
+      : 999;
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-
-      // Only show prompt if not already installed and user hasn't dismissed it recently
-      const lastDismissed = localStorage.getItem('pwa-install-dismissed');
-      const daysSinceLastDismiss = lastDismissed
-        ? Math.floor(
-            (Date.now() - parseInt(lastDismissed, 10)) / (1000 * 60 * 60 * 24)
-          )
-        : 999;
-
-      if (daysSinceLastDismiss > 7) {
-        // Show again after 7 days
-        setShowInstallPrompt(true);
-      }
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleBeforeInstallPrompt
-      );
-    };
-  }, []);
+    if (daysSinceLastDismiss > 7) {
+      setShowInstallPrompt(true);
+    }
+  }, [canPromptInstall, isStandalone]);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      // PWA installed successfully
-    }
-
-    setDeferredPrompt(null);
+    await promptInstall();
     setShowInstallPrompt(false);
   };
 
@@ -73,7 +32,7 @@ const PWAInstallPrompt: React.FC = () => {
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
-  if (isStandalone || !deferredPrompt) {
+  if (isStandalone || !canPromptInstall) {
     return null;
   }
 
