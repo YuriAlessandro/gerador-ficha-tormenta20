@@ -11,6 +11,7 @@ import {
   ClassDescription,
   ClassNames,
   ClassPower,
+  VariantClassOverrides,
 } from '../../../../interfaces/Class';
 import { GeneralPowers } from '../../../../interfaces/Poderes';
 import Equipment, { DefenseEquipment } from '../../../../interfaces/Equipment';
@@ -58,6 +59,8 @@ export interface SupplementData {
   classPowers?: SupplementClassPowers;
   /** Efeitos adicionais de Golpe Pessoal (habilidade do Guerreiro) */
   golpePessoalEffects?: Record<string, GolpePessoalEffect>;
+  /** Classes variantes que modificam classes base existentes (apenas overrides) */
+  variantClasses?: VariantClassOverrides[];
 }
 
 export const TORMENTA20_CORE_SUPPLEMENT: SupplementData = {

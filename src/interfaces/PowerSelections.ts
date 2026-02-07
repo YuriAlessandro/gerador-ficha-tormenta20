@@ -14,6 +14,7 @@ export interface SelectionOptions {
   familiars?: string[]; // Familiar names for selection
   animalTotems?: string[]; // Animal totem names for selection
   classAbilities?: Array<{ className: string; abilityName: string }>; // Class ability selections
+  chosenOption?: string[]; // Option names for chooseFromOptions actions
 }
 
 /**
@@ -50,7 +51,8 @@ export interface PowerSelectionRequirement {
     | 'buildGolpePessoal'
     | 'learnClassAbility'
     | 'getClassPower'
-    | 'humanoVersatil';
+    | 'humanoVersatil'
+    | 'chooseFromOptions';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;
@@ -59,6 +61,8 @@ export interface PowerSelectionRequirement {
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';
     schools?: string[];
+    optionKey?: string; // For chooseFromOptions: the option key identifier
+    linkedTo?: string; // For chooseFromOptions: linked to another option choice
   };
 }
 

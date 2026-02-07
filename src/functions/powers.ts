@@ -5,7 +5,11 @@ import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
 import Skill from '../interfaces/Skills';
-import { INVENTOR_SPECIALIZATIONS, InventorSpecialization } from './general';
+import {
+  INVENTOR_SPECIALIZATIONS,
+  InventorSpecialization,
+  isClassOrVariantOf,
+} from './general';
 
 export type LevelTier = 'Iniciante' | 'Veterano' | 'Campeão' | 'Herói';
 
@@ -102,7 +106,7 @@ export function isPowerAvailable(
           }
           case RequirementType.CLASSE: {
             const className = rule.value as unknown as string;
-            return rule.name && sheet.classe.name === className;
+            return rule.name && isClassOrVariantOf(sheet.classe, className);
           }
           case RequirementType.TIPO_ARCANISTA: {
             const classSubName = rule.name;

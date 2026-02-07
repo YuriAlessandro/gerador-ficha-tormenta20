@@ -130,6 +130,29 @@ export type SheetActionStep =
       type: 'getClassPower';
       minLevel?: number; // Minimum level of powers to choose from (default: 2)
       ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
+    }
+  | {
+      type: 'grantSpecificClassPower';
+      powerName: string; // Name of the specific class power to grant automatically
+    }
+  | {
+      type: 'addAlchemyItems';
+      budget: number; // Maximum total price of items
+      count: number; // Number of items to add
+    }
+  | {
+      type: 'chooseFromOptions';
+      optionKey: string; // Unique key for this choice group (e.g., 'escolaDeDuelo')
+      options: Array<{
+        name: string;
+        text: string;
+        sheetBonuses?: SheetBonus[];
+      }>;
+      linkedTo?: string; // If set, auto-select the option matching a previous choice stored under this key
+    }
+  | {
+      type: 'trainSkillOrBonus';
+      skills: Skill[]; // Skills to choose from (if > 1, pick one randomly)
     };
 
 export type SheetActionReceipt =
@@ -171,6 +194,17 @@ export type SheetActionReceipt =
       type: 'ClassAbilityLearned';
       className: string;
       abilityName: string;
+    }
+  | {
+      type: 'OptionChosen';
+      optionKey: string;
+      chosenName: string;
+      formattedText: string;
+    }
+  | {
+      type: 'SkillTrainedOrBonused';
+      skill: Skill;
+      alreadyTrained: boolean; // true = got +2 bonus, false = newly trained
     };
 
 export type SheetActionHistoryEntry = {

@@ -246,6 +246,18 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      if (action.type === 'chooseFromOptions' && !action.linkedTo) {
+        requirements.push({
+          type: 'chooseFromOptions',
+          availableOptions: action.options,
+          pick: 1,
+          label: `Selecione uma opção`,
+          metadata: {
+            optionKey: action.optionKey,
+          },
+        });
+      }
+
       // Handle Versátil special action for humans
       if (
         action.type === 'special' &&
@@ -569,6 +581,11 @@ export function getFilteredAvailableOptions(
       return ANIMAL_TOTEM_NAMES.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'chooseFromOptions': {
+      // Options are pre-defined in the action, return as-is
+      return availableOptions;
+    }
+
     case 'humanoVersatil': {
       // Return all skills that the character doesn't already have
       const allSkills = Object.values(Skill);
@@ -659,6 +676,11 @@ export function validateSelections(
 
       case 'selectAnimalTotem':
         selectedItems = selections.animalTotems || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'chooseFromOptions':
+        selectedItems = selections.chosenOption || [];
         selectedCount = selectedItems.length;
         break;
 

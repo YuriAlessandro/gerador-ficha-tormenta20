@@ -48,6 +48,7 @@ import {
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import { isClassOrVariantOf } from '@/functions/general';
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
@@ -744,7 +745,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }
 
           case RequirementType.CLASSE:
-            return sheet.classe.name === req.name;
+            return isClassOrVariantOf(sheet.classe, req.name as string);
 
           case RequirementType.DEVOTO: {
             const godName = req.name;

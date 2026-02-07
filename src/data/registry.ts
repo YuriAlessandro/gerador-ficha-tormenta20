@@ -248,8 +248,35 @@ class DataRegistry {
       return classDesc;
     });
 
-    this.classesCache = { system: systemId, supplements, data: mergedClasses };
-    return mergedClasses;
+    // Coleta classes variantes e herda propriedades da classe base
+    // A variante só define overrides — o resto é herdado automaticamente
+    const variantClasses: ClassDescription[] = [];
+    supplements.forEach((id) => {
+      const supplementVariants = systemData.supplements[id]?.variantClasses;
+      if (supplementVariants) {
+        supplementVariants.forEach((variant) => {
+          const baseClass = mergedClasses.find(
+            (c) => c.name === variant.baseClassName
+          );
+          if (baseClass) {
+            const inheritedPowers = variant.excludeAllBasePowers
+              ? []
+              : baseClass.powers.filter(
+                  (p) => !(variant.excludedPowers || []).includes(p.name)
+                );
+            variantClasses.push({
+              ...baseClass,
+              ...variant,
+              powers: [...inheritedPowers, ...(variant.powers || [])],
+            });
+          }
+        });
+      }
+    });
+
+    const allClasses = [...mergedClasses, ...variantClasses];
+    this.classesCache = { system: systemId, supplements, data: allClasses };
+    return allClasses;
   }
 
   /**
@@ -316,6 +343,35 @@ class DataRegistry {
           supplementId,
           supplementName,
         });
+      });
+    });
+
+    // Adiciona classes variantes com herança de propriedades da classe base
+    // A variante só define overrides — o resto é herdado automaticamente
+    supplementIds.forEach((supplementId) => {
+      const variants =
+        systemData.supplements[supplementId]?.variantClasses || [];
+      const supplementName =
+        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+
+      variants.forEach((variant) => {
+        const baseClass = classesWithInfo.find(
+          (c) => c.name === variant.baseClassName
+        );
+        if (baseClass) {
+          const inheritedPowers = variant.excludeAllBasePowers
+            ? []
+            : baseClass.powers.filter(
+                (p) => !(variant.excludedPowers || []).includes(p.name)
+              );
+          classesWithInfo.push({
+            ...baseClass,
+            ...variant,
+            powers: [...inheritedPowers, ...(variant.powers || [])],
+            supplementId,
+            supplementName,
+          });
+        }
       });
     });
 

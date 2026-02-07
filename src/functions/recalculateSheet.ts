@@ -25,7 +25,11 @@ import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/clas
 import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
 import { ClassDescription } from '@/interfaces/Class';
 
-import { applyRaceAbilities, applyPower } from './general';
+import {
+  applyRaceAbilities,
+  applyPower,
+  applyOptionChosenTexts,
+} from './general';
 import { getRemovedPowers } from './reverseSheetActions';
 
 // Combined list of all available classes for ability lookup
@@ -556,6 +560,9 @@ function applyClassAbilities(
   }
 
   sheetClone.classe.abilities = availableAbilities;
+
+  // Apply text modifications from chooseFromOptions history
+  applyOptionChosenTexts(sheetClone);
 
   sheetClone = availableAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
