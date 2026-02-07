@@ -23,6 +23,7 @@ import {
 import { MarketEquipment } from '../interfaces/MarketEquipment';
 import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 import { Armas, Armaduras, Escudos } from './systems/tormenta20/equipamentos';
+import { esotericos, animais } from './systems/tormenta20/equipamentos-gerais';
 import { Spell, SpellCircle, spellsCircles } from '../interfaces/Spells';
 import {
   arcaneSpellsCircle1,
@@ -632,9 +633,11 @@ class DataRegistry {
       armors: [],
       shields: [],
       generalItems: [],
+      esoteric: [],
       clothing: [],
       alchemy: [],
       food: [],
+      animals: [],
     };
 
     const systemData = SYSTEMS_MAP[systemId];
@@ -652,6 +655,12 @@ class DataRegistry {
     Object.values(Escudos).forEach((shield) => {
       result.shields.push(shield);
     });
+
+    // Add core esoteric items
+    result.esoteric.push(...esotericos);
+
+    // Add core animal items
+    result.animals.push(...animais);
 
     // Add equipment from supplements
     supplementIds.forEach((id) => {
@@ -697,6 +706,13 @@ class DataRegistry {
           );
         }
 
+        // Add supplement esoteric items
+        if (supplementEquipment.esoteric) {
+          result.esoteric.push(
+            ...supplementEquipment.esoteric.map(addSupplementInfo)
+          );
+        }
+
         // Add supplement clothing
         if (supplementEquipment.clothing) {
           result.clothing.push(
@@ -714,6 +730,13 @@ class DataRegistry {
         // Add supplement food
         if (supplementEquipment.food) {
           result.food.push(...supplementEquipment.food.map(addSupplementInfo));
+        }
+
+        // Add supplement animals
+        if (supplementEquipment.animals) {
+          result.animals.push(
+            ...supplementEquipment.animals.map(addSupplementInfo)
+          );
         }
       }
     });

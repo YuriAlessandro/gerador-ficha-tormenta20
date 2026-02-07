@@ -495,65 +495,65 @@ export const vestuario: Equipment[] = [
   },
 ];
 
-// Esotéricos (categoria: Item Geral)
+// Esotéricos (categoria: Esotérico)
 export const esotericos: Equipment[] = [
   {
     nome: 'Bolsa de pó',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 300'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Cajado arcano',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 1000'),
     spaces: parseSpaces(2),
   },
   {
     nome: 'Cetro elemental',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 750'),
     spaces: parseSpaces(1),
   },
   {
-    nome: 'Costela de troll',
-    group: 'Item Geral',
+    nome: 'Costela de lich',
+    group: 'Esotérico',
     preco: parsePrice('T$ 300'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Dedo de ente',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 200'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Luva de ferro',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 150'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Medalhão de prata',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 750'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Orbe cristalina',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 750'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Tomo hermético',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 1500'),
     spaces: parseSpaces(1),
   },
   {
     nome: 'Varinha arcana',
-    group: 'Item Geral',
+    group: 'Esotérico',
     preco: parsePrice('T$ 100'),
     spaces: parseSpaces(1),
   },
@@ -797,12 +797,65 @@ export const alimentacao: Equipment[] = [
   },
 ];
 
+// Animais (categoria: Animal)
+export const animais: Equipment[] = [
+  {
+    nome: 'Alforje',
+    group: 'Animal',
+    preco: parsePrice('T$ 30'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Cão de caça',
+    group: 'Animal',
+    preco: parsePrice('T$ 150'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Cavalo',
+    group: 'Animal',
+    preco: parsePrice('T$ 75'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Cavalo de guerra',
+    group: 'Animal',
+    preco: parsePrice('T$ 400'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Estábulo (por dia)',
+    group: 'Animal',
+    preco: parsePrice('T$ 0,1'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Pônei',
+    group: 'Animal',
+    preco: parsePrice('T$ 5'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Pônei de guerra',
+    group: 'Animal',
+    preco: parsePrice('T$ 30'),
+    spaces: parseSpaces('—'),
+  },
+  {
+    nome: 'Trobo',
+    group: 'Animal',
+    preco: parsePrice('T$ 60'),
+    spaces: parseSpaces('—'),
+  },
+];
+
 // Arrays unificados por categoria para uso no componente
 export const generalItems: Equipment[] = [
   ...equipamentoAventureiro,
   ...ferramentas,
-  ...esotericos,
 ];
+
+export const esotericItems: Equipment[] = [...esotericos];
 
 export const clothingItems: Equipment[] = [...vestuario];
 
@@ -814,11 +867,15 @@ export const alchemyItems: Equipment[] = [
 
 export const foodItems: Equipment[] = [...alimentacao];
 
+export const animalItems: Equipment[] = [...animais];
+
 // Objeto para facilitar o acesso organizado no componente
 export const GENERAL_EQUIPMENT = {
   // Subcategorias para Item Geral
   adventurerEquipment: equipamentoAventureiro,
   tools: ferramentas,
+
+  // Esotéricos (categoria própria)
   esoteric: esotericos,
 
   // Categorias diretas
@@ -832,9 +889,14 @@ export const GENERAL_EQUIPMENT = {
   // Categoria direta
   food: alimentacao,
 
+  // Animais
+  animals: animais,
+
   // Arrays unificados
   generalItems,
+  esotericItems,
   clothingItems,
   alchemyItems,
   foodItems,
+  animalItems,
 };

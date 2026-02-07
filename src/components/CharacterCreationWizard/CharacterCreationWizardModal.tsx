@@ -497,6 +497,7 @@ const CharacterCreationWizardModal: React.FC<
         { nome: 'Traje de viajante', group: 'Item Geral', spaces: 0 },
       ],
       Alquimía: [],
+      Esotérico: [],
       Vestuário: [],
       Hospedagem: [],
       Alimentação: [],

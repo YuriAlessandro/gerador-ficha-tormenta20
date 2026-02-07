@@ -8,9 +8,11 @@ export interface MarketEquipment {
   armors: DefenseEquipment[];
   shields: DefenseEquipment[];
   generalItems: Equipment[];
+  esoteric: Equipment[];
   clothing: Equipment[];
   alchemy: Equipment[];
   food: Equipment[];
+  animals: Equipment[];
 }
 
 /**

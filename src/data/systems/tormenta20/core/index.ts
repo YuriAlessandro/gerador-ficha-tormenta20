@@ -30,9 +30,11 @@ export interface SupplementEquipment {
   weapons?: Record<string, Equipment>;
   armors?: Record<string, DefenseEquipment>;
   generalItems?: Equipment[];
+  esoteric?: Equipment[];
   clothing?: Equipment[];
   alchemy?: Equipment[];
   food?: Equipment[];
+  animals?: Equipment[];
 }
 
 export interface SupplementSpells {
