@@ -89,7 +89,9 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     attributes: createDefaultAttributes(),
     attacks: [],
     abilities: [],
+    spells: [],
     skills: [],
+    specialQualities: '',
     equipment: '',
     treasureLevel: TreasureLevel.STANDARD,
     hasManaPoints: false,
@@ -297,9 +299,11 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         updatedAt: new Date(),
       };
 
-      // Auto-calculate combat stats when role/challenge level changes
+      // Auto-calculate combat stats when role/challenge level/hasManaPoints changes
       if (
-        (updates.role || updates.challengeLevel) &&
+        (updates.role ||
+          updates.challengeLevel ||
+          updates.hasManaPoints !== undefined) &&
         updated.role &&
         updated.challengeLevel
       ) {

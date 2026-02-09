@@ -66,7 +66,11 @@ const preparePDF: (
   nameField.setText(sheet.nome);
   raceField.setText(sheet.raca.name);
   originField.setText(sheet.origin?.name || '');
-  classField.setText(`${sheet.classe.name} ${sheet.nivel}`);
+  const classDisplay =
+    sheet.classe.isVariant && sheet.classe.baseClassName
+      ? `${sheet.classe.name} (${sheet.classe.baseClassName}) ${sheet.nivel}`
+      : `${sheet.classe.name} ${sheet.nivel}`;
+  classField.setText(classDisplay);
   deytiField.setText(sheet.devoto?.divindade.name || '');
   forceField.setText(sheet.atributos.Força.value.toString());
   dexterityField.setText(sheet.atributos.Destreza.value.toString());

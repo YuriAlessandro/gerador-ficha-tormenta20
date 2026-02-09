@@ -430,10 +430,69 @@ export const religiousFood: Equipment[] = [
   },
 ];
 
+// Esoteric items from Deuses de Arton supplement
+export const religiousEsoteric: Equipment[] = [
+  {
+    nome: 'Afiador solar',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 100'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Báculo da retribuição',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 200'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Contas de oração',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 500'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Estola',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 150'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Frasco purificador',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 100'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Medalhão afiado',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 900'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Ostensório santificado',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 750'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Rede de almas',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 600'),
+    spaces: parseSpaces(1),
+  },
+  {
+    nome: 'Turíbulo ungido',
+    group: 'Esotérico',
+    preco: parsePrice('T$ 100'),
+    spaces: parseSpaces(1),
+  },
+];
+
 const DEUSES_ARTON_EQUIPMENT: SupplementEquipment = {
   weapons: {},
   armors: {},
   generalItems: religiousEquipment,
+  esoteric: religiousEsoteric,
   clothing: religiousClothing,
   alchemy: religiousAlchemy,
   food: religiousFood,

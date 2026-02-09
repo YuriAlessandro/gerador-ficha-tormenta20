@@ -25,6 +25,8 @@ import {
   Card,
   CardContent,
   CardActions,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,7 +36,9 @@ import CasinoIcon from '@mui/icons-material/Casino';
 import {
   ThreatSheet,
   ThreatAbility,
+  ThreatSpell,
   AbilityRoll,
+  ThreatActionType,
 } from '../../../interfaces/ThreatSheet';
 import { getRecommendedAbilityCount } from '../../../functions/threatGenerator';
 import {
@@ -51,6 +55,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
   const [newAbility, setNewAbility] = useState({
     name: '',
     description: '',
+    hasPmCost: false,
+    pmCost: 1,
+    actionType: 'Padrão' as ThreatActionType,
   });
   const [newAbilityRolls, setNewAbilityRolls] = useState<AbilityRoll[]>([]);
   const [newRoll, setNewRoll] = useState({ name: '', dice: '', bonus: 0 });
@@ -61,11 +68,29 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     name: string;
     description: string;
     rolls?: AbilityRoll[];
+    hasPmCost: boolean;
+    pmCost: number;
+    actionType: ThreatActionType;
   } | null>(null);
   const [selectedSuggestionRolls, setSelectedSuggestionRolls] = useState<
     AbilityRoll[]
   >([]);
   const [newSuggestionRoll, setNewSuggestionRoll] = useState({
+    name: '',
+    dice: '',
+    bonus: 0,
+  });
+
+  // Estados para magias
+  const [newSpell, setNewSpell] = useState({
+    name: '',
+    description: '',
+    hasPmCost: true,
+    pmCost: 1,
+    actionType: 'Padrão' as ThreatActionType,
+  });
+  const [newSpellRolls, setNewSpellRolls] = useState<AbilityRoll[]>([]);
+  const [newSpellRoll, setNewSpellRoll] = useState({
     name: '',
     dice: '',
     bonus: 0,
@@ -128,6 +153,12 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       name: newAbility.name.trim(),
       description: newAbility.description.trim(),
       rolls: newAbilityRolls.length > 0 ? newAbilityRolls : undefined,
+      pmCost:
+        newAbility.hasPmCost && newAbility.pmCost > 0
+          ? newAbility.pmCost
+          : undefined,
+      actionType:
+        newAbility.actionType !== 'Padrão' ? newAbility.actionType : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
@@ -137,6 +168,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     setNewAbility({
       name: '',
       description: '',
+      hasPmCost: false,
+      pmCost: 1,
+      actionType: 'Padrão',
     });
     setNewAbilityRolls([]);
   };
@@ -152,7 +186,12 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     name: string;
     description: string;
   }) => {
-    setSelectedSuggestion(suggestion);
+    setSelectedSuggestion({
+      ...suggestion,
+      hasPmCost: false,
+      pmCost: 1,
+      actionType: 'Padrão',
+    });
     setSelectedSuggestionRolls([]);
     setNewSuggestionRoll({ name: '', dice: '', bonus: 0 });
     setSuggestionDialog(false);
@@ -170,6 +209,14 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         selectedSuggestionRolls.length > 0
           ? selectedSuggestionRolls
           : undefined,
+      pmCost:
+        selectedSuggestion.hasPmCost && selectedSuggestion.pmCost > 0
+          ? selectedSuggestion.pmCost
+          : undefined,
+      actionType:
+        selectedSuggestion.actionType !== 'Padrão'
+          ? selectedSuggestion.actionType
+          : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
@@ -178,6 +225,63 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     setSelectedSuggestion(null);
     setSelectedSuggestionRolls([]);
     setCustomizeDialog(false);
+  };
+
+  // Handlers para magias
+  const generateSpellId = () =>
+    `spell_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  const handleAddSpellRoll = () => {
+    if (!newSpellRoll.name.trim() || !newSpellRoll.dice.trim()) return;
+
+    const roll: AbilityRoll = {
+      id: generateRollId(),
+      name: newSpellRoll.name.trim(),
+      dice: newSpellRoll.dice.trim(),
+      bonus: newSpellRoll.bonus,
+    };
+
+    setNewSpellRolls([...newSpellRolls, roll]);
+    setNewSpellRoll({ name: '', dice: '', bonus: 0 });
+  };
+
+  const handleRemoveSpellRoll = (rollId: string) => {
+    setNewSpellRolls(newSpellRolls.filter((r) => r.id !== rollId));
+  };
+
+  const handleAddSpell = () => {
+    if (!newSpell.name.trim()) return;
+
+    const spell: ThreatSpell = {
+      id: generateSpellId(),
+      name: newSpell.name.trim(),
+      description: newSpell.description.trim(),
+      rolls: newSpellRolls.length > 0 ? newSpellRolls : undefined,
+      pmCost:
+        newSpell.hasPmCost && newSpell.pmCost > 0 ? newSpell.pmCost : undefined,
+      actionType:
+        newSpell.actionType !== 'Padrão' ? newSpell.actionType : undefined,
+    };
+
+    const updatedSpells = [...(threat.spells || []), spell];
+    onUpdate({ spells: updatedSpells });
+
+    // Clear form
+    setNewSpell({
+      name: '',
+      description: '',
+      hasPmCost: true,
+      pmCost: 1,
+      actionType: 'Padrão',
+    });
+    setNewSpellRolls([]);
+  };
+
+  const handleRemoveSpell = (spellId: string) => {
+    const updatedSpells = (threat.spells || []).filter(
+      (spell) => spell.id !== spellId
+    );
+    onUpdate({ spells: updatedSpells });
   };
 
   // Get ability recommendations
@@ -271,6 +375,75 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   }
                   placeholder='Descreva o efeito da habilidade...'
                 />
+              </Grid>
+
+              {/* Tipo de Ação */}
+              <Grid size={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Tipo de Ação</InputLabel>
+                  <Select
+                    value={newAbility.actionType}
+                    label='Tipo de Ação'
+                    onChange={(e) =>
+                      setNewAbility({
+                        ...newAbility,
+                        actionType: e.target.value as ThreatActionType,
+                      })
+                    }
+                  >
+                    <MenuItem value='Padrão'>Padrão</MenuItem>
+                    <MenuItem value='Movimento'>Movimento</MenuItem>
+                    <MenuItem value='Completa'>Completa</MenuItem>
+                    <MenuItem value='Livre'>Livre</MenuItem>
+                    <MenuItem value='Reação'>Reação</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Custo de PM */}
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 2,
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newAbility.hasPmCost}
+                        onChange={(e) =>
+                          setNewAbility({
+                            ...newAbility,
+                            hasPmCost: e.target.checked,
+                          })
+                        }
+                      />
+                    }
+                    label='Esta habilidade custa PM?'
+                  />
+                  {newAbility.hasPmCost && (
+                    <TextField
+                      fullWidth
+                      type='number'
+                      label='Custo em PM'
+                      value={newAbility.pmCost}
+                      onChange={(e) =>
+                        setNewAbility({
+                          ...newAbility,
+                          pmCost: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 1
+                          ),
+                        })
+                      }
+                      inputProps={{ min: 1 }}
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </Box>
               </Grid>
 
               {/* Rolls Section */}
@@ -432,7 +605,35 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                   <React.Fragment key={ability.id}>
                     <ListItem alignItems='flex-start'>
                       <ListItemText
-                        primary={ability.name}
+                        primary={
+                          <Box>
+                            {ability.name}
+                            {(ability.pmCost ||
+                              (ability.actionType &&
+                                ability.actionType !== 'Padrão')) && (
+                              <Typography
+                                component='span'
+                                variant='body2'
+                                color='text.secondary'
+                                sx={{ ml: 1 }}
+                              >
+                                (
+                                {[
+                                  ability.actionType &&
+                                  ability.actionType !== 'Padrão'
+                                    ? ability.actionType
+                                    : null,
+                                  ability.pmCost
+                                    ? `${ability.pmCost} PM`
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(', ')}
+                                )
+                              </Typography>
+                            )}
+                          </Box>
+                        }
                         secondary={
                           <Box>
                             <Typography
@@ -475,6 +676,341 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                       </ListItemSecondaryAction>
                     </ListItem>
                     {index < (threat.abilities?.length || 0) - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Seção de Magias */}
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant='h6' gutterBottom>
+        Magias
+      </Typography>
+      <Typography variant='body2' color='text.secondary' mb={3}>
+        Adicione magias que a ameaça pode conjurar. Magias aparecem em uma seção
+        separada na ficha.
+      </Typography>
+
+      <Grid container spacing={3}>
+        {/* Add New Spell Form */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper variant='outlined' sx={{ p: 3 }}>
+            <Typography variant='subtitle1' gutterBottom>
+              Adicionar Nova Magia
+            </Typography>
+
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  label='Nome da Magia'
+                  value={newSpell.name}
+                  onChange={(e) =>
+                    setNewSpell({ ...newSpell, name: e.target.value })
+                  }
+                  placeholder='Ex: Bola de Fogo, Curar Ferimentos, Relâmpago'
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label='Descrição'
+                  value={newSpell.description}
+                  onChange={(e) =>
+                    setNewSpell({
+                      ...newSpell,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder='Descreva o efeito da magia...'
+                />
+              </Grid>
+
+              {/* Tipo de Ação */}
+              <Grid size={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Tipo de Ação</InputLabel>
+                  <Select
+                    value={newSpell.actionType}
+                    label='Tipo de Ação'
+                    onChange={(e) =>
+                      setNewSpell({
+                        ...newSpell,
+                        actionType: e.target.value as ThreatActionType,
+                      })
+                    }
+                  >
+                    <MenuItem value='Padrão'>Padrão</MenuItem>
+                    <MenuItem value='Movimento'>Movimento</MenuItem>
+                    <MenuItem value='Completa'>Completa</MenuItem>
+                    <MenuItem value='Livre'>Livre</MenuItem>
+                    <MenuItem value='Reação'>Reação</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Custo de PM */}
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 2,
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={newSpell.hasPmCost}
+                        onChange={(e) =>
+                          setNewSpell({
+                            ...newSpell,
+                            hasPmCost: e.target.checked,
+                          })
+                        }
+                      />
+                    }
+                    label='Esta magia custa PM?'
+                  />
+                  {newSpell.hasPmCost && (
+                    <TextField
+                      fullWidth
+                      type='number'
+                      label='Custo em PM'
+                      value={newSpell.pmCost}
+                      onChange={(e) =>
+                        setNewSpell({
+                          ...newSpell,
+                          pmCost: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 1
+                          ),
+                        })
+                      }
+                      inputProps={{ min: 1 }}
+                      sx={{ mt: 2 }}
+                    />
+                  )}
+                </Box>
+              </Grid>
+
+              {/* Rolls Section */}
+              <Grid size={12}>
+                <Box
+                  sx={{
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 2,
+                  }}
+                >
+                  <Typography variant='subtitle2' gutterBottom>
+                    <CasinoIcon
+                      fontSize='small'
+                      sx={{ mr: 0.5, verticalAlign: 'middle' }}
+                    />
+                    Rolagens (Opcional)
+                  </Typography>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    display='block'
+                    mb={1}
+                  >
+                    Adicione rolagens de dados para esta magia. Ex: Dano (8d6)
+                  </Typography>
+
+                  {/* List of added rolls */}
+                  {newSpellRolls.length > 0 && (
+                    <Box mb={2}>
+                      {newSpellRolls.map((roll) => (
+                        <Chip
+                          key={roll.id}
+                          label={`${roll.name}: ${roll.dice}${
+                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                          }`}
+                          onDelete={() => handleRemoveSpellRoll(roll.id)}
+                          size='small'
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                          icon={<CasinoIcon />}
+                        />
+                      ))}
+                    </Box>
+                  )}
+
+                  {/* Add new roll form */}
+                  <Grid container spacing={1}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Nome'
+                        value={newSpellRoll.name}
+                        onChange={(e) =>
+                          setNewSpellRoll({
+                            ...newSpellRoll,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder='Dano'
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Dado'
+                        value={newSpellRoll.dice}
+                        onChange={(e) =>
+                          setNewSpellRoll({
+                            ...newSpellRoll,
+                            dice: e.target.value,
+                          })
+                        }
+                        placeholder='8d6'
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <TextField
+                        size='small'
+                        fullWidth
+                        label='Bônus'
+                        type='number'
+                        value={newSpellRoll.bonus}
+                        onChange={(e) =>
+                          setNewSpellRoll({
+                            ...newSpellRoll,
+                            bonus: parseInt(e.target.value, 10) || 0,
+                          })
+                        }
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 2 }}>
+                      <Button
+                        size='small'
+                        variant='outlined'
+                        fullWidth
+                        onClick={handleAddSpellRoll}
+                        disabled={
+                          !newSpellRoll.name.trim() || !newSpellRoll.dice.trim()
+                        }
+                        sx={{ height: '40px' }}
+                      >
+                        <AddIcon />
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Grid>
+
+              <Grid size={12}>
+                <Button
+                  variant='contained'
+                  fullWidth
+                  onClick={handleAddSpell}
+                  disabled={!newSpell.name.trim()}
+                  startIcon={<AddIcon />}
+                >
+                  Adicionar Magia
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
+        {/* Current Spells List */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper variant='outlined' sx={{ p: 3, height: 'fit-content' }}>
+            <Typography variant='subtitle1' mb={2}>
+              Magias Configuradas ({threat.spells?.length || 0})
+            </Typography>
+
+            {!threat.spells || threat.spells.length === 0 ? (
+              <Typography variant='body2' color='text.secondary' sx={{ py: 2 }}>
+                Nenhuma magia configurada ainda.
+              </Typography>
+            ) : (
+              <List dense>
+                {threat.spells?.map((spell, index) => (
+                  <React.Fragment key={spell.id}>
+                    <ListItem alignItems='flex-start'>
+                      <ListItemText
+                        primary={
+                          <Box>
+                            {spell.name}
+                            {(spell.pmCost ||
+                              (spell.actionType &&
+                                spell.actionType !== 'Padrão')) && (
+                              <Typography
+                                component='span'
+                                variant='body2'
+                                color='text.secondary'
+                                sx={{ ml: 1 }}
+                              >
+                                (
+                                {[
+                                  spell.actionType &&
+                                  spell.actionType !== 'Padrão'
+                                    ? spell.actionType
+                                    : null,
+                                  spell.pmCost ? `${spell.pmCost} PM` : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(', ')}
+                                )
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              sx={{ whiteSpace: 'pre-wrap' }}
+                            >
+                              {spell.description || 'Sem descrição fornecida'}
+                            </Typography>
+                            {spell.rolls && spell.rolls.length > 0 && (
+                              <Box mt={1}>
+                                {spell.rolls.map((roll) => (
+                                  <Chip
+                                    key={roll.id}
+                                    label={`${roll.name}: ${roll.dice}${
+                                      roll.bonus >= 0
+                                        ? `+${roll.bonus}`
+                                        : roll.bonus
+                                    }`}
+                                    size='small'
+                                    sx={{ mr: 0.5, mb: 0.5 }}
+                                    icon={<CasinoIcon />}
+                                    variant='outlined'
+                                  />
+                                ))}
+                              </Box>
+                            )}
+                          </Box>
+                        }
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge='end'
+                          onClick={() => handleRemoveSpell(spell.id)}
+                          size='small'
+                          color='error'
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                    {index < (threat.spells?.length || 0) - 1 && <Divider />}
                   </React.Fragment>
                 ))}
               </List>
@@ -577,6 +1113,79 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
             }
             sx={{ mb: 2 }}
           />
+
+          {/* Tipo de Ação */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Tipo de Ação</InputLabel>
+            <Select
+              value={selectedSuggestion?.actionType || 'Padrão'}
+              label='Tipo de Ação'
+              onChange={(e) =>
+                setSelectedSuggestion((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        actionType: e.target.value as ThreatActionType,
+                      }
+                    : null
+                )
+              }
+            >
+              <MenuItem value='Padrão'>Padrão</MenuItem>
+              <MenuItem value='Movimento'>Movimento</MenuItem>
+              <MenuItem value='Completa'>Completa</MenuItem>
+              <MenuItem value='Livre'>Livre</MenuItem>
+              <MenuItem value='Reação'>Reação</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Custo de PM */}
+          <Box
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 2,
+              mb: 2,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={selectedSuggestion?.hasPmCost || false}
+                  onChange={(e) =>
+                    setSelectedSuggestion((prev) =>
+                      prev ? { ...prev, hasPmCost: e.target.checked } : null
+                    )
+                  }
+                />
+              }
+              label='Esta habilidade custa PM?'
+            />
+            {selectedSuggestion?.hasPmCost && (
+              <TextField
+                fullWidth
+                type='number'
+                label='Custo em PM'
+                value={selectedSuggestion?.pmCost || 1}
+                onChange={(e) =>
+                  setSelectedSuggestion((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          pmCost: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 1
+                          ),
+                        }
+                      : null
+                  )
+                }
+                inputProps={{ min: 1 }}
+                sx={{ mt: 2 }}
+              />
+            )}
+          </Box>
 
           {/* Rolls Section in Customize Dialog */}
           <Box

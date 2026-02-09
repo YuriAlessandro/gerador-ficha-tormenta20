@@ -43,6 +43,7 @@ interface CommentSectionProps {
   canDelete?: (comment: CommentData) => boolean;
   maxLength?: number;
   title?: string;
+  canCommentOverride?: boolean;
 }
 
 const formatDate = (dateString: string) => {
@@ -65,6 +66,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   canDelete,
   maxLength = 2000,
   title = 'Comentários',
+  canCommentOverride = false,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -77,7 +79,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const canComment = canAccess('canComment');
+  const canComment = canAccess('canComment') || canCommentOverride;
 
   const handleSubmit = async () => {
     if (!newComment.trim()) return;

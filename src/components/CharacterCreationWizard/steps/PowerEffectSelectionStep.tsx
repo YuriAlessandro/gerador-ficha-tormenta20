@@ -116,7 +116,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'buildGolpePessoal'
         | 'learnClassAbility'
         | 'getClassPower'
-        | 'humanoVersatil';
+        | 'humanoVersatil'
+        | 'chooseFromOptions';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,6 +125,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       metadata?: {
         allowedType?: 'Arcane' | 'Divine' | 'Both';
         schools?: string[];
+        optionKey?: string;
+        linkedTo?: string;
       };
     }>;
   }> = [];
@@ -154,10 +157,11 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     });
   }
 
-  // Check class abilities (optionally filter by level for level-up context)
+  // Check class abilities: use originalAbilities for level-up (has all levels), or abilities for initial creation
+  const allClassAbilities = classe.originalAbilities || classe.abilities || [];
   const classAbilitiesToCheck = classAbilityLevel
-    ? classe.abilities?.filter((ability) => ability.nivel === classAbilityLevel)
-    : classe.abilities;
+    ? allClassAbilities.filter((ability) => ability.nivel === classAbilityLevel)
+    : (classe.abilities || []).filter((ability) => ability.nivel <= 1);
 
   classAbilitiesToCheck?.forEach((ability) => {
     const reqs = getPowerSelectionRequirements(ability);
@@ -339,6 +343,10 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         currentItems = powerSelections.animalTotems || [];
         updateKey = 'animalTotems';
         break;
+      case 'chooseFromOptions':
+        currentItems = powerSelections.chosenOption || [];
+        updateKey = 'chosenOption';
+        break;
       default:
         return;
     }
@@ -408,6 +416,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       case 'selectAnimalTotem':
         currentItems = powerSelections.animalTotems || [];
         break;
+      case 'chooseFromOptions':
+        currentItems = powerSelections.chosenOption || [];
+        break;
       default:
         return false;
     }
@@ -444,6 +455,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         return powerSelections.familiars?.length || 0;
       case 'selectAnimalTotem':
         return powerSelections.animalTotems?.length || 0;
+      case 'chooseFromOptions':
+        return powerSelections.chosenOption?.length || 0;
       default:
         return 0;
     }
@@ -466,7 +479,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'buildGolpePessoal'
         | 'learnClassAbility'
         | 'getClassPower'
-        | 'humanoVersatil';
+        | 'humanoVersatil'
+        | 'chooseFromOptions';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -474,6 +488,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       metadata?: {
         allowedType?: 'Arcane' | 'Divine' | 'Both';
         schools?: string[];
+        optionKey?: string;
+        linkedTo?: string;
       };
     },
     requirementIndex: number
@@ -598,6 +614,60 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                         <Typography variant='body1'>{totem.name}</Typography>
                         <Typography variant='body2' color='text.secondary'>
                           {totem.description}
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{
+                      ml: 0,
+                      py: 1,
+                      px: 1,
+                      borderRadius: 1,
+                      transition: 'background-color 0.2s',
+                      ...(isSelected && {
+                        bgcolor: 'action.selected',
+                        borderLeft: 3,
+                        borderColor: 'primary.main',
+                      }),
+                    }}
+                  />
+                );
+              })}
+            </RadioGroup>
+          </FormControl>
+        </Box>
+      );
+    }
+
+    // Render chooseFromOptions with radio buttons (name + description)
+    if (type === 'chooseFromOptions') {
+      const options = availableOptions as Array<{ name: string; text: string }>;
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <Typography variant='subtitle1' gutterBottom>
+            {label}
+          </Typography>
+          <FormControl component='fieldset' fullWidth>
+            <RadioGroup
+              value={powerSelections.chosenOption?.[0] || ''}
+              onChange={(e) =>
+                handleSelection(powerName, type, e.target.value, true, pick)
+              }
+            >
+              {options.map((option) => {
+                const isSelected =
+                  powerSelections.chosenOption?.[0] === option.name;
+                return (
+                  <FormControlLabel
+                    key={option.name}
+                    value={option.name}
+                    control={<Radio />}
+                    label={
+                      <Box>
+                        <Typography variant='body1' fontWeight='bold'>
+                          {option.name}
+                        </Typography>
+                        <Typography variant='body2' color='text.secondary'>
+                          {option.text}
                         </Typography>
                       </Box>
                     }

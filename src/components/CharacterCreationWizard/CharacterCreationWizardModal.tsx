@@ -272,11 +272,13 @@ const CharacterCreationWizardModal: React.FC<
     });
     if (hasRaceRequirements) return true;
 
-    // Check class abilities
-    const hasClassRequirements = classe.abilities?.some((ability) => {
-      const reqs = getPowerSelectionRequirements(ability);
-      return reqs !== null;
-    });
+    // Check class abilities (only level 1 for initial creation)
+    const hasClassRequirements = classe.abilities
+      ?.filter((ability) => ability.nivel <= 1)
+      .some((ability) => {
+        const reqs = getPowerSelectionRequirements(ability);
+        return reqs !== null;
+      });
     if (hasClassRequirements) return true;
 
     // Check origin powers
@@ -502,6 +504,7 @@ const CharacterCreationWizardModal: React.FC<
         { nome: 'Traje de viajante', group: 'Item Geral', spaces: 0 },
       ],
       Alquimía: [],
+      Esotérico: [],
       Vestuário: [],
       Hospedagem: [],
       Alimentação: [],

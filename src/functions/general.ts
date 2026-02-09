@@ -63,6 +63,7 @@ import Equipment, {
   BagEquipments,
   DefenseEquipment,
 } from '../interfaces/Equipment';
+import { alchemyItems } from '../data/systems/tormenta20/equipamentos-gerais';
 import Divindade, { DivindadeNames } from '../interfaces/Divindade';
 import GRANTED_POWERS from '../data/systems/tormenta20/powers/grantedPowers';
 import { generateRandomGolpePessoal } from './powers/golpePessoal';
@@ -722,6 +723,16 @@ function classByName(classe: ClassDescription, classeName: string) {
   return classe.name === classeName;
 }
 
+export function isClassOrVariantOf(
+  classe: ClassDescription,
+  className: string
+): boolean {
+  return (
+    classe.name === className ||
+    (classe.isVariant === true && classe.baseClassName === className)
+  );
+}
+
 function getClassByFilter(selectedOptions: SelectedOptions) {
   const supplements = selectedOptions.supplements || [
     SupplementId.TORMENTA20_CORE,
@@ -855,7 +866,7 @@ export function getSkillsAndPowersByClassAndOrigin(
   let remainingSkills = getRemainingSkills(usedSkills, classe);
 
   // Special handling for Inventor class to ensure synergy
-  if (classe.name === 'Inventor') {
+  if (isClassOrVariantOf(classe, 'Inventor')) {
     const skillsWithSpecialization = ensureInventorSpecialization([
       ...usedSkills,
       ...remainingSkills,
@@ -974,7 +985,7 @@ function getClassEquipments(
   const armors = getArmors(classe, currentBag);
 
   const instruments: Equipment[] = [];
-  if (classe.name === 'Bardo') {
+  if (isClassOrVariantOf(classe, 'Bardo')) {
     const instrumentName = getRandomItemFromArray(bardInstruments);
     instruments.push({
       nome: instrumentName,
@@ -1057,10 +1068,10 @@ function getThyatisPowers(classe: ClassDescription) {
       poder.name !== GRANTED_POWERS.DOM_DA_RESSUREICAO.name
   );
 
-  if (classe.name === 'Paladino')
+  if (isClassOrVariantOf(classe, 'Paladino'))
     return [...unrestrictedPowers, GRANTED_POWERS.DOM_DA_IMORTALIDADE];
 
-  if (classe.name === 'Clérigo')
+  if (isClassOrVariantOf(classe, 'Clérigo'))
     return [...unrestrictedPowers, GRANTED_POWERS.DOM_DA_RESSUREICAO];
 
   return [...unrestrictedPowers];
@@ -1284,6 +1295,10 @@ export const applyPower = (
     learnAnySpellFromHighestCircle: ['SpellsLearned'],
     learnClassAbility: ['ClassAbilityLearned'],
     getClassPower: ['ClassPowerAdded'],
+    grantSpecificClassPower: ['ClassPowerAdded'],
+    addAlchemyItems: ['EquipmentAdded'],
+    chooseFromOptions: ['OptionChosen'],
+    trainSkillOrBonus: ['SkillTrainedOrBonused'],
   };
 
   const isActionAlreadyApplied = (
@@ -1306,6 +1321,43 @@ export const applyPower = (
       if (
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
+        // For chooseFromOptions, re-apply sheetBonuses from the chosen option
+        // (sheetBonuses are cleared during recalculation, so they need to be re-added)
+        if (sheetAction.action.type === 'chooseFromOptions') {
+          const { optionKey, options } = sheetAction.action;
+          const previousChoice = sheet.sheetActionHistory
+            .flatMap((entry) => entry.changes)
+            .find(
+              (change) =>
+                change.type === 'OptionChosen' && change.optionKey === optionKey
+            );
+          if (previousChoice && previousChoice.type === 'OptionChosen') {
+            const chosenOption = options.find(
+              (o) => o.name === previousChoice.chosenName
+            );
+            if (chosenOption?.sheetBonuses) {
+              sheet.sheetBonuses.push(...chosenOption.sheetBonuses);
+            }
+          }
+        }
+        // For trainSkillOrBonus, re-apply the +2 bonus if the skill was already trained
+        if (sheetAction.action.type === 'trainSkillOrBonus') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'SkillTrainedOrBonused');
+          if (
+            previousResult &&
+            previousResult.type === 'SkillTrainedOrBonused' &&
+            previousResult.alreadyTrained
+          ) {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: { type: 'Skill', name: previousResult.skill },
+              modifier: { type: 'Fixed', value: 2 },
+            });
+          }
+        }
         return;
       }
 
@@ -2146,6 +2198,205 @@ export const applyPower = (
             },
           ],
         });
+      } else if (sheetAction.action.type === 'grantSpecificClassPower') {
+        const { powerName: targetPowerName } = sheetAction.action;
+
+        const targetPower = sheet.classe.powers.find(
+          (p) => p.name === targetPowerName
+        );
+
+        if (!targetPower) {
+          throw new Error(
+            `Poder de classe "${targetPowerName}" não encontrado na classe ${sheet.classe.name}`
+          );
+        }
+
+        // Only add if not already present
+        if (!sheet.classPowers) {
+          sheet.classPowers = [];
+        }
+        const alreadyHas = sheet.classPowers.some(
+          (p) => p.name === targetPowerName
+        );
+        if (!alreadyHas) {
+          sheet.classPowers.push(targetPower);
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Poder de classe concedido: ${targetPower.name}`,
+          });
+
+          // Apply the power's sheetActions and sheetBonuses
+          if (targetPower.sheetActions || targetPower.sheetBonuses) {
+            const [updatedSheet, powerSubSteps] = applyPower(
+              sheet,
+              targetPower,
+              manualSelections
+            );
+            Object.assign(sheet, updatedSheet);
+            powerSubSteps.forEach((subStep) => {
+              subSteps.push({
+                name: subStep.name || targetPower.name,
+                value: subStep.value,
+              });
+            });
+          }
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'PowerAdded',
+                powerName: targetPower.name,
+              },
+            ],
+          });
+        }
+      } else if (sheetAction.action.type === 'addAlchemyItems') {
+        const { budget, count } = sheetAction.action;
+
+        // Select random alchemy items within budget
+        const affordableItems = alchemyItems.filter(
+          (item) => item.preco !== undefined && item.preco <= budget
+        );
+
+        const selectedItems: Equipment[] = [];
+        let remainingBudget = budget;
+        let itemsLeft = count;
+
+        while (itemsLeft > 0 && affordableItems.length > 0) {
+          const maxPrice = remainingBudget;
+          const withinBudget = affordableItems.filter(
+            (item) => (item.preco || 0) <= maxPrice
+          );
+          if (withinBudget.length === 0) break;
+
+          const item = getRandomItemFromArray(withinBudget);
+          selectedItems.push(item);
+          remainingBudget -= item.preco || 0;
+          itemsLeft -= 1;
+        }
+
+        if (selectedItems.length > 0) {
+          const equipment: Partial<BagEquipments> = {
+            Alquimía: selectedItems,
+          };
+          sheet.bag.addEquipment(equipment);
+
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [{ type: 'EquipmentAdded', equipment }],
+          });
+
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `${selectedItems.length} itens alquímicos adicionados (T$ ${
+              budget - remainingBudget
+            })`,
+          });
+        }
+      } else if (sheetAction.action.type === 'chooseFromOptions') {
+        const { optionKey, options, linkedTo } = sheetAction.action;
+        let chosen;
+
+        // Use manual selection if provided
+        if (
+          manualSelections?.chosenOption &&
+          manualSelections.chosenOption.length > 0
+        ) {
+          const chosenName = manualSelections.chosenOption[0];
+          chosen = options.find((o) => o.name === chosenName);
+        }
+
+        if (!chosen && linkedTo) {
+          // Auto-select based on a previous choice
+          const previousChoice = sheet.sheetActionHistory
+            .flatMap((entry) => entry.changes)
+            .find(
+              (change) =>
+                change.type === 'OptionChosen' && change.optionKey === linkedTo
+            );
+          if (previousChoice && previousChoice.type === 'OptionChosen') {
+            chosen = options.find((o) => o.name === previousChoice.chosenName);
+          }
+        }
+
+        if (!chosen) {
+          chosen = getRandomItemFromArray(options);
+        }
+
+        // Update the ability text on the sheet to show only the chosen option
+        const abilityIndex = sheet.classe.abilities.findIndex(
+          (a) => a.name === powerOrAbility.name
+        );
+        if (abilityIndex >= 0) {
+          sheet.classe.abilities[abilityIndex] = {
+            ...sheet.classe.abilities[abilityIndex],
+            text: `${chosen.name}. ${chosen.text}`,
+          };
+        }
+
+        const formattedText = `${chosen.name}. ${chosen.text}`;
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: chosen.name,
+        });
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'OptionChosen',
+              optionKey,
+              chosenName: chosen.name,
+              formattedText,
+            },
+          ],
+        });
+
+        // Apply sheetBonuses from the chosen option
+        if (chosen.sheetBonuses) {
+          sheet.sheetBonuses.push(...chosen.sheetBonuses);
+        }
+      } else if (sheetAction.action.type === 'trainSkillOrBonus') {
+        const { skills } = sheetAction.action;
+        const selectedSkill = getRandomItemFromArray(skills);
+        const alreadyTrained = sheet.skills.includes(selectedSkill);
+
+        if (alreadyTrained) {
+          // Already trained: add +2 bonus
+          sheet.sheetBonuses.push({
+            source: sheetAction.source,
+            target: { type: 'Skill', name: selectedSkill },
+            modifier: { type: 'Fixed', value: 2 },
+          });
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Já treinado em ${selectedSkill}: +2 na perícia`,
+          });
+        } else {
+          // Not trained: add the skill
+          sheet.skills.push(selectedSkill);
+          subSteps.push({
+            name: getSourceName(sheetAction.source),
+            value: `Treinado em ${selectedSkill}`,
+          });
+        }
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'SkillTrainedOrBonused',
+              skill: selectedSkill,
+              alreadyTrained,
+            },
+          ],
+        });
       } else {
         throw new Error(
           `Ação de ficha desconhecida: ${JSON.stringify(sheetAction)}`
@@ -2302,6 +2553,40 @@ function applyDivinePowers(
   return sheetClone;
 }
 
+/**
+ * Aplica as modificações de texto de OptionChosen (chooseFromOptions) do histórico
+ * nos abilities e originalAbilities da classe. Deve ser chamado sempre que
+ * classe.abilities é sobrescrito a partir de originalAbilities.
+ */
+export function applyOptionChosenTexts(sheet: CharacterSheet): void {
+  sheet.sheetActionHistory.forEach((entry) => {
+    entry.changes.forEach((change) => {
+      if (change.type === 'OptionChosen' && entry.powerName) {
+        const abilityIdx = sheet.classe.abilities.findIndex(
+          (a) => a.name === entry.powerName
+        );
+        if (abilityIdx >= 0) {
+          sheet.classe.abilities[abilityIdx] = {
+            ...sheet.classe.abilities[abilityIdx],
+            text: change.formattedText,
+          };
+        }
+        if (sheet.classe.originalAbilities) {
+          const origIdx = sheet.classe.originalAbilities.findIndex(
+            (a) => a.name === entry.powerName
+          );
+          if (origIdx >= 0) {
+            sheet.classe.originalAbilities[origIdx] = {
+              ...sheet.classe.originalAbilities[origIdx],
+              text: change.formattedText,
+            };
+          }
+        }
+      }
+    });
+  });
+}
+
 function applyClassAbilities(
   sheet: CharacterSheet,
   manualSelections?: ManualPowerSelections
@@ -2358,7 +2643,12 @@ function applyClassAbilities(
   if (!sheetClone.classe.originalAbilities) {
     sheetClone.classe.originalAbilities = [...sheetClone.classe.abilities];
   }
-  sheetClone.classe.abilities = availableAbilities;
+  sheetClone.classe.abilities = sheetClone.classe.abilities.filter(
+    (ability) => ability.nivel <= sheet.nivel
+  );
+
+  // Apply text modifications from chooseFromOptions history
+  applyOptionChosenTexts(sheetClone);
 
   return sheetClone;
 }
@@ -2618,10 +2908,9 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
 
   // Escolher novo poder aleatório (geral ou poder da classe)
   const randomNumber = Math.random();
-  const allowedPowers =
-    updatedSheet.classe.name === 'Inventor'
-      ? getWeightedInventorClassPowers(updatedSheet)
-      : getAllowedClassPowers(updatedSheet);
+  const allowedPowers = isClassOrVariantOf(updatedSheet.classe, 'Inventor')
+    ? getWeightedInventorClassPowers(updatedSheet)
+    : getAllowedClassPowers(updatedSheet);
   const allowedGeneralPowers = getPowersAllowedByRequirements(updatedSheet);
   if (randomNumber <= 0.7 && allowedPowers.length > 0) {
     // Escolha poder da classe
@@ -2739,6 +3028,9 @@ function levelUp(sheet: CharacterSheet): CharacterSheet {
       (ability) => ability.nivel <= updatedSheet.nivel
     );
     updatedSheet.classe.abilities = allAvailableAbilities;
+
+    // Apply text modifications from chooseFromOptions history
+    applyOptionChosenTexts(updatedSheet);
   }
 
   return updatedSheet;
@@ -2976,7 +3268,7 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         ability,
-        selections.abilityEffectSelections
+        selections.abilityEffectSelections?.[ability.name]
       );
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
@@ -3006,6 +3298,9 @@ export function applyManualLevelUp(
       (ability) => ability.nivel <= updatedSheet.nivel
     );
     updatedSheet.classe.abilities = allAvailableAbilities;
+
+    // Apply text modifications from chooseFromOptions history
+    applyOptionChosenTexts(updatedSheet);
   }
 
   return updatedSheet;

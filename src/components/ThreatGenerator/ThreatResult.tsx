@@ -32,6 +32,8 @@ import {
   ThreatSheet,
   ThreatAttack,
   AbilityRoll,
+  ThreatAbility,
+  ThreatSpell,
 } from '../../interfaces/ThreatSheet';
 import {
   getTierDisplayName,
@@ -114,6 +116,24 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   function getKey(elementId: string) {
     return `${threat.id}-${elementId}`;
   }
+
+  const formatAbilityName = (ability: ThreatAbility): string => {
+    const parts: string[] = [];
+
+    if (ability.actionType && ability.actionType !== 'Padrão') {
+      parts.push(ability.actionType);
+    }
+
+    if (ability.pmCost && ability.pmCost > 0) {
+      parts.push(`${ability.pmCost} PM`);
+    }
+
+    if (parts.length > 0) {
+      return `${ability.name} (${parts.join(', ')})`;
+    }
+
+    return ability.name;
+  };
 
   const handleSkillRoll = (skillName: string, modifier: number) => {
     const roll = rollD20();
@@ -578,8 +598,9 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                 ? `+${perceptionValue}`
                 : `${perceptionValue}`}
             </Box>
+            {threat.specialQualities && <>, {threat.specialQualities}</>}
           </Box>
-          <Box display='inline'>
+          <div>
             <ThreatText>Defesa</ThreatText> {threat.combatStats.defense},{' '}
             <Box
               component='span'
@@ -643,22 +664,21 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                 {threat.combatStats.standardEffectDC}
               </>
             )}
-          </Box>
+          </div>
           <div>
-            <ThreatText>Pontos de Vida</ThreatText>{' '}
-            {threat.combatStats.hitPoints}
+            <ThreatText>PV</ThreatText> {threat.combatStats.hitPoints}
+            {threat.combatStats.manaPoints &&
+              threat.combatStats.manaPoints > 0 && (
+                <>
+                  {' '}
+                  | <ThreatText>PM</ThreatText> {threat.combatStats.manaPoints}
+                </>
+              )}
           </div>
           <div>
             <ThreatText>Deslocamento</ThreatText> {threat.displacement}
           </div>
           <ThreatDivisor />
-          {threat.combatStats.manaPoints &&
-            threat.combatStats.manaPoints > 0 && (
-              <div>
-                <ThreatText>Pontos de Mana</ThreatText>{' '}
-                {threat.combatStats.manaPoints}
-              </div>
-            )}
           <div>
             <ThreatText>Ataques</ThreatText>
           </div>
@@ -742,10 +762,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       }}
                       title={`Rolar ${ability.name}`}
                     >
-                      <ThreatText>{ability.name}:</ThreatText>
+                      <ThreatText>{formatAbilityName(ability)}:</ThreatText>
                     </Box>
                   ) : (
-                    <ThreatText>{ability.name}: </ThreatText>
+                    <ThreatText>{formatAbilityName(ability)}: </ThreatText>
                   )}{' '}
                   {ability.description}
                   {ability.rolls && ability.rolls.length > 0 && (
@@ -755,6 +775,78 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                           key={roll.id}
                           component='span'
                           onClick={() => handleAbilityRoll(ability.name, roll)}
+                          sx={{
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease',
+                            borderRadius: 1,
+                            px: 0.5,
+                            mx: 0.25,
+                            backgroundColor: theme.palette.action.selected,
+                            '&:hover': {
+                              backgroundColor: theme.palette.primary.main,
+                              color: theme.palette.primary.contrastText,
+                            },
+                          }}
+                          title={`Rolar ${roll.name}: ${roll.dice}${
+                            roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                          }`}
+                        >
+                          🎲 {roll.name}: {roll.dice}
+                          {roll.bonus !== 0 &&
+                            (roll.bonus >= 0
+                              ? `+${roll.bonus}`
+                              : `${roll.bonus}`)}
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+          {/* Spells Section */}
+          {threat.spells && threat.spells.length > 0 && (
+            <>
+              <ThreatDivisor />
+              <div>
+                <ThreatText>Magias</ThreatText>
+              </div>
+              {threat.spells.map((spell) => (
+                <div key={getKey(`spell-${spell.name}`)}>
+                  {spell.rolls && spell.rolls.length > 0 ? (
+                    <Box
+                      component='span'
+                      onClick={() =>
+                        handleAbilityNameClick(spell.name, spell.rolls || [])
+                      }
+                      sx={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        transition: 'all 0.2s ease',
+                        borderRadius: 1,
+                        px: 0.5,
+                        mx: -0.5,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                      title={`Rolar ${spell.name}`}
+                    >
+                      <ThreatText>{formatAbilityName(spell)}:</ThreatText>
+                    </Box>
+                  ) : (
+                    <ThreatText>{formatAbilityName(spell)}: </ThreatText>
+                  )}{' '}
+                  {spell.description}
+                  {spell.rolls && spell.rolls.length > 0 && (
+                    <Box component='span' sx={{ ml: 1 }}>
+                      {spell.rolls.map((roll) => (
+                        <Box
+                          key={roll.id}
+                          component='span'
+                          onClick={() => handleAbilityRoll(spell.name, roll)}
                           sx={{
                             cursor: 'pointer',
                             userSelect: 'none',

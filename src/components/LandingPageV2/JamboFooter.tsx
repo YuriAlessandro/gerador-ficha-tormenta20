@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
+const APP_VERSION = '4.1';
+
 // Image credits - add more as needed
 const imageCredits = [
   {
@@ -193,7 +195,7 @@ const JamboFooter: React.FC = () => {
               color='text.secondary'
               sx={{ fontFamily: 'Tfont, serif' }}
             >
-              &copy; {currentYear} &middot; Fichas de Nimb
+              &copy; {currentYear} &middot; (v{APP_VERSION})
             </Typography>
           </Stack>
 

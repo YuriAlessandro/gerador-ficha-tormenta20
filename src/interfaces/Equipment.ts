@@ -8,6 +8,7 @@ export type equipGroup =
   | 'Escudo'
   | 'Item Geral'
   | 'Alquimía'
+  | 'Esotérico'
   | 'Vestuário'
   | 'Hospedagem'
   | 'Alimentação'
@@ -126,6 +127,7 @@ export interface BagEquipments {
   Escudo: DefenseEquipment[];
   'Item Geral': Equipment[];
   Alquimía: Equipment[];
+  Esotérico: Equipment[];
   Vestuário: Equipment[];
   Hospedagem: Equipment[];
   Alimentação: Equipment[];

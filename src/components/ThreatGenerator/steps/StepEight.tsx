@@ -32,8 +32,12 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
     onUpdate({ name });
   };
 
+  const handleSpecialQualitiesChange = (specialQualities: string) => {
+    onUpdate({ specialQualities });
+  };
+
   const handleCombatStatChange = (
-    field: 'defense' | 'hitPoints' | 'standardEffectDC',
+    field: 'defense' | 'hitPoints' | 'standardEffectDC' | 'manaPoints',
     value: number
   ) => {
     onUpdate({
@@ -129,7 +133,10 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                   <TableRow>
                     <TableCell>Defesa</TableCell>
                     <TableCell>PV</TableCell>
-                    {threat.combatStats.manaPoints && <TableCell>PM</TableCell>}
+                    {threat.combatStats.manaPoints !== undefined &&
+                      threat.combatStats.manaPoints > 0 && (
+                        <TableCell>PM</TableCell>
+                      )}
                     <TableCell>Ataque</TableCell>
                     <TableCell>Dano</TableCell>
                     <TableCell>CD</TableCell>
@@ -169,9 +176,25 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
                         inputProps={{ style: { textAlign: 'center' } }}
                       />
                     </TableCell>
-                    {threat.combatStats.manaPoints && (
-                      <TableCell>{threat.combatStats.manaPoints}</TableCell>
-                    )}
+                    {threat.combatStats.manaPoints !== undefined &&
+                      threat.combatStats.manaPoints > 0 && (
+                        <TableCell>
+                          <TextField
+                            type='number'
+                            value={threat.combatStats.manaPoints}
+                            onChange={(e) =>
+                              handleCombatStatChange(
+                                'manaPoints',
+                                parseInt(e.target.value, 10) || 0
+                              )
+                            }
+                            size='small'
+                            variant='outlined'
+                            sx={{ width: 80 }}
+                            inputProps={{ style: { textAlign: 'center' } }}
+                          />
+                        </TableCell>
+                      )}
                     <TableCell>+{threat.combatStats.attackValue}</TableCell>
                     <TableCell>{threat.combatStats.averageDamage}</TableCell>
                     <TableCell>
@@ -292,6 +315,47 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
             )}
           </Paper>
         </Grid>
+
+        {/* Spells */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper variant='outlined' sx={{ p: 3 }}>
+            <Typography variant='subtitle1' gutterBottom>
+              Magias ({threat.spells?.length || 0})
+            </Typography>
+            {!threat.spells || threat.spells.length === 0 ? (
+              <Typography variant='body2' color='text.secondary'>
+                Nenhuma magia configurada
+              </Typography>
+            ) : (
+              <List dense>
+                {threat.spells.map((spell) => (
+                  <ListItem key={spell.id} sx={{ px: 0 }}>
+                    <ListItemText
+                      primary={spell.name}
+                      secondary={
+                        spell.description ? (
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {spell.description}
+                          </Typography>
+                        ) : (
+                          'Sem descrição'
+                        )
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Grid>
       </Grid>
 
       {/* Equipment and Treasure */}
@@ -323,6 +387,28 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
         </Paper>
       </Box>
 
+      {/* Special Qualities */}
+      <Box mt={3}>
+        <Paper variant='outlined' sx={{ p: 3 }}>
+          <Typography variant='subtitle1' gutterBottom>
+            Qualidades Especiais
+          </Typography>
+          <Typography variant='body2' color='text.secondary' mb={2}>
+            Descreva sentidos especiais, redução de dano, imunidades e
+            resistências da ameaça.
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label='Qualidades Especiais'
+            value={threat.specialQualities || ''}
+            onChange={(e) => handleSpecialQualitiesChange(e.target.value)}
+            placeholder='Ex: Visão no escuro, RD 5, Resistência à magia +5, Imune a veneno'
+          />
+        </Paper>
+      </Box>
+
       {/* Final Summary */}
       <Box mt={3}>
         <Paper
@@ -341,8 +427,9 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
               ` (${getTierDisplayName(
                 getTierByChallengeLevel(threat.challengeLevel)
               )})`}
-            . Possui {threat.attacks?.length || 0} ataques configurados e{' '}
-            {threat.abilities?.length || 0} habilidades especiais.
+            . Possui {threat.attacks?.length || 0} ataques,{' '}
+            {threat.abilities?.length || 0} habilidades e{' '}
+            {threat.spells?.length || 0} magias.
           </Typography>
         </Paper>
       </Box>

@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/02/2026.
+            03/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,71 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.0.2</h3>
+              <ul>
+                <li>
+                  <strong>🧙 Classe Frade:</strong> Corrigida a prioridade de
+                  atributos e a seleção de magias iniciais para a classe Frade.
+                </li>
+                <li>
+                  <strong>🧚 Raça Duende:</strong> O tamanho e customizações do
+                  Duende agora são preservados corretamente ao editar a ficha.
+                </li>
+                <li>
+                  <strong>📖 Enciclopédia:</strong>
+                  <ul>
+                    <li>
+                      Adicionadas opções dos novos suplementos à enciclopédia.
+                    </li>
+                    <li>
+                      Melhorias na exibição de truques de magias nas tabelas.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>⛪ Devotos:</strong> Agora é possível trocar os
+                  Poderes Concedidos ao editar fichas de personagens devotos.
+                </li>
+                <li>
+                  <strong>⬆️ Mudança de Nível:</strong> Habilidades de classe
+                  agora são adicionadas corretamente ao mudar o nível pelo
+                  drawer de edição.
+                </li>
+                <li>
+                  <strong>🔧 Correções Gerais:</strong>
+                  <ul>
+                    <li>
+                      Bônus manuais de defesa agora aparecem na fórmula de
+                      defesa.
+                    </li>
+                    <li>
+                      Poderes agora são filtrados corretamente considerando
+                      perícias e proficiências no wizard de criação.
+                    </li>
+                    <li>
+                      Corrigido o cálculo do modificador de Inteligência para
+                      raças com atributos selecionáveis.
+                    </li>
+                    <li>
+                      A habilidade Versátil (Humano) não aplica mais benefícios
+                      aleatórios durante o recálculo da ficha.
+                    </li>
+                    <li>
+                      Magias e poderes de suplementos agora aparecem
+                      corretamente no wizard de criação de personagem.
+                    </li>
+                    <li>
+                      Itens de origens não aparecem mais como objetos em vez do
+                      nome correto.
+                    </li>
+                    <li>
+                      Correções nas descrições e aprimoramentos de diversas
+                      magias.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.0.1</h3>
               <ul>
                 <li>
