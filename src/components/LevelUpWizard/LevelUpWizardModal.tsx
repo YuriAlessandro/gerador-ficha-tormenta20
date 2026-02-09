@@ -40,7 +40,7 @@ import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffe
 
 interface LevelUpWizardModalProps {
   open: boolean;
-  initialSheet: CharacterSheet; // Level 1 sheet
+  initialSheet: CharacterSheet; // Sheet at current level (level-up starts at nivel+1)
   targetLevel: number; // Final level to reach
   supplements: SupplementId[]; // Active supplements for power filtering
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
@@ -55,10 +55,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  // Current level being processed (starts at 2)
-  const [currentLevel, setCurrentLevel] = useState(2);
+  // Dynamic start level based on initial sheet
+  const startLevel = initialSheet.nivel + 1;
 
-  // All level up selections (array indexed by level - 2)
+  // Current level being processed (starts at initialSheet.nivel + 1)
+  const [currentLevel, setCurrentLevel] = useState(startLevel);
+
+  // All level up selections (array indexed by level - startLevel)
   const [allLevelSelections, setAllLevelSelections] = useState<
     LevelUpSelections[]
   >([]);
@@ -66,7 +69,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current level selections
   const [currentLevelSelection, setCurrentLevelSelection] =
     useState<LevelUpSelections>({
-      level: 2,
+      level: startLevel,
       powerChoice: 'class',
     });
 
@@ -83,10 +86,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setCurrentLevel(2);
+      setCurrentLevel(startLevel);
       setAllLevelSelections([]);
       setCurrentLevelSelection({
-        level: 2,
+        level: startLevel,
         powerChoice: 'class',
       });
       setActiveStep(0);
@@ -639,10 +642,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     if (activeStep > 0) {
       // Go back within this level
       setActiveStep((prev) => prev - 1);
-    } else if (currentLevel > 2) {
+    } else if (currentLevel > startLevel) {
       // Go back to previous level
       const previousLevel = currentLevel - 1;
-      const previousLevelSelection = allLevelSelections[previousLevel - 2];
+      const previousLevelSelection =
+        allLevelSelections[previousLevel - startLevel];
 
       setCurrentLevel(previousLevel);
       setCurrentLevelSelection(previousLevelSelection);
@@ -779,7 +783,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           <Box sx={{ flex: '1 1 auto' }} />
           <Button
             onClick={handleBack}
-            disabled={activeStep === 0 && currentLevel === 2}
+            disabled={activeStep === 0 && currentLevel === startLevel}
           >
             Voltar
           </Button>
