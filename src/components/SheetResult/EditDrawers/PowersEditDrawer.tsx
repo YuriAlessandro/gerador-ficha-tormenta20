@@ -718,6 +718,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              sheet.sheetActionHistory?.some((entry) =>
+                entry.changes.some(
+                  (change) =>
+                    change.type === 'OptionChosen' &&
+                    change.chosenName === req.name
+                )
+              ) ||
               false
             );
 
@@ -806,6 +813,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedClassPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              sheet.sheetActionHistory?.some((entry) =>
+                entry.changes.some(
+                  (change) =>
+                    change.type === 'OptionChosen' &&
+                    change.chosenName === req.name
+                )
+              ) ||
               false
             );
           case RequirementType.PERICIA: {

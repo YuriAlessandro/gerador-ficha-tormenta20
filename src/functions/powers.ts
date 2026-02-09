@@ -55,7 +55,19 @@ export function isPowerAvailable(
               ...(sheet.classPowers || []),
             ];
 
-            return allPowers.some((currPower) => currPower.name === rule.name);
+            const foundInPowers = allPowers.some(
+              (currPower) => currPower.name === rule.name
+            );
+            if (foundInPowers) return true;
+
+            // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
+            return sheet.sheetActionHistory.some((entry) =>
+              entry.changes.some(
+                (change) =>
+                  change.type === 'OptionChosen' &&
+                  change.chosenName === rule.name
+              )
+            );
           }
           case RequirementType.ATRIBUTO: {
             const attr = rule.name as Atributo;
