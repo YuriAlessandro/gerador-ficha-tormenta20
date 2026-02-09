@@ -7,6 +7,7 @@ import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
 import { AttributeVariant } from './Race';
+import { DamageType } from './CharacterSheet';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -90,6 +91,9 @@ export interface WizardSelections {
 
   // Suraggel ability selection (replaces Luz Sagrada or Sombra Profana)
   suragelAbility?: string;
+
+  // Qareen element selection (determines elemental resistance)
+  qareenElement?: DamageType;
 
   // Golem customization (if race is Golem Desperto)
   golemChassis?: string;

@@ -98,7 +98,8 @@ export type SheetActionStep =
         | 'moreauEspertezaVulpina'
         | 'golemDespertoSagrada'
         | 'fradeAutoridadeEclesiastica'
-        | 'meioElfoAmbicaoHerdada';
+        | 'meioElfoAmbicaoHerdada'
+        | 'qareenResistenciaElemental';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -236,6 +237,10 @@ export type StatModifierTarget =
     }
   | {
       type: 'SpellDC';
+    }
+  | {
+      type: 'DamageReduction';
+      damageType: DamageType;
     };
 
 export type StatModifier =
@@ -265,6 +270,37 @@ export type SheetBonus = {
   target: StatModifierTarget;
   modifier: StatModifier;
 };
+
+export type DamageType =
+  | 'Geral'
+  | 'Ácido'
+  | 'Corte'
+  | 'Eletricidade'
+  | 'Essência'
+  | 'Fogo'
+  | 'Frio'
+  | 'Impacto'
+  | 'Luz'
+  | 'Perfuração'
+  | 'Psíquico'
+  | 'Trevas';
+
+export type DamageReduction = Partial<Record<DamageType, number>>;
+
+export const ALL_DAMAGE_TYPES: DamageType[] = [
+  'Geral',
+  'Ácido',
+  'Corte',
+  'Eletricidade',
+  'Essência',
+  'Fogo',
+  'Frio',
+  'Impacto',
+  'Luz',
+  'Perfuração',
+  'Psíquico',
+  'Trevas',
+];
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
@@ -313,6 +349,8 @@ export default interface CharacterSheet {
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
+  qareenElement?: DamageType; // For Qareen (chosen elemental resistance)
+  cavaleiroCaminho?: 'Bastião' | 'Montaria'; // For Cavaleiro (path choice at level 5)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
@@ -330,6 +368,8 @@ export default interface CharacterSheet {
   manualMaxPV?: number; // Manual override for maximum PV (replaces calculated value if set)
   pmIncrement?: number; // Increment value for PM +/- buttons (default: 1)
   pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
+  reducaoDeDano?: DamageReduction; // Redução de Dano total (calculado: auto + manual)
+  bonusRd?: DamageReduction; // Bônus manual de RD por tipo (adicionado ao calculado)
 }
 
 export interface Step {

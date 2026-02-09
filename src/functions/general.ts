@@ -19,6 +19,7 @@ import EQUIPAMENTOS, {
   Escudos,
   bardInstruments,
   Armas,
+  isHeavyArmor,
 } from '../data/systems/tormenta20/equipamentos';
 import {
   FAMILIARS,
@@ -133,6 +134,7 @@ import {
   applyOsteonMemoriaPostuma,
   applyYidishanNaturezaOrganica,
   applyMeioElfoAmbicaoHerdada,
+  applyQareenResistenciaElemental,
 } from './powers/special';
 import {
   applyMoreauSapiencia,
@@ -1925,6 +1927,10 @@ export const applyPower = (
           sheetAction.action.specialAction === 'meioElfoAmbicaoHerdada'
         ) {
           currentSteps = applyMeioElfoAmbicaoHerdada(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'qareenResistenciaElemental'
+        ) {
+          currentSteps = applyQareenResistenciaElemental(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
@@ -2203,6 +2209,14 @@ export const applyPower = (
           name: sourceName,
           value: `Troca cálculo de PV de Constituição para ${newAttribute}: ${baseHp} + ${sheet.atributos[newAttribute].value} × ${sheet.nivel} = ${sheet.pv} (era ${oldPv})`,
         });
+      } else if (bonus.target.type === 'DamageReduction') {
+        const { damageType } = bonus.target;
+        if (bonus.modifier.type === 'Fixed' && 'value' in bonus.modifier) {
+          subSteps.push({
+            name: sourceName,
+            value: `RD de ${damageType} ${bonus.modifier.value}`,
+          });
+        }
       }
     });
   }
@@ -2317,6 +2331,17 @@ function applyClassAbilities(
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
     subSteps.push(...newSubSteps);
+
+    // Cavaleiro: random path selection for Caminho do Cavaleiro
+    if (ability.name === 'Caminho do Cavaleiro' && !newAcc.cavaleiroCaminho) {
+      const caminho = getRandomItemFromArray(['Bastião', 'Montaria'] as const);
+      newAcc.cavaleiroCaminho = caminho;
+      subSteps.push({
+        name: 'Caminho do Cavaleiro',
+        value: caminho,
+      });
+    }
+
     return newAcc;
   }, sheetClone);
 
@@ -3121,6 +3146,13 @@ const applyStatModifiers = (
 
         addOtherBonusToSkill(sheet, skill, bonusValue);
       });
+    } else if (bonus.target.type === 'DamageReduction') {
+      const { damageType } = bonus.target;
+      if (!sheet.reducaoDeDano) {
+        sheet.reducaoDeDano = {};
+      }
+      sheet.reducaoDeDano[damageType] =
+        (sheet.reducaoDeDano[damageType] ?? 0) + bonusValue;
     } else if (bonus.target.type === 'ModifySkillAttribute') {
       const { attribute } = bonus.target;
       const skillName = bonus.target.skill;
@@ -3145,6 +3177,38 @@ const applyStatModifiers = (
       // console.warn('bonus não implementado', bonus);
     }
   });
+
+  // Class-conditional Damage Reduction
+  const equippedArmors = sheet.bag.equipments.Armadura || [];
+  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+
+  // Bárbaro: Resistência a Dano (RD Geral escalável)
+  if (sheet.classe.name === 'Bárbaro' && sheet.nivel >= 5) {
+    const rdValue = 2 * Math.min(5, 1 + Math.floor((sheet.nivel - 5) / 3));
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + rdValue;
+  }
+
+  // Cavaleiro: Bastião (RD Geral 5, armadura pesada)
+  if (sheet.cavaleiroCaminho === 'Bastião' && hasHeavyArmor) {
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 5;
+  }
+
+  // Cavaleiro/Guerreiro: Especialização em Armadura (RD Geral 5, armadura pesada)
+  const hasEspecArmadura = (sheet.classPowers || []).some(
+    (p) => p.name === 'Especialização em Armadura'
+  );
+  if (hasEspecArmadura && hasHeavyArmor) {
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 5;
+  }
 
   if (pvSubSteps.length) {
     sheet.steps.push({
@@ -3821,6 +3885,11 @@ export function generateEmptySheet(
       emptySheet.raca = modifiedRace;
       emptySheet.suragelAbility = wizardSelections.suragelAbility;
     }
+  }
+
+  // Apply Qareen element selection from wizard
+  if (wizardSelections?.qareenElement && emptySheet.raca.name === 'Qareen') {
+    emptySheet.qareenElement = wizardSelections.qareenElement;
   }
 
   // Handle Arcanista subtype selection specially

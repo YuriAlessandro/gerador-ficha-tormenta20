@@ -12,6 +12,13 @@ const COURACA_RUBEA_POWER: GeneralPower = {
   description:
     'Você recebe redução de dano 2. Sua couraça conta como um poder da Tormenta, exceto por perda de Carisma.',
   requirements: [],
+  sheetBonuses: [
+    {
+      source: { type: 'power', name: 'Couraça Rúbea (Kaijin)' },
+      target: { type: 'DamageReduction', damageType: 'Geral' },
+      modifier: { type: 'Fixed', value: 2 },
+    },
+  ],
 };
 
 const kaijinAbilities: RaceAbility[] = [

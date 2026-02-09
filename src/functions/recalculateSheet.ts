@@ -3,6 +3,8 @@ import _ from 'lodash';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet, {
+  DamageReduction,
+  DamageType,
   SheetActionHistoryEntry,
   Step,
 } from '@/interfaces/CharacterSheet';
@@ -1032,7 +1034,8 @@ export function recalculateSheet(
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (
       bonus.target.type !== 'Defense' &&
-      bonus.target.type !== 'HPAttributeReplacement'
+      bonus.target.type !== 'HPAttributeReplacement' &&
+      bonus.target.type !== 'DamageReduction'
     ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
@@ -1194,6 +1197,49 @@ export function recalculateSheet(
   // Step 13: Apply weapon bonuses
   updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
+  // Step 14: Calculate Damage Reduction from sheetBonuses + manual
+  const computedRd: DamageReduction = {};
+
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'DamageReduction') {
+      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const { damageType } = bonus.target;
+      computedRd[damageType] = (computedRd[damageType] ?? 0) + bonusValue;
+    }
+  });
+
+  // Bárbaro: Resistência a Dano (RD Geral escalável com nível)
+  if (updatedSheet.classe.name === 'Bárbaro' && updatedSheet.nivel >= 5) {
+    const rdValue =
+      2 * Math.min(5, 1 + Math.floor((updatedSheet.nivel - 5) / 3));
+    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
+  }
+
+  // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
+  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 5;
+  }
+
+  // Cavaleiro/Guerreiro: Especialização em Armadura (RD Geral 5, requer armadura pesada)
+  const hasEspecArmadura = (updatedSheet.classPowers || []).some(
+    (p) => p.name === 'Especialização em Armadura'
+  );
+  if (hasEspecArmadura && heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 5;
+  }
+
+  if (updatedSheet.bonusRd) {
+    Object.entries(updatedSheet.bonusRd).forEach(([key, value]) => {
+      if (value && value > 0) {
+        const dt = key as DamageType;
+        computedRd[dt] = (computedRd[dt] ?? 0) + value;
+      }
+    });
+  }
+
+  updatedSheet.reducaoDeDano =
+    Object.keys(computedRd).length > 0 ? computedRd : undefined;
+
   // PM Debug - Final output
   pmDebug.bonuses.push({
     source: '=== FINAL PM ===',
@@ -1203,7 +1249,7 @@ export function recalculateSheet(
     pmAfter: updatedSheet.pm,
   });
 
-  // Step 14: Deduplicate arrays to prevent accumulation
+  // Step 15: Deduplicate arrays to prevent accumulation
   updatedSheet.spells = deduplicateSpells(updatedSheet.spells);
   updatedSheet.sheetActionHistory = deduplicateHistory(
     updatedSheet.sheetActionHistory

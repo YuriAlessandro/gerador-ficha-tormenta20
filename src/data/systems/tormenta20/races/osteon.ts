@@ -102,6 +102,23 @@ const OSTEON: Race = {
     {
       name: 'Armadura Óssea',
       description: 'Você recebe resistência a corte, frio e perfuração 5.',
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Armadura Óssea' },
+          target: { type: 'DamageReduction', damageType: 'Corte' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Armadura Óssea' },
+          target: { type: 'DamageReduction', damageType: 'Frio' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Armadura Óssea' },
+          target: { type: 'DamageReduction', damageType: 'Perfuração' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+      ],
     },
     {
       name: 'Memória Póstuma',

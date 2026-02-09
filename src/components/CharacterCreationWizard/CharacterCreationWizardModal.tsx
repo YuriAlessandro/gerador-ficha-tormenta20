@@ -49,6 +49,7 @@ import FeiticeiroLinhagemSelectionStep from './steps/FeiticeiroLinhagemSelection
 import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
+import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 
 interface RaceCustomization {
   // Golem Desperto
@@ -349,6 +350,11 @@ const CharacterCreationWizardModal: React.FC<
     return isSuragel && hasDeusesArton;
   };
 
+  const needsQareenElementSelection = (): boolean => {
+    if (!race) return false;
+    return race.name === 'Qareen';
+  };
+
   // Helper to get spell info for classes without spellPath defined initially
   const getSpellInfo = (): {
     spellType: 'Arcane' | 'Divine' | 'Both';
@@ -402,6 +408,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsRaceAttributes()) stepsArray.push('Atributos da Raça');
     stepsArray.push('Valores dos Atributos');
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
+    if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsDeityPowers()) stepsArray.push('Poderes da Divindade');
@@ -658,6 +665,16 @@ const CharacterCreationWizardModal: React.FC<
             selectedAbility={selections.suragelAbility}
             onChange={(ability) =>
               setSelections({ ...selections, suragelAbility: ability })
+            }
+          />
+        );
+
+      case 'Elemento do Qareen':
+        return (
+          <QareenElementSelectionStep
+            selectedElement={selections.qareenElement}
+            onChange={(element) =>
+              setSelections({ ...selections, qareenElement: element })
             }
           />
         );
@@ -947,6 +964,9 @@ const CharacterCreationWizardModal: React.FC<
       case 'Habilidade Suraggel':
         // Always valid - either default ability or selected alternative
         return true;
+
+      case 'Elemento do Qareen':
+        return selections.qareenElement !== undefined;
 
       case 'Perícias da Classe':
         if (!classe) return false;

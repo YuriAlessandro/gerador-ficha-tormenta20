@@ -32,7 +32,9 @@ import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { CustomPower } from '@/interfaces/CustomPower';
-import CharacterSheet from '../../interfaces/CharacterSheet';
+import CharacterSheet, {
+  DamageReduction,
+} from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
 import Equipment from '../../interfaces/Equipment';
@@ -51,6 +53,7 @@ import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
+import RdEditDrawer from './EditDrawers/RdEditDrawer';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
@@ -87,6 +90,25 @@ const StatLabel = styled.div<ThemeProp>`
   margin: 0;
 `;
 
+const formatRdLabel = (rd: DamageReduction | undefined): string => {
+  if (!rd) return '';
+  const entries = Object.entries(rd)
+    .filter(([, v]) => v && v > 0)
+    .map(([type, v]) => `${v} ${type.toLowerCase()}`);
+  if (entries.length === 0) return '';
+
+  const MAX_LENGTH = 40;
+  const full = entries.join(' | ');
+  if (full.length <= MAX_LENGTH) return full;
+
+  const truncated = entries.reduce((acc, entry) => {
+    const next = acc ? `${acc} | ${entry}` : entry;
+    if (next.length > MAX_LENGTH - 3) return acc;
+    return next;
+  }, '');
+  return `${truncated}...`;
+};
+
 interface ResultProps {
   sheet: CharacterSheet;
   isDarkMode: boolean;
@@ -102,6 +124,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
+  const [rdDrawerOpen, setRdDrawerOpen] = useState(false);
 
   const theme = useTheme();
 
@@ -650,6 +673,12 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const isMobile = useMemo(() => window.innerWidth <= 768, []);
 
+  const hasAnyRd =
+    currentSheet.reducaoDeDano &&
+    Object.values(currentSheet.reducaoDeDano).some((v) => v && v > 0);
+
+  const defenseInfoWidth = isMobile ? '100%' : '80%';
+
   return (
     <BackgroundBox isDarkMode={isDarkMode} sx={{ p: isMobile ? 0 : 2 }}>
       <Container maxWidth='xl' sx={{ p: isMobile ? 0 : 2 }}>
@@ -885,6 +914,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 <Box
                   width={isMobile ? '100%' : '20%'}
                   display='flex'
+                  flexDirection='column'
+                  alignItems='center'
                   justifyContent='center'
                   order={isMobile ? 1 : 0}
                 >
@@ -903,8 +934,45 @@ const Result: React.FC<ResultProps> = (props) => {
                       <StatTitle>Defesa</StatTitle>
                     </Box>
                   </FancyBox>
+                  {(hasAnyRd || onSheetUpdate) && (
+                    <Tooltip
+                      title={
+                        onSheetUpdate
+                          ? 'Clique para editar Redução de Dano'
+                          : formatRdLabel(currentSheet.reducaoDeDano)
+                      }
+                      arrow
+                    >
+                      <Typography
+                        onClick={() => onSheetUpdate && setRdDrawerOpen(true)}
+                        sx={{
+                          mt: 0.5,
+                          fontSize: '11px',
+                          color: hasAnyRd ? 'text.secondary' : 'text.disabled',
+                          cursor: onSheetUpdate ? 'pointer' : 'default',
+                          textAlign: 'center',
+                          maxWidth: '140px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          ...(onSheetUpdate
+                            ? {
+                                '&:hover': {
+                                  color: 'primary.main',
+                                  textDecoration: 'underline',
+                                },
+                              }
+                            : {}),
+                        }}
+                      >
+                        {hasAnyRd
+                          ? `RD: ${formatRdLabel(currentSheet.reducaoDeDano)}`
+                          : 'RD: —'}
+                      </Typography>
+                    </Tooltip>
+                  )}
                 </Box>
-                <Box width={isMobile ? '100%' : '80%'} order={isMobile ? 0 : 1}>
+                <Box width={defenseInfoWidth} order={isMobile ? 0 : 1}>
                   <DefenseEquipments
                     getKey={getKey}
                     defenseEquipments={defenseEquipments}
@@ -1237,6 +1305,13 @@ const Result: React.FC<ResultProps> = (props) => {
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
           onOpenEquipmentDrawer={() => setEquipmentDrawerOpen(true)}
+        />
+
+        <RdEditDrawer
+          open={rdDrawerOpen}
+          onClose={() => setRdDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
         />
       </>
     </BackgroundBox>

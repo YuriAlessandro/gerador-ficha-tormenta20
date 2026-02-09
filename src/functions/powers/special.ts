@@ -1,4 +1,7 @@
-import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  DamageType,
+  SubStep,
+} from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
@@ -292,6 +295,47 @@ export function applyMeioElfoAmbicaoHerdada(sheet: CharacterSheet): SubStep[] {
     // Apply the origin power's effects if any
     applyPower(sheet, randomOriginPower);
   }
+
+  return substeps;
+}
+
+const QAREEN_ELEMENTS: { name: string; damageType: DamageType }[] = [
+  { name: 'Água', damageType: 'Frio' },
+  { name: 'Ar', damageType: 'Eletricidade' },
+  { name: 'Fogo', damageType: 'Fogo' },
+  { name: 'Terra', damageType: 'Ácido' },
+  { name: 'Luz', damageType: 'Luz' },
+  { name: 'Trevas', damageType: 'Trevas' },
+];
+
+export function applyQareenResistenciaElemental(
+  sheet: CharacterSheet
+): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  // Use pre-selected element (from wizard) or pick randomly
+  let element: (typeof QAREEN_ELEMENTS)[number];
+  if (sheet.qareenElement) {
+    const found = QAREEN_ELEMENTS.find(
+      (e) => e.damageType === sheet.qareenElement
+    );
+    element = found || getRandomItemFromArray(QAREEN_ELEMENTS);
+  } else {
+    element = getRandomItemFromArray(QAREEN_ELEMENTS);
+  }
+
+  sheet.qareenElement = element.damageType;
+
+  sheet.sheetBonuses.push({
+    source: { type: 'power', name: 'Resistência Elemental' },
+    target: { type: 'DamageReduction', damageType: element.damageType },
+    modifier: { type: 'Fixed', value: 10 },
+  });
+
+  substeps.push({
+    name: 'Resistência Elemental',
+    value: `Qareen ${element.name} — RD de ${element.damageType} 10`,
+  });
 
   return substeps;
 }

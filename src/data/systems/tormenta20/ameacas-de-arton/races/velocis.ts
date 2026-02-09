@@ -7,6 +7,18 @@ const velocisAbilities: RaceAbility[] = [
     name: 'Através de Espinheiros',
     description:
       'Você recebe redução de corte e perfuração 2 e não sofre redução em seu deslocamento por terreno difícil natural.',
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Através de Espinheiros' },
+        target: { type: 'DamageReduction', damageType: 'Corte' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+      {
+        source: { type: 'power', name: 'Através de Espinheiros' },
+        target: { type: 'DamageReduction', damageType: 'Perfuração' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   {
     name: 'Sentidos Selvagens',

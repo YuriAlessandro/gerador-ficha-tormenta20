@@ -67,6 +67,23 @@ const SOTERRADO: Race = {
       name: 'Esquife de Gelo',
       description:
         'Você recebe redução de corte e perfuração 5 e redução de frio 10. Entretanto, sofre 1 ponto de dano adicional por dado de dano de fogo.',
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Esquife de Gelo' },
+          target: { type: 'DamageReduction', damageType: 'Corte' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Esquife de Gelo' },
+          target: { type: 'DamageReduction', damageType: 'Perfuração' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Esquife de Gelo' },
+          target: { type: 'DamageReduction', damageType: 'Frio' },
+          modifier: { type: 'Fixed', value: 10 },
+        },
+      ],
     },
     {
       name: 'Memória Póstuma',

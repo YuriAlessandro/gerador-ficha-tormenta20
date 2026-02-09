@@ -31,6 +31,18 @@ const QAREEN: Race = {
       name: 'Resistência Elemental',
       description:
         'Conforme sua ascendência, você recebe resistência 10 a um tipo de dano. Escolha uma: frio (qareen da água), eletricidade (do ar), fogo (do fogo), ácido (da terra), luz (da luz) ou trevas (qareen das trevas).',
+      sheetActions: [
+        {
+          source: {
+            type: 'power',
+            name: 'Resistência Elemental',
+          },
+          action: {
+            type: 'special',
+            specialAction: 'qareenResistenciaElemental',
+          },
+        },
+      ],
     },
     {
       name: 'Tatuagem mística',
