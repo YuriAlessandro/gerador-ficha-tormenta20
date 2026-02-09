@@ -10,6 +10,7 @@ import CharacterSheet, {
 } from '@/interfaces/CharacterSheet';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
+import { RequirementType } from '@/interfaces/Poderes';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -32,6 +33,7 @@ import {
   applyPower,
   applyOptionChosenTexts,
 } from './general';
+import { countTormentaPowers } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
 
 // Combined list of all available classes for ability lookup
@@ -1233,6 +1235,63 @@ export function recalculateSheet(
   );
   if (hasEspecArmadura && heavyArmor) {
     computedRd.Geral = (computedRd.Geral ?? 0) + 5;
+  }
+
+  // Encastelado (RD Geral 2 + escala, requer armadura pesada)
+  const hasEncastelado = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Encastelado'
+  );
+  if (hasEncastelado && heavyArmor) {
+    const encouracadoDependents = (updatedSheet.generalPowers || []).filter(
+      (p) =>
+        p.name !== 'Encastelado' &&
+        p.requirements?.some((reqGroup) =>
+          reqGroup.some(
+            (req) =>
+              req.type === RequirementType.PODER && req.name === 'Encouraçado'
+          )
+        )
+    ).length;
+    computedRd.Geral = (computedRd.Geral ?? 0) + 2 + encouracadoDependents;
+  }
+
+  // Selvagem Sanguinário (RD Geral 1, sem armadura pesada)
+  const hasSelvagem = [
+    ...(updatedSheet.generalPowers || []),
+    ...(updatedSheet.origin?.powers || []),
+  ].some((p) => p.name === 'Selvagem Sanguinário');
+  if (hasSelvagem && !heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 1;
+  }
+
+  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
+  const hasCarapaca = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Carapaça Corrompida'
+  );
+  if (hasCarapaca) {
+    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
+    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
+  }
+
+  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
+  const hasPeleCorr = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Pele Corrompida'
+  );
+  if (hasPeleCorr) {
+    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
+    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    const types: DamageType[] = [
+      'Ácido',
+      'Eletricidade',
+      'Fogo',
+      'Frio',
+      'Luz',
+      'Trevas',
+    ];
+    types.forEach((dt) => {
+      computedRd[dt] = (computedRd[dt] ?? 0) + rdValue;
+    });
   }
 
   if (updatedSheet.bonusRd) {

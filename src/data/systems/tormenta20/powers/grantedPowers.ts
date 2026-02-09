@@ -608,6 +608,18 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe redução de frio e trevas 5. Além disso, quando é alvo de um ataque você pode gastar 1 PM para emitir um clarão solar que deixa o atacante ofuscado por uma rodada.',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Fulgor Solar' },
+        target: { type: 'DamageReduction', damageType: 'Frio' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Fulgor Solar' },
+        target: { type: 'DamageReduction', damageType: 'Trevas' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   FURIA_DIVINA: {
     name: 'Fúria Divina',
@@ -645,6 +657,13 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
       'Você recebe redução de fogo 10 e pode pagar 1 PM para criar água pura e potável suficiente para um odre (ou outro recipiente pequeno).',
     type: GeneralPowerType.CONCEDIDOS,
     requirements: [[{ type: RequirementType.DEVOTO, name: 'Azgher' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Habitante do Deserto' },
+        target: { type: 'DamageReduction', damageType: 'Fogo' },
+        modifier: { type: 'Fixed', value: 10 },
+      },
+    ],
   },
   INIMIGO_DE_TENEBRA: {
     name: 'Inimigo de Tenebra',

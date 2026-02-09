@@ -41,6 +41,13 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você é treinado em Ofício (artesão). Além disso, recebe redução de corte 2 e, em suas mãos, armas de corte ignoram 5 pontos de redução de dano.',
     type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Carpinteiro de Guilda' },
+        target: { type: 'DamageReduction', damageType: 'Corte' },
+        modifier: { type: 'Fixed', value: 2 },
+      },
+    ],
   },
   CATADOR_DA_CATASTROFE: {
     name: 'Catador da Catástrofe',
@@ -136,6 +143,13 @@ const heroisArtonOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe +2 na Defesa e em testes de perícia contra mortos-vivos. Além disso, recebe redução de trevas 5 (ou, se for um morto-vivo, recupera +1 PV por dado de dano de trevas).',
     type: ORIGIN_POWER_TYPE,
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Ladrão de Túmulos' },
+        target: { type: 'DamageReduction', damageType: 'Trevas' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   MENESTREL: {
     name: 'Menestrel',

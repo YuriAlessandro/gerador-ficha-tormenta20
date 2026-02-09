@@ -105,6 +105,7 @@ import {
   PowerGetter,
   PowersGetters,
   Requirement,
+  RequirementType,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
   SheetChangeSource,
@@ -3503,6 +3504,70 @@ const applyStatModifiers = (
       sheet.reducaoDeDano = {};
     }
     sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 5;
+  }
+
+  // Encastelado (RD Geral 2 + escala, armadura pesada)
+  const hasEncastelado = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Encastelado'
+  );
+  if (hasEncastelado && hasHeavyArmor) {
+    const encouracadoDependents = (sheet.generalPowers || []).filter(
+      (p) =>
+        p.name !== 'Encastelado' &&
+        p.requirements?.some((reqGroup) =>
+          reqGroup.some(
+            (req) =>
+              req.type === RequirementType.PODER && req.name === 'Encouraçado'
+          )
+        )
+    ).length;
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral =
+      (sheet.reducaoDeDano.Geral ?? 0) + 2 + encouracadoDependents;
+  }
+
+  // Selvagem Sanguinário (RD Geral 1, sem armadura pesada)
+  const hasSelvagem = [
+    ...(sheet.generalPowers || []),
+    ...(sheet.origin?.powers || []),
+  ].some((p) => p.name === 'Selvagem Sanguinário');
+  if (hasSelvagem && !hasHeavyArmor) {
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + 1;
+  }
+
+  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
+  const hasCarapaca = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Carapaça Corrompida'
+  );
+  if (hasCarapaca) {
+    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
+    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    sheet.reducaoDeDano.Geral = (sheet.reducaoDeDano.Geral ?? 0) + rdValue;
+  }
+
+  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
+  const hasPeleCorr = (sheet.generalPowers || []).some(
+    (p) => p.name === 'Pele Corrompida'
+  );
+  if (hasPeleCorr) {
+    const otherTormentaPowers = countTormentaPowers(sheet) - 1;
+    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    const rdTypes = ['Ácido', 'Eletricidade', 'Fogo', 'Frio', 'Luz', 'Trevas'];
+    if (!sheet.reducaoDeDano) {
+      sheet.reducaoDeDano = {};
+    }
+    rdTypes.forEach((dt) => {
+      (sheet.reducaoDeDano as Record<string, number>)[dt] =
+        ((sheet.reducaoDeDano as Record<string, number>)[dt] ?? 0) + rdValue;
+    });
   }
 
   if (pvSubSteps.length) {
