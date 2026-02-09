@@ -24,6 +24,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Switch,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -145,6 +147,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   );
   const [dinheiro, setDinheiro] = useState(0);
   const [customMaxSpaces, setCustomMaxSpaces] = useState<number | null>(null);
+  const [autoDescontarTibares, setAutoDescontarTibares] = useState(true);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
   const [showAddArmor, setShowAddArmor] = useState(false);
   const [showAddShield, setShowAddShield] = useState(false);
@@ -447,6 +450,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const foodAccordionRef = useRef<HTMLDivElement>(null);
   const animalsAccordionRef = useRef<HTMLDivElement>(null);
 
+  const canAfford = (item: Equipment | DefenseEquipment): boolean => {
+    if (!autoDescontarTibares) return true;
+    return (item.preco || 0) <= dinheiro;
+  };
+
   useEffect(() => {
     if (sheet.bag && open) {
       const bagEquipments = sheet.bag.getEquipments();
@@ -465,6 +473,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
       setDinheiro(sheet.dinheiro || 0);
       setCustomMaxSpaces(sheet.customMaxSpaces ?? null);
+      setAutoDescontarTibares(true);
     }
   }, [sheet.bag, sheet.dinheiro, sheet.customMaxSpaces, open]);
 
@@ -595,6 +604,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleWeaponToggle = (weapon: Equipment) => {
+    const price = weapon.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     // Sempre adiciona a arma (permite múltiplas armas com mesmo nome)
     // Store base values when weapon is first added
     const weaponWithBase: Equipment = {
@@ -609,9 +621,18 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       ...prev,
       weapons: [...prev.weapons, weaponWithBase],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveWeapon = (index: number) => {
+    if (autoDescontarTibares) {
+      const weapon = selectedEquipment.weapons[index];
+      const price = weapon?.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       weapons: prev.weapons.filter((_, i) => i !== index),
@@ -775,18 +796,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleArmorToggle = (armor: DefenseEquipment) => {
-    setSelectedEquipment((prev) => {
-      const isCurrentlySelected = prev.armors.some(
-        (a) => a.nome === armor.nome
-      );
+    const isCurrentlySelected = selectedEquipment.armors.some(
+      (a) => a.nome === armor.nome
+    );
+    const price = armor.preco || 0;
 
-      if (isCurrentlySelected) {
-        // Remove the armor
-        return {
-          ...prev,
-          armors: prev.armors.filter((a) => a.nome !== armor.nome),
-        };
+    if (isCurrentlySelected) {
+      // Remove the armor
+      setSelectedEquipment((prev) => ({
+        ...prev,
+        armors: prev.armors.filter((a) => a.nome !== armor.nome),
+      }));
+      if (autoDescontarTibares && price > 0) {
+        setDinheiro((d) => d + price);
       }
+    } else {
+      // Replacing: refund old armor first
+      const oldArmor = selectedEquipment.armors[0];
+      const oldPrice = oldArmor?.preco || 0;
+      const netCost = price - oldPrice;
+
+      if (autoDescontarTibares && netCost > dinheiro) return;
 
       // Store base values when armor is first added
       const armorWithBase: DefenseEquipment = {
@@ -797,14 +827,22 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       };
 
       // Replace with new armor (only one allowed)
-      return {
+      setSelectedEquipment((prev) => ({
         ...prev,
         armors: [armorWithBase],
-      };
-    });
+      }));
+
+      if (autoDescontarTibares && netCost !== 0) {
+        setDinheiro((d) => d - netCost);
+      }
+    }
   };
 
   const handleRemoveArmor = (armor: DefenseEquipment) => {
+    if (autoDescontarTibares) {
+      const price = armor.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       armors: prev.armors.filter((a) => a.nome !== armor.nome),
@@ -870,18 +908,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleShieldToggle = (shield: DefenseEquipment) => {
-    setSelectedEquipment((prev) => {
-      const isCurrentlySelected = prev.shields.some(
-        (s) => s.nome === shield.nome
-      );
+    const isCurrentlySelected = selectedEquipment.shields.some(
+      (s) => s.nome === shield.nome
+    );
+    const price = shield.preco || 0;
 
-      if (isCurrentlySelected) {
-        // Remove the shield
-        return {
-          ...prev,
-          shields: prev.shields.filter((s) => s.nome !== shield.nome),
-        };
+    if (isCurrentlySelected) {
+      // Remove the shield
+      setSelectedEquipment((prev) => ({
+        ...prev,
+        shields: prev.shields.filter((s) => s.nome !== shield.nome),
+      }));
+      if (autoDescontarTibares && price > 0) {
+        setDinheiro((d) => d + price);
       }
+    } else {
+      // Replacing: refund old shield first
+      const oldShield = selectedEquipment.shields[0];
+      const oldPrice = oldShield?.preco || 0;
+      const netCost = price - oldPrice;
+
+      if (autoDescontarTibares && netCost > dinheiro) return;
 
       // Store base values when shield is first added
       const shieldWithBase: DefenseEquipment = {
@@ -892,14 +939,22 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       };
 
       // Replace with new shield (only one allowed)
-      return {
+      setSelectedEquipment((prev) => ({
         ...prev,
         shields: [shieldWithBase],
-      };
-    });
+      }));
+
+      if (autoDescontarTibares && netCost !== 0) {
+        setDinheiro((d) => d - netCost);
+      }
+    }
   };
 
   const handleRemoveShield = (shield: DefenseEquipment) => {
+    if (autoDescontarTibares) {
+      const price = shield.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       shields: prev.shields.filter((s) => s.nome !== shield.nome),
@@ -962,13 +1017,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for General Items
   const handleAddGeneralItem = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       generalItems: [...prev.generalItems, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveGeneralItem = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
@@ -977,13 +1043,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Esoteric
   const handleAddEsoteric = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       esoteric: [...prev.esoteric, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveEsoteric = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
@@ -992,13 +1069,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Clothing
   const handleAddClothing = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       clothing: [...prev.clothing, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveClothing = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       clothing: prev.clothing.filter((i) => i.nome !== item.nome),
@@ -1007,13 +1095,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Alchemy
   const handleAddAlchemy = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       alchemy: [...prev.alchemy, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveAlchemy = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
@@ -1022,13 +1121,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Food
   const handleAddFood = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       food: [...prev.food, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveFood = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       food: prev.food.filter((i) => i.nome !== item.nome),
@@ -1037,13 +1147,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Animals
   const handleAddAnimals = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       animals: [...prev.animals, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveAnimals = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       animals: prev.animals.filter((i) => i.nome !== item.nome),
@@ -1518,6 +1639,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       });
       setDinheiro(sheet.dinheiro || 0);
     }
+    setAutoDescontarTibares(true);
     setShowAddWeapons(false);
     setShowAddArmor(false);
     setShowAddShield(false);
@@ -1597,6 +1719,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   10 + (sheet.atributos?.Força?.value || 0)
                 } (10 + Força). Deixe vazio para usar o padrão.`}
               />
+              <Tooltip title='Quando ativo, adicionar equipamentos desconta o preço do dinheiro. Remover equipamentos reembolsa o valor.'>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={autoDescontarTibares}
+                      onChange={(e) =>
+                        setAutoDescontarTibares(e.target.checked)
+                      }
+                      color='warning'
+                    />
+                  }
+                  label='Descontar tibares ao adicionar/remover'
+                  sx={{ mt: 1 }}
+                />
+              </Tooltip>
             </CardContent>
           </Card>
 
@@ -2256,11 +2393,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2278,11 +2417,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2325,11 +2466,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2347,11 +2490,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2394,11 +2539,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2416,11 +2563,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2463,11 +2612,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2485,11 +2636,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2552,9 +2705,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2575,9 +2735,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {armor.supplementId &&
@@ -2621,9 +2788,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2644,9 +2818,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {armor.supplementId &&
@@ -2702,9 +2883,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isShieldSelected(shield)}
                               onChange={() => handleShieldToggle(shield)}
                               size='small'
+                              disabled={
+                                !isShieldSelected(shield) && !canAfford(shield)
+                              }
                             />
                           }
-                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          label={`${shield.nome} (Defesa: +${
+                            shield.defenseBonus
+                          }, Penalidade: ${shield.armorPenalty}${
+                            shield.preco ? ` | T$ ${shield.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2725,9 +2913,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isShieldSelected(shield)}
                               onChange={() => handleShieldToggle(shield)}
                               size='small'
+                              disabled={
+                                !isShieldSelected(shield) && !canAfford(shield)
+                              }
                             />
                           }
-                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          label={`${shield.nome} (Defesa: +${
+                            shield.defenseBonus
+                          }, Penalidade: ${shield.armorPenalty}${
+                            shield.preco ? ` | T$ ${shield.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {shield.supplementId &&
@@ -2793,6 +2988,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2815,6 +3011,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2860,6 +3057,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2905,6 +3103,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddEsoteric(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2927,6 +3126,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddEsoteric(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2985,6 +3185,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddClothing(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3007,6 +3208,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddClothing(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3075,6 +3277,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3097,6 +3300,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3143,6 +3347,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3165,6 +3370,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3211,6 +3417,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3233,6 +3440,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3291,6 +3499,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddFood(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3313,6 +3522,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddFood(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3371,6 +3581,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAnimals(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3393,6 +3604,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAnimals(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
