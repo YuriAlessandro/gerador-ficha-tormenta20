@@ -10,6 +10,7 @@ const LEFOU: Race = {
       { attr: 'any', mod: 1 },
       { attr: 'any', mod: 1 },
     ],
+    excludeFromAny: [Atributo.CARISMA],
   },
   faithProbability: {
     AHARADAK: 2,

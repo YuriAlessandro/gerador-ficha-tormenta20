@@ -646,9 +646,10 @@ const CharacterCreationWizardModal: React.FC<
       case 'Atributos da Raça': {
         if (!race) return null;
         // Use variant's attrs if selected, otherwise use race's default attrs
-        const attrs =
-          selections.attributeVariant?.attrs || race.attributes.attrs;
+        const attrSource = selections.attributeVariant || race.attributes;
+        const { attrs } = attrSource;
         const attrCount = attrs.filter((a) => a.attr === 'any').length;
+        const excludedAttributes = attrSource.excludeFromAny || [];
         return (
           <RaceAttributeStep
             selectedAttributes={selections.raceAttributes || []}
@@ -656,6 +657,7 @@ const CharacterCreationWizardModal: React.FC<
               setSelections({ ...selections, raceAttributes: raceAttrs })
             }
             requiredCount={attrCount}
+            excludedAttributes={excludedAttributes}
           />
         );
       }

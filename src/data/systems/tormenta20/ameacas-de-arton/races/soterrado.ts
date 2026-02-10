@@ -18,6 +18,7 @@ const SOTERRADO: Race = {
       { attr: 'any', mod: 1 },
       { attr: 'any', mod: 1 },
     ],
+    excludeFromAny: [Atributo.CONSTITUICAO],
   },
   faithProbability: {
     AHARADAK: 1,

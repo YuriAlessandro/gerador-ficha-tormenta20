@@ -954,7 +954,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   // Deity Power handlers
   const isDevoto = !!sheet.devoto;
-  const deityPowers = sheet.devoto?.divindade.poderes || [];
+  const storedDeity = sheet.devoto?.divindade;
+  const enrichedDeity = storedDeity
+    ? dataRegistry.getDeityByName(storedDeity.name, allSupplements)
+    : undefined;
+  const deityPowers = enrichedDeity?.poderes || storedDeity?.poderes || [];
   const { qtdPoderesConcedidos } = sheet.classe;
   const getsAllDeityPowers = qtdPoderesConcedidos === 'all';
   const maxDeityPowers =

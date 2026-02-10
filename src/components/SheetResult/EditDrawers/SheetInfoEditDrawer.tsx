@@ -352,10 +352,33 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   ).length;
   const fixedAttributes = raceAttributes.filter((attr) => attr.attr !== 'any');
 
-  // Get list of attributes that can be selected (exclude fixed attributes)
+  // Get excluded attributes for 'any' slots (e.g., Lefou can't pick Carisma)
+  const excludeFromAny: Atributo[] = (() => {
+    if (
+      editedData.raceName === 'Golem Desperto' &&
+      editedData.raceChassis &&
+      editedData.raceEnergySource &&
+      editedData.raceSizeCategory
+    ) {
+      const baseRace = selectedRace;
+      if (baseRace) {
+        const customizedRace = applyGolemDespertoCustomization(
+          baseRace,
+          editedData.raceChassis,
+          editedData.raceEnergySource,
+          editedData.raceSizeCategory
+        );
+        return customizedRace.attributes.excludeFromAny || [];
+      }
+    }
+    return selectedRace?.attributes.excludeFromAny || [];
+  })();
+
+  // Get list of attributes that can be selected (exclude fixed and restricted attributes)
   const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
   const availableAttributes = Object.values(Atributo).filter(
-    (attr) => !fixedAttributeNames.includes(attr)
+    (attr) =>
+      !fixedAttributeNames.includes(attr) && !excludeFromAny.includes(attr)
   );
 
   // Reset race attribute choices when race, sex, or heritage changes

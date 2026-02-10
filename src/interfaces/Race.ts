@@ -19,6 +19,7 @@ export interface RaceAttributeAbility {
 export interface AttributeVariant {
   label: string;
   attrs: RaceAttributeAbility[];
+  excludeFromAny?: Atributo[];
 }
 
 export type raceSize =
@@ -128,6 +129,7 @@ export default interface Race {
   name: RaceNames;
   attributes: {
     attrs: RaceAttributeAbility[];
+    excludeFromAny?: Atributo[];
   };
   abilities: RaceAbility[];
   oldRace?: Race;

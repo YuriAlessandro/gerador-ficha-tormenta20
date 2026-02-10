@@ -14,12 +14,14 @@ interface RaceAttributeStepProps {
   selectedAttributes: Atributo[];
   onChange: (attributes: Atributo[]) => void;
   requiredCount: number;
+  excludedAttributes?: Atributo[];
 }
 
 const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
   selectedAttributes,
   onChange,
   requiredCount,
+  excludedAttributes = [],
 }) => {
   const allAttributes = Object.values(Atributo);
 
@@ -32,8 +34,9 @@ const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
   const getAvailableAttributes = (currentIndex: number): Atributo[] =>
     allAttributes.filter(
       (attr) =>
-        !selectedAttributes.includes(attr) ||
-        selectedAttributes[currentIndex] === attr
+        !excludedAttributes.includes(attr) &&
+        (!selectedAttributes.includes(attr) ||
+          selectedAttributes[currentIndex] === attr)
     );
 
   const hasDuplicates = (): boolean => {
@@ -52,6 +55,12 @@ const RaceAttributeStep: React.FC<RaceAttributeStepProps> = ({
         Sua raça permite escolher {requiredCount} atributo
         {requiredCount > 1 ? 's' : ''} para receber bônus. Selecione abaixo:
       </Typography>
+
+      {excludedAttributes.length > 0 && (
+        <Alert severity='info'>
+          Atributos bloqueados pela raça: {excludedAttributes.join(', ')}
+        </Alert>
+      )}
 
       {Array.from({ length: requiredCount }).map((_, index) => {
         const fieldId = `attribute-slot-${index + 1}`;

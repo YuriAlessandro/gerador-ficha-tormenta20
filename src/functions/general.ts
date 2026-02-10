@@ -512,11 +512,13 @@ function rollAttributeValues(): number[] {
 function selectAttributeToChange(
   atributosModificados: string[],
   atributo: RaceAttributeAbility,
-  priorityAttrs: Atributo[]
+  priorityAttrs: Atributo[],
+  excludeFromAny: Atributo[] = []
 ) {
   if (atributo.attr === 'any') {
     const atributosPermitidos = Object.values(Atributo).filter(
-      (attr) => !atributosModificados.includes(attr)
+      (attr) =>
+        !atributosModificados.includes(attr) && !excludeFromAny.includes(attr)
     );
 
     const atributosPreferidos = priorityAttrs.filter((attr) =>
@@ -564,6 +566,7 @@ export function modifyAttributesBasedOnRace(
   // Use getAttributes if available (for sex-dependent attributes like Nagah)
   const raceAttributes =
     raca.getAttributes && sex ? raca.getAttributes(sex) : raca.attributes.attrs;
+  const excludeFromAny = raca.attributes.excludeFromAny || [];
 
   const reducedAttrs = raceAttributes.reduce<ReduceAttributesParams>(
     ({ atributos, nomesDosAtributosModificados }, attrDaRaca) => {
@@ -577,7 +580,8 @@ export function modifyAttributesBasedOnRace(
           selectAttributeToChange(
             nomesDosAtributosModificados,
             attrDaRaca,
-            priorityAttrs
+            priorityAttrs,
+            excludeFromAny
           );
         manualChoiceIndex += 1;
       } else {
@@ -585,7 +589,8 @@ export function modifyAttributesBasedOnRace(
         selectedAttrName = selectAttributeToChange(
           nomesDosAtributosModificados,
           attrDaRaca,
-          priorityAttrs
+          priorityAttrs,
+          excludeFromAny
         );
       }
 
@@ -1062,8 +1067,11 @@ function getInitialBag(origin: Origin | undefined): Bag {
   return new Bag(equipments);
 }
 
-function getThyatisPowers(classe: ClassDescription) {
-  const unrestrictedPowers = DivindadeEnum.THYATIS.poderes.filter(
+function getThyatisPowers(
+  classe: ClassDescription,
+  thyatisPoderes: GeneralPower[]
+) {
+  const unrestrictedPowers = thyatisPoderes.filter(
     (poder) =>
       poder.name !== GRANTED_POWERS.DOM_DA_IMORTALIDADE.name &&
       poder.name !== GRANTED_POWERS.DOM_DA_RESSUREICAO.name
@@ -1087,7 +1095,7 @@ function getPoderesConcedidos(
 ) {
   if (todosPoderes) {
     if (divindade.name === DivindadeEnum.THYATIS.name) {
-      return getThyatisPowers(classe);
+      return getThyatisPowers(classe, divindade.poderes);
     }
 
     return [...divindade.poderes];
@@ -1105,7 +1113,8 @@ function getPoderesConcedidos(
 function getReligiosidade(
   classe: ClassDescription,
   race: Race,
-  selectedOption: string
+  selectedOption: string,
+  supplements: SupplementId[]
 ): CharacterReligion | undefined {
   if (selectedOption === '--') return undefined;
 
@@ -1129,9 +1138,15 @@ function getReligiosidade(
     );
 
     const divindadeName = pickFaith(faithProbability);
-    divindade = DivindadeEnum[divindadeName];
+    divindade =
+      dataRegistry.getDeityByName(
+        DivindadeEnum[divindadeName].name,
+        supplements
+      ) || DivindadeEnum[divindadeName];
   } else {
-    divindade = DivindadeEnum[selectedOption as DivindadeNames];
+    const staticDeity = DivindadeEnum[selectedOption as DivindadeNames];
+    divindade =
+      dataRegistry.getDeityByName(staticDeity.name, supplements) || staticDeity;
   }
 
   // Provavelmente uma merda de solução mas preguiça
@@ -3830,7 +3845,12 @@ export default function generateRandomSheet(
 
   // Passo 7: Escolher se vai ser devoto, e se for o caso puxar uma divindade
 
-  const devote = getReligiosidade(classe, race, selectedOptions.devocao.value);
+  const devote = getReligiosidade(
+    classe,
+    race,
+    selectedOptions.devocao.value,
+    supplements
+  );
 
   if (devote) {
     steps.push({
@@ -4725,7 +4745,8 @@ export function generateEmptySheet(
   // Process deity if selected
   if (selectedOptions.devocao && selectedOptions.devocao.value) {
     const normalizedSearch = normalizeDeityName(selectedOptions.devocao.value);
-    const selectedDeity = Object.values(DivindadeEnum).find(
+    const deities = dataRegistry.getDeitiesWithSupplementPowers(supplements);
+    const selectedDeity = deities.find(
       (deity) => normalizeDeityName(deity.name) === normalizedSearch
     );
     if (selectedDeity) {
