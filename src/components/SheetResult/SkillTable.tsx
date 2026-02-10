@@ -21,20 +21,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { CompleteSkill, TrainedOnlySkills } from '../../interfaces/Skills';
-import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { ATTR_ABBREVIATIONS } from '../../data/systems/tormenta20/atributos';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
-
-const ATTR_ABBREVIATIONS: Record<Atributo, string> = {
-  [Atributo.FORCA]: 'For',
-  [Atributo.DESTREZA]: 'Des',
-  [Atributo.CONSTITUICAO]: 'Con',
-  [Atributo.INTELIGENCIA]: 'Int',
-  [Atributo.SABEDORIA]: 'Sab',
-  [Atributo.CARISMA]: 'Car',
-};
 
 interface IProps {
   sheet: CharacterSheet;
