@@ -38,6 +38,7 @@ import {
 import {
   getTierDisplayName,
   getTierByChallengeLevel,
+  getEffectiveSkillTotal,
 } from '../../functions/threatGenerator';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { deleteThreat } from '../../store/slices/threatStorage';
@@ -373,9 +374,13 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
 
   // Get initiative and perception values
   const initiativeSkill = threat.skills.find((s) => s.name === 'Iniciativa');
-  const initiativeValue = initiativeSkill?.total || 0;
+  const initiativeValue = initiativeSkill
+    ? getEffectiveSkillTotal(initiativeSkill)
+    : 0;
   const perceptionSkill = threat.skills.find((s) => s.name === 'Percepção');
-  const perceptionValue = perceptionSkill?.total || 0;
+  const perceptionValue = perceptionSkill
+    ? getEffectiveSkillTotal(perceptionSkill)
+    : 0;
 
   // Format attributes
   const formatAttribute = (attr: Atributo) => {
@@ -894,13 +899,18 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       skill.trained &&
                       !['Vontade', 'Fortitude', 'Reflexos'].includes(skill.name)
                   )
-                  .map((skill, idx, arr) => (
-                    <span key={getKey(skill.name)}>
-                      {skill.name}{' '}
-                      {skill.total > 0 ? `+${skill.total}` : `${skill.total}`}
-                      {idx + 1 < arr.length ? ', ' : '.'}
-                    </span>
-                  ))}
+                  .map((skill, idx, arr) => {
+                    const effectiveTotal = getEffectiveSkillTotal(skill);
+                    return (
+                      <span key={getKey(skill.name)}>
+                        {skill.name}{' '}
+                        {effectiveTotal > 0
+                          ? `+${effectiveTotal}`
+                          : `${effectiveTotal}`}
+                        {idx + 1 < arr.length ? ', ' : '.'}
+                      </span>
+                    );
+                  })}
               </div>
             </>
           )}

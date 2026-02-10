@@ -120,6 +120,7 @@ export interface ThreatSkill {
   trained: boolean;
   customBonus: number;
   total: number; // Calculado automaticamente
+  overrideTotal?: number; // Sobrescrita manual (substitui total se definido)
 }
 
 export enum ResistanceType {

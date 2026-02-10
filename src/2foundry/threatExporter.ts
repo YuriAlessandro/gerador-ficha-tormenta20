@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash';
 import { ThreatSheet, ThreatSize, ThreatType } from '../interfaces/ThreatSheet';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DEFAULT_SKILLS } from './skills';
+import { getEffectiveSkillTotal } from '../functions/threatGenerator';
 
 // Size mapping for threats
 const threatSizes: Record<ThreatSize, string> = {
@@ -172,14 +173,14 @@ function getThreatSkills(threat: ThreatSheet) {
   if (skills.inic) {
     const initiative = threat.skills.find((s) => s.name === 'Iniciativa');
     if (initiative) {
-      skills.inic.outros = initiative.total;
+      skills.inic.outros = getEffectiveSkillTotal(initiative);
     }
   }
 
   if (skills.perc) {
     const perception = threat.skills.find((s) => s.name === 'Percepção');
     if (perception) {
-      skills.perc.outros = perception.total;
+      skills.perc.outros = getEffectiveSkillTotal(perception);
     }
   }
 

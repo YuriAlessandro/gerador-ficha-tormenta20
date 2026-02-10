@@ -17,7 +17,10 @@ import {
 } from '@mui/material';
 import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import { ThreatSheet, ThreatAttributes } from '../../../interfaces/ThreatSheet';
-import { calculateAllSkills } from '../../../functions/threatGenerator';
+import {
+  calculateAllSkills,
+  getEffectiveSkillTotal,
+} from '../../../functions/threatGenerator';
 
 interface StepSixProps {
   threat: Partial<ThreatSheet>;
@@ -74,6 +77,29 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
     }
   };
 
+  const handleSkillOverrideChange = (skillName: string, value: string) => {
+    const updatedSkills = (threat.skills || []).map((skill) => {
+      if (skill.name !== skillName) return skill;
+
+      if (value === '') {
+        return {
+          name: skill.name,
+          attribute: skill.attribute,
+          trained: skill.trained,
+          customBonus: skill.customBonus,
+          total: skill.total,
+        };
+      }
+
+      const parsed = parseInt(value, 10);
+      if (Number.isNaN(parsed)) return skill;
+
+      return { ...skill, overrideTotal: parsed };
+    });
+
+    onUpdate({ skills: updatedSkills });
+  };
+
   // Initialize skills if not present
   React.useEffect(() => {
     if (
@@ -113,7 +139,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
       </Typography>
       <Typography variant='body2' color='text.secondary' mb={3}>
         Configure os atributos da ameaça. As perícias serão calculadas
-        automaticamente.
+        automaticamente, mas você pode sobrescrever o valor final de cada uma.
       </Typography>
 
       <Grid container spacing={3}>
@@ -223,12 +249,13 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                     variant='body2'
                     sx={{
                       color:
-                        skill.total >= 10
+                        getEffectiveSkillTotal(skill) >= 10
                           ? theme.palette.success.main
                           : 'inherit',
                     }}
                   >
-                    {skill.name}: +{skill.total}
+                    {skill.name}: +{getEffectiveSkillTotal(skill)}
+                    {skill.overrideTotal !== undefined && ' *'}
                   </Typography>
                 </Box>
               ))}
@@ -263,7 +290,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                   <TableCell>Perícia</TableCell>
                   <TableCell align='center'>Atributo</TableCell>
                   <TableCell align='center'>Treinada</TableCell>
-                  <TableCell align='center'>Total (se treinada)</TableCell>
+                  <TableCell align='center'>Total</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -288,19 +315,38 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                           size='small'
                         />
                       </TableCell>
-                      <TableCell
-                        align='center'
-                        sx={{
-                          fontWeight: skill.trained ? 'bold' : 'normal',
-                          color: (() => {
-                            if (!skill.trained) return 'text.disabled';
-                            if (skill.total >= 10)
-                              return theme.palette.success.main;
-                            return 'inherit';
-                          })(),
-                        }}
-                      >
-                        +{skill.total}
+                      <TableCell align='center'>
+                        <TextField
+                          size='small'
+                          type='number'
+                          value={
+                            skill.overrideTotal !== undefined
+                              ? skill.overrideTotal
+                              : ''
+                          }
+                          placeholder={`${skill.total}`}
+                          onChange={(e) =>
+                            handleSkillOverrideChange(
+                              skill.name,
+                              e.target.value
+                            )
+                          }
+                          inputProps={{
+                            style: {
+                              textAlign: 'center',
+                              width: 60,
+                              fontWeight:
+                                skill.overrideTotal !== undefined
+                                  ? 'bold'
+                                  : 'normal',
+                              color:
+                                skill.overrideTotal !== undefined
+                                  ? theme.palette.warning.main
+                                  : undefined,
+                            },
+                          }}
+                          sx={{ maxWidth: 90 }}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -319,6 +365,10 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
             <br />
             <strong>Bônus de Treinamento:</strong> +2 (ND 1-6), +4 (ND 7-14), +6
             (ND 15+)
+            <br />
+            <strong>Sobrescrita:</strong> Insira um valor no campo
+            &quot;Total&quot; para sobrescrever o cálculo automático. Limpe o
+            campo para restaurar.
           </Typography>
         </Alert>
       </Box>
