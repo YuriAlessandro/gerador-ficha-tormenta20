@@ -25,9 +25,6 @@ import {
 } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
-import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
-import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
-import { getDivineSpellsOfCircle } from '@/data/systems/tormenta20/magias/divine';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -183,24 +180,48 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     const spellCircle = spellPath.spellCircleAvailableAtLevel(currentLevel);
 
-    // Get spells based on spell type
+    // Get spells based on spell type (using dataRegistry for supplement support)
     let allSpellsOfCircle: Spell[] = [];
     if (spellPath.spellType === 'Arcane') {
-      allSpellsOfCircle = getArcaneSpellsOfCircle(spellCircle);
+      allSpellsOfCircle = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
     } else if (spellPath.spellType === 'Divine') {
-      allSpellsOfCircle = getDivineSpellsOfCircle(spellCircle);
+      allSpellsOfCircle = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
     } else if (spellPath.spellType === 'Both') {
       // Combine arcane and divine spells, remove duplicates
-      const arcaneSpells = getArcaneSpellsOfCircle(spellCircle);
-      const divineSpells = getDivineSpellsOfCircle(spellCircle);
+      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
       const combined = [...arcaneSpells, ...divineSpells];
       allSpellsOfCircle = combined.filter(
         (spell, index, self) =>
           index === self.findIndex((s) => s.nome === spell.nome)
       );
     } else {
-      // Fallback to general spells
-      allSpellsOfCircle = getSpellsOfCircle(spellCircle);
+      // Fallback: combine arcane + divine from all supplements
+      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const combined = [...arcaneSpells, ...divineSpells];
+      allSpellsOfCircle = combined.filter(
+        (spell, index, self) =>
+          index === self.findIndex((s) => s.nome === spell.nome)
+      );
     }
 
     // Filter out spells already known
