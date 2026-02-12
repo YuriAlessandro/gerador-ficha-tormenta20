@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            03/02/2026.
+            12/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,122 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.1</h3>
+              <ul>
+                <li>
+                  <strong>🗡️ Classes Variantes:</strong> Adicionadas 14 classes
+                  variantes do suplemento Heróis de Arton: Alquimista, Atleta,
+                  Burguês, Duelista, Ermitão, Inovador, Machado de Pedra,
+                  Magimarcialista, Necromante, Santo, Seteiro, Usurpador,
+                  Vassalo e Ventanista. As classes variantes herdam os poderes
+                  da classe base e aparecem agrupadas na seleção de classe.
+                </li>
+                <li>
+                  <strong>🛡️ Redução de Dano (RD):</strong> Novo sistema de
+                  Redução de Dano com cálculo automático. A RD agora é exibida
+                  abaixo da defesa e calculada automaticamente a partir de
+                  habilidades de raça, classe, origem, poderes concedidos e
+                  poderes de Tormenta. Inclui edição manual para ajustes
+                  personalizados.
+                </li>
+                <li>
+                  <strong>🔮 Esotéricos e Animais:</strong> Itens esotéricos e
+                  animais agora são categorias independentes de equipamento, com
+                  itens de todos os suplementos disponíveis para compra e
+                  edição.
+                </li>
+                <li>
+                  <strong>👹 Melhorias no Gerador de Ameaças:</strong>
+                  <ul>
+                    <li>
+                      Ameaças agora podem ter magias com custo em PM e tipo de
+                      ação.
+                    </li>
+                    <li>
+                      Adicionado campo de qualidades especiais (visão,
+                      imunidades, etc.).
+                    </li>
+                    <li>
+                      Agora é possível sobrescrever manualmente os valores
+                      finais das perícias.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>⬆️ Wizard de Level-Up Aprimorado:</strong>
+                  <ul>
+                    <li>
+                      Novo passo &quot;Ganhos do Nível&quot; mostra
+                      automaticamente os benefícios recebidos (PV, PM,
+                      habilidades de classe, novas magias) antes das escolhas.
+                    </li>
+                    <li>
+                      Botão &quot;Subir Nível&quot; agora disponível diretamente
+                      no drawer de edição da ficha, permitindo subir de nível
+                      com escolhas manuais.
+                    </li>
+                    <li>
+                      Magias de suplementos agora aparecem corretamente na
+                      seleção de magias.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>🧙 Wizard de Criação Aprimorado:</strong>
+                  <ul>
+                    <li>
+                      Perícias base da classe agora são exibidas no passo de
+                      perícias, com opções &quot;ou&quot; selecionáveis pelo
+                      jogador.
+                    </li>
+                    <li>
+                      Seleção manual para Linhagem Rubra, Herança Feérica e
+                      Deformidade (Lefou).
+                    </li>
+                    <li>
+                      Atributos excluídos por raça (como &quot;exceto
+                      Carisma&quot;) agora são bloqueados na seleção.
+                    </li>
+                    <li>
+                      Adicionada escolha de Égide Sagrada ou Montaria Sagrada
+                      para a Bênção da Justiça do Paladino.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>✏️ Melhorias na Edição de Fichas:</strong>
+                  <ul>
+                    <li>
+                      Agora é possível trocar o atributo base de cada perícia
+                      (ex: Intimidação de Carisma para Força).
+                    </li>
+                    <li>
+                      Toggle de desconto automático de Tibares ao
+                      adicionar/remover equipamentos no editor.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>🏘️ Builds da Comunidade:</strong> Suporte a
+                  multiclasse nas builds e possibilidade de comentar nas
+                  próprias builds.
+                </li>
+                <li>
+                  <strong>🔧 Correções:</strong>
+                  <ul>
+                    <li>
+                      Corrigido o limiar de morte para usar metade do PV máximo
+                      (em vez do dobro), seguindo corretamente as regras de
+                      Tormenta 20.
+                    </li>
+                    <li>
+                      Poderes concedidos de divindades de suplementos agora são
+                      incluídos corretamente na geração.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.0.2</h3>
               <ul>
                 <li>

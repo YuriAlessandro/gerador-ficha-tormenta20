@@ -100,6 +100,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const getAvailablePowers = (): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
+    unavailableGeneralPowers: string[];
   } => {
     // Get class with merged supplement powers from registry
     const classWithSupplementPowers = dataRegistry.getClassByName(
@@ -130,21 +131,32 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         : getAllowedClassPowers(sheetForFiltering);
 
     // Use dataRegistry to get powers from all active supplements
+    // Only include the 5 general power types (exclude RACA)
     const allPowers = dataRegistry.getPowersBySupplements(supplements);
-    const allGeneralPowers = Object.values(allPowers).flat();
+    const allGeneralPowers = [
+      ...allPowers.COMBATE,
+      ...allPowers.CONCEDIDOS,
+      ...allPowers.DESTINO,
+      ...allPowers.MAGIA,
+      ...allPowers.TORMENTA,
+    ];
 
-    // Filter by requirements and already chosen powers
+    // Track which powers are unavailable (requirements not met)
     const existingGeneralPowers = simulatedSheet.generalPowers;
+    const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
         (existingPower) => existingPower.name === power.name
       );
 
-      if (isRepeatedPower) {
-        return power.allowSeveralPicks;
+      if (isRepeatedPower && !power.allowSeveralPicks) {
+        return true; // Keep in list; isPowerKnown handles disable in UI
       }
 
-      return isPowerAvailable(simulatedSheet, power);
+      if (!isPowerAvailable(simulatedSheet, power)) {
+        unavailableGeneralPowers.push(power.name);
+      }
+      return true; // Always include
     });
 
     // Sort powers alphabetically
@@ -158,6 +170,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return {
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
+      unavailableGeneralPowers,
     };
   };
 
@@ -435,7 +448,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Escolha de Poder': {
-        const { classPowers, generalPowers } = getAvailablePowers();
+        const { classPowers, generalPowers, unavailableGeneralPowers } =
+          getAvailablePowers();
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
@@ -477,6 +491,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             className={simulatedSheet.classe.name}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
+            unavailableGeneralPowers={unavailableGeneralPowers}
           />
         );
       }

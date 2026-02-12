@@ -32,6 +32,7 @@ import {
   applyRaceAbilities,
   applyPower,
   applyOptionChosenTexts,
+  calculateMaxSpaces,
 } from './general';
 import { countTormentaPowers } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
@@ -418,7 +419,7 @@ const calcDisplacement = (
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number => {
-  const maxSpaces = 10 + atributos.Força.value;
+  const maxSpaces = calculateMaxSpaces(atributos.Força.value);
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -890,7 +891,9 @@ export function recalculateSheet(
   updatedSheet.sheetBonuses = [];
 
   // Step 1.5: Recalculate maxSpaces based on current Força modifier
-  updatedSheet.maxSpaces = 10 + updatedSheet.atributos.Força.value;
+  updatedSheet.maxSpaces = calculateMaxSpaces(
+    updatedSheet.atributos.Força.value
+  );
 
   // Step 2: Apply general powers (most important for manual additions)
   updatedSheet = applyGeneralPowers(updatedSheet, manualSelections);
