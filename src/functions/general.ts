@@ -10,6 +10,7 @@ import { SupplementId } from '../types/supplement.types';
 import { recalculateSheet } from './recalculateSheet';
 import {
   getClassBaseSkills,
+  getClassBaseSkillsWithChoices,
   getNotRepeatedSkillsByQtd,
   getRemainingSkills,
 } from '../data/systems/tormenta20/pericias';
@@ -4169,10 +4170,15 @@ export function generateEmptySheet(
     classPowers: [],
     steps: [],
     skills: [
-      ...getClassBaseSkills(generatedClass),
+      ...(wizardSelections?.baseSkillChoices
+        ? getClassBaseSkillsWithChoices(
+            generatedClass,
+            wizardSelections.baseSkillChoices
+          )
+        : getClassBaseSkills(generatedClass)),
       ...(wizardSelections?.classSkills || []),
       ...(wizardSelections?.intelligenceSkills || []),
-    ], // Add class base skills + wizard selected skills + intelligence bonus skills
+    ],
     spells: [],
     dinheiro: wizardSelections?.marketSelections
       ? wizardSelections.marketSelections.remainingMoney

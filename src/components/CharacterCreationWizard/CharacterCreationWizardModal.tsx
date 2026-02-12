@@ -29,6 +29,7 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
 import { getInitialMoneyWithDetails } from '@/functions/general';
+import { getClassBaseSkillsWithChoices } from '@/data/systems/tormenta20/pericias';
 import Skill from '@/interfaces/Skills';
 import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
 import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
@@ -248,7 +249,7 @@ const CharacterCreationWizardModal: React.FC<
 
   const needsClassSkills = (): boolean => {
     if (!classe) return false;
-    return classe.periciasrestantes.qtd > 0;
+    return true;
   };
 
   const needsIntelligenceSkills = (): boolean =>
@@ -480,6 +481,14 @@ const CharacterCreationWizardModal: React.FC<
   // Helper function to get all skills already selected in previous steps
   const getAllUsedSkills = (): Skill[] => {
     const skills: Skill[] = [];
+    // Add resolved base skills (and + chosen or)
+    if (classe) {
+      const baseSkills = getClassBaseSkillsWithChoices(
+        classe,
+        selections.baseSkillChoices || []
+      );
+      skills.push(...baseSkills);
+    }
     if (selections.classSkills) {
       skills.push(...selections.classSkills);
     }
@@ -687,9 +696,17 @@ const CharacterCreationWizardModal: React.FC<
       case 'Perícias da Classe': {
         if (!classe) return null;
 
+        // Resolve base skills to filter from remaining
+        const resolvedBaseSkills = getClassBaseSkillsWithChoices(
+          classe,
+          selections.baseSkillChoices || []
+        );
+
         // Para o Inventor, substituir "Ofício (Qualquer)" por todas as opções específicas
         // que são necessárias para habilitar os poderes de classe
-        let availableSkills = classe.periciasrestantes.list;
+        let availableSkills = classe.periciasrestantes.list.filter(
+          (skill) => !resolvedBaseSkills.includes(skill)
+        );
         if (classe.name === 'Inventor') {
           availableSkills = availableSkills.flatMap((skill) =>
             skill === Skill.OFICIO
@@ -717,6 +734,16 @@ const CharacterCreationWizardModal: React.FC<
 
         return (
           <ClassSkillStep
+            periciasbasicas={classe.periciasbasicas}
+            baseSkillChoices={selections.baseSkillChoices || []}
+            onBaseSkillChange={(choices) =>
+              setSelections({
+                ...selections,
+                baseSkillChoices: choices,
+                classSkills: [],
+                intelligenceSkills: [],
+              })
+            }
             availableSkills={availableSkills}
             selectedSkills={selections.classSkills || []}
             onChange={(skills) =>
@@ -729,14 +756,20 @@ const CharacterCreationWizardModal: React.FC<
       }
 
       case 'Perícias por Inteligência': {
-        // Get all skills except those already selected
+        // Get all skills except base + class remaining (exclude intelligenceSkills
+        // from usedSkills so they stay visible as selected in this step)
         const allSkills = Object.values(Skill);
-        const usedSkills = [
+        const usedSkillsForInt: Skill[] = [
+          ...(classe
+            ? getClassBaseSkillsWithChoices(
+                classe,
+                selections.baseSkillChoices || []
+              )
+            : []),
           ...(selections.classSkills || []),
-          // TODO: Add skills from race, origin, etc. when available
         ];
         const availableSkills = allSkills.filter(
-          (skill) => !usedSkills.includes(skill)
+          (skill) => !usedSkillsForInt.includes(skill)
         );
 
         return (
@@ -973,9 +1006,19 @@ const CharacterCreationWizardModal: React.FC<
       case 'Elemento do Qareen':
         return selections.qareenElement !== undefined;
 
-      case 'Perícias da Classe':
+      case 'Perícias da Classe': {
         if (!classe) return false;
-        return selections.classSkills?.length === classe.periciasrestantes.qtd;
+        const orGroupCount = classe.periciasbasicas.filter(
+          (be) => be.type === 'or'
+        ).length;
+        const baseChoicesValid =
+          orGroupCount === 0 ||
+          (selections.baseSkillChoices?.length || 0) === orGroupCount;
+        const remainingValid =
+          classe.periciasrestantes.qtd === 0 ||
+          selections.classSkills?.length === classe.periciasrestantes.qtd;
+        return baseChoicesValid && remainingValid;
+      }
 
       case 'Perícias por Inteligência': {
         const requiredCount = getIntelligenceSkillsCount();

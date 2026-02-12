@@ -63,6 +63,27 @@ export function getClassBaseSkills(classe: ClassDescription): Skill[] {
   );
 }
 
+export function getClassBaseSkillsWithChoices(
+  classe: ClassDescription,
+  orChoices: Skill[]
+): Skill[] {
+  let orIndex = 0;
+
+  return classe.periciasbasicas.reduce<Skill[]>((result, basicExpertise) => {
+    if (basicExpertise.type === 'and') {
+      return [...result, ...basicExpertise.list];
+    }
+    if (basicExpertise.type === 'or') {
+      const choice = orChoices[orIndex];
+      orIndex += 1;
+      if (choice && basicExpertise.list.includes(choice)) {
+        return [...result, choice];
+      }
+    }
+    return result;
+  }, []);
+}
+
 export function getRemainingSkills(
   usedSkills: Skill[],
   classe: ClassDescription

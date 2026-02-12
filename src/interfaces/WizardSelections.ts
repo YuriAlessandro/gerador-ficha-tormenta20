@@ -43,6 +43,10 @@ export interface WizardSelections {
   // Race attribute choices for races with 'any' attributes
   raceAttributes?: Atributo[];
 
+  // Base skill 'or' choices (e.g., Luta OR Pontaria for Guerreiro)
+  // Each position corresponds to the Nth 'or' group in periciasbasicas
+  baseSkillChoices?: Skill[];
+
   // Class skill selections from periciasrestantes
   classSkills?: Skill[];
 
