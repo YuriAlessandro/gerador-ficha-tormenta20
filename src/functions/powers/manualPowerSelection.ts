@@ -270,6 +270,20 @@ export function getPowerSelectionRequirements(
           label: 'Selecione 2 perícias (ou 1 perícia + 1 poder geral)',
         });
       }
+
+      // Handle Deformidade special action for Lefou
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'lefouDeformidade'
+      ) {
+        requirements.push({
+          type: 'lefouDeformidade',
+          availableOptions: [], // Will be populated dynamically with all skills
+          pick: 2, // 2 skills OR 1 skill + 1 tormenta power
+          label:
+            'Selecione 2 perícias (+2 cada) ou 1 perícia (+2) + 1 poder da Tormenta',
+        });
+      }
     });
   }
 
@@ -613,6 +627,12 @@ export function getFilteredAvailableOptions(
           return true;
         })
         .sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'lefouDeformidade': {
+      // Return all skills sorted alphabetically
+      const allLefouSkills = Object.values(Skill);
+      return allLefouSkills.sort((a, b) => a.localeCompare(b));
     }
 
     default:

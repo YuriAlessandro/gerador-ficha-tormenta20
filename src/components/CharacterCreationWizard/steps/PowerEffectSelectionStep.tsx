@@ -40,7 +40,9 @@ import { isPowerAvailable } from '@/functions/powers';
 import Skill from '@/interfaces/Skills';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
+import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import VersatilSelectionField from './VersatilSelectionField';
+import DeformidadeSelectionField from './DeformidadeSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -117,6 +119,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'learnClassAbility'
         | 'getClassPower'
         | 'humanoVersatil'
+        | 'lefouDeformidade'
         | 'chooseFromOptions';
       pick: number;
       label: string;
@@ -480,6 +483,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'learnClassAbility'
         | 'getClassPower'
         | 'humanoVersatil'
+        | 'lefouDeformidade'
         | 'chooseFromOptions';
       pick: number;
       label: string;
@@ -717,6 +721,41 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <VersatilSelectionField
             availableSkills={availableSkillsForVersatil}
             availablePowers={availablePowersForVersatil}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Deformidade (Lefou) selection with custom component
+    if (type === 'lefouDeformidade') {
+      const availableSkillsForDeformidade =
+        allAvailableOptions as unknown as Skill[];
+
+      // Get tormenta powers available for Deformidade
+      const allTormentaPowers = Object.values(tormentaPowers);
+      const existingPowers = sheetForFiltering.generalPowers || [];
+      const availableTormentaPowers = allTormentaPowers.filter((power) => {
+        const isRepeatedPower = existingPowers.find(
+          (existingPower) => existingPower.name === power.name
+        );
+        if (isRepeatedPower) {
+          return power.allowSeveralPicks;
+        }
+        return isPowerAvailable(sheetForFiltering, power);
+      });
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <DeformidadeSelectionField
+            availableSkills={availableSkillsForDeformidade}
+            availablePowers={availableTormentaPowers}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

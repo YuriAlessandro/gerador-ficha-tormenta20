@@ -106,34 +106,85 @@ export function applyHumanoVersatil(
   return substeps;
 }
 
-export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
+export function applyLefouDeformidade(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
   const subSteps: SubStep[] = [];
-  const randomNumber = Math.random();
 
-  const allSkills = Object.values(Skill);
-  const shouldGetSkill = randomNumber < 0.5;
+  // Check for manual selections
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
 
-  const pickedSkills = pickFromArray(allSkills, shouldGetSkill ? 2 : 1);
-  pickedSkills.forEach((randomSkill) => {
-    addOtherBonusToSkill(sheet, randomSkill, 2);
-    subSteps.push({
-      name: 'Deformidade',
-      value: `+2 em Perícia (${randomSkill})`,
+  // Check if Deformidade was already applied (to avoid re-applying during recalculation)
+  const deformidadeAlreadyApplied = sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Deformidade'
+      )
+  );
+
+  // If already applied and no manual selections, skip
+  if (deformidadeAlreadyApplied && !hasManualSkills && !hasManualPowers) {
+    return subSteps;
+  }
+
+  if (hasManualSkills) {
+    // Manual selections from wizard
+    const selectedSkills = manualSelections.skills!;
+
+    // Apply +2 bonus to each selected skill
+    selectedSkills.forEach((skill) => {
+      addOtherBonusToSkill(sheet, skill as Skill, 2);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `+2 em Perícia (${skill})`,
+      });
     });
-  });
 
-  if (!shouldGetSkill) {
-    const allowedPowers = Object.values(tormentaPowers);
-    const randomPower = getNotRepeatedRandom(
-      sheet.generalPowers,
-      allowedPowers
-    );
-    sheet.generalPowers.push(randomPower);
+    // If user chose a tormenta power as second choice
+    if (hasManualPowers) {
+      const selectedPower = manualSelections.powers![0] as GeneralPower;
+      sheet.generalPowers.push(selectedPower);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `Poder da Tormenta recebido (${selectedPower.name})`,
+      });
+    }
+  } else {
+    // Random selection (backwards compatibility for random generation)
+    const allSkills = Object.values(Skill);
+    const shouldGetTwoSkills = Math.random() < 0.5;
 
-    subSteps.push({
-      name: 'Deformidade',
-      value: `Poder da Tormenta recebido (${randomPower.name})`,
+    const pickedSkills = pickFromArray(allSkills, shouldGetTwoSkills ? 2 : 1);
+    pickedSkills.forEach((randomSkill) => {
+      addOtherBonusToSkill(sheet, randomSkill, 2);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `+2 em Perícia (${randomSkill})`,
+      });
     });
+
+    if (!shouldGetTwoSkills) {
+      const allowedPowers = Object.values(tormentaPowers);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+
+      subSteps.push({
+        name: 'Deformidade',
+        value: `Poder da Tormenta recebido (${randomPower.name})`,
+      });
+    }
   }
 
   return subSteps;

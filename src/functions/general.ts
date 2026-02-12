@@ -158,6 +158,7 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
+import { feiticeiroPaths } from '../data/systems/tormenta20/classes/arcanista';
 
 // Race customization interface for races with customization options
 export interface RaceCustomization {
@@ -1261,13 +1262,18 @@ function getNewSpells(
   return selectedSpells;
 }
 
+export function calculateMaxSpaces(forca: number): number {
+  if (forca < 0) return 10 + forca;
+  return 10 + 2 * forca;
+}
+
 function calcDisplacement(
   bag: Bag,
   raceDisplacement: number,
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number {
-  const maxSpaces = 10 + atributos.Força.value;
+  const maxSpaces = calculateMaxSpaces(atributos.Força.value);
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -1969,7 +1975,7 @@ export const applyPower = (
         if (sheetAction.action.specialAction === 'humanoVersatil') {
           currentSteps = applyHumanoVersatil(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'lefouDeformidade') {
-          currentSteps = applyLefouDeformidade(sheet);
+          currentSteps = applyLefouDeformidade(sheet, manualSelections);
         } else if (
           sheetAction.action.specialAction === 'osteonMemoriaPostuma'
         ) {
@@ -3836,7 +3842,7 @@ export default function generateRandomSheet(
   // Os substeps da origem serão adicionados depois que getSkillsAndPowersByClassAndOrigin for chamado
 
   // Passo 6.1: Gerar valores dependentes de atributos
-  const maxSpaces = 10 + atributos.Força.value;
+  const maxSpaces = calculateMaxSpaces(atributos.Força.value);
   const summedPV = initialPV + atributos.Constituição.value;
 
   steps.push({
@@ -4375,17 +4381,19 @@ export function generateEmptySheet(
           type: 'and',
           list: [Skill.ENGANACAO],
         });
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Feérica',
-          text: 'Seu sangue foi tocado pelas fadas. Você se torna treinado em Enganação e aprende uma magia de 1º círculo de encantamento ou ilusão.',
-          nivel: 1,
-        });
+        const linhagemFeerica = feiticeiroPaths.find(
+          (p) => p.name === 'Linhagem Feérica'
+        );
+        if (linhagemFeerica) {
+          modifiedClasse.abilities.push(linhagemFeerica);
+        }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Rubra') {
-        modifiedClasse.abilities.push({
-          name: 'Linhagem Rubra',
-          text: 'Seu sangue foi corrompido pela Tormenta. Você recebe um poder da Tormenta.',
-          nivel: 1,
-        });
+        const linhagemRubra = feiticeiroPaths.find(
+          (p) => p.name === 'Linhagem Rubra'
+        );
+        if (linhagemRubra) {
+          modifiedClasse.abilities.push(linhagemRubra);
+        }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
         const deusEscolhido =
           wizardSelections.linhagemAbencoada?.deus || 'um deus maior';

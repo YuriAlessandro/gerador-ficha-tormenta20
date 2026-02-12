@@ -1168,6 +1168,14 @@ const CharacterCreationWizardModal: React.FC<
               if (skillCount >= 1 && powerCount >= 1) return 2; // 1 skill + 1 power
               return skillCount; // Incomplete
             }
+            case 'lefouDeformidade': {
+              // For Deformidade: need 1 skill + (1 skill OR 1 tormenta power)
+              const deformSkillCount = powerSelections.skills?.length || 0;
+              const deformPowerCount = powerSelections.powers?.length || 0;
+              if (deformSkillCount >= 2) return 2;
+              if (deformSkillCount >= 1 && deformPowerCount >= 1) return 2;
+              return deformSkillCount;
+            }
             default:
               return 0;
           }

@@ -52,6 +52,7 @@ export interface PowerSelectionRequirement {
     | 'learnClassAbility'
     | 'getClassPower'
     | 'humanoVersatil'
+    | 'lefouDeformidade'
     | 'chooseFromOptions';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];

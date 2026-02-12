@@ -83,7 +83,7 @@ const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
   },
 };
 
-const feiticeiroPaths: ClassAbility[] = [
+export const feiticeiroPaths: ClassAbility[] = [
   {
     name: 'Linhagem Dracônica',
     text: 'Um de seus antepassados foi um majestoso dragão. Escolha um tipo de dano entre ácido, eletricidade, fogo ou frio. Básica: Você soma seu modificador de Carisma em seus pontos de vida iniciais e recebe resistência ao tipo de dano escolhido 5',
