@@ -28,6 +28,7 @@ interface PowerSelectionStepProps {
   className: string;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
+  unavailableGeneralPowers?: string[];
 }
 
 const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
@@ -42,6 +43,7 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   className,
   knownClassPowers = [],
   knownGeneralPowers = [],
+  unavailableGeneralPowers = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -305,25 +307,29 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
           <Stack spacing={2}>
             {filteredGeneralPowers.map((power) => {
               const isKnown = isPowerKnown(power.name, false);
+              const isUnavailable = unavailableGeneralPowers.includes(
+                power.name
+              );
+              const isDisabled = isKnown || isUnavailable;
               return (
                 <Card
                   key={power.name}
                   variant='outlined'
                   sx={{
-                    cursor: isKnown ? 'not-allowed' : 'pointer',
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
                     border: selectedGeneralPower?.name === power.name ? 2 : 1,
                     borderColor:
                       selectedGeneralPower?.name === power.name
                         ? 'primary.main'
                         : 'divider',
-                    opacity: isKnown ? 0.5 : 1,
+                    opacity: isDisabled ? 0.5 : 1,
                     '&:hover': {
-                      borderColor: isKnown ? 'divider' : 'primary.light',
-                      bgcolor: isKnown ? 'inherit' : 'action.hover',
+                      borderColor: isDisabled ? 'divider' : 'primary.light',
+                      bgcolor: isDisabled ? 'inherit' : 'action.hover',
                     },
                   }}
                   onClick={() => {
-                    if (!isKnown) {
+                    if (!isDisabled) {
                       onGeneralPowerSelect(power);
                     }
                   }}
@@ -349,6 +355,13 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                             label='Já Conhecido'
                             size='small'
                             color='default'
+                          />
+                        )}
+                        {isUnavailable && (
+                          <Chip
+                            label='Indisponível'
+                            size='small'
+                            color='warning'
                           />
                         )}
                         {power.allowSeveralPicks && (

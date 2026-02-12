@@ -128,6 +128,13 @@ export function calculateAttributeModifier(
 }
 
 /**
+ * Retorna o valor efetivo de uma perícia, priorizando override manual.
+ */
+export function getEffectiveSkillTotal(skill: ThreatSkill): number {
+  return skill.overrideTotal !== undefined ? skill.overrideTotal : skill.total;
+}
+
+/**
  * Calcula todas as perícias baseadas nos atributos e ND
  */
 export function calculateAllSkills(
@@ -147,6 +154,7 @@ export function calculateAllSkills(
     const existingSkill = existingSkills.find((s) => s.name === skillName);
     const trained = existingSkill?.trained || false;
     let customBonus = existingSkill?.customBonus || 0;
+    const overrideTotal = existingSkill?.overrideTotal;
     const attributeValue = attributes[attribute] ?? 0;
     const attributeModifier = calculateAttributeModifier(attributeValue);
 
@@ -190,6 +198,7 @@ export function calculateAllSkills(
       trained,
       customBonus,
       total,
+      ...(overrideTotal !== undefined ? { overrideTotal } : {}),
     });
   });
 

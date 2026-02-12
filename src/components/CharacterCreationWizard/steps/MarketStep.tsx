@@ -62,9 +62,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   armors: 'Armaduras',
   shields: 'Escudos',
   generalItems: 'Itens Gerais',
+  esoteric: 'Esotéricos',
   clothing: 'Vestuário',
   alchemy: 'Alquimia',
   food: 'Alimentação',
+  animals: 'Animais',
 };
 
 // Bag category labels
@@ -74,6 +76,7 @@ const BAG_CATEGORY_LABELS: Record<keyof BagEquipments, string> = {
   Escudo: 'Escudos',
   'Item Geral': 'Itens Gerais',
   Alquimía: 'Alquimia',
+  Esotérico: 'Esotéricos',
   Vestuário: 'Vestuário',
   Hospedagem: 'Hospedagem',
   Alimentação: 'Alimentação',
@@ -139,6 +142,8 @@ const MarketStep: React.FC<MarketStepProps> = ({
       newBag.Arma = [...newBag.Arma, item];
     } else if (item.group === 'Alquimía') {
       newBag.Alquimía = [...newBag.Alquimía, item];
+    } else if (item.group === 'Esotérico') {
+      newBag.Esotérico = [...newBag.Esotérico, item];
     } else if (item.group === 'Vestuário') {
       newBag.Vestuário = [...newBag.Vestuário, item];
     } else if (item.group === 'Alimentação') {

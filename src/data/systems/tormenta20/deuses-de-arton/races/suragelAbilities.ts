@@ -25,8 +25,37 @@ export const SURAGEL_ALTERNATIVE_ABILITIES: SuragelAlternativeAbility[] = [
         target: { type: 'PM' },
         modifier: { type: 'Fixed', value: 1 },
       },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Ácido' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Eletricidade' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Fogo' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Frio' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Luz' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Herança de Drashantyr' },
+        target: { type: 'DamageReduction', damageType: 'Trevas' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
     ],
-    // Nota: Redução de dano é apenas descritiva pois não temos sistema para isso
   },
   {
     name: 'Herança de Kundali',

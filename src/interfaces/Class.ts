@@ -25,7 +25,22 @@ export type ClassNames =
   // Deuses de Arton
   | 'Frade'
   // Heróis de Arton
-  | 'Treinador';
+  | 'Treinador'
+  // Heróis de Arton - Variantes
+  | 'Alquimista'
+  | 'Atleta'
+  | 'Burguês'
+  | 'Duelista'
+  | 'Ermitão'
+  | 'Inovador'
+  | 'Machado de Pedra'
+  | 'Magimarcialista'
+  | 'Necromante'
+  | 'Santo'
+  | 'Seteiro'
+  | 'Usurpador'
+  | 'Vassalo'
+  | 'Ventanista';
 export interface BasicExpertise {
   type: string;
   list: Skill[];
@@ -69,6 +84,8 @@ export interface SpellPath {
 export interface ClassDescription {
   name: string;
   subname?: string;
+  isVariant?: boolean;
+  baseClassName?: ClassNames;
   pv: number;
   addpv: number;
   pm: number;
@@ -86,3 +103,15 @@ export interface ClassDescription {
   setup?: (classe: ClassDescription) => ClassDescription;
   originalAbilities?: ClassAbility[]; // Internal field to preserve original abilities during level-ups
 }
+
+/**
+ * Tipo para definir uma classe variante com herança.
+ * Apenas `name`, `isVariant` e `baseClassName` são obrigatórios.
+ * Todos os outros campos são opcionais — se omitidos, serão herdados da classe base.
+ */
+export type VariantClassOverrides = Pick<ClassDescription, 'name'> & {
+  isVariant: true;
+  baseClassName: ClassNames;
+  excludedPowers?: string[]; // Nomes de poderes da classe base que não são herdados pela variante
+  excludeAllBasePowers?: boolean; // Se true, não herda nenhum poder da classe base
+} & Partial<Omit<ClassDescription, 'name' | 'isVariant' | 'baseClassName'>>;

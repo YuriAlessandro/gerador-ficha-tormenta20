@@ -246,6 +246,18 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      if (action.type === 'chooseFromOptions' && !action.linkedTo) {
+        requirements.push({
+          type: 'chooseFromOptions',
+          availableOptions: action.options,
+          pick: 1,
+          label: `Selecione uma opção`,
+          metadata: {
+            optionKey: action.optionKey,
+          },
+        });
+      }
+
       // Handle Versátil special action for humans
       if (
         action.type === 'special' &&
@@ -256,6 +268,20 @@ export function getPowerSelectionRequirements(
           availableOptions: [], // Will be populated dynamically with all skills
           pick: 2, // Always 2 choices (2 skills OR 1 skill + 1 power)
           label: 'Selecione 2 perícias (ou 1 perícia + 1 poder geral)',
+        });
+      }
+
+      // Handle Deformidade special action for Lefou
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'lefouDeformidade'
+      ) {
+        requirements.push({
+          type: 'lefouDeformidade',
+          availableOptions: [], // Will be populated dynamically with all skills
+          pick: 2, // 2 skills OR 1 skill + 1 tormenta power
+          label:
+            'Selecione 2 perícias (+2 cada) ou 1 perícia (+2) + 1 poder da Tormenta',
         });
       }
     });
@@ -569,6 +595,11 @@ export function getFilteredAvailableOptions(
       return ANIMAL_TOTEM_NAMES.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'chooseFromOptions': {
+      // Options are pre-defined in the action, return as-is
+      return availableOptions;
+    }
+
     case 'humanoVersatil': {
       // Return all skills that the character doesn't already have
       const allSkills = Object.values(Skill);
@@ -596,6 +627,12 @@ export function getFilteredAvailableOptions(
           return true;
         })
         .sort((a, b) => a.localeCompare(b));
+    }
+
+    case 'lefouDeformidade': {
+      // Return all skills sorted alphabetically
+      const allLefouSkills = Object.values(Skill);
+      return allLefouSkills.sort((a, b) => a.localeCompare(b));
     }
 
     default:
@@ -659,6 +696,11 @@ export function validateSelections(
 
       case 'selectAnimalTotem':
         selectedItems = selections.animalTotems || [];
+        selectedCount = selectedItems.length;
+        break;
+
+      case 'chooseFromOptions':
+        selectedItems = selections.chosenOption || [];
         selectedCount = selectedItems.length;
         break;
 

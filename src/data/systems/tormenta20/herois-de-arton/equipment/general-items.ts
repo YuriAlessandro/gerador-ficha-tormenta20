@@ -552,6 +552,37 @@ export const HEROIS_ARTON_ALCHEMY_POISONS: Equipment[] = [
 ];
 
 // ==========================================
+// ESOTÉRICOS
+// ==========================================
+
+export const HEROIS_ARTON_ESOTERIC: Equipment[] = [
+  {
+    nome: 'Compasso místico',
+    group: 'Esotérico',
+    preco: 600,
+    spaces: 1,
+  },
+  {
+    nome: 'Flauta convocadora',
+    group: 'Esotérico',
+    preco: 300,
+    spaces: 1,
+  },
+  {
+    nome: 'Mandala onírica',
+    group: 'Esotérico',
+    preco: 300,
+    spaces: 1,
+  },
+  {
+    nome: 'Varinha armamentista',
+    group: 'Esotérico',
+    preco: 600,
+    spaces: 1,
+  },
+];
+
+// ==========================================
 // ANIMAIS
 // ==========================================
 

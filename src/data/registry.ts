@@ -23,6 +23,7 @@ import {
 import { MarketEquipment } from '../interfaces/MarketEquipment';
 import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 import { Armas, Armaduras, Escudos } from './systems/tormenta20/equipamentos';
+import { esotericos, animais } from './systems/tormenta20/equipamentos-gerais';
 import { Spell, SpellCircle, spellsCircles } from '../interfaces/Spells';
 import {
   arcaneSpellsCircle1,
@@ -248,8 +249,35 @@ class DataRegistry {
       return classDesc;
     });
 
-    this.classesCache = { system: systemId, supplements, data: mergedClasses };
-    return mergedClasses;
+    // Coleta classes variantes e herda propriedades da classe base
+    // A variante só define overrides — o resto é herdado automaticamente
+    const variantClasses: ClassDescription[] = [];
+    supplements.forEach((id) => {
+      const supplementVariants = systemData.supplements[id]?.variantClasses;
+      if (supplementVariants) {
+        supplementVariants.forEach((variant) => {
+          const baseClass = mergedClasses.find(
+            (c) => c.name === variant.baseClassName
+          );
+          if (baseClass) {
+            const inheritedPowers = variant.excludeAllBasePowers
+              ? []
+              : baseClass.powers.filter(
+                  (p) => !(variant.excludedPowers || []).includes(p.name)
+                );
+            variantClasses.push({
+              ...baseClass,
+              ...variant,
+              powers: [...inheritedPowers, ...(variant.powers || [])],
+            });
+          }
+        });
+      }
+    });
+
+    const allClasses = [...mergedClasses, ...variantClasses];
+    this.classesCache = { system: systemId, supplements, data: allClasses };
+    return allClasses;
   }
 
   /**
@@ -316,6 +344,35 @@ class DataRegistry {
           supplementId,
           supplementName,
         });
+      });
+    });
+
+    // Adiciona classes variantes com herança de propriedades da classe base
+    // A variante só define overrides — o resto é herdado automaticamente
+    supplementIds.forEach((supplementId) => {
+      const variants =
+        systemData.supplements[supplementId]?.variantClasses || [];
+      const supplementName =
+        SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
+
+      variants.forEach((variant) => {
+        const baseClass = classesWithInfo.find(
+          (c) => c.name === variant.baseClassName
+        );
+        if (baseClass) {
+          const inheritedPowers = variant.excludeAllBasePowers
+            ? []
+            : baseClass.powers.filter(
+                (p) => !(variant.excludedPowers || []).includes(p.name)
+              );
+          classesWithInfo.push({
+            ...baseClass,
+            ...variant,
+            powers: [...inheritedPowers, ...(variant.powers || [])],
+            supplementId,
+            supplementName,
+          });
+        }
       });
     });
 
@@ -576,9 +633,11 @@ class DataRegistry {
       armors: [],
       shields: [],
       generalItems: [],
+      esoteric: [],
       clothing: [],
       alchemy: [],
       food: [],
+      animals: [],
     };
 
     const systemData = SYSTEMS_MAP[systemId];
@@ -596,6 +655,12 @@ class DataRegistry {
     Object.values(Escudos).forEach((shield) => {
       result.shields.push(shield);
     });
+
+    // Add core esoteric items
+    result.esoteric.push(...esotericos);
+
+    // Add core animal items
+    result.animals.push(...animais);
 
     // Add equipment from supplements
     supplementIds.forEach((id) => {
@@ -641,6 +706,13 @@ class DataRegistry {
           );
         }
 
+        // Add supplement esoteric items
+        if (supplementEquipment.esoteric) {
+          result.esoteric.push(
+            ...supplementEquipment.esoteric.map(addSupplementInfo)
+          );
+        }
+
         // Add supplement clothing
         if (supplementEquipment.clothing) {
           result.clothing.push(
@@ -658,6 +730,13 @@ class DataRegistry {
         // Add supplement food
         if (supplementEquipment.food) {
           result.food.push(...supplementEquipment.food.map(addSupplementInfo));
+        }
+
+        // Add supplement animals
+        if (supplementEquipment.animals) {
+          result.animals.push(
+            ...supplementEquipment.animals.map(addSupplementInfo)
+          );
         }
       }
     });

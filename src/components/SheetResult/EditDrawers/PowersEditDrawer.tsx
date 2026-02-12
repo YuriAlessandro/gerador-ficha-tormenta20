@@ -48,6 +48,7 @@ import {
   getFilteredAvailableOptions,
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
+import { isClassOrVariantOf } from '@/functions/general';
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
@@ -717,6 +718,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              sheet.sheetActionHistory?.some((entry) =>
+                entry.changes.some(
+                  (change) =>
+                    change.type === 'OptionChosen' &&
+                    change.chosenName === req.name
+                )
+              ) ||
               false
             );
 
@@ -744,7 +752,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
           }
 
           case RequirementType.CLASSE:
-            return sheet.classe.name === req.name;
+            return isClassOrVariantOf(sheet.classe, req.name as string);
 
           case RequirementType.DEVOTO: {
             const godName = req.name;
@@ -805,6 +813,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               selectedClassPowers.some((p) => p.name === req.name) ||
               sheet.generalPowers?.some((p) => p.name === req.name) ||
               sheet.classPowers?.some((p) => p.name === req.name) ||
+              sheet.sheetActionHistory?.some((entry) =>
+                entry.changes.some(
+                  (change) =>
+                    change.type === 'OptionChosen' &&
+                    change.chosenName === req.name
+                )
+              ) ||
               false
             );
           case RequirementType.PERICIA: {
@@ -939,7 +954,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   // Deity Power handlers
   const isDevoto = !!sheet.devoto;
-  const deityPowers = sheet.devoto?.divindade.poderes || [];
+  const storedDeity = sheet.devoto?.divindade;
+  const enrichedDeity = storedDeity
+    ? dataRegistry.getDeityByName(storedDeity.name, allSupplements)
+    : undefined;
+  const deityPowers = enrichedDeity?.poderes || storedDeity?.poderes || [];
   const { qtdPoderesConcedidos } = sheet.classe;
   const getsAllDeityPowers = qtdPoderesConcedidos === 'all';
   const maxDeityPowers =

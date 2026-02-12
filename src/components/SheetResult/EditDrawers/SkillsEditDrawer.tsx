@@ -26,9 +26,12 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import Skill, { CompleteSkill } from '@/interfaces/Skills';
+import Skill, { CompleteSkill, SkillsAttrs } from '@/interfaces/Skills';
 
-import { Atributo } from '@/data/systems/tormenta20/atributos';
+import {
+  Atributo,
+  ATTR_ABBREVIATIONS,
+} from '@/data/systems/tormenta20/atributos';
 
 interface SkillsEditDrawerProps {
   open: boolean;
@@ -41,6 +44,7 @@ interface EditedSkill {
   name: string;
   trained: boolean;
   others: number;
+  modAttr: Atributo;
 }
 
 // Available Oficio options based on the Skills enum
@@ -79,6 +83,11 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         name: skill.name,
         trained: (skill.training ?? 0) > 0,
         others: skill.others ?? 0,
+        modAttr:
+          skill.modAttr ??
+          (SkillsAttrs[
+            skill.name as keyof typeof SkillsAttrs
+          ] as unknown as Atributo),
       }));
       setEditedSkills(skills);
       setSearchQuery(''); // Reset search when opening
@@ -106,12 +115,15 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
     );
   };
 
-  const calculateSkillTotal = (skill: EditedSkill): number => {
-    const originalSkill = sheet.completeSkills?.find(
-      (s) => s.name === skill.name
+  const handleSkillAttrChange = (skillName: string, attr: Atributo) => {
+    setEditedSkills((prev) =>
+      prev.map((skill) =>
+        skill.name === skillName ? { ...skill, modAttr: attr } : skill
+      )
     );
+  };
 
-    // Helper function to determine training bonus based on level
+  const calculateSkillTotal = (skill: EditedSkill): number => {
     const skillTrainingMod = (isTrained: boolean, level: number): number => {
       if (!isTrained) return 0;
       if (level >= 15) return 6;
@@ -119,20 +131,8 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       return 2;
     };
 
-    // For new Oficio skills, calculate manually
-    if (!originalSkill && skill.name.startsWith('Ofício')) {
-      const intMod = sheet.atributos.Inteligência.value;
-      const halfLevel = Math.floor(sheet.nivel / 2);
-      const training = skillTrainingMod(skill.trained, sheet.nivel);
-      return halfLevel + intMod + training + skill.others;
-    }
-
-    if (!originalSkill) return 0;
-
-    const attrBonus = originalSkill.modAttr
-      ? sheet.atributos[originalSkill.modAttr].value
-      : 0;
-    const halfLevel = originalSkill.halfLevel ?? 0;
+    const attrBonus = sheet.atributos[skill.modAttr]?.value ?? 0;
+    const halfLevel = Math.floor(sheet.nivel / 2);
     const training = skillTrainingMod(skill.trained, sheet.nivel);
 
     return halfLevel + attrBonus + training + skill.others;
@@ -155,6 +155,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       name: selectedOficio,
       trained: false,
       others: 0,
+      modAttr: Atributo.INTELIGENCIA,
     };
 
     setEditedSkills((prev) => [...prev, newSkill]);
@@ -191,6 +192,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           ...originalSkill,
           training: skillTrainingMod(editedSkill.trained, sheet.nivel),
           others: editedSkill.others,
+          modAttr: editedSkill.modAttr,
         };
       });
 
@@ -204,7 +206,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       .map((editedSkill) => ({
         name: editedSkill.name as Skill,
         halfLevel: Math.floor(sheet.nivel / 2),
-        modAttr: Atributo.INTELIGENCIA,
+        modAttr: editedSkill.modAttr,
         training: skillTrainingMod(editedSkill.trained, sheet.nivel),
         others: editedSkill.others,
       }));
@@ -274,6 +276,33 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       });
     }
 
+    // Check for attribute changes
+    const attrChanges = editedSkills.filter((editedSkill) => {
+      const originalSkill = sheet.completeSkills?.find(
+        (s) => s.name === editedSkill.name
+      );
+      if (!originalSkill) return false;
+      const originalAttr =
+        originalSkill.modAttr ??
+        (SkillsAttrs[
+          originalSkill.name as keyof typeof SkillsAttrs
+        ] as unknown as Atributo);
+      return originalAttr !== editedSkill.modAttr;
+    });
+
+    if (attrChanges.length > 0) {
+      newSteps.push({
+        label: 'Edição Manual - Atributo de Perícia',
+        type: 'Perícias',
+        value: attrChanges.map((skill) => ({
+          name: skill.name,
+          value: `${skill.name}: atributo alterado para ${
+            ATTR_ABBREVIATIONS[skill.modAttr]
+          }`,
+        })),
+      });
+    }
+
     const updates: Partial<CharacterSheet> = {
       completeSkills: finalSkills,
     };
@@ -292,6 +321,11 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         name: skill.name,
         trained: (skill.training ?? 0) > 0,
         others: skill.others ?? 0,
+        modAttr:
+          skill.modAttr ??
+          (SkillsAttrs[
+            skill.name as keyof typeof SkillsAttrs
+          ] as unknown as Atributo),
       }));
       setEditedSkills(skills);
     }
@@ -382,6 +416,17 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
                     backgroundColor: 'primary.main',
                     color: 'primary.contrastText',
                     fontWeight: 'bold',
+                    width: 60,
+                  }}
+                >
+                  Atr
+                </TableCell>
+                <TableCell
+                  align='center'
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    fontWeight: 'bold',
                   }}
                 >
                   Treinada
@@ -412,6 +457,38 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
               {sortedSkills.map((skill) => (
                 <TableRow key={skill.name}>
                   <TableCell>{skill.name}</TableCell>
+                  <TableCell align='center' sx={{ p: 0.5 }}>
+                    <Select
+                      value={skill.modAttr}
+                      onChange={(e) =>
+                        handleSkillAttrChange(
+                          skill.name,
+                          e.target.value as Atributo
+                        )
+                      }
+                      size='small'
+                      variant='standard'
+                      disableUnderline
+                      sx={{
+                        fontSize: '0.75rem',
+                        minWidth: 50,
+                        '& .MuiSelect-select': {
+                          py: 0.25,
+                          px: 0.5,
+                        },
+                      }}
+                    >
+                      {Object.values(Atributo).map((attr) => (
+                        <MenuItem
+                          key={attr}
+                          value={attr}
+                          sx={{ fontSize: '0.75rem' }}
+                        >
+                          {ATTR_ABBREVIATIONS[attr]}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </TableCell>
                   <TableCell align='center'>
                     <Checkbox
                       checked={skill.trained}

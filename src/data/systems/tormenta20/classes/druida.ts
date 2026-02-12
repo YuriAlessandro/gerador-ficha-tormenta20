@@ -104,6 +104,13 @@ const DRUIDA: ClassDescription = {
           },
         },
       ],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Aspecto do Inverno' },
+          target: { type: 'DamageReduction', damageType: 'Frio' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+      ],
     },
     {
       name: 'Aspecto do Outono',

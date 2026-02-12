@@ -24,6 +24,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Switch,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -104,9 +106,11 @@ interface SelectedEquipment {
   armors: DefenseEquipment[];
   shields: DefenseEquipment[];
   generalItems: Equipment[];
+  esoteric: Equipment[];
   clothing: Equipment[];
   alchemy: Equipment[];
   food: Equipment[];
+  animals: Equipment[];
 }
 
 interface EquipmentWithSupplement extends Equipment {
@@ -134,20 +138,25 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       armors: [],
       shields: [],
       generalItems: [],
+      esoteric: [],
       clothing: [],
       alchemy: [],
       food: [],
+      animals: [],
     }
   );
   const [dinheiro, setDinheiro] = useState(0);
   const [customMaxSpaces, setCustomMaxSpaces] = useState<number | null>(null);
+  const [autoDescontarTibares, setAutoDescontarTibares] = useState(true);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
   const [showAddArmor, setShowAddArmor] = useState(false);
   const [showAddShield, setShowAddShield] = useState(false);
   const [showAddGeneralItems, setShowAddGeneralItems] = useState(false);
+  const [showAddEsoteric, setShowAddEsoteric] = useState(false);
   const [showAddClothing, setShowAddClothing] = useState(false);
   const [showAddAlchemy, setShowAddAlchemy] = useState(false);
   const [showAddFood, setShowAddFood] = useState(false);
+  const [showAddAnimals, setShowAddAnimals] = useState(false);
 
   // Estados para edição de arma
   const [editingWeapon, setEditingWeapon] = useState<Equipment | null>(null);
@@ -313,31 +322,36 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     return categorized;
   }, [allSupplements]);
 
-  // Get supplement general items categorized
-  const getCategorizedGeneralItems = useMemo(() => {
-    const categorized = {
-      adventurerEquipment: [] as EquipmentWithSupplement[],
-      esoteric: [] as EquipmentWithSupplement[],
-    };
+  // Get supplement general items
+  const getSupplementGeneralItems = useMemo(() => {
+    const items: EquipmentWithSupplement[] = [];
 
     allSupplements.forEach((supplementId) => {
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.equipment?.generalItems) {
         supplement.equipment.generalItems.forEach((item) => {
-          const itemWithSupplement = { ...item, supplementId };
-          // Categorize based on item name
-          // Esoteric items: Ankh solar, Tomo de guerra, Tomo do rancor
-          if (item.nome.includes('Ankh') || item.nome.includes('Tomo')) {
-            categorized.esoteric.push(itemWithSupplement);
-          } else {
-            // Everything else goes to adventurer equipment (animals + equipment)
-            categorized.adventurerEquipment.push(itemWithSupplement);
-          }
+          items.push({ ...item, supplementId });
         });
       }
     });
 
-    return categorized;
+    return items;
+  }, [allSupplements]);
+
+  // Get supplement esoteric items
+  const getSupplementEsoteric = useMemo(() => {
+    const items: EquipmentWithSupplement[] = [];
+
+    allSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.esoteric) {
+        supplement.equipment.esoteric.forEach((item) => {
+          items.push({ ...item, supplementId });
+        });
+      }
+    });
+
+    return items;
   }, [allSupplements]);
 
   // Get supplement clothing
@@ -409,14 +423,37 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     return items;
   }, [allSupplements]);
 
+  // Get supplement animals
+  const getSupplementAnimals = useMemo(() => {
+    const items: EquipmentWithSupplement[] = [];
+
+    allSupplements.forEach((supplementId) => {
+      const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+      if (supplement?.equipment?.animals) {
+        supplement.equipment.animals.forEach((item) => {
+          items.push({ ...item, supplementId });
+        });
+      }
+    });
+
+    return items;
+  }, [allSupplements]);
+
   // Refs for accordion auto-scroll
   const weaponsAccordionRef = useRef<HTMLDivElement>(null);
   const armorAccordionRef = useRef<HTMLDivElement>(null);
   const shieldAccordionRef = useRef<HTMLDivElement>(null);
   const generalItemsAccordionRef = useRef<HTMLDivElement>(null);
+  const esotericAccordionRef = useRef<HTMLDivElement>(null);
   const clothingAccordionRef = useRef<HTMLDivElement>(null);
   const alchemyAccordionRef = useRef<HTMLDivElement>(null);
   const foodAccordionRef = useRef<HTMLDivElement>(null);
+  const animalsAccordionRef = useRef<HTMLDivElement>(null);
+
+  const canAfford = (item: Equipment | DefenseEquipment): boolean => {
+    if (!autoDescontarTibares) return true;
+    return (item.preco || 0) <= dinheiro;
+  };
 
   useEffect(() => {
     if (sheet.bag && open) {
@@ -427,13 +464,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         armors: bagEquipments.Armadura || [],
         shields: bagEquipments.Escudo || [],
         generalItems: bagEquipments['Item Geral'] || [],
+        esoteric: bagEquipments.Esotérico || [],
         clothing: bagEquipments.Vestuário || [],
         alchemy: bagEquipments.Alquimía || [],
         food: bagEquipments.Alimentação || [],
+        animals: bagEquipments.Animal || [],
       });
 
       setDinheiro(sheet.dinheiro || 0);
       setCustomMaxSpaces(sheet.customMaxSpaces ?? null);
+      setAutoDescontarTibares(true);
     }
   }, [sheet.bag, sheet.dinheiro, sheet.customMaxSpaces, open]);
 
@@ -456,9 +496,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (except !== 'armor') setShowAddArmor(false);
     if (except !== 'shield') setShowAddShield(false);
     if (except !== 'generalItems') setShowAddGeneralItems(false);
+    if (except !== 'esoteric') setShowAddEsoteric(false);
     if (except !== 'clothing') setShowAddClothing(false);
     if (except !== 'alchemy') setShowAddAlchemy(false);
     if (except !== 'food') setShowAddFood(false);
+    if (except !== 'animals') setShowAddAnimals(false);
   };
 
   // Enhanced toggle functions with auto-collapse and scroll
@@ -506,6 +548,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }
   };
 
+  const handleToggleEsoteric = () => {
+    const newState = !showAddEsoteric;
+    if (newState) {
+      closeOtherAccordions('esoteric');
+      setShowAddEsoteric(true);
+      scrollToAccordion(esotericAccordionRef);
+    } else {
+      setShowAddEsoteric(false);
+    }
+  };
+
   const handleToggleClothing = () => {
     const newState = !showAddClothing;
     if (newState) {
@@ -539,7 +592,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }
   };
 
+  const handleToggleAnimals = () => {
+    const newState = !showAddAnimals;
+    if (newState) {
+      closeOtherAccordions('animals');
+      setShowAddAnimals(true);
+      scrollToAccordion(animalsAccordionRef);
+    } else {
+      setShowAddAnimals(false);
+    }
+  };
+
   const handleWeaponToggle = (weapon: Equipment) => {
+    const price = weapon.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     // Sempre adiciona a arma (permite múltiplas armas com mesmo nome)
     // Store base values when weapon is first added
     const weaponWithBase: Equipment = {
@@ -554,9 +621,18 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       ...prev,
       weapons: [...prev.weapons, weaponWithBase],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveWeapon = (index: number) => {
+    if (autoDescontarTibares) {
+      const weapon = selectedEquipment.weapons[index];
+      const price = weapon?.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       weapons: prev.weapons.filter((_, i) => i !== index),
@@ -720,18 +796,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleArmorToggle = (armor: DefenseEquipment) => {
-    setSelectedEquipment((prev) => {
-      const isCurrentlySelected = prev.armors.some(
-        (a) => a.nome === armor.nome
-      );
+    const isCurrentlySelected = selectedEquipment.armors.some(
+      (a) => a.nome === armor.nome
+    );
+    const price = armor.preco || 0;
 
-      if (isCurrentlySelected) {
-        // Remove the armor
-        return {
-          ...prev,
-          armors: prev.armors.filter((a) => a.nome !== armor.nome),
-        };
+    if (isCurrentlySelected) {
+      // Remove the armor
+      setSelectedEquipment((prev) => ({
+        ...prev,
+        armors: prev.armors.filter((a) => a.nome !== armor.nome),
+      }));
+      if (autoDescontarTibares && price > 0) {
+        setDinheiro((d) => d + price);
       }
+    } else {
+      // Replacing: refund old armor first
+      const oldArmor = selectedEquipment.armors[0];
+      const oldPrice = oldArmor?.preco || 0;
+      const netCost = price - oldPrice;
+
+      if (autoDescontarTibares && netCost > dinheiro) return;
 
       // Store base values when armor is first added
       const armorWithBase: DefenseEquipment = {
@@ -742,14 +827,22 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       };
 
       // Replace with new armor (only one allowed)
-      return {
+      setSelectedEquipment((prev) => ({
         ...prev,
         armors: [armorWithBase],
-      };
-    });
+      }));
+
+      if (autoDescontarTibares && netCost !== 0) {
+        setDinheiro((d) => d - netCost);
+      }
+    }
   };
 
   const handleRemoveArmor = (armor: DefenseEquipment) => {
+    if (autoDescontarTibares) {
+      const price = armor.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       armors: prev.armors.filter((a) => a.nome !== armor.nome),
@@ -815,18 +908,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   };
 
   const handleShieldToggle = (shield: DefenseEquipment) => {
-    setSelectedEquipment((prev) => {
-      const isCurrentlySelected = prev.shields.some(
-        (s) => s.nome === shield.nome
-      );
+    const isCurrentlySelected = selectedEquipment.shields.some(
+      (s) => s.nome === shield.nome
+    );
+    const price = shield.preco || 0;
 
-      if (isCurrentlySelected) {
-        // Remove the shield
-        return {
-          ...prev,
-          shields: prev.shields.filter((s) => s.nome !== shield.nome),
-        };
+    if (isCurrentlySelected) {
+      // Remove the shield
+      setSelectedEquipment((prev) => ({
+        ...prev,
+        shields: prev.shields.filter((s) => s.nome !== shield.nome),
+      }));
+      if (autoDescontarTibares && price > 0) {
+        setDinheiro((d) => d + price);
       }
+    } else {
+      // Replacing: refund old shield first
+      const oldShield = selectedEquipment.shields[0];
+      const oldPrice = oldShield?.preco || 0;
+      const netCost = price - oldPrice;
+
+      if (autoDescontarTibares && netCost > dinheiro) return;
 
       // Store base values when shield is first added
       const shieldWithBase: DefenseEquipment = {
@@ -837,14 +939,22 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       };
 
       // Replace with new shield (only one allowed)
-      return {
+      setSelectedEquipment((prev) => ({
         ...prev,
         shields: [shieldWithBase],
-      };
-    });
+      }));
+
+      if (autoDescontarTibares && netCost !== 0) {
+        setDinheiro((d) => d - netCost);
+      }
+    }
   };
 
   const handleRemoveShield = (shield: DefenseEquipment) => {
+    if (autoDescontarTibares) {
+      const price = shield.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       shields: prev.shields.filter((s) => s.nome !== shield.nome),
@@ -907,28 +1017,76 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for General Items
   const handleAddGeneralItem = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       generalItems: [...prev.generalItems, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveGeneralItem = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
     }));
   };
 
+  // Handlers for Esoteric
+  const handleAddEsoteric = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      esoteric: [...prev.esoteric, item],
+    }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
+  };
+
+  const handleRemoveEsoteric = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
+    }));
+  };
+
   // Handlers for Clothing
   const handleAddClothing = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       clothing: [...prev.clothing, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveClothing = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       clothing: prev.clothing.filter((i) => i.nome !== item.nome),
@@ -937,13 +1095,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Alchemy
   const handleAddAlchemy = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       alchemy: [...prev.alchemy, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveAlchemy = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
@@ -952,16 +1121,53 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
   // Handlers for Food
   const handleAddFood = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
     setSelectedEquipment((prev) => ({
       ...prev,
       food: [...prev.food, item],
     }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
   };
 
   const handleRemoveFood = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
     setSelectedEquipment((prev) => ({
       ...prev,
       food: prev.food.filter((i) => i.nome !== item.nome),
+    }));
+  };
+
+  // Handlers for Animals
+  const handleAddAnimals = (item: Equipment) => {
+    const price = item.preco || 0;
+    if (autoDescontarTibares && price > dinheiro) return;
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      animals: [...prev.animals, item],
+    }));
+
+    if (autoDescontarTibares && price > 0) {
+      setDinheiro((prev) => prev - price);
+    }
+  };
+
+  const handleRemoveAnimals = (item: Equipment) => {
+    if (autoDescontarTibares) {
+      const price = item.preco || 0;
+      if (price > 0) setDinheiro((d) => d + price);
+    }
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      animals: prev.animals.filter((i) => i.nome !== item.nome),
     }));
   };
 
@@ -1090,9 +1296,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       Armadura: selectedEquipment.armors,
       Escudo: selectedEquipment.shields,
       'Item Geral': selectedEquipment.generalItems,
+      Esotérico: selectedEquipment.esoteric,
       Vestuário: selectedEquipment.clothing,
       Alquimía: selectedEquipment.alchemy,
       Alimentação: selectedEquipment.food,
+      Animal: selectedEquipment.animals,
     };
 
     // Create a new Bag instance with updated equipment
@@ -1124,9 +1332,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const originalArmor = sheet.bag.getEquipments().Armadura || [];
     const originalShield = sheet.bag.getEquipments().Escudo || [];
     const originalGeneralItems = sheet.bag.getEquipments()['Item Geral'] || [];
+    const originalEsoteric = sheet.bag.getEquipments().Esotérico || [];
     const originalClothing = sheet.bag.getEquipments().Vestuário || [];
     const originalAlchemy = sheet.bag.getEquipments().Alquimía || [];
     const originalFood = sheet.bag.getEquipments().Alimentação || [];
+    const originalAnimals = sheet.bag.getEquipments().Animal || [];
 
     const weaponsChanged =
       JSON.stringify(originalWeapons) !==
@@ -1140,6 +1350,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const generalItemsChanged =
       JSON.stringify(originalGeneralItems) !==
       JSON.stringify(selectedEquipment.generalItems);
+    const esotericChanged =
+      JSON.stringify(originalEsoteric) !==
+      JSON.stringify(selectedEquipment.esoteric);
     const clothingChanged =
       JSON.stringify(originalClothing) !==
       JSON.stringify(selectedEquipment.clothing);
@@ -1148,6 +1361,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       JSON.stringify(selectedEquipment.alchemy);
     const foodChanged =
       JSON.stringify(originalFood) !== JSON.stringify(selectedEquipment.food);
+    const animalsChanged =
+      JSON.stringify(originalAnimals) !==
+      JSON.stringify(selectedEquipment.animals);
 
     const newSteps: Step[] = [];
 
@@ -1159,9 +1375,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       armorChanged ||
       shieldChanged ||
       generalItemsChanged ||
+      esotericChanged ||
       clothingChanged ||
       alchemyChanged ||
       foodChanged ||
+      animalsChanged ||
       moneyChanged
     ) {
       const equipmentChanges: SubStep[] = [];
@@ -1255,6 +1473,28 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         );
       }
 
+      if (esotericChanged) {
+        const addedEsoteric = selectedEquipment.esoteric.filter(
+          (se) => !originalEsoteric.some((oe) => oe.nome === se.nome)
+        );
+        const removedEsoteric = originalEsoteric.filter(
+          (oe) => !selectedEquipment.esoteric.some((se) => se.nome === oe.nome)
+        );
+
+        addedEsoteric.forEach((e) =>
+          equipmentChanges.push({
+            name: e.nome,
+            value: `${e.nome} (esotérico) - adicionado`,
+          })
+        );
+        removedEsoteric.forEach((e) =>
+          equipmentChanges.push({
+            name: e.nome,
+            value: `${e.nome} (esotérico) - removido`,
+          })
+        );
+      }
+
       if (clothingChanged) {
         const addedClothing = selectedEquipment.clothing.filter(
           (sc) => !originalClothing.some((oc) => oc.nome === sc.nome)
@@ -1321,6 +1561,28 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         );
       }
 
+      if (animalsChanged) {
+        const addedAnimals = selectedEquipment.animals.filter(
+          (sa) => !originalAnimals.some((oa) => oa.nome === sa.nome)
+        );
+        const removedAnimals = originalAnimals.filter(
+          (oa) => !selectedEquipment.animals.some((sa) => sa.nome === oa.nome)
+        );
+
+        addedAnimals.forEach((a) =>
+          equipmentChanges.push({
+            name: a.nome,
+            value: `${a.nome} (animal) - adicionado`,
+          })
+        );
+        removedAnimals.forEach((a) =>
+          equipmentChanges.push({
+            name: a.nome,
+            value: `${a.nome} (animal) - removido`,
+          })
+        );
+      }
+
       // Add money change to equipment changes
       if (moneyChanged) {
         equipmentChanges.push({
@@ -1369,19 +1631,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         armors: bagEquipments.Armadura || [],
         shields: bagEquipments.Escudo || [],
         generalItems: bagEquipments['Item Geral'] || [],
+        esoteric: bagEquipments.Esotérico || [],
         clothing: bagEquipments.Vestuário || [],
         alchemy: bagEquipments.Alquimía || [],
         food: bagEquipments.Alimentação || [],
+        animals: bagEquipments.Animal || [],
       });
       setDinheiro(sheet.dinheiro || 0);
     }
+    setAutoDescontarTibares(true);
     setShowAddWeapons(false);
     setShowAddArmor(false);
     setShowAddShield(false);
     setShowAddGeneralItems(false);
+    setShowAddEsoteric(false);
     setShowAddClothing(false);
     setShowAddAlchemy(false);
     setShowAddFood(false);
+    setShowAddAnimals(false);
     onClose();
   };
 
@@ -1452,6 +1719,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   10 + (sheet.atributos?.Força?.value || 0)
                 } (10 + Força). Deixe vazio para usar o padrão.`}
               />
+              <Tooltip title='Quando ativo, adicionar equipamentos desconta o preço do dinheiro. Remover equipamentos reembolsa o valor.'>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={autoDescontarTibares}
+                      onChange={(e) =>
+                        setAutoDescontarTibares(e.target.checked)
+                      }
+                      color='warning'
+                    />
+                  }
+                  label='Descontar tibares ao adicionar/remover'
+                  sx={{ mt: 1 }}
+                />
+              </Tooltip>
             </CardContent>
           </Card>
 
@@ -1768,6 +2050,61 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
               <Divider sx={{ my: 2 }} />
 
+              {/* Esoteric */}
+              <Box sx={{ mb: 2 }}>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle1' fontWeight='bold'>
+                    Esotéricos ({selectedEquipment.esoteric.length})
+                  </Typography>
+                  <Button
+                    size='small'
+                    startIcon={
+                      showAddEsoteric ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                    }
+                    onClick={handleToggleEsoteric}
+                    variant={showAddEsoteric ? 'contained' : 'outlined'}
+                    color={showAddEsoteric ? 'primary' : 'inherit'}
+                  >
+                    {showAddEsoteric ? 'Fechar' : 'Adicionar'}
+                  </Button>
+                </Stack>
+                {selectedEquipment.esoteric.length > 0 ? (
+                  <List dense>
+                    {selectedEquipment.esoteric.map((item) => (
+                      <ListItem key={item.nome}>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={`${
+                            item.preco ? `Preço: T$ ${item.preco} | ` : ''
+                          }Espaços: ${item.spaces || 0}`}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge='end'
+                            size='small'
+                            onClick={() => handleRemoveEsoteric(item)}
+                            color='error'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhum esotérico equipado
+                  </Typography>
+                )}
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
               {/* Clothing */}
               <Box sx={{ mb: 2 }}>
                 <Stack
@@ -1966,6 +2303,61 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   </Typography>
                 )}
               </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Animals */}
+              <Box>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle1' fontWeight='bold'>
+                    Animais ({selectedEquipment.animals.length})
+                  </Typography>
+                  <Button
+                    size='small'
+                    startIcon={
+                      showAddAnimals ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                    }
+                    onClick={handleToggleAnimals}
+                    variant={showAddAnimals ? 'contained' : 'outlined'}
+                    color={showAddAnimals ? 'primary' : 'inherit'}
+                  >
+                    {showAddAnimals ? 'Fechar' : 'Adicionar'}
+                  </Button>
+                </Stack>
+                {selectedEquipment.animals.length > 0 ? (
+                  <List dense>
+                    {selectedEquipment.animals.map((item) => (
+                      <ListItem key={item.nome}>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={`${
+                            item.preco ? `Preço: T$ ${item.preco} | ` : ''
+                          }Espaços: ${item.spaces || 0}`}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge='end'
+                            size='small'
+                            onClick={() => handleRemoveAnimals(item)}
+                            color='error'
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant='body2' color='text.secondary'>
+                    Nenhum animal equipado
+                  </Typography>
+                )}
+              </Box>
             </CardContent>
           </Card>
 
@@ -2001,11 +2393,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2023,11 +2417,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2070,11 +2466,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2092,11 +2490,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2139,11 +2539,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2161,11 +2563,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2208,11 +2612,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             size='small'
                             color='primary'
                             onClick={() => handleWeaponToggle(weapon)}
+                            disabled={!canAfford(weapon)}
                           >
                             <AddCircleOutlineIcon />
                           </IconButton>
                           <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano})
+                            {weapon.nome} (Dano: {weapon.dano}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                           </Typography>
                         </Box>
                       ))}
@@ -2230,11 +2636,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleWeaponToggle(weapon)}
+                          disabled={!canAfford(weapon)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                         <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano})
+                          {weapon.nome} (Dano: {weapon.dano}
+                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
                         </Typography>
                         {weapon.supplementId &&
                           weapon.supplementId !==
@@ -2297,9 +2705,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2320,9 +2735,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {armor.supplementId &&
@@ -2366,9 +2788,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2389,9 +2818,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isArmorSelected(armor)}
                               onChange={() => handleArmorToggle(armor)}
                               size='small'
+                              disabled={
+                                !isArmorSelected(armor) && !canAfford(armor)
+                              }
                             />
                           }
-                          label={`${armor.nome} (Defesa: +${armor.defenseBonus}, Penalidade: ${armor.armorPenalty})`}
+                          label={`${armor.nome} (Defesa: +${
+                            armor.defenseBonus
+                          }, Penalidade: ${armor.armorPenalty}${
+                            armor.preco ? ` | T$ ${armor.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {armor.supplementId &&
@@ -2447,9 +2883,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isShieldSelected(shield)}
                               onChange={() => handleShieldToggle(shield)}
                               size='small'
+                              disabled={
+                                !isShieldSelected(shield) && !canAfford(shield)
+                              }
                             />
                           }
-                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          label={`${shield.nome} (Defesa: +${
+                            shield.defenseBonus
+                          }, Penalidade: ${shield.armorPenalty}${
+                            shield.preco ? ` | T$ ${shield.preco}` : ''
+                          })`}
                           sx={{ flex: 1, minWidth: 0 }}
                         />
                       </Box>
@@ -2470,9 +2913,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               checked={isShieldSelected(shield)}
                               onChange={() => handleShieldToggle(shield)}
                               size='small'
+                              disabled={
+                                !isShieldSelected(shield) && !canAfford(shield)
+                              }
                             />
                           }
-                          label={`${shield.nome} (Defesa: +${shield.defenseBonus}, Penalidade: ${shield.armorPenalty})`}
+                          label={`${shield.nome} (Defesa: +${
+                            shield.defenseBonus
+                          }, Penalidade: ${shield.armorPenalty}${
+                            shield.preco ? ` | T$ ${shield.preco}` : ''
+                          })`}
                           sx={{ flex: 1 }}
                         />
                         {shield.supplementId &&
@@ -2538,6 +2988,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2547,42 +2998,41 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                       </Box>
                     ))}
                     {/* Supplement items */}
-                    {getCategorizedGeneralItems.adventurerEquipment.map(
-                      (item) => (
-                        <Box
-                          key={item.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
+                    {getSupplementGeneralItems.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
-                          <IconButton
-                            size='small'
-                            color='primary'
-                            onClick={() => handleAddGeneralItem(item)}
-                          >
-                            <AddCircleOutlineIcon />
-                          </IconButton>
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {item.nome} (T$ {item.preco || 0})
-                          </Typography>
-                          {item.supplementId &&
-                            item.supplementId !==
-                              SupplementId.TORMENTA20_CORE && (
-                              <Chip
-                                label={
-                                  SUPPLEMENT_METADATA[item.supplementId]
-                                    ?.abbreviation || ''
-                                }
-                                size='small'
-                                color='primary'
-                                variant='outlined'
-                              />
-                            )}
-                        </Box>
-                      )
-                    )}
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
                   </Stack>
 
                   {/* Tools */}
@@ -2607,6 +3057,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddGeneralItem(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2617,14 +3068,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     ))}
                   </Stack>
 
-                  {/* Esoteric Items */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowAddGeneralItems(false)}
+                    fullWidth
                   >
-                    Itens Esotéricos
-                  </Typography>
+                    Fechar
+                  </Button>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
+          {/* Add Esoteric Section */}
+          {showAddEsoteric && (
+            <Accordion expanded={showAddEsoteric} ref={esotericAccordionRef}>
+              <AccordionSummary>
+                <Typography variant='h6'>Adicionar Esotéricos</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
                   <Stack spacing={1} sx={{ mb: 2 }}>
                     {/* Core items */}
                     {GENERAL_EQUIPMENT.esoteric.map((item) => (
@@ -2639,7 +3102,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         <IconButton
                           size='small'
                           color='primary'
-                          onClick={() => handleAddGeneralItem(item)}
+                          onClick={() => handleAddEsoteric(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2649,7 +3113,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                       </Box>
                     ))}
                     {/* Supplement items */}
-                    {getCategorizedGeneralItems.esoteric.map((item) => (
+                    {getSupplementEsoteric.map((item) => (
                       <Box
                         key={item.nome}
                         sx={{
@@ -2661,7 +3125,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         <IconButton
                           size='small'
                           color='primary'
-                          onClick={() => handleAddGeneralItem(item)}
+                          onClick={() => handleAddEsoteric(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2687,7 +3152,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
                   <Button
                     variant='outlined'
-                    onClick={() => setShowAddGeneralItems(false)}
+                    onClick={() => setShowAddEsoteric(false)}
                     fullWidth
                   >
                     Fechar
@@ -2720,6 +3185,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddClothing(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2742,6 +3208,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddClothing(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2810,6 +3277,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2832,6 +3300,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2878,6 +3347,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2900,6 +3370,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2946,6 +3417,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -2968,6 +3440,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddAlchemy(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3026,6 +3499,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddFood(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3048,6 +3522,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           size='small'
                           color='primary'
                           onClick={() => handleAddFood(item)}
+                          disabled={!canAfford(item)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -3074,6 +3549,88 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Button
                     variant='outlined'
                     onClick={() => setShowAddFood(false)}
+                    fullWidth
+                  >
+                    Fechar
+                  </Button>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
+          {/* Add Animals Section */}
+          {showAddAnimals && (
+            <Accordion expanded={showAddAnimals} ref={animalsAccordionRef}>
+              <AccordionSummary>
+                <Typography variant='h6'>Adicionar Animais</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {/* Core items */}
+                    {GENERAL_EQUIPMENT.animals.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAnimals(item)}
+                          disabled={!canAfford(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
+                      </Box>
+                    ))}
+                    {/* Supplement items */}
+                    {getSupplementAnimals.map((item) => (
+                      <Box
+                        key={item.nome}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
+                        <IconButton
+                          size='small'
+                          color='primary'
+                          onClick={() => handleAddAnimals(item)}
+                          disabled={!canAfford(item)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                        <Typography variant='body2' sx={{ flex: 1 }}>
+                          {item.nome} (T$ {item.preco || 0})
+                        </Typography>
+                        {item.supplementId &&
+                          item.supplementId !==
+                            SupplementId.TORMENTA20_CORE && (
+                            <Chip
+                              label={
+                                SUPPLEMENT_METADATA[item.supplementId]
+                                  ?.abbreviation || ''
+                              }
+                              size='small'
+                              color='primary'
+                              variant='outlined'
+                            />
+                          )}
+                      </Box>
+                    ))}
+                  </Stack>
+
+                  <Button
+                    variant='outlined'
+                    onClick={() => setShowAddAnimals(false)}
                     fullWidth
                   >
                     Fechar

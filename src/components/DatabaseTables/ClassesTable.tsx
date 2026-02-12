@@ -120,6 +120,18 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   </Typography>
                 )}
               </Typography>
+              {classe.isVariant && classe.baseClassName && (
+                <Chip
+                  label={`Variante de ${classe.baseClassName}`}
+                  size='small'
+                  variant='outlined'
+                  color='info'
+                  sx={{
+                    height: '20px',
+                    fontSize: '0.7rem',
+                  }}
+                />
+              )}
               {classe.supplementId !== SupplementId.TORMENTA20_CORE && (
                 <Chip
                   label={classe.supplementName}
@@ -181,6 +193,17 @@ const Row: React.FC<IProps> = ({ classe, defaultOpen }) => {
                   sx={{ fontFamily: 'Tfont, serif' }}
                 />
               </Box>
+
+              {classe.isVariant && classe.baseClassName && (
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 2, fontStyle: 'italic' }}
+                >
+                  Classe variante de {classe.baseClassName}. Utiliza os mesmos
+                  poderes de classe.
+                </Typography>
+              )}
 
               {/* Basic Stats */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -426,13 +449,25 @@ const ClassesTable: React.FC = () => {
   const classes = useMemo(() => {
     const allClasses =
       dataRegistry.getClassesWithSupplementInfo(selectedSupplements);
+
+    // Ordena variantes logo após sua classe base
+    const baseClasses = allClasses.filter((c) => !c.isVariant);
+    const variants = allClasses.filter((c) => c.isVariant);
+    const sorted: ClassWithSupplement[] = [];
+    baseClasses.forEach((base) => {
+      sorted.push(base);
+      sorted.push(...variants.filter((v) => v.baseClassName === base.name));
+    });
+
     const search = value.toLocaleLowerCase();
 
     if (search.length > 0) {
-      return allClasses.filter((classe) => {
+      return sorted.filter((classe) => {
         if (
           classe.name.toLowerCase().includes(search) ||
-          classe.subname?.toLowerCase().includes(search)
+          classe.subname?.toLowerCase().includes(search) ||
+          (classe.baseClassName &&
+            classe.baseClassName.toLowerCase().includes(search))
         ) {
           return true;
         }
@@ -448,7 +483,7 @@ const ClassesTable: React.FC = () => {
         return false;
       });
     }
-    return allClasses;
+    return sorted;
   }, [selectedSupplements, value]);
 
   const handleToggleSupplement = (supplementId: SupplementId) => {

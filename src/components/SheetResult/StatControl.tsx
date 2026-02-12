@@ -88,8 +88,8 @@ const StatControl: React.FC<StatControlProps> = ({
   const bonus = isOverMax ? displayedCurrent - max : 0;
 
   // Calculate PV minimum (only for PV, not PM)
-  // Minimum is -10 or -2*max, whichever is lower (more negative)
-  const pvMinimo = type === 'PV' ? Math.min(-10, -2 * max) : 0;
+  // Minimum is -10 or -max/2, whichever is lower (more negative)
+  const pvMinimo = type === 'PV' ? Math.min(-10, -Math.floor(max / 2)) : 0;
 
   // Character states - use displayedCurrent for UI
   const isNegative = type === 'PV' && displayedCurrent < 0;

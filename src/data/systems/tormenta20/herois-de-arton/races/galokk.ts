@@ -12,6 +12,7 @@ const GALOKK: Race = {
       { attr: 'any', mod: 1 },
       { attr: Atributo.CARISMA, mod: -1 },
     ],
+    excludeFromAny: [Atributo.CARISMA],
   },
   faithProbability: {
     ALLIHANNA: 1,

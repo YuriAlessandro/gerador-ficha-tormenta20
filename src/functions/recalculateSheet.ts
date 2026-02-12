@@ -3,11 +3,14 @@ import _ from 'lodash';
 import Bag from '@/interfaces/Bag';
 import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet, {
+  DamageReduction,
+  DamageType,
   SheetActionHistoryEntry,
   Step,
 } from '@/interfaces/CharacterSheet';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
+import { RequirementType } from '@/interfaces/Poderes';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -25,7 +28,13 @@ import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/clas
 import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
 import { ClassDescription } from '@/interfaces/Class';
 
-import { applyRaceAbilities, applyPower } from './general';
+import {
+  applyRaceAbilities,
+  applyPower,
+  applyOptionChosenTexts,
+  calculateMaxSpaces,
+} from './general';
+import { countTormentaPowers } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
 
 // Combined list of all available classes for ability lookup
@@ -410,7 +419,7 @@ const calcDisplacement = (
   atributos: CharacterAttributes,
   baseDisplacement: number
 ): number => {
-  const maxSpaces = 10 + atributos.Força.value;
+  const maxSpaces = calculateMaxSpaces(atributos.Força.value);
 
   if (bag.getSpaces() > maxSpaces) {
     return raceDisplacement - 3;
@@ -556,6 +565,9 @@ function applyClassAbilities(
   }
 
   sheetClone.classe.abilities = availableAbilities;
+
+  // Apply text modifications from chooseFromOptions history
+  applyOptionChosenTexts(sheetClone);
 
   sheetClone = availableAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
@@ -879,7 +891,9 @@ export function recalculateSheet(
   updatedSheet.sheetBonuses = [];
 
   // Step 1.5: Recalculate maxSpaces based on current Força modifier
-  updatedSheet.maxSpaces = 10 + updatedSheet.atributos.Força.value;
+  updatedSheet.maxSpaces = calculateMaxSpaces(
+    updatedSheet.atributos.Força.value
+  );
 
   // Step 2: Apply general powers (most important for manual additions)
   updatedSheet = applyGeneralPowers(updatedSheet, manualSelections);
@@ -1032,7 +1046,8 @@ export function recalculateSheet(
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (
       bonus.target.type !== 'Defense' &&
-      bonus.target.type !== 'HPAttributeReplacement'
+      bonus.target.type !== 'HPAttributeReplacement' &&
+      bonus.target.type !== 'DamageReduction'
     ) {
       const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
 
@@ -1194,6 +1209,106 @@ export function recalculateSheet(
   // Step 13: Apply weapon bonuses
   updatedSheet = applyWeaponBonuses(updatedSheet, manualSelections);
 
+  // Step 14: Calculate Damage Reduction from sheetBonuses + manual
+  const computedRd: DamageReduction = {};
+
+  updatedSheet.sheetBonuses.forEach((bonus) => {
+    if (bonus.target.type === 'DamageReduction') {
+      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const { damageType } = bonus.target;
+      computedRd[damageType] = (computedRd[damageType] ?? 0) + bonusValue;
+    }
+  });
+
+  // Bárbaro: Resistência a Dano (RD Geral escalável com nível)
+  if (updatedSheet.classe.name === 'Bárbaro' && updatedSheet.nivel >= 5) {
+    const rdValue =
+      2 * Math.min(5, 1 + Math.floor((updatedSheet.nivel - 5) / 3));
+    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
+  }
+
+  // Cavaleiro: Bastião (RD Geral 5, requer armadura pesada)
+  if (updatedSheet.cavaleiroCaminho === 'Bastião' && heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 5;
+  }
+
+  // Cavaleiro/Guerreiro: Especialização em Armadura (RD Geral 5, requer armadura pesada)
+  const hasEspecArmadura = (updatedSheet.classPowers || []).some(
+    (p) => p.name === 'Especialização em Armadura'
+  );
+  if (hasEspecArmadura && heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 5;
+  }
+
+  // Encastelado (RD Geral 2 + escala, requer armadura pesada)
+  const hasEncastelado = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Encastelado'
+  );
+  if (hasEncastelado && heavyArmor) {
+    const encouracadoDependents = (updatedSheet.generalPowers || []).filter(
+      (p) =>
+        p.name !== 'Encastelado' &&
+        p.requirements?.some((reqGroup) =>
+          reqGroup.some(
+            (req) =>
+              req.type === RequirementType.PODER && req.name === 'Encouraçado'
+          )
+        )
+    ).length;
+    computedRd.Geral = (computedRd.Geral ?? 0) + 2 + encouracadoDependents;
+  }
+
+  // Selvagem Sanguinário (RD Geral 1, sem armadura pesada)
+  const hasSelvagem = [
+    ...(updatedSheet.generalPowers || []),
+    ...(updatedSheet.origin?.powers || []),
+  ].some((p) => p.name === 'Selvagem Sanguinário');
+  if (hasSelvagem && !heavyArmor) {
+    computedRd.Geral = (computedRd.Geral ?? 0) + 1;
+  }
+
+  // Carapaça Corrompida (RD Geral 1 + escala com poderes da Tormenta)
+  const hasCarapaca = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Carapaça Corrompida'
+  );
+  if (hasCarapaca) {
+    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
+    const rdValue = 1 + Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
+  }
+
+  // Pele Corrompida (RD 6 tipos, escala com poderes da Tormenta)
+  const hasPeleCorr = (updatedSheet.generalPowers || []).some(
+    (p) => p.name === 'Pele Corrompida'
+  );
+  if (hasPeleCorr) {
+    const otherTormentaPowers = countTormentaPowers(updatedSheet) - 1;
+    const rdValue = 2 + 2 * Math.floor(Math.max(0, otherTormentaPowers) / 2);
+    const types: DamageType[] = [
+      'Ácido',
+      'Eletricidade',
+      'Fogo',
+      'Frio',
+      'Luz',
+      'Trevas',
+    ];
+    types.forEach((dt) => {
+      computedRd[dt] = (computedRd[dt] ?? 0) + rdValue;
+    });
+  }
+
+  if (updatedSheet.bonusRd) {
+    Object.entries(updatedSheet.bonusRd).forEach(([key, value]) => {
+      if (value && value > 0) {
+        const dt = key as DamageType;
+        computedRd[dt] = (computedRd[dt] ?? 0) + value;
+      }
+    });
+  }
+
+  updatedSheet.reducaoDeDano =
+    Object.keys(computedRd).length > 0 ? computedRd : undefined;
+
   // PM Debug - Final output
   pmDebug.bonuses.push({
     source: '=== FINAL PM ===',
@@ -1203,7 +1318,7 @@ export function recalculateSheet(
     pmAfter: updatedSheet.pm,
   });
 
-  // Step 14: Deduplicate arrays to prevent accumulation
+  // Step 15: Deduplicate arrays to prevent accumulation
   updatedSheet.spells = deduplicateSpells(updatedSheet.spells);
   updatedSheet.sheetActionHistory = deduplicateHistory(
     updatedSheet.sheetActionHistory

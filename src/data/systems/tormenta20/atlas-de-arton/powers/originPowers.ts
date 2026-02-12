@@ -711,7 +711,13 @@ const atlasOriginPowers: Record<string, OriginPower> = {
         },
       },
     ],
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Guardião Glacial' },
+        target: { type: 'DamageReduction', damageType: 'Frio' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   INICIADO_DOS_CACA_MONSTROS: {
     name: 'Iniciado dos Caça-Monstros',
@@ -1139,7 +1145,18 @@ const atlasOriginPowers: Record<string, OriginPower> = {
     description:
       'Você recebe redução de frio e trevas 5 e visão no escuro. Se já possuir visão no escuro, em vez disso recebe +2 em Percepção.',
     type: ORIGIN_POWER_TYPE,
-    sheetBonuses: [],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Querido Filho' },
+        target: { type: 'DamageReduction', damageType: 'Frio' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Querido Filho' },
+        target: { type: 'DamageReduction', damageType: 'Trevas' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   REBELDE_AGITADOR: {
     name: 'Rebelde Agitador',
@@ -1180,6 +1197,11 @@ const atlasOriginPowers: Record<string, OriginPower> = {
           type: 'LevelCalc',
           formula: '{level}',
         },
+      },
+      {
+        source: { type: 'power', name: 'Recruta da Fênix' },
+        target: { type: 'DamageReduction', damageType: 'Fogo' },
+        modifier: { type: 'Fixed', value: 5 },
       },
     ],
   },

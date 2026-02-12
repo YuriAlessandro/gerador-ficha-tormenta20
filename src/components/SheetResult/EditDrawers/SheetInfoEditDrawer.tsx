@@ -20,6 +20,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -30,7 +31,10 @@ import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
 import { CharacterAttributes } from '@/interfaces/Character';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
-import { modifyAttributesBasedOnRace } from '@/functions/general';
+import {
+  modifyAttributesBasedOnRace,
+  applyManualLevelUp,
+} from '@/functions/general';
 import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
 import { useAuth } from '@/hooks/useAuth';
 import { SupplementId } from '@/types/supplement.types';
@@ -58,7 +62,10 @@ import {
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
 import Skill from '@/interfaces/Skills';
 import Origin from '@/interfaces/Origin';
-import { OriginBenefit } from '@/interfaces/WizardSelections';
+import {
+  LevelUpSelections,
+  OriginBenefit,
+} from '@/interfaces/WizardSelections';
 import {
   applyOriginBenefits,
   applyRegionalOriginBenefits,
@@ -67,6 +74,7 @@ import {
 import { GeneralPower } from '@/interfaces/Poderes';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
+import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
 
 // Helper function to normalize deity names for comparison (removes hyphens and spaces)
 const normalizeDeityName = (name: string): string =>
@@ -217,6 +225,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   const [deityEditDrawerOpen, setDeityEditDrawerOpen] = useState(false);
   const [pendingDeity, setPendingDeity] = useState<Divindade | null>(null);
 
+  // State for LevelUpWizard
+  const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
+
   // Estado local para inputs de atributos (permite campo vazio)
   const [attributeInputValues, setAttributeInputValues] = useState<
     Record<Atributo, string>
@@ -341,10 +352,33 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   ).length;
   const fixedAttributes = raceAttributes.filter((attr) => attr.attr !== 'any');
 
-  // Get list of attributes that can be selected (exclude fixed attributes)
+  // Get excluded attributes for 'any' slots (e.g., Lefou can't pick Carisma)
+  const excludeFromAny: Atributo[] = (() => {
+    if (
+      editedData.raceName === 'Golem Desperto' &&
+      editedData.raceChassis &&
+      editedData.raceEnergySource &&
+      editedData.raceSizeCategory
+    ) {
+      const baseRace = selectedRace;
+      if (baseRace) {
+        const customizedRace = applyGolemDespertoCustomization(
+          baseRace,
+          editedData.raceChassis,
+          editedData.raceEnergySource,
+          editedData.raceSizeCategory
+        );
+        return customizedRace.attributes.excludeFromAny || [];
+      }
+    }
+    return selectedRace?.attributes.excludeFromAny || [];
+  })();
+
+  // Get list of attributes that can be selected (exclude fixed and restricted attributes)
   const fixedAttributeNames = fixedAttributes.map((attr) => attr.attr);
   const availableAttributes = Object.values(Atributo).filter(
-    (attr) => !fixedAttributeNames.includes(attr)
+    (attr) =>
+      !fixedAttributeNames.includes(attr) && !excludeFromAny.includes(attr)
   );
 
   // Reset race attribute choices when race, sex, or heritage changes
@@ -537,6 +571,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     setExpandedAccordions((prev) =>
       prev.includes(panel) ? prev.filter((p) => p !== panel) : [...prev, panel]
     );
+  };
+
+  const handleLevelUpConfirm = (levelUpSelections: LevelUpSelections[]) => {
+    setLevelUpWizardOpen(false);
+    let updatedSheet = sheet;
+    levelUpSelections.forEach((sel) => {
+      updatedSheet = applyManualLevelUp(updatedSheet, sel);
+    });
+    updatedSheet = recalculateSheet(updatedSheet);
+    onSave(updatedSheet);
+    onClose();
   };
 
   const handleSave = () => {
@@ -1505,19 +1550,43 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     )}
                   />
 
-                  <TextField
-                    fullWidth
-                    label='Nível'
-                    type='number'
-                    value={editedData.nivel}
-                    onChange={(e) =>
-                      setEditedData({
-                        ...editedData,
-                        nivel: parseInt(e.target.value, 10) || 1,
-                      })
-                    }
-                    inputProps={{ min: 1, max: 20 }}
-                  />
+                  <Stack direction='row' spacing={1} alignItems='flex-start'>
+                    <TextField
+                      fullWidth
+                      label='Nível'
+                      type='number'
+                      value={editedData.nivel}
+                      onChange={(e) =>
+                        setEditedData({
+                          ...editedData,
+                          nivel: parseInt(e.target.value, 10) || 1,
+                        })
+                      }
+                      inputProps={{ min: 1, max: 20 }}
+                    />
+                    <Tooltip
+                      title={
+                        sheet.nivel >= 20
+                          ? 'Nível máximo atingido'
+                          : 'Subir nível com assistente de progressão'
+                      }
+                    >
+                      <span>
+                        <Button
+                          variant='outlined'
+                          onClick={() => setLevelUpWizardOpen(true)}
+                          disabled={sheet.nivel >= 20}
+                          sx={{
+                            minWidth: 'auto',
+                            whiteSpace: 'nowrap',
+                            height: 56,
+                          }}
+                        >
+                          Subir Nível
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  </Stack>
 
                   <FormControl fullWidth>
                     <InputLabel>Gênero</InputLabel>
@@ -2337,6 +2406,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           onSave={handleDeityPowersSave}
         />
       )}
+
+      {/* LevelUpWizard for leveling up with manual picks */}
+      <LevelUpWizardModal
+        open={levelUpWizardOpen}
+        initialSheet={sheet}
+        targetLevel={sheet.nivel + 1}
+        supplements={userSupplements}
+        onConfirm={handleLevelUpConfirm}
+        onCancel={() => setLevelUpWizardOpen(false)}
+      />
     </>
   );
 };

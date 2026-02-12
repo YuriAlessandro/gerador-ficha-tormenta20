@@ -1,4 +1,7 @@
-import CharacterSheet, { SubStep } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  DamageType,
+  SubStep,
+} from '@/interfaces/CharacterSheet';
 import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
@@ -103,34 +106,85 @@ export function applyHumanoVersatil(
   return substeps;
 }
 
-export function applyLefouDeformidade(sheet: CharacterSheet): SubStep[] {
+export function applyLefouDeformidade(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
   const subSteps: SubStep[] = [];
-  const randomNumber = Math.random();
 
-  const allSkills = Object.values(Skill);
-  const shouldGetSkill = randomNumber < 0.5;
+  // Check for manual selections
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
 
-  const pickedSkills = pickFromArray(allSkills, shouldGetSkill ? 2 : 1);
-  pickedSkills.forEach((randomSkill) => {
-    addOtherBonusToSkill(sheet, randomSkill, 2);
-    subSteps.push({
-      name: 'Deformidade',
-      value: `+2 em Perícia (${randomSkill})`,
+  // Check if Deformidade was already applied (to avoid re-applying during recalculation)
+  const deformidadeAlreadyApplied = sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Deformidade'
+      )
+  );
+
+  // If already applied and no manual selections, skip
+  if (deformidadeAlreadyApplied && !hasManualSkills && !hasManualPowers) {
+    return subSteps;
+  }
+
+  if (hasManualSkills) {
+    // Manual selections from wizard
+    const selectedSkills = manualSelections.skills!;
+
+    // Apply +2 bonus to each selected skill
+    selectedSkills.forEach((skill) => {
+      addOtherBonusToSkill(sheet, skill as Skill, 2);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `+2 em Perícia (${skill})`,
+      });
     });
-  });
 
-  if (!shouldGetSkill) {
-    const allowedPowers = Object.values(tormentaPowers);
-    const randomPower = getNotRepeatedRandom(
-      sheet.generalPowers,
-      allowedPowers
-    );
-    sheet.generalPowers.push(randomPower);
+    // If user chose a tormenta power as second choice
+    if (hasManualPowers) {
+      const selectedPower = manualSelections.powers![0] as GeneralPower;
+      sheet.generalPowers.push(selectedPower);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `Poder da Tormenta recebido (${selectedPower.name})`,
+      });
+    }
+  } else {
+    // Random selection (backwards compatibility for random generation)
+    const allSkills = Object.values(Skill);
+    const shouldGetTwoSkills = Math.random() < 0.5;
 
-    subSteps.push({
-      name: 'Deformidade',
-      value: `Poder da Tormenta recebido (${randomPower.name})`,
+    const pickedSkills = pickFromArray(allSkills, shouldGetTwoSkills ? 2 : 1);
+    pickedSkills.forEach((randomSkill) => {
+      addOtherBonusToSkill(sheet, randomSkill, 2);
+      subSteps.push({
+        name: 'Deformidade',
+        value: `+2 em Perícia (${randomSkill})`,
+      });
     });
+
+    if (!shouldGetTwoSkills) {
+      const allowedPowers = Object.values(tormentaPowers);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+
+      subSteps.push({
+        name: 'Deformidade',
+        value: `Poder da Tormenta recebido (${randomPower.name})`,
+      });
+    }
   }
 
   return subSteps;
@@ -292,6 +346,47 @@ export function applyMeioElfoAmbicaoHerdada(sheet: CharacterSheet): SubStep[] {
     // Apply the origin power's effects if any
     applyPower(sheet, randomOriginPower);
   }
+
+  return substeps;
+}
+
+const QAREEN_ELEMENTS: { name: string; damageType: DamageType }[] = [
+  { name: 'Água', damageType: 'Frio' },
+  { name: 'Ar', damageType: 'Eletricidade' },
+  { name: 'Fogo', damageType: 'Fogo' },
+  { name: 'Terra', damageType: 'Ácido' },
+  { name: 'Luz', damageType: 'Luz' },
+  { name: 'Trevas', damageType: 'Trevas' },
+];
+
+export function applyQareenResistenciaElemental(
+  sheet: CharacterSheet
+): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  // Use pre-selected element (from wizard) or pick randomly
+  let element: (typeof QAREEN_ELEMENTS)[number];
+  if (sheet.qareenElement) {
+    const found = QAREEN_ELEMENTS.find(
+      (e) => e.damageType === sheet.qareenElement
+    );
+    element = found || getRandomItemFromArray(QAREEN_ELEMENTS);
+  } else {
+    element = getRandomItemFromArray(QAREEN_ELEMENTS);
+  }
+
+  sheet.qareenElement = element.damageType;
+
+  sheet.sheetBonuses.push({
+    source: { type: 'power', name: 'Resistência Elemental' },
+    target: { type: 'DamageReduction', damageType: element.damageType },
+    modifier: { type: 'Fixed', value: 10 },
+  });
+
+  substeps.push({
+    name: 'Resistência Elemental',
+    value: `Qareen ${element.name} — RD de ${element.damageType} 10`,
+  });
 
   return substeps;
 }

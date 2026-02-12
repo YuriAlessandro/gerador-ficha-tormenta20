@@ -100,6 +100,23 @@ export const DUENDE_NATURES: Record<string, DuendeNature> = {
             },
           },
         ],
+        sheetBonuses: [
+          {
+            source: { type: 'power', name: 'Natureza Mineral' },
+            target: { type: 'DamageReduction', damageType: 'Corte' },
+            modifier: { type: 'Fixed', value: 5 },
+          },
+          {
+            source: { type: 'power', name: 'Natureza Mineral' },
+            target: { type: 'DamageReduction', damageType: 'Fogo' },
+            modifier: { type: 'Fixed', value: 5 },
+          },
+          {
+            source: { type: 'power', name: 'Natureza Mineral' },
+            target: { type: 'DamageReduction', damageType: 'Perfuração' },
+            modifier: { type: 'Fixed', value: 5 },
+          },
+        ],
       },
     ],
   },
@@ -187,6 +204,13 @@ export const DUENDE_PRESENTES: Record<string, DuendePresente> = {
             type: 'addSense',
             sense: 'Redução de fogo 5',
           },
+        },
+      ],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Afinidade Elemental (Fogo)' },
+          target: { type: 'DamageReduction', damageType: 'Fogo' },
+          modifier: { type: 'Fixed', value: 5 },
         },
       ],
     },

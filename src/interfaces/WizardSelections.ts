@@ -7,6 +7,7 @@ import { GeneralPower } from './Poderes';
 import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
 import { AttributeVariant } from './Race';
+import { DamageType } from './CharacterSheet';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -41,6 +42,10 @@ export interface WizardSelections {
 
   // Race attribute choices for races with 'any' attributes
   raceAttributes?: Atributo[];
+
+  // Base skill 'or' choices (e.g., Luta OR Pontaria for Guerreiro)
+  // Each position corresponds to the Nth 'or' group in periciasbasicas
+  baseSkillChoices?: Skill[];
 
   // Class skill selections from periciasrestantes
   classSkills?: Skill[];
@@ -90,6 +95,9 @@ export interface WizardSelections {
 
   // Suraggel ability selection (replaces Luz Sagrada or Sombra Profana)
   suragelAbility?: string;
+
+  // Qareen element selection (determines elemental resistance)
+  qareenElement?: DamageType;
 
   // Golem customization (if race is Golem Desperto)
   golemChassis?: string;

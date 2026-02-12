@@ -70,10 +70,17 @@ const PowersDisplay: React.FC<{
       }),
     [classPowers, deityName]
   );
+  // Filtra habilidades de classe cujo nome já exista como poder de classe
+  // (ex: habilidade "Alquimista Iniciado" que auto-concede o poder de mesmo nome)
+  const classPowerNames = new Set(processedClassPowers.map((p) => p.name));
+  const filteredClassAbilities = classAbilities.filter(
+    (ability) => !classPowerNames.has(ability.name)
+  );
+
   const powers = [
     ...processedClassPowers,
     ...raceAbilities,
-    ...classAbilities,
+    ...filteredClassAbilities,
     ...originPowers,
     ...deityPowers,
     ...generalPowers,
@@ -90,7 +97,7 @@ const PowersDisplay: React.FC<{
   const uniquePowers = [
     ...filterUniqueByName(processedClassPowers),
     ...filterUniqueByName(raceAbilities),
-    ...filterUniqueByName(classAbilities),
+    ...filterUniqueByName(filteredClassAbilities),
     ...filterUniqueByName(originPowers),
     ...filterUniqueByName(deityPowers),
     ...filterUniqueByName(generalPowers),
@@ -106,7 +113,7 @@ const PowersDisplay: React.FC<{
     if (raceAbilities.includes(pw as RaceAbility)) {
       return `Habilidade de ${raceName}`;
     }
-    if (classAbilities.includes(pw as ClassAbility)) {
+    if (filteredClassAbilities.includes(pw as ClassAbility)) {
       return `Habilidade de ${className}`;
     }
     if (originPowers.includes(pw as OriginPower)) {

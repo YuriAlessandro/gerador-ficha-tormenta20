@@ -101,6 +101,25 @@ const PALADINO: ClassDescription = {
       name: 'Bênção da Justiça',
       text: 'No 5º nível, escolha entre égide sagrada e montaria sagrada (pág. 84). Uma vez feita, esta escolha não pode ser mudada.',
       nivel: 5,
+      sheetActions: [
+        {
+          source: { type: 'class', className: 'Paladino' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: 'bencaoDaJustica',
+            options: [
+              {
+                name: 'Égide Sagrada',
+                text: 'Você pode gastar uma ação de movimento e 2 PM para recobrir de energia seu escudo ou símbolo sagrado. Até o fim da cena, você e todos os aliados adjacentes recebem um bônus na Defesa igual ao seu Carisma. A partir do 11º nível, você pode gastar 5 PM para rolar novamente um teste de resistência contra uma magia recém lançada contra você. Se você passar no teste de resistência e a magia tiver você como único alvo, ela é revertida de volta ao conjurador (que se torna o novo alvo da magia; todas as demais características da magia, incluindo CD do teste de resistência, se mantêm).',
+              },
+              {
+                name: 'Montaria Sagrada',
+                text: 'Você pode gastar uma ação de movimento e 2 PM para invocar uma montaria sagrada.',
+              },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Vingador Sagrado',

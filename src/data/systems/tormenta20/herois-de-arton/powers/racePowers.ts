@@ -258,6 +258,18 @@ const racePowers: Record<string, GeneralPower> = {
       'O sangue extraplanar é mais forte em você. Seu bônus racial em Diplomacia e Intuição aumenta para +5 e você recebe redução de eletricidade e frio 5.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Aggelus' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Criança da Luz' },
+        target: { type: 'DamageReduction', damageType: 'Eletricidade' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Criança da Luz' },
+        target: { type: 'DamageReduction', damageType: 'Frio' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   CRIANCA_DAS_TREVAS: {
     name: 'Criança das Trevas',
@@ -265,6 +277,18 @@ const racePowers: Record<string, GeneralPower> = {
       'O sangue extraplanar é mais forte em você. Seu bônus racial em Enganação e Furtividade aumenta para +5 e você recebe redução de fogo e trevas 5.',
     type: GeneralPowerType.RACA,
     requirements: [[{ type: RequirementType.RACA, name: 'Sulfure' }]],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Criança das Trevas' },
+        target: { type: 'DamageReduction', damageType: 'Fogo' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+      {
+        source: { type: 'power', name: 'Criança das Trevas' },
+        target: { type: 'DamageReduction', damageType: 'Trevas' },
+        modifier: { type: 'Fixed', value: 5 },
+      },
+    ],
   },
   DEVOCAO_ILUMINADA: {
     name: 'Devoção Iluminada',

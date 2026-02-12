@@ -155,6 +155,13 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
           },
         },
       ],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Chassi de Gelo Eterno' },
+          target: { type: 'DamageReduction', damageType: 'Fogo' },
+          modifier: { type: 'Fixed', value: 10 },
+        },
+      ],
     },
     energyRestrictions: ['elemental-fogo', 'vapor'],
   },
@@ -175,6 +182,23 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
             type: 'addSense',
             sense: 'Redução de corte, fogo e perfuração 5',
           },
+        },
+      ],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Chassi de Pedra' },
+          target: { type: 'DamageReduction', damageType: 'Corte' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Chassi de Pedra' },
+          target: { type: 'DamageReduction', damageType: 'Fogo' },
+          modifier: { type: 'Fixed', value: 5 },
+        },
+        {
+          source: { type: 'power', name: 'Chassi de Pedra' },
+          target: { type: 'DamageReduction', damageType: 'Perfuração' },
+          modifier: { type: 'Fixed', value: 5 },
         },
       ],
     },

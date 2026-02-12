@@ -98,7 +98,8 @@ export type SheetActionStep =
         | 'moreauEspertezaVulpina'
         | 'golemDespertoSagrada'
         | 'fradeAutoridadeEclesiastica'
-        | 'meioElfoAmbicaoHerdada';
+        | 'meioElfoAmbicaoHerdada'
+        | 'qareenResistenciaElemental';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -130,6 +131,29 @@ export type SheetActionStep =
       type: 'getClassPower';
       minLevel?: number; // Minimum level of powers to choose from (default: 2)
       ignoreOnlyLevelRequirement?: boolean; // If true, ignores level requirement but respects other requirements (default: true)
+    }
+  | {
+      type: 'grantSpecificClassPower';
+      powerName: string; // Name of the specific class power to grant automatically
+    }
+  | {
+      type: 'addAlchemyItems';
+      budget: number; // Maximum total price of items
+      count: number; // Number of items to add
+    }
+  | {
+      type: 'chooseFromOptions';
+      optionKey: string; // Unique key for this choice group (e.g., 'escolaDeDuelo')
+      options: Array<{
+        name: string;
+        text: string;
+        sheetBonuses?: SheetBonus[];
+      }>;
+      linkedTo?: string; // If set, auto-select the option matching a previous choice stored under this key
+    }
+  | {
+      type: 'trainSkillOrBonus';
+      skills: Skill[]; // Skills to choose from (if > 1, pick one randomly)
     };
 
 export type SheetActionReceipt =
@@ -171,6 +195,17 @@ export type SheetActionReceipt =
       type: 'ClassAbilityLearned';
       className: string;
       abilityName: string;
+    }
+  | {
+      type: 'OptionChosen';
+      optionKey: string;
+      chosenName: string;
+      formattedText: string;
+    }
+  | {
+      type: 'SkillTrainedOrBonused';
+      skill: Skill;
+      alreadyTrained: boolean; // true = got +2 bonus, false = newly trained
     };
 
 export type SheetActionHistoryEntry = {
@@ -236,6 +271,10 @@ export type StatModifierTarget =
     }
   | {
       type: 'SpellDC';
+    }
+  | {
+      type: 'DamageReduction';
+      damageType: DamageType;
     };
 
 export type StatModifier =
@@ -265,6 +304,37 @@ export type SheetBonus = {
   target: StatModifierTarget;
   modifier: StatModifier;
 };
+
+export type DamageType =
+  | 'Geral'
+  | 'Ácido'
+  | 'Corte'
+  | 'Eletricidade'
+  | 'Essência'
+  | 'Fogo'
+  | 'Frio'
+  | 'Impacto'
+  | 'Luz'
+  | 'Perfuração'
+  | 'Psíquico'
+  | 'Trevas';
+
+export type DamageReduction = Partial<Record<DamageType, number>>;
+
+export const ALL_DAMAGE_TYPES: DamageType[] = [
+  'Geral',
+  'Ácido',
+  'Corte',
+  'Eletricidade',
+  'Essência',
+  'Fogo',
+  'Frio',
+  'Impacto',
+  'Luz',
+  'Perfuração',
+  'Psíquico',
+  'Trevas',
+];
 
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
@@ -313,6 +383,8 @@ export default interface CharacterSheet {
   duendeNature?: string; // For Duende (animal/vegetal/mineral)
   duendePresentes?: string[]; // For Duende (3 selected powers)
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
+  qareenElement?: DamageType; // For Qareen (chosen elemental resistance)
+  cavaleiroCaminho?: 'Bastião' | 'Montaria'; // For Cavaleiro (path choice at level 5)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
@@ -330,6 +402,8 @@ export default interface CharacterSheet {
   manualMaxPV?: number; // Manual override for maximum PV (replaces calculated value if set)
   pmIncrement?: number; // Increment value for PM +/- buttons (default: 1)
   pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
+  reducaoDeDano?: DamageReduction; // Redução de Dano total (calculado: auto + manual)
+  bonusRd?: DamageReduction; // Bônus manual de RD por tipo (adicionado ao calculado)
 }
 
 export interface Step {

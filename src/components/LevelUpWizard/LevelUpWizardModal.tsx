@@ -25,9 +25,6 @@ import {
 } from '@/functions/powers';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
-import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
-import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
-import { getDivineSpellsOfCircle } from '@/data/systems/tormenta20/magias/divine';
 import {
   getPowerSelectionRequirements,
   getFilteredAvailableOptions,
@@ -37,10 +34,11 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
+import LevelBenefitsStep from './steps/LevelBenefitsStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
-  initialSheet: CharacterSheet; // Level 1 sheet
+  initialSheet: CharacterSheet; // Sheet at current level (level-up starts at nivel+1)
   targetLevel: number; // Final level to reach
   supplements: SupplementId[]; // Active supplements for power filtering
   onConfirm: (levelUpSelections: LevelUpSelections[]) => void;
@@ -55,10 +53,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  // Current level being processed (starts at 2)
-  const [currentLevel, setCurrentLevel] = useState(2);
+  // Dynamic start level based on initial sheet
+  const startLevel = initialSheet.nivel + 1;
 
-  // All level up selections (array indexed by level - 2)
+  // Current level being processed (starts at initialSheet.nivel + 1)
+  const [currentLevel, setCurrentLevel] = useState(startLevel);
+
+  // All level up selections (array indexed by level - startLevel)
   const [allLevelSelections, setAllLevelSelections] = useState<
     LevelUpSelections[]
   >([]);
@@ -66,7 +67,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Current level selections
   const [currentLevelSelection, setCurrentLevelSelection] =
     useState<LevelUpSelections>({
-      level: 2,
+      level: startLevel,
       powerChoice: 'class',
     });
 
@@ -83,10 +84,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setCurrentLevel(2);
+      setCurrentLevel(startLevel);
       setAllLevelSelections([]);
       setCurrentLevelSelection({
-        level: 2,
+        level: startLevel,
         powerChoice: 'class',
       });
       setActiveStep(0);
@@ -99,6 +100,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   const getAvailablePowers = (): {
     classPowers: ClassPower[];
     generalPowers: GeneralPower[];
+    unavailableGeneralPowers: string[];
   } => {
     // Get class with merged supplement powers from registry
     const classWithSupplementPowers = dataRegistry.getClassByName(
@@ -129,21 +131,32 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         : getAllowedClassPowers(sheetForFiltering);
 
     // Use dataRegistry to get powers from all active supplements
+    // Only include the 5 general power types (exclude RACA)
     const allPowers = dataRegistry.getPowersBySupplements(supplements);
-    const allGeneralPowers = Object.values(allPowers).flat();
+    const allGeneralPowers = [
+      ...allPowers.COMBATE,
+      ...allPowers.CONCEDIDOS,
+      ...allPowers.DESTINO,
+      ...allPowers.MAGIA,
+      ...allPowers.TORMENTA,
+    ];
 
-    // Filter by requirements and already chosen powers
+    // Track which powers are unavailable (requirements not met)
     const existingGeneralPowers = simulatedSheet.generalPowers;
+    const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
         (existingPower) => existingPower.name === power.name
       );
 
-      if (isRepeatedPower) {
-        return power.allowSeveralPicks;
+      if (isRepeatedPower && !power.allowSeveralPicks) {
+        return true; // Keep in list; isPowerKnown handles disable in UI
       }
 
-      return isPowerAvailable(simulatedSheet, power);
+      if (!isPowerAvailable(simulatedSheet, power)) {
+        unavailableGeneralPowers.push(power.name);
+      }
+      return true; // Always include
     });
 
     // Sort powers alphabetically
@@ -157,6 +170,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     return {
       classPowers: sortedClassPowers,
       generalPowers: sortedGeneralPowers,
+      unavailableGeneralPowers,
     };
   };
 
@@ -180,24 +194,48 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
 
     const spellCircle = spellPath.spellCircleAvailableAtLevel(currentLevel);
 
-    // Get spells based on spell type
+    // Get spells based on spell type (using dataRegistry for supplement support)
     let allSpellsOfCircle: Spell[] = [];
     if (spellPath.spellType === 'Arcane') {
-      allSpellsOfCircle = getArcaneSpellsOfCircle(spellCircle);
+      allSpellsOfCircle = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
     } else if (spellPath.spellType === 'Divine') {
-      allSpellsOfCircle = getDivineSpellsOfCircle(spellCircle);
+      allSpellsOfCircle = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
     } else if (spellPath.spellType === 'Both') {
       // Combine arcane and divine spells, remove duplicates
-      const arcaneSpells = getArcaneSpellsOfCircle(spellCircle);
-      const divineSpells = getDivineSpellsOfCircle(spellCircle);
+      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
       const combined = [...arcaneSpells, ...divineSpells];
       allSpellsOfCircle = combined.filter(
         (spell, index, self) =>
           index === self.findIndex((s) => s.nome === spell.nome)
       );
     } else {
-      // Fallback to general spells
-      allSpellsOfCircle = getSpellsOfCircle(spellCircle);
+      // Fallback: combine arcane + divine from all supplements
+      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+        spellCircle,
+        supplements
+      );
+      const combined = [...arcaneSpells, ...divineSpells];
+      allSpellsOfCircle = combined.filter(
+        (spell, index, self) =>
+          index === self.findIndex((s) => s.nome === spell.nome)
+      );
     }
 
     // Filter out spells already known
@@ -255,6 +293,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
+    steps.push('Ganhos do Nível');
     steps.push('Escolha de Poder');
 
     if (needsPowerEffectSelections()) {
@@ -280,6 +319,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const stepName = steps[stepIndex];
 
     switch (stepName) {
+      case 'Ganhos do Nível':
+        return true;
+
       case 'Escolha de Poder':
         return (
           (currentLevelSelection.powerChoice === 'class' &&
@@ -396,8 +438,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const stepName = steps[stepIndex];
 
     switch (stepName) {
+      case 'Ganhos do Nível': {
+        return (
+          <LevelBenefitsStep
+            simulatedSheet={simulatedSheet}
+            currentLevel={currentLevel}
+          />
+        );
+      }
+
       case 'Escolha de Poder': {
-        const { classPowers, generalPowers } = getAvailablePowers();
+        const { classPowers, generalPowers, unavailableGeneralPowers } =
+          getAvailablePowers();
 
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
@@ -439,6 +491,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             className={simulatedSheet.classe.name}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
+            unavailableGeneralPowers={unavailableGeneralPowers}
           />
         );
       }
@@ -639,10 +692,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     if (activeStep > 0) {
       // Go back within this level
       setActiveStep((prev) => prev - 1);
-    } else if (currentLevel > 2) {
+    } else if (currentLevel > startLevel) {
       // Go back to previous level
       const previousLevel = currentLevel - 1;
-      const previousLevelSelection = allLevelSelections[previousLevel - 2];
+      const previousLevelSelection =
+        allLevelSelections[previousLevel - startLevel];
 
       setCurrentLevel(previousLevel);
       setCurrentLevelSelection(previousLevelSelection);
@@ -779,7 +833,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           <Box sx={{ flex: '1 1 auto' }} />
           <Button
             onClick={handleBack}
-            disabled={activeStep === 0 && currentLevel === 2}
+            disabled={activeStep === 0 && currentLevel === startLevel}
           >
             Voltar
           </Button>

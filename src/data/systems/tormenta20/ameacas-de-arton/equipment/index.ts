@@ -19,11 +19,9 @@ import {
 export const AMEACAS_ARTON_EQUIPMENT: SupplementEquipment = {
   weapons: AMEACAS_ARTON_WEAPONS,
   armors: AMEACAS_ARTON_ARMORS,
-  generalItems: [
-    ...AMEACAS_ARTON_ANIMALS,
-    ...AMEACAS_ARTON_ADVENTURER_EQUIPMENT,
-    ...AMEACAS_ARTON_ESOTERIC,
-  ],
+  generalItems: [...AMEACAS_ARTON_ADVENTURER_EQUIPMENT],
+  animals: AMEACAS_ARTON_ANIMALS,
+  esoteric: AMEACAS_ARTON_ESOTERIC,
   clothing: AMEACAS_ARTON_CLOTHING,
   alchemy: [
     ...AMEACAS_ARTON_ALCHEMY_PREPARED,

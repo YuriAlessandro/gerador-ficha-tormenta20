@@ -25,6 +25,7 @@ const defaultEquipments: BagEquipments = {
   Arma: [],
   Armadura: [],
   Escudo: [],
+  Esotérico: [],
   Hospedagem: [],
   Serviço: [],
   Vestuário: [],

@@ -52,6 +52,7 @@ const YIDISHAN: Race = {
       { attr: 'any', mod: 1 },
       { attr: Atributo.CARISMA, mod: -2 },
     ],
+    excludeFromAny: [Atributo.CARISMA],
   },
   faithProbability: {
     ARSENAL: 1,

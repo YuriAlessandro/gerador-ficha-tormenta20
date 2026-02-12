@@ -42,6 +42,7 @@ type SelectedOption = {
   label: string;
   supplementId?: SupplementId;
   supplementName?: string;
+  isVariant?: boolean;
 };
 
 interface RandomSheetFormProps {
@@ -58,6 +59,18 @@ interface RandomSheetFormProps {
 const formatOptionLabel = (option: SelectedOption) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
     <span>{option.label}</span>
+    {option.isVariant && (
+      <Chip
+        label='Variante'
+        size='small'
+        sx={{
+          height: '20px',
+          fontSize: '0.75rem',
+          backgroundColor: 'info.main',
+          color: 'info.contrastText',
+        }}
+      />
+    )}
     {option.supplementId &&
       option.supplementId !== SupplementId.TORMENTA20_CORE && (
         <Chip
@@ -155,16 +168,33 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
     []
   );
 
-  const classesopt = React.useMemo<SelectedOption[]>(
-    () =>
-      CLASSES.map((classe: ClassWithSupplement) => ({
+  const classesopt = React.useMemo<SelectedOption[]>(() => {
+    const baseClasses = CLASSES.filter((c) => !c.isVariant);
+    const variants = CLASSES.filter((c) => c.isVariant);
+    const options: SelectedOption[] = [];
+
+    baseClasses.forEach((classe: ClassWithSupplement) => {
+      options.push({
         value: classe.name,
         label: classe.name,
         supplementId: classe.supplementId,
         supplementName: classe.supplementName,
-      })),
-    [CLASSES]
-  );
+      });
+      variants
+        .filter((v) => v.baseClassName === classe.name)
+        .forEach((variant: ClassWithSupplement) => {
+          options.push({
+            value: variant.name,
+            label: `  ↳ ${variant.name}`,
+            supplementId: variant.supplementId,
+            supplementName: variant.supplementName,
+            isVariant: true,
+          });
+        });
+    });
+
+    return options;
+  }, [CLASSES]);
 
   const niveis = React.useMemo<{ value: string; label: string }[]>(() => {
     const result: { value: string; label: string }[] = [];
