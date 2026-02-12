@@ -34,6 +34,7 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
+import LevelBenefitsStep from './steps/LevelBenefitsStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -279,6 +280,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
+    steps.push('Ganhos do Nível');
     steps.push('Escolha de Poder');
 
     if (needsPowerEffectSelections()) {
@@ -304,6 +306,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const stepName = steps[stepIndex];
 
     switch (stepName) {
+      case 'Ganhos do Nível':
+        return true;
+
       case 'Escolha de Poder':
         return (
           (currentLevelSelection.powerChoice === 'class' &&
@@ -420,6 +425,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const stepName = steps[stepIndex];
 
     switch (stepName) {
+      case 'Ganhos do Nível': {
+        return (
+          <LevelBenefitsStep
+            simulatedSheet={simulatedSheet}
+            currentLevel={currentLevel}
+          />
+        );
+      }
+
       case 'Escolha de Poder': {
         const { classPowers, generalPowers } = getAvailablePowers();
 
