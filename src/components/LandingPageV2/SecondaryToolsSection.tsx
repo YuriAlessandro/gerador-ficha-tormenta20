@@ -19,7 +19,7 @@ const SecondaryToolsSection: React.FC<SecondaryToolsSectionProps> = ({
       title: 'Gerador de Ameaças',
       description: 'Crie e gerencie suas ameaças do jeito mais fácil',
       icon: <SecurityIcon sx={{ fontSize: 'inherit' }} />,
-      link: '/caverna-do-saber',
+      link: '/gerador-ameacas',
     },
     {
       title: 'Caverna do Saber',

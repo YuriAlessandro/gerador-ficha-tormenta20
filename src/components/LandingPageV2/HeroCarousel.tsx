@@ -15,9 +15,9 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { BlogService, BlogPost } from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
 import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
-import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
-import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
-import p16Image from '../../assets/images/arts/p16.png';
+// import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
+// import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
+// import p16Image from '../../assets/images/arts/p16.png';
 import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
@@ -37,12 +37,22 @@ export interface CarouselSlide {
   // Blog post support
   type?: 'default' | 'blog';
   blogPostSlug?: string; // If type is 'blog', fetch post data by slug
+  blogPostId?: string; // If type is 'blog', fetch post data by ID
 }
 
 // ===========================================
 // CONFIGURE SLIDES HERE - Easy to update
 // ===========================================
 export const carouselSlides: CarouselSlide[] = [
+  {
+    id: 'blog-destaque',
+    title: 'Carregando...',
+    subtitle: '',
+    type: 'blog',
+    blogPostId: '698e1e8d825c91f733046048',
+    category: 'Blog',
+    isNew: true,
+  },
   {
     id: 'gerador-ficha',
     title: 'Criar personagem',
@@ -58,14 +68,6 @@ export const carouselSlides: CarouselSlide[] = [
     category: 'Ferramentas',
   },
   {
-    id: 'fichas-de-nimb',
-    title: 'Fichas de Nimb',
-    subtitle: 'A melhor plataforma para Tormenta 20!',
-    image: heroImage,
-    bigText:
-      'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
-  },
-  {
     id: 'apoio',
     title: 'Apoie o Projeto!',
     subtitle:
@@ -75,37 +77,45 @@ export const carouselSlides: CarouselSlide[] = [
     ctaText: 'Apoiar',
     ctaLink: '/apoiar',
   },
-  {
-    id: 'gerador-ameacas',
-    title: 'Gerador de Ameaças',
-    subtitle:
-      'Crie e personalize ameaças para suas aventuras com nosso gerador completo. Ajuste atributos, poderes e habilidades!',
-    image: dungeonImage,
-    ctaText: 'Criar Ameaça',
-    ctaLink: '/gerador-ameacas',
-    category: 'Ferramentas',
-  },
-  {
-    id: 'mesas-virtuais',
-    title: 'Mesas Virtuais',
-    subtitle:
-      'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
-    image: tabletopImage,
-    ctaText: 'Ver Mesas',
-    ctaLink: '/mesas',
-    category: 'Comunidade',
-    requireAuth: true,
-  },
-  {
-    id: 'builds',
-    title: 'Planejador de Builds',
-    subtitle:
-      'Planeje a evolução do seu personagem nível a nível. Compartilhe builds com a comunidade!',
-    image: p16Image,
-    ctaText: 'Explorar Builds',
-    ctaLink: '/builds',
-    category: 'Comunidade',
-  },
+  // {
+  //   id: 'fichas-de-nimb',
+  //   title: 'Fichas de Nimb',
+  //   subtitle: 'A melhor plataforma para Tormenta 20!',
+  //   image: heroImage,
+  //   bigText:
+  //     'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
+  // },
+  // {
+  //   id: 'gerador-ameacas',
+  //   title: 'Gerador de Ameaças',
+  //   subtitle:
+  //     'Crie e personalize ameaças para suas aventuras com nosso gerador completo. Ajuste atributos, poderes e habilidades!',
+  //   image: dungeonImage,
+  //   ctaText: 'Criar Ameaça',
+  //   ctaLink: '/gerador-ameacas',
+  //   category: 'Ferramentas',
+  // },
+  // {
+  //   id: 'mesas-virtuais',
+  //   title: 'Mesas Virtuais',
+  //   subtitle:
+  //     'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
+  //   image: tabletopImage,
+  //   ctaText: 'Ver Mesas',
+  //   ctaLink: '/mesas',
+  //   category: 'Comunidade',
+  //   requireAuth: true,
+  // },
+  // {
+  //   id: 'builds',
+  //   title: 'Planejador de Builds',
+  //   subtitle:
+  //     'Planeje a evolução do seu personagem nível a nível. Compartilhe builds com a comunidade!',
+  //   image: p16Image,
+  //   ctaText: 'Explorar Builds',
+  //   ctaLink: '/builds',
+  //   category: 'Comunidade',
+  // },
 ];
 // ===========================================
 
@@ -131,22 +141,24 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
   // Fetch blog post data for blog-type slides
   useEffect(() => {
     const blogSlides = carouselSlides.filter(
-      (s) => s.type === 'blog' && s.blogPostSlug
+      (s) => s.type === 'blog' && (s.blogPostSlug || s.blogPostId)
     );
 
     if (blogSlides.length === 0) return;
 
-    const fetchPromises = blogSlides.map((slide) =>
-      BlogService.getPostBySlug(slide.blogPostSlug!)
-        .then((post) => ({ slug: slide.blogPostSlug!, post }))
-        .catch(() => null)
-    );
+    const fetchPromises = blogSlides.map((slide) => {
+      const key = slide.blogPostId || slide.blogPostSlug!;
+      const fetchFn = slide.blogPostId
+        ? BlogService.getPostById(slide.blogPostId)
+        : BlogService.getPostBySlug(slide.blogPostSlug!);
+      return fetchFn.then((post) => ({ key, post })).catch(() => null);
+    });
 
     Promise.all(fetchPromises).then((results) => {
       const postsMap: Record<string, BlogPost> = {};
       results.forEach((result) => {
         if (result) {
-          postsMap[result.slug] = result.post;
+          postsMap[result.key] = result.post;
         }
       });
       if (Object.keys(postsMap).length > 0) {
@@ -184,18 +196,21 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
   // If this is a blog slide and we have fetched the post data, use it
   const slide = React.useMemo(() => {
-    if (rawSlide.type === 'blog' && rawSlide.blogPostSlug) {
-      const blogPost = blogPosts[rawSlide.blogPostSlug];
-      if (blogPost) {
-        return {
-          ...rawSlide,
-          title: blogPost.title,
-          subtitle: blogPost.description,
-          category: `Por ${blogPost.authorName}`,
-          ctaText: 'Ler post',
-          ctaLink: `/blog/${blogPost.slug}`,
-          image: blogPost.coverImage || rawSlide.image,
-        };
+    if (rawSlide.type === 'blog') {
+      const key = rawSlide.blogPostId || rawSlide.blogPostSlug;
+      if (key) {
+        const blogPost = blogPosts[key];
+        if (blogPost) {
+          return {
+            ...rawSlide,
+            title: blogPost.title,
+            subtitle: blogPost.description,
+            category: `Por ${blogPost.authorName}`,
+            ctaText: 'Ler post',
+            ctaLink: `/blog/${blogPost.slug}`,
+            image: blogPost.coverImage || rawSlide.image,
+          };
+        }
       }
     }
     return rawSlide;
@@ -212,17 +227,24 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background Images with Crossfade effect */}
-      {carouselSlides.map((s, index) => (
-        <Box
-          key={s.id}
-          className='hero-background'
-          sx={{
-            backgroundImage: `url(${s.image || heroImage})`,
-            opacity: index === currentSlide ? 1 : 0,
-            transition: 'opacity 0.6s ease-in-out',
-          }}
-        />
-      ))}
+      {carouselSlides.map((s, index) => {
+        const blogKey = s.blogPostId || s.blogPostSlug;
+        const blogImage =
+          s.type === 'blog' && blogKey
+            ? blogPosts[blogKey]?.coverImage
+            : undefined;
+        return (
+          <Box
+            key={s.id}
+            className='hero-background'
+            sx={{
+              backgroundImage: `url(${blogImage || s.image || heroImage})`,
+              opacity: index === currentSlide ? 1 : 0,
+              transition: 'opacity 0.6s ease-in-out',
+            }}
+          />
+        );
+      })}
       <Box className='hero-overlay' />
 
       {/* Content */}
