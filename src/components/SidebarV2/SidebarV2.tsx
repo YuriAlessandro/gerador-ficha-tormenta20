@@ -45,7 +45,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 // import { useDice3D } from '../../contexts/Dice3DContext';
 
-const APP_VERSION = '4.1.1';
+const APP_VERSION = '4.1.2';
 
 interface SidebarV2Props {
   visible: boolean;
@@ -316,6 +316,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
             </StyledMenuItem>
             {isAuthenticated && (
               <>
+                <StyledMenuItem onClick={() => navigateTo('/mesas')}>
+                  <ListItemIcon>
+                    <AccountTreeIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Minhas Mesas</Typography>
+                </StyledMenuItem>
                 <StyledMenuItem onClick={() => navigateTo('/my-builds')}>
                   <ListItemIcon>
                     <AccountTreeIcon />
@@ -393,17 +399,11 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
             {/* COMUNIDADE */}
             <StyledSubheader>Comunidade</StyledSubheader>
-            <StyledMenuItem
-              onClick={() =>
-                openExternal(
-                  'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-                )
-              }
-            >
+            <StyledMenuItem onClick={() => navigateTo('/forum')}>
               <ListItemIcon>
                 <ForumIcon />
               </ListItemIcon>
-              <Typography variant='inherit'>Sugestões e Feedbacks</Typography>
+              <Typography variant='inherit'>Fórum</Typography>
             </StyledMenuItem>
             <StyledMenuItem
               onClick={() =>
@@ -474,25 +474,6 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 />
               </FormGroup>
             </StyledMenuItem>
-            {/* <StyledMenuItem>
-            <ListItemIcon>
-              <CasinoIcon />
-            </ListItemIcon>
-            <FormGroup>
-              <FormControlLabel
-                labelPlacement='end'
-                control={
-                  <Switch
-                    checked={settings.enabled}
-                    onChange={onToggle3DDice}
-                    color='default'
-                    value='3d-dice'
-                  />
-                }
-                label='Dados 3D'
-              />
-            </FormGroup>
-          </StyledMenuItem> */}
           </MenuList>
 
           {/* Footer spacing - extra space for iOS safe areas */}

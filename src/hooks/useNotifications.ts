@@ -123,10 +123,17 @@ export function useNotifications() {
 
   // Connect and fetch on authentication change
   useEffect(() => {
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+
     if (isAuthenticated) {
       connectSocket();
       dispatch(fetchNotifications({ page: 1, reset: true }));
       dispatch(fetchUnreadCount());
+
+      // Poll unread count every 60s as fallback for socket disconnects
+      pollInterval = setInterval(() => {
+        dispatch(fetchUnreadCount());
+      }, 60000);
     } else {
       disconnectSocket();
       dispatch(clearNotifications());
@@ -134,6 +141,9 @@ export function useNotifications() {
 
     return () => {
       disconnectSocket();
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, [isAuthenticated, connectSocket, disconnectSocket, dispatch]);
 

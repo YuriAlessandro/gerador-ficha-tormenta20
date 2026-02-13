@@ -22,6 +22,7 @@
     "@types/react-beautiful-dnd": "^13.1.4",
     "@types/react-dom": "^17.0.0",
     "@types/react-redux": "^7.1.25",
+    "@uiw/react-md-editor": "^4.0.11",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "firebase": "^12.3.0",

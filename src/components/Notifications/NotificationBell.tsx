@@ -21,10 +21,12 @@ const NotificationBell: React.FC = () => {
     hasMore,
     loadMore,
     markAllAsRead,
+    refresh,
   } = useNotifications();
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+    refresh();
   };
 
   const handleClose = () => {

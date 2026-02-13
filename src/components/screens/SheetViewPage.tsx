@@ -20,16 +20,22 @@ import HomeIcon from '@mui/icons-material/Home';
 import ShareIcon from '@mui/icons-material/Share';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ExtensionIcon from '@mui/icons-material/Extension';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import Result from '@/components/SheetResult/Result';
 import SheetsService from '@/services/sheets.service';
 import { SEO } from '@/components/SEO';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useSheets } from '@/hooks/useSheets';
+import { useSheetLimit } from '@/hooks/useSheetLimit';
+import { useSubscription } from '@/hooks/useSubscription';
+import SheetLimitDialog from '@/components/common/SheetLimitDialog';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
 import { ClassDescription } from '@/interfaces/Class';
 import { SupplementId } from '@/types/supplement.types';
+import { SubscriptionTier } from '@/types/subscription.types';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 
@@ -39,8 +45,11 @@ const SheetViewPage: React.FC = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { user, firebaseUser } = useAuth();
-  const { updateSheet } = useSheets();
+  const { user, firebaseUser, isAuthenticated } = useAuth();
+  const { openLoginModal } = useAuthContext();
+  const { updateSheet, createSheet } = useSheets();
+  const { canCreateCharacter, characterCount, maxSheets } = useSheetLimit();
+  const { tier } = useSubscription();
 
   const [sheet, setSheet] = useState<CharacterSheet | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +60,8 @@ const SheetViewPage: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);
   const [loadingFoundry, setLoadingFoundry] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [limitDialogOpen, setLimitDialogOpen] = useState(false);
 
   // Check if viewing from game table context (hide export options)
   const queryParams = new URLSearchParams(location.search);
@@ -248,6 +259,36 @@ const SheetViewPage: React.FC = () => {
     }, 300);
   };
 
+  const handleCopySheet = async () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    if (!canCreateCharacter) {
+      setLimitDialogOpen(true);
+      return;
+    }
+    if (!sheet || !id) return;
+
+    try {
+      setCopying(true);
+      const sourceData = await SheetsService.getSheetById(id);
+      await createSheet({
+        name: `${sourceData.name} (Cópia)`,
+        sheetData: sourceData.sheetData,
+        image: sourceData.image,
+        description: sourceData.description,
+      });
+      setSnackbarMessage('Ficha copiada com sucesso para sua conta!');
+      setSnackbarOpen(true);
+    } catch {
+      setSnackbarMessage('Erro ao copiar ficha.');
+      setSnackbarOpen(true);
+    } finally {
+      setCopying(false);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth='xl'>
@@ -391,6 +432,25 @@ const SheetViewPage: React.FC = () => {
                   >
                     {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
                   </Button>
+
+                  {!isOwner && (
+                    <Button
+                      variant='contained'
+                      onClick={handleCopySheet}
+                      fullWidth={isMobile}
+                      disabled={copying}
+                      sx={{ justifyContent: 'flex-start' }}
+                      startIcon={
+                        copying ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <ContentCopyIcon />
+                        )
+                      }
+                    >
+                      {copying ? 'Copiando...' : 'Copiar para minha conta'}
+                    </Button>
+                  )}
                 </Stack>
               </Card>
             )}
@@ -416,6 +476,14 @@ const SheetViewPage: React.FC = () => {
             autoHideDuration={3000}
             onClose={() => setSnackbarOpen(false)}
             message={snackbarMessage}
+          />
+
+          <SheetLimitDialog
+            open={limitDialogOpen}
+            onClose={() => setLimitDialogOpen(false)}
+            currentCount={characterCount}
+            maxCount={maxSheets}
+            tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
           />
         </Container>
       </Box>

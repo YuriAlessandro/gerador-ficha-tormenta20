@@ -157,7 +157,7 @@ const GameSessionsSection: React.FC<GameSessionsSectionProps> = ({
                 </Typography>
               )}
             </Box>
-            <Stack direction='row' spacing={1}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Button
                 variant='contained'
                 color='success'
