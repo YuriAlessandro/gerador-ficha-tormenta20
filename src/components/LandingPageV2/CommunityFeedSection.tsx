@@ -28,6 +28,10 @@ import ForumService from '../../premium/services/forum.service';
 import { BlogPost } from '../../premium/interfaces/blog.types';
 import { ForumThread } from '../../premium/interfaces/forum.types';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  SupportLevel,
+  getSupporterGlowColor,
+} from '../../types/subscription.types';
 
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
@@ -51,6 +55,7 @@ interface BaseFeedItem {
   title: string;
   date: string;
   link: string;
+  supportLevel?: SupportLevel;
 }
 
 interface BlogFeedItem extends BaseFeedItem {
@@ -130,6 +135,7 @@ const mapBuildToFeed = (build: BuildData): BuildFeedItem => ({
     build.ratings && build.ratings.count > 0
       ? { average: build.ratings.average, count: build.ratings.count }
       : undefined,
+  supportLevel: build.ownerSupportLevel,
 });
 
 const mapForumToFeed = (thread: ForumThread): ForumFeedItem => ({
@@ -143,6 +149,7 @@ const mapForumToFeed = (thread: ForumThread): ForumFeedItem => ({
   commentCount: thread.commentCount,
   categoryName: thread.category?.name,
   categoryColor: thread.category?.color,
+  supportLevel: thread.authorSupportLevel,
 });
 
 interface CommunityFeedSectionProps {
@@ -193,11 +200,27 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
           items.push(...forumResult.value.data.slice(0, 3).map(mapForumToFeed));
         }
 
-        items.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        // Separate supporter items (builds + forum only) from regular items
+        const byDateDesc = (a: FeedItem, b: FeedItem) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime();
+
+        const isSupporter = (item: FeedItem) =>
+          item.supportLevel && item.supportLevel !== SupportLevel.FREE;
+
+        const supporterItems = items
+          .filter(isSupporter)
+          .sort(byDateDesc)
+          .slice(0, 3);
+
+        const supporterIdSet = new Set(
+          supporterItems.map((i) => `${i.type}-${i.id}`)
         );
 
-        setFeedItems(items.slice(0, 9));
+        const regularItems = items
+          .filter((i) => !supporterIdSet.has(`${i.type}-${i.id}`))
+          .sort(byDateDesc);
+
+        setFeedItems([...supporterItems, ...regularItems].slice(0, 9));
       } catch {
         // Silently fail
       } finally {
@@ -464,78 +487,143 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
       </Menu>
 
       <Stack spacing={1.5}>
-        {feedItems.map((item, index) => (
-          <Box
-            key={`${item.type}-${item.id}`}
-            onClick={() => onClickButton(item.link)}
-            sx={{
-              animation: `scaleIn 0.4s ease-out ${0.1 * (index + 1)}s both`,
-              background: isDark
-                ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
-                : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-              color: isDark ? '#ffffff' : 'inherit',
-              borderRadius: 2,
-              p: 1.5,
-              cursor: 'pointer',
-              border: `1px solid ${
-                isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-              }`,
-              borderLeft: `4px solid ${TYPE_COLORS[item.type]}`,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                transform: 'translateX(4px)',
-                borderColor: theme.palette.primary.main,
-                borderLeftColor: TYPE_COLORS[item.type],
-              },
-            }}
-          >
-            {/* Header: Title + Type chip */}
+        {feedItems.map((item, index) => {
+          const shadowColor = getSupporterGlowColor(item.supportLevel);
+          return (
             <Box
+              key={`${item.type}-${item.id}`}
+              onClick={() => onClickButton(item.link)}
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 1,
-                mb: 0.5,
+                animation: `scaleIn 0.4s ease-out ${0.1 * (index + 1)}s both`,
+                background: isDark
+                  ? 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)'
+                  : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                color: isDark ? '#ffffff' : 'inherit',
+                borderRadius: 2,
+                p: 1.5,
+                cursor: 'pointer',
+                border: `1px solid ${
+                  isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                }`,
+                borderLeft: `4px solid ${TYPE_COLORS[item.type]}`,
+                borderBottom: shadowColor ? `3px solid ${shadowColor}` : 'none',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  transform: 'translateX(4px)',
+                  borderColor: theme.palette.primary.main,
+                  borderLeftColor: TYPE_COLORS[item.type],
+                },
               }}
             >
-              <Typography
-                variant='subtitle2'
+              {/* Header: Title + Type chip */}
+              <Box
                 sx={{
-                  fontWeight: 600,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  lineHeight: 1.3,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 1,
+                  mb: 0.5,
                 }}
               >
-                {item.title}
-              </Typography>
-              <Chip
-                icon={renderTypeIcon(item.type)}
-                label={TYPE_LABELS[item.type]}
-                size='small'
-                sx={{
-                  fontSize: '0.55rem',
-                  height: 18,
-                  flexShrink: 0,
-                  backgroundColor: `${TYPE_COLORS[item.type]}20`,
-                  color: TYPE_COLORS[item.type],
-                  borderColor: TYPE_COLORS[item.type],
-                  '& .MuiChip-icon': {
+                <Typography
+                  variant='subtitle2'
+                  sx={{
+                    fontWeight: 600,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.title}
+                </Typography>
+                <Chip
+                  icon={renderTypeIcon(item.type)}
+                  label={TYPE_LABELS[item.type]}
+                  size='small'
+                  sx={{
+                    fontSize: '0.55rem',
+                    height: 18,
+                    flexShrink: 0,
+                    backgroundColor: `${TYPE_COLORS[item.type]}20`,
                     color: TYPE_COLORS[item.type],
-                    marginLeft: '4px',
-                  },
-                }}
-                variant='outlined'
-              />
-            </Box>
+                    borderColor: TYPE_COLORS[item.type],
+                    '& .MuiChip-icon': {
+                      color: TYPE_COLORS[item.type],
+                      marginLeft: '4px',
+                    },
+                  }}
+                  variant='outlined'
+                />
+              </Box>
 
-            {/* Type-specific content */}
-            {renderItemContent(item)}
-          </Box>
-        ))}
+              {/* Type-specific content */}
+              {renderItemContent(item)}
+            </Box>
+          );
+        })}
+      </Stack>
+
+      {/* Links to full listing pages */}
+      <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
+        <Button
+          size='small'
+          fullWidth
+          startIcon={<ForumIcon sx={{ fontSize: 14 }} />}
+          onClick={() => onClickButton('/forum')}
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.7rem',
+            borderColor: TYPE_COLORS.forum,
+            color: TYPE_COLORS.forum,
+            '&:hover': {
+              borderColor: TYPE_COLORS.forum,
+              backgroundColor: `${TYPE_COLORS.forum}15`,
+            },
+          }}
+          variant='outlined'
+        >
+          Fórum
+        </Button>
+        <Button
+          size='small'
+          fullWidth
+          startIcon={<ArticleIcon sx={{ fontSize: 14 }} />}
+          onClick={() => onClickButton('/blog')}
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.7rem',
+            borderColor: TYPE_COLORS.blog,
+            color: TYPE_COLORS.blog,
+            '&:hover': {
+              borderColor: TYPE_COLORS.blog,
+              backgroundColor: `${TYPE_COLORS.blog}15`,
+            },
+          }}
+          variant='outlined'
+        >
+          Blog
+        </Button>
+        <Button
+          size='small'
+          fullWidth
+          startIcon={<ConstructionIcon sx={{ fontSize: 14 }} />}
+          onClick={() => onClickButton('/builds')}
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.7rem',
+            borderColor: TYPE_COLORS.build,
+            color: TYPE_COLORS.build,
+            '&:hover': {
+              borderColor: TYPE_COLORS.build,
+              backgroundColor: `${TYPE_COLORS.build}15`,
+            },
+          }}
+          variant='outlined'
+        >
+          Builds
+        </Button>
       </Stack>
     </Box>
   );

@@ -309,3 +309,12 @@ export function getMaxPlayersPerTable(level: SupportLevel): number | null {
   const limits = getSupportLimits(level);
   return limits.maxPlayersPerTable === -1 ? null : limits.maxPlayersPerTable;
 }
+
+/**
+ * Get the glow/shadow color for a supporter's badge
+ * Returns null for free users
+ */
+export function getSupporterGlowColor(level?: SupportLevel): string | null {
+  if (!level || level === SupportLevel.FREE) return null;
+  return SUPPORT_LEVEL_CONFIG[level].badgeColor;
+}
