@@ -25,6 +25,7 @@ export interface DbUser {
   accentColor?: AccentColorId;
   darkMode?: boolean;
   termsAcceptedVersion?: number;
+  isModerator?: boolean;
 }
 
 export interface AuthState {
