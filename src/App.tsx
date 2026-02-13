@@ -74,6 +74,7 @@ import {
   ForumPage,
   ThreadPage,
   CreateThreadPage,
+  EditThreadPage,
   AdminPage,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
@@ -410,6 +411,14 @@ function ThemedApp(): JSX.Element {
                                     redirectTo='/forum'
                                   >
                                     <CreateThreadPage />
+                                  </ProtectedRoute>
+                                </Route>
+                                <Route path='/forum/:slug/editar'>
+                                  <ProtectedRoute
+                                    requireAuth
+                                    redirectTo='/forum'
+                                  >
+                                    <EditThreadPage />
                                   </ProtectedRoute>
                                 </Route>
                                 <Route path='/forum/:slug'>
