@@ -8,6 +8,8 @@ export enum NotificationType {
   INVITE_DECLINED = 'invite_declined',
   BUILD_COMMENT = 'build_comment',
   BLOG_COMMENT = 'blog_comment',
+  FORUM_COMMENT = 'forum_comment',
+  FORUM_REPLY = 'forum_reply',
   SUBSCRIPTION_NEW = 'subscription_new',
   PAYMENT_CONFIRMED = 'payment_confirmed',
   PAYMENT_FAILED = 'payment_failed',
@@ -18,7 +20,8 @@ export type NotificationReferenceType =
   | 'build'
   | 'blog_post'
   | 'game_table'
-  | 'subscription';
+  | 'subscription'
+  | 'forum_thread';
 
 export interface Notification {
   _id: string;

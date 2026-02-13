@@ -18,6 +18,7 @@ import {
   Cancel as CancelIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
+  Forum as ForumIcon,
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -42,6 +43,9 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
     case NotificationType.BUILD_COMMENT:
     case NotificationType.BLOG_COMMENT:
       return <CommentIcon />;
+    case NotificationType.FORUM_COMMENT:
+    case NotificationType.FORUM_REPLY:
+      return <ForumIcon />;
     case NotificationType.SUBSCRIPTION_NEW:
     case NotificationType.PAYMENT_CONFIRMED:
       return <CheckCircleIcon color='success' />;
@@ -70,10 +74,16 @@ const getNotificationLink = (notification: Notification): string | null => {
       }
       return '/builds';
     case NotificationType.BLOG_COMMENT:
-      if (notification.metadata?.slug) {
-        return `/blog/${notification.metadata.slug}`;
+      if (notification.metadata?.postSlug) {
+        return `/blog/${notification.metadata.postSlug as string}`;
       }
       return '/blog';
+    case NotificationType.FORUM_COMMENT:
+    case NotificationType.FORUM_REPLY:
+      if (notification.metadata?.threadSlug) {
+        return `/forum/${notification.metadata.threadSlug as string}`;
+      }
+      return '/forum';
     case NotificationType.SUBSCRIPTION_NEW:
     case NotificationType.PAYMENT_CONFIRMED:
     case NotificationType.PAYMENT_FAILED:

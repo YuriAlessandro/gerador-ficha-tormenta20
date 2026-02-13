@@ -316,6 +316,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
             </StyledMenuItem>
             {isAuthenticated && (
               <>
+                <StyledMenuItem onClick={() => navigateTo('/mesas')}>
+                  <ListItemIcon>
+                    <AccountTreeIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Minhas Mesas</Typography>
+                </StyledMenuItem>
                 <StyledMenuItem onClick={() => navigateTo('/my-builds')}>
                   <ListItemIcon>
                     <AccountTreeIcon />
@@ -468,25 +474,6 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 />
               </FormGroup>
             </StyledMenuItem>
-            {/* <StyledMenuItem>
-            <ListItemIcon>
-              <CasinoIcon />
-            </ListItemIcon>
-            <FormGroup>
-              <FormControlLabel
-                labelPlacement='end'
-                control={
-                  <Switch
-                    checked={settings.enabled}
-                    onChange={onToggle3DDice}
-                    color='default'
-                    value='3d-dice'
-                  />
-                }
-                label='Dados 3D'
-              />
-            </FormGroup>
-          </StyledMenuItem> */}
           </MenuList>
 
           {/* Footer spacing - extra space for iOS safe areas */}

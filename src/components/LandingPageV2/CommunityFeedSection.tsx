@@ -177,13 +177,13 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
 
         const [blogResult, buildsResult, forumResult] =
           await Promise.allSettled([
-            BlogService.getRecentPosts(3),
+            BlogService.getRecentPosts(5),
             BuildsService.getAllPublicBuilds(
               { sortBy: 'createdAt', sortOrder: 'desc' },
               1,
-              3
+              5
             ),
-            ForumService.getThreads({ page: 1, limit: 3, sortBy: 'newest' }),
+            ForumService.getThreads({ page: 1, limit: 5, sortBy: 'newest' }),
           ]);
 
         const items: FeedItem[] = [];
@@ -220,7 +220,7 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
           .filter((i) => !supporterIdSet.has(`${i.type}-${i.id}`))
           .sort(byDateDesc);
 
-        setFeedItems([...supporterItems, ...regularItems].slice(0, 9));
+        setFeedItems([...supporterItems, ...regularItems].slice(0, 15));
       } catch {
         // Silently fail
       } finally {
