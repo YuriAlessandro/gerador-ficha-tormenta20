@@ -393,17 +393,11 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
             {/* COMUNIDADE */}
             <StyledSubheader>Comunidade</StyledSubheader>
-            <StyledMenuItem
-              onClick={() =>
-                openExternal(
-                  'https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions'
-                )
-              }
-            >
+            <StyledMenuItem onClick={() => navigateTo('/forum')}>
               <ListItemIcon>
                 <ForumIcon />
               </ListItemIcon>
-              <Typography variant='inherit'>Sugestões e Feedbacks</Typography>
+              <Typography variant='inherit'>Fórum</Typography>
             </StyledMenuItem>
             <StyledMenuItem
               onClick={() =>

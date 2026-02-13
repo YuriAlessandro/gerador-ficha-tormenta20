@@ -11,8 +11,7 @@ import RecentSheetsSection from './RecentSheetsSection';
 import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
 import GameSessionsSection from './GameSessionsSection';
-import BuildsPreviewSection from './BuildsPreviewSection';
-import { BlogPreviewSection } from '../../premium';
+import CommunityFeedSection from './CommunityFeedSection';
 
 interface LandingPageV2Props {
   onClickButton: (link: string) => void;
@@ -133,9 +132,12 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 }`,
               }}
             >
-              {/* Blog Preview Section - Recent blog posts */}
+              {/* Community Feed - Blog + Build + Forum unified */}
               <Box className='landing-section'>
-                <BlogPreviewSection onClickButton={onClickButton} />
+                <CommunityFeedSection
+                  onClickButton={onClickButton}
+                  isAuthenticated={isAuthenticated}
+                />
               </Box>
               {/* Recent Sheets Section - Only for authenticated users */}
               <Box className='landing-section'>
@@ -143,10 +145,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                   onClickButton={onClickButton}
                   isAuthenticated={isAuthenticated}
                 />
-              </Box>
-              {/* Builds Preview Section - Public builds from all users */}
-              <Box className='landing-section'>
-                <BuildsPreviewSection onClickButton={onClickButton} />
               </Box>
             </Box>
           </Stack>
