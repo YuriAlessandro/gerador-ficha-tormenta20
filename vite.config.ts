@@ -111,7 +111,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
         // Don't precache index.html - always fetch fresh
         navigateFallback: null,
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit (increased for large bundle)
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MB limit (increased for large bundle)
         // Clean up old caches on activation - important to remove stale assets
         cleanupOutdatedCaches: true,
         // DO NOT use skipWaiting with 'prompt' registerType
