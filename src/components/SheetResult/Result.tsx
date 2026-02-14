@@ -216,6 +216,20 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  const handleToggleMemorized = useCallback(
+    (spell: Spell) => {
+      const updatedSpells = currentSheet.spells?.map((s) =>
+        s.nome === spell.nome ? { ...s, memorized: !s.memorized } : s
+      );
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
   const handlePowerRollsUpdate = useCallback(
     (
       power:
@@ -1082,6 +1096,10 @@ const Result: React.FC<ResultProps> = (props) => {
                   currentPM={currentSheet.currentPM ?? pm}
                   maxPM={pm}
                   onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
+                  isMago={classe.subname === 'Mago'}
+                  onToggleMemorized={
+                    onSheetUpdate ? handleToggleMemorized : undefined
+                  }
                 />
               </Box>
             </Card>
@@ -1234,8 +1252,8 @@ const Result: React.FC<ResultProps> = (props) => {
           <Alert severity='info' icon={<BugReportIcon />} sx={{ mb: 2 }}>
             Encontrou algum problema nessa ficha?{' '}
             <Link
-              href='https://github.com/YuriAlessandro/gerador-ficha-tormenta20/discussions/categories/problemas'
-              target='_blank'
+              href='https://fichasdenimb.com.br/forum'
+              target=''
               rel='noopener noreferrer'
               sx={{ fontWeight: 'bold' }}
             >

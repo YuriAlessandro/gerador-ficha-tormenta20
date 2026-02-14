@@ -9,6 +9,8 @@ import {
   useTheme,
   IconButton,
   Stack,
+  Checkbox,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CasinoIcon from '@mui/icons-material/Casino';
@@ -24,11 +26,21 @@ interface SpellProps {
   currentPM?: number;
   maxPM?: number;
   onSpellCast?: (pmSpent: number) => void;
+  isMago?: boolean;
+  onToggleMemorized?: (spell: Spell) => void;
 }
 
 const SpellRow: React.FC<SpellProps> = React.memo((props) => {
-  const { spell, onUpdateRolls, characterName, currentPM, maxPM, onSpellCast } =
-    props;
+  const {
+    spell,
+    onUpdateRolls,
+    characterName,
+    currentPM,
+    maxPM,
+    onSpellCast,
+    isMago,
+    onToggleMemorized,
+  } = props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [castDialogOpen, setCastDialogOpen] = useState(false);
@@ -73,6 +85,17 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         <Grid container spacing={2} sx={{ width: '100%' }}>
           <Grid size={isMobile ? 12 : 2.5}>
             <Stack direction='row' alignItems='center' spacing={0.5}>
+              {isMago && onToggleMemorized && (
+                <Tooltip title='Memorizar magia' arrow>
+                  <Checkbox
+                    size='small'
+                    checked={spell.memorized ?? false}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => onToggleMemorized(spell)}
+                    sx={{ p: 0, flexShrink: 0 }}
+                  />
+                </Tooltip>
+              )}
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
                 <IconButton
                   size='small'

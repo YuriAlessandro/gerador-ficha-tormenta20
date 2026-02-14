@@ -1,6 +1,6 @@
 import React from 'react';
 import '../assets/css/result.css';
-import { Box, Grid, Typography } from '@mui/material';
+import { Box, Chip, Grid, Typography } from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
@@ -17,6 +17,8 @@ interface SpellsProp {
   currentPM?: number;
   maxPM?: number;
   onSpellCast?: (pmSpent: number) => void;
+  isMago?: boolean;
+  onToggleMemorized?: (spell: Spell) => void;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
@@ -30,6 +32,8 @@ const Spells: React.FC<SpellsProp> = (props) => {
     currentPM,
     maxPM,
     onSpellCast,
+    isMago,
+    onToggleMemorized,
   } = props;
 
   spells.sort((spell1, spell2) => {
@@ -60,6 +64,23 @@ const Spells: React.FC<SpellsProp> = (props) => {
             </span>
           </span>
         </div>
+      )}
+      {isMago && spells.length > 0 && (
+        <Box sx={{ mb: 1 }}>
+          <Chip
+            label={`Magias memorizadas: ${
+              spells.filter((s) => s.memorized).length
+            } / ${Math.ceil(spells.length / 2)}`}
+            color={
+              spells.filter((s) => s.memorized).length >
+              Math.ceil(spells.length / 2)
+                ? 'error'
+                : 'primary'
+            }
+            size='small'
+            variant='outlined'
+          />
+        </Box>
       )}
       {spells.length === 0 ? (
         <span>Não Possui</span>
@@ -122,6 +143,8 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   currentPM={currentPM}
                   maxPM={maxPM}
                   onSpellCast={onSpellCast}
+                  isMago={isMago}
+                  onToggleMemorized={onToggleMemorized}
                 />
               ))}
           </Box>
