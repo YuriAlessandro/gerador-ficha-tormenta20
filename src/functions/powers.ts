@@ -61,7 +61,7 @@ export function isPowerAvailable(
             if (foundInPowers) return true;
 
             // Verifica opções escolhidas via chooseFromOptions (ex: Égide/Montaria Sagrada)
-            return sheet.sheetActionHistory.some((entry) =>
+            return (sheet.sheetActionHistory ?? []).some((entry) =>
               entry.changes.some(
                 (change) =>
                   change.type === 'OptionChosen' &&

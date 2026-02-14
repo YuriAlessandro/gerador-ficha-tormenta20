@@ -90,6 +90,7 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       },
       raca: race,
       spells: [],
+      sheetActionHistory: [],
     } as unknown as CharacterSheet;
   }, [baseAttributes, race, raceAttributes, usedSkills, classe]);
 
