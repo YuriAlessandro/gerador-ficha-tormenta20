@@ -33,6 +33,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CheckIcon from '@mui/icons-material/Check';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, {
@@ -455,6 +456,47 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     return (item.preco || 0) <= dinheiro;
   };
 
+  const [recentlyAdded, setRecentlyAdded] = useState<Set<string>>(new Set());
+
+  const markRecentAction = (item: Equipment | DefenseEquipment) => {
+    const key = `${item.nome}-${item.group}`;
+    setRecentlyAdded((prev) => new Set(prev).add(key));
+    setTimeout(() => {
+      setRecentlyAdded((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }, 1500);
+  };
+
+  const renderAddButton = (
+    item: Equipment | DefenseEquipment,
+    onClick: () => void
+  ) => {
+    const key = `${item.nome}-${item.group}`;
+    const wasAdded = recentlyAdded.has(key);
+
+    if (wasAdded) {
+      return (
+        <IconButton size='small' color='success' disabled>
+          <CheckIcon />
+        </IconButton>
+      );
+    }
+
+    return (
+      <IconButton
+        size='small'
+        color='primary'
+        onClick={onClick}
+        disabled={!canAfford(item)}
+      >
+        <AddCircleOutlineIcon />
+      </IconButton>
+    );
+  };
+
   useEffect(() => {
     if (sheet.bag && open) {
       const bagEquipments = sheet.bag.getEquipments();
@@ -625,6 +667,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(weapon);
   };
 
   const handleRemoveWeapon = (index: number) => {
@@ -1028,6 +1071,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveGeneralItem = (item: Equipment) => {
@@ -1054,6 +1098,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveEsoteric = (item: Equipment) => {
@@ -1080,6 +1125,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveClothing = (item: Equipment) => {
@@ -1106,6 +1152,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveAlchemy = (item: Equipment) => {
@@ -1132,6 +1179,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveFood = (item: Equipment) => {
@@ -1158,6 +1206,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
     }
+    markRecentAction(item);
   };
 
   const handleRemoveAnimals = (item: Equipment) => {
@@ -2389,14 +2438,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             gap: 1,
                           }}
                         >
-                          <IconButton
-                            size='small'
-                            color='primary'
-                            onClick={() => handleWeaponToggle(weapon)}
-                            disabled={!canAfford(weapon)}
-                          >
-                            <AddCircleOutlineIcon />
-                          </IconButton>
+                          {renderAddButton(weapon, () =>
+                            handleWeaponToggle(weapon)
+                          )}
                           <Typography variant='body2' sx={{ flex: 1 }}>
                             {weapon.nome} (Dano: {weapon.dano}
                             {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2413,14 +2457,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleWeaponToggle(weapon)}
-                          disabled={!canAfford(weapon)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(weapon, () =>
+                          handleWeaponToggle(weapon)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {weapon.nome} (Dano: {weapon.dano}
                           {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2462,14 +2501,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             gap: 1,
                           }}
                         >
-                          <IconButton
-                            size='small'
-                            color='primary'
-                            onClick={() => handleWeaponToggle(weapon)}
-                            disabled={!canAfford(weapon)}
-                          >
-                            <AddCircleOutlineIcon />
-                          </IconButton>
+                          {renderAddButton(weapon, () =>
+                            handleWeaponToggle(weapon)
+                          )}
                           <Typography variant='body2' sx={{ flex: 1 }}>
                             {weapon.nome} (Dano: {weapon.dano}
                             {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2486,14 +2520,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleWeaponToggle(weapon)}
-                          disabled={!canAfford(weapon)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(weapon, () =>
+                          handleWeaponToggle(weapon)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {weapon.nome} (Dano: {weapon.dano}
                           {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2535,14 +2564,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             gap: 1,
                           }}
                         >
-                          <IconButton
-                            size='small'
-                            color='primary'
-                            onClick={() => handleWeaponToggle(weapon)}
-                            disabled={!canAfford(weapon)}
-                          >
-                            <AddCircleOutlineIcon />
-                          </IconButton>
+                          {renderAddButton(weapon, () =>
+                            handleWeaponToggle(weapon)
+                          )}
                           <Typography variant='body2' sx={{ flex: 1 }}>
                             {weapon.nome} (Dano: {weapon.dano}
                             {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2559,14 +2583,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleWeaponToggle(weapon)}
-                          disabled={!canAfford(weapon)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(weapon, () =>
+                          handleWeaponToggle(weapon)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {weapon.nome} (Dano: {weapon.dano}
                           {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2608,14 +2627,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             gap: 1,
                           }}
                         >
-                          <IconButton
-                            size='small'
-                            color='primary'
-                            onClick={() => handleWeaponToggle(weapon)}
-                            disabled={!canAfford(weapon)}
-                          >
-                            <AddCircleOutlineIcon />
-                          </IconButton>
+                          {renderAddButton(weapon, () =>
+                            handleWeaponToggle(weapon)
+                          )}
                           <Typography variant='body2' sx={{ flex: 1 }}>
                             {weapon.nome} (Dano: {weapon.dano}
                             {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2632,14 +2646,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleWeaponToggle(weapon)}
-                          disabled={!canAfford(weapon)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(weapon, () =>
+                          handleWeaponToggle(weapon)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {weapon.nome} (Dano: {weapon.dano}
                           {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
@@ -2984,14 +2993,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddGeneralItem(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () =>
+                          handleAddGeneralItem(item)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3007,14 +3011,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddGeneralItem(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () =>
+                          handleAddGeneralItem(item)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3053,14 +3052,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddGeneralItem(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () =>
+                          handleAddGeneralItem(item)
+                        )}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3099,14 +3093,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddEsoteric(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddEsoteric(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3122,14 +3109,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddEsoteric(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddEsoteric(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3181,14 +3161,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddClothing(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddClothing(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3204,14 +3177,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddClothing(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddClothing(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3273,14 +3239,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3296,14 +3255,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3343,14 +3295,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3366,14 +3311,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3413,14 +3351,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3436,14 +3367,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAlchemy(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAlchemy(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3495,14 +3419,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddFood(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddFood(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3518,14 +3435,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddFood(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddFood(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3577,14 +3487,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAnimals(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAnimals(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>
@@ -3600,14 +3503,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           gap: 1,
                         }}
                       >
-                        <IconButton
-                          size='small'
-                          color='primary'
-                          onClick={() => handleAddAnimals(item)}
-                          disabled={!canAfford(item)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
+                        {renderAddButton(item, () => handleAddAnimals(item))}
                         <Typography variant='body2' sx={{ flex: 1 }}>
                           {item.nome} (T$ {item.preco || 0})
                         </Typography>

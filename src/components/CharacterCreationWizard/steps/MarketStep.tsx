@@ -22,6 +22,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckIcon from '@mui/icons-material/Check';
 import SearchIcon from '@mui/icons-material/Search';
 import Equipment, {
   BagEquipments,
@@ -99,6 +100,8 @@ const MarketStep: React.FC<MarketStepProps> = ({
   const [expandedCategory, setExpandedCategory] = useState<string | false>(
     false
   );
+  const [recentlyBought, setRecentlyBought] = useState<Set<string>>(new Set());
+  const [recentlyAdded, setRecentlyAdded] = useState<Set<string>>(new Set());
 
   // Calculate remaining money
   const remainingMoney = currentMoney;
@@ -174,6 +177,24 @@ const MarketStep: React.FC<MarketStepProps> = ({
     }
   };
 
+  const getItemKey = (item: Equipment | DefenseEquipment): string =>
+    `${item.nome}-${item.group}`;
+
+  const markRecentAction = (
+    item: Equipment | DefenseEquipment,
+    setter: React.Dispatch<React.SetStateAction<Set<string>>>
+  ) => {
+    const key = getItemKey(item);
+    setter((prev) => new Set(prev).add(key));
+    setTimeout(() => {
+      setter((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }, 1500);
+  };
+
   // Handle buying an item
   const handleBuyItem = (item: Equipment | DefenseEquipment) => {
     const price = item.preco || 0;
@@ -188,6 +209,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
       remainingMoney: newMoney,
       bagEquipments: newBag,
     });
+    markRecentAction(item, setRecentlyBought);
   };
 
   // Handle adding item for free
@@ -199,6 +221,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
       remainingMoney,
       bagEquipments: newBag,
     });
+    markRecentAction(item, setRecentlyAdded);
   };
 
   // Handle removing item from bag
@@ -238,6 +261,9 @@ const MarketStep: React.FC<MarketStepProps> = ({
   ) => {
     const price = item.preco || 0;
     const canBuy = price <= remainingMoney;
+    const itemKey = getItemKey(item);
+    const wasBought = recentlyBought.has(itemKey);
+    const wasAdded = recentlyAdded.has(itemKey);
 
     return (
       <Box
@@ -328,37 +354,55 @@ const MarketStep: React.FC<MarketStepProps> = ({
             <>
               <Tooltip title={canBuy ? '' : 'Dinheiro insuficiente'}>
                 <span>
-                  <Button
-                    size='small'
-                    variant='outlined'
-                    startIcon={<AttachMoneyIcon />}
-                    onClick={() => handleBuyItem(item)}
-                    disabled={!canBuy || price === 0}
-                    sx={{
-                      color: '#DAA520',
-                      borderColor: '#DAA520',
-                      '&:hover': {
-                        borderColor: '#B8860B',
-                        backgroundColor: 'rgba(218, 165, 32, 0.08)',
-                      },
-                      '&.Mui-disabled': {
-                        color: 'rgba(218, 165, 32, 0.4)',
-                        borderColor: 'rgba(218, 165, 32, 0.4)',
-                      },
-                    }}
-                  >
-                    Comprar
-                  </Button>
+                  {wasBought ? (
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      startIcon={<CheckIcon />}
+                      disabled
+                      color='success'
+                    >
+                      Comprado!
+                    </Button>
+                  ) : (
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      startIcon={<AttachMoneyIcon />}
+                      onClick={() => handleBuyItem(item)}
+                      disabled={!canBuy || price === 0}
+                      sx={{
+                        color: '#DAA520',
+                        borderColor: '#DAA520',
+                        '&:hover': {
+                          borderColor: '#B8860B',
+                          backgroundColor: 'rgba(218, 165, 32, 0.08)',
+                        },
+                        '&.Mui-disabled': {
+                          color: 'rgba(218, 165, 32, 0.4)',
+                          borderColor: 'rgba(218, 165, 32, 0.4)',
+                        },
+                      }}
+                    >
+                      Comprar
+                    </Button>
+                  )}
                 </span>
               </Tooltip>
               <Tooltip title='Adicionar de graça'>
-                <IconButton
-                  size='small'
-                  color='success'
-                  onClick={() => handleAddFree(item)}
-                >
-                  <AddIcon fontSize='small' />
-                </IconButton>
+                {wasAdded ? (
+                  <IconButton size='small' color='success' disabled>
+                    <CheckIcon fontSize='small' />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    size='small'
+                    color='success'
+                    onClick={() => handleAddFree(item)}
+                  >
+                    <AddIcon fontSize='small' />
+                  </IconButton>
+                )}
               </Tooltip>
             </>
           )}
