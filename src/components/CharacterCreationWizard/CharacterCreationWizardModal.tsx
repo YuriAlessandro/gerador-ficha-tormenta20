@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -83,6 +83,7 @@ const CharacterCreationWizardModal: React.FC<
   const [steps, setSteps] = useState<string[]>([]);
   const [stepsInitialized, setStepsInitialized] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const stepperScrollRef = useRef<HTMLDivElement>(null);
   const [selections, setSelections] = useState<WizardSelections>({
     // Initialize with default attribute modifiers (0 = average)
     baseAttributes: {
@@ -466,6 +467,20 @@ const CharacterCreationWizardModal: React.FC<
       setSteps(getSteps());
     }
   }, [race, classe, origin, deity]);
+
+  useEffect(() => {
+    if (stepperScrollRef.current) {
+      const activeEl =
+        stepperScrollRef.current.querySelector<HTMLElement>('.Mui-active');
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
+    }
+  }, [activeStep]);
 
   // Clear cached origin benefits when origin changes (so new random benefits are generated)
   useEffect(() => {
@@ -1308,6 +1323,7 @@ const CharacterCreationWizardModal: React.FC<
         <DialogContent>
           <Box sx={{ width: '100%', mt: 2 }}>
             <Box
+              ref={stepperScrollRef}
               sx={{
                 overflowX: 'auto',
                 pb: 1,
