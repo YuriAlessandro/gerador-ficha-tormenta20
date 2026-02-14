@@ -12,6 +12,7 @@ import HEROIS_ARTON_ORIGINS from './origins';
 import HEROIS_ARTON_CLASS_POWERS from './classPowers';
 import HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS from './golpePessoalEffects';
 import HEROIS_ARTON_VARIANT_CLASSES from './variantClasses';
+import { HEROIS_ARTON_SPELLS } from './spells';
 
 export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
   id: SupplementId.TORMENTA20_HEROIS_ARTON,
@@ -31,4 +32,5 @@ export const TORMENTA20_HEROIS_ARTON_SUPPLEMENT: SupplementData = {
   classPowers: HEROIS_ARTON_CLASS_POWERS,
   golpePessoalEffects: HEROIS_ARTON_GOLPE_PESSOAL_EFFECTS,
   variantClasses: HEROIS_ARTON_VARIANT_CLASSES,
+  spells: HEROIS_ARTON_SPELLS,
 };

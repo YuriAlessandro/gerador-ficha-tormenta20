@@ -324,6 +324,7 @@ const UnifiedSpellsTable: React.FC = () => {
       SupplementId.TORMENTA20_CORE,
       SupplementId.TORMENTA20_AMEACAS_ARTON,
       SupplementId.TORMENTA20_DEUSES_ARTON,
+      SupplementId.TORMENTA20_HEROIS_ARTON,
     ]
   );
 
@@ -573,6 +574,7 @@ const UnifiedSpellsTable: React.FC = () => {
             SupplementId.TORMENTA20_CORE,
             SupplementId.TORMENTA20_AMEACAS_ARTON,
             SupplementId.TORMENTA20_DEUSES_ARTON,
+            SupplementId.TORMENTA20_HEROIS_ARTON,
           ]}
           onToggleSupplement={(supplementId) => {
             setSelectedSupplements((prev) => {
