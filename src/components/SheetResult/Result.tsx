@@ -26,6 +26,7 @@ import {
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
+import { recalculateSheet } from '@/functions/recalculateSheet';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -347,6 +348,28 @@ const Result: React.FC<ResultProps> = (props) => {
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleKeyAttributeChange = useCallback(
+    (newAttr: Atributo) => {
+      if (!currentSheet.classe.spellPath) return;
+      const updatedSheet = {
+        ...currentSheet,
+        classe: {
+          ...currentSheet.classe,
+          spellPath: {
+            ...currentSheet.classe.spellPath,
+            keyAttribute: newAttr,
+          },
+        },
+      };
+      const recalculated = recalculateSheet(updatedSheet);
+      setCurrentSheet(recalculated);
+      if (onSheetUpdate) {
+        onSheetUpdate(recalculated);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -1099,6 +1122,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   isMago={classe.subname === 'Mago'}
                   onToggleMemorized={
                     onSheetUpdate ? handleToggleMemorized : undefined
+                  }
+                  onKeyAttributeChange={
+                    onSheetUpdate ? handleKeyAttributeChange : undefined
                   }
                 />
               </Box>

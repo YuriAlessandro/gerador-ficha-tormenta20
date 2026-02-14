@@ -365,21 +365,3 @@ export const DestinyPowers: Record<string, GeneralPower> = {
     ],
   },
 };
-
-const destinyPowers: GeneralPower[] = [
-  DestinyPowers.ACROBATICO,
-  DestinyPowers.AO_SABOR_DO_DESTINO,
-  DestinyPowers.APARENCIA_INOFENSIVA,
-  DestinyPowers.FOCO_EM_PERICIA,
-  DestinyPowers.INVESTIGADOR,
-  DestinyPowers.LOBO_SOLITARIO,
-  DestinyPowers.MEDICINA,
-  DestinyPowers.PARCEIRO,
-  DestinyPowers.SENTIDOS_AGUCADOS,
-  DestinyPowers.TORCIDA,
-  DestinyPowers.TREINAMENTO_EM_PERICIA,
-  DestinyPowers.VENEFICIO,
-  DestinyPowers.VONTADE_DE_FERRO,
-];
-
-export default destinyPowers;

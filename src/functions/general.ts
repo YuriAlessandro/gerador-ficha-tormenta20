@@ -4869,8 +4869,9 @@ export function restoreSpellPath(
 ): void {
   if (!sheet.classe.spellPath) return;
 
-  // Preserve original schools from serialized data
+  // Preserve original values from serialized data (may have been manually changed)
   const originalSchools = sheet.classe.spellPath.schools;
+  const originalKeyAttribute = sheet.classe.spellPath.keyAttribute;
 
   if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
     // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
@@ -4902,5 +4903,10 @@ export function restoreSpellPath(
   // Restore original schools (selected during creation, preserved in serialized data)
   if (originalSchools && sheet.classe.spellPath) {
     sheet.classe.spellPath.schools = originalSchools;
+  }
+
+  // Restore original keyAttribute (may have been manually changed by user)
+  if (originalKeyAttribute && sheet.classe.spellPath) {
+    sheet.classe.spellPath.keyAttribute = originalKeyAttribute;
   }
 }

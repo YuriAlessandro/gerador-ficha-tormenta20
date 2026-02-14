@@ -496,7 +496,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         bonus.modifier,
         level,
         attributes,
-        classData.spellPath?.keyAttribute
+        sheet.classe.spellPath?.keyAttribute
       );
       total += bonusValue;
     });
@@ -1375,7 +1375,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         b.modifier,
         editedData.nivel,
         editedData.attributes,
-        classData.spellPath?.keyAttribute
+        sheet.classe.spellPath?.keyAttribute
       );
       let sourceName = 'Desconhecido';
       if (b.source?.type === 'power') {

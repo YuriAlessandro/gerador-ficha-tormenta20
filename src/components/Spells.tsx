@@ -1,11 +1,26 @@
 import React from 'react';
 import '../assets/css/result.css';
-import { Box, Chip, Grid, Typography } from '@mui/material';
+import {
+  Box,
+  Chip,
+  Grid,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Typography,
+} from '@mui/material';
 import { DiceRoll } from '@/interfaces/DiceRoll';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { CharacterAttribute } from '../interfaces/Character';
 import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
 import SpellRow from './SpellRow';
+
+const SPELL_KEY_ATTRIBUTES = [
+  Atributo.INTELIGENCIA,
+  Atributo.SABEDORIA,
+  Atributo.CARISMA,
+];
 
 interface SpellsProp {
   spells: Spell[];
@@ -19,6 +34,7 @@ interface SpellsProp {
   onSpellCast?: (pmSpent: number) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
+  onKeyAttributeChange?: (newAttr: Atributo) => void;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
@@ -34,6 +50,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     onSpellCast,
     isMago,
     onToggleMemorized,
+    onKeyAttributeChange,
   } = props;
 
   spells.sort((spell1, spell2) => {
@@ -51,7 +68,26 @@ const Spells: React.FC<SpellsProp> = (props) => {
       {spells.length > 0 && spellPath && (
         <div className='speelsInfos'>
           <span>
-            <strong>Atributo-Chave:</strong> {keyAttr?.name}
+            <strong>Atributo-Chave:</strong>{' '}
+            {onKeyAttributeChange && spellPath ? (
+              <Select
+                value={spellPath.keyAttribute}
+                onChange={(e: SelectChangeEvent) =>
+                  onKeyAttributeChange(e.target.value as Atributo)
+                }
+                size='small'
+                variant='standard'
+                sx={{ fontSize: 'inherit', minWidth: 100 }}
+              >
+                {SPELL_KEY_ATTRIBUTES.map((attr) => (
+                  <MenuItem key={attr} value={attr}>
+                    {attr}
+                  </MenuItem>
+                ))}
+              </Select>
+            ) : (
+              keyAttr?.name
+            )}
           </span>
           <span>
             <strong>Modificador:</strong>{' '}
