@@ -366,7 +366,7 @@ const DRUIDA: ClassDescription = {
   faithProbability: {
     AHARADAK: 0,
     OCEANO: 1,
-    TENEBRA: 0,
+    TENEBRA: 1,
     VALKARIA: 0,
     WYNNA: 0,
     LENA: 0,
