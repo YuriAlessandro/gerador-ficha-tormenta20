@@ -4720,14 +4720,33 @@ export function generateEmptySheet(
     if (selectedOrigin) {
       let originPowers = selectedOrigin.poderes || [];
 
-      // Apply wizard origin benefit selections for non-regional origins
-      // Note: isRegional is undefined for base book origins, so use !isRegional instead of === false
-      if (
+      if (selectedOrigin.isRegional) {
+        // Regional origins: automatically grant ALL benefits (skills + powers)
+        const originBenefits = selectedOrigin.getPowersAndSkills
+          ? selectedOrigin.getPowersAndSkills(emptySheet.skills, selectedOrigin)
+          : {
+              powers: {
+                origin:
+                  selectedOrigin.poderes as import('../interfaces/Poderes').OriginPower[],
+                general: [],
+              },
+              skills: selectedOrigin.pericias,
+            };
+
+        // Add all origin skills
+        originBenefits.skills.forEach((skill) => {
+          if (!emptySheet.skills.includes(skill as Skill)) {
+            emptySheet.skills.push(skill as Skill);
+          }
+        });
+
+        // Use resolved powers from getPowersAndSkills
+        originPowers = originBenefits.powers.origin;
+      } else if (
         wizardSelections?.originBenefits &&
-        wizardSelections.originBenefits.length > 0 &&
-        !selectedOrigin.isRegional
+        wizardSelections.originBenefits.length > 0
       ) {
-        // Apply selected benefits
+        // Non-regional origins with wizard selections: apply selected benefits
         wizardSelections.originBenefits.forEach((benefit) => {
           if (benefit.type === 'skill') {
             // Add skill if not already added
@@ -4751,6 +4770,13 @@ export function generateEmptySheet(
         originPowers = originPowers.filter((p) =>
           selectedPowerNames.includes(p.name)
         );
+      } else {
+        // Non-regional origins without wizard selections: add all pericias as fallback
+        selectedOrigin.pericias.forEach((skill) => {
+          if (!emptySheet.skills.includes(skill)) {
+            emptySheet.skills.push(skill);
+          }
+        });
       }
 
       emptySheet.origin = {
