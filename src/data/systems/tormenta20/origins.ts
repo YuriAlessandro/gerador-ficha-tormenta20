@@ -21,6 +21,7 @@ import CORE_POWERS from './core/powers';
 import Skill from '../../../interfaces/Skills';
 import EQUIPAMENTOS, { Armas } from './equipamentos';
 import combatPowers from './powers/combatPowers';
+import atlasMagicPowers from './atlas-de-arton/powers/magicPowers';
 import CharacterSheet, { SubStep } from '../../../interfaces/CharacterSheet';
 import { isPowerAvailable } from '../../../functions/powers';
 
@@ -333,6 +334,7 @@ export const ORIGINS: Record<origins, Origin> = {
       DestinyPowers.MEDICINA,
       originPowers.MEMBRO_DA_IGREJA,
       DestinyPowers.VONTADE_DE_FERRO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
     getItems: (): Items[] => [
       {
@@ -376,7 +378,11 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.DIPLOMACIA, Skill.ENGANACAO, Skill.NOBREZA],
-    poderes: [originPowers.SANGUE_AZUL, DestinyPowers.COMANDAR],
+    poderes: [
+      originPowers.SANGUE_AZUL,
+      DestinyPowers.COMANDAR,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
   },
   Artesão: {
     name: 'Artesão',
@@ -389,7 +395,11 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ARTESANATO, Skill.VONTADE],
-    poderes: [originPowers.FRUTOS_DO_TRABALHO, DestinyPowers.SORTUDO],
+    poderes: [
+      originPowers.FRUTOS_DO_TRABALHO,
+      DestinyPowers.SORTUDO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
   },
   Artista: {
     name: 'Artista',
@@ -405,6 +415,7 @@ export const ORIGINS: Record<origins, Origin> = {
       originPowers.DOM_ARTISTICO,
       DestinyPowers.SORTUDO,
       DestinyPowers.TORCIDA,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
   },
   'Assistente de Laboratório': {
@@ -415,7 +426,11 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.OFICIO_ALQUIMIA, Skill.MISTICISMO],
-    poderes: [originPowers.ESSE_CHEIRO, DestinyPowers.VENEFICIO],
+    poderes: [
+      originPowers.ESSE_CHEIRO,
+      DestinyPowers.VENEFICIO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
     getPowersAndSkills: sortLabAssistentBenefits,
   },
   Batedor: {
@@ -539,6 +554,7 @@ export const ORIGINS: Record<origins, Origin> = {
       originPowers.MEDICO_DE_CAMPO,
       DestinyPowers.MEDICINA,
       DestinyPowers.VENEFICIO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
   },
   Eremita: {
@@ -579,6 +595,7 @@ export const ORIGINS: Record<origins, Origin> = {
     poderes: [
       originPowers.PALPITE_FUNDAMENTADO,
       DestinyPowers.APARENCIA_INOFENSIVA,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
   },
   Fazendeiro: {
@@ -676,7 +693,11 @@ export const ORIGINS: Record<origins, Origin> = {
       return originItems;
     },
     pericias: [Skill.INVESTIGACAO, Skill.LUTA, Skill.PERCEPCAO],
-    poderes: [originPowers.DETETIVE, DestinyPowers.INVESTIGADOR],
+    poderes: [
+      originPowers.DETETIVE,
+      DestinyPowers.INVESTIGADOR,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
     getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Herdeiro: {
@@ -715,7 +736,11 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.JOGATINA, Skill.PILOTAGEM],
-    poderes: [originPowers.PASSAGEM_DE_NAVIO, DestinyPowers.ACROBATICO],
+    poderes: [
+      originPowers.PASSAGEM_DE_NAVIO,
+      DestinyPowers.ACROBATICO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
   },
   Mateiro: {
     name: 'Mateiro',
@@ -760,7 +785,11 @@ export const ORIGINS: Record<origins, Origin> = {
       Skill.MISTICISMO,
       Skill.OFICIO,
     ],
-    poderes: [originPowers.REDE_DE_CONTATOS, DestinyPowers.FOCO_EM_PERICIA],
+    poderes: [
+      originPowers.REDE_DE_CONTATOS,
+      DestinyPowers.FOCO_EM_PERICIA,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
   },
   Mercador: {
     name: 'Mercador',
@@ -780,6 +809,7 @@ export const ORIGINS: Record<origins, Origin> = {
       originPowers.NEGOCIACAO,
       combatPowers.PROFICIENCIA,
       DestinyPowers.SORTUDO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
   },
   Minerador: {
@@ -798,6 +828,7 @@ export const ORIGINS: Record<origins, Origin> = {
       originPowers.ESCAVADOR,
       combatPowers.ATAQUE_PODEROSO,
       DestinyPowers.SENTIDOS_AGUCADOS,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
     ],
   },
   Nômade: {
@@ -909,7 +940,10 @@ export const ORIGINS: Record<origins, Origin> = {
       return originItems;
     },
     pericias: [Skill.FORTITUDE, Skill.GUERRA, Skill.LUTA, Skill.PONTARIA],
-    poderes: [originPowers.INFLUENCIA_MILITAR],
+    poderes: [
+      originPowers.INFLUENCIA_MILITAR,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
     getPowersAndSkills: getBenefitsWithRandomCombatPower,
   },
   Taverneiro: {
@@ -948,7 +982,11 @@ export const ORIGINS: Record<origins, Origin> = {
       },
     ],
     pericias: [Skill.ATLETISMO, Skill.FORTITUDE],
-    poderes: [originPowers.ESFORCADO, DestinyPowers.ATLETICO],
+    poderes: [
+      originPowers.ESFORCADO,
+      DestinyPowers.ATLETICO,
+      atlasMagicPowers.PRESENTE_DE_WYNLLA,
+    ],
   },
 };
 
