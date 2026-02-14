@@ -13,14 +13,14 @@ import PROFICIENCIAS from '../proficiencias';
 import tormentaPowers from '../powers/tormentaPowers';
 import { spellsCircle1 } from '../magias/generalSpells';
 
-type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
+export type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
   'Bruxo',
   'Mago',
   'Feiticeiro',
 ];
 
-const spellPaths: Record<ArcanistaSubtypes, SpellPath> = {
+export const arcanistaSpellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   Bruxo: {
     initialSpells: 3,
     spellType: 'Arcane',
@@ -429,7 +429,7 @@ const ARCANISTA: ClassDescription = {
     const modifiedClasse = _.cloneDeep(classe);
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
-    modifiedClasse.spellPath = spellPaths[subtype];
+    modifiedClasse.spellPath = arcanistaSpellPaths[subtype];
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
       modifiedClasse.attrPriority = [Atributo.CARISMA];

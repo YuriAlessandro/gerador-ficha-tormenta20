@@ -158,7 +158,11 @@ import {
   getAttributeIncreasesInSamePlateau,
   getCurrentPlateau,
 } from './powers/general';
-import { feiticeiroPaths } from '../data/systems/tormenta20/classes/arcanista';
+import {
+  feiticeiroPaths,
+  arcanistaSpellPaths,
+  ArcanistaSubtypes,
+} from '../data/systems/tormenta20/classes/arcanista';
 
 // Race customization interface for races with customization options
 export interface RaceCustomization {
@@ -4827,4 +4831,50 @@ export function generateEmptySheet(
   );
 
   return emptySheet;
+}
+
+/**
+ * Restores spellPath function methods that are lost during JSON serialization.
+ * Call this after loading a sheet from the backend or localStorage.
+ */
+export function restoreSpellPath(
+  sheet: CharacterSheet,
+  classes: ClassDescription[]
+): void {
+  if (!sheet.classe.spellPath) return;
+
+  // Preserve original schools from serialized data
+  const originalSchools = sheet.classe.spellPath.schools;
+
+  if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+    // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
+    const subtype = sheet.classe.subname as ArcanistaSubtypes;
+    if (arcanistaSpellPaths[subtype]) {
+      sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
+    }
+  } else {
+    const baseClass = classes.find((c) => c.name === sheet.classe.name);
+
+    if (baseClass?.setup) {
+      // Classes with setup() (Bardo, Clérigo, Druida, Frade)
+      const setupClass = baseClass.setup(sheet.classe);
+      if (setupClass.spellPath) {
+        sheet.classe.spellPath = setupClass.spellPath;
+      }
+    } else {
+      // Variant classes or any class with spellPath defined directly
+      const originalClass = classes.find((c) => {
+        if (c.name !== sheet.classe.name) return false;
+        return (c.subname || '') === (sheet.classe.subname || '');
+      });
+      if (originalClass?.spellPath) {
+        sheet.classe.spellPath = originalClass.spellPath;
+      }
+    }
+  }
+
+  // Restore original schools (selected during creation, preserved in serialized data)
+  if (originalSchools && sheet.classe.spellPath) {
+    sheet.classe.spellPath.schools = originalSchools;
+  }
 }

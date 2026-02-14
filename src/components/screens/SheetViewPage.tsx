@@ -33,10 +33,10 @@ import SheetLimitDialog from '@/components/common/SheetLimitDialog';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Bag from '@/interfaces/Bag';
 import { dataRegistry } from '@/data/registry';
-import { ClassDescription } from '@/interfaces/Class';
 import { SupplementId } from '@/types/supplement.types';
 import { SubscriptionTier } from '@/types/subscription.types';
 import preparePDF from '@/functions/downloadSheetPdf';
+import { restoreSpellPath } from '@/functions/general';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 
 const SheetViewPage: React.FC = () => {
@@ -107,17 +107,7 @@ const SheetViewPage: React.FC = () => {
         }
 
         // Restore spellPath functions if the class has spellcasting
-        if (restoredSheet.classe?.spellPath) {
-          const baseClass = CLASSES.find(
-            (c: ClassDescription) => c.name === restoredSheet.classe.name
-          );
-
-          if (baseClass?.setup) {
-            // For classes with setup functions, recreate spellPath based on class
-            const setupClass = baseClass.setup(restoredSheet.classe);
-            restoredSheet.classe.spellPath = setupClass.spellPath;
-          }
-        }
+        restoreSpellPath(restoredSheet, CLASSES);
 
         setSheet(restoredSheet);
       } catch (err) {
