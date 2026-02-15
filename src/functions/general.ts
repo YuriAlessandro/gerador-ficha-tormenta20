@@ -139,6 +139,7 @@ import {
   applyYidishanNaturezaOrganica,
   applyMeioElfoAmbicaoHerdada,
   applyQareenResistenciaElemental,
+  applyAlmaLivreSelectClass,
 } from './powers/special';
 import {
   applyMoreauSapiencia,
@@ -2065,6 +2066,10 @@ export const applyPower = (
           sheetAction.action.specialAction === 'qareenResistenciaElemental'
         ) {
           currentSteps = applyQareenResistenciaElemental(sheet);
+        } else if (
+          sheetAction.action.specialAction === 'almaLivreSelectClass'
+        ) {
+          currentSteps = applyAlmaLivreSelectClass(sheet, manualSelections);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
@@ -3276,6 +3281,54 @@ export function applyManualLevelUp(
       } else {
         subSteps.push({
           name: `Novo poder de ${updatedSheet.classe.name}`,
+          value: newPower.name,
+        });
+      }
+
+      updatedSheet.sheetActionHistory.push({
+        source: {
+          type: 'levelUp',
+          level: updatedSheet.nivel,
+        },
+        changes: [
+          {
+            type: 'PowerAdded',
+            powerName: newPower.name,
+          },
+        ],
+      });
+    }
+  } else if (
+    selections.powerChoice === 'almaLivre' &&
+    selections.selectedAlmaLivrePower
+  ) {
+    const nSubSteps: SubStep[] = [];
+    const newPower = selections.selectedAlmaLivrePower;
+
+    if (updatedSheet.classPowers) {
+      updatedSheet.classPowers.push(newPower);
+
+      const [newSheet, newSubSteps] = applyPower(
+        updatedSheet,
+        newPower,
+        selections.powerEffectSelections?.[newPower.name]
+      );
+      nSubSteps.push(...newSubSteps);
+      if (newSheet) updatedSheet = newSheet;
+
+      const almaLivreLabel = `Poder de Alma Livre (${
+        updatedSheet.almaLivreClass || 'Classe'
+      })`;
+
+      if (nSubSteps.length) {
+        updatedSheet.steps.push({
+          type: 'Poderes',
+          label: almaLivreLabel,
+          value: nSubSteps,
+        });
+      } else {
+        subSteps.push({
+          name: almaLivreLabel,
           value: newPower.name,
         });
       }

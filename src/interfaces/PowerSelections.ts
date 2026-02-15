@@ -1,3 +1,4 @@
+import { ClassPower } from './Class';
 import { GeneralPower } from './Poderes';
 import { Spell } from './Spells';
 
@@ -17,6 +18,8 @@ export interface SelectionOptions {
   chosenOption?: string[]; // Option names for chooseFromOptions actions
   osteonOldRace?: string; // Old race name for Osteon/Soterrado Memória Póstuma
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
+  almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
+  almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
 }
 
 /**
@@ -56,7 +59,8 @@ export interface PowerSelectionRequirement {
     | 'humanoVersatil'
     | 'lefouDeformidade'
     | 'osteonMemoriaPostuma'
-    | 'chooseFromOptions';
+    | 'chooseFromOptions'
+    | 'almaLivreSelectClass';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

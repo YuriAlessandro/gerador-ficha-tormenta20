@@ -98,7 +98,8 @@ export type SheetActionStep =
         | 'moreauEspertezaVulpina'
         | 'fradeAutoridadeEclesiastica'
         | 'meioElfoAmbicaoHerdada'
-        | 'qareenResistenciaElemental';
+        | 'qareenResistenciaElemental'
+        | 'almaLivreSelectClass';
     }
   | {
       type: 'selectWeaponSpecialization';
@@ -403,6 +404,8 @@ export default interface CharacterSheet {
   pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
   reducaoDeDano?: DamageReduction; // Redução de Dano total (calculado: auto + manual)
   bonusRd?: DamageReduction; // Bônus manual de RD por tipo (adicionado ao calculado)
+  almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
+  almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
 }
 
 export interface Step {

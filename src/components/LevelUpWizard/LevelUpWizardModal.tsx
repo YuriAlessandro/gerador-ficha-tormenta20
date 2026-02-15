@@ -96,6 +96,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
   }, [open, initialSheet]);
 
+  // Helper to resolve the selected power based on power choice type
+  const getSelectedPower = (
+    sel: LevelUpSelections
+  ): ClassPower | GeneralPower | undefined => {
+    if (sel.powerChoice === 'class') return sel.selectedClassPower;
+    if (sel.powerChoice === 'almaLivre') return sel.selectedAlmaLivrePower;
+    return sel.selectedGeneralPower;
+  };
+
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
     classPowers: ClassPower[];
@@ -355,14 +364,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           (currentLevelSelection.powerChoice === 'class' &&
             currentLevelSelection.selectedClassPower !== undefined) ||
           (currentLevelSelection.powerChoice === 'general' &&
-            currentLevelSelection.selectedGeneralPower !== undefined)
+            currentLevelSelection.selectedGeneralPower !== undefined) ||
+          (currentLevelSelection.powerChoice === 'almaLivre' &&
+            currentLevelSelection.selectedAlmaLivrePower !== undefined)
         );
 
       case 'Efeitos do Poder': {
-        const power =
-          currentLevelSelection.powerChoice === 'class'
-            ? currentLevelSelection.selectedClassPower
-            : currentLevelSelection.selectedGeneralPower;
+        const power = getSelectedPower(currentLevelSelection);
 
         if (!power) return false;
 
@@ -395,6 +403,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               return pSelections.familiars?.length || 0;
             case 'selectAnimalTotem':
               return pSelections.animalTotems?.length || 0;
+            case 'almaLivreSelectClass':
+              return pSelections.almaLivreClass && pSelections.almaLivrePower
+                ? 1
+                : 0;
             default:
               return 0;
           }
@@ -485,6 +497,29 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const knownGeneralPowers =
           simulatedSheet.generalPowers?.map((p) => p.name) || [];
 
+        // Alma Livre detection: check if the character has a pre-selected power
+        // that hasn't been acquired yet
+        const almaLivrePower = simulatedSheet.almaLivrePower || null;
+        const almaLivreClassName = simulatedSheet.almaLivreClass;
+        const almaLivrePowerAcquired = simulatedSheet.classPowers?.some(
+          (p) => p.name === almaLivrePower?.name
+        );
+        const showAlmaLivre =
+          almaLivrePower && almaLivreClassName && !almaLivrePowerAcquired;
+
+        // Check if Alma Livre power requirements are met (using nivel - 4)
+        let almaLivrePowerAvailable = false;
+        if (showAlmaLivre && almaLivrePower) {
+          const almaLivreSheet = {
+            ...simulatedSheet,
+            nivel: Math.max(1, simulatedSheet.nivel - 4),
+          };
+          almaLivrePowerAvailable = isPowerAvailable(
+            almaLivreSheet,
+            almaLivrePower
+          );
+        }
+
         return (
           <PowerSelectionStep
             classPowers={classPowers}
@@ -502,6 +537,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 powerChoice: choice,
                 selectedClassPower: undefined,
                 selectedGeneralPower: undefined,
+                selectedAlmaLivrePower: undefined,
               })
             }
             onClassPowerSelect={(power) =>
@@ -516,19 +552,25 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 selectedGeneralPower: power,
               })
             }
+            onAlmaLivrePowerSelect={(power) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                selectedAlmaLivrePower: power,
+              })
+            }
             className={simulatedSheet.classe.name}
             knownClassPowers={knownClassPowers}
             knownGeneralPowers={knownGeneralPowers}
             unavailableGeneralPowers={unavailableGeneralPowers}
+            almaLivrePower={showAlmaLivre ? almaLivrePower : null}
+            almaLivreClassName={showAlmaLivre ? almaLivreClassName : undefined}
+            almaLivrePowerAvailable={almaLivrePowerAvailable}
           />
         );
       }
 
       case 'Efeitos do Poder': {
-        const power =
-          currentLevelSelection.powerChoice === 'class'
-            ? currentLevelSelection.selectedClassPower
-            : currentLevelSelection.selectedGeneralPower;
+        const power = getSelectedPower(currentLevelSelection);
 
         if (!power) return null;
 
@@ -538,7 +580,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             classe={simulatedSheet.classe}
             origin={undefined}
             selectedPower={power}
-            powerSource={currentLevelSelection.powerChoice}
+            powerSource={
+              currentLevelSelection.powerChoice === 'almaLivre'
+                ? 'class'
+                : currentLevelSelection.powerChoice
+            }
             selections={currentLevelSelection.powerEffectSelections || {}}
             onChange={(selections) =>
               setCurrentLevelSelection({
@@ -652,6 +698,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             currentLevelSelection.selectedClassPower,
           ];
         } else if (
+          currentLevelSelection.powerChoice === 'almaLivre' &&
+          currentLevelSelection.selectedAlmaLivrePower
+        ) {
+          nextSheet.classPowers = [
+            ...(nextSheet.classPowers || []),
+            currentLevelSelection.selectedAlmaLivrePower,
+          ];
+        } else if (
           currentLevelSelection.powerChoice === 'general' &&
           currentLevelSelection.selectedGeneralPower
         ) {
@@ -673,10 +727,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         }
 
         // Add attribute increases to sheetActionHistory for plateau validation
-        const selectedPower =
-          currentLevelSelection.powerChoice === 'class'
-            ? currentLevelSelection.selectedClassPower
-            : currentLevelSelection.selectedGeneralPower;
+        const selectedPower = getSelectedPower(currentLevelSelection);
 
         if (selectedPower && currentLevelSelection.powerEffectSelections) {
           const powerEffects =
@@ -702,6 +753,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               ...(nextSheet.sheetActionHistory || []),
               ...newHistoryEntries,
             ];
+          }
+
+          // Apply Alma Livre class/power selections to the simulated sheet
+          // so the next level can detect and offer the pre-selected power
+          if (selectedPower && currentLevelSelection.powerEffectSelections) {
+            const almaLivreEffects =
+              currentLevelSelection.powerEffectSelections[selectedPower.name];
+            if (
+              almaLivreEffects?.almaLivreClass &&
+              almaLivreEffects?.almaLivrePower
+            ) {
+              nextSheet.almaLivreClass = almaLivreEffects.almaLivreClass;
+              nextSheet.almaLivrePower = almaLivreEffects.almaLivrePower;
+            }
           }
         }
 
@@ -745,6 +810,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             (p) => p.name !== previousLevelSelection.selectedClassPower?.name
           );
         } else if (
+          previousLevelSelection.powerChoice === 'almaLivre' &&
+          previousLevelSelection.selectedAlmaLivrePower
+        ) {
+          prevSheet.classPowers = (prevSheet.classPowers || []).filter(
+            (p) =>
+              p.name !== previousLevelSelection.selectedAlmaLivrePower?.name
+          );
+        } else if (
           previousLevelSelection.powerChoice === 'general' &&
           previousLevelSelection.selectedGeneralPower
         ) {
@@ -767,10 +840,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         }
 
         // Remove sheetActionHistory entries for attribute increases from the level we're returning to
-        const previousPower =
-          previousLevelSelection.powerChoice === 'class'
-            ? previousLevelSelection.selectedClassPower
-            : previousLevelSelection.selectedGeneralPower;
+        const previousPower = getSelectedPower(previousLevelSelection);
 
         if (previousPower && previousLevelSelection.powerEffectSelections) {
           const effectSelections =
@@ -794,6 +864,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               );
               return !hasMatchingAttribute;
             });
+          }
+
+          // Remove Alma Livre class/power if they were set in this level
+          if (previousPower && previousLevelSelection.powerEffectSelections) {
+            const almaLivreEffects =
+              previousLevelSelection.powerEffectSelections[previousPower.name];
+            if (
+              almaLivreEffects?.almaLivreClass &&
+              almaLivreEffects?.almaLivrePower
+            ) {
+              prevSheet.almaLivreClass = undefined;
+              prevSheet.almaLivrePower = undefined;
+            }
           }
         }
       }

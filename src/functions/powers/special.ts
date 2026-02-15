@@ -460,3 +460,22 @@ export function applyQareenResistenciaElemental(
 
   return substeps;
 }
+
+export function applyAlmaLivreSelectClass(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  if (manualSelections?.almaLivreClass && manualSelections?.almaLivrePower) {
+    sheet.almaLivreClass = manualSelections.almaLivreClass;
+    sheet.almaLivrePower = manualSelections.almaLivrePower;
+
+    substeps.push({
+      name: 'Alma Livre',
+      value: `Classe: ${manualSelections.almaLivreClass} — Poder: ${manualSelections.almaLivrePower.name}`,
+    });
+  }
+
+  return substeps;
+}

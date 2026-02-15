@@ -17,10 +17,11 @@ export interface OriginBenefit {
 
 export interface LevelUpSelections {
   level: number;
-  // Escolha: poder de classe OU poder geral
-  powerChoice: 'class' | 'general';
+  // Escolha: poder de classe, poder geral OU poder de Alma Livre
+  powerChoice: 'class' | 'general' | 'almaLivre';
   selectedClassPower?: ClassPower;
   selectedGeneralPower?: GeneralPower;
+  selectedAlmaLivrePower?: ClassPower; // Poder pré-selecionado por Alma Livre
   // Seleções manuais para ações de poderes (keyed by power name)
   powerEffectSelections?: ManualPowerSelections;
   // Seleções para habilidades automáticas com pick actions (keyed by ability name)

@@ -297,6 +297,19 @@ export function getPowerSelectionRequirements(
           label: 'Selecione o benefício da Memória Póstuma',
         });
       }
+
+      // Handle Alma Livre special action
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'almaLivreSelectClass'
+      ) {
+        requirements.push({
+          type: 'almaLivreSelectClass',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 class + 1 power
+          label: 'Selecione uma classe e um poder dessa classe',
+        });
+      }
     });
   }
 
@@ -674,6 +687,16 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b));
     }
 
+    case 'almaLivreSelectClass': {
+      // Options are handled dynamically by AlmaLivreSelectionField
+      // Return all classes except the character's own class as a fallback
+      const allClasses = dataRegistry.getClassesBySupplements(supplements);
+      return allClasses
+        .filter((c) => c.name !== sheet.classe.name)
+        .map((c) => c.name)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+
     default:
       return availableOptions;
   }
@@ -751,6 +774,18 @@ export function validateSelections(
         selectedCount =
           mpSkills.length + mpPowers.length + mpAbilities.length > 0 ? 1 : 0;
         selectedItems = [...mpSkills, ...mpPowers, ...mpAbilities];
+        break;
+      }
+
+      case 'almaLivreSelectClass': {
+        // 1 class + 1 power
+        const hasClass = selections.almaLivreClass ? 1 : 0;
+        const hasPower = selections.almaLivrePower ? 1 : 0;
+        selectedCount = hasClass && hasPower ? 1 : 0;
+        selectedItems = [
+          selections.almaLivreClass,
+          selections.almaLivrePower,
+        ].filter(Boolean);
         break;
       }
 

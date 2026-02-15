@@ -19,16 +19,20 @@ import { GeneralPower, RequirementType } from '@/interfaces/Poderes';
 interface PowerSelectionStepProps {
   classPowers: ClassPower[];
   generalPowers: GeneralPower[];
-  selectedPowerChoice: 'class' | 'general' | null;
+  selectedPowerChoice: 'class' | 'general' | 'almaLivre' | null;
   selectedClassPower: ClassPower | null;
   selectedGeneralPower: GeneralPower | null;
-  onPowerChoiceChange: (choice: 'class' | 'general') => void;
+  onPowerChoiceChange: (choice: 'class' | 'general' | 'almaLivre') => void;
   onClassPowerSelect: (power: ClassPower) => void;
   onGeneralPowerSelect: (power: GeneralPower) => void;
+  onAlmaLivrePowerSelect?: (power: ClassPower) => void;
   className: string;
   knownClassPowers?: string[];
   knownGeneralPowers?: string[];
   unavailableGeneralPowers?: string[];
+  almaLivrePower?: ClassPower | null;
+  almaLivreClassName?: string;
+  almaLivrePowerAvailable?: boolean;
 }
 
 const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
@@ -40,10 +44,14 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   onPowerChoiceChange,
   onClassPowerSelect,
   onGeneralPowerSelect,
+  onAlmaLivrePowerSelect,
   className,
   knownClassPowers = [],
   knownGeneralPowers = [],
   unavailableGeneralPowers = [],
+  almaLivrePower = null,
+  almaLivreClassName,
+  almaLivrePowerAvailable = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -84,10 +92,15 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
   const filteredClassPowers = filterPowers(classPowers);
   const filteredGeneralPowers = filterPowers(generalPowers);
 
+  const hasAlmaLivre = almaLivrePower !== null;
+
   // Determine if step is complete
   const isComplete =
     (selectedPowerChoice === 'class' && selectedClassPower !== null) ||
-    (selectedPowerChoice === 'general' && selectedGeneralPower !== null);
+    (selectedPowerChoice === 'general' && selectedGeneralPower !== null) ||
+    (selectedPowerChoice === 'almaLivre' &&
+      hasAlmaLivre &&
+      almaLivrePowerAvailable);
 
   return (
     <Box>
@@ -96,6 +109,8 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
       </Typography>
       <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
         A cada nível, você pode escolher um poder de classe ou um poder geral.
+        {hasAlmaLivre &&
+          ' Você também pode escolher o poder de Alma Livre.'}{' '}
         Selecione o tipo de poder e depois escolha qual poder deseja adicionar.
       </Typography>
 
@@ -107,7 +122,9 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
         <RadioGroup
           value={selectedPowerChoice || ''}
           onChange={(e) =>
-            onPowerChoiceChange(e.target.value as 'class' | 'general')
+            onPowerChoiceChange(
+              e.target.value as 'class' | 'general' | 'almaLivre'
+            )
           }
         >
           <FormControlLabel
@@ -122,6 +139,15 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
             label={`Poder Geral (${generalPowers.length} disponíveis)`}
             disabled={!hasGeneralPowers}
           />
+          {hasAlmaLivre && almaLivreClassName && (
+            <FormControlLabel
+              value='almaLivre'
+              control={<Radio />}
+              label={`Poder de Alma Livre — ${almaLivreClassName} (${
+                almaLivrePower!.name
+              })`}
+            />
+          )}
         </RadioGroup>
       </Box>
 
@@ -435,7 +461,121 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
         </Box>
       )}
 
-      {!hasClassPowers && !hasGeneralPowers && (
+      {selectedPowerChoice === 'almaLivre' &&
+        hasAlmaLivre &&
+        almaLivreClassName && (
+          <Box>
+            <Typography variant='subtitle1' gutterBottom>
+              Poder de Alma Livre — {almaLivreClassName}
+            </Typography>
+
+            <Card
+              variant='outlined'
+              sx={{
+                cursor: almaLivrePowerAvailable ? 'pointer' : 'not-allowed',
+                border: 2,
+                borderColor: almaLivrePowerAvailable
+                  ? 'primary.main'
+                  : 'divider',
+                opacity: almaLivrePowerAvailable ? 1 : 0.5,
+                '&:hover': {
+                  borderColor: almaLivrePowerAvailable
+                    ? 'primary.light'
+                    : 'divider',
+                  bgcolor: almaLivrePowerAvailable ? 'action.hover' : 'inherit',
+                },
+              }}
+              onClick={() => {
+                if (almaLivrePowerAvailable && onAlmaLivrePowerSelect) {
+                  onAlmaLivrePowerSelect(almaLivrePower!);
+                }
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    mb: 1,
+                  }}
+                >
+                  <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
+                    {almaLivrePower!.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    {!almaLivrePowerAvailable && (
+                      <Chip
+                        label='Requisitos não atendidos'
+                        size='small'
+                        color='warning'
+                      />
+                    )}
+                    <Chip
+                      label='Alma Livre'
+                      size='small'
+                      color='secondary'
+                      variant='outlined'
+                    />
+                  </Box>
+                </Box>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ whiteSpace: 'pre-wrap' }}
+                >
+                  {almaLivrePower!.text}
+                </Typography>
+                {almaLivrePower!.requirements &&
+                  almaLivrePower!.requirements.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant='caption' color='text.secondary'>
+                        Pré-requisitos:{' '}
+                        {almaLivrePower!.requirements
+                          .map((reqGroup) =>
+                            reqGroup
+                              .map((req) => {
+                                switch (req.type) {
+                                  case RequirementType.NIVEL:
+                                    return `Nível ${req.value} (efetivo: nível −4)`;
+                                  case RequirementType.PODER:
+                                    return req.name;
+                                  case RequirementType.ATRIBUTO:
+                                    return `${req.name} ${req.value}`;
+                                  case RequirementType.PERICIA:
+                                    return `Treinado em ${req.name}`;
+                                  case RequirementType.HABILIDADE:
+                                    return req.not
+                                      ? `Não ter ${req.name}`
+                                      : req.name;
+                                  default:
+                                    return '';
+                                }
+                              })
+                              .filter((text) => text !== '')
+                              .join(' e ')
+                          )
+                          .filter((text) => text !== '')
+                          .join(' OU ')}
+                      </Typography>
+                    </Box>
+                  )}
+                {!almaLivrePowerAvailable && (
+                  <Typography
+                    variant='body2'
+                    color='warning.main'
+                    sx={{ mt: 1 }}
+                  >
+                    Você ainda não atende aos requisitos deste poder (nível
+                    efetivo = seu nível − 4).
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          </Box>
+        )}
+
+      {!hasClassPowers && !hasGeneralPowers && !hasAlmaLivre && (
         <Typography variant='body2' color='error'>
           Nenhum poder disponível para este nível. Isso não deveria acontecer -
           por favor, reporte este bug.

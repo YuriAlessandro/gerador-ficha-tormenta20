@@ -15,6 +15,15 @@ const destinyPowers: Record<string, GeneralPower> = {
       'Arton tem muitas maravilhas a serem exploradas, muitos caminhos a serem percorridos — e você não é louco de se prender a um só. Escolha uma classe. Você pode escolher um poder dessa classe como se pertencesse a ela (para efeitos de nível na classe desse poder, considere seu nível de personagem −4). Note que você não recebe o poder, apenas o direito de escolhê-lo mais tarde.',
     type: GeneralPowerType.DESTINO,
     requirements: [],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Alma Livre' },
+        action: {
+          type: 'special',
+          specialAction: 'almaLivreSelectClass',
+        },
+      },
+    ],
   },
   ANDARILHO_URBANO: {
     name: 'Andarilho Urbano',

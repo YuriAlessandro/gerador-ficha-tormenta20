@@ -44,6 +44,7 @@ import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
+import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -122,7 +123,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
-        | 'chooseFromOptions';
+        | 'chooseFromOptions'
+        | 'almaLivreSelectClass';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,7 +489,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
-        | 'chooseFromOptions';
+        | 'chooseFromOptions'
+        | 'almaLivreSelectClass';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -807,6 +810,30 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             availableRaces={availableRacesForMP}
             availableSkills={availableSkillsForMP}
             availablePowers={availablePowersForMP}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Alma Livre class + power selection
+    if (type === 'almaLivreSelectClass') {
+      const allClassesForAL = dataRegistry.getClassesBySupplements(supplements);
+      const availableClassesForAL = allClassesForAL.filter(
+        (c) => c.name !== sheetForFiltering.classe.name
+      );
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <AlmaLivreSelectionField
+            availableClasses={availableClassesForAL}
+            supplements={supplements}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({
