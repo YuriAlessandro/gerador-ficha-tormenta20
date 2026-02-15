@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import { useNotifications } from '../../hooks/useNotifications';
+import { PushNotificationToggle } from '../../premium';
 import NotificationList from './NotificationList';
 
 const NotificationBell: React.FC = () => {
@@ -114,6 +115,8 @@ const NotificationBell: React.FC = () => {
           onLoadMore={loadMore}
           onClose={handleClose}
         />
+        <Divider />
+        <PushNotificationToggle variant='compact' />
       </Popover>
     </>
   );

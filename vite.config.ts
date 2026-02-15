@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // Version used for cache naming - changing this invalidates all PWA caches
-const APP_VERSION = '4.1.3';
+const APP_VERSION = '4.2';
 
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
@@ -106,6 +106,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Load custom push notification handler in the service worker
+        importScripts: ['push-sw.js'],
         // Exclude HTML from precache - let it be handled by NetworkFirst runtime caching
         // This ensures users always get the latest HTML on navigation
         globPatterns: ['**/*.{js,css,ico,png,svg,json,wasm}'],
