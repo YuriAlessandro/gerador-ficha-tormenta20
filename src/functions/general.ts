@@ -4828,6 +4828,13 @@ export function generateEmptySheet(
         wizardSelections?.originBenefits &&
         wizardSelections.originBenefits.length > 0
       ) {
+        // Get full origin benefits to distinguish origin powers from general powers
+        const originBenefits =
+          wizardSelections.cachedOriginBenefits ||
+          getOriginBenefits(emptySheet.skills, selectedOrigin, true);
+
+        const resolvedOriginPowers: OriginPower[] = [];
+
         // Non-regional origins with wizard selections: apply selected benefits
         wizardSelections.originBenefits.forEach((benefit) => {
           if (benefit.type === 'skill') {
@@ -4836,22 +4843,32 @@ export function generateEmptySheet(
               emptySheet.skills.push(benefit.name as Skill);
             }
           } else if (benefit.type === 'power') {
-            // Power is already in the origin powers list, no need to add
+            // Check if it's an origin power or a general power
+            const originPower = originBenefits.powers.origin.find(
+              (p) => p.name === benefit.name
+            );
+            if (originPower) {
+              resolvedOriginPowers.push(originPower);
+            } else {
+              // It's a general power selected as an origin benefit
+              const generalPower = (
+                originBenefits.powers.generalPowers || []
+              ).find((p) => p.name === benefit.name);
+              if (
+                generalPower &&
+                !emptySheet.generalPowers.some(
+                  (p) => p.name === generalPower.name
+                )
+              ) {
+                emptySheet.generalPowers.push(generalPower);
+              }
+            }
           } else if (benefit.type === 'item') {
             // TODO: Add item to bag (requires equipment lookup)
           }
         });
 
-        // Filter origin powers to only include selected ones
-        const selectedPowerNames = wizardSelections.originBenefits
-          .filter((b) => b.type === 'power')
-          .map((b) => b.name);
-
-        // Always filter origin powers based on selected powers
-        // If user selected only skills (no powers), this results in empty powers array
-        originPowers = originPowers.filter((p) =>
-          selectedPowerNames.includes(p.name)
-        );
+        originPowers = resolvedOriginPowers;
       } else {
         // Non-regional origins without wizard selections: add all pericias as fallback
         selectedOrigin.pericias.forEach((skill) => {
@@ -4863,7 +4880,8 @@ export function generateEmptySheet(
 
       emptySheet.origin = {
         name: selectedOrigin.name,
-        powers: originPowers,
+        powers: originPowers as OriginPower[],
+        selectedBenefits: wizardSelections?.originBenefits,
       };
     }
   }

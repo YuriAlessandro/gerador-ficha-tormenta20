@@ -1,7 +1,7 @@
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import Origin from '@/interfaces/Origin';
 import { OriginBenefit } from '@/interfaces/WizardSelections';
-import { OriginPower } from '@/interfaces/Poderes';
+import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import Skill from '@/interfaces/Skills';
 
 /**
@@ -54,6 +54,24 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
     );
   }
 
+  // Remove general powers that came from origin benefits
+  if (sheet.origin?.selectedBenefits) {
+    const powerBenefitNames = sheet.origin.selectedBenefits
+      .filter((b) => b.type === 'power')
+      .map((b) => b.name);
+
+    // General powers from origin = power benefits NOT in origin.powers
+    const generalPowerNamesFromOrigin = powerBenefitNames.filter(
+      (name) => !originPowerNames.includes(name)
+    );
+
+    if (generalPowerNamesFromOrigin.length > 0) {
+      updatedSheet.generalPowers = (sheet.generalPowers || []).filter(
+        (p) => !generalPowerNamesFromOrigin.includes(p.name)
+      );
+    }
+  }
+
   // Remove origin powers
   updatedSheet.origin = undefined;
 
@@ -77,11 +95,19 @@ export function applyOriginBenefits(
   // Get used skills for origin.getPowersAndSkills
   const usedSkills: Skill[] = sheet.skills;
 
-  // Get all available benefits
+  // Get all available benefits (returnAllOptions = true to get full list for matching)
   const originBenefits = origin.getPowersAndSkills
-    ? origin.getPowersAndSkills(usedSkills, origin)
+    ? origin.getPowersAndSkills(usedSkills, origin, true)
     : {
-        powers: { origin: origin.poderes as OriginPower[], general: [] },
+        powers: {
+          origin: origin.poderes.filter(
+            (p) => p.type === 'ORIGEM'
+          ) as OriginPower[],
+          general: [],
+          generalPowers: origin.poderes.filter(
+            (p) => p.type !== 'ORIGEM'
+          ) as GeneralPower[],
+        },
         skills: origin.pericias,
       };
 
@@ -107,12 +133,28 @@ export function applyOriginBenefits(
       }
 
       case 'power': {
-        // Find the power in origin benefits
+        // Check if it's an origin power
         const power = originBenefits.powers.origin.find(
           (p) => p.name === benefit.name
         );
         if (power) {
           originPowers.push(power);
+        } else {
+          // It's a general power selected as an origin benefit
+          const generalPower = (originBenefits.powers.generalPowers || []).find(
+            (p) => p.name === benefit.name
+          );
+          if (
+            generalPower &&
+            !updatedSheet.generalPowers.some(
+              (p) => p.name === generalPower.name
+            )
+          ) {
+            updatedSheet.generalPowers = [
+              ...updatedSheet.generalPowers,
+              generalPower,
+            ];
+          }
         }
         break;
       }
