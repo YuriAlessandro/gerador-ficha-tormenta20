@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/02/2026.
+            15/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,101 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2</h3>
+              <ul>
+                <li>
+                  <strong>💬 Fórum da Comunidade:</strong> Novo sistema de fórum
+                  integrado com feed unificado na landing page. Inclui anexos de
+                  conteúdo, edição de tópicos, notificações, sistema de
+                  moderação e categorias exclusivas para apoiadores. Apoiadores
+                  possuem destaque visual no fórum e no feed. Também é possível
+                  copiar fichas e ameaças compartilhadas diretamente para sua
+                  conta.
+                </li>
+                <li>
+                  <strong>🧙 Wizard de Criação Aprimorado:</strong>
+                  <ul>
+                    <li>
+                      Teurgista Místico: magias de outra tradição agora são
+                      selecionadas automaticamente.
+                    </li>
+                    <li>
+                      Poderes de destino Alma Livre e Memória Póstuma
+                      (Osteon/Soterrado) integrados ao wizard.
+                    </li>
+                    <li>
+                      Ofício (Qualquer) agora é expandido em variantes
+                      específicas na seleção de perícias.
+                    </li>
+                    <li>
+                      Restrições de magias do Necromante aplicadas
+                      automaticamente (sem Encantamento, com Necromancia
+                      divina).
+                    </li>
+                    <li>
+                      Druida agora pode selecionar Tenebra como divindade.
+                    </li>
+                    <li>
+                      Checkboxes de memorização de magias para personagens
+                      Magos.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>📚 Novo Conteúdo:</strong> 22 novas magias e novos
+                  itens de alimentação (bebidas) do suplemento Heróis de Arton.
+                  Poder &quot;Presente de Wynlla&quot; adicionado a 14 origens
+                  do livro básico e ao suplemento Atlas de Arton.
+                </li>
+                <li>
+                  <strong>📱 Aplicativo e Notificações:</strong> Notificações
+                  push (Web Push) para alertas no aplicativo. Nova página
+                  dedicada para instalação do app (/instalar). Feedback visual
+                  ao adicionar itens no mercado e editor de equipamentos.
+                </li>
+                <li>
+                  <strong>🔧 Correções:</strong>
+                  <ul>
+                    <li>
+                      Edições de ficha agora são salvas corretamente no
+                      histórico local.
+                    </li>
+                    <li>Corrigido PV/PM máximo manual.</li>
+                    <li>
+                      Passo de seleção de magias não aparece mais para o
+                      Usurpador.
+                    </li>
+                    <li>
+                      Fé Guerreira adicionada aos poderes concedidos do Arsenal.
+                    </li>
+                    <li>
+                      Poderes gerais selecionados como benefício de origem
+                      tratados corretamente no wizard.
+                    </li>
+                    <li>
+                      Feiticeiro com Linhagem Abençoada agora pode selecionar
+                      magias divinas.
+                    </li>
+                    <li>
+                      Golem Desperto: corrigidas habilidades duplicadas e
+                      habilitada seleção de magias no wizard.
+                    </li>
+                    <li>
+                      Todos os 20 poderes de destino incluídos na lista de
+                      poderes.
+                    </li>
+                    <li>
+                      Perícias de origens regionais agora aparecem na ficha pelo
+                      wizard.
+                    </li>
+                    <li>Corrigido crash em fichas compartilhadas.</li>
+                    <li>
+                      Scroll automático para o passo ativo no wizard de criação.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.1</h3>
               <ul>
                 <li>

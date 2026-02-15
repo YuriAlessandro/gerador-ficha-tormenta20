@@ -45,7 +45,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 // import { useDice3D } from '../../contexts/Dice3DContext';
 
-const APP_VERSION = '4.1.3';
+const APP_VERSION = '4.2';
 
 interface SidebarV2Props {
   visible: boolean;
