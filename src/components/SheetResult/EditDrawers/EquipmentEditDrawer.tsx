@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   Drawer,
   Box,
@@ -146,7 +152,18 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       animals: [],
     }
   );
-  const [dinheiro, setDinheiro] = useState(0);
+  const [dinheiroStr, setDinheiroStr] = useState('0');
+  const dinheiro = Number(dinheiroStr) || 0;
+  const setDinheiro = useCallback(
+    (value: number | ((prev: number) => number)) => {
+      if (typeof value === 'function') {
+        setDinheiroStr((prev) => String(value(Number(prev) || 0)));
+      } else {
+        setDinheiroStr(String(value));
+      }
+    },
+    []
+  );
   const [customMaxSpaces, setCustomMaxSpaces] = useState<number | null>(null);
   const [autoDescontarTibares, setAutoDescontarTibares] = useState(true);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
@@ -1749,8 +1766,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 fullWidth
                 type='number'
                 label='Dinheiro (T$)'
-                value={dinheiro}
-                onChange={(e) => setDinheiro(Number(e.target.value) || 0)}
+                value={dinheiroStr}
+                onChange={(e) => setDinheiroStr(e.target.value)}
                 inputProps={{ min: 0 }}
                 sx={{ mb: 2 }}
               />

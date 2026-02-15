@@ -95,7 +95,8 @@ const MarketStep: React.FC<MarketStepProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [currentMoney, setCurrentMoney] = useState(initialMoney);
+  const [currentMoneyStr, setCurrentMoneyStr] = useState(String(initialMoney));
+  const currentMoney = Number(currentMoneyStr) || 0;
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategory, setExpandedCategory] = useState<string | false>(
     false
@@ -166,15 +167,14 @@ const MarketStep: React.FC<MarketStepProps> = ({
 
   // Handle money change
   const handleMoneyChange = (value: string) => {
+    setCurrentMoneyStr(value);
     const numValue = parseInt(value, 10);
-    if (!Number.isNaN(numValue) && numValue >= 0) {
-      setCurrentMoney(numValue);
-      onChange({
-        initialMoney: numValue,
-        remainingMoney: numValue,
-        bagEquipments,
-      });
-    }
+    const safeValue = !Number.isNaN(numValue) && numValue >= 0 ? numValue : 0;
+    onChange({
+      initialMoney: safeValue,
+      remainingMoney: safeValue,
+      bagEquipments,
+    });
   };
 
   const getItemKey = (item: Equipment | DefenseEquipment): string =>
@@ -203,7 +203,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
     const newMoney = remainingMoney - price;
     const newBag = addItemToBag(bagEquipments, item);
 
-    setCurrentMoney(newMoney);
+    setCurrentMoneyStr(String(newMoney));
     onChange({
       initialMoney: currentMoney,
       remainingMoney: newMoney,
@@ -245,7 +245,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
     // Refund money if item had a price
     const refund = item.preco || 0;
     const newMoney = remainingMoney + refund;
-    setCurrentMoney(newMoney);
+    setCurrentMoneyStr(String(newMoney));
 
     onChange({
       initialMoney: currentMoney,
@@ -469,7 +469,7 @@ const MarketStep: React.FC<MarketStepProps> = ({
         </Typography>
         <TextField
           type='number'
-          value={currentMoney}
+          value={currentMoneyStr}
           onChange={(e) => handleMoneyChange(e.target.value)}
           InputProps={{
             startAdornment: (
