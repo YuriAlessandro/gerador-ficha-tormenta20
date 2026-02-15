@@ -77,6 +77,8 @@ export interface SpellPath {
   initialSpells: number;
   spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
+  excludeSchools?: SpellSchool[];
+  includeDivineSchools?: SpellSchool[];
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
   keyAttribute: Atributo;

@@ -25,6 +25,8 @@ interface InitialSpellSelectionStepProps {
   className: string;
   spellType: 'Arcane' | 'Divine' | 'Both';
   schools?: SpellSchool[];
+  excludeSchools?: SpellSchool[];
+  includeDivineSchools?: SpellSchool[];
   supplements?: SupplementId[];
 }
 
@@ -35,6 +37,8 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   className,
   spellType,
   schools,
+  excludeSchools,
+  includeDivineSchools,
   supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Get available spells based on type, schools, and supplements
@@ -56,6 +60,14 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       } else {
         // All arcane spells of circle 1
         spellList = (Object.values(arcaneSpellsCircle1) as Spell[][]).flat();
+      }
+
+      // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
+      if (includeDivineSchools && includeDivineSchools.length > 0) {
+        const extraDivineSpells = includeDivineSchools.flatMap(
+          (school) => divineSpellsCircle1[school] || []
+        );
+        spellList = [...spellList, ...extraDivineSpells];
       }
     } else if (spellType === 'Divine') {
       if (schools && schools.length > 0) {
@@ -87,6 +99,13 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       spellList = [...arcaneList, ...divineList];
     }
 
+    // Apply excludeSchools blacklist
+    if (excludeSchools && excludeSchools.length > 0) {
+      spellList = spellList.filter(
+        (spell) => !excludeSchools.includes(spell.school)
+      );
+    }
+
     // Remove duplicates by nome
     const uniqueSpells = spellList.filter(
       (spell, index, self) =>
@@ -95,7 +114,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
 
     // Sort alphabetically
     return uniqueSpells.sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [spellType, schools, supplements]);
+  }, [spellType, schools, excludeSchools, includeDivineSchools, supplements]);
 
   const handleToggle = (spell: Spell) => {
     const isSelected = selectedSpells.some((s) => s.nome === spell.nome);

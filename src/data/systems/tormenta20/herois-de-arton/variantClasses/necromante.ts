@@ -68,6 +68,8 @@ const NECROMANTE: VariantClassOverrides = {
   spellPath: {
     initialSpells: 3,
     spellType: 'Arcane',
+    excludeSchools: ['Encan'],
+    includeDivineSchools: ['Necro'],
     qtySpellsLearnAtLevel: (level: number) => {
       if (level === 1) return 0;
       return 1;

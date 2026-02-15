@@ -17,7 +17,7 @@ import { DivindadeEnum } from '@/data/systems/tormenta20/divindades';
 import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
-import { ClassDescription } from '@/interfaces/Class';
+import { ClassDescription, SpellPath } from '@/interfaces/Class';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
@@ -390,10 +390,10 @@ const CharacterCreationWizardModal: React.FC<
   };
 
   // Helper to get spell info for classes without spellPath defined initially
-  const getSpellInfo = (): {
-    spellType: 'Arcane' | 'Divine' | 'Both';
-    initialSpells: number;
-  } | null => {
+  const getSpellInfo = (): Pick<
+    SpellPath,
+    'spellType' | 'initialSpells' | 'excludeSchools' | 'includeDivineSchools'
+  > | null => {
     if (!classe) return null;
 
     // For classes with spellPath already defined
@@ -401,6 +401,8 @@ const CharacterCreationWizardModal: React.FC<
       return {
         spellType: classe.spellPath.spellType,
         initialSpells: classe.spellPath.initialSpells,
+        excludeSchools: classe.spellPath.excludeSchools,
+        includeDivineSchools: classe.spellPath.includeDivineSchools,
       };
     }
 
@@ -924,6 +926,8 @@ const CharacterCreationWizardModal: React.FC<
             className={classe?.name || ''}
             spellType={spellInfo.spellType}
             schools={selections.spellSchools}
+            excludeSchools={spellInfo.excludeSchools}
+            includeDivineSchools={spellInfo.includeDivineSchools}
             supplements={supplements}
           />
         );

@@ -201,6 +201,21 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         spellCircle,
         supplements
       );
+
+      // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
+      if (
+        spellPath.includeDivineSchools &&
+        spellPath.includeDivineSchools.length > 0
+      ) {
+        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+          spellCircle,
+          supplements
+        );
+        const extraDivineSpells = divineSpells.filter((spell) =>
+          spellPath.includeDivineSchools!.includes(spell.school)
+        );
+        allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
+      }
     } else if (spellPath.spellType === 'Divine') {
       allSpellsOfCircle = dataRegistry.getDivineSpellsByCircleAndSupplements(
         spellCircle,
@@ -248,6 +263,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         spellPath.schools!.includes(spell.school)
       );
     }
+
+    // Apply excludeSchools blacklist
+    if (spellPath.excludeSchools && spellPath.excludeSchools.length > 0) {
+      filteredSpells = filteredSpells.filter(
+        (spell) => !spellPath.excludeSchools!.includes(spell.school)
+      );
+    }
+
+    // Remove duplicates by name
+    filteredSpells = filteredSpells.filter(
+      (spell, index, self) =>
+        index === self.findIndex((s) => s.nome === spell.nome)
+    );
 
     // Filter out already known spells
     const availableSpells = filteredSpells.filter(

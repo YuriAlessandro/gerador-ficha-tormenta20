@@ -1181,6 +1181,8 @@ function getNewSpells(
   const {
     initialSpells,
     schools,
+    excludeSchools,
+    includeDivineSchools,
     spellType,
     spellCircleAvailableAtLevel,
     qtySpellsLearnAtLevel,
@@ -1197,6 +1199,42 @@ function getNewSpells(
       if (index === 3) spellList = spellList.concat(allArcaneSpellsCircle3);
       if (index === 4) spellList = spellList.concat(allArcaneSpellsCircle4);
       if (index === 5) spellList = spellList.concat(allArcaneSpellsCircle5);
+    }
+
+    // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
+    if (includeDivineSchools && includeDivineSchools.length > 0) {
+      for (let index = 1; index < circle + 1; index += 1) {
+        if (index === 1)
+          spellList = spellList.concat(
+            includeDivineSchools.flatMap(
+              (school) => divineSpellsCircle1[school]
+            )
+          );
+        if (index === 2)
+          spellList = spellList.concat(
+            includeDivineSchools.flatMap(
+              (school) => divineSpellsCircle2[school]
+            )
+          );
+        if (index === 3)
+          spellList = spellList.concat(
+            includeDivineSchools.flatMap(
+              (school) => divineSpellsCircle3[school]
+            )
+          );
+        if (index === 4)
+          spellList = spellList.concat(
+            includeDivineSchools.flatMap(
+              (school) => divineSpellsCircle4[school]
+            )
+          );
+        if (index === 5)
+          spellList = spellList.concat(
+            includeDivineSchools.flatMap(
+              (school) => divineSpellsCircle5[school]
+            )
+          );
+      }
     }
   } else {
     for (let index = 1; index < circle + 1; index += 1) {
@@ -1253,6 +1291,19 @@ function getNewSpells(
       }
     }
   }
+
+  // Apply excludeSchools blacklist
+  if (excludeSchools && excludeSchools.length > 0) {
+    spellList = spellList.filter(
+      (spell) => !excludeSchools.includes(spell.school)
+    );
+  }
+
+  // Remove duplicates by name
+  spellList = spellList.filter(
+    (spell, index, self) =>
+      index === self.findIndex((s) => s.nome === spell.nome)
+  );
 
   const filteredSpellList = spellList.filter(
     (spell) => !usedSpells.find((usedSpell) => usedSpell.nome === spell.nome)
