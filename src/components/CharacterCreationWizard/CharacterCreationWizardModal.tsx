@@ -359,9 +359,12 @@ const CharacterCreationWizardModal: React.FC<
 
   const needsInitialSpellSelection = (): boolean => {
     if (!classe) return false;
-    // Classes que lançam magias: Arcanista, Bardo, Druida, Clérigo
+    // Classes com spellPath: só mostrar se tiver magias iniciais > 0
+    if (classe.spellPath) {
+      return classe.spellPath.initialSpells > 0;
+    }
+    // Classes que lançam magias sem spellPath explícito
     return (
-      classe.spellPath !== undefined ||
       classe.name === 'Arcanista' ||
       classe.name === 'Bardo' ||
       classe.name === 'Druida' ||
@@ -1134,7 +1137,9 @@ const CharacterCreationWizardModal: React.FC<
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();
         if (!spellInfo) return false;
-        return selections.initialSpells?.length === spellInfo.initialSpells;
+        return (
+          (selections.initialSpells ?? []).length === spellInfo.initialSpells
+        );
       }
 
       case 'Efeitos de Poderes': {
