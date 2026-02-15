@@ -4,7 +4,10 @@ import PROFICIENCIAS from '../data/systems/tormenta20/proficiencias';
 import CharacterSheet from '../interfaces/CharacterSheet';
 import { ClassPower } from '../interfaces/Class';
 import { GeneralPower, RequirementType } from '../interfaces/Poderes';
-import Skill from '../interfaces/Skills';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  isGenericOficio,
+} from '../interfaces/Skills';
 import {
   INVENTOR_SPECIALIZATIONS,
   InventorSpecialization,
@@ -76,6 +79,11 @@ export function isPowerAvailable(
             );
           }
           case RequirementType.PERICIA: {
+            if (isGenericOficio(rule.name)) {
+              return sheet.skills.some(
+                (s) => s === Skill.OFICIO || ALL_SPECIFIC_OFICIOS.includes(s)
+              );
+            }
             const pericia = rule.name as Skill;
             return rule.name && sheet.skills.includes(pericia);
           }

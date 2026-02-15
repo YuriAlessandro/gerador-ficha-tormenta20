@@ -49,6 +49,10 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
+import Skill, {
+  ALL_SPECIFIC_OFICIOS,
+  isGenericOficio,
+} from '@/interfaces/Skills';
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
@@ -729,7 +733,17 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             );
 
           case RequirementType.PERICIA: {
-            // Check if character has the required skill trained
+            // Generic Ofício requirement matches any specific Ofício variant
+            if (isGenericOficio(req.name)) {
+              return (
+                sheet.completeSkills?.some(
+                  (s) =>
+                    (s.name === Skill.OFICIO ||
+                      ALL_SPECIFIC_OFICIOS.includes(s.name)) &&
+                    (s.training || 0) > 0
+                ) || false
+              );
+            }
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );
@@ -823,6 +837,16 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
               false
             );
           case RequirementType.PERICIA: {
+            if (isGenericOficio(req.name)) {
+              return (
+                sheet.completeSkills?.some(
+                  (s) =>
+                    (s.name === Skill.OFICIO ||
+                      ALL_SPECIFIC_OFICIOS.includes(s.name)) &&
+                    (s.training || 0) > 0
+                ) || false
+              );
+            }
             const skill = sheet.completeSkills?.find(
               (s) => s.name === req.name
             );

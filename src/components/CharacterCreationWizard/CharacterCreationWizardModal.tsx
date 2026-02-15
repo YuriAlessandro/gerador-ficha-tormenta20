@@ -29,8 +29,11 @@ import { MoreauHeritageName } from '@/data/systems/tormenta20/ameacas-de-arton/r
 // Import step components
 import { getPowerSelectionRequirements } from '@/functions/powers/manualPowerSelection';
 import { getInitialMoneyWithDetails } from '@/functions/general';
-import { getClassBaseSkillsWithChoices } from '@/data/systems/tormenta20/pericias';
-import Skill from '@/interfaces/Skills';
+import {
+  getClassBaseSkillsWithChoices,
+  expandOficioInBasicas,
+} from '@/data/systems/tormenta20/pericias';
+import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
 import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
@@ -170,6 +173,12 @@ const CharacterCreationWizardModal: React.FC<
     const classes = dataRegistry.getClassesBySupplements(supplements);
     return classes.find((c) => c.name === selectedOptions.classe);
   }, [supplements, selectedOptions.classe]);
+
+  // Expand Ofício (Qualquer) in base skills to specific Ofício variants
+  const expandedBasicas = useMemo(
+    () => (classe ? expandOficioInBasicas(classe.periciasbasicas) : []),
+    [classe]
+  );
 
   // Memoize origin to prevent infinite re-renders (used as useEffect dependency)
   const origin: Origin | undefined = useMemo(() => {
@@ -500,7 +509,8 @@ const CharacterCreationWizardModal: React.FC<
     if (classe) {
       const baseSkills = getClassBaseSkillsWithChoices(
         classe,
-        selections.baseSkillChoices || []
+        selections.baseSkillChoices || [],
+        expandedBasicas
       );
       skills.push(...baseSkills);
     }
@@ -711,45 +721,23 @@ const CharacterCreationWizardModal: React.FC<
       case 'Perícias da Classe': {
         if (!classe) return null;
 
-        // Resolve base skills to filter from remaining
+        // Resolve base skills using expanded basicas (specific Ofício choices recognized)
         const resolvedBaseSkills = getClassBaseSkillsWithChoices(
           classe,
-          selections.baseSkillChoices || []
+          selections.baseSkillChoices || [],
+          expandedBasicas
         );
 
-        // Para o Inventor, substituir "Ofício (Qualquer)" por todas as opções específicas
-        // que são necessárias para habilitar os poderes de classe
-        let availableSkills = classe.periciasrestantes.list.filter(
-          (skill) => !resolvedBaseSkills.includes(skill)
-        );
-        if (classe.name === 'Inventor') {
-          availableSkills = availableSkills.flatMap((skill) =>
-            skill === Skill.OFICIO
-              ? [
-                  Skill.OFICIO_ALQUIMIA,
-                  Skill.OFICIO_ARMEIRO,
-                  Skill.OFICIO_ARTESANATO,
-                  Skill.OFICIO_CULINARIA,
-                  Skill.OFICIO_ALFAIATE,
-                  Skill.OFICIO_ALVENARIA,
-                  Skill.OFICIO_CARPINTEIRO,
-                  Skill.OFICIO_JOALHEIRO,
-                  Skill.OFICIO_FAZENDEIRO,
-                  Skill.OFICIO_PESCADOR,
-                  Skill.OFICIO_ESTALAJADEIRO,
-                  Skill.OFICIO_ESCRIBA,
-                  Skill.OFICIO_ESCULTOR,
-                  Skill.OFICIO_EGENHOQUEIRO,
-                  Skill.OFICIO_PINTOR,
-                  Skill.OFICIO_MINERADOR,
-                ]
-              : [skill]
-          );
-        }
+        // Expand Ofício (Qualquer) into all specific variants for all classes
+        const availableSkills = classe.periciasrestantes.list
+          .flatMap((skill) =>
+            skill === Skill.OFICIO ? ALL_SPECIFIC_OFICIOS : [skill]
+          )
+          .filter((skill) => !resolvedBaseSkills.includes(skill));
 
         return (
           <ClassSkillStep
-            periciasbasicas={classe.periciasbasicas}
+            periciasbasicas={expandedBasicas}
             baseSkillChoices={selections.baseSkillChoices || []}
             onBaseSkillChange={(choices) =>
               setSelections({
@@ -773,12 +761,15 @@ const CharacterCreationWizardModal: React.FC<
       case 'Perícias por Inteligência': {
         // Get all skills except base + class remaining (exclude intelligenceSkills
         // from usedSkills so they stay visible as selected in this step)
-        const allSkills = Object.values(Skill);
+        const allSkills = Object.values(Skill).filter(
+          (s) => s !== Skill.OFICIO
+        );
         const usedSkillsForInt: Skill[] = [
           ...(classe
             ? getClassBaseSkillsWithChoices(
                 classe,
-                selections.baseSkillChoices || []
+                selections.baseSkillChoices || [],
+                expandedBasicas
               )
             : []),
           ...(selections.classSkills || []),
@@ -1023,7 +1014,7 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Perícias da Classe': {
         if (!classe) return false;
-        const orGroupCount = classe.periciasbasicas.filter(
+        const orGroupCount = expandedBasicas.filter(
           (be) => be.type === 'or'
         ).length;
         const baseChoicesValid =

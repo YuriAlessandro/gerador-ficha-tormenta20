@@ -13,6 +13,7 @@ import {
   getClassBaseSkillsWithChoices,
   getNotRepeatedSkillsByQtd,
   getRemainingSkills,
+  expandOficioInBasicas,
 } from '../data/systems/tormenta20/pericias';
 import EQUIPAMENTOS, {
   calcDefense,
@@ -4183,7 +4184,8 @@ export function generateEmptySheet(
       ...(wizardSelections?.baseSkillChoices
         ? getClassBaseSkillsWithChoices(
             generatedClass,
-            wizardSelections.baseSkillChoices
+            wizardSelections.baseSkillChoices,
+            expandOficioInBasicas(generatedClass.periciasbasicas)
           )
         : getClassBaseSkills(generatedClass)),
       ...(wizardSelections?.classSkills || []),

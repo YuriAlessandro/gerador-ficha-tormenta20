@@ -2,8 +2,8 @@ import {
   getRandomItemFromArray,
   pickFromArray,
 } from '../../../functions/randomUtils';
-import { ClassDescription } from '../../../interfaces/Class';
-import Skill from '../../../interfaces/Skills';
+import { ClassDescription, BasicExpertise } from '../../../interfaces/Class';
+import Skill, { ALL_SPECIFIC_OFICIOS } from '../../../interfaces/Skills';
 
 // Skills without "Ofício (Qualquer)" - used for random/manual selections
 // This avoids the generic "Ofício (Qualquer)" appearing in skill picks,
@@ -41,6 +41,35 @@ export function getNotRepeatedSkillsByQtd(
   return pickFromArray(notUsed, qtd);
 }
 
+export function expandOficioInBasicas(
+  basicas: BasicExpertise[]
+): BasicExpertise[] {
+  return basicas.flatMap((group) => {
+    if (!group.list.includes(Skill.OFICIO)) {
+      return [group];
+    }
+
+    if (group.type === 'and') {
+      const remaining = group.list.filter((s) => s !== Skill.OFICIO);
+      const result: BasicExpertise[] = [];
+      if (remaining.length > 0) {
+        result.push({ type: 'and', list: remaining });
+      }
+      result.push({ type: 'or', list: [...ALL_SPECIFIC_OFICIOS] });
+      return result;
+    }
+
+    if (group.type === 'or') {
+      const expanded = group.list.flatMap((s) =>
+        s === Skill.OFICIO ? ALL_SPECIFIC_OFICIOS : [s]
+      );
+      return [{ type: 'or', list: expanded }];
+    }
+
+    return [group];
+  });
+}
+
 const baseSkillsStrategies: Record<
   string,
   (baseSkills: Skill[], usedSkills: Skill[]) => Skill[]
@@ -65,11 +94,13 @@ export function getClassBaseSkills(classe: ClassDescription): Skill[] {
 
 export function getClassBaseSkillsWithChoices(
   classe: ClassDescription,
-  orChoices: Skill[]
+  orChoices: Skill[],
+  expandedBasicas?: BasicExpertise[]
 ): Skill[] {
   let orIndex = 0;
+  const basicas = expandedBasicas || classe.periciasbasicas;
 
-  return classe.periciasbasicas.reduce<Skill[]>((result, basicExpertise) => {
+  return basicas.reduce<Skill[]>((result, basicExpertise) => {
     if (basicExpertise.type === 'and') {
       return [...result, ...basicExpertise.list];
     }

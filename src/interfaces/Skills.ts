@@ -132,6 +132,29 @@ export const TrainedOnlySkills: Skill[] = [
   Skill.RELIGIAO,
 ];
 
+export const ALL_SPECIFIC_OFICIOS: Skill[] = [
+  Skill.OFICIO_ALQUIMIA,
+  Skill.OFICIO_ARMEIRO,
+  Skill.OFICIO_ARTESANATO,
+  Skill.OFICIO_CULINARIA,
+  Skill.OFICIO_ALFAIATE,
+  Skill.OFICIO_ALVENARIA,
+  Skill.OFICIO_CARPINTEIRO,
+  Skill.OFICIO_JOALHEIRO,
+  Skill.OFICIO_FAZENDEIRO,
+  Skill.OFICIO_PESCADOR,
+  Skill.OFICIO_ESTALAJADEIRO,
+  Skill.OFICIO_ESCRIBA,
+  Skill.OFICIO_ESCULTOR,
+  Skill.OFICIO_EGENHOQUEIRO,
+  Skill.OFICIO_PINTOR,
+  Skill.OFICIO_MINERADOR,
+];
+
+export function isGenericOficio(name?: string): boolean {
+  return name === 'Ofício' || name === Skill.OFICIO;
+}
+
 export type CompleteSkill = {
   name: Skill;
   halfLevel?: number;
