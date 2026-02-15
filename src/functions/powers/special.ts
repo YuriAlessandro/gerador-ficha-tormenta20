@@ -190,7 +190,10 @@ export function applyLefouDeformidade(
   return subSteps;
 }
 
-export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
+export function applyOsteonMemoriaPostuma(
+  _sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
   function addSkillOrGeneralPower(sheet: CharacterSheet, substeps: SubStep[]) {
     const shouldGetSkill = Math.random() > 0.5;
 
@@ -240,11 +243,78 @@ export function applyOsteonMemoriaPostuma(_sheet: CharacterSheet): SubStep[] {
 
   const subSteps: SubStep[] = [];
 
+  // Check for manual selections
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
+  const hasManualRaceAbilities =
+    manualSelections?.raceAbilities &&
+    manualSelections.raceAbilities.length > 0;
+
+  // Check if Memória Póstuma was already applied (avoid re-applying during recalculation)
+  const memoriaAlreadyApplied = _sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Memória Póstuma'
+      )
+  );
+
+  if (
+    memoriaAlreadyApplied &&
+    !hasManualSkills &&
+    !hasManualPowers &&
+    !hasManualRaceAbilities
+  ) {
+    return subSteps;
+  }
+
   if (_sheet.raca.oldRace) {
     if (_sheet.raca.oldRace.name === HUMANO.name) {
-      addSkillOrGeneralPower(_sheet, subSteps);
+      // Humano path: skill or power
+      if (hasManualSkills) {
+        const skill = manualSelections.skills![0] as Skill;
+        _sheet.skills.push(skill);
+        subSteps.push({
+          name: 'Memória Póstuma',
+          value: `Perícia treinada (${skill})`,
+        });
+      } else if (hasManualPowers) {
+        const power = manualSelections.powers![0] as GeneralPower;
+        _sheet.generalPowers.push(power);
+        subSteps.push({
+          name: 'Memória Póstuma',
+          value: `Poder geral recebido (${power.name})`,
+        });
+      } else {
+        // Random fallback
+        addSkillOrGeneralPower(_sheet, subSteps);
+      }
     } else if (_sheet.raca.oldRace.abilities) {
-      _sheet = getAndApplyRandomOldRaceAbility(_sheet, subSteps);
+      // Non-Humano path: race ability
+      if (hasManualRaceAbilities) {
+        const selectedAbilityName =
+          manualSelections.raceAbilities![0].abilityName;
+        const ability = _sheet.raca.oldRace.abilities.find(
+          (a) => a.name === selectedAbilityName
+        );
+        if (ability) {
+          _sheet.raca.abilities?.push(ability);
+          subSteps.push({
+            name: 'Memória Póstuma',
+            value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+          });
+          applyPower(_sheet, ability);
+        }
+      } else {
+        // Random fallback
+        getAndApplyRandomOldRaceAbility(_sheet, subSteps);
+      }
     }
   }
 

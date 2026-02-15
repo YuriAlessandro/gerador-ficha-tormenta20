@@ -43,6 +43,7 @@ import { SupplementId } from '@/types/supplement.types';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
+import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -120,6 +121,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'getClassPower'
         | 'humanoVersatil'
         | 'lefouDeformidade'
+        | 'osteonMemoriaPostuma'
         | 'chooseFromOptions';
       pick: number;
       label: string;
@@ -484,6 +486,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'getClassPower'
         | 'humanoVersatil'
         | 'lefouDeformidade'
+        | 'osteonMemoriaPostuma'
         | 'chooseFromOptions';
       pick: number;
       label: string;
@@ -756,6 +759,54 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <DeformidadeSelectionField
             availableSkills={availableSkillsForDeformidade}
             availablePowers={availableTormentaPowers}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Memória Póstuma (Osteon/Soterrado) selection with custom component
+    if (type === 'osteonMemoriaPostuma') {
+      const availableSkillsForMP = allAvailableOptions as unknown as Skill[];
+
+      // Get available general powers
+      const allPowersForMP = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForMP = Object.values(allPowersForMP).flat();
+      const existingGeneralPowersForMP = sheetForFiltering.generalPowers || [];
+      const availablePowersForMP = allGeneralPowersForMP.filter((power) => {
+        const isRepeatedPower = existingGeneralPowersForMP.find(
+          (existingPower) => existingPower.name === power.name
+        );
+        if (isRepeatedPower) {
+          return power.allowSeveralPicks;
+        }
+        return isPowerAvailable(sheetForFiltering, power);
+      });
+
+      // Get available races (exclude Golem, Golem Desperto, Osteon, Soterrado)
+      const allRacesForMP = dataRegistry.getRacesBySupplements(supplements);
+      const excludedRaceNames = [
+        'Golem',
+        'Golem Desperto',
+        'Osteon',
+        'Soterrado',
+      ];
+      const availableRacesForMP = allRacesForMP.filter(
+        (r) => !excludedRaceNames.includes(r.name)
+      );
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <MemoriaPostumaSelectionField
+            availableRaces={availableRacesForMP}
+            availableSkills={availableSkillsForMP}
+            availablePowers={availablePowersForMP}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

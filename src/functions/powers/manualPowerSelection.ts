@@ -284,6 +284,19 @@ export function getPowerSelectionRequirements(
             'Selecione 2 perícias (+2 cada) ou 1 perícia (+2) + 1 poder da Tormenta',
         });
       }
+
+      // Handle Memória Póstuma special action for Osteon/Soterrado
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'osteonMemoriaPostuma'
+      ) {
+        requirements.push({
+          type: 'osteonMemoriaPostuma',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 skill OR 1 power OR 1 race ability
+          label: 'Selecione o benefício da Memória Póstuma',
+        });
+      }
     });
   }
 
@@ -635,6 +648,32 @@ export function getFilteredAvailableOptions(
       return allLefouSkills.sort((a, b) => a.localeCompare(b));
     }
 
+    case 'osteonMemoriaPostuma': {
+      // Options are handled dynamically by MemoriaPostumaSelectionField
+      // Return all skills as a fallback for filtering purposes
+      const allMPSkills = Object.values(Skill);
+      return allMPSkills
+        .filter((skill) => {
+          if (sheet.skills.includes(skill)) {
+            return false;
+          }
+          if (sheet.completeSkills) {
+            const existingSkill = sheet.completeSkills.find(
+              (cs) => cs.name === skill
+            );
+            if (
+              existingSkill &&
+              existingSkill.training &&
+              existingSkill.training > 0
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
+    }
+
     default:
       return availableOptions;
   }
@@ -703,6 +742,17 @@ export function validateSelections(
         selectedItems = selections.chosenOption || [];
         selectedCount = selectedItems.length;
         break;
+
+      case 'osteonMemoriaPostuma': {
+        // 1 skill OR 1 power OR 1 race ability
+        const mpSkills = selections.skills || [];
+        const mpPowers = selections.powers || [];
+        const mpAbilities = selections.raceAbilities || [];
+        selectedCount =
+          mpSkills.length + mpPowers.length + mpAbilities.length > 0 ? 1 : 0;
+        selectedItems = [...mpSkills, ...mpPowers, ...mpAbilities];
+        break;
+      }
 
       default:
         // Handle unknown types

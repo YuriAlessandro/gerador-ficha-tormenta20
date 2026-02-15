@@ -1991,7 +1991,7 @@ export const applyPower = (
         } else if (
           sheetAction.action.specialAction === 'osteonMemoriaPostuma'
         ) {
-          currentSteps = applyOsteonMemoriaPostuma(sheet);
+          currentSteps = applyOsteonMemoriaPostuma(sheet, manualSelections);
         } else if (
           sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
         ) {
@@ -4291,6 +4291,27 @@ export function generateEmptySheet(
   // Apply Qareen element selection from wizard
   if (wizardSelections?.qareenElement && emptySheet.raca.name === 'Qareen') {
     emptySheet.qareenElement = wizardSelections.qareenElement;
+  }
+
+  // Apply Osteon/Soterrado old race selection from wizard
+  const wizardOldRaceName =
+    wizardSelections?.powerEffectSelections?.['Memória Póstuma']
+      ?.osteonOldRace || wizardSelections?.osteonOldRace;
+  if (
+    wizardOldRaceName &&
+    (emptySheet.raca.name === 'Osteon' || emptySheet.raca.name === 'Soterrado')
+  ) {
+    const allRacesForOldRace = dataRegistry.getRacesBySupplements(
+      selectedOptions.supplements || [SupplementId.TORMENTA20_CORE]
+    );
+    const oldRaceObj = allRacesForOldRace.find(
+      (r) => r.name === wizardOldRaceName
+    );
+    if (oldRaceObj) {
+      const modifiedRace = _.cloneDeep(emptySheet.raca);
+      modifiedRace.oldRace = _.cloneDeep(oldRaceObj);
+      emptySheet.raca = modifiedRace;
+    }
   }
 
   // Handle Arcanista subtype selection specially

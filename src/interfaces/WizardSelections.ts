@@ -99,6 +99,9 @@ export interface WizardSelections {
   // Qareen element selection (determines elemental resistance)
   qareenElement?: DamageType;
 
+  // Osteon/Soterrado old race selection for Memória Póstuma
+  osteonOldRace?: string;
+
   // Golem customization (if race is Golem Desperto)
   golemChassis?: string;
   golemEnergySource?: string;

@@ -107,6 +107,10 @@ const CharacterCreationWizardModal: React.FC<
     [selectedOptions.supplements]
   );
 
+  // Extract old race name for Osteon/Soterrado Memória Póstuma (used as dependency)
+  const memoriaPostumaOldRace =
+    selections.powerEffectSelections?.['Memória Póstuma']?.osteonOldRace;
+
   // Get race and apply customization if provided
   const race: Race | undefined = useMemo(() => {
     let baseRace = dataRegistry.getRaceByName(
@@ -165,8 +169,25 @@ const CharacterCreationWizardModal: React.FC<
       }
     }
 
+    // Apply Osteon/Soterrado old race from Memória Póstuma selections
+    if (
+      memoriaPostumaOldRace &&
+      (baseRace.name === 'Osteon' || baseRace.name === 'Soterrado')
+    ) {
+      const allRaces = dataRegistry.getRacesBySupplements(supplements);
+      const oldRaceObj = allRaces.find((r) => r.name === memoriaPostumaOldRace);
+      if (oldRaceObj) {
+        baseRace = { ...baseRace, oldRace: { ...oldRaceObj } };
+      }
+    }
+
     return baseRace;
-  }, [selectedOptions.raca, supplements, raceCustomization]);
+  }, [
+    selectedOptions.raca,
+    supplements,
+    raceCustomization,
+    memoriaPostumaOldRace,
+  ]);
 
   // Memoize classe to prevent infinite re-renders (used as useEffect dependency)
   const classe: ClassDescription | undefined = useMemo(() => {
@@ -1181,6 +1202,15 @@ const CharacterCreationWizardModal: React.FC<
               if (deformSkillCount >= 2) return 2;
               if (deformSkillCount >= 1 && deformPowerCount >= 1) return 2;
               return deformSkillCount;
+            }
+            case 'osteonMemoriaPostuma': {
+              // For Memória Póstuma: need 1 skill OR 1 power OR 1 race ability
+              const mpSkillCount = powerSelections.skills?.length || 0;
+              const mpPowerCount = powerSelections.powers?.length || 0;
+              const mpAbilityCount = powerSelections.raceAbilities?.length || 0;
+              if (mpSkillCount >= 1 || mpPowerCount >= 1 || mpAbilityCount >= 1)
+                return 1;
+              return 0;
             }
             default:
               return 0;
