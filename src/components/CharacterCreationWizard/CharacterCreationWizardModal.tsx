@@ -18,6 +18,7 @@ import SelectedOptions from '@/interfaces/SelectedOptions';
 import { WizardSelections } from '@/interfaces/WizardSelections';
 import Race, { AttributeVariant } from '@/interfaces/Race';
 import { ClassDescription, SpellPath } from '@/interfaces/Class';
+import { allSpellSchools } from '@/interfaces/Spells';
 import Origin, { OriginBenefits } from '@/interfaces/Origin';
 import Divindade from '@/interfaces/Divindade';
 import { SupplementId } from '@/types/supplement.types';
@@ -413,9 +414,18 @@ const CharacterCreationWizardModal: React.FC<
         Mago: 4,
         Feiticeiro: 3,
       };
+
+      // Linhagem Abençoada: include divine spells from all schools
+      const includeDivineSchools =
+        selections.arcanistaSubtype === 'Feiticeiro' &&
+        selections.feiticeiroLinhagem === 'Linhagem Abençoada'
+          ? allSpellSchools
+          : undefined;
+
       return {
         spellType: 'Arcane',
         initialSpells: initialSpellsBySubtype[selections.arcanistaSubtype],
+        includeDivineSchools,
       };
     }
 

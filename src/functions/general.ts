@@ -95,7 +95,7 @@ import {
   divineSpellsCircle4,
   divineSpellsCircle5,
 } from '../data/systems/tormenta20/magias/divine';
-import { Spell } from '../interfaces/Spells';
+import { Spell, allSpellSchools } from '../interfaces/Spells';
 import {
   getRaceDisplacement,
   getRaceSize,
@@ -4476,6 +4476,11 @@ export function generateEmptySheet(
           modifiedClasse.abilities.push(linhagemRubra);
         }
       } else if (wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada') {
+        // Linhagem Abençoada: include divine spells from all schools
+        if (modifiedClasse.spellPath) {
+          modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
+        }
+
         const deusEscolhido =
           wizardSelections.linhagemAbencoada?.deus || 'um deus maior';
         modifiedClasse.abilities.push({
