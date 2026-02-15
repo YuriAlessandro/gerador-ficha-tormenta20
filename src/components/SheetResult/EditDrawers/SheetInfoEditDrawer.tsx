@@ -861,6 +861,44 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       }
     }
 
+    // Check if manual max PV/PM overrides changed
+    const manualMaxChanged =
+      editedData.manualMaxPV !== sheet.manualMaxPV ||
+      editedData.manualMaxPM !== sheet.manualMaxPM;
+
+    // Track manual max PV/PM changes in steps
+    if (manualMaxChanged) {
+      const manualMaxChanges: SubStep[] = [];
+
+      if (editedData.manualMaxPV !== sheet.manualMaxPV) {
+        manualMaxChanges.push({
+          name: 'PV Máximo Manual',
+          value:
+            editedData.manualMaxPV !== undefined
+              ? editedData.manualMaxPV.toString()
+              : 'Removido (usando cálculo automático)',
+        });
+      }
+
+      if (editedData.manualMaxPM !== sheet.manualMaxPM) {
+        manualMaxChanges.push({
+          name: 'PM Máximo Manual',
+          value:
+            editedData.manualMaxPM !== undefined
+              ? editedData.manualMaxPM.toString()
+              : 'Removido (usando cálculo automático)',
+        });
+      }
+
+      if (manualMaxChanges.length > 0) {
+        newSteps.push({
+          label: 'Edição Manual - PV/PM Manual',
+          type: 'Edição Manual',
+          value: manualMaxChanges,
+        });
+      }
+    }
+
     // Recalculate level-dependent values if level changed
     if (editedData.nivel !== sheet.nivel) {
       updates.completeSkills = recalculateSkills(editedData.nivel);
@@ -1200,7 +1238,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       editedData.deityName !== (sheet.devoto?.divindade.name || '');
     const levelChanged = editedData.nivel !== sheet.nivel;
     const shouldUseRecalculateSheet =
-      attributesChanged || raceChanged || deityChanged || levelChanged;
+      attributesChanged ||
+      raceChanged ||
+      deityChanged ||
+      levelChanged ||
+      manualMaxChanged;
 
     if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
