@@ -96,7 +96,6 @@ export type SheetActionStep =
         | 'yidishanNaturezaOrganica'
         | 'moreauSapiencia'
         | 'moreauEspertezaVulpina'
-        | 'golemDespertoSagrada'
         | 'fradeAutoridadeEclesiastica'
         | 'meioElfoAmbicaoHerdada'
         | 'qareenResistenciaElemental';

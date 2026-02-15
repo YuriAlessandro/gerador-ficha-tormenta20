@@ -10,6 +10,12 @@ import {
   getRandomCompatibleEnergySource,
 } from './golem-desperto-config';
 
+// Atributos base do Golem Desperto (antes de chassi/tamanho)
+export const GOLEM_DESPERTO_BASE_ATTRIBUTES: RaceAttributeAbility[] = [
+  { attr: Atributo.FORCA, mod: 1 },
+  { attr: Atributo.CARISMA, mod: -1 },
+];
+
 // Habilidades fixas do Golem Desperto (herdadas do Golem original)
 const CANALIZAR_REPAROS = {
   name: 'Canalizar Reparos',
@@ -44,6 +50,13 @@ const SEM_ORIGEM = {
   description:
     'Como uma criatura artificial, você já foi construído "pronto". Não teve uma infância — portanto, não tem direito a escolher uma origem e receber benefícios por ela.',
 };
+
+// Habilidades fixas exportadas (para uso em applyGolemDespertoCustomization)
+export const GOLEM_DESPERTO_FIXED_ABILITIES = [
+  CANALIZAR_REPAROS,
+  CRIATURA_ARTIFICIAL,
+  SEM_ORIGEM,
+];
 
 // Placeholders para habilidades dinâmicas (serão substituídas)
 const CHASSI_PLACEHOLDER = {
@@ -105,19 +118,21 @@ export function applyGolemDespertoCustomization(
     return baseRace;
   }
 
-  // Acumular atributos: base + chassi + tamanho
+  // Construir atributos do zero: base conhecida + chassi + tamanho
+  // Não usa baseRace.attributes.attrs para evitar duplicação quando setup() já aplicou
   const accumulatedAttrs = mergeAttributes([
-    ...baseRace.attributes.attrs,
+    ...GOLEM_DESPERTO_BASE_ATTRIBUTES,
     ...chassis.attributes,
     ...size.attributes,
   ]);
 
-  // Substituir habilidades dinâmicas, mantendo as fixas
-  const abilities = baseRace.abilities.filter(
-    (a) => a.name !== 'Chassi' && a.name !== 'Fonte de Energia'
-  );
-  abilities.push(chassis.chassiAbility);
-  abilities.push(energySource.ability);
+  // Construir habilidades do zero: fixas conhecidas + chassi + energia
+  // Não usa baseRace.abilities para evitar duplicação quando setup() já aplicou
+  const abilities = [
+    ...GOLEM_DESPERTO_FIXED_ABILITIES,
+    chassis.chassiAbility,
+    energySource.ability,
+  ];
 
   return {
     ...baseRace,
@@ -142,10 +157,7 @@ const GOLEM_DESPERTO: Race = {
 
   // Atributos base (serão acumulados com chassis e tamanho)
   attributes: {
-    attrs: [
-      { attr: Atributo.FORCA, mod: 1 },
-      { attr: Atributo.CARISMA, mod: -1 },
-    ],
+    attrs: [...GOLEM_DESPERTO_BASE_ATTRIBUTES],
   },
 
   faithProbability: {
@@ -156,9 +168,7 @@ const GOLEM_DESPERTO: Race = {
 
   // Habilidades: fixas + placeholders para dinâmicas
   abilities: [
-    CANALIZAR_REPAROS,
-    CRIATURA_ARTIFICIAL,
-    SEM_ORIGEM,
+    ...GOLEM_DESPERTO_FIXED_ABILITIES,
     CHASSI_PLACEHOLDER,
     FONTE_ENERGIA_PLACEHOLDER,
   ],

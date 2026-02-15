@@ -4,6 +4,7 @@ import {
   RaceSize,
 } from '../../../../../interfaces/Race';
 import { Atributo } from '../../atributos';
+import { allDivineSpellsCircle1 } from '../../magias/divine';
 import { RACE_SIZES } from '../../races/raceSizes/raceSizes';
 
 // Interfaces para as customizações do Golem Desperto
@@ -338,8 +339,10 @@ export const GOLEM_DESPERTO_ENERGY_SOURCES: Record<
         {
           source: { type: 'power', name: 'Fonte de Energia: Sagrada' },
           action: {
-            type: 'special',
-            specialAction: 'golemDespertoSagrada',
+            type: 'learnSpell',
+            availableSpells: allDivineSpellsCircle1,
+            pick: 1,
+            customAttribute: Atributo.SABEDORIA,
           },
         },
       ],

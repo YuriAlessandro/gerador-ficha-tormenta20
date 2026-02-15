@@ -148,7 +148,6 @@ import {
   MOREAU_HERITAGES,
   MoreauHeritageName,
 } from '../data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
-import { applyGolemDespertoSagrada } from './powers/golem-desperto-special';
 import { applyFradeAutoridadeEclesiastica } from './powers/frade-special';
 import { SURAGEL_ALTERNATIVE_ABILITIES } from '../data/systems/tormenta20/deuses-de-arton/races/suragelAbilities';
 import { addOtherBonusToSkill } from './skills/general';
@@ -1535,6 +1534,7 @@ export const applyPower = (
           }
         });
       } else if (sheetAction.action.type === 'learnSpell') {
+        const { customAttribute } = sheetAction.action;
         let learnedSpells: Spell[];
 
         if (manualSelections?.spells && manualSelections.spells.length > 0) {
@@ -1542,11 +1542,18 @@ export const applyPower = (
           learnedSpells = manualSelections.spells;
 
           // Add to sheet.spells if not already present
+          // Apply customAttribute if defined (e.g., Sabedoria for Golem Desperto Sagrada)
           learnedSpells.forEach((spell) => {
             if (
               !sheet.spells.some((existing) => existing.nome === spell.nome)
             ) {
-              sheet.spells.push(spell);
+              const spellToAdd = customAttribute
+                ? {
+                    ...spell,
+                    customKeyAttr: customAttribute,
+                  }
+                : spell;
+              sheet.spells.push(spellToAdd);
             }
           });
         } else {
@@ -1995,10 +2002,6 @@ export const applyPower = (
           sheetAction.action.specialAction === 'moreauEspertezaVulpina'
         ) {
           currentSteps = applyMoreauEspertezaVulpina(sheet);
-        } else if (
-          sheetAction.action.specialAction === 'golemDespertoSagrada'
-        ) {
-          currentSteps = applyGolemDespertoSagrada(sheet);
         } else if (
           sheetAction.action.specialAction === 'fradeAutoridadeEclesiastica'
         ) {
