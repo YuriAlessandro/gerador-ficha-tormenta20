@@ -189,6 +189,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     spellCount: number;
     spellCircle: number;
     availableSpells: Spell[];
+    crossTraditionSpellNames: Set<string>;
+    crossTraditionLimit?: number;
   } | null => {
     if (!simulatedSheet.classe.spellPath) {
       return null;
@@ -202,6 +204,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
 
     const spellCircle = spellPath.spellCircleAvailableAtLevel(currentLevel);
+    const crossNames = new Set<string>();
 
     // Get spells based on spell type (using dataRegistry for supplement support)
     let allSpellsOfCircle: Spell[] = [];
@@ -223,6 +226,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const extraDivineSpells = divineSpells.filter((spell) =>
           spellPath.includeDivineSchools!.includes(spell.school)
         );
+        if (spellPath.crossTraditionLimit) {
+          extraDivineSpells.forEach((s) => crossNames.add(s.nome));
+        }
         allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
       }
     } else if (spellPath.spellType === 'Divine') {
@@ -230,6 +236,24 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         spellCircle,
         supplements
       );
+
+      // Include arcane spells from specified schools (e.g., Teurgista Místico)
+      if (
+        spellPath.includeArcaneSchools &&
+        spellPath.includeArcaneSchools.length > 0
+      ) {
+        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+          spellCircle,
+          supplements
+        );
+        const extraArcaneSpells = arcaneSpells.filter((spell) =>
+          spellPath.includeArcaneSchools!.includes(spell.school)
+        );
+        if (spellPath.crossTraditionLimit) {
+          extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
+        }
+        allSpellsOfCircle = [...allSpellsOfCircle, ...extraArcaneSpells];
+      }
     } else if (spellPath.spellType === 'Both') {
       // Combine arcane and divine spells, remove duplicates
       const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
@@ -260,6 +284,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         (spell, index, self) =>
           index === self.findIndex((s) => s.nome === spell.nome)
       );
+    }
+
+    // Check if character already has a cross-tradition spell for this circle
+    if (spellPath.crossTraditionLimit && crossNames.size > 0) {
+      const existingCrossTraditionCount = simulatedSheet.spells.filter((s) =>
+        crossNames.has(s.nome)
+      ).length;
+      if (existingCrossTraditionCount >= spellPath.crossTraditionLimit) {
+        // Already at limit: remove cross-tradition spells from pool
+        allSpellsOfCircle = allSpellsOfCircle.filter(
+          (s) => !crossNames.has(s.nome)
+        );
+        crossNames.clear();
+      }
     }
 
     // Filter out spells already known
@@ -296,6 +334,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       spellCount,
       spellCircle,
       availableSpells,
+      crossTraditionSpellNames: crossNames,
+      crossTraditionLimit: spellPath.crossTraditionLimit,
     };
   };
 
@@ -639,6 +679,8 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             selectedSpells={currentLevelSelection.spellsLearned || []}
             requiredCount={spellInfo.spellCount}
             spellCircle={spellInfo.spellCircle}
+            crossTraditionSpellNames={spellInfo.crossTraditionSpellNames}
+            crossTraditionLimit={spellInfo.crossTraditionLimit}
             onSpellToggle={(spell) => {
               const current = currentLevelSelection.spellsLearned || [];
               const isSelected = current.some((s) => s.nome === spell.nome);

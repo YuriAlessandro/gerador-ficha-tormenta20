@@ -140,6 +140,7 @@ import {
   applyMeioElfoAmbicaoHerdada,
   applyQareenResistenciaElemental,
   applyAlmaLivreSelectClass,
+  applyTeurgistaMistico,
 } from './powers/special';
 import {
   applyMoreauSapiencia,
@@ -1184,6 +1185,8 @@ function getNewSpells(
     schools,
     excludeSchools,
     includeDivineSchools,
+    includeArcaneSchools,
+    crossTraditionLimit,
     spellType,
     spellCircleAvailableAtLevel,
     qtySpellsLearnAtLevel,
@@ -1204,37 +1207,23 @@ function getNewSpells(
 
     // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
     if (includeDivineSchools && includeDivineSchools.length > 0) {
+      const divineCircles = [
+        divineSpellsCircle1,
+        divineSpellsCircle2,
+        divineSpellsCircle3,
+        divineSpellsCircle4,
+        divineSpellsCircle5,
+      ];
       for (let index = 1; index < circle + 1; index += 1) {
-        if (index === 1)
-          spellList = spellList.concat(
-            includeDivineSchools.flatMap(
-              (school) => divineSpellsCircle1[school]
-            )
-          );
-        if (index === 2)
-          spellList = spellList.concat(
-            includeDivineSchools.flatMap(
-              (school) => divineSpellsCircle2[school]
-            )
-          );
-        if (index === 3)
-          spellList = spellList.concat(
-            includeDivineSchools.flatMap(
-              (school) => divineSpellsCircle3[school]
-            )
-          );
-        if (index === 4)
-          spellList = spellList.concat(
-            includeDivineSchools.flatMap(
-              (school) => divineSpellsCircle4[school]
-            )
-          );
-        if (index === 5)
-          spellList = spellList.concat(
-            includeDivineSchools.flatMap(
-              (school) => divineSpellsCircle5[school]
-            )
-          );
+        const circleSpells = includeDivineSchools.flatMap(
+          (school) => divineCircles[index - 1][school] || []
+        );
+        if (crossTraditionLimit && circleSpells.length > 0) {
+          const randomSpell = getRandomItemFromArray(circleSpells);
+          spellList = spellList.concat(randomSpell);
+        } else {
+          spellList = spellList.concat(circleSpells);
+        }
       }
     }
   } else {
@@ -1244,6 +1233,28 @@ function getNewSpells(
       if (index === 3) spellList = spellList.concat(allDivineSpellsCircle3);
       if (index === 4) spellList = spellList.concat(allDivineSpellsCircle4);
       if (index === 5) spellList = spellList.concat(allDivineSpellsCircle5);
+    }
+
+    // Include arcane spells from specified schools (e.g., Teurgista Místico)
+    if (includeArcaneSchools && includeArcaneSchools.length > 0) {
+      const arcaneCircles = [
+        arcaneSpellsCircle1,
+        arcaneSpellsCircle2,
+        arcaneSpellsCircle3,
+        arcaneSpellsCircle4,
+        arcaneSpellsCircle5,
+      ];
+      for (let index = 1; index < circle + 1; index += 1) {
+        const circleSpells = includeArcaneSchools.flatMap(
+          (school) => arcaneCircles[index - 1][school] || []
+        );
+        if (crossTraditionLimit && circleSpells.length > 0) {
+          const randomSpell = getRandomItemFromArray(circleSpells);
+          spellList = spellList.concat(randomSpell);
+        } else {
+          spellList = spellList.concat(circleSpells);
+        }
+      }
     }
   }
 
@@ -2070,6 +2081,8 @@ export const applyPower = (
           sheetAction.action.specialAction === 'almaLivreSelectClass'
         ) {
           currentSteps = applyAlmaLivreSelectClass(sheet, manualSelections);
+        } else if (sheetAction.action.specialAction === 'teurgistaMistico') {
+          currentSteps = applyTeurgistaMistico(sheet);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`
@@ -5025,6 +5038,12 @@ export function restoreSpellPath(
   // Preserve original values from serialized data (may have been manually changed)
   const originalSchools = sheet.classe.spellPath.schools;
   const originalKeyAttribute = sheet.classe.spellPath.keyAttribute;
+  const originalIncludeDivineSchools =
+    sheet.classe.spellPath.includeDivineSchools;
+  const originalIncludeArcaneSchools =
+    sheet.classe.spellPath.includeArcaneSchools;
+  const originalCrossTraditionLimit =
+    sheet.classe.spellPath.crossTraditionLimit;
 
   if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
     // Arcanista: lookup by subtype (setup() randomizes, so we use the saved subname)
@@ -5061,5 +5080,16 @@ export function restoreSpellPath(
   // Restore original keyAttribute (may have been manually changed by user)
   if (originalKeyAttribute && sheet.classe.spellPath) {
     sheet.classe.spellPath.keyAttribute = originalKeyAttribute;
+  }
+
+  // Restore cross-tradition fields (set dynamically by Teurgista Místico)
+  if (originalIncludeDivineSchools && sheet.classe.spellPath) {
+    sheet.classe.spellPath.includeDivineSchools = originalIncludeDivineSchools;
+  }
+  if (originalIncludeArcaneSchools && sheet.classe.spellPath) {
+    sheet.classe.spellPath.includeArcaneSchools = originalIncludeArcaneSchools;
+  }
+  if (originalCrossTraditionLimit !== undefined && sheet.classe.spellPath) {
+    sheet.classe.spellPath.crossTraditionLimit = originalCrossTraditionLimit;
   }
 }

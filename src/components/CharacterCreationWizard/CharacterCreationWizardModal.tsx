@@ -393,22 +393,40 @@ const CharacterCreationWizardModal: React.FC<
   // Helper to get spell info for classes without spellPath defined initially
   const getSpellInfo = (): Pick<
     SpellPath,
-    'spellType' | 'initialSpells' | 'excludeSchools' | 'includeDivineSchools'
+    | 'spellType'
+    | 'initialSpells'
+    | 'excludeSchools'
+    | 'includeDivineSchools'
+    | 'includeArcaneSchools'
+    | 'crossTraditionLimit'
   > | null => {
     if (!classe) return null;
 
+    const hasTeurgistaMistico =
+      selections.deityPowers?.includes('Teurgista Místico');
+
+    let result: Pick<
+      SpellPath,
+      | 'spellType'
+      | 'initialSpells'
+      | 'excludeSchools'
+      | 'includeDivineSchools'
+      | 'includeArcaneSchools'
+      | 'crossTraditionLimit'
+    > | null = null;
+
     // For classes with spellPath already defined
     if (classe.spellPath) {
-      return {
+      result = {
         spellType: classe.spellPath.spellType,
         initialSpells: classe.spellPath.initialSpells,
         excludeSchools: classe.spellPath.excludeSchools,
         includeDivineSchools: classe.spellPath.includeDivineSchools,
+        includeArcaneSchools: classe.spellPath.includeArcaneSchools,
+        crossTraditionLimit: classe.spellPath.crossTraditionLimit,
       };
-    }
-
-    // For Arcanista with wizard subtype selection
-    if (classe.name === 'Arcanista' && selections.arcanistaSubtype) {
+    } else if (classe.name === 'Arcanista' && selections.arcanistaSubtype) {
+      // For Arcanista with wizard subtype selection
       const initialSpellsBySubtype = {
         Bruxo: 3,
         Mago: 4,
@@ -422,28 +440,33 @@ const CharacterCreationWizardModal: React.FC<
           ? allSpellSchools
           : undefined;
 
-      return {
+      result = {
         spellType: 'Arcane',
         initialSpells: initialSpellsBySubtype[selections.arcanistaSubtype],
         includeDivineSchools,
       };
+    } else if (classe.name === 'Bardo') {
+      result = { spellType: 'Arcane', initialSpells: 2 };
+    } else if (classe.name === 'Druida') {
+      result = { spellType: 'Divine', initialSpells: 2 };
+    } else if (classe.name === 'Clérigo') {
+      result = { spellType: 'Divine', initialSpells: 3 };
+    } else if (classe.name === 'Frade') {
+      result = { spellType: 'Divine', initialSpells: 3 };
     }
 
-    // For Bardo/Druida/Clérigo, hardcode their spell info
-    if (classe.name === 'Bardo') {
-      return { spellType: 'Arcane', initialSpells: 2 };
-    }
-    if (classe.name === 'Druida') {
-      return { spellType: 'Divine', initialSpells: 2 };
-    }
-    if (classe.name === 'Clérigo') {
-      return { spellType: 'Divine', initialSpells: 3 };
-    }
-    if (classe.name === 'Frade') {
-      return { spellType: 'Divine', initialSpells: 3 };
+    // Apply Teurgista Místico cross-tradition expansion
+    if (result && hasTeurgistaMistico) {
+      if (result.spellType === 'Arcane' && !result.includeDivineSchools) {
+        result.includeDivineSchools = allSpellSchools;
+        result.crossTraditionLimit = 1;
+      } else if (result.spellType === 'Divine') {
+        result.includeArcaneSchools = allSpellSchools;
+        result.crossTraditionLimit = 1;
+      }
     }
 
-    return null;
+    return result;
   };
 
   // Build steps array
@@ -938,6 +961,8 @@ const CharacterCreationWizardModal: React.FC<
             schools={selections.spellSchools}
             excludeSchools={spellInfo.excludeSchools}
             includeDivineSchools={spellInfo.includeDivineSchools}
+            includeArcaneSchools={spellInfo.includeArcaneSchools}
+            crossTraditionLimit={spellInfo.crossTraditionLimit}
             supplements={supplements}
           />
         );

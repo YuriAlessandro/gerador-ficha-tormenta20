@@ -99,7 +99,8 @@ export type SheetActionStep =
         | 'fradeAutoridadeEclesiastica'
         | 'meioElfoAmbicaoHerdada'
         | 'qareenResistenciaElemental'
-        | 'almaLivreSelectClass';
+        | 'almaLivreSelectClass'
+        | 'teurgistaMistico';
     }
   | {
       type: 'selectWeaponSpecialization';

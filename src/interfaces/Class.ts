@@ -79,6 +79,8 @@ export interface SpellPath {
   schools?: SpellSchool[];
   excludeSchools?: SpellSchool[];
   includeDivineSchools?: SpellSchool[];
+  includeArcaneSchools?: SpellSchool[];
+  crossTraditionLimit?: number;
   qtySpellsLearnAtLevel: (level: number) => number;
   spellCircleAvailableAtLevel: (level: number) => number;
   keyAttribute: Atributo;

@@ -27,6 +27,8 @@ interface InitialSpellSelectionStepProps {
   schools?: SpellSchool[];
   excludeSchools?: SpellSchool[];
   includeDivineSchools?: SpellSchool[];
+  includeArcaneSchools?: SpellSchool[];
+  crossTraditionLimit?: number;
   supplements?: SupplementId[];
 }
 
@@ -39,10 +41,12 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   schools,
   excludeSchools,
   includeDivineSchools,
+  includeArcaneSchools,
+  crossTraditionLimit,
   supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Get available spells based on type, schools, and supplements
-  const availableSpells = useMemo(() => {
+  const { availableSpells, crossTraditionSpellNames } = useMemo(() => {
     // Get spells from registry (includes supplements)
     const spellsByCircle =
       dataRegistry.getSpellsCircle1BySupplements(supplements);
@@ -50,6 +54,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
     const divineSpellsCircle1 = spellsByCircle.divine;
 
     let spellList: Spell[] = [];
+    const crossNames = new Set<string>();
 
     if (spellType === 'Arcane') {
       if (schools && schools.length > 0) {
@@ -67,6 +72,9 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
         const extraDivineSpells = includeDivineSchools.flatMap(
           (school) => divineSpellsCircle1[school] || []
         );
+        if (crossTraditionLimit) {
+          extraDivineSpells.forEach((s) => crossNames.add(s.nome));
+        }
         spellList = [...spellList, ...extraDivineSpells];
       }
     } else if (spellType === 'Divine') {
@@ -78,6 +86,17 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       } else {
         // Divine - All schools
         spellList = (Object.values(divineSpellsCircle1) as Spell[][]).flat();
+      }
+
+      // Include arcane spells from specified schools (e.g., Teurgista Místico)
+      if (includeArcaneSchools && includeArcaneSchools.length > 0) {
+        const extraArcaneSpells = includeArcaneSchools.flatMap(
+          (school) => arcaneSpellsCircle1[school] || []
+        );
+        if (crossTraditionLimit) {
+          extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
+        }
+        spellList = [...spellList, ...extraArcaneSpells];
       }
     } else if (spellType === 'Both') {
       // Both arcane and divine
@@ -106,15 +125,41 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       );
     }
 
-    // Remove duplicates by nome
-    const uniqueSpells = spellList.filter(
-      (spell, index, self) =>
-        index === self.findIndex((s) => s.nome === spell.nome)
-    );
+    // Remove duplicates by nome (also remove from crossNames if native version exists)
+    const seenNames = new Set<string>();
+    const uniqueSpells = spellList.filter((spell) => {
+      if (seenNames.has(spell.nome)) return false;
+      seenNames.add(spell.nome);
+      return true;
+    });
 
     // Sort alphabetically
-    return uniqueSpells.sort((a, b) => a.nome.localeCompare(b.nome));
-  }, [spellType, schools, excludeSchools, includeDivineSchools, supplements]);
+    return {
+      availableSpells: uniqueSpells.sort((a, b) =>
+        a.nome.localeCompare(b.nome)
+      ),
+      crossTraditionSpellNames: crossNames,
+    };
+  }, [
+    spellType,
+    schools,
+    excludeSchools,
+    includeDivineSchools,
+    includeArcaneSchools,
+    crossTraditionLimit,
+    supplements,
+  ]);
+
+  // Count selected cross-tradition spells (all circle 1 in initial selection)
+  const selectedCrossTraditionCount = useMemo(
+    () =>
+      selectedSpells.filter((s) => crossTraditionSpellNames.has(s.nome)).length,
+    [selectedSpells, crossTraditionSpellNames]
+  );
+
+  const isCrossTraditionLimitReached =
+    crossTraditionLimit !== undefined &&
+    selectedCrossTraditionCount >= crossTraditionLimit;
 
   const handleToggle = (spell: Spell) => {
     const isSelected = selectedSpells.some((s) => s.nome === spell.nome);
@@ -178,6 +223,16 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
         Selecionadas: {selectedSpells.length} / {requiredCount}
       </Typography>
 
+      {crossTraditionSpellNames.size > 0 && crossTraditionLimit && (
+        <Alert severity='info'>
+          Teurgista Místico: você pode escolher até {crossTraditionLimit} magia
+          {crossTraditionLimit > 1 ? 's' : ''}{' '}
+          {spellType === 'Arcane' ? 'divina' : 'arcana'}
+          {crossTraditionLimit > 1 ? 's' : ''} por círculo.
+          {isCrossTraditionLimitReached && ' (Limite atingido)'}
+        </Alert>
+      )}
+
       {selectedSpells.length > 0 && (
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
           <Typography variant='subtitle2' gutterBottom>
@@ -212,8 +267,13 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
                     const isSelected = selectedSpells.some(
                       (s) => s.nome === spell.nome
                     );
+                    const isCrossTradition = crossTraditionSpellNames.has(
+                      spell.nome
+                    );
                     const isDisabled =
-                      !isSelected && selectedSpells.length >= requiredCount;
+                      !isSelected &&
+                      (selectedSpells.length >= requiredCount ||
+                        (isCrossTradition && isCrossTraditionLimitReached));
 
                     return (
                       <FormControlLabel
@@ -238,6 +298,17 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
                                 >
                                   ({spell.manaExpense} PM)
                                 </Typography>
+                              )}
+                              {isCrossTradition && (
+                                <Chip
+                                  label={
+                                    spellType === 'Arcane' ? 'Divina' : 'Arcana'
+                                  }
+                                  size='small'
+                                  color='secondary'
+                                  variant='outlined'
+                                  sx={{ ml: 1 }}
+                                />
                               )}
                             </Typography>
                             <Typography variant='body2' color='text.secondary'>

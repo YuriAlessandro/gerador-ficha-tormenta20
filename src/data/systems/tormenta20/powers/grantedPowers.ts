@@ -948,6 +948,15 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
         { type: RequirementType.DEVOTO, name: 'Wynna' },
       ],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Teurgista Místico' },
+        action: {
+          type: 'special',
+          specialAction: 'teurgistaMistico',
+        },
+      },
+    ],
   },
   TRADICAO_DE_LIN_WU: {
     name: 'Tradição de Lin-Wu',

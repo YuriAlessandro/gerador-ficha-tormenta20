@@ -5,6 +5,7 @@ import CharacterSheet, {
 import Skill from '@/interfaces/Skills';
 import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { GeneralPower } from '@/interfaces/Poderes';
+import { allSpellSchools } from '@/interfaces/Spells';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import HUMANO from '@/data/systems/tormenta20/races/humano';
@@ -474,6 +475,39 @@ export function applyAlmaLivreSelectClass(
     substeps.push({
       name: 'Alma Livre',
       value: `Classe: ${manualSelections.almaLivreClass} — Poder: ${manualSelections.almaLivrePower.name}`,
+    });
+  }
+
+  return substeps;
+}
+
+export function applyTeurgistaMistico(sheet: CharacterSheet): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  if (!sheet.classe.spellPath) {
+    return substeps;
+  }
+
+  const { spellType } = sheet.classe.spellPath;
+
+  if (spellType === 'Arcane') {
+    if (
+      !sheet.classe.spellPath.includeDivineSchools ||
+      sheet.classe.spellPath.includeDivineSchools.length === 0
+    ) {
+      sheet.classe.spellPath.includeDivineSchools = allSpellSchools;
+    }
+    sheet.classe.spellPath.crossTraditionLimit = 1;
+    substeps.push({
+      name: 'Teurgista Místico',
+      value: 'Pode escolher até 1 magia divina por círculo',
+    });
+  } else if (spellType === 'Divine') {
+    sheet.classe.spellPath.includeArcaneSchools = allSpellSchools;
+    sheet.classe.spellPath.crossTraditionLimit = 1;
+    substeps.push({
+      name: 'Teurgista Místico',
+      value: 'Pode escolher até 1 magia arcana por círculo',
     });
   }
 

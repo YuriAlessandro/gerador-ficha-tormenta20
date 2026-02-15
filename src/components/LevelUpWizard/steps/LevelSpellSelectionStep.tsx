@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
+  Alert,
   Box,
   Typography,
   Card,
@@ -18,6 +19,8 @@ interface LevelSpellSelectionStepProps {
   requiredCount: number;
   spellCircle: number;
   onSpellToggle: (spell: Spell) => void;
+  crossTraditionSpellNames?: Set<string>;
+  crossTraditionLimit?: number;
 }
 
 const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
@@ -26,6 +29,8 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
   requiredCount,
   spellCircle,
   onSpellToggle,
+  crossTraditionSpellNames,
+  crossTraditionLimit,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -33,6 +38,17 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
     selectedSpells.some((s) => s.nome === spell.nome);
 
   const isComplete = selectedSpells.length === requiredCount;
+
+  const selectedCrossTraditionCount = useMemo(() => {
+    if (!crossTraditionSpellNames || crossTraditionSpellNames.size === 0)
+      return 0;
+    return selectedSpells.filter((s) => crossTraditionSpellNames.has(s.nome))
+      .length;
+  }, [selectedSpells, crossTraditionSpellNames]);
+
+  const isCrossTraditionLimitReached =
+    crossTraditionLimit !== undefined &&
+    selectedCrossTraditionCount >= crossTraditionLimit;
 
   // Filter spells by search query
   const filteredSpells = useMemo(() => {
@@ -112,10 +128,25 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
         </>
       )}
 
+      {crossTraditionSpellNames &&
+        crossTraditionSpellNames.size > 0 &&
+        crossTraditionLimit && (
+          <Alert severity='info' sx={{ mb: 2 }}>
+            Teurgista Místico: até {crossTraditionLimit} magia
+            {crossTraditionLimit > 1 ? 's' : ''} da tradição oposta por círculo.
+            {isCrossTraditionLimitReached && ' (Limite atingido)'}
+          </Alert>
+        )}
+
       <Grid container spacing={2}>
         {filteredSpells.map((spell) => {
           const selected = isSpellSelected(spell);
-          const canSelect = !selected && selectedSpells.length < requiredCount;
+          const isCrossTradition =
+            crossTraditionSpellNames?.has(spell.nome) ?? false;
+          const canSelect =
+            !selected &&
+            selectedSpells.length < requiredCount &&
+            !(isCrossTradition && isCrossTraditionLimitReached);
 
           return (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={spell.nome}>
@@ -148,11 +179,26 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
                       mb: 1,
                     }}
                   >
-                    <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
-                      {spell.nome}
-                    </Typography>
+                    <Box
+                      sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                    >
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 'bold' }}
+                      >
+                        {spell.nome}
+                      </Typography>
+                      {isCrossTradition && (
+                        <Chip
+                          label='Cross'
+                          size='small'
+                          color='secondary'
+                          variant='outlined'
+                        />
+                      )}
+                    </Box>
                     <Chip
-                      label={`${spell.spellCircle}º círculo`}
+                      label={spell.spellCircle}
                       size='small'
                       color='primary'
                       variant='outlined'
