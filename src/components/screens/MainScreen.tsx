@@ -224,7 +224,29 @@ const updateSheetInHistoric = (updatedSheet: CharacterSheet) => {
       date: historic[sheetIndex].date, // Keep original date
       id: updatedSheet.id,
     };
+  } else {
+    // Sheet not found in historic - create a new entry as fallback
+    historic.push({
+      sheet: updatedSheet,
+      date: new Date().toLocaleDateString('pt-BR'),
+      id: updatedSheet.id,
+    });
+  }
+
+  try {
     ls.setItem('fdnHistoric', JSON.stringify(historic));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      while (historic.length > 1) {
+        historic.shift();
+        try {
+          ls.setItem('fdnHistoric', JSON.stringify(historic));
+          return;
+        } catch {
+          // Continue removing oldest entries
+        }
+      }
+    }
   }
 };
 
