@@ -552,6 +552,79 @@ export const HEROIS_ARTON_ALCHEMY_POISONS: Equipment[] = [
 ];
 
 // ==========================================
+// ALIMENTAÇÃO — BEBIDAS
+// ==========================================
+
+export const HEROIS_ARTON_FOOD: Equipment[] = [
+  {
+    nome: 'Baba de troll',
+    group: 'Alimentação',
+    preco: 30,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Barba queimada',
+    group: 'Alimentação',
+    preco: 45,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Cerveja deheoni',
+    group: 'Alimentação',
+    preco: 15,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Dilínio',
+    group: 'Alimentação',
+    preco: 600,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Grogue negro',
+    group: 'Alimentação',
+    preco: 15,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Grogue rubro',
+    group: 'Alimentação',
+    preco: 45,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Hidromel uivante',
+    group: 'Alimentação',
+    preco: 21,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Licor feérico',
+    group: 'Alimentação',
+    preco: 450,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Sidra ahleniense',
+    group: 'Alimentação',
+    preco: 45,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Vinho Pruss',
+    group: 'Alimentação',
+    preco: 60,
+    spaces: 0.5,
+  },
+  {
+    nome: 'Vinho élfico',
+    group: 'Alimentação',
+    preco: 90,
+    spaces: 0.5,
+  },
+];
+
+// ==========================================
 // ESOTÉRICOS
 // ==========================================
 
