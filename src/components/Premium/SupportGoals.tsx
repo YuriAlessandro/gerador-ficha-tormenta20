@@ -206,7 +206,7 @@ const SupportGoals: React.FC = () => {
                             : 'text.primary'
                         }
                       >
-                        {goal.label} — {goal.target} apoiadores
+                        {goal.label} — até {goal.target} apoiadores
                       </Typography>
                     </Stack>
 
