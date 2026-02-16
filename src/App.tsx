@@ -323,9 +323,7 @@ function ThemedApp(): JSX.Element {
                                   <SheetViewPage />
                                 </Route>
                                 <Route path='/builds'>
-                                  <ProtectedRoute requireAuth redirectTo='/'>
-                                    <BuildsListPage />
-                                  </ProtectedRoute>
+                                  <BuildsListPage />
                                 </Route>
                                 <Route path='/my-builds'>
                                   <ProtectedRoute requireAuth redirectTo='/'>
