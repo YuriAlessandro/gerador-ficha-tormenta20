@@ -14,11 +14,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { BlogService, BlogPost } from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
-import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
+// import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
 // import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 // import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
 // import p16Image from '../../assets/images/arts/p16.png';
-import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
+// import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
   id: string;
@@ -44,39 +44,39 @@ export interface CarouselSlide {
 // CONFIGURE SLIDES HERE - Easy to update
 // ===========================================
 export const carouselSlides: CarouselSlide[] = [
+  {
+    id: 'blog-destaque',
+    title: 'Carregando...',
+    subtitle: '',
+    type: 'blog',
+    blogPostSlug: 'as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores',
+    category: 'Blog',
+    isNew: true,
+  },
   // {
-  //   id: 'blog-destaque',
-  //   title: 'Carregando...',
-  //   subtitle: '',
-  //   type: 'blog',
-  //   blogPostSlug: 'as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores',
-  //   category: 'Blog',
-  //   isNew: true,
+  //   id: 'gerador-ficha',
+  //   title: 'Criar personagem',
+  //   subtitle:
+  //     'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
+  //   image: sheetImage,
+  //   ctaText: 'Criar Ficha',
+  //   ctaLink: '/criar-ficha',
+  //   requireAuth: true,
+  //   secondaryCtaText: 'Meus Personagens',
+  //   secondaryCtaLink: '/meus-personagens',
+  //   secondaryRequireAuth: true,
+  //   category: 'Ferramentas',
   // },
-  {
-    id: 'gerador-ficha',
-    title: 'Criar personagem',
-    subtitle:
-      'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
-    image: sheetImage,
-    ctaText: 'Criar Ficha',
-    ctaLink: '/criar-ficha',
-    requireAuth: true,
-    secondaryCtaText: 'Meus Personagens',
-    secondaryCtaLink: '/meus-personagens',
-    secondaryRequireAuth: true,
-    category: 'Ferramentas',
-  },
-  {
-    id: 'apoio',
-    title: 'Apoie o Projeto!',
-    subtitle:
-      'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
-    image: lancaGalrasiaImage,
-    category: 'Recompensas incríveis te aguardam!',
-    ctaText: 'Apoiar',
-    ctaLink: '/apoiar',
-  },
+  // {
+  //   id: 'apoio',
+  //   title: 'Apoie o Projeto!',
+  //   subtitle:
+  //     'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
+  //   image: lancaGalrasiaImage,
+  //   category: 'Recompensas incríveis te aguardam!',
+  //   ctaText: 'Apoiar',
+  //   ctaLink: '/apoiar',
+  // },
   // {
   //   id: 'fichas-de-nimb',
   //   title: 'Fichas de Nimb',
