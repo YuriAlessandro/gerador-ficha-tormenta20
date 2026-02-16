@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            15/02/2026.
+            16/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,31 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.1</h3>
+              <ul>
+                <li>
+                  <strong>🏘️ Builds da Comunidade:</strong> A página de builds
+                  agora é pública! Qualquer pessoa pode navegar e visualizar as
+                  builds compartilhadas pela comunidade, mesmo sem estar logado.
+                </li>
+                <li>
+                  <strong>💝 Metas de Apoio:</strong> Nova seção de metas na
+                  página de apoio, com barras de progresso mostrando o avanço em
+                  direção aos objetivos do projeto.
+                </li>
+                <li>
+                  <strong>🔧 Correções:</strong>
+                  <ul>
+                    <li>
+                      Corrigido problema no wizard de criação onde o botão
+                      &quot;Próximo&quot; ficava desabilitado incorretamente no
+                      passo de habilidades de classe, afetando poderes como
+                      Memória Póstuma.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.2</h3>
               <ul>
                 <li>
