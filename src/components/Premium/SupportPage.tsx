@@ -28,6 +28,7 @@ import {
 } from '../../types/subscription.types';
 import { getSupportLevels } from '../../services/subscription.service';
 import SupporterBadge from './SupporterBadge';
+import SupportGoals from './SupportGoals';
 
 /**
  * Support page to display support levels and encourage contributions
@@ -78,15 +79,9 @@ const SupportPage: React.FC = () => {
 
   const isCurrentLevel = (level: SupportLevel) => currentTier === level;
 
-  // Left side content (fixed)
+  // Left side content
   const LeftContent = () => (
-    <Box
-      sx={{
-        position: isMobile ? 'relative' : 'sticky',
-        top: isMobile ? 0 : 100,
-        alignSelf: 'flex-start',
-      }}
-    >
+    <Box>
       <Typography
         variant='h3'
         component='h1'
@@ -173,6 +168,11 @@ const SupportPage: React.FC = () => {
           de sistemas e de suplementos. E para isso, precisamos do seu apoio.
           Contamos com você para ajudar o Fichas de Nimb nessa jornada.
         </Typography>
+      </Box>
+
+      {/* Support Goals */}
+      <Box sx={{ mt: 3 }}>
+        <SupportGoals />
       </Box>
 
       {/* 3D Dice highlight */}
