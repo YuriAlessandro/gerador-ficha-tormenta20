@@ -1163,8 +1163,11 @@ const CharacterCreationWizardModal: React.FC<
           }
         });
 
-        // Check class abilities
-        classe.abilities?.forEach((ability) => {
+        // Check class abilities (filter to nivel <= 1 to match what PowerEffectSelectionStep displays)
+        const classAbilitiesForValidation = (classe.abilities || []).filter(
+          (a) => a.nivel <= 1
+        );
+        classAbilitiesForValidation.forEach((ability) => {
           const reqs = getPowerSelectionRequirements(ability);
           if (reqs) {
             reqs.requirements.forEach((req) => {
