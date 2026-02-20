@@ -194,6 +194,10 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   // Check if character can cast spells of this circle
   const canCastCircle = (circle: number): boolean => {
     if (!sheet.classe.spellPath) return false;
+    if (
+      typeof sheet.classe.spellPath.spellCircleAvailableAtLevel !== 'function'
+    )
+      return false;
 
     const availableCircle = sheet.classe.spellPath.spellCircleAvailableAtLevel(
       sheet.nivel
