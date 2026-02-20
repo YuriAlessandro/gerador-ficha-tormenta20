@@ -96,6 +96,11 @@ function deduplicateHistory(
       }
     }
 
+    // Include powerName to differentiate entries from different abilities with the same source
+    if (action.powerName) {
+      key += `-pn:${action.powerName}`;
+    }
+
     // Only keep the first occurrence
     if (!seen.has(key)) {
       seen.set(key, action);
