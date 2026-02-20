@@ -22,6 +22,9 @@ import {
 import SheetBuilderForm from '../SheetBuilder/SheetBuilderForm/SheetBuilderForm';
 import SheetPreview from '../SheetBuilder/SheetPreview/SheetPreview';
 import SheetsService from '../../services/sheets.service';
+import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
+import { useAuth } from '../../hooks/useAuth';
+import { SupplementId } from '../../types/supplement.types';
 import { RootState } from '../../store';
 
 const SheetBuilderPage: React.FC = () => {
@@ -30,6 +33,7 @@ const SheetBuilderPage: React.FC = () => {
   const theme = useTheme();
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch();
+  const { user } = useAuth();
 
   // Check if sheet exists in local storage
   const localSheet = useSelector((state: RootState) =>
@@ -45,10 +49,21 @@ const SheetBuilderPage: React.FC = () => {
         try {
           const cloudSheet = await SheetsService.getSheetById(id);
 
+          // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
+          const userSupplements = user?.enabledSupplements || [
+            SupplementId.TORMENTA20_CORE,
+          ];
+          const rehydrated = rehydrateSheet(
+            cloudSheet.sheetData as unknown as Record<string, unknown>,
+            userSupplements
+          );
+
           // Convert cloud sheet to local format and store temporarily
           // Spread all sheetData fields to ensure devotion, skills, proficiencies, etc are available
+          const sheetPayload = rehydrated as unknown as Record<string, unknown>;
           dispatch(
             storeSheet({
+              ...sheetPayload,
               id: cloudSheet.id,
               date: new Date(cloudSheet.updatedAt).getTime(),
               name: cloudSheet.name,
@@ -59,8 +74,6 @@ const SheetBuilderPage: React.FC = () => {
                 },
               },
               sheet: cloudSheet.sheetData,
-              // Spread SerializedCharacter fields from sheetData
-              ...cloudSheet.sheetData,
             })
           );
         } catch (error) {

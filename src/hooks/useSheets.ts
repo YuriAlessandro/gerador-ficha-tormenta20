@@ -12,7 +12,7 @@ import {
   setCurrentSheet,
   clearError,
 } from '../store/slices/sheets/sheetsSlice';
-import {
+import SheetsService, {
   CreateSheetRequest,
   UpdateSheetRequest,
   SheetData,
@@ -53,7 +53,10 @@ export const useSheets = () => {
     duplicateSheet: (id: string) => dispatch(duplicateSheet(id)),
 
     // Clear all sheets (on logout)
-    clearSheets: () => dispatch(clearSheets()),
+    clearSheets: () => {
+      SheetsService.clearAllBaselines();
+      dispatch(clearSheets());
+    },
 
     // Set current sheet
     setCurrentSheet: (sheet: SheetData | null) =>

@@ -48,7 +48,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
-import { SheetData } from '../../services/sheets.service';
+import { SheetListData } from '../../services/sheets.service';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -94,7 +94,9 @@ const MyCharactersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'level'>('date');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [sheetToDelete, setSheetToDelete] = useState<SheetData | null>(null);
+  const [sheetToDelete, setSheetToDelete] = useState<SheetListData | null>(
+    null
+  );
 
   // Sync tab with URL on location change (browser back/forward)
   React.useEffect(() => {
@@ -161,7 +163,7 @@ const MyCharactersPage: React.FC = () => {
     history.push(`/meus-personagens?tab=${tabName}`);
   };
 
-  const handleViewSheet = (sheet: SheetData) => {
+  const handleViewSheet = (sheet: SheetListData) => {
     // Check if it's a threat or character
     const isThreat = sheet.sheetData?.isThreat;
 
@@ -174,7 +176,7 @@ const MyCharactersPage: React.FC = () => {
     }
   };
 
-  const handleEditSheet = (sheet: SheetData) => {
+  const handleEditSheet = (sheet: SheetListData) => {
     // Check if it's a threat or character
     const isThreat = sheet.sheetData?.isThreat;
 
@@ -187,7 +189,7 @@ const MyCharactersPage: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (sheet: SheetData) => {
+  const handleDeleteClick = (sheet: SheetListData) => {
     setSheetToDelete(sheet);
     setDeleteConfirmOpen(true);
   };
@@ -209,7 +211,7 @@ const MyCharactersPage: React.FC = () => {
     setSheetToDelete(null);
   };
 
-  const handleDuplicate = async (sheet: SheetData) => {
+  const handleDuplicate = async (sheet: SheetListData) => {
     try {
       await duplicateSheetAction(sheet.id);
     } catch (err) {
@@ -225,7 +227,7 @@ const MyCharactersPage: React.FC = () => {
     history.push(`/mesas/${tableId}`);
   };
 
-  const getDescription = (sheet: SheetData) => {
+  const getDescription = (sheet: SheetListData) => {
     const parts: string[] = [];
     const data = sheet.sheetData as any;
 
@@ -255,7 +257,7 @@ const MyCharactersPage: React.FC = () => {
     return parts.length > 0 ? parts.join(', ') : 'Personagem de Tormenta 20';
   };
 
-  const getLevel = (sheet: SheetData) => {
+  const getLevel = (sheet: SheetListData) => {
     const data = sheet.sheetData as any;
     // For threats, show challenge level
     if (data?.isThreat) {

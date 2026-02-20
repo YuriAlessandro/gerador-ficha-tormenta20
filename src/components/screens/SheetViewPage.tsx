@@ -37,6 +37,7 @@ import { SupplementId } from '@/types/supplement.types';
 import { SubscriptionTier } from '@/types/subscription.types';
 import preparePDF from '@/functions/downloadSheetPdf';
 import { restoreSpellPath } from '@/functions/general';
+import { rehydrateSheet } from '@/functions/sheetPayloadOptimizer';
 import { convertToFoundry, FoundryJSON } from '@/2foundry';
 
 const SheetViewPage: React.FC = () => {
@@ -89,7 +90,7 @@ const SheetViewPage: React.FC = () => {
         setIsOwner(ownerCheck);
 
         // Extract and restore the character sheet (deep copy to avoid read-only issues)
-        const restoredSheet = JSON.parse(
+        const parsedSheet = JSON.parse(
           JSON.stringify(sheetData.sheetData)
         ) as CharacterSheet;
 
@@ -100,6 +101,12 @@ const SheetViewPage: React.FC = () => {
         ];
         const CLASSES =
           dataRegistry.getClassesWithSupplementInfo(userSupplements);
+
+        // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
+        const restoredSheet = rehydrateSheet(
+          parsedSheet as unknown as Record<string, unknown>,
+          userSupplements
+        );
 
         // Restore Bag class methods (same pattern as MainScreen)
         if (restoredSheet.bag) {

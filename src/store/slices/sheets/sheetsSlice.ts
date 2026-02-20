@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import sheetsService, {
   SheetData,
+  SheetListData,
   CreateSheetRequest,
   UpdateSheetRequest,
 } from '../../../services/sheets.service';
 
 export interface SheetsState {
-  sheets: SheetData[];
+  sheets: SheetListData[];
   currentSheet: SheetData | null;
   loading: boolean;
   error: string | null;
@@ -134,7 +135,7 @@ const sheetsSlice = createSlice({
       })
       .addCase(createSheet.fulfilled, (state, action) => {
         state.loading = false;
-        state.sheets.unshift(action.payload); // Add to beginning of array
+        state.sheets.unshift(sheetsService.toSheetListData(action.payload));
         state.currentSheet = action.payload;
         state.error = null;
       })
@@ -155,7 +156,7 @@ const sheetsSlice = createSlice({
           (sheet) => sheet.id === action.payload.id
         );
         if (index !== -1) {
-          state.sheets[index] = action.payload;
+          state.sheets[index] = sheetsService.toSheetListData(action.payload);
         }
         if (state.currentSheet && state.currentSheet.id === action.payload.id) {
           state.currentSheet = action.payload;
@@ -196,7 +197,7 @@ const sheetsSlice = createSlice({
       })
       .addCase(duplicateSheet.fulfilled, (state, action) => {
         state.loading = false;
-        state.sheets.unshift(action.payload); // Add to beginning of array
+        state.sheets.unshift(sheetsService.toSheetListData(action.payload));
         state.error = null;
       })
       .addCase(duplicateSheet.rejected, (state, action) => {

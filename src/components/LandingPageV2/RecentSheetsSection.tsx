@@ -11,7 +11,7 @@ import {
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useSheets } from '../../hooks/useSheets';
-import { SheetData } from '../../services/sheets.service';
+import { SheetListData } from '../../services/sheets.service';
 
 interface RecentSheetsSectionProps {
   onClickButton: (link: string) => void;
@@ -48,10 +48,10 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
       .slice(0, 3);
   }, [isAuthenticated, sheets]);
 
-  const getSheetData = (sheet: SheetData): SheetDataContent =>
+  const getSheetData = (sheet: SheetListData): SheetDataContent =>
     (sheet.sheetData as SheetDataContent) || {};
 
-  const handleSheetClick = (sheet: SheetData) => {
+  const handleSheetClick = (sheet: SheetListData) => {
     onClickButton(`/ficha/${sheet.id}`);
   };
 

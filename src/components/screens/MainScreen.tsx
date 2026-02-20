@@ -69,6 +69,7 @@ import generateRandomSheet, {
 } from '../../functions/general';
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import { recalculateSheet } from '../../functions/recalculateSheet';
+import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
 import '../../assets/css/mainScreen.css';
@@ -405,9 +406,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     if (location.state?.cloudSheet) {
       const { cloudSheet } = location.state;
       // Create a deep copy to avoid read-only object issues
-      const sheet = JSON.parse(
+      const parsed = JSON.parse(
         JSON.stringify(cloudSheet.sheetData)
       ) as CharacterSheet;
+
+      // Rehydrate stripped sheet data (reconstruct catalog fields from registry)
+      const sheet = rehydrateSheet(
+        parsed as unknown as Record<string, unknown>,
+        userSupplements
+      );
 
       // Restore Bag class methods
       sheet.bag = new Bag(sheet.bag.equipments);
