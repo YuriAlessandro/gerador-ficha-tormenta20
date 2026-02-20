@@ -177,3 +177,26 @@ export function parseCritical(criticalString: string): {
 
   return defaultResult;
 }
+
+/**
+ * Verifica se uma string de dano contém notação de modo duplo (ex: "1d10/1d12")
+ * Usado para armas que possuem mais de um tipo de ataque.
+ * @param dano String de dano bruta da arma
+ * @returns Objeto com as opções de dano e se são iguais, ou null se não for modo duplo
+ */
+export function parseDualModeDamage(dano: string): {
+  options: string[];
+  isSameDamage: boolean;
+} | null {
+  if (!dano || !dano.includes('/')) return null;
+
+  const parts = dano.split('/').map((p) => p.trim());
+  if (parts.length < 2) return null;
+
+  const allValid = parts.every((part) => parseDamage(part) !== null);
+  if (!allValid) return null;
+
+  const isSameDamage = parts.every((part) => part === parts[0]);
+
+  return { options: parts, isSameDamage };
+}
