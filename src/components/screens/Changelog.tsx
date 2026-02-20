@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            16/02/2026.
+            20/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,53 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.2</h3>
+              <ul>
+                <li>
+                  <strong>🧪 Alquimista no Wizard:</strong> A habilidade
+                  Laboratório Pessoal agora permite escolher manualmente os
+                  itens alquímicos no wizard de criação, em vez de selecionar
+                  aleatoriamente.
+                </li>
+                <li>
+                  <strong>🧚 Presentes do Duende:</strong> Os 14 Presentes de
+                  Magia e do Caos do Duende agora estão disponíveis como poderes
+                  gerais ao subir de nível.
+                </li>
+                <li>
+                  <strong>⚔️ Armas Versáteis:</strong> Armas com dois modos de
+                  dano (como a Espada Bastarda) agora permitem escolher qual
+                  modo usar ao rolar dano.
+                </li>
+                <li>
+                  <strong>💰 Moedas TC e TO:</strong> Adicionados campos para
+                  Tibares de Cobre (TC) e Tibares de Ouro (TO) na ficha,
+                  facilitando o controle de diferentes moedas.
+                </li>
+                <li>
+                  <strong>🔧 Correções:</strong>
+                  <ul>
+                    <li>
+                      Rolagem de dano com múltiplos dados (ex: 1d8+1d6) agora
+                      funciona corretamente.
+                    </li>
+                    <li>
+                      O poder Couraceiro agora concede corretamente as
+                      proficiências em armaduras pesadas e escudos.
+                    </li>
+                    <li>
+                      Corrigido problema onde itens alquímicos podiam duplicar
+                      ao recalcular a ficha.
+                    </li>
+                    <li>
+                      Corrigidos os tipos de dano &quot;Cirte&quot; e
+                      &quot;Perguração&quot; para &quot;Corte&quot; e
+                      &quot;Perfuração&quot;.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+
               <h3>4.2.1</h3>
               <ul>
                 <li>
