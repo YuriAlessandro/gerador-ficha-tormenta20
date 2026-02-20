@@ -221,6 +221,19 @@ const INVENTOR: ClassDescription = {
       requirements: [
         [{ type: RequirementType.PERICIA, name: Skill.OFICIO_ARMEIRO }],
       ],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Couraceiro' },
+          action: {
+            type: 'addProficiency',
+            availableProficiencies: [
+              PROFICIENCIAS.PESADAS,
+              PROFICIENCIAS.ESCUDOS,
+            ],
+            pick: 2,
+          },
+        },
+      ],
     },
     {
       name: 'Engenhoqueiro',
