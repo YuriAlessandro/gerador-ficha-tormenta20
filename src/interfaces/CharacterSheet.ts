@@ -374,6 +374,8 @@ export default interface CharacterSheet {
   completeSkills?: CompleteSkill[];
   sentidos?: string[];
   dinheiro?: number;
+  dinheiroTC?: number;
+  dinheiroTO?: number;
   isThreat?: boolean;
   raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
   raceHeritage?: string; // For races with heritages (like Moreau)

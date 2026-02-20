@@ -401,6 +401,8 @@ const Result: React.FC<ResultProps> = (props) => {
     extraArmorPenalty = 0,
     completeSkills,
     dinheiro = 0,
+    dinheiroTC = 0,
+    dinheiroTO = 0,
   } = currentSheet;
 
   function getKey(elementId: string) {
@@ -1188,6 +1190,8 @@ const Result: React.FC<ResultProps> = (props) => {
                   <Box mt={2}>
                     <strong>Dinheiro: </strong>
                     T$ {dinheiro}
+                    {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
+                    {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
                   </Box>
                   <Box mt={1}>
                     <strong>Espaços (atual/limite-máximo): </strong>

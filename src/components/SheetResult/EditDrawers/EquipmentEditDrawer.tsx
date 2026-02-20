@@ -164,6 +164,10 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     },
     []
   );
+  const [dinheiroTCStr, setDinheiroTCStr] = useState('0');
+  const dinheiroTC = Number(dinheiroTCStr) || 0;
+  const [dinheiroTOStr, setDinheiroTOStr] = useState('0');
+  const dinheiroTO = Number(dinheiroTOStr) || 0;
   const [customMaxSpaces, setCustomMaxSpaces] = useState<number | null>(null);
   const [autoDescontarTibares, setAutoDescontarTibares] = useState(true);
   const [showAddWeapons, setShowAddWeapons] = useState(false);
@@ -531,10 +535,19 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       });
 
       setDinheiro(sheet.dinheiro || 0);
+      setDinheiroTCStr(String(sheet.dinheiroTC || 0));
+      setDinheiroTOStr(String(sheet.dinheiroTO || 0));
       setCustomMaxSpaces(sheet.customMaxSpaces ?? null);
       setAutoDescontarTibares(true);
     }
-  }, [sheet.bag, sheet.dinheiro, sheet.customMaxSpaces, open]);
+  }, [
+    sheet.bag,
+    sheet.dinheiro,
+    sheet.dinheiroTC,
+    sheet.dinheiroTO,
+    sheet.customMaxSpaces,
+    open,
+  ]);
 
   // Function to scroll to accordion when it opens
   const scrollToAccordion = (ref: React.RefObject<HTMLDivElement>) => {
@@ -1377,6 +1390,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       ...sheet,
       bag: updatedBag,
       dinheiro,
+      dinheiroTC,
+      dinheiroTO,
       customMaxSpaces: customMaxSpaces ?? undefined,
     };
 
@@ -1435,6 +1450,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
 
     // Check if money changed
     const moneyChanged = sheet.dinheiro !== dinheiro;
+    const moneyTCChanged = (sheet.dinheiroTC || 0) !== dinheiroTC;
+    const moneyTOChanged = (sheet.dinheiroTO || 0) !== dinheiroTO;
 
     if (
       weaponsChanged ||
@@ -1446,7 +1463,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       alchemyChanged ||
       foodChanged ||
       animalsChanged ||
-      moneyChanged
+      moneyChanged ||
+      moneyTCChanged ||
+      moneyTOChanged
     ) {
       const equipmentChanges: SubStep[] = [];
 
@@ -1659,6 +1678,24 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         });
       }
 
+      if (moneyTCChanged) {
+        equipmentChanges.push({
+          name: 'Dinheiro (TC)',
+          value: `Tibares de Cobre alterado de TC ${
+            sheet.dinheiroTC || 0
+          } para TC ${dinheiroTC}`,
+        });
+      }
+
+      if (moneyTOChanged) {
+        equipmentChanges.push({
+          name: 'Dinheiro (TO)',
+          value: `Tibares de Ouro alterado de TO ${
+            sheet.dinheiroTO || 0
+          } para TO ${dinheiroTO}`,
+        });
+      }
+
       if (equipmentChanges.length > 0) {
         newSteps.push({
           label: 'Edição Manual - Equipamentos',
@@ -1704,6 +1741,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         animals: bagEquipments.Animal || [],
       });
       setDinheiro(sheet.dinheiro || 0);
+      setDinheiroTCStr(String(sheet.dinheiroTC || 0));
+      setDinheiroTOStr(String(sheet.dinheiroTO || 0));
     }
     setAutoDescontarTibares(true);
     setShowAddWeapons(false);
@@ -1769,6 +1808,26 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 value={dinheiroStr}
                 onChange={(e) => setDinheiroStr(e.target.value)}
                 inputProps={{ min: 0 }}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type='number'
+                label='Tibares de Cobre (TC)'
+                value={dinheiroTCStr}
+                onChange={(e) => setDinheiroTCStr(e.target.value)}
+                inputProps={{ min: 0 }}
+                helperText='1 TC = T$ 0,1'
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                type='number'
+                label='Tibares de Ouro (TO)'
+                value={dinheiroTOStr}
+                onChange={(e) => setDinheiroTOStr(e.target.value)}
+                inputProps={{ min: 0 }}
+                helperText='1 TO = T$ 10'
                 sx={{ mb: 2 }}
               />
               <TextField
