@@ -2355,30 +2355,51 @@ export const applyPower = (
         }
       } else if (sheetAction.action.type === 'addAlchemyItems') {
         const { budget, count } = sheetAction.action;
+        let selectedItems: Equipment[];
 
-        // Select random alchemy items within budget
-        const affordableItems = alchemyItems.filter(
-          (item) => item.preco !== undefined && item.preco <= budget
-        );
-
-        const selectedItems: Equipment[] = [];
-        let remainingBudget = budget;
-        let itemsLeft = count;
-
-        while (itemsLeft > 0 && affordableItems.length > 0) {
-          const maxPrice = remainingBudget;
-          const withinBudget = affordableItems.filter(
-            (item) => (item.preco || 0) <= maxPrice
+        if (
+          manualSelections?.alchemyItems &&
+          manualSelections.alchemyItems.length > 0
+        ) {
+          // Use manual selections from wizard
+          selectedItems = manualSelections.alchemyItems;
+        } else {
+          // Select random alchemy items within budget
+          const affordableItems = alchemyItems.filter(
+            (item) => item.preco !== undefined && item.preco <= budget
           );
-          if (withinBudget.length === 0) break;
 
-          const item = getRandomItemFromArray(withinBudget);
-          selectedItems.push(item);
-          remainingBudget -= item.preco || 0;
-          itemsLeft -= 1;
+          selectedItems = [];
+          let remainingBudget = budget;
+          let itemsLeft = count;
+
+          while (itemsLeft > 0 && affordableItems.length > 0) {
+            const maxPrice = remainingBudget;
+            const withinBudget = affordableItems.filter(
+              (item) => (item.preco || 0) <= maxPrice
+            );
+            if (withinBudget.length === 0) break;
+
+            const item = getRandomItemFromArray(withinBudget);
+            selectedItems.push(item);
+            remainingBudget -= item.preco || 0;
+            itemsLeft -= 1;
+          }
         }
 
+        // Add "Instrumentos de Alquimista Aprimorados" automatically
+        const instrumentos: Equipment = {
+          nome: 'Instrumentos de Alquimista Aprimorados',
+          group: 'Item Geral',
+          spaces: 1,
+        };
+        sheet.bag.addEquipment({ 'Item Geral': [instrumentos] });
+
         if (selectedItems.length > 0) {
+          const totalCost = selectedItems.reduce(
+            (sum, item) => sum + (item.preco || 0),
+            0
+          );
           const equipment: Partial<BagEquipments> = {
             Alquimía: selectedItems,
           };
@@ -2392,9 +2413,7 @@ export const applyPower = (
 
           subSteps.push({
             name: getSourceName(sheetAction.source),
-            value: `${selectedItems.length} itens alquímicos adicionados (T$ ${
-              budget - remainingBudget
-            })`,
+            value: `${selectedItems.length} itens alquímicos adicionados (T$ ${totalCost})`,
           });
         }
       } else if (sheetAction.action.type === 'chooseFromOptions') {

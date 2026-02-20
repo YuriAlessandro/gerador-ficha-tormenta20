@@ -37,6 +37,7 @@ import {
 import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
 import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
+import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -55,6 +56,7 @@ import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
+import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
 
 interface RaceCustomization {
   // Golem Desperto
@@ -393,6 +395,35 @@ const CharacterCreationWizardModal: React.FC<
     return race.name === 'Qareen';
   };
 
+  // Check if the class has an addAlchemyItems action at level 1
+  const getAlchemyItemsAction = (): {
+    budget: number;
+    count: number;
+    abilityName: string;
+  } | null => {
+    if (!classe) return null;
+    const abilities = (classe.abilities || []).filter((a) => a.nivel <= 1);
+    let result: { budget: number; count: number; abilityName: string } | null =
+      null;
+    abilities.some((ability) =>
+      (ability.sheetActions || []).some((sa) => {
+        if (sa.action.type === 'addAlchemyItems') {
+          result = {
+            budget: sa.action.budget,
+            count: sa.action.count,
+            abilityName: ability.name,
+          };
+          return true;
+        }
+        return false;
+      })
+    );
+    return result;
+  };
+
+  const needsAlchemyItemSelection = (): boolean =>
+    getAlchemyItemsAction() !== null;
+
   // Helper to get spell info for classes without spellPath defined initially
   const getSpellInfo = (): Pick<
     SpellPath,
@@ -483,6 +514,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
+    if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
     if (needsDeityPowers()) stepsArray.push('Poderes da Divindade');
     if (needsArcanistaSubtypeSelection())
       stepsArray.push('Caminho do Arcanista');
@@ -669,6 +701,23 @@ const CharacterCreationWizardModal: React.FC<
             }
           }
         });
+    }
+
+    // Add alchemy items from Laboratório Pessoal if selected
+    const alchemyAction = getAlchemyItemsAction();
+    if (alchemyAction) {
+      const alchemySelection =
+        currentSelections.powerEffectSelections?.[alchemyAction.abilityName]
+          ?.alchemyItems;
+      if (alchemySelection && alchemySelection.length > 0) {
+        bag.Alquimía.push(...alchemySelection);
+      }
+      // Add Instrumentos de Alquimista Aprimorados
+      bag['Item Geral'].push({
+        nome: 'Instrumentos de Alquimista Aprimorados',
+        group: 'Item Geral',
+        spaces: 1,
+      });
     }
 
     return bag;
@@ -892,6 +941,44 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Itens Alquímicos': {
+        const alchemyAction = getAlchemyItemsAction();
+        if (!alchemyAction) return null;
+
+        // Combine core alchemy items with supplement alchemy items
+        const supplementAlchemy =
+          dataRegistry.getEquipmentBySupplements(supplements).alchemy;
+        const allAlchemyItems = [...coreAlchemyItems, ...supplementAlchemy];
+
+        // Get current selections from powerEffectSelections
+        const currentAlchemySelections =
+          selections.powerEffectSelections?.[alchemyAction.abilityName]
+            ?.alchemyItems || [];
+
+        return (
+          <AlchemyItemSelectionStep
+            availableItems={allAlchemyItems}
+            selectedItems={currentAlchemySelections}
+            onChange={(items) =>
+              setSelections({
+                ...selections,
+                powerEffectSelections: {
+                  ...selections.powerEffectSelections,
+                  [alchemyAction.abilityName]: {
+                    ...(selections.powerEffectSelections?.[
+                      alchemyAction.abilityName
+                    ] || {}),
+                    alchemyItems: items,
+                  },
+                },
+              })
+            }
+            budget={alchemyAction.budget}
+            maxItems={alchemyAction.count}
+          />
+        );
+      }
+
       case 'Poderes da Divindade':
         if (!classe || !deity) return null;
         return (
@@ -1093,6 +1180,23 @@ const CharacterCreationWizardModal: React.FC<
         const requiredCount = getIntelligenceSkillsCount();
         if (requiredCount === 0) return true; // No skills needed
         return selections.intelligenceSkills?.length === requiredCount;
+      }
+
+      case 'Itens Alquímicos': {
+        const alchemyActionForValidation = getAlchemyItemsAction();
+        if (!alchemyActionForValidation) return false;
+        const alchemySelections =
+          selections.powerEffectSelections?.[
+            alchemyActionForValidation.abilityName
+          ]?.alchemyItems || [];
+        const alchemyTotalCost = alchemySelections.reduce(
+          (sum, item) => sum + (item.preco || 0),
+          0
+        );
+        return (
+          alchemySelections.length === alchemyActionForValidation.count &&
+          alchemyTotalCost <= alchemyActionForValidation.budget
+        );
       }
 
       case 'Poderes da Classe':

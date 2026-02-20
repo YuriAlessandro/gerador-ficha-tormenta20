@@ -1,4 +1,5 @@
 import { ClassPower } from './Class';
+import Equipment from './Equipment';
 import { GeneralPower } from './Poderes';
 import { Spell } from './Spells';
 
@@ -20,6 +21,7 @@ export interface SelectionOptions {
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  alchemyItems?: Equipment[]; // Selected alchemy items for addAlchemyItems action
 }
 
 /**
