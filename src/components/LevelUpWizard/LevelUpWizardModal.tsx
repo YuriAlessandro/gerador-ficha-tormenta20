@@ -534,8 +534,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         // Get known powers from simulated sheet (powers already added to the sheet)
         const knownClassPowers =
           simulatedSheet.classPowers?.map((p) => p.name) || [];
-        const knownGeneralPowers =
-          simulatedSheet.generalPowers?.map((p) => p.name) || [];
+        const knownGeneralPowers = [
+          ...(simulatedSheet.generalPowers?.map((p) => p.name) || []),
+          ...(simulatedSheet.raca.abilities?.map((a) => a.name) || []),
+        ];
 
         // Alma Livre detection: check if the character has a pre-selected power
         // that hasn't been acquired yet
