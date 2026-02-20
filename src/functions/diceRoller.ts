@@ -38,50 +38,71 @@ export function rollDice(sides: number, count: number = 1): number[] {
 }
 
 /**
- * Parseia string de dano do tipo "1d8+2", "2d6+5", "1d10", "1d8+2+3"
- * @param damageString String no formato NdM+X ou NdM (suporta múltiplos modificadores)
- * @returns Objeto com informações do dado e modificador total
+ * Parseia string de dano com suporte a múltiplos grupos de dados
+ * Formatos: "1d8", "2d6+5", "1d8+1d6", "1d8+1d6+3", "2d6+1d8+5"
+ * @param damageString String no formato NdM ou NdM+NdM+X (suporta múltiplos grupos de dados e modificadores)
+ * @returns Objeto com grupos de dados, modificador total e string de exibição
  */
 export function parseDamage(damageString: string): {
-  diceCount: number;
-  diceSides: number;
+  diceGroups: Array<{ count: number; sides: number }>;
   modifier: number;
   diceString: string;
 } | null {
-  // Remove espaços
   const cleaned = damageString.trim();
+  if (!cleaned) return null;
 
-  // Regex para capturar NdM seguido de múltiplos modificadores (+X-Y+Z...)
-  const match = cleaned.match(/^(\d+)d(\d+)((?:[+-]\d+)*)$/i);
+  // Separa em tokens preservando sinais (+/-)
+  // Ex: "1d8+1d6+3-1" → ["1d8", "+1d6", "+3", "-1"]
+  const tokens = cleaned.match(/[+-]?[^+-]+/g);
+  if (!tokens) return null;
 
-  if (!match) {
-    return null;
-  }
+  const diceRegex = /^\+?(\d+)d(\d+)$/i;
+  const numRegex = /^[+-]?\d+$/;
 
-  const diceCount = parseInt(match[1], 10);
-  const diceSides = parseInt(match[2], 10);
+  const hasInvalidToken = tokens.some((token) => {
+    const trimmed = token.trim();
+    return !diceRegex.test(trimmed) && !numRegex.test(trimmed);
+  });
+  if (hasInvalidToken) return null;
 
-  // Soma todos os modificadores (ex: "+2+3-1" → ["+2", "+3", "-1"] → 4)
-  let modifier = 0;
-  if (match[3]) {
-    const modifiers = match[3].match(/[+-]\d+/g);
-    if (modifiers) {
-      modifier = modifiers.reduce((sum, mod) => sum + parseInt(mod, 10), 0);
+  const diceGroups = tokens.reduce<Array<{ count: number; sides: number }>>(
+    (groups, token) => {
+      const diceMatch = token.trim().match(diceRegex);
+      if (diceMatch) {
+        const count = parseInt(diceMatch[1], 10);
+        const sides = parseInt(diceMatch[2], 10);
+        if (count > 0 && sides > 0) {
+          groups.push({ count, sides });
+        }
+      }
+      return groups;
+    },
+    []
+  );
+
+  if (diceGroups.length === 0) return null;
+
+  const modifier = tokens.reduce((sum, token) => {
+    const trimmed = token.trim();
+    if (numRegex.test(trimmed)) {
+      return sum + parseInt(trimmed, 10);
     }
-  }
+    return sum;
+  }, 0);
+
+  const diceString = diceGroups.map((g) => `${g.count}d${g.sides}`).join('+');
 
   return {
-    diceCount,
-    diceSides,
+    diceGroups,
     modifier,
-    diceString: `${diceCount}d${diceSides}`,
+    diceString,
   };
 }
 
 /**
- * Rola dano baseado em uma string de dano
- * @param damageString String no formato "1d8+2", "2d6+5", etc
- * @returns Objeto com os rolls individuais, modificador e total
+ * Rola dano baseado em uma string de dano com suporte a múltiplos dados
+ * @param damageString String no formato "1d8+2", "2d6+5", "1d8+1d6+3", etc
+ * @returns Objeto com os rolls individuais de todos os dados, modificador e total
  */
 export function rollDamage(damageString: string): DamageRoll | null {
   const parsed = parseDamage(damageString);
@@ -90,13 +111,16 @@ export function rollDamage(damageString: string): DamageRoll | null {
     return null;
   }
 
-  const { diceCount, diceSides, modifier, diceString } = parsed;
-  const diceRolls = rollDice(diceSides, diceCount);
-  const diceTotal = diceRolls.reduce((sum, roll) => sum + roll, 0);
+  const { diceGroups, modifier, diceString } = parsed;
+  const allRolls = diceGroups.flatMap((group) =>
+    rollDice(group.sides, group.count)
+  );
+
+  const diceTotal = allRolls.reduce((sum, roll) => sum + roll, 0);
   const total = diceTotal + modifier;
 
   return {
-    diceRolls,
+    diceRolls: allRolls,
     modifier,
     total,
     diceString,

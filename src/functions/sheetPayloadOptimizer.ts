@@ -22,7 +22,8 @@ const STRIPPED_MARKER = '__stripped__';
  *   The character's CHOSEN deity powers are in `devoto.poderes`.
  *   recalculateSheet only reads `devoto.poderes`, not the catalog.
  * - steps: UI walkthrough data.
- * - sheetActionHistory: Generation audit trail.
+ * - sheetActionHistory: CANNOT be stripped - recalculateSheet depends on it
+ *   via isActionAlreadyApplied() to skip already-applied power actions.
  *
  * NOT SAFE to strip (used by recalculateSheet and Result display):
  * - classe.abilities: Read by recalculateSheet Step 5 (applyClassAbilities) and Result UI.
@@ -124,8 +125,8 @@ export function stripSheetForStorage(
   // Strip steps (purely UI walkthrough data, not needed for display or editing)
   stripped.steps = [];
 
-  // Strip sheetActionHistory (generation audit trail, not needed post-creation)
-  stripped.sheetActionHistory = [];
+  // NOTE: sheetActionHistory is NOT stripped - recalculateSheet depends on it
+  // via isActionAlreadyApplied() to know which power actions to skip.
 
   return stripped;
 }

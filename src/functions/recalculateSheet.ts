@@ -902,8 +902,6 @@ export function recalculateSheet(
   updatedSheet = applyClassPowers(updatedSheet, manualSelections);
 
   // Step 4: Apply race abilities
-  // Note: applyRaceAbilities is imported from general.ts and expects SelectionOptions (flat)
-  // Race ability selections are already applied during initial creation
   updatedSheet = applyRaceAbilities(updatedSheet);
 
   // Step 5: Apply class abilities (filter by level)
@@ -1146,7 +1144,7 @@ export function recalculateSheet(
   // Step 9: Reset defense to base and recalculate from ground up
   const baseDefense = updatedSheet.customDefenseBase ?? 10;
   updatedSheet.defesa = baseDefense;
-  updatedSheet = calcDefense(updatedSheet); // Calculate base + equipment + attributes
+  updatedSheet = calcDefense(updatedSheet);
 
   // Check if heavy armor is equipped
   const equippedArmors = updatedSheet.bag.equipments.Armadura || [];
