@@ -72,6 +72,7 @@ import {
 import { SystemId } from '../../types/system.types';
 import { DiceColorId, getDiceColorsArray } from '../../types/diceColors';
 import { SEO, createProfileSchema } from '../SEO';
+import { PushNotificationToggle } from '../../premium';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -1012,6 +1013,13 @@ const ProfilePage: React.FC = () => {
                           </Stack>
                         </Box>
                       )}
+                    </Box>
+
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Notificações
+                      </Typography>
+                      <PushNotificationToggle variant='full' />
                     </Box>
 
                     <Box>
