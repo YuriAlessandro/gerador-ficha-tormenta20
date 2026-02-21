@@ -81,6 +81,8 @@ const NotificationBell: React.FC = () => {
             width: { xs: '100vw', sm: 360 },
             maxWidth: { xs: '100vw', sm: 360 },
             maxHeight: 500,
+            display: 'flex',
+            flexDirection: 'column',
           },
         }}
       >
@@ -91,6 +93,7 @@ const NotificationBell: React.FC = () => {
             justifyContent: 'space-between',
             p: 2,
             pb: 1,
+            flexShrink: 0,
           }}
         >
           <Typography variant='h6' component='h2'>
@@ -107,16 +110,20 @@ const NotificationBell: React.FC = () => {
             </Button>
           )}
         </Box>
-        <Divider />
-        <NotificationList
-          notifications={notifications}
-          loading={loading}
-          hasMore={hasMore}
-          onLoadMore={loadMore}
-          onClose={handleClose}
-        />
-        <Divider />
-        <PushNotificationToggle variant='compact' />
+        <Divider sx={{ flexShrink: 0 }} />
+        <Box sx={{ overflow: 'auto', flexGrow: 1, minHeight: 0 }}>
+          <NotificationList
+            notifications={notifications}
+            loading={loading}
+            hasMore={hasMore}
+            onLoadMore={loadMore}
+            onClose={handleClose}
+          />
+        </Box>
+        <Divider sx={{ flexShrink: 0 }} />
+        <Box sx={{ flexShrink: 0, bgcolor: 'action.hover' }}>
+          <PushNotificationToggle variant='compact' />
+        </Box>
       </Popover>
     </>
   );

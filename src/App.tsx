@@ -76,6 +76,7 @@ import {
   CreateThreadPage,
   EditThreadPage,
   AdminPage,
+  PushNotificationPrompt,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 // import CreatureSheet from './components/screens/CreatureSheet';
@@ -262,6 +263,7 @@ function ThemedApp(): JSX.Element {
                           style={darkMode ? darkThemeStyles : lightTheme}
                         >
                           <PWAInstallPrompt />
+                          <PushNotificationPrompt />
                           <div className='mainApp'>
                             <header className='App-header'>
                               <SidebarV2
