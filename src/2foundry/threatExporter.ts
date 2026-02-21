@@ -1,6 +1,11 @@
 import { cloneDeep } from 'lodash';
 
-import { ThreatSheet, ThreatSize, ThreatType } from '../interfaces/ThreatSheet';
+import {
+  ThreatSheet,
+  ThreatSize,
+  ThreatType,
+  DEFAULT_RESISTANCE_ASSIGNMENTS,
+} from '../interfaces/ThreatSheet';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DEFAULT_SKILLS } from './skills';
 import { getEffectiveSkillTotal } from '../functions/threatGenerator';
@@ -140,31 +145,33 @@ function createDefaultResistance(): FoundryResistance {
 
 function getThreatSkills(threat: ThreatSheet) {
   const skills = cloneDeep(DEFAULT_SKILLS);
+  const assignments =
+    threat.resistanceAssignments || DEFAULT_RESISTANCE_ASSIGNMENTS;
 
   // Set the save values based on resistance assignments and combat stats
   if (skills.fort) {
     skills.fort.outros = threat.combatStats.strongSave;
-    if (threat.resistanceAssignments.Fortitude === 'medium') {
+    if (assignments.Fortitude === 'medium') {
       skills.fort.outros = threat.combatStats.mediumSave;
-    } else if (threat.resistanceAssignments.Fortitude === 'weak') {
+    } else if (assignments.Fortitude === 'weak') {
       skills.fort.outros = threat.combatStats.weakSave;
     }
   }
 
   if (skills.refl) {
     skills.refl.outros = threat.combatStats.strongSave;
-    if (threat.resistanceAssignments.Reflexos === 'medium') {
+    if (assignments.Reflexos === 'medium') {
       skills.refl.outros = threat.combatStats.mediumSave;
-    } else if (threat.resistanceAssignments.Reflexos === 'weak') {
+    } else if (assignments.Reflexos === 'weak') {
       skills.refl.outros = threat.combatStats.weakSave;
     }
   }
 
   if (skills.vont) {
     skills.vont.outros = threat.combatStats.strongSave;
-    if (threat.resistanceAssignments.Vontade === 'medium') {
+    if (assignments.Vontade === 'medium') {
       skills.vont.outros = threat.combatStats.mediumSave;
-    } else if (threat.resistanceAssignments.Vontade === 'weak') {
+    } else if (assignments.Vontade === 'weak') {
       skills.vont.outros = threat.combatStats.weakSave;
     }
   }

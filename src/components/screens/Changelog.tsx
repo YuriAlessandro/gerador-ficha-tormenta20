@@ -65,6 +65,16 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.4</h3>
+              <ul>
+                <li>
+                  <strong>🐛 Correção de erro:</strong> Corrigido crash ao
+                  visualizar ou editar ameaças salvas na nuvem. Os dados
+                  completos da ameaça agora são carregados corretamente ao abrir
+                  a partir de &quot;Meus Personagens&quot;.
+                </li>
+              </ul>
+
               <h3>4.2.3</h3>
               <ul>
                 <li>

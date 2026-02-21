@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
 import { useAlert } from '../../hooks/useDialog';
 import ThreatResult from './ThreatResult';
+import { normalizeThreatSheet } from '../../interfaces/ThreatSheet';
 import { SEO } from '../SEO';
 
 const ThreatViewWrapper: React.FC = () => {
@@ -20,9 +21,10 @@ const ThreatViewWrapper: React.FC = () => {
   const { createSheet: createSheetAction } = useSheets();
   const { showAlert } = useAlert();
 
-  const threat = useSelector((state: RootState) =>
+  const rawThreat = useSelector((state: RootState) =>
     state.threatStorage.threats.find((t) => t.id === id)
   );
+  const threat = rawThreat ? normalizeThreatSheet(rawThreat) : undefined;
 
   const [isSavedToCloud, setIsSavedToCloud] = useState(false);
   const [cloudThreatId, setCloudThreatId] = useState<string | null>(null);

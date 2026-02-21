@@ -168,8 +168,8 @@ const MyCharactersPage: React.FC = () => {
     const isThreat = sheet.sheetData?.isThreat;
 
     if (isThreat) {
-      // For threats, pass cloudThreat via location.state
-      history.push('/threat-view', { cloudThreat: sheet });
+      // For threats, pass only the id — full data is fetched on demand
+      history.push('/threat-view', { cloudThreatId: sheet.id });
     } else {
       // For characters, navigate to the shareable sheet page
       history.push(`/ficha/${sheet.id}`);
@@ -181,8 +181,8 @@ const MyCharactersPage: React.FC = () => {
     const isThreat = sheet.sheetData?.isThreat;
 
     if (isThreat) {
-      // For threats, go to wizard with cloudThreat data
-      history.push('/gerador-ameacas', { cloudThreat: sheet });
+      // For threats, pass only the id — full data is fetched on demand
+      history.push('/gerador-ameacas', { cloudThreatId: sheet.id });
     } else {
       // For characters, load in MainScreen (same as view for now)
       history.push('/criar-ficha', { cloudSheet: sheet });

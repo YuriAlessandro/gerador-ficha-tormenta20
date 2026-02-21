@@ -135,6 +135,12 @@ export interface ResistanceAssignments {
   Vontade: ResistanceType;
 }
 
+export const DEFAULT_RESISTANCE_ASSIGNMENTS: ResistanceAssignments = {
+  Fortitude: ResistanceType.STRONG,
+  Reflexos: ResistanceType.MEDIUM,
+  Vontade: ResistanceType.WEAK,
+};
+
 export interface ThreatCombatStats {
   attackValue: number;
   averageDamage: number;
@@ -190,6 +196,14 @@ export interface ThreatSheet {
   // Metadados
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Ensures old threat data has resistanceAssignments populated. */
+export function normalizeThreatSheet(threat: ThreatSheet): ThreatSheet {
+  if (!threat.resistanceAssignments) {
+    return { ...threat, resistanceAssignments: DEFAULT_RESISTANCE_ASSIGNMENTS };
+  }
+  return threat;
 }
 
 // Tipos auxiliares para o builder

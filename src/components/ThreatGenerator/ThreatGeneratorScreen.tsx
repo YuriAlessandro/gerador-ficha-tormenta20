@@ -21,6 +21,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import HistoryIcon from '@mui/icons-material/History';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import SheetsService from '@/services/sheets.service';
 import { SEO, getPageSEO } from '../SEO';
 import { useAlert } from '../../hooks/useDialog';
 import { useAuth } from '../../hooks/useAuth';
@@ -32,8 +33,8 @@ import { SubscriptionTier } from '../../types/subscription.types';
 import {
   ThreatSheet,
   TreasureLevel,
-  ResistanceType,
-  ResistanceAssignments,
+  DEFAULT_RESISTANCE_ASSIGNMENTS,
+  normalizeThreatSheet,
 } from '../../interfaces/ThreatSheet';
 import {
   generateThreatId,
@@ -95,11 +96,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     equipment: '',
     treasureLevel: TreasureLevel.STANDARD,
     hasManaPoints: false,
-    resistanceAssignments: {
-      Fortitude: ResistanceType.STRONG,
-      Reflexos: ResistanceType.MEDIUM,
-      Vontade: ResistanceType.WEAK,
-    } as ResistanceAssignments,
+    resistanceAssignments: DEFAULT_RESISTANCE_ASSIGNMENTS,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
@@ -140,19 +137,48 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   // Check for edit mode on component mount
   React.useEffect(() => {
-    // Check for cloud threat passed via location.state
     const locationState = location.state as any;
-    if (locationState?.cloudThreat) {
+
+    // Cloud threat edit with full data (from ThreatViewCloudWrapper)
+    if (locationState?.cloudThreat?.sheetData) {
       const { cloudThreat } = locationState;
-      const threatData = cloudThreat.sheetData as ThreatSheet;
+      const threatData = normalizeThreatSheet(
+        cloudThreat.sheetData as ThreatSheet
+      );
 
       setThreat(threatData);
       setIsEditing(true);
       setIsSavedToCloud(true);
       setCloudThreatId(cloudThreat.id);
-
-      // Clear the state to prevent reloading
       history.replace('/gerador-ameacas', {});
+      return;
+    }
+
+    // Cloud threat edit with only id (from MyCharactersPage)
+    if (locationState?.cloudThreatId) {
+      const id = locationState.cloudThreatId as string;
+      setCloudThreatId(id);
+      history.replace('/gerador-ameacas', {});
+
+      const loadCloudThreat = async () => {
+        try {
+          const fullSheet = await SheetsService.getSheetById(id);
+          const threatData = normalizeThreatSheet(
+            fullSheet.sheetData as unknown as ThreatSheet
+          );
+          setThreat(threatData);
+          setIsEditing(true);
+          setIsSavedToCloud(true);
+        } catch (err) {
+          console.error('Failed to load cloud threat for editing:', err);
+          showAlert(
+            'Não foi possível carregar a ameaça para edição.',
+            'Erro ao Carregar'
+          );
+        }
+      };
+
+      loadCloudThreat();
       return;
     }
 
@@ -163,13 +189,12 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
     if (editId) {
       const threatToEdit = threats.find((t) => t.id === editId);
       if (threatToEdit) {
-        setThreat(threatToEdit);
+        setThreat(normalizeThreatSheet(threatToEdit));
         setIsEditing(true);
-        // Clear the URL parameter
         history.replace('/threat-generator');
       }
     }
-  }, [location.search, location.state, threats, history]);
+  }, [location.search, location.state, threats, history, showAlert]);
 
   const steps = [
     'Tipo, Tamanho e Papel',
