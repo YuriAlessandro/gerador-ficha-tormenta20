@@ -55,6 +55,7 @@ import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import RdEditDrawer from './EditDrawers/RdEditDrawer';
+import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
@@ -126,6 +127,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [rdDrawerOpen, setRdDrawerOpen] = useState(false);
+  const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
 
   const theme = useTheme();
 
@@ -423,12 +425,24 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, periciasSorted]
   );
 
+  const effectiveProficiencias = useMemo(() => {
+    const base = classe.proficiencias.filter(
+      (p) => !(currentSheet.removedProficiencias ?? []).includes(p)
+    );
+    const custom = currentSheet.customProficiencias ?? [];
+    return [...base, ...custom];
+  }, [
+    classe.proficiencias,
+    currentSheet.removedProficiencias,
+    currentSheet.customProficiencias,
+  ]);
+
   const proficienciasDiv = useMemo(
     () =>
-      classe.proficiencias.map((proe) => (
+      effectiveProficiencias.map((proe) => (
         <Chip sx={{ m: 0.5 }} label={proe} key={getKey(proe)} />
       )),
-    [classe.proficiencias]
+    [effectiveProficiencias]
   );
 
   const bagEquipments = useMemo(() => {
@@ -1200,7 +1214,26 @@ const Result: React.FC<ResultProps> = (props) => {
                   </Box>
                 </Box>
               </Card>
-              <Card sx={{ p: 2 }}>
+              <Card sx={{ p: 2, position: 'relative', overflow: 'visible' }}>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setProficiencyDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <BookTitle>Proficiências</BookTitle>
                 <Stack direction='row' flexWrap='wrap'>
                   {proficienciasDiv}
@@ -1358,6 +1391,13 @@ const Result: React.FC<ResultProps> = (props) => {
         <RdEditDrawer
           open={rdDrawerOpen}
           onClose={() => setRdDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
+        />
+
+        <ProficiencyEditDrawer
+          open={proficiencyDrawerOpen}
+          onClose={() => setProficiencyDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
         />

@@ -68,6 +68,11 @@ const Changelog: React.FC = () => {
               <h3>4.2.3</h3>
               <ul>
                 <li>
+                  <strong>✏️ Edição de Proficiências:</strong> Agora é possível
+                  editar as proficiências da ficha, adicionando proficiências
+                  customizadas ou removendo existentes.
+                </li>
+                <li>
                   <strong>🐛 Correção de erro:</strong> Corrigido crash ao
                   carregar fichas do histórico ou da nuvem cujo inventário (bag)
                   estava ausente ou corrompido.

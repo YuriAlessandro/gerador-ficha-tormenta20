@@ -407,6 +407,8 @@ export default interface CharacterSheet {
   pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
   reducaoDeDano?: DamageReduction; // Redução de Dano total (calculado: auto + manual)
   bonusRd?: DamageReduction; // Bônus manual de RD por tipo (adicionado ao calculado)
+  customProficiencias?: string[]; // Proficiências adicionadas manualmente pelo usuário
+  removedProficiencias?: string[]; // Proficiências base removidas manualmente pelo usuário
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
 }

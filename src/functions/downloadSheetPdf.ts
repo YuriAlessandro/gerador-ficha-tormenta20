@@ -257,9 +257,13 @@ const preparePDF: (
   spellsField.setText(spellsText);
 
   // Proficiencies
-  const proficienciesText = sheet.classe.proficiencias
-    .map((proficiency) => `${proficiency}`)
-    .join('\n');
+  const baseProficiencies = sheet.classe.proficiencias.filter(
+    (p) => !(sheet.removedProficiencias ?? []).includes(p)
+  );
+  const customProficiencies = sheet.customProficiencias ?? [];
+  const proficienciesText = [...baseProficiencies, ...customProficiencies].join(
+    '\n'
+  );
   proficienciesField.setText(proficienciesText);
 
   // The PDF sheet only allows 30 skills, being two max "Oficios". We need to make sure we don't exceed that.
