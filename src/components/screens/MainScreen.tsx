@@ -417,7 +417,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       );
 
       // Restore Bag class methods
-      sheet.bag = new Bag(sheet.bag.equipments);
+      sheet.bag = new Bag(sheet.bag?.equipments);
 
       // Restore spellPath functions if the class has spellcasting
       restoreSpellPath(sheet, CLASSES);
@@ -654,7 +654,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       wizardSelections,
       raceCustomization
     );
-    level1Sheet.bag = new Bag(level1Sheet.bag.equipments);
+    level1Sheet.bag = new Bag(level1Sheet.bag?.equipments);
 
     // Clear race customization after use
     setRaceCustomization({});
@@ -752,7 +752,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     }
 
     // Restore Bag class methods
-    sheet.bag = new Bag(sheet.bag.equipments);
+    sheet.bag = new Bag(sheet.bag?.equipments);
 
     // Restore spellPath functions if the class has spellcasting
     restoreSpellPath(sheet, CLASSES);
@@ -787,9 +787,9 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       const serializableSheet = {
         ...updatedSheet,
         bag: {
-          equipments: updatedSheet.bag.equipments,
-          spaces: updatedSheet.bag.spaces,
-          armorPenalty: updatedSheet.bag.armorPenalty,
+          equipments: updatedSheet.bag?.equipments ?? {},
+          spaces: updatedSheet.bag?.spaces ?? 0,
+          armorPenalty: updatedSheet.bag?.armorPenalty ?? 0,
         },
       };
 

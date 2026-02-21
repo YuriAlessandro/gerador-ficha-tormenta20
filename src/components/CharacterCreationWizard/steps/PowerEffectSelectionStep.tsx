@@ -511,6 +511,9 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       supplements
     );
 
+    // Adjust pick when some options were filtered out (e.g., class already has the proficiency)
+    const effectivePick = Math.min(pick, allAvailableOptions.length);
+
     // Get search query for this requirement
     const searchQuery = searchQueries[requirementIndex] || '';
 
@@ -520,7 +523,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     // Determine if we should show search (>15 options)
     const shouldShowSearch = allAvailableOptions.length > 15;
 
-    const isSingleSelection = pick === 1;
+    const isSingleSelection = effectivePick === 1;
     const currentCount = getSelectionCount(powerName, type);
     const powerSelections = selections[powerName] || {};
 
@@ -1110,7 +1113,13 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                   return optName === e.target.value;
                 });
                 if (selectedOption) {
-                  handleSelection(powerName, type, selectedOption, true, pick);
+                  handleSelection(
+                    powerName,
+                    type,
+                    selectedOption,
+                    true,
+                    effectivePick
+                  );
                   // Clear nested power's spell selection when power changes (nested requirement may change)
                   if (type === 'getGeneralPower') {
                     // Get the old selected power to clear its nested selections
@@ -1210,8 +1219,14 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           {label}
         </Typography>
         <Typography variant='caption' color='text.secondary' display='block'>
-          Selecionados: {currentCount} / {pick}
+          Selecionados: {currentCount} / {effectivePick}
         </Typography>
+
+        {effectivePick < pick && (
+          <Alert severity='info' sx={{ mb: 1 }}>
+            Você já possui {pick - effectivePick} proficiência(s) desta seleção.
+          </Alert>
+        )}
 
         {shouldShowSearch && (
           <>
@@ -1267,7 +1282,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
               }
 
               const isSelected = isItemSelected(powerName, type, option);
-              const isDisabled = !isSelected && currentCount >= pick;
+              const isDisabled = !isSelected && currentCount >= effectivePick;
 
               return (
                 <FormControlLabel
@@ -1281,7 +1296,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
                           type,
                           option,
                           e.target.checked,
-                          pick
+                          effectivePick
                         )
                       }
                       disabled={isDisabled}

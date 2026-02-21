@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/02/2026.
+            21/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,21 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.3</h3>
+              <ul>
+                <li>
+                  <strong>🐛 Correção de erro:</strong> Corrigido crash ao
+                  carregar fichas do histórico ou da nuvem cujo inventário (bag)
+                  estava ausente ou corrompido.
+                </li>
+                <li>
+                  <strong>🐛 Correção de erro:</strong> Corrigido bug que
+                  impedia avançar no wizard ao selecionar origens que concedem
+                  proficiências já possuídas pela classe (ex: Desertor da
+                  Supremacia com classes que já possuem Escudos).
+                </li>
+              </ul>
+
               <h3>4.2.2</h3>
               <ul>
                 <li>

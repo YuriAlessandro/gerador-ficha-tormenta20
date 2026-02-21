@@ -1255,6 +1255,8 @@ const CharacterCreationWizardModal: React.FC<
           powerName: string;
           type: string;
           pick: number;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          availableOptions?: any[];
         }> = [];
 
         // Check race abilities
@@ -1373,8 +1375,17 @@ const CharacterCreationWizardModal: React.FC<
           const { powerName, type, pick } = req;
           const count = getSelectionCount(powerName, type);
 
+          // Adjust pick for proficiencies already owned by the class
+          let effectivePick = pick;
+          if (type === 'addProficiency' && req.availableOptions && classe) {
+            const filteredCount = (req.availableOptions as string[]).filter(
+              (prof) => !classe.proficiencias.includes(prof)
+            ).length;
+            effectivePick = Math.min(pick, filteredCount);
+          }
+
           // For getGeneralPower, also check if nested power requirements are met
-          if (type === 'getGeneralPower' && count >= pick) {
+          if (type === 'getGeneralPower' && count >= effectivePick) {
             const powerSelections = effectSelections[powerName] || {};
             const selectedPower = powerSelections.powers?.[0] as
               | { name?: string; sheetActions?: unknown[] }
@@ -1398,7 +1409,7 @@ const CharacterCreationWizardModal: React.FC<
             }
           }
 
-          return count >= pick;
+          return count >= effectivePick;
         });
       }
 

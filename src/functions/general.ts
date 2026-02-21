@@ -973,10 +973,7 @@ function getShields(classe: ClassDescription) {
 
 function getArmors(classe: ClassDescription, currentBag?: Bag) {
   // Se já tem armadura no bag, não gerar nova
-  if (
-    currentBag?.equipments?.Armadura &&
-    currentBag.equipments.Armadura.length > 0
-  ) {
+  if (currentBag?.equipments?.Armadura?.length) {
     return [];
   }
 

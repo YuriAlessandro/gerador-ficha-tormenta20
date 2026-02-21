@@ -761,10 +761,7 @@ export function generateEquipmentRewards(
     let hasGeneratedArmor = false; // Track if we've already generated armor
 
     // Check if there's already armor in existing bag
-    if (
-      existingBag?.equipments?.Armadura &&
-      existingBag.equipments.Armadura.length > 0
-    ) {
+    if (existingBag?.equipments?.Armadura?.length) {
       hasGeneratedArmor = true;
     }
 
