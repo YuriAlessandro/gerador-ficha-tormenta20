@@ -1,1 +1,16 @@
 node_modules
+.git
+backend
+build
+.vscode
+.idea
+*.md
+.env
+.env.*
+docker-compose.yml
+cloudbuild-frontend.yaml
+.dockerignore
+Dockerfile
+*.log
+coverage
+.github

@@ -9,10 +9,21 @@ steps:
         git config --global url."https://x-access-token:$$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
         git submodule update --init --recursive
 
-  # Build da imagem Docker
+  # Puxar imagem anterior para usar como cache
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'docker pull gcr.io/$PROJECT_ID/fichas-frontend:latest || true'
+
+  # Build da imagem Docker (com cache da imagem anterior)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--cache-from'
+      - 'gcr.io/$PROJECT_ID/fichas-frontend:latest'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
       - '-t'
       - 'gcr.io/$PROJECT_ID/fichas-frontend:$COMMIT_SHA'
       - '-t'
@@ -36,6 +47,8 @@ steps:
       - '--build-arg'
       - 'VITE_STRIPE_PUBLISHABLE_KEY=${_VITE_STRIPE_PUBLISHABLE_KEY}'
       - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
 
   # Push para Container Registry
   - name: 'gcr.io/cloud-builders/docker'
