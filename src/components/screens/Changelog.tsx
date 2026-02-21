@@ -73,6 +73,11 @@ const Changelog: React.FC = () => {
                   completos da ameaça agora são carregados corretamente ao abrir
                   a partir de &quot;Meus Personagens&quot;.
                 </li>
+                <li>
+                  <strong>🐛 Correção de erro:</strong> Corrigido crash ao
+                  acessar uma mesa com ameaças importadas que possuíam dados
+                  incompletos.
+                </li>
               </ul>
 
               <h3>4.2.3</h3>
