@@ -7,7 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 // Version used for cache naming - changing this invalidates all PWA caches
-const APP_VERSION = '4.2.5';
+const APP_VERSION = '4.2.5.1';
 
 // Plugin to handle SPA routing for paths with dots (e.g., /perfil/user.name)
 // This runs AFTER Vite's middleware to catch 404s on client-side routes
