@@ -14,6 +14,7 @@ export enum NotificationType {
   PAYMENT_CONFIRMED = 'payment_confirmed',
   PAYMENT_FAILED = 'payment_failed',
   SUBSCRIPTION_CANCELLED = 'subscription_cancelled',
+  ADMIN_BROADCAST = 'admin_broadcast',
 }
 
 export type NotificationReferenceType =
@@ -21,7 +22,8 @@ export type NotificationReferenceType =
   | 'blog_post'
   | 'game_table'
   | 'subscription'
-  | 'forum_thread';
+  | 'forum_thread'
+  | 'admin';
 
 export interface Notification {
   _id: string;

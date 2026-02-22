@@ -19,6 +19,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Forum as ForumIcon,
+  Campaign as CampaignIcon,
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -53,6 +54,8 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
       return <ErrorIcon color='error' />;
     case NotificationType.SUBSCRIPTION_CANCELLED:
       return <CancelIcon color='warning' />;
+    case NotificationType.ADMIN_BROADCAST:
+      return <CampaignIcon color='info' />;
     default:
       return <NotificationsIcon />;
   }
@@ -89,6 +92,13 @@ const getNotificationLink = (notification: Notification): string | null => {
     case NotificationType.PAYMENT_FAILED:
     case NotificationType.SUBSCRIPTION_CANCELLED:
       return '/apoiar';
+    case NotificationType.ADMIN_BROADCAST: {
+      const customUrl = notification.metadata?.customUrl as string | undefined;
+      if (customUrl && !customUrl.startsWith('http')) {
+        return customUrl;
+      }
+      return null;
+    }
     default:
       return null;
   }
@@ -104,6 +114,18 @@ const NotificationList: React.FC<NotificationListProps> = ({
   const history = useHistory();
 
   const handleNotificationClick = (notification: Notification) => {
+    // Handle admin broadcast with absolute URL
+    if (notification.type === NotificationType.ADMIN_BROADCAST) {
+      const customUrl = notification.metadata?.customUrl as string | undefined;
+      if (customUrl && customUrl.startsWith('http')) {
+        window.open(customUrl, '_blank');
+        if (onClose) {
+          onClose();
+        }
+        return;
+      }
+    }
+
     const link = getNotificationLink(notification);
     if (link) {
       history.push(link);
@@ -137,7 +159,12 @@ const NotificationList: React.FC<NotificationListProps> = ({
             key={notification._id}
             onClick={() => handleNotificationClick(notification)}
             sx={{
-              cursor: getNotificationLink(notification) ? 'pointer' : 'default',
+              cursor:
+                getNotificationLink(notification) ||
+                (notification.type === NotificationType.ADMIN_BROADCAST &&
+                  notification.metadata?.customUrl)
+                  ? 'pointer'
+                  : 'default',
               backgroundColor: notification.isRead
                 ? 'transparent'
                 : 'action.hover',
