@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/02/2026.
+            22/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,17 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.5</h3>
+              <ul>
+                <li>
+                  <strong>🐛 Correção de erro:</strong> Corrigido problema que
+                  impedia o funcionamento de funções básicas da mesa virtual
+                  (visualizar fichas de criaturas, criar combate, ver fichas de
+                  jogadores) quando ameaças importadas possuíam dados
+                  incompletos.
+                </li>
+              </ul>
+
               <h3>4.2.4</h3>
               <ul>
                 <li>
