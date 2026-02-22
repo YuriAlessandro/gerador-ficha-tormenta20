@@ -21,7 +21,7 @@ self.addEventListener('push', function (event) {
   var options = {
     body: data.body || '',
     icon: data.icon || '/android-icon-192x192.png',
-    badge: data.badge || '/favicon-96x96.png',
+    badge: data.badge || '/notification-badge.png',
     tag: data.tag || 'default',
     renotify: data.renotify || false,
     data: data.data || {},
