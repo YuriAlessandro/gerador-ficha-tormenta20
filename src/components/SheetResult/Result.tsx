@@ -27,6 +27,7 @@ import {
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
+import { calculateCurrencySpaces } from '@/functions/general';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -1209,8 +1210,26 @@ const Result: React.FC<ResultProps> = (props) => {
                   </Box>
                   <Box mt={1}>
                     <strong>Espaços (atual/limite-máximo): </strong>
-                    {bag.getSpaces()}/{customMaxSpaces ?? maxSpaces}-
+                    {bag.getSpaces() +
+                      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO)}
+                    /{customMaxSpaces ?? maxSpaces}-
                     {(customMaxSpaces ?? maxSpaces) * 2}
+                    {calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO) >
+                      0 && (
+                      <Typography
+                        variant='caption'
+                        component='span'
+                        sx={{ ml: 0.5 }}
+                      >
+                        (
+                        {calculateCurrencySpaces(
+                          dinheiro,
+                          dinheiroTC,
+                          dinheiroTO
+                        )}{' '}
+                        de moedas)
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Card>

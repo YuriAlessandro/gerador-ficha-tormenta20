@@ -68,6 +68,12 @@ const Changelog: React.FC = () => {
               <h3>4.2.6</h3>
               <ul>
                 <li>
+                  <strong>✨ Melhoria:</strong> Moedas agora possuem peso. Para
+                  cada 1000 unidades de uma moeda (T$, TC ou TO), 1 espaço é
+                  consumido na ficha. O peso das moedas é considerado no cálculo
+                  de deslocamento e exibido no PDF.
+                </li>
+                <li>
                   <strong>✨ Melhoria:</strong> O feed da página inicial agora
                   exibe os 15 itens mais recentes entre posts do fórum, builds e
                   blogs, ordenados por data — ao invés de dividir por blocos de

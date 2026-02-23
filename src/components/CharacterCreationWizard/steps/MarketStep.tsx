@@ -32,6 +32,7 @@ import {
   MarketEquipment,
   MarketSelections,
 } from '@/interfaces/MarketEquipment';
+import { calculateCurrencySpaces } from '@/functions/general';
 
 interface MarketStepProps {
   initialMoney: number;
@@ -109,8 +110,8 @@ const MarketStep: React.FC<MarketStepProps> = ({
 
   // Calculate bag spaces
   const bagSpaces = useMemo(
-    () => calcBagSpaces(bagEquipments),
-    [bagEquipments]
+    () => calcBagSpaces(bagEquipments) + calculateCurrencySpaces(currentMoney),
+    [bagEquipments, currentMoney]
   );
 
   // Filter items by search query and sort alphabetically

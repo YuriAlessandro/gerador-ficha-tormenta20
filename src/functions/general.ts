@@ -1331,15 +1331,32 @@ export function calculateMaxSpaces(forca: number): number {
   return 10 + 2 * forca;
 }
 
+export function calculateCurrencySpaces(
+  dinheiro = 0,
+  dinheiroTC = 0,
+  dinheiroTO = 0
+): number {
+  return (
+    Math.floor(dinheiro / 1000) +
+    Math.floor(dinheiroTC / 1000) +
+    Math.floor(dinheiroTO / 1000)
+  );
+}
+
 function calcDisplacement(
   bag: Bag,
   raceDisplacement: number,
   atributos: CharacterAttributes,
-  baseDisplacement: number
+  baseDisplacement: number,
+  dinheiro = 0,
+  dinheiroTC = 0,
+  dinheiroTO = 0
 ): number {
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
+  const totalUsedSpaces =
+    bag.getSpaces() + calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
 
-  if (bag.getSpaces() > maxSpaces) {
+  if (totalUsedSpaces > maxSpaces) {
     return raceDisplacement - 3;
   }
 
@@ -4201,7 +4218,10 @@ export default function generateRandomSheet(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),
     charSheet.atributos,
-    charSheet.displacement
+    charSheet.displacement,
+    charSheet.dinheiro,
+    charSheet.dinheiroTC,
+    charSheet.dinheiroTO
   );
   charSheet.displacement = displacement;
 

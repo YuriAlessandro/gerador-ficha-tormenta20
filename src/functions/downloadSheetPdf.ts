@@ -6,6 +6,7 @@ import { OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
 import { PDFDocument } from 'pdf-lib';
+import { calculateCurrencySpaces } from './general';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -184,8 +185,13 @@ const preparePDF: (
   equipamentsFirstField.setText(allEquipments.slice(0, 1000));
   equipamentsSecondField.setText(allEquipments.slice(1000, 2000));
 
-  // Add equipment current cargo
-  const currentCargo = sheet.bag.getSpaces();
+  // Add equipment current cargo (including currency weight)
+  const currencySpaces = calculateCurrencySpaces(
+    sheet.dinheiro,
+    sheet.dinheiroTC,
+    sheet.dinheiroTO
+  );
+  const currentCargo = sheet.bag.getSpaces() + currencySpaces;
   currentCargoField.setText(`${currentCargo}`);
   const maxCargo = sheet.maxSpaces;
   maxCargoField.setText(`${maxCargo}`);

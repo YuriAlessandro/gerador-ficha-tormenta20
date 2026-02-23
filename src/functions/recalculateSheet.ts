@@ -33,6 +33,7 @@ import {
   applyPower,
   applyOptionChosenTexts,
   calculateMaxSpaces,
+  calculateCurrencySpaces,
 } from './general';
 import { countTormentaPowers } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
@@ -422,11 +423,16 @@ const calcDisplacement = (
   bag: Bag,
   raceDisplacement: number,
   atributos: CharacterAttributes,
-  baseDisplacement: number
+  baseDisplacement: number,
+  dinheiro = 0,
+  dinheiroTC = 0,
+  dinheiroTO = 0
 ): number => {
   const maxSpaces = calculateMaxSpaces(atributos.Força.value);
+  const totalUsedSpaces =
+    bag.getSpaces() + calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
 
-  if (bag.getSpaces() > maxSpaces) {
+  if (totalUsedSpaces > maxSpaces) {
     return raceDisplacement - 3;
   }
 
@@ -1203,7 +1209,10 @@ export function recalculateSheet(
     updatedSheet.bag,
     getRaceDisplacement(updatedSheet.raca),
     updatedSheet.atributos,
-    baseDisplacementBonuses
+    baseDisplacementBonuses,
+    updatedSheet.dinheiro,
+    updatedSheet.dinheiroTC,
+    updatedSheet.dinheiroTO
   );
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
