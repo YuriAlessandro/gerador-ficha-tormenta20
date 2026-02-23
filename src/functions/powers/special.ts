@@ -385,37 +385,70 @@ export function applyYidishanNaturezaOrganica(
   return subSteps;
 }
 
-export function applyMeioElfoAmbicaoHerdada(sheet: CharacterSheet): SubStep[] {
+export function applyMeioElfoAmbicaoHerdada(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
   const substeps: SubStep[] = [];
 
-  // 50% chance of getting a general power vs origin power
-  const shouldGetGeneralPower = Math.random() > 0.5;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
 
-  if (shouldGetGeneralPower) {
-    const allowedPowers = getPowersAllowedByRequirements(sheet);
-    const randomPower = getNotRepeatedRandom(
-      sheet.generalPowers,
-      allowedPowers
-    );
-    sheet.generalPowers.push(randomPower);
+  // Check if Ambição Herdada was already applied (to avoid re-applying during recalculation)
+  const ambicaoAlreadyApplied = sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Ambição Herdada'
+      )
+  );
+
+  // If already applied and no manual selections, skip re-applying
+  if (ambicaoAlreadyApplied && !hasManualPowers) {
+    return substeps;
+  }
+
+  if (hasManualPowers) {
+    const selectedPower = manualSelections.powers![0];
+    sheet.generalPowers.push(selectedPower as GeneralPower);
     substeps.push({
       name: 'Ambição Herdada',
-      value: `Poder geral recebido (${randomPower.name})`,
+      value: `Poder geral recebido (${selectedPower.name})`,
     });
   } else {
-    // Get a random origin power
-    const allOriginPowers = Object.values(originPowers);
-    const randomOriginPower = getRandomItemFromArray(allOriginPowers);
-    if (sheet.origin) {
-      sheet.origin.powers.push(randomOriginPower);
-    }
-    substeps.push({
-      name: 'Ambição Herdada',
-      value: `Poder único de origem recebido (${randomOriginPower.name})`,
-    });
+    // Random selection for initial generation
+    const shouldGetGeneralPower = Math.random() > 0.5;
 
-    // Apply the origin power's effects if any
-    applyPower(sheet, randomOriginPower);
+    if (shouldGetGeneralPower) {
+      const allowedPowers = getPowersAllowedByRequirements(sheet);
+      const randomPower = getNotRepeatedRandom(
+        sheet.generalPowers,
+        allowedPowers
+      );
+      sheet.generalPowers.push(randomPower);
+      substeps.push({
+        name: 'Ambição Herdada',
+        value: `Poder geral recebido (${randomPower.name})`,
+      });
+    } else {
+      // Get a random origin power
+      const allOriginPowers = Object.values(originPowers);
+      const randomOriginPower = getRandomItemFromArray(allOriginPowers);
+      if (sheet.origin) {
+        sheet.origin.powers.push(randomOriginPower);
+      }
+      substeps.push({
+        name: 'Ambição Herdada',
+        value: `Poder único de origem recebido (${randomOriginPower.name})`,
+      });
+
+      // Apply the origin power's effects if any
+      applyPower(sheet, randomOriginPower);
+    }
   }
 
   return substeps;

@@ -126,6 +126,7 @@ import {
   getAllowedClassPowers,
   getPowersAllowedByRequirements,
   getWeightedInventorClassPowers,
+  isPowerAvailable,
 } from './powers';
 import {
   addOrCheapenRandomSpells,
@@ -2086,7 +2087,7 @@ export const applyPower = (
         } else if (
           sheetAction.action.specialAction === 'meioElfoAmbicaoHerdada'
         ) {
-          currentSteps = applyMeioElfoAmbicaoHerdada(sheet);
+          currentSteps = applyMeioElfoAmbicaoHerdada(sheet, manualSelections);
         } else if (
           sheetAction.action.specialAction === 'qareenResistenciaElemental'
         ) {
@@ -2107,113 +2108,6 @@ export const applyPower = (
       } else if (sheetAction.action.type === 'getClassPower') {
         const { minLevel = 2, ignoreOnlyLevelRequirement = true } =
           sheetAction.action;
-
-        // Helper function to check if power meets requirements (ignoring level if specified)
-        const checkPowerRequirements = (power: ClassPower): boolean => {
-          if (!power.requirements || power.requirements.length === 0) {
-            return true;
-          }
-
-          return power.requirements.some((req: Requirement[]) =>
-            req.every((rule: Requirement) => {
-              // Skip level requirement check if ignoreOnlyLevelRequirement is true
-              if (ignoreOnlyLevelRequirement && rule.type === 'NIVEL') {
-                return true;
-              }
-
-              // Check all other requirements using the same logic as isPowerAvailable
-              switch (rule.type) {
-                case 'PODER': {
-                  const allPowers = [
-                    ...sheet.generalPowers,
-                    ...(sheet.origin?.powers || []),
-                    ...(sheet.classPowers || []),
-                  ];
-                  return allPowers.some(
-                    (currPower) => currPower.name === rule.name
-                  );
-                }
-                case 'ATRIBUTO': {
-                  const attr = rule.name as Atributo;
-                  return (
-                    rule.name &&
-                    sheet.atributos[attr].value >= (rule?.value || 0)
-                  );
-                }
-                case 'PERICIA': {
-                  const pericia = rule.name as Skill;
-                  return rule.name && sheet.skills.includes(pericia);
-                }
-                case 'HABILIDADE': {
-                  const result = sheet.classe.abilities.some(
-                    (ability) => ability.name === rule.name
-                  );
-                  if (rule.not) return !result;
-                  return result;
-                }
-                case 'PODER_TORMENTA': {
-                  const qtdPowers = rule.value as number;
-                  return (
-                    sheet.generalPowers.filter(
-                      (actualPower) => actualPower.type === 'TORMENTA'
-                    ).length >=
-                    qtdPowers + 1
-                  );
-                }
-                case 'PROFICIENCIA': {
-                  const proficiencia = rule.value as unknown as string;
-                  return (
-                    rule.name &&
-                    sheet.classe.proficiencias.includes(proficiencia)
-                  );
-                }
-                case 'NIVEL': {
-                  const nivel = rule.value as number;
-                  return sheet.nivel >= nivel;
-                }
-                case 'CLASSE': {
-                  const className = rule.value as unknown as string;
-                  return rule.name && sheet.classe.name === className;
-                }
-                case 'TIPO_ARCANISTA': {
-                  const classSubName = rule.name;
-                  return sheet.classe.subname === classSubName;
-                }
-                case 'MAGIA': {
-                  const spellName = rule.name;
-                  return (
-                    sheet.spells.filter((spell) => spell.nome === spellName)
-                      .length >= 1
-                  );
-                }
-                case 'DEVOTO': {
-                  const godName = rule.name;
-                  const result = sheet.devoto?.divindade.name === godName;
-                  if (rule.not) return !result;
-                  return result;
-                }
-                case 'RACA': {
-                  const raceName = rule.name;
-                  return sheet.raca.name === raceName;
-                }
-                case 'TIER_LIMIT': {
-                  const category = rule.name as string;
-                  // Count powers in the category
-                  const count = sheet.generalPowers.filter((p) =>
-                    p.name.includes(category)
-                  ).length;
-                  return count < 1;
-                }
-                case 'TEXT':
-                  // TEXT requirements are always considered met - the user reads
-                  // the text description and judges if they meet the requirement
-                  return true;
-                default:
-                  return true;
-              }
-            })
-          );
-        };
 
         // Filter class powers by minimum level and requirements
         const availablePowers = sheet.classe.powers.filter((power) => {
@@ -2253,7 +2147,12 @@ export const applyPower = (
             meetsMinLevel = minLevel <= 1;
           }
 
-          return meetsMinLevel && checkPowerRequirements(power);
+          return (
+            meetsMinLevel &&
+            isPowerAvailable(sheet, power, {
+              ignoreLevelRequirement: ignoreOnlyLevelRequirement,
+            })
+          );
         });
 
         if (availablePowers.length === 0) {

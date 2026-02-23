@@ -65,7 +65,7 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <h3>4.2.6</h3>
+              <h3>4.3</h3>
               <ul>
                 <li>
                   <strong>✨ Melhoria:</strong> Moedas agora possuem peso. Para
@@ -133,6 +133,19 @@ const Changelog: React.FC = () => {
                   <strong>✨ Melhoria:</strong> Perícias treinadas e atributos
                   na ficha de ameaça agora são clicáveis, permitindo rolar
                   1d20+modificador diretamente ao clicar.
+                </li>
+                <li>
+                  <strong>🔧 Correção:</strong> A origem Futura Lenda podia
+                  conceder poderes de classe que não cumpriam pré-requisitos
+                  (como chassi, proficiência ou classe variante). A validação
+                  agora usa a mesma lógica canônica do restante do sistema.
+                </li>
+                <li>
+                  <strong>🔧 Correção:</strong> A habilidade Ambição Herdada do
+                  Meio-Elfo não permitia remover o poder concedido — ao tentar
+                  removê-lo, o recálculo da ficha re-aplicava a habilidade e
+                  sorteava um novo poder aleatório. Agora o poder pode ser
+                  removido normalmente.
                 </li>
               </ul>
 

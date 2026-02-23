@@ -45,7 +45,8 @@ export function getPowerCountInCurrentTier(
 
 export function isPowerAvailable(
   sheet: CharacterSheet,
-  power: GeneralPower | ClassPower
+  power: GeneralPower | ClassPower,
+  options?: { ignoreLevelRequirement?: boolean }
 ): boolean {
   if (power.requirements && power.requirements.length > 0) {
     return power.requirements.some((req) =>
@@ -121,6 +122,7 @@ export function isPowerAvailable(
             return sheet.classe.proficiencias.includes(proficiencia);
           }
           case RequirementType.NIVEL: {
+            if (options?.ignoreLevelRequirement) return true;
             const nivel = rule.value as number;
             return sheet.nivel >= nivel;
           }
