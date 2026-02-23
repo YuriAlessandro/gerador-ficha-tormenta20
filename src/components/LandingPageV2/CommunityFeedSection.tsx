@@ -177,13 +177,13 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
 
         const [blogResult, buildsResult, forumResult] =
           await Promise.allSettled([
-            BlogService.getRecentPosts(5),
+            BlogService.getRecentPosts(15),
             BuildsService.getAllPublicBuilds(
               { sortBy: 'createdAt', sortOrder: 'desc' },
               1,
-              5
+              15
             ),
-            ForumService.getThreads({ page: 1, limit: 5, sortBy: 'newest' }),
+            ForumService.getThreads({ page: 1, limit: 15, sortBy: 'newest' }),
           ]);
 
         const items: FeedItem[] = [];
@@ -192,12 +192,10 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
           items.push(...blogResult.value.map(mapBlogToFeed));
         }
         if (buildsResult.status === 'fulfilled') {
-          items.push(
-            ...buildsResult.value.data.slice(0, 3).map(mapBuildToFeed)
-          );
+          items.push(...buildsResult.value.data.map(mapBuildToFeed));
         }
         if (forumResult.status === 'fulfilled') {
-          items.push(...forumResult.value.data.slice(0, 3).map(mapForumToFeed));
+          items.push(...forumResult.value.data.map(mapForumToFeed));
         }
 
         // Separate supporter items (builds + forum only) from regular items

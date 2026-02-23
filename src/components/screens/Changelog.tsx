@@ -31,7 +31,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/02/2026.
+            23/02/2026.
           </p>
 
           <p>
@@ -65,6 +65,16 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.2.6</h3>
+              <ul>
+                <li>
+                  <strong>✨ Melhoria:</strong> O feed da página inicial agora
+                  exibe os 15 itens mais recentes entre posts do fórum, builds e
+                  blogs, ordenados por data — ao invés de dividir por blocos de
+                  cada tipo.
+                </li>
+              </ul>
+
               <h3>4.2.5</h3>
               <ul>
                 <li>
