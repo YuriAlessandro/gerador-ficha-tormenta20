@@ -786,6 +786,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             // Check if character is the required race
             return sheet.raca.name === req.name;
 
+          case RequirementType.CHASSIS:
+            // Check if character has the required chassis
+            return sheet.raca.chassis === req.name;
+
           case RequirementType.TIER_LIMIT: {
             // Check if character can still pick this power in current tier
             const category = req.name as string;
@@ -858,6 +862,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             return sheet.classe.abilities?.some((a) => a.name === req.name);
           case RequirementType.RACA:
             return sheet.raca.name === req.name;
+          case RequirementType.CHASSIS:
+            return sheet.raca.chassis === req.name;
           case RequirementType.TIER_LIMIT: {
             const category = req.name as string;
             const currentTierPowers = selectedClassPowers.filter((p) =>

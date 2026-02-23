@@ -35,6 +35,7 @@ import {
   OriginWithSupplement,
 } from '../../../data/registry';
 import roles from '../../../data/systems/tormenta20/roles';
+import { raceHasOrigin } from '../../../data/systems/tormenta20/origins';
 import getSelectTheme from '../../../functions/style';
 
 type SelectedOption = {
@@ -104,7 +105,22 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   const CLASSES = dataRegistry.getClassesWithSupplementInfo(userSupplements);
 
   const onSelectRaca = (raca: SelectedOption | null) => {
-    onSelectedOptionsChange({ ...selectedOptions, raca: raca?.value ?? '' });
+    const raceName = raca?.value ?? '';
+    const hasOrigin = raceHasOrigin(raceName);
+
+    let newOrigin = '__NO_ORIGIN__';
+    if (hasOrigin) {
+      newOrigin =
+        selectedOptions.origin === '__NO_ORIGIN__'
+          ? ''
+          : selectedOptions.origin;
+    }
+
+    onSelectedOptionsChange({
+      ...selectedOptions,
+      raca: raceName,
+      origin: newOrigin,
+    });
   };
 
   const onSelectClasse = (classe: SelectedOption | null) => {
@@ -451,7 +467,7 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
             }
             isSearchable
             onChange={onSelectOrigin}
-            isDisabled={selectedOptions.raca === 'Golem'}
+            isDisabled={!raceHasOrigin(selectedOptions.raca)}
             styles={selectStyles}
             menuPortalTarget={document.body}
             formatOptionLabel={formatOptionLabel}

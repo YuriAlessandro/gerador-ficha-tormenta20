@@ -30,6 +30,7 @@ export enum RequirementType {
   DEVOTO = 'DEVOTO',
   TEXT = 'TEXT',
   RACA = 'RACA',
+  CHASSIS = 'CHASSIS',
   TIER_LIMIT = 'TIER_LIMIT',
 }
 

@@ -74,8 +74,30 @@ const Changelog: React.FC = () => {
                   cada tipo.
                 </li>
                 <li>
+                  <strong>✨ Chassi Mashin para Golem Desperto:</strong> Mashin
+                  foi reimplementado como tipo de chassi do Golem Desperto,
+                  disponível no modal de customização. Concede +1 em dois
+                  atributos à escolha, treinamento em duas perícias, acesso a
+                  Maravilhas Mecânicas, tamanho fixo Médio e deslocamento 9m.
+                </li>
+                <li>
                   <strong>🔧 Correção:</strong> Druida agora pode ser devoto de
                   Aharadak, Allihanna, Megalokk, Oceano ou Tenebra.
+                </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Raças Golem, Golem Desperto e
+                  Mashin agora bloqueiam corretamente a seleção de origem nos
+                  formulários de criação.
+                </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Selecionar uma origem antes de
+                  trocar para Golem/Golem Desperto não mantém mais a origem
+                  selecionada.
+                </li>
+                <li>
+                  <strong>🗃️ Deprecação:</strong> Raça Mashin standalone não
+                  aparece mais na criação de novas fichas. Fichas existentes
+                  continuam funcionando normalmente.
                 </li>
               </ul>
 

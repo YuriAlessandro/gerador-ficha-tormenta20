@@ -247,6 +247,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       },
       raca: {
         name: race.name,
+        chassis: race.chassis,
       },
       generalPowers: [],
       classPowers: [],

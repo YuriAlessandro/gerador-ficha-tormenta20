@@ -1,4 +1,7 @@
-import Race, { RaceAttributeAbility } from '../../../../../interfaces/Race';
+import Race, {
+  RaceAbility,
+  RaceAttributeAbility,
+} from '../../../../../interfaces/Race';
 import { getRandomItemFromArray } from '../../../../../functions/randomUtils';
 import { Atributo } from '../../atributos';
 import {
@@ -6,9 +9,10 @@ import {
   GOLEM_DESPERTO_CHASSIS_NAMES,
   GOLEM_DESPERTO_ENERGY_SOURCES,
   GOLEM_DESPERTO_SIZES,
-  GOLEM_DESPERTO_SIZE_NAMES,
   getRandomCompatibleEnergySource,
+  getRandomCompatibleSize,
 } from './golem-desperto-config';
+import MECHANICAL_MARVELS from '../powers/mechanicalMarvels';
 
 // Atributos base do Golem Desperto (antes de chassi/tamanho)
 export const GOLEM_DESPERTO_BASE_ATTRIBUTES: RaceAttributeAbility[] = [
@@ -128,11 +132,33 @@ export function applyGolemDespertoCustomization(
 
   // Construir habilidades do zero: fixas conhecidas + chassi + energia
   // Não usa baseRace.abilities para evitar duplicação quando setup() já aplicou
-  const abilities = [
+  const abilities: RaceAbility[] = [
     ...GOLEM_DESPERTO_FIXED_ABILITIES,
     chassis.chassiAbility,
     energySource.ability,
   ];
+
+  // Chassi Mashin recebe habilidade extra: Maravilha Mecânica
+  if (chassisId === 'mashin') {
+    abilities.push({
+      name: 'Maravilha Mecânica',
+      description:
+        'Você pode escolher uma Maravilha Mecânica. Você só pode escolher uma Maravilha Mecânica por patamar de nível (Iniciante: 1º ao 4º, Veterano: 5º ao 10º, Campeão: 11º ao 16º, Herói: 17º ao 20º).',
+      sheetActions: [
+        {
+          source: {
+            type: 'power' as const,
+            name: 'Maravilha Mecânica',
+          },
+          action: {
+            type: 'getGeneralPower' as const,
+            availablePowers: MECHANICAL_MARVELS,
+            pick: 1,
+          },
+        },
+      ],
+    });
+  }
 
   return {
     ...baseRace,
@@ -183,7 +209,7 @@ const GOLEM_DESPERTO: Race = {
       GOLEM_DESPERTO_CHASSIS_NAMES
     );
     const randomEnergyId = getRandomCompatibleEnergySource(randomChassisId);
-    const randomSizeId = getRandomItemFromArray(GOLEM_DESPERTO_SIZE_NAMES);
+    const randomSizeId = getRandomCompatibleSize(randomChassisId);
 
     // Aplicar customização completa
     // Isso garante que as habilidades corretas (com sheetActions) sejam aplicadas

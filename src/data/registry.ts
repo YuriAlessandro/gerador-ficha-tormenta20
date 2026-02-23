@@ -148,10 +148,10 @@ class DataRegistry {
     const systemData = SYSTEMS_MAP[systemId];
     if (!systemData) return [];
 
-    // Combina raças de todos os suplementos
-    const races = supplements.flatMap(
-      (id) => systemData.supplements[id]?.races || []
-    );
+    // Combina raças de todos os suplementos (exclui deprecated)
+    const races = supplements
+      .flatMap((id) => systemData.supplements[id]?.races || [])
+      .filter((race) => !race.deprecated);
 
     // Atualiza cache
     this.racesCache = { system: systemId, supplements, data: races };
@@ -177,13 +177,15 @@ class DataRegistry {
       const supplementName =
         SUPPLEMENT_METADATA[supplementId]?.name || supplementId;
 
-      races.forEach((race) => {
-        racesWithInfo.push({
-          ...race,
-          supplementId,
-          supplementName,
+      races
+        .filter((race) => !race.deprecated)
+        .forEach((race) => {
+          racesWithInfo.push({
+            ...race,
+            supplementId,
+            supplementName,
+          });
         });
-      });
     });
 
     return racesWithInfo;

@@ -17,8 +17,8 @@ import {
   GOLEM_DESPERTO_CHASSIS_NAMES,
   GOLEM_DESPERTO_ENERGY_SOURCES,
   GOLEM_DESPERTO_SIZES,
-  GOLEM_DESPERTO_SIZE_NAMES,
   getCompatibleEnergySources,
+  getCompatibleSizes,
 } from '../../data/systems/tormenta20/ameacas-de-arton/races/golem-desperto-config';
 
 interface GolemDespertoCustomizationModalProps {
@@ -46,17 +46,26 @@ const GolemDespertoCustomizationModal: React.FC<
   const [compatibleEnergySources, setCompatibleEnergySources] = useState<
     string[]
   >([]);
+  const [compatibleSizes, setCompatibleSizes] = useState<string[]>([]);
 
-  // Update compatible energy sources when chassis changes
+  // Update compatible energy sources and sizes when chassis changes
   useEffect(() => {
-    const compatible = getCompatibleEnergySources(chassisId);
-    setCompatibleEnergySources(compatible);
+    const compatEnergy = getCompatibleEnergySources(chassisId);
+    setCompatibleEnergySources(compatEnergy);
 
     // If current energy source is not compatible, select first compatible one
-    if (!compatible.includes(energySourceId) && compatible.length > 0) {
-      setEnergySourceId(compatible[0]);
+    if (!compatEnergy.includes(energySourceId) && compatEnergy.length > 0) {
+      setEnergySourceId(compatEnergy[0]);
     }
-  }, [chassisId, energySourceId]);
+
+    const compatSizes = getCompatibleSizes(chassisId);
+    setCompatibleSizes(compatSizes);
+
+    // If current size is not compatible, select first compatible one
+    if (!compatSizes.includes(sizeId) && compatSizes.length > 0) {
+      setSizeId(compatSizes[0]);
+    }
+  }, [chassisId, energySourceId, sizeId]);
 
   // Reset to initial values when modal opens
   useEffect(() => {
@@ -178,7 +187,7 @@ const GolemDespertoCustomizationModal: React.FC<
               label='Tamanho'
               onChange={(e) => setSizeId(e.target.value)}
             >
-              {GOLEM_DESPERTO_SIZE_NAMES.map((id) => {
+              {compatibleSizes.map((id) => {
                 const size = GOLEM_DESPERTO_SIZES[id];
                 return (
                   <MenuItem key={id} value={id}>

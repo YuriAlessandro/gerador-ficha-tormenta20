@@ -100,8 +100,11 @@ const MARAVILHA_MECANICA = {
   ],
 };
 
+// DEPRECATED: Mashin foi reimplementado como chassi do Golem Desperto.
+// Esta definição é mantida apenas para compatibilidade com fichas existentes.
 const MASHIN: Race = {
   name: 'Mashin',
+  deprecated: true,
 
   // Atributos: +1 em dois à escolha
   attributes: {

@@ -155,6 +155,9 @@ export function isPowerAvailable(
             const raceName = rule.name;
             return sheet.raca.name === raceName;
           }
+          case RequirementType.CHASSIS: {
+            return sheet.raca.chassis === rule.name;
+          }
           case RequirementType.TIER_LIMIT: {
             const category = rule.name as string; // "Bênção Dracônica"
             const count = getPowerCountInCurrentTier(sheet, category);

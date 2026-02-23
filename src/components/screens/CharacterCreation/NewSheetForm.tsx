@@ -107,7 +107,22 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
     selectedOptions.devocao.value !== '';
 
   const onSelectRaca = (raca: SelectedOption | null) => {
-    onSelectedOptionsChange({ ...selectedOptions, raca: raca?.value ?? '' });
+    const raceName = raca?.value ?? '';
+    const hasOrigin = raceHasOrigin(raceName);
+
+    let newOrigin = '__NO_ORIGIN__';
+    if (hasOrigin) {
+      newOrigin =
+        selectedOptions.origin === '__NO_ORIGIN__'
+          ? ''
+          : selectedOptions.origin;
+    }
+
+    onSelectedOptionsChange({
+      ...selectedOptions,
+      raca: raceName,
+      origin: newOrigin,
+    });
   };
 
   const onSelectClasse = (classe: SelectedOption | null) => {
@@ -386,9 +401,17 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
               { value: '__NO_ORIGIN__', label: 'Sem Origem' },
               ...origens,
             ]}
+            value={
+              selectedOptions.origin
+                ? [
+                    { value: '__NO_ORIGIN__', label: 'Sem Origem' },
+                    ...origens,
+                  ].find((o) => o.value === selectedOptions.origin) || null
+                : null
+            }
             isSearchable
             onChange={onSelectOrigin}
-            isDisabled={selectedOptions.raca === 'Golem'}
+            isDisabled={!raceHasOrigin(selectedOptions.raca)}
             styles={selectStyles}
             menuPortalTarget={document.body}
             formatOptionLabel={formatOptionLabel}

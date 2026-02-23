@@ -16,6 +16,7 @@ export interface GolemDespertoChassis {
   displacement: number;
   chassiAbility: RaceAbility;
   energyRestrictions?: string[]; // IDs de fontes de energia incompatíveis
+  sizeRestrictions?: string[]; // IDs de tamanhos incompatíveis
 }
 
 export interface GolemDespertoEnergySource {
@@ -220,6 +221,63 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         'Seu corpo é formado por peças improvisadas, mas fácil de reparar. Seu deslocamento é 6m, mas não é reduzido por uso de armadura ou excesso de carga. Quando recebe cuidados prolongados com a perícia Ofício (artesão), sua recuperação de PV aumenta em +2 por nível nesse dia (em vez de +1).',
     },
     energyRestrictions: [], // Sem restrições
+  },
+
+  mashin: {
+    id: 'mashin',
+    name: 'Chassi Mashin',
+    attributes: [
+      { attr: 'any' as Atributo, mod: 1 },
+      { attr: 'any' as Atributo, mod: 1 },
+    ],
+    displacement: 9,
+    chassiAbility: {
+      name: 'Chassi Mashin',
+      description:
+        '+1 em dois atributos a sua escolha. Você se torna treinado em duas perícias a sua escolha e pode substituir uma dessas perícias por uma maravilha mecânica. Entretanto, você é sempre Médio.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Chassi Mashin' },
+          action: {
+            type: 'addProficiency' as const,
+            availableProficiencies: [
+              'Acrobacia',
+              'Adestramento',
+              'Atletismo',
+              'Atuação',
+              'Cavalgar',
+              'Conhecimento',
+              'Cura',
+              'Diplomacia',
+              'Enganação',
+              'Furtividade',
+              'Guerra',
+              'Iniciativa',
+              'Intimidação',
+              'Intuição',
+              'Investigação',
+              'Jogatina',
+              'Ladinagem',
+              'Luta',
+              'Misticismo',
+              'Navegação',
+              'Nobreza',
+              'Ofício',
+              'Percepção',
+              'Pilotagem',
+              'Pontaria',
+              'Reflexos',
+              'Religião',
+              'Sobrevivência',
+              'Vontade',
+            ],
+            pick: 2,
+          },
+        },
+      ],
+    },
+    energyRestrictions: [],
+    sizeRestrictions: ['pequeno', 'grande'], // Mashin é sempre Médio
   },
 };
 
@@ -443,4 +501,27 @@ export function getRandomCompatibleEnergySource(chassisId: string): string {
   const compatibleSources = getCompatibleEnergySources(chassisId);
   const randomIndex = Math.floor(Math.random() * compatibleSources.length);
   return compatibleSources[randomIndex];
+}
+
+/**
+ * Retorna os tamanhos compatíveis com um chassis específico
+ */
+export function getCompatibleSizes(chassisId: string): string[] {
+  const chassis = GOLEM_DESPERTO_CHASSIS[chassisId];
+  if (!chassis || !chassis.sizeRestrictions) {
+    return GOLEM_DESPERTO_SIZE_NAMES;
+  }
+
+  return GOLEM_DESPERTO_SIZE_NAMES.filter(
+    (sizeId) => !chassis.sizeRestrictions!.includes(sizeId)
+  );
+}
+
+/**
+ * Retorna um tamanho aleatório compatível com o chassis
+ */
+export function getRandomCompatibleSize(chassisId: string): string {
+  const compatibleSizes = getCompatibleSizes(chassisId);
+  const randomIndex = Math.floor(Math.random() * compatibleSizes.length);
+  return compatibleSizes[randomIndex];
 }

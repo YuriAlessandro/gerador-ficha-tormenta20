@@ -279,6 +279,8 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         : `Devoto de ${req.name}`;
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
+                                    case RequirementType.CHASSIS:
+                                      return `Chassi: ${req.name}`;
                                     case RequirementType.TEXT:
                                       return req.text || '';
                                     default:
@@ -439,6 +441,8 @@ const PowerSelectionStep: React.FC<PowerSelectionStepProps> = ({
                                         : `Devoto de ${req.name}`;
                                     case RequirementType.RACA:
                                       return `Raça: ${req.name}`;
+                                    case RequirementType.CHASSIS:
+                                      return `Chassi: ${req.name}`;
                                     case RequirementType.TEXT:
                                       return req.text || '';
                                     default:
