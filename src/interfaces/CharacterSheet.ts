@@ -366,6 +366,8 @@ export default interface CharacterSheet {
   size: RaceSize;
   maxSpaces: number;
   customMaxSpaces?: number; // Manual override for max spaces
+  customDisplacement?: number; // Manual override for displacement
+  customSize?: RaceSize; // Manual override for size
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
   classPowers?: ClassPower[];

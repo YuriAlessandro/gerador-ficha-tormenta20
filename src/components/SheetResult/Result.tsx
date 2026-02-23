@@ -57,6 +57,7 @@ import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import RdEditDrawer from './EditDrawers/RdEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
+import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
@@ -129,6 +130,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
   const [rdDrawerOpen, setRdDrawerOpen] = useState(false);
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
+  const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
+    useState(false);
 
   const theme = useTheme();
 
@@ -1258,71 +1261,126 @@ const Result: React.FC<ResultProps> = (props) => {
                   {proficienciasDiv}
                 </Stack>
               </Card>
-              <Card sx={{ p: 2 }}>
+              <Card sx={{ p: 2, position: 'relative', overflow: 'visible' }}>
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setSizeDisplacementDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
                 <Stack spacing={2} direction='row' justifyContent='center'>
-                  <FancyBox>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 0.3,
-                      }}
-                    >
-                      <Typography
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <FancyBox>
+                      <Box
                         sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '35px',
-                          color: theme.palette.primary.main,
-                          textAlign: 'center',
-                          lineHeight: 1,
-                          margin: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 0.3,
                         }}
                       >
-                        {displacement}
-                      </Typography>
-                      <Typography
+                        <Typography
+                          sx={{
+                            fontFamily: 'Tfont',
+                            fontSize: '35px',
+                            color: theme.palette.primary.main,
+                            textAlign: 'center',
+                            lineHeight: 1,
+                            margin: 0,
+                          }}
+                        >
+                          {displacement}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Tfont',
+                            fontSize: '16px',
+                            color: theme.palette.text.secondary,
+                            textAlign: 'center',
+                            margin: 0,
+                          }}
+                        >
+                          ({Math.floor(displacement / 1.5)}q)
+                        </Typography>
+                        <StatTitle>Desl.</StatTitle>
+                      </Box>
+                    </FancyBox>
+                    {currentSheet.customDisplacement !== undefined && (
+                      <Tooltip title='Valor definido manualmente'>
+                        <Chip
+                          size='small'
+                          label='Manual'
+                          color='warning'
+                          sx={{ mt: 1, fontSize: '0.7rem' }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <FancyBox>
+                      <Box
                         sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '16px',
-                          color: theme.palette.text.secondary,
-                          textAlign: 'center',
-                          margin: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 0.5,
                         }}
                       >
-                        ({Math.floor(displacement / 1.5)}q)
-                      </Typography>
-                      <StatTitle>Desl.</StatTitle>
-                    </Box>
-                  </FancyBox>
-                  <FancyBox>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontFamily: 'Tfont',
-                          fontSize: '58px',
-                          color: theme.palette.primary.main,
-                          textAlign: 'center',
-                          textTransform: 'uppercase',
-                          lineHeight: 1,
-                          margin: 0,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {size.name.charAt(0)}
-                      </Typography>
-                      <StatTitle>Tamanho</StatTitle>
-                    </Box>
-                  </FancyBox>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Tfont',
+                            fontSize: '58px',
+                            color: theme.palette.primary.main,
+                            textAlign: 'center',
+                            textTransform: 'uppercase',
+                            lineHeight: 1,
+                            margin: 0,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {size.name.charAt(0)}
+                        </Typography>
+                        <StatTitle>Tamanho</StatTitle>
+                      </Box>
+                    </FancyBox>
+                    {currentSheet.customSize !== undefined && (
+                      <Tooltip title='Tamanho definido manualmente'>
+                        <Chip
+                          size='small'
+                          label='Manual'
+                          color='warning'
+                          sx={{ mt: 1, fontSize: '0.7rem' }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Box>
                 </Stack>
               </Card>
             </Stack>
@@ -1417,6 +1475,13 @@ const Result: React.FC<ResultProps> = (props) => {
         <ProficiencyEditDrawer
           open={proficiencyDrawerOpen}
           onClose={() => setProficiencyDrawerOpen(false)}
+          sheet={currentSheet}
+          onSave={handleSheetInfoUpdate}
+        />
+
+        <SizeDisplacementEditDrawer
+          open={sizeDisplacementDrawerOpen}
+          onClose={() => setSizeDisplacementDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
         />

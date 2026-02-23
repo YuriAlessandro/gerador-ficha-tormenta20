@@ -1198,22 +1198,31 @@ export function recalculateSheet(
   updatedSheet = applyDefenseBonuses(updatedSheet);
 
   // Step 11: Recalculate displacement from ground up
-  const baseDisplacementBonuses = updatedSheet.sheetBonuses
-    .filter((bonus) => bonus.target.type === 'Displacement')
-    .reduce(
-      (acc, bonus) => acc + calculateBonusValue(updatedSheet, bonus.modifier),
-      0
-    );
+  if (updatedSheet.customDisplacement !== undefined) {
+    updatedSheet.displacement = updatedSheet.customDisplacement;
+  } else {
+    const baseDisplacementBonuses = updatedSheet.sheetBonuses
+      .filter((bonus) => bonus.target.type === 'Displacement')
+      .reduce(
+        (acc, bonus) => acc + calculateBonusValue(updatedSheet, bonus.modifier),
+        0
+      );
 
-  updatedSheet.displacement = calcDisplacement(
-    updatedSheet.bag,
-    getRaceDisplacement(updatedSheet.raca),
-    updatedSheet.atributos,
-    baseDisplacementBonuses,
-    updatedSheet.dinheiro,
-    updatedSheet.dinheiroTC,
-    updatedSheet.dinheiroTO
-  );
+    updatedSheet.displacement = calcDisplacement(
+      updatedSheet.bag,
+      getRaceDisplacement(updatedSheet.raca),
+      updatedSheet.atributos,
+      baseDisplacementBonuses,
+      updatedSheet.dinheiro,
+      updatedSheet.dinheiroTC,
+      updatedSheet.dinheiroTO
+    );
+  }
+
+  // Preserve custom size if set
+  if (updatedSheet.customSize) {
+    updatedSheet.size = updatedSheet.customSize;
+  }
 
   // Step 12: Apply HP attribute replacement (Dom da Esperança)
   updatedSheet = applyHPAttributeReplacement(updatedSheet);

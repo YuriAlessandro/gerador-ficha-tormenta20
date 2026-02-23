@@ -122,6 +122,13 @@ const Changelog: React.FC = () => {
                   agora aparecem corretamente como disponíveis para Golem
                   Desperto.
                 </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Agora é possível editar
+                  manualmente o tamanho e o deslocamento da ficha após a
+                  geração. Valores customizados são indicados com um chip
+                  &quot;Manual&quot; e podem ser restaurados ao valor automático
+                  a qualquer momento.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
