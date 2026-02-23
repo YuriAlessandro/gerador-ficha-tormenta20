@@ -178,7 +178,10 @@ const racePowers: Record<string, GeneralPower> = {
     description:
       'Seu corpo artificial foi feito com materiais leves e belos. Você recebe +2 em Diplomacia e não possui a penalidade de armadura da habilidade Chassi.',
     type: GeneralPowerType.RACA,
-    requirements: [[{ type: RequirementType.RACA, name: 'Golem' }]],
+    requirements: [
+      [{ type: RequirementType.RACA, name: 'Golem' }],
+      [{ type: RequirementType.RACA, name: 'Golem Desperto' }],
+    ],
     sheetBonuses: [
       {
         source: { type: 'power', name: 'Chassi Gracioso' },
@@ -860,14 +863,20 @@ const racePowers: Record<string, GeneralPower> = {
     description:
       'Você pode gastar uma ação de movimento e 3 PM para ativar um modo de análise de inimigos, com duração sustentada. Enquanto estiver com esse modo ativo, quando faz um ataque você rola dois dados e usa o melhor resultado.',
     type: GeneralPowerType.RACA,
-    requirements: [[{ type: RequirementType.RACA, name: 'Golem' }]],
+    requirements: [
+      [{ type: RequirementType.RACA, name: 'Golem' }],
+      [{ type: RequirementType.RACA, name: 'Golem Desperto' }],
+    ],
   },
   PROGRAMACAO_HOLISTICA: {
     name: 'Programação Holística',
     description:
       'Você pode gastar uma ação completa e 2 PM para se tornar treinado em uma perícia a sua escolha até o fim do dia. Sempre que usa este poder, role 1d4. Em um resultado 1, você sobrecarrega seu cérebro artificial — até o fim do dia, você fica frustrado e não pode mais usar este poder.',
     type: GeneralPowerType.RACA,
-    requirements: [[{ type: RequirementType.RACA, name: 'Golem' }]],
+    requirements: [
+      [{ type: RequirementType.RACA, name: 'Golem' }],
+      [{ type: RequirementType.RACA, name: 'Golem Desperto' }],
+    ],
   },
   PROTETOR_ETERNO: {
     name: 'Protetor Eterno',
@@ -969,7 +978,10 @@ const racePowers: Record<string, GeneralPower> = {
     description:
       'Quando faz um ataque corpo a corpo, você pode gastar 1 PM para disparar seu punho e atingir um alvo em alcance curto. Após o ataque, sua mão volta voando para você. Esse ataque não pode ser usado para agarrar.',
     type: GeneralPowerType.RACA,
-    requirements: [[{ type: RequirementType.RACA, name: 'Golem' }]],
+    requirements: [
+      [{ type: RequirementType.RACA, name: 'Golem' }],
+      [{ type: RequirementType.RACA, name: 'Golem Desperto' }],
+    ],
   },
   VALENTIA_NATA: {
     name: 'Valentia Nata',

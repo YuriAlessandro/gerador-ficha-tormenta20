@@ -116,6 +116,12 @@ const Changelog: React.FC = () => {
                   Ofício (Minerador) e Reflexos não aparecem mais com nome e
                   atributo invertidos na criação de ameaças.
                 </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Poderes raciais Chassi Gracioso,
+                  Programação de Combate, Programação Holística e Soco Foguete
+                  agora aparecem corretamente como disponíveis para Golem
+                  Desperto.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
