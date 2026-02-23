@@ -129,6 +129,11 @@ const Changelog: React.FC = () => {
                   &quot;Manual&quot; e podem ser restaurados ao valor automático
                   a qualquer momento.
                 </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Perícias treinadas e atributos
+                  na ficha de ameaça agora são clicáveis, permitindo rolar
+                  1d20+modificador diretamente ao clicar.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>

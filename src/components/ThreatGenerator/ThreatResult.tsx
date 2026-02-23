@@ -382,12 +382,6 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     ? getEffectiveSkillTotal(perceptionSkill)
     : 0;
 
-  // Format attributes
-  const formatAttribute = (attr: Atributo) => {
-    const value = threat.attributes[attr];
-    return `${attr.substring(0, 3).toUpperCase()} ${value}`;
-  };
-
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = isSavedToCloud
     ? [
@@ -720,14 +714,42 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           )}
           <ThreatDivisor />
           <div>
-            <ThreatText>
-              {formatAttribute(Atributo.FORCA)},{' '}
-              {formatAttribute(Atributo.DESTREZA)},{' '}
-              {formatAttribute(Atributo.CONSTITUICAO)},{' '}
-              {formatAttribute(Atributo.INTELIGENCIA)},{' '}
-              {formatAttribute(Atributo.SABEDORIA)},{' '}
-              {formatAttribute(Atributo.CARISMA)}
-            </ThreatText>
+            {Object.values(Atributo).map((attr, idx, arr) => {
+              const value = threat.attributes[attr];
+              const isClickable = typeof value === 'number';
+              return (
+                <span key={attr}>
+                  {isClickable ? (
+                    <Box
+                      component='span'
+                      onClick={() => handleSkillRoll(attr, value)}
+                      sx={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        transition: 'all 0.2s ease',
+                        borderRadius: 1,
+                        px: 0.5,
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                      title={`Rolar ${attr}`}
+                    >
+                      <ThreatText>
+                        {attr.substring(0, 3).toUpperCase()}
+                      </ThreatText>{' '}
+                      {value}
+                    </Box>
+                  ) : (
+                    <ThreatText>
+                      {attr.substring(0, 3).toUpperCase()} {value}
+                    </ThreatText>
+                  )}
+                  {idx + 1 < arr.length ? ', ' : ''}
+                </span>
+              );
+            })}
           </div>
           <ThreatDivisor />
           <div>
@@ -903,10 +925,29 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                     const effectiveTotal = getEffectiveSkillTotal(skill);
                     return (
                       <span key={getKey(skill.name)}>
-                        {skill.name}{' '}
-                        {effectiveTotal > 0
-                          ? `+${effectiveTotal}`
-                          : `${effectiveTotal}`}
+                        <Box
+                          component='span'
+                          onClick={() =>
+                            handleSkillRoll(skill.name, effectiveTotal)
+                          }
+                          sx={{
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.2s ease',
+                            borderRadius: 1,
+                            px: 0.5,
+                            '&:hover': {
+                              backgroundColor: theme.palette.action.hover,
+                              color: theme.palette.primary.main,
+                            },
+                          }}
+                          title={`Rolar ${skill.name}`}
+                        >
+                          {skill.name}{' '}
+                          {effectiveTotal > 0
+                            ? `+${effectiveTotal}`
+                            : `${effectiveTotal}`}
+                        </Box>
                         {idx + 1 < arr.length ? ', ' : '.'}
                       </span>
                     );
