@@ -146,11 +146,8 @@ export function calculateAllSkills(
 ): ThreatSkill[] {
   const skills: ThreatSkill[] = [];
 
-  // Use the SkillsAttrs mapping from the Skills interface
-  const skillsAttrs = SkillsAttrs as unknown as Record<string, Atributo>;
-
   // Calculate skills for all entries in SkillsAttrs
-  Object.entries(skillsAttrs).forEach(([skillName, attribute]) => {
+  Object.entries(SkillsAttrs).forEach(([skillName, attribute]) => {
     const existingSkill = existingSkills.find((s) => s.name === skillName);
     const trained = existingSkill?.trained || false;
     let customBonus = existingSkill?.customBonus || 0;

@@ -111,6 +111,11 @@ const Changelog: React.FC = () => {
                   aparece mais na criação de novas fichas. Fichas existentes
                   continuam funcionando normalmente.
                 </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Perícias como Jogatina, Vontade,
+                  Ofício (Minerador) e Reflexos não aparecem mais com nome e
+                  atributo invertidos na criação de ameaças.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
