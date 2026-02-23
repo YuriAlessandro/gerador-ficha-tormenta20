@@ -35,7 +35,7 @@ export interface GolemDespertoSize {
 }
 
 // =============================================================================
-// CHASSIS (8 opções)
+// CHASSIS (9 opções)
 // =============================================================================
 
 export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
@@ -221,6 +221,22 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         'Seu corpo é formado por peças improvisadas, mas fácil de reparar. Seu deslocamento é 6m, mas não é reduzido por uso de armadura ou excesso de carga. Quando recebe cuidados prolongados com a perícia Ofício (artesão), sua recuperação de PV aumenta em +2 por nível nesse dia (em vez de +1).',
     },
     energyRestrictions: [], // Sem restrições
+  },
+
+  dourado: {
+    id: 'dourado',
+    name: 'Chassi Dourado',
+    attributes: [
+      { attr: Atributo.CARISMA, mod: 2 },
+      { attr: Atributo.FORCA, mod: 1 },
+    ],
+    displacement: 9,
+    chassiAbility: {
+      name: 'Chassi Dourado',
+      description:
+        'Você pode gastar 1 PM para marcar uma criatura em alcance curto como culpada. Até o fim da cena, ou até você usar esta habilidade em outra criatura, você sempre sabe onde a criatura culpada está e, uma vez por rodada, um de seus ataques contra essa criatura causa +1d6 pontos de dano de luz.',
+    },
+    energyRestrictions: [],
   },
 
   mashin: {

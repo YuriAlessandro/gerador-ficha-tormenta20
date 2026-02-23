@@ -81,6 +81,12 @@ const Changelog: React.FC = () => {
                   Maravilhas Mecânicas, tamanho fixo Médio e deslocamento 9m.
                 </li>
                 <li>
+                  <strong>✨ Chassi Dourado para Golem Desperto:</strong> Novo
+                  chassi com Carisma +2 e Força +1. Permite marcar uma criatura
+                  como culpada (1 PM), sempre sabendo sua localização e causando
+                  +1d6 de dano de luz uma vez por rodada.
+                </li>
+                <li>
                   <strong>🔧 Correção:</strong> Druida agora pode ser devoto de
                   Aharadak, Allihanna, Megalokk, Oceano ou Tenebra.
                 </li>
