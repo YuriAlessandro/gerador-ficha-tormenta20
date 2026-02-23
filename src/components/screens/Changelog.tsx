@@ -153,6 +153,12 @@ const Changelog: React.FC = () => {
                   acumulava a cada recálculo da ficha, resultando em valores
                   absurdos (ex: -28 ao invés de -4).
                 </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Na mesa virtual, se um usuário
+                  se conectar a partir de outro dispositivo ou aba, a conexão
+                  anterior é desconectada automaticamente para evitar problemas
+                  de duplicação de eventos e estado inconsistente.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
