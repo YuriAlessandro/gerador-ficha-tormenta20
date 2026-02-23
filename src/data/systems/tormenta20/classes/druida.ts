@@ -46,7 +46,7 @@ const DRUIDA: ClassDescription = {
   abilities: [
     {
       name: 'Devoto Fiel',
-      text: 'Você se torna devoto de um deus disponível para druidas (Allihanna, Megalokk ou Oceano). Veja as regras de devotos na página 96. Ao contrário de devotos normais, você recebe dois poderes concedidos por se tornar devoto, em vez de apenas um.',
+      text: 'Você se torna devoto de um deus disponível para druidas (Aharadak, Allihanna, Megalokk, Oceano ou Tenebra). Veja as regras de devotos na página 96. Ao contrário de devotos normais, você recebe dois poderes concedidos por se tornar devoto, em vez de apenas um.',
       nivel: 1,
     },
     {
@@ -364,7 +364,7 @@ const DRUIDA: ClassDescription = {
   probDevoto: 1,
   qtdPoderesConcedidos: 2,
   faithProbability: {
-    AHARADAK: 0,
+    AHARADAK: 1,
     OCEANO: 1,
     TENEBRA: 1,
     VALKARIA: 0,

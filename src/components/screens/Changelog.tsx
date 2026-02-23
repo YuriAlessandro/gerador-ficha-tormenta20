@@ -73,6 +73,10 @@ const Changelog: React.FC = () => {
                   blogs, ordenados por data — ao invés de dividir por blocos de
                   cada tipo.
                 </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Druida agora pode ser devoto de
+                  Aharadak, Allihanna, Megalokk, Oceano ou Tenebra.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
