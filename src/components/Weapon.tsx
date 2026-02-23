@@ -4,6 +4,7 @@ import Equipment from '../interfaces/Equipment';
 import {
   rollD20,
   rollDamage,
+  rollCriticalDamage,
   parseCritical,
   parseDualModeDamage,
 } from '../functions/diceRoller';
@@ -76,22 +77,25 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         damageModifier >= 0
           ? `${selectedDano}+${damageModifier}`
           : `${selectedDano}${damageModifier}`;
-      const damageRollResult = rollDamage(damageRollString);
+
+      // Rola dano normal para referência (criaturas imunes a crítico)
+      const normalRoll = rollDamage(damageRollString);
+      if (!normalRoll) {
+        return;
+      }
+
+      const normalDamage = Math.max(1, normalRoll.total);
+
+      // Se crítico, rola dados multiplicados (ex: 1d8 x2 = 2d8)
+      const damageRollResult = isCritical
+        ? rollCriticalDamage(damageRollString, multiplier)
+        : normalRoll;
 
       if (!damageRollResult) {
         return;
       }
 
-      const diceTotal = damageRollResult.diceRolls.reduce(
-        (sum, r) => sum + r,
-        0
-      );
-      const normalDamage = Math.max(1, diceTotal + damageRollResult.modifier);
-      const criticalDamage = Math.max(
-        1,
-        diceTotal * multiplier + damageRollResult.modifier
-      );
-      const finalDamage = isCritical ? criticalDamage : normalDamage;
+      const finalDamage = Math.max(1, damageRollResult.total);
 
       const atkModifierStr = atk >= 0 ? `+${atk}` : `${atk}`;
       const attackDiceNotation = `1d20${atkModifierStr}`;

@@ -43,7 +43,11 @@ import {
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
-import { rollD20, rollDamage } from '../../functions/diceRoller';
+import {
+  rollD20,
+  rollDamage,
+  rollCriticalDamage,
+} from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 
 // Styled components for threat sheet (uses theme accent color)
@@ -230,21 +234,25 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     const damageString = `${attack.damageDice}${
       attack.bonusDamage >= 0 ? '+' : ''
     }${attack.bonusDamage}`;
-    const damageRollResult = rollDamage(damageString);
+
+    // Rola dano normal para referência (criaturas imunes a crítico)
+    const normalRoll = rollDamage(damageString);
+    if (!normalRoll) {
+      return;
+    }
+
+    const normalDamage = Math.max(1, normalRoll.total);
+
+    // Se crítico, rola dados multiplicados (ex: 3d12 x3 = 9d12)
+    const damageRollResult = isCritical
+      ? rollCriticalDamage(damageString, criticalMultiplier)
+      : normalRoll;
 
     if (!damageRollResult) {
       return;
     }
 
-    // Separar dados do bônus para aplicar multiplicador corretamente
-    // Fórmula: (dados × multiplicador) + bônus
-    const diceTotal = damageRollResult.diceRolls.reduce((sum, r) => sum + r, 0);
-    const normalDamage = Math.max(1, diceTotal + damageRollResult.modifier);
-    const criticalDamage = Math.max(
-      1,
-      diceTotal * criticalMultiplier + damageRollResult.modifier
-    );
-    const finalDamage = isCritical ? criticalDamage : normalDamage;
+    const finalDamage = Math.max(1, damageRollResult.total);
 
     // Format attack dice notation
     const atkModifierStr =

@@ -128,6 +128,44 @@ export function rollDamage(damageString: string): DamageRoll | null {
 }
 
 /**
+ * Rola dano com multiplicador de crítico (multiplica a quantidade de dados)
+ * No Tormenta 20, crítico multiplica os dados, não o resultado.
+ * Ex: 3d12 com x3 = 9d12
+ * @param damageString String de dano base (ex: "3d12+5")
+ * @param multiplier Multiplicador de crítico (ex: 2, 3)
+ * @returns Resultado com dados multiplicados rolados
+ */
+export function rollCriticalDamage(
+  damageString: string,
+  multiplier: number
+): DamageRoll | null {
+  const parsed = parseDamage(damageString);
+  if (!parsed) return null;
+
+  const criticalGroups = parsed.diceGroups.map((g) => ({
+    count: g.count * multiplier,
+    sides: g.sides,
+  }));
+
+  const allRolls = criticalGroups.flatMap((group) =>
+    rollDice(group.sides, group.count)
+  );
+  const diceTotal = allRolls.reduce((sum, roll) => sum + roll, 0);
+  const total = diceTotal + parsed.modifier;
+
+  const criticalDiceString = criticalGroups
+    .map((g) => `${g.count}d${g.sides}`)
+    .join('+');
+
+  return {
+    diceRolls: allRolls,
+    modifier: parsed.modifier,
+    total,
+    diceString: criticalDiceString,
+  };
+}
+
+/**
  * Formata um array de rolls de dados para exibição
  * @param rolls Array de números dos dados
  * @returns String formatada como "[5, 3, 8]" ou "5"

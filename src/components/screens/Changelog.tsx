@@ -159,6 +159,12 @@ const Changelog: React.FC = () => {
                   anterior é desconectada automaticamente para evitar problemas
                   de duplicação de eventos e estado inconsistente.
                 </li>
+                <li>
+                  <strong>🔧 Correção:</strong> Dano crítico em ameaças e armas
+                  agora multiplica corretamente a quantidade de dados ao invés
+                  do resultado. Ex: 3d12 com crítico x3 agora rola 9d12 como
+                  esperado pelas regras.
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
