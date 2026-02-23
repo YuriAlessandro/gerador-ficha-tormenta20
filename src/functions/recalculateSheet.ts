@@ -906,6 +906,9 @@ export function recalculateSheet(
     updatedSheet.atributos.Força.value
   );
 
+  // Step 1.6: Reset extraArmorPenalty to avoid accumulation across recalculations
+  updatedSheet.extraArmorPenalty = 0;
+
   // Step 2: Apply general powers (most important for manual additions)
   updatedSheet = applyGeneralPowers(updatedSheet, manualSelections);
 

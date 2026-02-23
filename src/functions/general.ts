@@ -3493,7 +3493,7 @@ const applyStatModifiers = (
         value: `${bonusValue} espaços de carga`,
       });
     } else if (bonus.target.type === 'ArmorPenalty') {
-      sheet.extraArmorPenalty += bonusValue;
+      sheet.extraArmorPenalty = (sheet.extraArmorPenalty || 0) + bonusValue;
 
       armorPenaltySubSteps.push({
         name: subStepName,

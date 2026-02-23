@@ -147,6 +147,12 @@ const Changelog: React.FC = () => {
                   sorteava um novo poder aleatório. Agora o poder pode ser
                   removido normalmente.
                 </li>
+                <li>
+                  <strong>🔧 Correção:</strong> A penalidade de armadura extra
+                  (de habilidades raciais como Chassi de Ferro do Golem)
+                  acumulava a cada recálculo da ficha, resultando em valores
+                  absurdos (ex: -28 ao invés de -4).
+                </li>
               </ul>
 
               <h3>4.2.5</h3>
