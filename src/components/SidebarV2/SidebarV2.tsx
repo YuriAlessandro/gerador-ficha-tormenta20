@@ -35,15 +35,14 @@ import NotesIcon from '@mui/icons-material/Notes';
 import LinkIcon from '@mui/icons-material/Link';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import LogoutIcon from '@mui/icons-material/Logout';
-// import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import StarIcon from '@mui/icons-material/Star';
 
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
-// import { useDice3D } from '../../contexts/Dice3DContext';
 
 const APP_VERSION = '4.3';
 
@@ -274,6 +273,13 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
           <MenuList>
             {/* Home */}
+            <StyledMenuItem onClick={() => navigateTo('/apoio')}>
+              <ListItemIcon>
+                <StarIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Apoiar o projeto</Typography>
+            </StyledMenuItem>
+
             <StyledMenuItem onClick={() => navigateTo('/')}>
               <ListItemIcon>
                 <HomeIcon />
