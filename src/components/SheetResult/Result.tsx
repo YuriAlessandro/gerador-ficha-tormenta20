@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import {
   Box,
   Card,
@@ -58,6 +59,7 @@ import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
 import RdEditDrawer from './EditDrawers/RdEditDrawer';
 import ProficiencyEditDrawer from './EditDrawers/ProficiencyEditDrawer';
 import SizeDisplacementEditDrawer from './EditDrawers/SizeDisplacementEditDrawer';
+import NotesDialog from './NotesDialog';
 import StatControl from './StatControl';
 
 // Styled components defined outside to prevent recreation on every render
@@ -132,6 +134,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [proficiencyDrawerOpen, setProficiencyDrawerOpen] = useState(false);
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   const theme = useTheme();
 
@@ -156,6 +159,13 @@ const Result: React.FC<ResultProps> = (props) => {
       }
     },
     [currentSheet, onSheetUpdate]
+  );
+
+  const handleNotesSave = useCallback(
+    (notes: string) => {
+      handleSheetInfoUpdate({ notes });
+    },
+    [handleSheetInfoUpdate]
   );
 
   const handleSkillsUpdate = useCallback(
@@ -780,7 +790,22 @@ const Result: React.FC<ResultProps> = (props) => {
                 gap={isMobile ? 5 : 0}
               >
                 <Box sx={{ flexGrow: 1 }}>
-                  <LabelDisplay text={nome} size='large' />
+                  <Stack direction='row' alignItems='center' spacing={0.5}>
+                    <LabelDisplay text={nome} size='large' />
+                    <Tooltip title='Anotações'>
+                      <IconButton
+                        size='small'
+                        onClick={() => setNotesDialogOpen(true)}
+                        sx={{
+                          color: currentSheet.notes
+                            ? theme.palette.primary.main
+                            : theme.palette.text.secondary,
+                        }}
+                      >
+                        <NoteAltIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
                   <LabelDisplay
                     text={`${raca.name}${
                       raca.name === 'Moreau' && raceHeritage
@@ -1484,6 +1509,12 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setSizeDisplacementDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
+        />
+        <NotesDialog
+          open={notesDialogOpen}
+          onClose={() => setNotesDialogOpen(false)}
+          notes={currentSheet.notes || ''}
+          onSave={handleNotesSave}
         />
       </>
     </BackgroundBox>

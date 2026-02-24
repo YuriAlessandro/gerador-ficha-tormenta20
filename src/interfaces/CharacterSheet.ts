@@ -413,6 +413,7 @@ export default interface CharacterSheet {
   removedProficiencias?: string[]; // Proficiências base removidas manualmente pelo usuário
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
+  notes?: string; // Anotações livres do jogador
 }
 
 export interface Step {

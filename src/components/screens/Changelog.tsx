@@ -68,6 +68,12 @@ const Changelog: React.FC = () => {
               <h3>4.3</h3>
               <ul>
                 <li>
+                  <strong>✨ Anotações na Ficha:</strong> Agora é possível
+                  escrever anotações livres na ficha do personagem. Um ícone de
+                  diário aparece ao lado do nome — clique para abrir o editor de
+                  notas.
+                </li>
+                <li>
                   <strong>✨ Melhoria:</strong> Moedas agora possuem peso. Para
                   cada 1000 unidades de uma moeda (T$, TC ou TO), 1 espaço é
                   consumido na ficha. O peso das moedas é considerado no cálculo
