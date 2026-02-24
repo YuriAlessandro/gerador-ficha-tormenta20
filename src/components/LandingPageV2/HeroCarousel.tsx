@@ -14,10 +14,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { BlogService, BlogPost } from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
-// import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
+import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
 // import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 // import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
-// import p16Image from '../../assets/images/arts/p16.png';
+import p16Image from '../../assets/images/arts/p16.png';
 import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
@@ -53,20 +53,20 @@ export const carouselSlides: CarouselSlide[] = [
     category: 'Blog',
     isNew: true,
   },
-  // {
-  //   id: 'gerador-ficha',
-  //   title: 'Criar personagem',
-  //   subtitle:
-  //     'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
-  //   image: sheetImage,
-  //   ctaText: 'Criar Ficha',
-  //   ctaLink: '/criar-ficha',
-  //   requireAuth: true,
-  //   secondaryCtaText: 'Meus Personagens',
-  //   secondaryCtaLink: '/meus-personagens',
-  //   secondaryRequireAuth: true,
-  //   category: 'Ferramentas',
-  // },
+  {
+    id: 'gerador-ficha',
+    title: 'Criar personagem',
+    subtitle:
+      'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
+    image: sheetImage,
+    ctaText: 'Criar Ficha',
+    ctaLink: '/criar-ficha',
+    requireAuth: true,
+    secondaryCtaText: 'Meus Personagens',
+    secondaryCtaLink: '/meus-personagens',
+    secondaryRequireAuth: true,
+    category: 'Ferramentas',
+  },
   {
     id: 'apoio',
     title: 'Apoie o Projeto!',
@@ -95,17 +95,17 @@ export const carouselSlides: CarouselSlide[] = [
   //   ctaLink: '/gerador-ameacas',
   //   category: 'Ferramentas',
   // },
-  // {
-  //   id: 'mesas-virtuais',
-  //   title: 'Mesas Virtuais',
-  //   subtitle:
-  //     'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
-  //   image: tabletopImage,
-  //   ctaText: 'Ver Mesas',
-  //   ctaLink: '/mesas',
-  //   category: 'Comunidade',
-  //   requireAuth: true,
-  // },
+  {
+    id: 'mesas-virtuais',
+    title: 'Mesas Virtuais',
+    subtitle:
+      'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
+    image: p16Image,
+    ctaText: 'Ver Mesas',
+    ctaLink: '/mesas',
+    category: 'Comunidade',
+    requireAuth: true,
+  },
   // {
   //   id: 'builds',
   //   title: 'Planejador de Builds',
