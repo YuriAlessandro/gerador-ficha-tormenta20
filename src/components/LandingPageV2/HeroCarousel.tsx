@@ -18,7 +18,7 @@ import heroImage from '../../assets/images/tormenta20.jpg';
 // import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 // import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
 // import p16Image from '../../assets/images/arts/p16.png';
-// import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
+import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
   id: string;
@@ -67,16 +67,16 @@ export const carouselSlides: CarouselSlide[] = [
   //   secondaryRequireAuth: true,
   //   category: 'Ferramentas',
   // },
-  // {
-  //   id: 'apoio',
-  //   title: 'Apoie o Projeto!',
-  //   subtitle:
-  //     'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
-  //   image: lancaGalrasiaImage,
-  //   category: 'Recompensas incríveis te aguardam!',
-  //   ctaText: 'Apoiar',
-  //   ctaLink: '/apoiar',
-  // },
+  {
+    id: 'apoio',
+    title: 'Apoie o Projeto!',
+    subtitle:
+      'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
+    image: lancaGalrasiaImage,
+    category: 'Recompensas incríveis te aguardam!',
+    ctaText: 'Apoiar',
+    ctaLink: '/apoiar',
+  },
   // {
   //   id: 'fichas-de-nimb',
   //   title: 'Fichas de Nimb',

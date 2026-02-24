@@ -25,6 +25,8 @@ import {
   DialogActions,
   DialogContentText,
   Chip,
+  Snackbar,
+  Link,
 } from '@mui/material';
 import {
   History as HistoryIcon,
@@ -35,6 +37,7 @@ import {
   Warning as WarningIcon,
   Cloud as CloudIcon,
   HelpOutline as HelpIcon,
+  Favorite as FavoriteIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -295,7 +298,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     updateSheet: updateSheetAction,
   } = useSheets();
   const { showAlert, AlertDialog } = useAlert();
-  const { tier } = useSubscription();
+  const { tier, isSupporter } = useSubscription();
   const { totalSheets, maxSheets, canCreate } = useSheetLimit();
   const [showLimitDialog, setShowLimitDialog] = React.useState(false);
   const [showCloudSaveNotice, setShowCloudSaveNotice] = React.useState(false);
@@ -359,6 +362,11 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     React.useState(false);
   const [pendingLevel1Sheet, setPendingLevel1Sheet] =
     React.useState<CharacterSheet | null>(null);
+
+  // Support CTA states
+  const [showSupportSnackbar, setShowSupportSnackbar] = React.useState(false);
+  const [showSupportNudge, setShowSupportNudge] = React.useState(false);
+  const [sheetGenCount, setSheetGenCount] = React.useState(0);
 
   // Creation mode state with localStorage persistence
   const [creationMode, setCreationMode] = React.useState<CreationMode>(() => {
@@ -489,6 +497,28 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     localStorage.setItem(CLOUD_NOTICE_KEY, new Date().toISOString());
   };
 
+  // Track sheet generation count and show support nudge for non-supporters
+  const trackSheetGeneration = () => {
+    if (isSupporter) return;
+
+    const GENERATION_COUNT_KEY = 'fdnSheetGenCount';
+    const NUDGE_LAST_SHOWN_KEY = 'fdnSupportNudgeLastShown';
+    const count =
+      parseInt(localStorage.getItem(GENERATION_COUNT_KEY) || '0', 10) + 1;
+    localStorage.setItem(GENERATION_COUNT_KEY, String(count));
+    setSheetGenCount(count);
+
+    // Show nudge every 5 sheets, with a 30-day cooldown
+    if (count % 5 === 0) {
+      const lastShown = localStorage.getItem(NUDGE_LAST_SHOWN_KEY);
+      const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      if (!lastShown || Date.now() - parseInt(lastShown, 10) > thirtyDaysMs) {
+        setShowSupportNudge(true);
+        localStorage.setItem(NUDGE_LAST_SHOWN_KEY, String(Date.now()));
+      }
+    }
+  };
+
   const executeRandomGeneration = () => {
     setShowHistoric(false);
     const presentation = document.getElementById('presentation');
@@ -536,6 +566,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // Don't save to cloud automatically - user will decide
     setRandomSheet(anotherRandomSheet);
     setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+
+    trackSheetGeneration();
   };
 
   const onClickGenerate = async () => {
@@ -633,6 +665,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     // Don't save to cloud automatically - user will decide
     setRandomSheet(sheet);
     setSheetSavedToCloud(false); // Mark as not saved to cloud yet
+
+    trackSheetGeneration();
   };
 
   const handleWizardConfirm = (
@@ -1045,6 +1079,12 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       link.download = `Ficha de ${randomSheet.nome}.pdf`;
       link.click();
       URL.revokeObjectURL(link.href);
+
+      // Show support snackbar for non-supporters (once per session)
+      if (!isSupporter && !sessionStorage.getItem('fdnPdfSupportShown')) {
+        setShowSupportSnackbar(true);
+        sessionStorage.setItem('fdnPdfSupportShown', 'true');
+      }
     } catch (error) {
       showAlert('Erro ao gerar PDF.', 'Erro');
     } finally {
@@ -1672,6 +1712,70 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
 
         {randomSheet && !showHistoric && sheetComponent}
       </div>
+
+      {/* Support Snackbar - shown after PDF download for non-supporters */}
+      <Snackbar
+        open={showSupportSnackbar}
+        autoHideDuration={8000}
+        onClose={() => setShowSupportSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setShowSupportSnackbar(false)}
+          severity='info'
+          icon={<FavoriteIcon />}
+          sx={{
+            '& .MuiAlert-icon': { color: '#FFA500' },
+          }}
+        >
+          Ficou legal? Apoie o Fichas de Nimb!{' '}
+          <Link href='/apoiar' sx={{ fontWeight: 'bold', color: '#FFA500' }}>
+            Apoiar
+          </Link>
+        </Alert>
+      </Snackbar>
+
+      {/* Support Nudge Dialog - shown every 5 sheets for non-supporters */}
+      <Dialog
+        open={showSupportNudge}
+        onClose={() => setShowSupportNudge(false)}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <FavoriteIcon sx={{ color: '#FFA500' }} />
+          Apoie o Fichas de Nimb
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Você já gerou {sheetGenCount} fichas com o Fichas de Nimb! Se o
+            projeto tem sido útil para você, considere nos apoiar para ajudar a
+            mantê-lo gratuito e em constante evolução.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSupportNudge(false)} color='inherit'>
+            Agora não
+          </Button>
+          <Button
+            onClick={() => {
+              setShowSupportNudge(false);
+              history.push('/apoiar');
+            }}
+            variant='contained'
+            startIcon={<FavoriteIcon />}
+            sx={{
+              background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+              color: '#000',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
+              },
+            }}
+          >
+            Apoiar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import {
   Box,
@@ -35,6 +36,7 @@ import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { CustomPower } from '@/interfaces/CustomPower';
+import { useSubscription } from '@/hooks/useSubscription';
 import CharacterSheet, {
   DamageReduction,
 } from '../../interfaces/CharacterSheet';
@@ -137,6 +139,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   const theme = useTheme();
+  const { isSupporter } = useSubscription();
 
   // Update currentSheet when sheet prop changes
   React.useEffect(() => {
@@ -1425,6 +1428,37 @@ const Result: React.FC<ResultProps> = (props) => {
               Nos avise!
             </Link>
           </Alert>
+
+          {/* Support CTA - only for non-supporters */}
+          {!isSupporter && (
+            <Alert
+              severity='success'
+              icon={<FavoriteIcon />}
+              sx={{
+                mb: 2,
+                background: `linear-gradient(135deg, ${
+                  theme.palette.mode === 'dark' ? '#3d3200' : '#fff8e1'
+                } 0%, ${
+                  theme.palette.mode === 'dark' ? '#2d2400' : '#fff3cd'
+                } 100%)`,
+                border: '1px solid',
+                borderColor:
+                  theme.palette.mode === 'dark' ? '#5a4a00' : '#ffe082',
+                '& .MuiAlert-icon': {
+                  color: '#FFA500',
+                },
+              }}
+            >
+              Gostou da ficha? Apoie o Fichas de Nimb e desbloqueie recursos
+              exclusivos!{' '}
+              <Link
+                href='/apoiar'
+                sx={{ fontWeight: 'bold', color: '#FFA500' }}
+              >
+                Apoiar o projeto
+              </Link>
+            </Alert>
+          )}
 
           {/* Passo-a-passo Accordion */}
           <Accordion defaultExpanded={false}>

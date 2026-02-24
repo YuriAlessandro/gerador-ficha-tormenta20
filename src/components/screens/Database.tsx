@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Container,
+  Alert,
   Box,
   Fade,
   Tabs,
@@ -12,13 +13,20 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import GroupIcon from '@mui/icons-material/Group';
 import WhatshotIcon from '@mui/icons-material/Whatshot';
 import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import { Switch, Route, useRouteMatch, useHistory } from 'react-router-dom';
+import {
+  Switch,
+  Route,
+  useRouteMatch,
+  useHistory,
+  Link,
+} from 'react-router-dom';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import RacesTable from '../DatabaseTables/RacesTable';
 import ClassesTable from '../DatabaseTables/ClassesTable';
@@ -27,6 +35,7 @@ import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
 import OriginsTable from '../DatabaseTables/OriginsTable';
 import TormentaTitle from '../Database/TormentaTitle';
+import { useSubscription } from '../../hooks/useSubscription';
 import { SEO, getPageSEO } from '../SEO';
 
 interface IProps {
@@ -80,6 +89,7 @@ const Database: React.FC<IProps> = () => {
   const history = useHistory();
   const isMobile = useMediaQuery('(max-width: 720px)');
   const theme = useTheme();
+  const { isSupporter } = useSubscription();
   const isDark = theme.palette.mode === 'dark';
 
   const onSelectMenu = (menu: number, route: string) => {
@@ -358,6 +368,27 @@ const Database: React.FC<IProps> = () => {
                 </>
               )}
             </Box>
+
+            {/* Support CTA - only for non-supporters, when viewing content */}
+            {selectedMenu !== -1 && !isSupporter && (
+              <Alert
+                severity='info'
+                icon={<FavoriteIcon />}
+                sx={{
+                  mb: 2,
+                  '& .MuiAlert-icon': { color: '#FFA500' },
+                }}
+              >
+                Gostou do conteúdo? Ajude o Fichas de Nimb a continuar
+                crescendo!{' '}
+                <Link
+                  to='/apoiar'
+                  style={{ fontWeight: 'bold', color: '#FFA500' }}
+                >
+                  Apoiar o projeto
+                </Link>
+              </Alert>
+            )}
 
             {/* Content Section */}
             <Box

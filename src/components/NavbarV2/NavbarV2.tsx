@@ -32,8 +32,10 @@ import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import logoFichasDeNimb from '@/assets/images/logoFichasDeNimbSmall.svg';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
 import UserMenu from '../Auth/UserMenu';
 
 // Helper to check if click should open in new tab
@@ -171,6 +173,7 @@ const navCategories: NavCategory[] = [
 const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
   const theme = useTheme();
   const { isAuthenticated } = useAuth();
+  const { isSupporter } = useSubscription();
   const isMobile = useMediaQuery(theme.breakpoints.down('xl'));
   const [anchorEls, setAnchorEls] = useState<{
     [key: string]: HTMLElement | null;
@@ -418,6 +421,33 @@ const NavbarV2: React.FC<NavbarV2Props> = ({ onClickMenu, onClickToLink }) => {
           spacing={1}
           sx={{ ml: 'auto' }}
         >
+          {/* Support CTA - desktop only, non-supporters */}
+          {!isMobile && !isSupporter && (
+            <Button
+              component='a'
+              href='/apoiar'
+              onClick={(e: React.MouseEvent) => handleLinkClick(e, '/apoiar')}
+              startIcon={<FavoriteIcon />}
+              size='small'
+              sx={{
+                background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                color: '#000',
+                fontWeight: 600,
+                textTransform: 'none',
+                px: 2,
+                borderRadius: 2,
+                whiteSpace: 'nowrap',
+                '&:hover': {
+                  background:
+                    'linear-gradient(135deg, #FFA500 0%, #FF8C00 100%)',
+                  transform: 'scale(1.05)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              Apoiar
+            </Button>
+          )}
           {/* Instagram - hide on mobile */}
           {!isMobile && (
             <Tooltip title='Siga-nos no Instagram'>

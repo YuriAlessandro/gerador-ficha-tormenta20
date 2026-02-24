@@ -2,16 +2,20 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Alert,
   Container,
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSubscription } from '../../hooks/useSubscription';
 import { SEO, getPageSEO } from '../SEO';
 
 const Changelog: React.FC = () => {
   const changelogSEO = getPageSEO('changelog');
+  const { isSupporter } = useSubscription();
   const [expanded, setExpanded] = useState<string | false>('v4');
 
   const handleChange =
@@ -172,6 +176,27 @@ const Changelog: React.FC = () => {
                   esperado pelas regras.
                 </li>
               </ul>
+
+              {/* Support CTA - only for non-supporters */}
+              {!isSupporter && (
+                <Alert
+                  severity='info'
+                  icon={<FavoriteIcon />}
+                  sx={{
+                    my: 2,
+                    '& .MuiAlert-icon': { color: '#FFA500' },
+                  }}
+                >
+                  Essas atualizações são possíveis graças ao apoio da
+                  comunidade.{' '}
+                  <Link
+                    to='/apoiar'
+                    style={{ fontWeight: 'bold', color: '#FFA500' }}
+                  >
+                    Apoie o projeto!
+                  </Link>
+                </Alert>
+              )}
 
               <h3>4.2.5</h3>
               <ul>

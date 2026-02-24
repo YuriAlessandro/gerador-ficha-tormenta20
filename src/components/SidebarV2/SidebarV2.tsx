@@ -273,7 +273,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
           <MenuList>
             {/* Home */}
-            <StyledMenuItem onClick={() => navigateTo('/apoio')}>
+            <StyledMenuItem onClick={() => navigateTo('/apoiar')}>
               <ListItemIcon>
                 <StarIcon />
               </ListItemIcon>
