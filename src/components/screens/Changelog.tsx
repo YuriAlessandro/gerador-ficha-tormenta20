@@ -78,6 +78,11 @@ const Changelog: React.FC = () => {
                   disponível tanto em fichas locais quanto em fichas salvas na
                   nuvem.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que o Usurpador
+                  ficava travado no passo &quot;Magias Iniciais&quot; do wizard
+                  de criação de personagem, sem conseguir avançar.
+                </li>
               </ul>
 
               <h3>4.3</h3>

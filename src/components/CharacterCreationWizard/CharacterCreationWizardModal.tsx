@@ -1038,7 +1038,13 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();
-        if (!spellInfo) return null;
+        if (!spellInfo || spellInfo.initialSpells === 0) {
+          return (
+            <Typography>
+              Esta classe não precisa selecionar magias iniciais.
+            </Typography>
+          );
+        }
         return (
           <InitialSpellSelectionStep
             selectedSpells={selections.initialSpells || []}
@@ -1240,7 +1246,7 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Magias Iniciais': {
         const spellInfo = getSpellInfo();
-        if (!spellInfo) return false;
+        if (!spellInfo || spellInfo.initialSpells === 0) return true;
         return (
           (selections.initialSpells ?? []).length === spellInfo.initialSpells
         );
