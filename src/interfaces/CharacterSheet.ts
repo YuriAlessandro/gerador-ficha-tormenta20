@@ -350,6 +350,12 @@ export interface MovementTypes {
   pairar?: boolean;
 }
 
+export interface ClassLevelEntry {
+  level: number;
+  className: string;
+  classSubname?: string;
+}
+
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
   id: string;
@@ -429,8 +435,10 @@ export default interface CharacterSheet {
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   notes?: string; // Anotações livres do jogador
+<<<<<<< HEAD
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
+  classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
 }
 
 export interface Step {

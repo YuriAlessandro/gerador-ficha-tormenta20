@@ -9,6 +9,7 @@ import Skill from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
+import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -92,10 +93,14 @@ const preparePDF: (
   nameField.setText(sheet.nome);
   raceField.setText(sheet.raca.name);
   originField.setText(sheet.origin?.name || '');
-  const classDisplay =
-    sheet.classe.isVariant && sheet.classe.baseClassName
-      ? `${sheet.classe.name} (${sheet.classe.baseClassName}) ${sheet.nivel}`
-      : `${sheet.classe.name} ${sheet.nivel}`;
+  let classDisplay: string;
+  if (isMulticlass(sheet)) {
+    classDisplay = getMulticlassDisplayName(sheet);
+  } else if (sheet.classe.isVariant && sheet.classe.baseClassName) {
+    classDisplay = `${sheet.classe.name} (${sheet.classe.baseClassName}) ${sheet.nivel}`;
+  } else {
+    classDisplay = `${sheet.classe.name} ${sheet.nivel}`;
+  }
   classField.setText(classDisplay);
   deytiField.setText(sheet.devoto?.divindade.name || '');
   forceField.setText(sheet.atributos.Força.value.toString());

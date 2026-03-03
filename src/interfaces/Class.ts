@@ -71,6 +71,7 @@ export type ClassPower = {
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
+  className?: string; // Multiclasse: qual classe concedeu este poder
 };
 
 export interface SpellPath {

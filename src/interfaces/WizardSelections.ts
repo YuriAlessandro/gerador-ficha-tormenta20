@@ -17,6 +17,8 @@ export interface OriginBenefit {
 
 export interface LevelUpSelections {
   level: number;
+  selectedClassName?: string; // Multiclasse: classe escolhida para este nível
+  selectedClassSubname?: string; // Multiclasse: subtipo se aplicável
   // Escolha: poder de classe, poder geral OU poder de Alma Livre
   powerChoice: 'class' | 'general' | 'almaLivre';
   selectedClassPower?: ClassPower;

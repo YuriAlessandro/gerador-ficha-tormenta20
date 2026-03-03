@@ -40,7 +40,7 @@ export const authPersistConfig = {
 export const systemPersistConfig = {
   key: 'system',
   storage,
-  whitelist: ['selectedSystem'], // Persist user's system preference
+  whitelist: ['selectedSystem', 'featureFlags'], // Persist user's system preference and feature flags
 };
 
 export const subscriptionPersistConfig = {

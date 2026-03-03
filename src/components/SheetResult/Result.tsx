@@ -33,6 +33,7 @@ import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
 } from '@/functions/general';
+import { isMulticlass, getMulticlassDisplayName } from '@/functions/multiclass';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -463,8 +464,13 @@ const Result: React.FC<ResultProps> = (props) => {
     return `${id}-${elementId}`;
   }
 
-  let className = `${classe.name}`;
-  if (classe.subname) className = `${className} (${classe.subname})`;
+  let className: string;
+  if (isMulticlass(currentSheet)) {
+    className = getMulticlassDisplayName(currentSheet);
+  } else {
+    className = `${classe.name}`;
+    if (classe.subname) className = `${className} (${classe.subname})`;
+  }
 
   const periciasSorted = completeSkills
     ? [...completeSkills].sort((skillA, skillB) =>
