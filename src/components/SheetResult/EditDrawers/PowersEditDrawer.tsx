@@ -1168,7 +1168,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       newHistoryEntries.push({
         source: { type: 'manualEdit' },
         changes: addedClassPowers.map((p) => ({
-          type: 'PowerAdded' as const,
+          type: 'ClassPowerAdded' as const,
           powerName: p.name,
         })),
       });

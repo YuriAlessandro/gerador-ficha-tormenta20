@@ -783,7 +783,22 @@ export function recalculateSheet(
       newClassPowers
     );
 
-    removedPowerNames = [...removedGeneralPowers, ...removedClassPowers];
+    // Find removed origin powers
+    const originalOriginPowerNames = (originalSheet.origin?.powers || []).map(
+      (p) => p.name
+    );
+    const newOriginPowerNames = (updatedSheet.origin?.powers || []).map(
+      (p) => p.name
+    );
+    const removedOriginPowers = originalOriginPowerNames.filter(
+      (name) => !newOriginPowerNames.includes(name)
+    );
+
+    removedPowerNames = [
+      ...removedGeneralPowers,
+      ...removedClassPowers,
+      ...removedOriginPowers,
+    ];
 
     // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
     removedPowerNames.forEach((powerName) => {
@@ -861,6 +876,18 @@ export function recalculateSheet(
                 );
                 if (powerIndex > -1) {
                   updatedSheet.generalPowers.splice(powerIndex, 1);
+                }
+              }
+              break;
+            }
+
+            case 'ClassPowerAdded': {
+              if (updatedSheet.classPowers) {
+                const powerIndex = updatedSheet.classPowers.findIndex(
+                  (power) => power.name === change.powerName
+                );
+                if (powerIndex > -1) {
+                  updatedSheet.classPowers.splice(powerIndex, 1);
                 }
               }
               break;

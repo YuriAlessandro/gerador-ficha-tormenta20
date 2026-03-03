@@ -47,6 +47,24 @@ export function removeOriginBenefits(sheet: CharacterSheet): CharacterSheet {
     });
   }
 
+  // Remove class powers that were granted by origin sheetActions (e.g., Futura Lenda)
+  if (sheet.sheetActionHistory) {
+    const classPowersFromOrigin = sheet.sheetActionHistory
+      .filter((entry) => entry.source?.type === 'origin')
+      .flatMap((entry) => entry.changes)
+      .filter(
+        (change) =>
+          change.type === 'ClassPowerAdded' || change.type === 'PowerAdded'
+      )
+      .map((change) => change.powerName);
+
+    if (classPowersFromOrigin.length > 0) {
+      updatedSheet.classPowers = (sheet.classPowers || []).filter(
+        (p) => !classPowersFromOrigin.includes(p.name)
+      );
+    }
+  }
+
   // Remove sheetActionHistory entries that came from origin
   if (sheet.sheetActionHistory) {
     updatedSheet.sheetActionHistory = sheet.sheetActionHistory.filter(

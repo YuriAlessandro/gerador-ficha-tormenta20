@@ -83,6 +83,11 @@ const Changelog: React.FC = () => {
                   ficava travado no passo &quot;Magias Iniciais&quot; do wizard
                   de criação de personagem, sem conseguir avançar.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug da origem Futura
+                  Lenda em que poderes de classe acumulavam a cada recálculo da
+                  ficha e não podiam ser removidos pelo editor de poderes.
+                </li>
               </ul>
 
               <h3>4.3</h3>

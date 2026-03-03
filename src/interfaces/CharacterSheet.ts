@@ -180,6 +180,10 @@ export type SheetActionReceipt =
       powerName: string;
     }
   | {
+      type: 'ClassPowerAdded';
+      powerName: string;
+    }
+  | {
       type: 'ProficiencyAdded';
       proficiency: string;
     }

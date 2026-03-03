@@ -104,6 +104,23 @@ function reversePowerAdded(sheet: CharacterSheet, powerName: string): void {
 }
 
 /**
+ * Reverses class power additions
+ */
+function reverseClassPowerAdded(
+  sheet: CharacterSheet,
+  powerName: string
+): void {
+  if (sheet.classPowers) {
+    const index = sheet.classPowers.findIndex(
+      (power) => power.name === powerName
+    );
+    if (index > -1) {
+      sheet.classPowers.splice(index, 1);
+    }
+  }
+}
+
+/**
  * Reverses spell learning
  */
 function reverseSpellsLearned(
@@ -165,6 +182,10 @@ function reverseSheetActionChange(
 
     case 'PowerAdded':
       reversePowerAdded(sheet, change.powerName);
+      break;
+
+    case 'ClassPowerAdded':
+      reverseClassPowerAdded(sheet, change.powerName);
       break;
 
     case 'SpellsLearned':

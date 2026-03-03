@@ -1399,8 +1399,8 @@ export const applyPower = (
     learnSpell: ['SpellsLearned'],
     learnAnySpellFromHighestCircle: ['SpellsLearned'],
     learnClassAbility: ['ClassAbilityLearned'],
-    getClassPower: ['ClassPowerAdded'],
-    grantSpecificClassPower: ['ClassPowerAdded'],
+    getClassPower: ['ClassPowerAdded', 'PowerAdded'],
+    grantSpecificClassPower: ['ClassPowerAdded', 'PowerAdded'],
     addAlchemyItems: ['EquipmentAdded'],
     chooseFromOptions: ['OptionChosen'],
     trainSkillOrBonus: ['SkillTrainedOrBonused'],
@@ -2206,7 +2206,7 @@ export const applyPower = (
           powerName: powerOrAbility.name,
           changes: [
             {
-              type: 'PowerAdded',
+              type: 'ClassPowerAdded',
               powerName: selectedPower.name,
             },
           ],
@@ -2260,7 +2260,7 @@ export const applyPower = (
             powerName: powerOrAbility.name,
             changes: [
               {
-                type: 'PowerAdded',
+                type: 'ClassPowerAdded',
                 powerName: targetPower.name,
               },
             ],
