@@ -10,7 +10,6 @@ import {
   Box,
   Card,
   Container,
-  FormControlLabel,
   Stack,
   Grid,
   useMediaQuery,
@@ -38,9 +37,10 @@ import {
   Cloud as CloudIcon,
   HelpOutline as HelpIcon,
   Favorite as FavoriteIcon,
+  Article as ArticleIcon,
+  Subject as SubjectIcon,
 } from '@mui/icons-material';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import React from 'react';
 import { useHistory, useLocation, Prompt } from 'react-router-dom';
 import Select, { StylesConfig } from 'react-select';
@@ -1605,8 +1605,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   isDarkMode={isDarkMode}
                   selectedOptions={selectedOptions}
                   onSelectedOptionsChange={setSelectedOptions}
-                  simpleSheet={simpleSheet}
-                  onSimpleSheetChange={setSimpleSheet}
                   onGenerate={onClickGenerate}
                   userSupplements={userSupplements}
                   enabledSupplements={user?.enabledSupplements}
@@ -1617,8 +1615,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   isDarkMode={isDarkMode}
                   selectedOptions={selectedOptions}
                   onSelectedOptionsChange={setSelectedOptions}
-                  simpleSheet={simpleSheet}
-                  onSimpleSheetChange={setSimpleSheet}
                   onCreateSheet={onClickGenerateEmptySheet}
                   userSupplements={userSupplements}
                   enabledSupplements={user?.enabledSupplements}
@@ -1697,6 +1693,19 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
                   }
                 >
                   {loadingFoundry ? 'Exportando...' : 'Exportar para Foundry'}
+                </Button>
+
+                {/* View Mode Toggle */}
+                <Button
+                  variant='outlined'
+                  onClick={() => setSimpleSheet(!simpleSheet)}
+                  fullWidth={isMobile}
+                  sx={{ justifyContent: 'flex-start' }}
+                  startIcon={simpleSheet ? <ArticleIcon /> : <SubjectIcon />}
+                >
+                  {simpleSheet
+                    ? 'Ver ficha completa'
+                    : 'Ver ficha simplificada'}
                 </Button>
               </Stack>
             </Card>

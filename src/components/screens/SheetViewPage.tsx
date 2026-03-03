@@ -21,7 +21,10 @@ import ShareIcon from '@mui/icons-material/Share';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ExtensionIcon from '@mui/icons-material/Extension';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ArticleIcon from '@mui/icons-material/Article';
+import SubjectIcon from '@mui/icons-material/Subject';
 import Result from '@/components/SheetResult/Result';
+import SimpleResult from '@/components/SimpleResult';
 import SheetsService from '@/services/sheets.service';
 import { SEO } from '@/components/SEO';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,6 +66,7 @@ const SheetViewPage: React.FC = () => {
   const [loadingFoundry, setLoadingFoundry] = useState(false);
   const [copying, setCopying] = useState(false);
   const [limitDialogOpen, setLimitDialogOpen] = useState(false);
+  const [simpleSheet, setSimpleSheet] = useState(false);
 
   // Check if viewing from game table context (hide export options)
   const queryParams = new URLSearchParams(location.search);
@@ -448,6 +452,19 @@ const SheetViewPage: React.FC = () => {
                       {copying ? 'Copiando...' : 'Copiar para minha conta'}
                     </Button>
                   )}
+
+                  {/* View Mode Toggle */}
+                  <Button
+                    variant='outlined'
+                    onClick={() => setSimpleSheet(!simpleSheet)}
+                    fullWidth={isMobile}
+                    sx={{ justifyContent: 'flex-start' }}
+                    startIcon={simpleSheet ? <ArticleIcon /> : <SubjectIcon />}
+                  >
+                    {simpleSheet
+                      ? 'Ver ficha completa'
+                      : 'Ver ficha simplificada'}
+                  </Button>
                 </Stack>
               </Card>
             )}
@@ -460,11 +477,15 @@ const SheetViewPage: React.FC = () => {
             )}
 
             {/* Sheet Result */}
-            <Result
-              sheet={sheet}
-              isDarkMode={isDarkMode}
-              onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
-            />
+            {simpleSheet ? (
+              <SimpleResult sheet={sheet} />
+            ) : (
+              <Result
+                sheet={sheet}
+                isDarkMode={isDarkMode}
+                onSheetUpdate={isOwner ? handleSheetUpdate : undefined}
+              />
+            )}
           </Box>
 
           {/* Snackbar for notifications */}

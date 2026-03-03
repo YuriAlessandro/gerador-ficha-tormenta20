@@ -2,8 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  FormControlLabel,
-  Checkbox,
   Button,
   Grid,
   Stack,
@@ -44,8 +42,6 @@ interface NewSheetFormProps {
   isDarkMode: boolean;
   selectedOptions: SelectOptions;
   onSelectedOptionsChange: (options: SelectOptions) => void;
-  simpleSheet: boolean;
-  onSimpleSheetChange: (value: boolean) => void;
   onCreateSheet: () => void;
   userSupplements: SupplementId[];
   enabledSupplements?: SupplementId[];
@@ -86,8 +82,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
   isDarkMode,
   selectedOptions,
   onSelectedOptionsChange,
-  simpleSheet,
-  onSimpleSheetChange,
   onCreateSheet,
   userSupplements,
   enabledSupplements,
@@ -466,24 +460,6 @@ const NewSheetForm: React.FC<NewSheetFormProps> = ({
                 ...formThemeColors,
               },
             })}
-          />
-        </Grid>
-
-        {/* Simple Sheet Checkbox */}
-        <Grid
-          size={{ xs: 12, sm: 6, md: 4 }}
-          sx={{ display: 'flex', alignItems: 'flex-end' }}
-        >
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={simpleSheet}
-                onChange={() => onSimpleSheetChange(!simpleSheet)}
-                size={isMobile ? 'medium' : 'small'}
-              />
-            }
-            label='Ficha simplificada'
-            sx={{ fontSize: isMobile ? '16px' : '14px' }}
           />
         </Grid>
       </Grid>

@@ -2,8 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  FormControlLabel,
-  Checkbox,
   Button,
   Grid,
   Stack,
@@ -50,8 +48,6 @@ interface RandomSheetFormProps {
   isDarkMode: boolean;
   selectedOptions: SelectOptions;
   onSelectedOptionsChange: (options: SelectOptions) => void;
-  simpleSheet: boolean;
-  onSimpleSheetChange: (value: boolean) => void;
   onGenerate: () => void;
   userSupplements: SupplementId[];
   enabledSupplements?: SupplementId[];
@@ -92,8 +88,6 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
   isDarkMode,
   selectedOptions,
   onSelectedOptionsChange,
-  simpleSheet,
-  onSimpleSheetChange,
   onGenerate,
   userSupplements,
   enabledSupplements,
@@ -589,24 +583,6 @@ const RandomSheetForm: React.FC<RandomSheetFormProps> = ({
                 ...formThemeColors,
               },
             })}
-          />
-        </Grid>
-
-        {/* Simple Sheet Checkbox */}
-        <Grid
-          size={{ xs: 12, sm: 6, md: 4 }}
-          sx={{ display: 'flex', alignItems: 'flex-end' }}
-        >
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={simpleSheet}
-                onChange={() => onSimpleSheetChange(!simpleSheet)}
-                size={isMobile ? 'medium' : 'small'}
-              />
-            }
-            label='Ficha simplificada'
-            sx={{ fontSize: isMobile ? '16px' : '14px' }}
           />
         </Grid>
       </Grid>

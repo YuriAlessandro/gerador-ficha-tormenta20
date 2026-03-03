@@ -69,6 +69,17 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.4</h3>
+              <ul>
+                <li>
+                  <strong>✨ Melhoria:</strong> Agora é possível alternar entre
+                  a visualização completa e simplificada de fichas já criadas. O
+                  botão de alternância fica na barra de ações acima da ficha,
+                  disponível tanto em fichas locais quanto em fichas salvas na
+                  nuvem.
+                </li>
+              </ul>
+
               <h3>4.3</h3>
               <ul>
                 <li>
