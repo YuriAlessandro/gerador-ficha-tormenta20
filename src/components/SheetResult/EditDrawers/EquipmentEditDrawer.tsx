@@ -276,6 +276,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editEsotericSpaces, setEditEsotericSpaces] = useState<string>('0');
   const [showEsotericRollsDialog, setShowEsotericRollsDialog] = useState(false);
 
+  // Estados para edição de animais
+  const [editingAnimal, setEditingAnimal] = useState<Equipment | null>(null);
+  const [editingAnimalIndex, setEditingAnimalIndex] = useState<number | null>(
+    null
+  );
+  const [editAnimalNome, setEditAnimalNome] = useState<string>('');
+  const [editAnimalRolls, setEditAnimalRolls] = useState<DiceRoll[]>([]);
+  const [editAnimalSpaces, setEditAnimalSpaces] = useState<string>('0');
+  const [showAnimalRollsDialog, setShowAnimalRollsDialog] = useState(false);
+
   // Categorize supplement weapons by type
   const getCategorizedWeapons = useMemo(() => {
     const categorized = {
@@ -1351,6 +1361,44 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }));
   };
 
+  // Handlers para edição de animais
+  const handleOpenEditAnimal = (item: Equipment, index: number) => {
+    setEditingAnimal(item);
+    setEditingAnimalIndex(index);
+    setEditAnimalNome(item.nome);
+    setEditAnimalRolls(item.rolls || []);
+    setEditAnimalSpaces(item.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditAnimal = () => {
+    setEditingAnimal(null);
+    setEditingAnimalIndex(null);
+    setEditAnimalNome('');
+    setEditAnimalRolls([]);
+    setEditAnimalSpaces('0');
+  };
+
+  const handleSaveEditAnimal = () => {
+    if (!editingAnimal || editingAnimalIndex === null) return;
+
+    const updatedItem: Equipment = {
+      ...editingAnimal,
+      nome: editAnimalNome,
+      spaces: parseFloat(editAnimalSpaces) || 0,
+      rolls: editAnimalRolls.length > 0 ? editAnimalRolls : undefined,
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      animals: prev.animals.map((item, i) =>
+        i === editingAnimalIndex ? updatedItem : item
+      ),
+    }));
+
+    handleCloseEditAnimal();
+  };
+
   // Handlers para edição de vestuário
   const handleOpenEditClothing = (item: Equipment, index: number) => {
     setEditingClothing(item);
@@ -2354,7 +2402,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           }${item.nome}`}
                           secondary={`${
                             item.preco ? `Preço: T$ ${item.preco} | ` : ''
-                          }Espaços: ${item.spaces || 0}`}
+                          }Espaços: ${item.spaces || 0}${
+                            item.rolls && item.rolls.length > 0
+                              ? ` | ${item.rolls.length} rolagem(ns)`
+                              : ''
+                          }`}
                         />
                         <ListItemSecondaryAction>
                           <IconButton
@@ -2620,15 +2672,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.animals.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.animals.map((item) => (
+                    {selectedEquipment.animals.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
                           primary={item.nome}
                           secondary={`${
                             item.preco ? `Preço: T$ ${item.preco} | ` : ''
-                          }Espaços: ${item.spaces || 0}`}
+                          }Espaços: ${item.spaces || 0}${
+                            item.rolls && item.rolls.length > 0
+                              ? ` | ${item.rolls.length} rolagem(ns)`
+                              : ''
+                          }`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditAnimal(item, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -4509,6 +4573,90 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           setShowEsotericRollsDialog(false);
         }}
         title='Rolagens do Esotérico'
+      />
+
+      {/* Dialog de edição de animal */}
+      <Dialog
+        open={editingAnimal !== null}
+        onClose={handleCloseEditAnimal}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Animal</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Animal'
+              value={editAnimalNome}
+              onChange={(e) => setEditAnimalNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o animal'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editAnimalSpaces}
+              onChange={(e) => setEditAnimalSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editAnimalRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowAnimalRollsDialog(true)}
+                >
+                  {editAnimalRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editAnimalRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editAnimalRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditAnimal}>Cancelar</Button>
+          <Button onClick={handleSaveEditAnimal} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens do animal */}
+      <RollsEditDialog
+        open={showAnimalRollsDialog}
+        onClose={() => setShowAnimalRollsDialog(false)}
+        rolls={editAnimalRolls}
+        onSave={(rolls) => {
+          setEditAnimalRolls(rolls);
+          setShowAnimalRollsDialog(false);
+        }}
+        title='Rolagens do Animal'
       />
     </Drawer>
   );

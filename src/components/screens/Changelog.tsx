@@ -72,6 +72,11 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
+                  <strong>✨ Melhoria:</strong> Animais agora podem ser editados
+                  na ficha (nome, espaços e rolagens), assim como os demais
+                  itens de equipamento.
+                </li>
+                <li>
                   <strong>🐛 Correção:</strong> Magias memorizadas do Mago agora
                   arredondam corretamente para baixo (metade das magias
                   conhecidas). Antes arredondava para cima, permitindo memorizar
