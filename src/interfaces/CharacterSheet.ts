@@ -342,6 +342,14 @@ export const ALL_DAMAGE_TYPES: DamageType[] = [
   'Trevas',
 ];
 
+export interface MovementTypes {
+  escalada?: number;
+  escavar?: number;
+  natacao?: number;
+  voo?: number;
+  pairar?: boolean;
+}
+
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
   id: string;
@@ -373,6 +381,7 @@ export default interface CharacterSheet {
   customMaxSpaces?: number; // Manual override for max spaces
   customDisplacement?: number; // Manual override for displacement
   customSize?: RaceSize; // Manual override for size
+  movementTypes?: MovementTypes; // Tipos de deslocamento secundários (manual)
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
   customGrantedPowers?: CustomPower[];

@@ -12,10 +12,12 @@ import {
   Stack,
   IconButton,
   Divider,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RestoreIcon from '@mui/icons-material/Restore';
-import CharacterSheet from '@/interfaces/CharacterSheet';
+import CharacterSheet, { MovementTypes } from '@/interfaces/CharacterSheet';
 import { RaceSize, raceSize } from '@/interfaces/Race';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
@@ -36,6 +38,11 @@ interface EditedData {
   useCustomDisplacement: boolean;
   selectedSizeKey: raceSize | '';
   useCustomSize: boolean;
+  escaladaStr: string;
+  escavarStr: string;
+  natacaoStr: string;
+  vooStr: string;
+  pairar: boolean;
 }
 
 const findSizeKey = (size: RaceSize): raceSize | '' => {
@@ -44,6 +51,18 @@ const findSizeKey = (size: RaceSize): raceSize | '' => {
   );
   return entry ? (entry[0] as raceSize) : '';
 };
+
+const buildInitialEditedData = (sheet: CharacterSheet): EditedData => ({
+  displacementStr: String(sheet.customDisplacement ?? sheet.displacement),
+  useCustomDisplacement: sheet.customDisplacement !== undefined,
+  selectedSizeKey: findSizeKey(sheet.customSize ?? sheet.size),
+  useCustomSize: sheet.customSize !== undefined,
+  escaladaStr: String(sheet.movementTypes?.escalada ?? ''),
+  escavarStr: String(sheet.movementTypes?.escavar ?? ''),
+  natacaoStr: String(sheet.movementTypes?.natacao ?? ''),
+  vooStr: String(sheet.movementTypes?.voo ?? ''),
+  pairar: sheet.movementTypes?.pairar ?? false,
+});
 
 const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
   open,
@@ -74,21 +93,13 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
     [raceDefaultSize]
   );
 
-  const [editedData, setEditedData] = useState<EditedData>({
-    displacementStr: String(sheet.customDisplacement ?? sheet.displacement),
-    useCustomDisplacement: sheet.customDisplacement !== undefined,
-    selectedSizeKey: findSizeKey(sheet.customSize ?? sheet.size),
-    useCustomSize: sheet.customSize !== undefined,
-  });
+  const [editedData, setEditedData] = useState<EditedData>(
+    buildInitialEditedData(sheet)
+  );
 
   useEffect(() => {
     if (open) {
-      setEditedData({
-        displacementStr: String(sheet.customDisplacement ?? sheet.displacement),
-        useCustomDisplacement: sheet.customDisplacement !== undefined,
-        selectedSizeKey: findSizeKey(sheet.customSize ?? sheet.size),
-        useCustomSize: sheet.customSize !== undefined,
-      });
+      setEditedData(buildInitialEditedData(sheet));
     }
   }, [
     open,
@@ -96,7 +107,28 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
     sheet.customSize,
     sheet.displacement,
     sheet.size,
+    sheet.movementTypes,
   ]);
+
+  const buildMovementTypes = (): MovementTypes | undefined => {
+    const escalada = Number(editedData.escaladaStr) || 0;
+    const escavar = Number(editedData.escavarStr) || 0;
+    const natacao = Number(editedData.natacaoStr) || 0;
+    const voo = Number(editedData.vooStr) || 0;
+    const pairar = voo > 0 && editedData.pairar;
+
+    if (escalada <= 0 && escavar <= 0 && natacao <= 0 && voo <= 0) {
+      return undefined;
+    }
+
+    const result: MovementTypes = {};
+    if (escalada > 0) result.escalada = escalada;
+    if (escavar > 0) result.escavar = escavar;
+    if (natacao > 0) result.natacao = natacao;
+    if (voo > 0) result.voo = voo;
+    if (pairar) result.pairar = true;
+    return result;
+  };
 
   const handleSave = () => {
     const customDisplacement = editedData.useCustomDisplacement
@@ -119,6 +151,7 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
       customDisplacement,
       customSize,
       size: newSize,
+      movementTypes: buildMovementTypes(),
     };
 
     const updatedSheet = { ...sheet, ...updates };
@@ -128,12 +161,7 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
   };
 
   const handleCancel = () => {
-    setEditedData({
-      displacementStr: String(sheet.customDisplacement ?? sheet.displacement),
-      useCustomDisplacement: sheet.customDisplacement !== undefined,
-      selectedSizeKey: findSizeKey(sheet.customSize ?? sheet.size),
-      useCustomSize: sheet.customSize !== undefined,
-    });
+    setEditedData(buildInitialEditedData(sheet));
     onClose();
   };
 
@@ -161,6 +189,16 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
     editedData.useCustomSize && editedData.selectedSizeKey
       ? RACE_SIZES[editedData.selectedSizeKey]
       : raceDefaultSize;
+
+  const previewEscalada = Number(editedData.escaladaStr) || 0;
+  const previewEscavar = Number(editedData.escavarStr) || 0;
+  const previewNatacao = Number(editedData.natacaoStr) || 0;
+  const previewVoo = Number(editedData.vooStr) || 0;
+  const hasSecondaryMovement =
+    previewEscalada > 0 ||
+    previewEscavar > 0 ||
+    previewNatacao > 0 ||
+    previewVoo > 0;
 
   return (
     <Drawer
@@ -194,7 +232,7 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
 
           <TextField
             fullWidth
-            label='Deslocamento (metros)'
+            label='Terrestre (metros)'
             type='number'
             value={editedData.displacementStr}
             onChange={(e) => {
@@ -221,6 +259,74 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
               Restaurar valor automático
             </Button>
           )}
+
+          <Divider />
+
+          {/* Outros Deslocamentos */}
+          <Typography variant='subtitle2' sx={{ fontWeight: 'bold' }}>
+            Outros Deslocamentos
+          </Typography>
+
+          <TextField
+            fullWidth
+            label='Escalada (metros)'
+            type='number'
+            value={editedData.escaladaStr}
+            onChange={(e) =>
+              setEditedData({ ...editedData, escaladaStr: e.target.value })
+            }
+            inputProps={{ min: 0, max: 100 }}
+          />
+
+          <TextField
+            fullWidth
+            label='Escavar (metros)'
+            type='number'
+            value={editedData.escavarStr}
+            onChange={(e) =>
+              setEditedData({ ...editedData, escavarStr: e.target.value })
+            }
+            inputProps={{ min: 0, max: 100 }}
+          />
+
+          <TextField
+            fullWidth
+            label='Natação (metros)'
+            type='number'
+            value={editedData.natacaoStr}
+            onChange={(e) =>
+              setEditedData({ ...editedData, natacaoStr: e.target.value })
+            }
+            inputProps={{ min: 0, max: 100 }}
+          />
+
+          <TextField
+            fullWidth
+            label='Voo (metros)'
+            type='number'
+            value={editedData.vooStr}
+            onChange={(e) =>
+              setEditedData({
+                ...editedData,
+                vooStr: e.target.value,
+                pairar: Number(e.target.value) > 0 ? editedData.pairar : false,
+              })
+            }
+            inputProps={{ min: 0, max: 100 }}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={editedData.pairar}
+                onChange={(e) =>
+                  setEditedData({ ...editedData, pairar: e.target.checked })
+                }
+                disabled={Number(editedData.vooStr) <= 0}
+              />
+            }
+            label='Pairar'
+          />
 
           <Divider />
 
@@ -291,10 +397,39 @@ const SizeDisplacementEditDrawer: React.FC<SizeDisplacementEditDrawerProps> = ({
 
             <Stack spacing={0.5}>
               <Typography variant='body2'>
-                Deslocamento: {previewDisplacement}m (
+                Terrestre: {previewDisplacement}m (
                 {Math.floor(previewDisplacement / 1.5)}q)
                 {editedData.useCustomDisplacement && ' (manual)'}
               </Typography>
+              {previewEscalada > 0 && (
+                <Typography variant='body2'>
+                  Escalada: {previewEscalada}m (
+                  {Math.floor(previewEscalada / 1.5)}q)
+                </Typography>
+              )}
+              {previewEscavar > 0 && (
+                <Typography variant='body2'>
+                  Escavar: {previewEscavar}m ({Math.floor(previewEscavar / 1.5)}
+                  q)
+                </Typography>
+              )}
+              {previewNatacao > 0 && (
+                <Typography variant='body2'>
+                  Natação: {previewNatacao}m ({Math.floor(previewNatacao / 1.5)}
+                  q)
+                </Typography>
+              )}
+              {previewVoo > 0 && (
+                <Typography variant='body2'>
+                  Voo: {previewVoo}m ({Math.floor(previewVoo / 1.5)}q)
+                  {editedData.pairar && ' (Pairar)'}
+                </Typography>
+              )}
+              {!hasSecondaryMovement && (
+                <Typography variant='body2' color='text.secondary'>
+                  Nenhum deslocamento secundário
+                </Typography>
+              )}
               <Typography variant='body2'>
                 Tamanho: {previewSize?.name ?? 'Médio'} (
                 {previewSize?.name.charAt(0) ?? 'M'})

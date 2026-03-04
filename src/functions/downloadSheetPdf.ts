@@ -104,7 +104,24 @@ const preparePDF: (
   intelligenceField.setText(sheet.atributos.Inteligência.value.toString());
   wisdomField.setText(sheet.atributos.Sabedoria.value.toString());
   charismaField.setText(sheet.atributos.Carisma.value.toString());
-  displacimentField.setText(sheet.displacement.toString());
+  let displacementText = sheet.displacement.toString();
+  if (sheet.movementTypes) {
+    const parts: string[] = [];
+    if (sheet.movementTypes.escalada && sheet.movementTypes.escalada > 0)
+      parts.push(`Esc ${sheet.movementTypes.escalada}m`);
+    if (sheet.movementTypes.escavar && sheet.movementTypes.escavar > 0)
+      parts.push(`Exc ${sheet.movementTypes.escavar}m`);
+    if (sheet.movementTypes.natacao && sheet.movementTypes.natacao > 0)
+      parts.push(`Nat ${sheet.movementTypes.natacao}m`);
+    if (sheet.movementTypes.voo && sheet.movementTypes.voo > 0) {
+      const hover = sheet.movementTypes.pairar ? ' P' : '';
+      parts.push(`Voo ${sheet.movementTypes.voo}m${hover}`);
+    }
+    if (parts.length > 0) {
+      displacementText += ` (${parts.join(', ')})`;
+    }
+  }
+  displacimentField.setText(displacementText);
   halfLevelField.setText(Math.floor(sheet.nivel / 2).toString());
 
   pvMaxField.setText(sheet.pv.toString());

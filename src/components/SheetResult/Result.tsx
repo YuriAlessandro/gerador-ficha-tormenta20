@@ -1436,6 +1436,67 @@ const Result: React.FC<ResultProps> = (props) => {
                       }
                       return null;
                     })()}
+                    {currentSheet.movementTypes && (
+                      <Stack spacing={0} sx={{ mt: 0.5 }}>
+                        {currentSheet.movementTypes.escalada &&
+                          currentSheet.movementTypes.escalada > 0 && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                            >
+                              Escalada: {currentSheet.movementTypes.escalada}m (
+                              {Math.floor(
+                                currentSheet.movementTypes.escalada / 1.5
+                              )}
+                              q)
+                            </Typography>
+                          )}
+                        {currentSheet.movementTypes.escavar &&
+                          currentSheet.movementTypes.escavar > 0 && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                            >
+                              Escavar: {currentSheet.movementTypes.escavar}m (
+                              {Math.floor(
+                                currentSheet.movementTypes.escavar / 1.5
+                              )}
+                              q)
+                            </Typography>
+                          )}
+                        {currentSheet.movementTypes.natacao &&
+                          currentSheet.movementTypes.natacao > 0 && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                            >
+                              Natação: {currentSheet.movementTypes.natacao}m (
+                              {Math.floor(
+                                currentSheet.movementTypes.natacao / 1.5
+                              )}
+                              q)
+                            </Typography>
+                          )}
+                        {currentSheet.movementTypes.voo &&
+                          currentSheet.movementTypes.voo > 0 && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                              sx={{ textAlign: 'center', lineHeight: 1.3 }}
+                            >
+                              Voo: {currentSheet.movementTypes.voo}m (
+                              {Math.floor(currentSheet.movementTypes.voo / 1.5)}
+                              q)
+                              {currentSheet.movementTypes.pairar
+                                ? ' (Pairar)'
+                                : ''}
+                            </Typography>
+                          )}
+                      </Stack>
+                    )}
                   </Box>
                   <Box
                     sx={{

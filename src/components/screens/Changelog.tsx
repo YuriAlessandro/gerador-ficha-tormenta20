@@ -72,6 +72,13 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
+                  <strong>✨ Melhoria:</strong> Adicionados tipos de
+                  deslocamento secundários (Escalada, Escavar, Natação, Voo e
+                  Pairar). Os valores podem ser editados no drawer de
+                  deslocamento e são exibidos abaixo do deslocamento terrestre
+                  na ficha e incluídos na exportação PDF.
+                </li>
+                <li>
                   <strong>🐛 Correção:</strong> Corrigido problema onde convites
                   para mesa virtual não podiam ser aceitos. A notificação de
                   convite agora direciona corretamente para a página de mesas, e
