@@ -1862,7 +1862,7 @@ export const spellsCircle1: Record<spellsCircle1Names, Spell> = {
       },
       {
         addPm: 2,
-        text: 'amuda a duração para um dia.',
+        text: 'muda a duração para um dia.',
       },
       {
         addPm: 2,

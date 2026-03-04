@@ -72,6 +72,13 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
+                  <strong>✨ Novo:</strong> Adicionada a possibilidade de criar
+                  magias personalizadas na ficha. O usuário pode configurar
+                  nome, descrição, todas as características (escola, círculo,
+                  execução, alcance, duração, alvo, área, resistência),
+                  aprimoramentos com custo de PM e rolagens de dados.
+                </li>
+                <li>
                   <strong>✨ Melhoria:</strong> Agora é possível alternar entre
                   a visualização completa e simplificada de fichas já criadas. O
                   botão de alternância fica na barra de ações acima da ficha,

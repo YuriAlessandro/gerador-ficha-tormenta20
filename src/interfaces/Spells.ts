@@ -32,6 +32,7 @@ export type Spell = {
   aprimoramentos?: Aprimoramento[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
   memorized?: boolean; // Para Magos: magia memorizada para o dia
+  isCustom?: boolean; // Magia personalizada criada pelo usuário
 };
 
 export type SpellSchool =

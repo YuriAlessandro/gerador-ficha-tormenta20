@@ -22,12 +22,16 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
 import { Spell, spellsCircles } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
+import CustomSpellDialog from './CustomSpellDialog';
 
 interface SpellsEditDrawerProps {
   open: boolean;
@@ -82,6 +86,10 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   const [spellType, setSpellType] = useState<'arcane' | 'divine' | 'both'>(
     'both'
   );
+  const [customSpellDialog, setCustomSpellDialog] = useState<{
+    open: boolean;
+    spellToEdit?: Spell;
+  }>({ open: false });
 
   useEffect(() => {
     if (sheet.spells && open) {
@@ -214,6 +222,33 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         spell.school.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
+
+  // Custom spell handlers
+  const handleSaveCustomSpell = (spell: Spell) => {
+    if (customSpellDialog.spellToEdit) {
+      // Edit existing
+      setSelectedSpells((prev) =>
+        prev.map((s) =>
+          s.nome === customSpellDialog.spellToEdit?.nome ? spell : s
+        )
+      );
+    } else {
+      // Add new
+      setSelectedSpells((prev) => [...prev, spell]);
+    }
+    setCustomSpellDialog({ open: false });
+  };
+
+  const handleRemoveCustomSpell = (spellName: string) => {
+    setSelectedSpells((prev) => prev.filter((s) => s.nome !== spellName));
+  };
+
+  const existingSpellNames = useMemo(
+    () => selectedSpells.map((s) => s.nome),
+    [selectedSpells]
+  );
+
+  const customSpellsSelected = selectedSpells.filter((s) => s.isCustom);
 
   const handleSave = () => {
     // Track spell changes in steps
@@ -363,6 +398,75 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           </FormControl>
         </Stack>
 
+        {/* Custom Spell Button */}
+        <Button
+          variant='outlined'
+          color='success'
+          startIcon={<AddIcon />}
+          onClick={() => setCustomSpellDialog({ open: true })}
+          size='small'
+          sx={{ mb: 2, alignSelf: 'flex-start' }}
+        >
+          Adicionar Magia Personalizada
+        </Button>
+
+        {/* Custom Spells Section */}
+        {customSpellsSelected.length > 0 && (
+          <Box
+            sx={{
+              mb: 3,
+              p: 2,
+              border: 2,
+              borderColor: 'success.main',
+              backgroundColor: 'success.50',
+              borderRadius: 1,
+            }}
+          >
+            <Typography variant='subtitle2' sx={{ mb: 1 }}>
+              Magias Personalizadas ({customSpellsSelected.length}):
+            </Typography>
+            <Stack spacing={1}>
+              {customSpellsSelected.map((spell) => (
+                <Stack
+                  key={spell.nome}
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                >
+                  <Box>
+                    <Typography variant='body2' fontWeight='bold'>
+                      {spell.nome}
+                    </Typography>
+                    <Typography variant='caption' color='text.secondary'>
+                      {spell.school} • {spell.spellCircle} • {spell.execucao}
+                    </Typography>
+                  </Box>
+                  <Stack direction='row' spacing={0.5}>
+                    <IconButton
+                      size='small'
+                      onClick={() =>
+                        setCustomSpellDialog({
+                          open: true,
+                          spellToEdit: spell,
+                        })
+                      }
+                    >
+                      <EditIcon fontSize='small' />
+                    </IconButton>
+                    <IconButton
+                      size='small'
+                      color='error'
+                      onClick={() => handleRemoveCustomSpell(spell.nome)}
+                    >
+                      <DeleteIcon fontSize='small' />
+                    </IconButton>
+                  </Stack>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+        )}
+
         {/* Selected Spells Summary */}
         {selectedSpells.length > 0 && (
           <Box
@@ -377,14 +481,27 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               Magias Selecionadas ({selectedSpells.length}):
             </Typography>
             <Stack direction='row' spacing={1} flexWrap='wrap'>
-              {selectedSpells.map((spell) => (
-                <Chip
-                  key={spell.nome}
-                  label={`${spell.nome} (${spell.spellCircle})`}
-                  size='small'
-                  onDelete={() => handleSpellToggle(spell)}
-                />
-              ))}
+              {selectedSpells
+                .filter((s) => !s.isCustom)
+                .map((spell) => (
+                  <Chip
+                    key={spell.nome}
+                    label={`${spell.nome} (${spell.spellCircle})`}
+                    size='small'
+                    onDelete={() => handleSpellToggle(spell)}
+                  />
+                ))}
+              {selectedSpells
+                .filter((s) => s.isCustom)
+                .map((spell) => (
+                  <Chip
+                    key={spell.nome}
+                    label={`${spell.nome} (${spell.spellCircle})`}
+                    size='small'
+                    color='success'
+                    onDelete={() => handleRemoveCustomSpell(spell.nome)}
+                  />
+                ))}
             </Stack>
           </Box>
         )}
@@ -520,6 +637,13 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           </Button>
         </Stack>
       </Box>
+      <CustomSpellDialog
+        open={customSpellDialog.open}
+        onClose={() => setCustomSpellDialog({ open: false })}
+        onSave={handleSaveCustomSpell}
+        spell={customSpellDialog.spellToEdit}
+        existingSpellNames={existingSpellNames}
+      />
     </Drawer>
   );
 };

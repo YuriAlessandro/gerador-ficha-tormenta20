@@ -10,6 +10,7 @@ import {
   IconButton,
   Stack,
   Checkbox,
+  Chip,
   Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -118,6 +119,15 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
               >
                 {spell.nome} {spell.customKeyAttr && `(${spell.customKeyAttr})`}
               </Typography>
+              {spell.isCustom && (
+                <Chip
+                  label='Personalizada'
+                  size='small'
+                  color='success'
+                  variant='outlined'
+                  sx={{ flexShrink: 0 }}
+                />
+              )}
             </Stack>
           </Grid>
           {!isMobile && (
