@@ -12,7 +12,6 @@ import {
   getRandomCompatibleEnergySource,
   getRandomCompatibleSize,
 } from './golem-desperto-config';
-import MECHANICAL_MARVELS from '../powers/mechanicalMarvels';
 
 // Atributos base do Golem Desperto (antes de chassi/tamanho)
 export const GOLEM_DESPERTO_BASE_ATTRIBUTES: RaceAttributeAbility[] = [
@@ -137,28 +136,6 @@ export function applyGolemDespertoCustomization(
     chassis.chassiAbility,
     energySource.ability,
   ];
-
-  // Chassi Mashin recebe habilidade extra: Maravilha Mecânica
-  if (chassisId === 'mashin') {
-    abilities.push({
-      name: 'Maravilha Mecânica',
-      description:
-        'Você pode escolher uma Maravilha Mecânica. Você só pode escolher uma Maravilha Mecânica por patamar de nível (Iniciante: 1º ao 4º, Veterano: 5º ao 10º, Campeão: 11º ao 16º, Herói: 17º ao 20º).',
-      sheetActions: [
-        {
-          source: {
-            type: 'power' as const,
-            name: 'Maravilha Mecânica',
-          },
-          action: {
-            type: 'getGeneralPower' as const,
-            availablePowers: MECHANICAL_MARVELS,
-            pick: 1,
-          },
-        },
-      ],
-    });
-  }
 
   return {
     ...baseRace,

@@ -142,6 +142,7 @@ import {
   applyQareenResistenciaElemental,
   applyAlmaLivreSelectClass,
   applyTeurgistaMistico,
+  applyMashinChassi,
 } from './powers/special';
 import {
   applyMoreauSapiencia,
@@ -2098,6 +2099,8 @@ export const applyPower = (
           currentSteps = applyAlmaLivreSelectClass(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'teurgistaMistico') {
           currentSteps = applyTeurgistaMistico(sheet);
+        } else if (sheetAction.action.specialAction === 'mashinChassi') {
+          currentSteps = applyMashinChassi(sheet, manualSelections);
         } else {
           throw new Error(
             `Ação especial não implementada: ${JSON.stringify(sheetAction)}`

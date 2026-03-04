@@ -45,6 +45,8 @@ import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
+import MashinSelectionField from './MashinSelectionField';
+import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -124,7 +126,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
         | 'chooseFromOptions'
-        | 'almaLivreSelectClass';
+        | 'almaLivreSelectClass'
+        | 'mashinChassi';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -491,7 +494,8 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
         | 'chooseFromOptions'
-        | 'almaLivreSelectClass';
+        | 'almaLivreSelectClass'
+        | 'mashinChassi';
       pick: number;
       label: string;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -838,6 +842,29 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
           <AlmaLivreSelectionField
             availableClasses={availableClassesForAL}
             supplements={supplements}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Mashin Chassi skill + marvel selection
+    if (type === 'mashinChassi') {
+      const availableSkillsForMashin =
+        allAvailableOptions as unknown as Skill[];
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <MashinSelectionField
+            availableSkills={availableSkillsForMashin}
+            availableMarvels={MECHANICAL_MARVELS}
+            sheet={sheetForFiltering}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

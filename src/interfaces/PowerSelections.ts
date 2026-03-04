@@ -62,7 +62,8 @@ export interface PowerSelectionRequirement {
     | 'lefouDeformidade'
     | 'osteonMemoriaPostuma'
     | 'chooseFromOptions'
-    | 'almaLivreSelectClass';
+    | 'almaLivreSelectClass'
+    | 'mashinChassi';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   availableOptions: any[];
   pick: number;

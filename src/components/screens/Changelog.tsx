@@ -88,6 +88,13 @@ const Changelog: React.FC = () => {
                   Lenda em que poderes de classe acumulavam a cada recálculo da
                   ficha e não podiam ser removidos pelo editor de poderes.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido Golem Desperto com
+                  chassi Mashin: o wizard agora permite substituir uma das duas
+                  perícias por uma maravilha mecânica (antes obrigava escolher
+                  ambas). As perícias escolhidas agora aparecem corretamente
+                  como treinadas na ficha.
+                </li>
               </ul>
 
               <h3>4.3</h3>

@@ -100,7 +100,8 @@ export type SheetActionStep =
         | 'meioElfoAmbicaoHerdada'
         | 'qareenResistenciaElemental'
         | 'almaLivreSelectClass'
-        | 'teurgistaMistico';
+        | 'teurgistaMistico'
+        | 'mashinChassi';
     }
   | {
       type: 'selectWeaponSpecialization';

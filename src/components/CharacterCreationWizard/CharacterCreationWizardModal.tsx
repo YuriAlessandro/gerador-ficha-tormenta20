@@ -1362,6 +1362,14 @@ const CharacterCreationWizardModal: React.FC<
               if (deformSkillCount >= 1 && deformPowerCount >= 1) return 2;
               return deformSkillCount;
             }
+            case 'mashinChassi': {
+              // For Mashin: need 1 skill + (1 skill OR 1 mechanical marvel)
+              const mashinSkillCount = powerSelections.skills?.length || 0;
+              const mashinMarvelCount = powerSelections.powers?.length || 0;
+              if (mashinSkillCount >= 2) return 2;
+              if (mashinSkillCount >= 1 && mashinMarvelCount >= 1) return 2;
+              return mashinSkillCount;
+            }
             case 'osteonMemoriaPostuma': {
               // For Memória Póstuma: need 1 skill OR 1 power OR 1 race ability
               const mpSkillCount = powerSelections.skills?.length || 0;

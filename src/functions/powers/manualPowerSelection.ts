@@ -298,6 +298,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Handle Mashin Chassi special action
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'mashinChassi'
+      ) {
+        requirements.push({
+          type: 'mashinChassi',
+          availableOptions: [],
+          pick: 2,
+          label: 'Selecione 2 perícias (ou 1 perícia + 1 maravilha mecânica)',
+        });
+      }
+
       // Handle Alma Livre special action
       if (
         action.type === 'special' &&
@@ -687,6 +700,31 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b));
     }
 
+    case 'mashinChassi': {
+      // Return all skills that the character doesn't already have
+      const allMashinSkills = Object.values(Skill);
+      return allMashinSkills
+        .filter((skill) => {
+          if (sheet.skills.includes(skill)) {
+            return false;
+          }
+          if (sheet.completeSkills) {
+            const existingSkill = sheet.completeSkills.find(
+              (cs) => cs.name === skill
+            );
+            if (
+              existingSkill &&
+              existingSkill.training &&
+              existingSkill.training > 0
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
+    }
+
     case 'almaLivreSelectClass': {
       // Options are handled dynamically by AlmaLivreSelectionField
       // Return all classes except the character's own class as a fallback
@@ -765,6 +803,21 @@ export function validateSelections(
         selectedItems = selections.chosenOption || [];
         selectedCount = selectedItems.length;
         break;
+
+      case 'mashinChassi': {
+        // 2 skills OR 1 skill + 1 mechanical marvel
+        const mashinSkills = selections.skills || [];
+        const mashinPowers = selections.powers || [];
+        if (mashinSkills.length >= 2) {
+          selectedCount = 2;
+        } else if (mashinSkills.length >= 1 && mashinPowers.length >= 1) {
+          selectedCount = 2;
+        } else {
+          selectedCount = mashinSkills.length;
+        }
+        selectedItems = [...mashinSkills, ...mashinPowers];
+        break;
+      }
 
       case 'osteonMemoriaPostuma': {
         // 1 skill OR 1 power OR 1 race ability

@@ -9,6 +9,7 @@ import { allSpellSchools } from '@/interfaces/Spells';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
 import originPowers from '@/data/systems/tormenta20/powers/originPowers';
 import HUMANO from '@/data/systems/tormenta20/races/humano';
+import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 import {
   getNotRepeatedRandom,
   getRandomItemFromArray,
@@ -542,6 +543,105 @@ export function applyTeurgistaMistico(sheet: CharacterSheet): SubStep[] {
       name: 'Teurgista Místico',
       value: 'Pode escolher até 1 magia arcana por círculo',
     });
+  }
+
+  return substeps;
+}
+
+export function applyMashinChassi(
+  sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
+): SubStep[] {
+  const substeps: SubStep[] = [];
+
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
+
+  // Check if already applied (to avoid re-applying during recalculation)
+  const alreadyApplied = sheet.steps.some(
+    (step) =>
+      step.label === 'Habilidades de Raça' &&
+      Array.isArray(step.value) &&
+      step.value.some(
+        (substep) =>
+          typeof substep === 'object' &&
+          'name' in substep &&
+          substep.name === 'Chassi Mashin'
+      )
+  );
+
+  if (alreadyApplied && !hasManualSkills && !hasManualPowers) {
+    return substeps;
+  }
+
+  // First skill (always required)
+  let firstSkill: Skill;
+  if (hasManualSkills) {
+    firstSkill = manualSelections.skills![0] as Skill;
+  } else {
+    firstSkill = getNotRepeatedRandom(sheet.skills, Object.values(Skill));
+  }
+  sheet.skills.push(firstSkill);
+  substeps.push({
+    name: 'Chassi Mashin',
+    value: `Perícia treinada (${firstSkill})`,
+  });
+
+  // Second choice: either a skill OR a mechanical marvel
+  if (hasManualPowers) {
+    const selectedMarvel = manualSelections.powers![0] as GeneralPower;
+    sheet.generalPowers.push(selectedMarvel);
+    substeps.push({
+      name: 'Chassi Mashin',
+      value: `Maravilha Mecânica recebida (${selectedMarvel.name})`,
+    });
+  } else if (hasManualSkills && manualSelections.skills!.length >= 2) {
+    const secondSkill = manualSelections.skills![1] as Skill;
+    sheet.skills.push(secondSkill);
+    substeps.push({
+      name: 'Chassi Mashin',
+      value: `Perícia treinada (${secondSkill})`,
+    });
+  } else {
+    // Random selection
+    const shouldGetSkill = Math.random() > 0.5;
+
+    if (shouldGetSkill) {
+      const randomSecondSkill = getNotRepeatedRandom(
+        sheet.skills,
+        Object.values(Skill)
+      );
+      sheet.skills.push(randomSecondSkill);
+      substeps.push({
+        name: 'Chassi Mashin',
+        value: `Perícia treinada (${randomSecondSkill})`,
+      });
+    } else {
+      const availableMarvels = MECHANICAL_MARVELS.filter(
+        (marvel) => !sheet.generalPowers.some((gp) => gp.name === marvel.name)
+      );
+      if (availableMarvels.length > 0) {
+        const randomMarvel = getRandomItemFromArray(availableMarvels);
+        sheet.generalPowers.push(randomMarvel);
+        substeps.push({
+          name: 'Chassi Mashin',
+          value: `Maravilha Mecânica recebida (${randomMarvel.name})`,
+        });
+      } else {
+        // Fallback to skill if no marvels available
+        const fallbackSkill = getNotRepeatedRandom(
+          sheet.skills,
+          Object.values(Skill)
+        );
+        sheet.skills.push(fallbackSkill);
+        substeps.push({
+          name: 'Chassi Mashin',
+          value: `Perícia treinada (${fallbackSkill})`,
+        });
+      }
+    }
   }
 
   return substeps;
