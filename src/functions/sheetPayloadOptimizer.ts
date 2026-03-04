@@ -219,7 +219,7 @@ export function rehydrateSheet(
               spellCircleAvailableAtLevel:
                 fullClass.spellPath.spellCircleAvailableAtLevel,
             }
-          : undefined,
+          : sheet.classe.spellPath,
       } as ClassDescription;
     }
   }

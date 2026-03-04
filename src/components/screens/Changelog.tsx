@@ -184,6 +184,13 @@ const Changelog: React.FC = () => {
                   socket, erros de conexão agora mostram feedback ao usuário, e
                   drawers de edição fecham automaticamente ao perder conexão.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido cálculo de PM para
+                  classes com caminho de magia dinâmico (Arcanista, Bardo,
+                  Clérigo, Druida, Frade). O bônus do atributo-chave de magia
+                  era perdido ao carregar fichas salvas, resultando em PM menor
+                  que o correto.
+                </li>
               </ul>
 
               <h3>4.3</h3>
