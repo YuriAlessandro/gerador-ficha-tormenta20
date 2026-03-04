@@ -72,6 +72,12 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
+                  <strong>✨ Melhoria:</strong> Ao exportar a ficha para PDF, as
+                  descrições das magias agora são incluídas junto com
+                  informações de círculo, escola, execução, alcance, duração e
+                  custo em PM.
+                </li>
+                <li>
                   <strong>✨ Melhoria:</strong> Animais agora podem ser editados
                   na ficha (nome, espaços e rolagens), assim como os demais
                   itens de equipamento.

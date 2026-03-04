@@ -1,10 +1,12 @@
 import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { manaExpenseByCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import Equipment from '@/interfaces/Equipment';
 import { OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import Skill from '@/interfaces/Skills';
+import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 
@@ -21,6 +23,29 @@ const generateClassPowerText = (power: ClassPower | ClassAbility) =>
   power.text || '';
 const generateGeneralPowerText = (power: RaceAbility | OriginPower) =>
   power.description || '';
+
+const getCircleLabel = (circle: string): string => {
+  const match = circle.match(/(\d)º/);
+  return match ? `${match[1]}º` : '';
+};
+
+const getSpellPmCost = (spell: Spell): number => {
+  const base = spell.manaExpense ?? manaExpenseByCircle[spell.spellCircle] ?? 0;
+  const reduction = spell.manaReduction ?? 0;
+  return Math.max(0, base - reduction);
+};
+
+const generateSpellText = (spell: Spell): string => {
+  const meta = [
+    getCircleLabel(spell.spellCircle),
+    spell.school,
+    spell.execucao,
+    spell.alcance,
+    spell.duracao,
+    `${getSpellPmCost(spell)}PM`,
+  ].join(', ');
+  return `- ${spell.nome} (${meta}): ${spell.description}`;
+};
 
 const preparePDF: (
   sheet: CharacterSheet
@@ -263,10 +288,24 @@ const preparePDF: (
   };
   powersField.setFontSize(powersFieldFontSize());
 
-  // Add spells
+  // Add spells with descriptions
   const spells = sheet.spells || [];
-  const spellsText = spells.map((spell) => spell.nome).join('\n');
+  const spellsText = spells
+    .sort((a, b) => {
+      const circleCompare = a.spellCircle.localeCompare(b.spellCircle);
+      if (circleCompare !== 0) return circleCompare;
+      return a.nome.localeCompare(b.nome);
+    })
+    .map(generateSpellText)
+    .join('\n');
   spellsField.setText(spellsText);
+  const spellsFieldFontSize = (): number => {
+    if (spellsText.length > 7000) return 6;
+    if (spellsText.length > 5000) return 7;
+    if (spellsText.length > 3000) return 8;
+    return 10;
+  };
+  spellsField.setFontSize(spellsFieldFontSize());
 
   // Proficiencies
   const baseProficiencies = sheet.classe.proficiencias.filter(
