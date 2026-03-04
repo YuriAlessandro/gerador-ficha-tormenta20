@@ -402,17 +402,24 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const handleKeyAttributeChange = useCallback(
     (newAttr: Atributo) => {
-      if (!currentSheet.classe.spellPath) return;
-      const updatedSheet = {
-        ...currentSheet,
-        classe: {
-          ...currentSheet.classe,
-          spellPath: {
-            ...currentSheet.classe.spellPath,
-            keyAttribute: newAttr,
+      let updatedSheet;
+      if (currentSheet.classe.spellPath) {
+        updatedSheet = {
+          ...currentSheet,
+          classe: {
+            ...currentSheet.classe,
+            spellPath: {
+              ...currentSheet.classe.spellPath,
+              keyAttribute: newAttr,
+            },
           },
-        },
-      };
+        };
+      } else {
+        updatedSheet = {
+          ...currentSheet,
+          overrideKeyAttribute: newAttr,
+        };
+      }
       const recalculated = recalculateSheet(updatedSheet);
       setCurrentSheet(recalculated);
       if (onSheetUpdate) {
@@ -699,9 +706,11 @@ const Result: React.FC<ResultProps> = (props) => {
   // const uniqueGeneralPowers = filterUnique(generalPowers);
   // const uniqueClassPowers = filterUnique(classPowers);
 
-  const keyAttr = classe.spellPath
-    ? atributos[classe.spellPath.keyAttribute]
-    : null;
+  const effectiveKeyAttribute =
+    classe.spellPath?.keyAttribute ??
+    currentSheet.overrideKeyAttribute ??
+    Atributo.SABEDORIA;
+  const keyAttr = atributos[effectiveKeyAttribute];
 
   // Helper function to format attribute modifiers correctly
   const formatAttributeModifier = useCallback(
@@ -1193,6 +1202,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   spells={spells}
                   spellPath={classe.spellPath}
                   keyAttr={keyAttr}
+                  selectedKeyAttribute={effectiveKeyAttribute}
                   nivel={nivel}
                   onUpdateRolls={
                     onSheetUpdate ? handleSpellRollsUpdate : undefined

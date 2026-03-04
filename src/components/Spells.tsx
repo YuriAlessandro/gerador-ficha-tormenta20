@@ -26,6 +26,7 @@ interface SpellsProp {
   spells: Spell[];
   spellPath: SpellPath | undefined;
   keyAttr: CharacterAttribute | null;
+  selectedKeyAttribute: Atributo;
   nivel: number;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
@@ -42,6 +43,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     spells,
     spellPath,
     keyAttr,
+    selectedKeyAttribute,
     nivel,
     onUpdateRolls,
     characterName,
@@ -65,13 +67,13 @@ const Spells: React.FC<SpellsProp> = (props) => {
 
   return (
     <div>
-      {spells.length > 0 && spellPath && (
+      {spells.length > 0 && (
         <div className='speelsInfos'>
           <span>
             <strong>Atributo-Chave:</strong>{' '}
-            {onKeyAttributeChange && spellPath ? (
+            {onKeyAttributeChange ? (
               <Select
-                value={spellPath.keyAttribute}
+                value={selectedKeyAttribute}
                 onChange={(e: SelectChangeEvent) =>
                   onKeyAttributeChange(e.target.value as Atributo)
                 }

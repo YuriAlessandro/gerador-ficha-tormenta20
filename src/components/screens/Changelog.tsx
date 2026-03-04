@@ -191,6 +191,13 @@ const Changelog: React.FC = () => {
                   era perdido ao carregar fichas salvas, resultando em PM menor
                   que o correto.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> A calculadora de CD de magias
+                  (Atributo-Chave, Modificador e Teste de Resistência) agora
+                  aparece sempre que a ficha possui magias, mesmo que a classe
+                  não seja conjuradora. O atributo-chave padrão é Sabedoria,
+                  podendo ser alterado pelo usuário.
+                </li>
               </ul>
 
               <h3>4.3</h3>

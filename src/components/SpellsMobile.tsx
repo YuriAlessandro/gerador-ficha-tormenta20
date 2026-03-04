@@ -20,7 +20,7 @@ const SpellsMobile: React.FC<SpellsProp> = (props) => {
 
   return (
     <div>
-      {spells.length > 0 && spellPath && (
+      {spells.length > 0 && (
         <div className='speelsInfos'>
           <span>
             <strong>Atributo-Chave:</strong> {keyAttr?.name}
