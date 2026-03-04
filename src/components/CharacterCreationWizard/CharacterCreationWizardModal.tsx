@@ -38,6 +38,7 @@ import Skill, { ALL_SPECIFIC_OFICIOS } from '@/interfaces/Skills';
 import { BagEquipments, DefenseEquipment } from '@/interfaces/Equipment';
 import { Armaduras, Escudos } from '@/data/systems/tormenta20/equipamentos';
 import { alchemyItems as coreAlchemyItems } from '@/data/systems/tormenta20/equipamentos-gerais';
+import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 import CharacterBasicInfoStep from './steps/CharacterBasicInfoStep';
 import AttributeBaseValuesStep from './steps/AttributeBaseValuesStep';
 import RaceAttributeStep from './steps/RaceAttributeStep';
@@ -58,7 +59,6 @@ import MarketStep from './steps/MarketStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
 import PropositoCriacaoStep from './steps/PropositoCriacaoStep';
-import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 
 interface RaceCustomization {
   // Golem Desperto

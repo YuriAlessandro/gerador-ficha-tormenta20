@@ -41,7 +41,6 @@ interface SpellsProp {
 const Spells: React.FC<SpellsProp> = (props) => {
   const {
     spells,
-    spellPath,
     keyAttr,
     selectedKeyAttribute,
     nivel,

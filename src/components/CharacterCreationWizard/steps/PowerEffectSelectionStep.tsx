@@ -41,12 +41,12 @@ import Skill from '@/interfaces/Skills';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import tormentaPowers from '@/data/systems/tormenta20/powers/tormentaPowers';
+import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import MashinSelectionField from './MashinSelectionField';
-import MECHANICAL_MARVELS from '@/data/systems/tormenta20/ameacas-de-arton/powers/mechanicalMarvels';
 
 interface PowerEffectSelectionStepProps {
   race: Race;

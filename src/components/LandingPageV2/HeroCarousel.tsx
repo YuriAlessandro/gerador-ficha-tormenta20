@@ -44,15 +44,15 @@ export interface CarouselSlide {
 // CONFIGURE SLIDES HERE - Easy to update
 // ===========================================
 export const carouselSlides: CarouselSlide[] = [
-  {
-    id: 'blog-destaque',
-    title: 'Carregando...',
-    subtitle: '',
-    type: 'blog',
-    blogPostSlug: 'as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores',
-    category: 'Blog',
-    isNew: true,
-  },
+  // {
+  //   id: 'blog-destaque',
+  //   title: 'Carregando...',
+  //   subtitle: '',
+  //   type: 'blog',
+  //   blogPostSlug: 'as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores',
+  //   category: 'Blog',
+  //   isNew: true,
+  // },
   {
     id: 'gerador-ficha',
     title: 'Criar personagem',
@@ -77,14 +77,14 @@ export const carouselSlides: CarouselSlide[] = [
     ctaText: 'Apoiar',
     ctaLink: '/apoiar',
   },
-  // {
-  //   id: 'fichas-de-nimb',
-  //   title: 'Fichas de Nimb',
-  //   subtitle: 'A melhor plataforma para Tormenta 20!',
-  //   image: heroImage,
-  //   bigText:
-  //     'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
-  // },
+  {
+    id: 'fichas-de-nimb',
+    title: 'Fichas de Nimb',
+    subtitle: 'A melhor plataforma para Tormenta 20!',
+    image: heroImage,
+    bigText:
+      'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
+  },
   // {
   //   id: 'gerador-ameacas',
   //   title: 'Gerador de Ameaças',

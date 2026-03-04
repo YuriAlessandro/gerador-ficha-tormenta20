@@ -4889,7 +4889,7 @@ export function generateEmptySheet(
   // Step: Market equipment purchases
   if (wizardSelections?.marketSelections) {
     const marketSubsteps: SubStep[] = [];
-    const bagEquipments = wizardSelections.marketSelections.bagEquipments;
+    const { bagEquipments } = wizardSelections.marketSelections;
 
     Object.entries(bagEquipments).forEach(([group, items]) => {
       if (items && Array.isArray(items)) {

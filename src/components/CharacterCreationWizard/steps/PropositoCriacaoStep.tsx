@@ -5,7 +5,6 @@ import {
   Alert,
   FormControlLabel,
   Radio,
-  Paper,
   TextField,
   Accordion,
   AccordionSummary,
