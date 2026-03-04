@@ -84,8 +84,9 @@ const MECHANICAL_MARVELS: GeneralPower[] = [
           name: 'Maravilha Mecânica: Caminho da Perfeição',
         },
         target: {
-          type: 'Skill',
-          name: Skill.ATLETISMO, // Default - deve ser escolhido manualmente
+          type: 'PickSkill',
+          skills: Object.values(Skill),
+          pick: 1,
         },
         modifier: {
           type: 'Fixed',

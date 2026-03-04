@@ -16,7 +16,6 @@ import {
   pickFromArray,
 } from '../randomUtils';
 import { getPowersAllowedByRequirements } from '../powers';
-import { addOtherBonusToSkill } from '../skills/general';
 import { applyPower } from '../general';
 
 export function applyHumanoVersatil(
@@ -144,7 +143,11 @@ export function applyLefouDeformidade(
 
     // Apply +2 bonus to each selected skill
     selectedSkills.forEach((skill) => {
-      addOtherBonusToSkill(sheet, skill as Skill, 2);
+      sheet.sheetBonuses.push({
+        source: { type: 'power', name: 'Deformidade' },
+        target: { type: 'Skill', name: skill as Skill },
+        modifier: { type: 'Fixed', value: 2 },
+      });
       subSteps.push({
         name: 'Deformidade',
         value: `+2 em Perícia (${skill})`,
@@ -167,7 +170,11 @@ export function applyLefouDeformidade(
 
     const pickedSkills = pickFromArray(allSkills, shouldGetTwoSkills ? 2 : 1);
     pickedSkills.forEach((randomSkill) => {
-      addOtherBonusToSkill(sheet, randomSkill, 2);
+      sheet.sheetBonuses.push({
+        source: { type: 'power', name: 'Deformidade' },
+        target: { type: 'Skill', name: randomSkill },
+        modifier: { type: 'Fixed', value: 2 },
+      });
       subSteps.push({
         name: 'Deformidade',
         value: `+2 em Perícia (${randomSkill})`,

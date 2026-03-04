@@ -102,6 +102,17 @@ const Changelog: React.FC = () => {
                   poder; na geração aleatória, um poder elegível é sorteado
                   automaticamente.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que o bônus de
+                  +2 em perícia da habilidade Deformidade (Lefou) não aparecia
+                  na ficha final, mesmo após o jogador selecionar as perícias
+                  durante a criação.
+                </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> A maravilha mecânica Caminho da
+                  Perfeição (Mashin) agora permite escolher qual perícia recebe
+                  o bônus de +2, em vez de aplicar automaticamente em Atletismo.
+                </li>
               </ul>
 
               <h3>4.3</h3>
