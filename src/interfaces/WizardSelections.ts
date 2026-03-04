@@ -111,6 +111,9 @@ export interface WizardSelections {
   // Level up selections (for levels 2+)
   levelUpSelections?: LevelUpSelections[];
 
+  // Propósito de Criação (for Golem races that don't have origins)
+  propositoCriacaoPower?: GeneralPower;
+
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;
 }

@@ -95,6 +95,13 @@ const Changelog: React.FC = () => {
                   ambas). As perícias escolhidas agora aparecem corretamente
                   como treinadas na ficha.
                 </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Golens agora recebem um poder
+                  geral como &quot;Propósito de Criação&quot; em substituição à
+                  origem. No wizard de criação, um novo passo permite escolher o
+                  poder; na geração aleatória, um poder elegível é sorteado
+                  automaticamente.
+                </li>
               </ul>
 
               <h3>4.3</h3>

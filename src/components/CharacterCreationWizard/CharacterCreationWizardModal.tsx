@@ -57,6 +57,8 @@ import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
+import PropositoCriacaoStep from './steps/PropositoCriacaoStep';
+import { raceHasOrigin } from '@/data/systems/tormenta20/origins';
 
 interface RaceCustomization {
   // Golem Desperto
@@ -522,7 +524,9 @@ const CharacterCreationWizardModal: React.FC<
       stepsArray.push('Linhagem do Feiticeiro');
     if (needsSpellSchoolSelection()) stepsArray.push('Escolas de Magia');
     if (needsInitialSpellSelection()) stepsArray.push('Magias Iniciais');
-    if (origin) stepsArray.push('Benefícios da Origem'); // Always show if origin exists
+    if (origin) stepsArray.push('Benefícios da Origem');
+    else if (race && !raceHasOrigin(race.name))
+      stepsArray.push('Propósito de Criação');
     if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
@@ -929,6 +933,22 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Propósito de Criação':
+        return (
+          <PropositoCriacaoStep
+            selectedPower={selections.propositoCriacaoPower}
+            onChange={(power) =>
+              setSelections({ ...selections, propositoCriacaoPower: power })
+            }
+            baseAttributes={selections.baseAttributes}
+            raceAttributes={selections.raceAttributes}
+            race={race}
+            classe={classe}
+            usedSkills={getAllUsedSkills()}
+            supplements={supplements}
+          />
+        );
+
       case 'Poderes da Origem':
         if (!origin) return null;
         return (
@@ -1215,6 +1235,9 @@ const CharacterCreationWizardModal: React.FC<
         if (origin.isRegional) return true;
         // Otherwise, require 2 selections
         return selections.originBenefits?.length === 2;
+
+      case 'Propósito de Criação':
+        return !!selections.propositoCriacaoPower;
 
       case 'Poderes da Origem':
         // For now, always allow (placeholder)

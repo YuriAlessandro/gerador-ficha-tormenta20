@@ -103,6 +103,7 @@ import {
 import Origin from '../interfaces/Origin';
 import {
   GeneralPower,
+  GeneralPowerType,
   OriginPower,
   PowerGetter,
   PowersGetters,
@@ -4028,6 +4029,33 @@ export default function generateRandomSheet(
     dinheiro: initialMoney,
   };
 
+  // Propósito de Criação for Golem races (no origin)
+  if (!origin && !raceHasOrigin(race.name)) {
+    const allPowers = dataRegistry.getAllPowersBySupplements(supplements);
+    const validTypes = [
+      GeneralPowerType.COMBATE,
+      GeneralPowerType.DESTINO,
+      GeneralPowerType.MAGIA,
+      GeneralPowerType.TORMENTA,
+    ];
+    const eligiblePowers = allPowers.filter(
+      (power) =>
+        validTypes.includes(power.type) && isPowerAvailable(charSheet, power)
+    );
+
+    if (eligiblePowers.length > 0) {
+      const purposePower = getRandomItemFromArray(eligiblePowers);
+      charSheet.generalPowers.push(purposePower);
+      charSheet.propositoCriacaoPower = purposePower.name;
+
+      charSheet.steps.push({
+        label: 'Propósito de Criação',
+        type: 'Poderes',
+        value: [{ name: 'Poder Geral', value: purposePower.name }],
+      });
+    }
+  }
+
   // Passo 9:
   // Adicionar equipamentos gerados ao bag ANTES dos equipamentos de classe
   if (generatedEquipments.length > 0) {
@@ -4888,6 +4916,21 @@ export function generateEmptySheet(
         selectedBenefits: wizardSelections?.originBenefits,
       };
     }
+  }
+
+  // Propósito de Criação for Golem races (no origin)
+  if (!raceHasOrigin(race.name) && wizardSelections?.propositoCriacaoPower) {
+    const purposePower = wizardSelections.propositoCriacaoPower;
+    if (!emptySheet.generalPowers.some((p) => p.name === purposePower.name)) {
+      emptySheet.generalPowers.push(purposePower);
+    }
+    emptySheet.propositoCriacaoPower = purposePower.name;
+
+    emptySheet.steps.push({
+      label: 'Propósito de Criação',
+      type: 'Poderes',
+      value: [{ name: 'Poder Geral', value: purposePower.name }],
+    });
   }
 
   // Process deity if selected

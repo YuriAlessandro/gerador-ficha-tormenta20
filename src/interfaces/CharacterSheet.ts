@@ -419,6 +419,7 @@ export default interface CharacterSheet {
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   notes?: string; // Anotações livres do jogador
+  propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
 }
 
 export interface Step {
