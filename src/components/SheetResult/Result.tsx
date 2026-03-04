@@ -1200,7 +1200,6 @@ const Result: React.FC<ResultProps> = (props) => {
                 <BookTitle>Magias</BookTitle>
                 <Spells
                   spells={spells}
-                  spellPath={classe.spellPath}
                   keyAttr={keyAttr}
                   selectedKeyAttribute={effectiveKeyAttribute}
                   nivel={nivel}

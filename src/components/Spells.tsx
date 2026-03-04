@@ -12,7 +12,6 @@ import {
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { CharacterAttribute } from '../interfaces/Character';
-import { SpellPath } from '../interfaces/Class';
 import { Spell } from '../interfaces/Spells';
 import SpellRow from './SpellRow';
 
@@ -24,7 +23,6 @@ const SPELL_KEY_ATTRIBUTES = [
 
 interface SpellsProp {
   spells: Spell[];
-  spellPath: SpellPath | undefined;
   keyAttr: CharacterAttribute | null;
   selectedKeyAttribute: Atributo;
   nivel: number;
