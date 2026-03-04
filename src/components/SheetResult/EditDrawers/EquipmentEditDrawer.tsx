@@ -264,6 +264,18 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editFoodSpaces, setEditFoodSpaces] = useState<string>('0');
   const [showFoodRollsDialog, setShowFoodRollsDialog] = useState(false);
 
+  // Estados para edição de esotéricos
+  const [editingEsoteric, setEditingEsoteric] = useState<Equipment | null>(
+    null
+  );
+  const [editingEsotericIndex, setEditingEsotericIndex] = useState<
+    number | null
+  >(null);
+  const [editEsotericNome, setEditEsotericNome] = useState<string>('');
+  const [editEsotericRolls, setEditEsotericRolls] = useState<DiceRoll[]>([]);
+  const [editEsotericSpaces, setEditEsotericSpaces] = useState<string>('0');
+  const [showEsotericRollsDialog, setShowEsotericRollsDialog] = useState(false);
+
   // Categorize supplement weapons by type
   const getCategorizedWeapons = useMemo(() => {
     const categorized = {
@@ -1098,10 +1110,20 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const price = item.preco || 0;
     if (autoDescontarTibares && price > dinheiro) return;
 
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      generalItems: [...prev.generalItems, item],
-    }));
+    setSelectedEquipment((prev) => {
+      const existingIndex = prev.generalItems.findIndex(
+        (i) => i.nome === item.nome && !i.isCustom
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev.generalItems];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: (updated[existingIndex].quantity || 1) + 1,
+        };
+        return { ...prev, generalItems: updated };
+      }
+      return { ...prev, generalItems: [...prev.generalItems, item] };
+    });
 
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
@@ -1114,10 +1136,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const price = item.preco || 0;
       if (price > 0) setDinheiro((d) => d + price);
     }
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
-    }));
+    setSelectedEquipment((prev) => {
+      const existingItem = prev.generalItems.find((i) => i.nome === item.nome);
+      if (existingItem && (existingItem.quantity || 1) > 1) {
+        return {
+          ...prev,
+          generalItems: prev.generalItems.map((i) =>
+            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
+          ),
+        };
+      }
+      return {
+        ...prev,
+        generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
+      };
+    });
   };
 
   // Handlers for Esoteric
@@ -1125,10 +1158,20 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const price = item.preco || 0;
     if (autoDescontarTibares && price > dinheiro) return;
 
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      esoteric: [...prev.esoteric, item],
-    }));
+    setSelectedEquipment((prev) => {
+      const existingIndex = prev.esoteric.findIndex(
+        (i) => i.nome === item.nome && !i.isCustom
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev.esoteric];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: (updated[existingIndex].quantity || 1) + 1,
+        };
+        return { ...prev, esoteric: updated };
+      }
+      return { ...prev, esoteric: [...prev.esoteric, item] };
+    });
 
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
@@ -1141,10 +1184,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const price = item.preco || 0;
       if (price > 0) setDinheiro((d) => d + price);
     }
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
-    }));
+    setSelectedEquipment((prev) => {
+      const existingItem = prev.esoteric.find((i) => i.nome === item.nome);
+      if (existingItem && (existingItem.quantity || 1) > 1) {
+        return {
+          ...prev,
+          esoteric: prev.esoteric.map((i) =>
+            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
+          ),
+        };
+      }
+      return {
+        ...prev,
+        esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
+      };
+    });
   };
 
   // Handlers for Clothing
@@ -1179,10 +1233,20 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const price = item.preco || 0;
     if (autoDescontarTibares && price > dinheiro) return;
 
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      alchemy: [...prev.alchemy, item],
-    }));
+    setSelectedEquipment((prev) => {
+      const existingIndex = prev.alchemy.findIndex(
+        (i) => i.nome === item.nome && !i.isCustom
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev.alchemy];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: (updated[existingIndex].quantity || 1) + 1,
+        };
+        return { ...prev, alchemy: updated };
+      }
+      return { ...prev, alchemy: [...prev.alchemy, item] };
+    });
 
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
@@ -1195,10 +1259,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const price = item.preco || 0;
       if (price > 0) setDinheiro((d) => d + price);
     }
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
-    }));
+    setSelectedEquipment((prev) => {
+      const existingItem = prev.alchemy.find((i) => i.nome === item.nome);
+      if (existingItem && (existingItem.quantity || 1) > 1) {
+        return {
+          ...prev,
+          alchemy: prev.alchemy.map((i) =>
+            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
+          ),
+        };
+      }
+      return {
+        ...prev,
+        alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
+      };
+    });
   };
 
   // Handlers for Food
@@ -1206,10 +1281,20 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     const price = item.preco || 0;
     if (autoDescontarTibares && price > dinheiro) return;
 
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      food: [...prev.food, item],
-    }));
+    setSelectedEquipment((prev) => {
+      const existingIndex = prev.food.findIndex(
+        (i) => i.nome === item.nome && !i.isCustom
+      );
+      if (existingIndex >= 0) {
+        const updated = [...prev.food];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: (updated[existingIndex].quantity || 1) + 1,
+        };
+        return { ...prev, food: updated };
+      }
+      return { ...prev, food: [...prev.food, item] };
+    });
 
     if (autoDescontarTibares && price > 0) {
       setDinheiro((prev) => prev - price);
@@ -1222,10 +1307,21 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const price = item.preco || 0;
       if (price > 0) setDinheiro((d) => d + price);
     }
-    setSelectedEquipment((prev) => ({
-      ...prev,
-      food: prev.food.filter((i) => i.nome !== item.nome),
-    }));
+    setSelectedEquipment((prev) => {
+      const existingItem = prev.food.find((i) => i.nome === item.nome);
+      if (existingItem && (existingItem.quantity || 1) > 1) {
+        return {
+          ...prev,
+          food: prev.food.map((i) =>
+            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
+          ),
+        };
+      }
+      return {
+        ...prev,
+        food: prev.food.filter((i) => i.nome !== item.nome),
+      };
+    });
   };
 
   // Handlers for Animals
@@ -1367,6 +1463,44 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     }));
 
     handleCloseEditFood();
+  };
+
+  // Handlers para edição de esotéricos
+  const handleOpenEditEsoteric = (item: Equipment, index: number) => {
+    setEditingEsoteric(item);
+    setEditingEsotericIndex(index);
+    setEditEsotericNome(item.nome);
+    setEditEsotericRolls(item.rolls || []);
+    setEditEsotericSpaces(item.spaces?.toString() || '0');
+  };
+
+  const handleCloseEditEsoteric = () => {
+    setEditingEsoteric(null);
+    setEditingEsotericIndex(null);
+    setEditEsotericNome('');
+    setEditEsotericRolls([]);
+    setEditEsotericSpaces('0');
+  };
+
+  const handleSaveEditEsoteric = () => {
+    if (!editingEsoteric || editingEsotericIndex === null) return;
+
+    const updatedItem: Equipment = {
+      ...editingEsoteric,
+      nome: editEsotericNome,
+      spaces: parseFloat(editEsotericSpaces) || 0,
+      rolls: editEsotericRolls.length > 0 ? editEsotericRolls : undefined,
+      hasManualEdits: true,
+    };
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      esoteric: prev.esoteric.map((item, i) =>
+        i === editingEsotericIndex ? updatedItem : item
+      ),
+    }));
+
+    handleCloseEditEsoteric();
   };
 
   const handleSave = () => {
@@ -2131,7 +2265,12 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               alignItems='center'
                               spacing={0.5}
                             >
-                              <span>{item.nome}</span>
+                              <span>
+                                {item.quantity && item.quantity > 1
+                                  ? `${item.quantity}x `
+                                  : ''}
+                                {item.nome}
+                              </span>
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2205,15 +2344,27 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 </Stack>
                 {selectedEquipment.esoteric.length > 0 ? (
                   <List dense>
-                    {selectedEquipment.esoteric.map((item) => (
+                    {selectedEquipment.esoteric.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
-                          primary={item.nome}
+                          primary={`${
+                            item.quantity && item.quantity > 1
+                              ? `${item.quantity}x `
+                              : ''
+                          }${item.nome}`}
                           secondary={`${
                             item.preco ? `Preço: T$ ${item.preco} | ` : ''
                           }Espaços: ${item.spaces || 0}`}
                         />
                         <ListItemSecondaryAction>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenEditEsoteric(item, index)}
+                            color='primary'
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon />
+                          </IconButton>
                           <IconButton
                             edge='end'
                             size='small'
@@ -2330,7 +2481,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     {selectedEquipment.alchemy.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
-                          primary={item.nome}
+                          primary={`${
+                            item.quantity && item.quantity > 1
+                              ? `${item.quantity}x `
+                              : ''
+                          }${item.nome}`}
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
                           }${
@@ -2397,7 +2552,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     {selectedEquipment.food.map((item, index) => (
                       <ListItem key={item.nome}>
                         <ListItemText
-                          primary={item.nome}
+                          primary={`${
+                            item.quantity && item.quantity > 1
+                              ? `${item.quantity}x `
+                              : ''
+                          }${item.nome}`}
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
                           }${
@@ -4266,6 +4425,90 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
           setShowFoodRollsDialog(false);
         }}
         title='Rolagens do Item de Alimentação'
+      />
+
+      {/* Dialog de edição de esotérico */}
+      <Dialog
+        open={editingEsoteric !== null}
+        onClose={handleCloseEditEsoteric}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Esotérico</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label='Nome do Esotérico'
+              value={editEsotericNome}
+              onChange={(e) => setEditEsotericNome(e.target.value)}
+              fullWidth
+              helperText='Nome personalizado para o item esotérico'
+            />
+            <TextField
+              label='Espaços'
+              type='number'
+              value={editEsotericSpaces}
+              onChange={(e) => setEditEsotericSpaces(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: 0.5 }}
+              helperText='Quantidade de espaços ocupados na mochila'
+            />
+
+            {/* Seção de Rolagens */}
+            <Box>
+              <Stack
+                direction='row'
+                alignItems='center'
+                justifyContent='space-between'
+              >
+                <Typography variant='subtitle2'>
+                  Rolagens ({editEsotericRolls.length})
+                </Typography>
+                <Button
+                  size='small'
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowEsotericRollsDialog(true)}
+                >
+                  {editEsotericRolls.length > 0
+                    ? 'Editar Rolagens'
+                    : 'Adicionar Rolagens'}
+                </Button>
+              </Stack>
+              {editEsotericRolls.length > 0 && (
+                <List dense sx={{ mt: 1 }}>
+                  {editEsotericRolls.map((roll, index) => (
+                    <ListItem key={roll.id || index} sx={{ py: 0 }}>
+                      <ListItemText
+                        primary={`${roll.label} - ${roll.dice}`}
+                        secondary={roll.description}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                        secondaryTypographyProps={{ variant: 'caption' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditEsoteric}>Cancelar</Button>
+          <Button onClick={handleSaveEditEsoteric} variant='contained'>
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* RollsEditDialog para editar rolagens do esotérico */}
+      <RollsEditDialog
+        open={showEsotericRollsDialog}
+        onClose={() => setShowEsotericRollsDialog(false)}
+        rolls={editEsotericRolls}
+        onSave={(rolls) => {
+          setEditEsotericRolls(rolls);
+          setShowEsotericRollsDialog(false);
+        }}
+        title='Rolagens do Esotérico'
       />
     </Drawer>
   );

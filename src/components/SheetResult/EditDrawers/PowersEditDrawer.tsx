@@ -124,6 +124,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     GeneralPower[]
   >([]);
 
+  // State for Custom Granted Powers (Poderes Concedidos Personalizados)
+  const [selectedCustomGrantedPowers, setSelectedCustomGrantedPowers] =
+    useState<CustomPower[]>([]);
+  const [customGrantedPowerDialog, setCustomGrantedPowerDialog] = useState<{
+    open: boolean;
+    powerToEdit?: CustomPower;
+  }>({ open: false });
+
   useEffect(() => {
     if (open) {
       if (sheet.generalPowers) {
@@ -143,6 +151,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         setSelectedDeityPowers([...sheet.devoto.poderes]);
       } else {
         setSelectedDeityPowers([]);
+      }
+      // Load custom granted powers
+      if (sheet.customGrantedPowers) {
+        setSelectedCustomGrantedPowers([...sheet.customGrantedPowers]);
+      } else {
+        setSelectedCustomGrantedPowers([]);
       }
       // Reset manual selections when opening
       setManualSelections({});
@@ -982,6 +996,33 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   };
 
+  // Custom Granted Power handlers
+  const handleAddCustomGrantedPower = (power: CustomPower) => {
+    setSelectedCustomGrantedPowers((prev) => [...prev, power]);
+    setCustomGrantedPowerDialog({ open: false });
+  };
+
+  const handleEditCustomGrantedPower = (power: CustomPower) => {
+    setSelectedCustomGrantedPowers((prev) =>
+      prev.map((p) => (p.id === power.id ? power : p))
+    );
+    setCustomGrantedPowerDialog({ open: false });
+  };
+
+  const handleRemoveCustomGrantedPower = (powerId: string) => {
+    setSelectedCustomGrantedPowers((prev) =>
+      prev.filter((p) => p.id !== powerId)
+    );
+  };
+
+  const handleSaveCustomGrantedPower = (power: CustomPower) => {
+    if (customGrantedPowerDialog.powerToEdit) {
+      handleEditCustomGrantedPower(power);
+    } else {
+      handleAddCustomGrantedPower(power);
+    }
+  };
+
   // Deity Power handlers
   const isDevoto = !!sheet.devoto;
   const storedDeity = sheet.devoto?.divindade;
@@ -1274,6 +1315,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       generalPowers: selectedPowers,
       classPowers: selectedClassPowers,
       customPowers: selectedCustomPowers,
+      customGrantedPowers: selectedCustomGrantedPowers,
       origin: sheet.origin
         ? {
             ...sheet.origin,
@@ -1323,6 +1365,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       setSelectedDeityPowers([...sheet.devoto.poderes]);
     } else {
       setSelectedDeityPowers([]);
+    }
+    // Reset custom granted powers
+    if (sheet.customGrantedPowers) {
+      setSelectedCustomGrantedPowers([...sheet.customGrantedPowers]);
+    } else {
+      setSelectedCustomGrantedPowers([]);
     }
     setSearchTerm('');
     setManualSelections({});
@@ -1472,6 +1520,30 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       size='small'
                       color='primary'
                       onDelete={() => handleDeityPowerRemove(power)}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+            {selectedCustomGrantedPowers.length > 0 && (
+              <>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  Poderes Concedidos Personalizados (
+                  {selectedCustomGrantedPowers.length}):
+                </Typography>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  flexWrap='wrap'
+                  sx={{ mb: 2 }}
+                >
+                  {selectedCustomGrantedPowers.map((power) => (
+                    <Chip
+                      key={power.id}
+                      label={power.name}
+                      size='small'
+                      color='info'
+                      onDelete={() => handleRemoveCustomGrantedPower(power.id)}
                     />
                   ))}
                 </Stack>
@@ -1998,6 +2070,99 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                           </Box>
                         );
                       })}
+                    {isGrantedPowersSection && (
+                      <Box
+                        sx={{
+                          mt: 2,
+                          pt: 2,
+                          borderTop: 1,
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                          Poderes Concedidos Personalizados
+                        </Typography>
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                          sx={{ mb: 1 }}
+                        >
+                          Adicione poderes concedidos de outras fontes
+                          (multiclasse, itens, decisões do mestre, etc.)
+                        </Typography>
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          startIcon={<AddIcon />}
+                          onClick={() =>
+                            setCustomGrantedPowerDialog({ open: true })
+                          }
+                          sx={{ mb: 1 }}
+                          fullWidth
+                        >
+                          Adicionar Poder Concedido Personalizado
+                        </Button>
+                        {selectedCustomGrantedPowers.length > 0 && (
+                          <Stack spacing={1} sx={{ mt: 1 }}>
+                            {selectedCustomGrantedPowers.map((power) => (
+                              <Box
+                                key={power.id}
+                                sx={{
+                                  p: 1.5,
+                                  border: 2,
+                                  borderColor: 'info.main',
+                                  borderRadius: 1,
+                                }}
+                              >
+                                <Stack
+                                  direction='row'
+                                  justifyContent='space-between'
+                                  alignItems='flex-start'
+                                >
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography
+                                      variant='body2'
+                                      fontWeight='bold'
+                                    >
+                                      {power.name}
+                                    </Typography>
+                                    <Typography
+                                      variant='caption'
+                                      color='text.secondary'
+                                      sx={{ whiteSpace: 'pre-wrap' }}
+                                    >
+                                      {power.description}
+                                    </Typography>
+                                  </Box>
+                                  <Stack direction='row' spacing={0.5}>
+                                    <IconButton
+                                      size='small'
+                                      onClick={() =>
+                                        setCustomGrantedPowerDialog({
+                                          open: true,
+                                          powerToEdit: power,
+                                        })
+                                      }
+                                    >
+                                      <EditIcon fontSize='small' />
+                                    </IconButton>
+                                    <IconButton
+                                      size='small'
+                                      color='error'
+                                      onClick={() =>
+                                        handleRemoveCustomGrantedPower(power.id)
+                                      }
+                                    >
+                                      <DeleteIcon fontSize='small' />
+                                    </IconButton>
+                                  </Stack>
+                                </Stack>
+                              </Box>
+                            ))}
+                          </Stack>
+                        )}
+                      </Box>
+                    )}
                   </Stack>
                 </AccordionDetails>
               </Accordion>
@@ -2178,6 +2343,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onClose={() => setCustomPowerDialog({ open: false })}
         onSave={handleSaveCustomPower}
         power={customPowerDialog.powerToEdit}
+      />
+
+      {/* Custom Granted Power Dialog */}
+      <CustomPowerDialog
+        open={customGrantedPowerDialog.open}
+        onClose={() => setCustomGrantedPowerDialog({ open: false })}
+        onSave={handleSaveCustomGrantedPower}
+        power={customGrantedPowerDialog.powerToEdit}
       />
     </Drawer>
   );

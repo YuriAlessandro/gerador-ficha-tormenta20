@@ -161,6 +161,7 @@ export type CompleteSkill = {
   modAttr?: Atributo;
   training?: number;
   others?: number;
+  manualOthers?: number;
   countAsTormentaPower?: boolean;
 };
 

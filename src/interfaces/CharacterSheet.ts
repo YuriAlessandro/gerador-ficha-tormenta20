@@ -375,6 +375,7 @@ export default interface CharacterSheet {
   customSize?: RaceSize; // Manual override for size
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
+  customGrantedPowers?: CustomPower[];
   classPowers?: ClassPower[];
   steps: Step[];
   extraArmorPenalty?: number;

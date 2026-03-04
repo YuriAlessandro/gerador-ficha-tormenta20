@@ -41,7 +41,8 @@ function calcBagSpaces(bagEquipments: BagEquipments): number {
     // Ignora equipamentos undefined ou sem a propriedade spaces
     if (!equipment) return;
     const equipamentSpaces = equipment.spaces || 0;
-    spaces += equipamentSpaces;
+    const qty = equipment.quantity || 1;
+    spaces += equipamentSpaces * qty;
   });
 
   return spaces;

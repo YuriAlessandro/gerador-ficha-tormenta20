@@ -27,6 +27,7 @@ const PowersDisplay: React.FC<{
   deityPowers: GeneralPower[];
   generalPowers: GeneralPower[];
   customPowers?: CustomPower[];
+  customGrantedPowers?: CustomPower[];
   className: string;
   raceName: string;
   deityName?: string;
@@ -50,6 +51,7 @@ const PowersDisplay: React.FC<{
   deityPowers,
   generalPowers,
   customPowers,
+  customGrantedPowers,
   className,
   raceName,
   deityName,
@@ -85,6 +87,7 @@ const PowersDisplay: React.FC<{
     ...deityPowers,
     ...generalPowers,
     ...(customPowers || []),
+    ...(customGrantedPowers || []),
   ];
 
   // Count how many times a power if the same name appears
@@ -102,6 +105,7 @@ const PowersDisplay: React.FC<{
     ...filterUniqueByName(deityPowers),
     ...filterUniqueByName(generalPowers),
     ...filterUniqueByName(customPowers || []),
+    ...filterUniqueByName(customGrantedPowers || []),
   ].sort((a, b) => a.name.localeCompare(b.name));
 
   const getPowerOrigin = (
@@ -121,6 +125,9 @@ const PowersDisplay: React.FC<{
     }
     if (deityPowers.includes(pw as GeneralPower)) {
       return 'Poder Divino';
+    }
+    if (customGrantedPowers?.some((p) => p.name === pw.name)) {
+      return 'Poder Concedido Personalizado';
     }
     if (customPowers?.some((p) => p.name === pw.name)) {
       return 'Poder Personalizado';

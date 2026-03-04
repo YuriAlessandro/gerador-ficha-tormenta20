@@ -84,6 +84,9 @@ export default interface Equipment {
     tipo: string;
   };
 
+  // Quantity of this item (default 1)
+  quantity?: number;
+
   // Supplement information (for items from supplements)
   supplementId?: string;
   supplementName?: string;

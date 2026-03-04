@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            23/02/2026.
+            04/03/2026.
           </p>
 
           <p>
@@ -71,6 +71,58 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.4</h3>
               <ul>
+                <li>
+                  <strong>🐛 Correção:</strong> Magias memorizadas do Mago agora
+                  arredondam corretamente para baixo (metade das magias
+                  conhecidas). Antes arredondava para cima, permitindo memorizar
+                  uma magia a mais do que o correto.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> A seleção de magias no wizard de
+                  level-up agora permite escolher magias de qualquer círculo
+                  disponível, não apenas do mais alto. Por exemplo, ao ganhar
+                  acesso ao 2º círculo, o jogador pode optar por aprender uma
+                  magia do 1º círculo.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Agora é possível editar o nome,
+                  espaços e rolagens de itens esotéricos na ficha, assim como já
+                  era possível com vestuários, alquímicos e alimentação.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Bônus manuais em perícias (campo
+                  &quot;Outros&quot;) agora persistem corretamente ao editar
+                  outras partes da ficha. Antes, qualquer edição em poderes,
+                  equipamentos ou informações do personagem zerava os bônus
+                  manuais das perícias.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que os PM
+                  máximos aumentavam ou diminuíam em 1 ao editar e salvar
+                  determinados campos da ficha.
+                </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Adicionado indicador visual de
+                  sobrecarga no deslocamento. Quando o personagem carrega mais
+                  do que sua capacidade, um chip &quot;Sobrecarga&quot; vermelho
+                  aparece com tooltip indicando o peso atual e a penalidade de
+                  -3m.
+                </li>
+                <li>
+                  <strong>✨ Novo:</strong> Adicionada a possibilidade de criar
+                  poderes concedidos personalizados. Útil para poderes de outras
+                  fontes como multiclasse, itens ou decisões do mestre. O botão
+                  fica dentro da seção &quot;Poderes Concedidos&quot; no editor
+                  de poderes.
+                </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Equipamentos consumíveis agora
+                  suportam quantidade. Ao adicionar um item repetido, a
+                  quantidade é incrementada automaticamente (ex: &quot;3x
+                  Essência de Mana&quot;). Remover decrementa a quantidade ao
+                  invés de excluir o item. Funciona para itens gerais,
+                  esotéricos, alquímicos e alimentação.
+                </li>
                 <li>
                   <strong>✨ Novo:</strong> Adicionada a possibilidade de criar
                   magias personalizadas na ficha. O usuário pode configurar

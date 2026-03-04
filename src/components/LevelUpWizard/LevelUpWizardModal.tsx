@@ -206,81 +206,105 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const spellCircle = spellPath.spellCircleAvailableAtLevel(currentLevel);
     const crossNames = new Set<string>();
 
-    // Get spells based on spell type (using dataRegistry for supplement support)
+    // Get spells from all available circles (1 through spellCircle)
     let allSpellsOfCircle: Spell[] = [];
     if (spellPath.spellType === 'Arcane') {
-      allSpellsOfCircle = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
+      for (let circle = 1; circle <= spellCircle; circle += 1) {
+        const circleSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        allSpellsOfCircle = [...allSpellsOfCircle, ...circleSpells];
+      }
 
       // Include divine spells from specified schools (e.g., Necromante gets divine Necro)
       if (
         spellPath.includeDivineSchools &&
         spellPath.includeDivineSchools.length > 0
       ) {
-        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-          spellCircle,
-          supplements
-        );
-        const extraDivineSpells = divineSpells.filter((spell) =>
-          spellPath.includeDivineSchools!.includes(spell.school)
-        );
-        if (spellPath.crossTraditionLimit) {
-          extraDivineSpells.forEach((s) => crossNames.add(s.nome));
+        for (let circle = 1; circle <= spellCircle; circle += 1) {
+          const divineSpells =
+            dataRegistry.getDivineSpellsByCircleAndSupplements(
+              circle,
+              supplements
+            );
+          const extraDivineSpells = divineSpells.filter((spell) =>
+            spellPath.includeDivineSchools!.includes(spell.school)
+          );
+          if (spellPath.crossTraditionLimit) {
+            extraDivineSpells.forEach((s) => crossNames.add(s.nome));
+          }
+          allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
         }
-        allSpellsOfCircle = [...allSpellsOfCircle, ...extraDivineSpells];
       }
     } else if (spellPath.spellType === 'Divine') {
-      allSpellsOfCircle = dataRegistry.getDivineSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
+      for (let circle = 1; circle <= spellCircle; circle += 1) {
+        const circleSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        allSpellsOfCircle = [...allSpellsOfCircle, ...circleSpells];
+      }
 
       // Include arcane spells from specified schools (e.g., Teurgista Místico)
       if (
         spellPath.includeArcaneSchools &&
         spellPath.includeArcaneSchools.length > 0
       ) {
-        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-          spellCircle,
-          supplements
-        );
-        const extraArcaneSpells = arcaneSpells.filter((spell) =>
-          spellPath.includeArcaneSchools!.includes(spell.school)
-        );
-        if (spellPath.crossTraditionLimit) {
-          extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
+        for (let circle = 1; circle <= spellCircle; circle += 1) {
+          const arcaneSpells =
+            dataRegistry.getArcaneSpellsByCircleAndSupplements(
+              circle,
+              supplements
+            );
+          const extraArcaneSpells = arcaneSpells.filter((spell) =>
+            spellPath.includeArcaneSchools!.includes(spell.school)
+          );
+          if (spellPath.crossTraditionLimit) {
+            extraArcaneSpells.forEach((s) => crossNames.add(s.nome));
+          }
+          allSpellsOfCircle = [...allSpellsOfCircle, ...extraArcaneSpells];
         }
-        allSpellsOfCircle = [...allSpellsOfCircle, ...extraArcaneSpells];
       }
     } else if (spellPath.spellType === 'Both') {
-      // Combine arcane and divine spells, remove duplicates
-      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
-      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
-      const combined = [...arcaneSpells, ...divineSpells];
-      allSpellsOfCircle = combined.filter(
+      // Combine arcane and divine spells from all circles
+      for (let circle = 1; circle <= spellCircle; circle += 1) {
+        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        allSpellsOfCircle = [
+          ...allSpellsOfCircle,
+          ...arcaneSpells,
+          ...divineSpells,
+        ];
+      }
+      allSpellsOfCircle = allSpellsOfCircle.filter(
         (spell, index, self) =>
           index === self.findIndex((s) => s.nome === spell.nome)
       );
     } else {
-      // Fallback: combine arcane + divine from all supplements
-      const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
-      const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
-        spellCircle,
-        supplements
-      );
-      const combined = [...arcaneSpells, ...divineSpells];
-      allSpellsOfCircle = combined.filter(
+      // Fallback: combine arcane + divine from all circles
+      for (let circle = 1; circle <= spellCircle; circle += 1) {
+        const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        const divineSpells = dataRegistry.getDivineSpellsByCircleAndSupplements(
+          circle,
+          supplements
+        );
+        allSpellsOfCircle = [
+          ...allSpellsOfCircle,
+          ...arcaneSpells,
+          ...divineSpells,
+        ];
+      }
+      allSpellsOfCircle = allSpellsOfCircle.filter(
         (spell, index, self) =>
           index === self.findIndex((s) => s.nome === spell.nome)
       );

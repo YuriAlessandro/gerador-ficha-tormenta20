@@ -70,11 +70,11 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
   return (
     <Box>
       <Typography variant='h6' gutterBottom>
-        Seleção de Magias - Círculo {spellCircle}
+        Seleção de Magias - Até o {spellCircle}º Círculo
       </Typography>
       <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-        Escolha {requiredCount} {requiredCount === 1 ? 'magia' : 'magias'} do{' '}
-        {spellCircle}º círculo.
+        Escolha {requiredCount} {requiredCount === 1 ? 'magia' : 'magias'} de
+        até o {spellCircle}º círculo.
       </Typography>
       <Typography
         variant='body2'

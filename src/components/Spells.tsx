@@ -106,10 +106,10 @@ const Spells: React.FC<SpellsProp> = (props) => {
           <Chip
             label={`Magias memorizadas: ${
               spells.filter((s) => s.memorized).length
-            } / ${Math.ceil(spells.length / 2)}`}
+            } / ${Math.floor(spells.length / 2)}`}
             color={
               spells.filter((s) => s.memorized).length >
-              Math.ceil(spells.length / 2)
+              Math.floor(spells.length / 2)
                 ? 'error'
                 : 'primary'
             }

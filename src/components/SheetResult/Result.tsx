@@ -29,7 +29,10 @@ import {
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
-import { calculateCurrencySpaces } from '@/functions/general';
+import {
+  calculateCurrencySpaces,
+  calculateMaxSpaces,
+} from '@/functions/general';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -511,8 +514,13 @@ const Result: React.FC<ResultProps> = (props) => {
     >
       <Chip
         sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
-        label={`${equip.nome} ${
-          equip.spaces ? equip.spaces > 0 && `[${equip.spaces} espaço(s)]` : ''
+        label={`${
+          equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''
+        }${equip.nome} ${
+          equip.spaces
+            ? equip.spaces > 0 &&
+              `[${equip.spaces * (equip.quantity || 1)} espaço(s)]`
+            : ''
         }`}
       />
       {equip.rolls && equip.rolls.length > 0 && (
@@ -1146,6 +1154,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   deityPowers={devoto?.poderes || []}
                   generalPowers={generalPowers}
                   customPowers={currentSheet.customPowers || []}
+                  customGrantedPowers={currentSheet.customGrantedPowers || []}
                   className={classe.name}
                   raceName={raca.name}
                   deityName={devoto?.divindade?.name}
@@ -1388,6 +1397,35 @@ const Result: React.FC<ResultProps> = (props) => {
                         />
                       </Tooltip>
                     )}
+                    {(() => {
+                      const effectiveMaxSpaces =
+                        customMaxSpaces ??
+                        calculateMaxSpaces(atributos.Força.value);
+                      const totalUsedSpaces =
+                        bag.getSpaces() +
+                        calculateCurrencySpaces(
+                          dinheiro,
+                          dinheiroTC,
+                          dinheiroTO
+                        );
+                      if (totalUsedSpaces > effectiveMaxSpaces) {
+                        return (
+                          <Tooltip
+                            title={`Sobrecarga: ${totalUsedSpaces.toFixed(
+                              1
+                            )}/${effectiveMaxSpaces} espaços (-3m)`}
+                          >
+                            <Chip
+                              size='small'
+                              label='Sobrecarga'
+                              color='error'
+                              sx={{ mt: 1, fontSize: '0.7rem' }}
+                            />
+                          </Tooltip>
+                        );
+                      }
+                      return null;
+                    })()}
                   </Box>
                   <Box
                     sx={{

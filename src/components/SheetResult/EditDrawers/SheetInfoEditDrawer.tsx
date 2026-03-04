@@ -539,6 +539,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       total += bonusValue;
     });
 
+    // Add manual PM edit (e.g., from manual adjustments)
+    if (sheet.manualPMEdit) {
+      total += sheet.manualPMEdit;
+    }
+
     return total;
   };
 

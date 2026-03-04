@@ -163,7 +163,13 @@ const preparePDF: (
   const equipmentsNames = equipsEntriesNoWeapons
     .map(
       (equip) =>
-        `${equip.nome}${equip.spaces ? ` (${equip.spaces} espaços)` : ''}`
+        `${equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''}${
+          equip.nome
+        }${
+          equip.spaces
+            ? ` (${equip.spaces * (equip.quantity || 1)} espaços)`
+            : ''
+        }`
     )
     .join('\n');
 

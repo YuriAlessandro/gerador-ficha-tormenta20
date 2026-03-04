@@ -494,7 +494,8 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         ...skill,
         halfLevel: Math.floor(updatedSheet.nivel / 2),
         training: finalTraining,
-        others: baseOthers,
+        others: baseOthers + (skill.manualOthers ?? 0),
+        manualOthers: skill.manualOthers,
       };
     });
   } else {

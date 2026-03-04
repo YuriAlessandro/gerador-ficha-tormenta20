@@ -82,7 +82,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       const skills = sheet.completeSkills.map((skill) => ({
         name: skill.name,
         trained: (skill.training ?? 0) > 0,
-        others: skill.others ?? 0,
+        others: skill.manualOthers ?? 0,
         modAttr:
           skill.modAttr ??
           (SkillsAttrs[
@@ -188,10 +188,13 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         );
         if (!editedSkill) return originalSkill;
 
+        const computedOthers =
+          (originalSkill.others ?? 0) - (originalSkill.manualOthers ?? 0);
         return {
           ...originalSkill,
           training: skillTrainingMod(editedSkill.trained, sheet.nivel),
-          others: editedSkill.others,
+          manualOthers: editedSkill.others,
+          others: computedOthers + editedSkill.others,
           modAttr: editedSkill.modAttr,
         };
       });
@@ -208,7 +211,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         halfLevel: Math.floor(sheet.nivel / 2),
         modAttr: editedSkill.modAttr,
         training: skillTrainingMod(editedSkill.trained, sheet.nivel),
-        others: editedSkill.others,
+        manualOthers: editedSkill.others,
       }));
 
     const finalSkills = [...updatedSkills, ...newOficios];
@@ -259,7 +262,8 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         (s) => s.name === editedSkill.name
       );
       return (
-        originalSkill && (originalSkill.others ?? 0) !== editedSkill.others
+        originalSkill &&
+        (originalSkill.manualOthers ?? 0) !== editedSkill.others
       );
     });
 
@@ -320,7 +324,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
       const skills = sheet.completeSkills.map((skill) => ({
         name: skill.name,
         trained: (skill.training ?? 0) > 0,
-        others: skill.others ?? 0,
+        others: skill.manualOthers ?? 0,
         modAttr:
           skill.modAttr ??
           (SkillsAttrs[
