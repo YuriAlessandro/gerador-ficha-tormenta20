@@ -113,6 +113,13 @@ const Changelog: React.FC = () => {
                   Perfeição (Mashin) agora permite escolher qual perícia recebe
                   o bônus de +2, em vez de aplicar automaticamente em Atletismo.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigidos diversos problemas ao
+                  salvar armas e equipamentos durante sessões de mesa virtual.
+                  Edições locais não são mais sobrescritas por atualizações do
+                  socket, erros de conexão agora mostram feedback ao usuário, e
+                  drawers de edição fecham automaticamente ao perder conexão.
+                </li>
               </ul>
 
               <h3>4.3</h3>

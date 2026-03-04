@@ -518,8 +518,12 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     );
   };
 
+  const prevOpen = useRef(false);
+
   useEffect(() => {
-    if (sheet.bag && open) {
+    // Only initialize when drawer first opens (transition false→true)
+    // Prevents socket updates from overwriting user's unsaved local edits
+    if (sheet.bag && open && !prevOpen.current) {
       const bagEquipments = sheet.bag.getEquipments();
 
       setSelectedEquipment({
@@ -540,6 +544,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       setCustomMaxSpaces(sheet.customMaxSpaces ?? null);
       setAutoDescontarTibares(true);
     }
+    prevOpen.current = open;
   }, [
     sheet.bag,
     sheet.dinheiro,

@@ -43,6 +43,7 @@ import CharacterSheet, {
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
 import Equipment from '../../interfaces/Equipment';
+import Bag from '../../interfaces/Bag';
 import '../../assets/css/result.css';
 import Spells from '../Spells';
 import SkillTable from './SkillTable';
@@ -146,6 +147,21 @@ const Result: React.FC<ResultProps> = (props) => {
     setCurrentSheet(sheet);
   }, [sheet]);
 
+  // Close all edit drawers when editing capability is lost (e.g. socket disconnect)
+  React.useEffect(() => {
+    if (!onSheetUpdate) {
+      setSheetInfoDrawerOpen(false);
+      setSkillsDrawerOpen(false);
+      setEquipmentDrawerOpen(false);
+      setPowersDrawerOpen(false);
+      setSpellsDrawerOpen(false);
+      setDefenseDrawerOpen(false);
+      setRdDrawerOpen(false);
+      setProficiencyDrawerOpen(false);
+      setSizeDisplacementDrawerOpen(false);
+    }
+  }, [onSheetUpdate]);
+
   const handleSheetInfoUpdate = useCallback(
     (updates: Partial<CharacterSheet> | CharacterSheet) => {
       // Check if it's a full sheet (has required properties) or partial updates
@@ -185,6 +201,15 @@ const Result: React.FC<ResultProps> = (props) => {
   const handleEquipmentUpdate = useCallback(
     (updates: Partial<CharacterSheet>) => {
       const updatedSheet = { ...currentSheet, ...updates };
+
+      // Rehydrate Bag instance after recalculateSheet strips class methods via cloneDeep
+      if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
+        const plainBag = updatedSheet.bag as unknown as {
+          equipments: Record<string, unknown>;
+        };
+        updatedSheet.bag = new Bag(plainBag.equipments || {});
+      }
+
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
