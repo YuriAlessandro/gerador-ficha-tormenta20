@@ -65,6 +65,7 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
 const getNotificationLink = (notification: Notification): string | null => {
   switch (notification.type) {
     case NotificationType.INVITE_RECEIVED:
+      return '/mesas';
     case NotificationType.INVITE_ACCEPTED:
     case NotificationType.INVITE_DECLINED:
       if (notification.referenceId) {

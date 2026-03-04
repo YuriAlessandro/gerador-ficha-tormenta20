@@ -42,18 +42,26 @@ self.addEventListener('notificationclick', function (event) {
     clients
       .matchAll({ type: 'window', includeUncontrolled: true })
       .then(function (clientList) {
-        // Focus an existing window and navigate
+        // Try to focus an existing window and navigate
         for (var i = 0; i < clientList.length; i++) {
           var client = clientList[i];
           if (client.url && 'focus' in client) {
-            return client.focus().then(function (focusedClient) {
-              if (focusedClient && 'navigate' in focusedClient) {
-                return focusedClient.navigate(targetUrl);
-              }
-            });
+            return client
+              .focus()
+              .then(function (focusedClient) {
+                if (focusedClient && 'navigate' in focusedClient) {
+                  return focusedClient.navigate(targetUrl);
+                }
+              })
+              .catch(function () {
+                // navigate() failed — fall back to opening a new window
+                if (clients.openWindow) {
+                  return clients.openWindow(targetUrl);
+                }
+              });
           }
         }
-        // Open a new window if none exists
+        // No existing window found — open a new one
         if (clients.openWindow) {
           return clients.openWindow(targetUrl);
         }

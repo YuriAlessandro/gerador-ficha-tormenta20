@@ -72,6 +72,13 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
+                  <strong>🐛 Correção:</strong> Corrigido problema onde convites
+                  para mesa virtual não podiam ser aceitos. A notificação de
+                  convite agora direciona corretamente para a página de mesas, e
+                  os convites pendentes são recarregados ao navegar para a
+                  página.
+                </li>
+                <li>
                   <strong>✨ Melhoria:</strong> Ao exportar a ficha para PDF, as
                   descrições das magias agora são incluídas junto com
                   informações de círculo, escola, execução, alcance, duração e
