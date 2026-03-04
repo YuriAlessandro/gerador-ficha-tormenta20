@@ -4608,6 +4608,118 @@ export function generateEmptySheet(
     }
   }
 
+  // Step: Race customization (Golem Desperto)
+  if (raceCustomization?.golemChassis) {
+    const golemSubsteps: SubStep[] = [
+      { name: 'Chassi', value: raceCustomization.golemChassis },
+    ];
+    if (raceCustomization.golemEnergySource) {
+      golemSubsteps.push({
+        name: 'Fonte de Energia',
+        value: raceCustomization.golemEnergySource,
+      });
+    }
+    if (raceCustomization.golemSize) {
+      golemSubsteps.push({
+        name: 'Tamanho',
+        value: raceCustomization.golemSize,
+      });
+    }
+    emptySheet.steps.push({
+      label: 'Personalização do Golem Desperto',
+      value: golemSubsteps,
+    });
+  }
+
+  // Step: Race customization (Duende)
+  if (raceCustomization?.duendeNature) {
+    const duendeSubsteps: SubStep[] = [
+      { name: 'Natureza', value: raceCustomization.duendeNature },
+    ];
+    if (raceCustomization.duendeSize) {
+      duendeSubsteps.push({
+        name: 'Tamanho',
+        value: raceCustomization.duendeSize,
+      });
+    }
+    if (raceCustomization.duendePresentes?.length) {
+      duendeSubsteps.push({
+        name: 'Presentes',
+        value: raceCustomization.duendePresentes.join(', '),
+      });
+    }
+    if (raceCustomization.duendeTabuSkill) {
+      duendeSubsteps.push({
+        name: 'Perícia Tabu',
+        value: raceCustomization.duendeTabuSkill,
+      });
+    }
+    if (raceCustomization.duendeBonusAttributes?.length) {
+      duendeSubsteps.push({
+        name: 'Atributos Bônus',
+        value: raceCustomization.duendeBonusAttributes.join(', '),
+      });
+    }
+    emptySheet.steps.push({
+      label: 'Personalização do Duende',
+      value: duendeSubsteps,
+    });
+  }
+
+  // Step: Race customization (Moreau bonus attributes)
+  if (raceCustomization?.moreauBonusAttributes?.length) {
+    emptySheet.steps.push({
+      label: 'Atributos Bônus do Moreau',
+      type: 'Atributos',
+      value: raceCustomization.moreauBonusAttributes.map((attr) => ({
+        name: attr,
+        value: '+1',
+      })),
+    });
+  }
+
+  // Step: Race attribute variant (e.g., Kallyanach)
+  if (wizardSelections?.attributeVariant) {
+    emptySheet.steps.push({
+      label: 'Variante de Atributos',
+      value: [
+        {
+          value:
+            wizardSelections.attributeVariant.label || 'Variante selecionada',
+        },
+      ],
+    });
+  }
+
+  // Step: Suraggel ability selection
+  if (wizardSelections?.suragelAbility) {
+    emptySheet.steps.push({
+      label: 'Habilidade Suraggel',
+      value: [
+        {
+          name: 'Habilidade Escolhida',
+          value: wizardSelections.suragelAbility,
+        },
+      ],
+    });
+  }
+
+  // Step: Qareen element selection
+  if (wizardSelections?.qareenElement) {
+    emptySheet.steps.push({
+      label: 'Elemento Qareen',
+      value: [{ name: 'Elemento', value: wizardSelections.qareenElement }],
+    });
+  }
+
+  // Step: Osteon/Soterrado old race (Memória Póstuma)
+  if (wizardSelections?.osteonOldRace) {
+    emptySheet.steps.push({
+      label: 'Memória Póstuma',
+      value: [{ name: 'Raça Anterior', value: wizardSelections.osteonOldRace }],
+    });
+  }
+
   // Step: Name
   if (wizardSelections?.characterName) {
     emptySheet.steps.push({
@@ -4624,6 +4736,36 @@ export function generateEmptySheet(
     label: 'Classe',
     value: [{ value: classValue }],
   });
+
+  // Step: Arcanista details (Feiticeiro linhagem, Escolas de Magia)
+  if (wizardSelections?.feiticeiroLinhagem) {
+    const linhagemSubsteps: SubStep[] = [
+      { name: 'Linhagem', value: wizardSelections.feiticeiroLinhagem },
+    ];
+    if (
+      wizardSelections.feiticeiroLinhagem === 'Linhagem Abençoada' &&
+      wizardSelections.linhagemAbencoada?.deus
+    ) {
+      linhagemSubsteps.push({
+        name: 'Deus',
+        value: wizardSelections.linhagemAbencoada.deus,
+      });
+    }
+    emptySheet.steps.push({
+      label: 'Linhagem do Feiticeiro',
+      value: linhagemSubsteps,
+    });
+  }
+
+  if (wizardSelections?.spellSchools?.length) {
+    emptySheet.steps.push({
+      label: 'Escolas de Magia',
+      type: 'Magias',
+      value: wizardSelections.spellSchools.map((school) => ({
+        value: school,
+      })),
+    });
+  }
 
   // Step: Initial values
   const initialPV = generatedClass.pv + generatedClass.addpv;
@@ -4663,6 +4805,14 @@ export function generateEmptySheet(
       label: 'Atributos Base',
       type: 'Atributos',
       value: attrSubsteps,
+    });
+  }
+
+  // Step: Origin (standalone)
+  if (selectedOptions.origin) {
+    emptySheet.steps.push({
+      label: 'Origem',
+      value: [{ value: selectedOptions.origin }],
     });
   }
 
@@ -4734,6 +4884,40 @@ export function generateEmptySheet(
       type: 'Magias',
       value: spellSubsteps,
     });
+  }
+
+  // Step: Market equipment purchases
+  if (wizardSelections?.marketSelections) {
+    const marketSubsteps: SubStep[] = [];
+    const bagEquipments = wizardSelections.marketSelections.bagEquipments;
+
+    Object.entries(bagEquipments).forEach(([group, items]) => {
+      if (items && Array.isArray(items)) {
+        (items as { nome: string }[]).forEach((item) => {
+          marketSubsteps.push({
+            name: group,
+            value: item.nome,
+          });
+        });
+      }
+    });
+
+    if (marketSubsteps.length > 0) {
+      const spent =
+        (wizardSelections.marketSelections.initialMoney || 0) -
+        (wizardSelections.marketSelections.remainingMoney || 0);
+      if (spent > 0) {
+        marketSubsteps.unshift({
+          name: 'Dinheiro Gasto',
+          value: `T$ ${spent}`,
+        });
+      }
+      emptySheet.steps.push({
+        label: 'Equipamentos do Mercado',
+        type: 'Equipamentos',
+        value: marketSubsteps,
+      });
+    }
   }
 
   // === END STEP RECORDING ===
@@ -5002,6 +5186,118 @@ export function generateEmptySheet(
     undefined,
     wizardSelections?.powerEffectSelections
   );
+
+  // Step: Vida máxima (+CON)
+  const conMod = emptySheet.atributos.Constituição?.value || 0;
+  const vidaMaxima =
+    generatedClass.pv + generatedClass.addpv + Math.max(conMod, 0);
+  emptySheet.steps.push({
+    label: 'Vida máxima (+CON)',
+    value: [{ value: vidaMaxima }],
+  });
+
+  // Record bonus steps from sheetBonuses (step-only, values already applied by recalculateSheet)
+  const pvSubSteps: SubStep[] = [];
+  const pmSubSteps: SubStep[] = [];
+  const defSubSteps: SubStep[] = [];
+  const skillBonusSubSteps: SubStep[] = [];
+  const displacementSubSteps: SubStep[] = [];
+  const armorPenaltySubSteps: SubStep[] = [];
+  const modifySkillAttrSubSteps: SubStep[] = [];
+
+  const getBonusStepName = (source: SheetChangeSource) => {
+    if (source.type === 'power') return `${source.name}:`;
+    if (source.type === 'levelUp') return `Nível ${source.level}:`;
+    return '';
+  };
+
+  emptySheet.sheetBonuses.forEach((bonus) => {
+    const bonusValue = calculateBonusValue(emptySheet, bonus.modifier);
+    const subStepName = getBonusStepName(bonus.source);
+
+    if (bonus.target.type === 'PV') {
+      pvSubSteps.push({ name: subStepName, value: `${bonusValue}` });
+    } else if (bonus.target.type === 'PM') {
+      pmSubSteps.push({ name: subStepName, value: `${bonusValue}` });
+    } else if (bonus.target.type === 'Defense') {
+      defSubSteps.push({ name: subStepName, value: `${bonusValue}` });
+    } else if (bonus.target.type === 'Skill') {
+      skillBonusSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} em ${bonus.target.name}`,
+      });
+    } else if (bonus.target.type === 'Displacement') {
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}m`,
+      });
+    } else if (bonus.target.type === 'MaxSpaces') {
+      displacementSubSteps.push({
+        name: subStepName,
+        value: `${bonusValue} espaços de carga`,
+      });
+    } else if (bonus.target.type === 'ArmorPenalty') {
+      armorPenaltySubSteps.push({
+        name: subStepName,
+        value: `${bonusValue}`,
+      });
+    } else if (bonus.target.type === 'ModifySkillAttribute') {
+      modifySkillAttrSubSteps.push({
+        name: subStepName,
+        value: `${bonus.target.skill} → ${bonus.target.attribute}`,
+      });
+    }
+  });
+
+  if (pvSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de PV',
+      type: 'Atributos Extras',
+      value: pvSubSteps,
+    });
+  }
+  if (pmSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de PM',
+      type: 'Atributos Extras',
+      value: pmSubSteps,
+    });
+  }
+  if (defSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de Defesa',
+      type: 'Atributos Extras',
+      value: defSubSteps,
+    });
+  }
+  if (skillBonusSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de Perícias',
+      type: 'Atributos Extras',
+      value: skillBonusSubSteps,
+    });
+  }
+  if (displacementSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de Deslocamento',
+      type: 'Atributos Extras',
+      value: displacementSubSteps,
+    });
+  }
+  if (armorPenaltySubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de Penalidade de Armadura',
+      type: 'Atributos Extras',
+      value: armorPenaltySubSteps,
+    });
+  }
+  if (modifySkillAttrSubSteps.length) {
+    emptySheet.steps.push({
+      label: 'Bonus de Modificação de Atributo de Perícia',
+      type: 'Modificação de Atributo de Perícia',
+      value: modifySkillAttrSubSteps,
+    });
+  }
 
   return emptySheet;
 }

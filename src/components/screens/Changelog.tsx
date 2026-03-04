@@ -211,6 +211,16 @@ const Changelog: React.FC = () => {
                   não seja conjuradora. O atributo-chave padrão é Sabedoria,
                   podendo ser alterado pelo usuário.
                 </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> O passo-a-passo da criação
+                  manual de fichas agora registra todas as escolhas do jogador,
+                  na ordem em que foram feitas. Inclui personalizações de raça
+                  (Golem, Duende, Moreau), variante de atributos, habilidade
+                  Suraggel, elemento Qareen, Memória Póstuma, linhagem do
+                  Feiticeiro, escolas de magia, origem, equipamentos comprados
+                  no mercado, vida máxima (+CON) e todos os bônus de poderes
+                  (PV, PM, defesa, perícias, deslocamento).
+                </li>
               </ul>
 
               <h3>4.3</h3>
