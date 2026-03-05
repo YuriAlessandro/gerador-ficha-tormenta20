@@ -72,81 +72,11 @@ const Changelog: React.FC = () => {
               <h3>4.4</h3>
               <ul>
                 <li>
-                  <strong>✨ Melhoria:</strong> Adicionados tipos de
-                  deslocamento secundários (Escalada, Escavar, Natação, Voo e
-                  Pairar). Os valores podem ser editados no drawer de
-                  deslocamento e são exibidos abaixo do deslocamento terrestre
-                  na ficha e incluídos na exportação PDF.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Corrigido problema onde convites
-                  para mesa virtual não podiam ser aceitos. A notificação de
-                  convite agora direciona corretamente para a página de mesas, e
-                  os convites pendentes são recarregados ao navegar para a
-                  página.
-                </li>
-                <li>
-                  <strong>✨ Melhoria:</strong> Ao exportar a ficha para PDF, as
-                  descrições das magias agora são incluídas junto com
-                  informações de círculo, escola, execução, alcance, duração e
-                  custo em PM.
-                </li>
-                <li>
-                  <strong>✨ Melhoria:</strong> Animais agora podem ser editados
-                  na ficha (nome, espaços e rolagens), assim como os demais
-                  itens de equipamento.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Magias memorizadas do Mago agora
-                  arredondam corretamente para baixo (metade das magias
-                  conhecidas). Antes arredondava para cima, permitindo memorizar
-                  uma magia a mais do que o correto.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> A seleção de magias no wizard de
-                  level-up agora permite escolher magias de qualquer círculo
-                  disponível, não apenas do mais alto. Por exemplo, ao ganhar
-                  acesso ao 2º círculo, o jogador pode optar por aprender uma
-                  magia do 1º círculo.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Agora é possível editar o nome,
-                  espaços e rolagens de itens esotéricos na ficha, assim como já
-                  era possível com vestuários, alquímicos e alimentação.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Bônus manuais em perícias (campo
-                  &quot;Outros&quot;) agora persistem corretamente ao editar
-                  outras partes da ficha. Antes, qualquer edição em poderes,
-                  equipamentos ou informações do personagem zerava os bônus
-                  manuais das perícias.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Corrigido bug em que os PM
-                  máximos aumentavam ou diminuíam em 1 ao editar e salvar
-                  determinados campos da ficha.
-                </li>
-                <li>
-                  <strong>✨ Melhoria:</strong> Adicionado indicador visual de
-                  sobrecarga no deslocamento. Quando o personagem carrega mais
-                  do que sua capacidade, um chip &quot;Sobrecarga&quot; vermelho
-                  aparece com tooltip indicando o peso atual e a penalidade de
-                  -3m.
-                </li>
-                <li>
                   <strong>✨ Novo:</strong> Adicionada a possibilidade de criar
                   poderes concedidos personalizados. Útil para poderes de outras
                   fontes como multiclasse, itens ou decisões do mestre. O botão
                   fica dentro da seção &quot;Poderes Concedidos&quot; no editor
                   de poderes.
-                </li>
-                <li>
-                  <strong>✨ Melhoria:</strong> Equipamentos consumíveis agora
-                  suportam quantidade. Ao adicionar um item repetido, a
-                  quantidade é incrementada automaticamente (ex: &quot;3x
-                  Essência de Mana&quot;). Remover decrementa a quantidade ao
-                  invés de excluir o item. Funciona para itens gerais,
-                  esotéricos, alquímicos e alimentação.
                 </li>
                 <li>
                   <strong>✨ Novo:</strong> Adicionada a possibilidade de criar
@@ -163,21 +93,37 @@ const Changelog: React.FC = () => {
                   nuvem.
                 </li>
                 <li>
-                  <strong>🐛 Correção:</strong> Corrigido bug em que o Usurpador
-                  ficava travado no passo &quot;Magias Iniciais&quot; do wizard
-                  de criação de personagem, sem conseguir avançar.
+                  <strong>✨ Melhoria:</strong> Adicionados tipos de
+                  deslocamento secundários (Escalada, Escavar, Natação, Voo e
+                  Pairar). Os valores podem ser editados no drawer de
+                  deslocamento e são exibidos abaixo do deslocamento terrestre
+                  na ficha e incluídos na exportação PDF.
                 </li>
                 <li>
-                  <strong>🐛 Correção:</strong> Corrigido bug da origem Futura
-                  Lenda em que poderes de classe acumulavam a cada recálculo da
-                  ficha e não podiam ser removidos pelo editor de poderes.
+                  <strong>✨ Melhoria:</strong> Adicionado indicador visual de
+                  sobrecarga no deslocamento. Quando o personagem carrega mais
+                  do que sua capacidade, um chip &quot;Sobrecarga&quot; vermelho
+                  aparece com tooltip indicando o peso atual e a penalidade de
+                  -3m.
                 </li>
                 <li>
-                  <strong>🐛 Correção:</strong> Corrigido Golem Desperto com
-                  chassi Mashin: o wizard agora permite substituir uma das duas
-                  perícias por uma maravilha mecânica (antes obrigava escolher
-                  ambas). As perícias escolhidas agora aparecem corretamente
-                  como treinadas na ficha.
+                  <strong>✨ Melhoria:</strong> Ao exportar a ficha para PDF, as
+                  descrições das magias agora são incluídas junto com
+                  informações de círculo, escola, execução, alcance, duração e
+                  custo em PM.
+                </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Equipamentos consumíveis agora
+                  suportam quantidade. Ao adicionar um item repetido, a
+                  quantidade é incrementada automaticamente (ex: &quot;3x
+                  Essência de Mana&quot;). Remover decrementa a quantidade ao
+                  invés de excluir o item. Funciona para itens gerais,
+                  esotéricos, alquímicos e alimentação.
+                </li>
+                <li>
+                  <strong>✨ Melhoria:</strong> Animais agora podem ser editados
+                  na ficha (nome, espaços e rolagens), assim como os demais
+                  itens de equipamento.
                 </li>
                 <li>
                   <strong>✨ Melhoria:</strong> Golens agora recebem um poder
@@ -187,36 +133,9 @@ const Changelog: React.FC = () => {
                   automaticamente.
                 </li>
                 <li>
-                  <strong>🐛 Correção:</strong> Corrigido bug em que o bônus de
-                  +2 em perícia da habilidade Deformidade (Lefou) não aparecia
-                  na ficha final, mesmo após o jogador selecionar as perícias
-                  durante a criação.
-                </li>
-                <li>
                   <strong>✨ Melhoria:</strong> A maravilha mecânica Caminho da
                   Perfeição (Mashin) agora permite escolher qual perícia recebe
                   o bônus de +2, em vez de aplicar automaticamente em Atletismo.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Corrigidos diversos problemas ao
-                  salvar armas e equipamentos durante sessões de mesa virtual.
-                  Edições locais não são mais sobrescritas por atualizações do
-                  socket, erros de conexão agora mostram feedback ao usuário, e
-                  drawers de edição fecham automaticamente ao perder conexão.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> Corrigido cálculo de PM para
-                  classes com caminho de magia dinâmico (Arcanista, Bardo,
-                  Clérigo, Druida, Frade). O bônus do atributo-chave de magia
-                  era perdido ao carregar fichas salvas, resultando em PM menor
-                  que o correto.
-                </li>
-                <li>
-                  <strong>🐛 Correção:</strong> A calculadora de CD de magias
-                  (Atributo-Chave, Modificador e Teste de Resistência) agora
-                  aparece sempre que a ficha possui magias, mesmo que a classe
-                  não seja conjuradora. O atributo-chave padrão é Sabedoria,
-                  podendo ser alterado pelo usuário.
                 </li>
                 <li>
                   <strong>✨ Melhoria:</strong> O passo-a-passo da criação
@@ -227,6 +146,87 @@ const Changelog: React.FC = () => {
                   Feiticeiro, escolas de magia, origem, equipamentos comprados
                   no mercado, vida máxima (+CON) e todos os bônus de poderes
                   (PV, PM, defesa, perícias, deslocamento).
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido cálculo de PM para
+                  classes com caminho de magia dinâmico (Arcanista, Bardo,
+                  Clérigo, Druida, Frade). O bônus do atributo-chave de magia
+                  era perdido ao carregar fichas salvas, resultando em PM menor
+                  que o correto.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que os PM
+                  máximos aumentavam ou diminuíam em 1 ao editar e salvar
+                  determinados campos da ficha.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Magias memorizadas do Mago agora
+                  arredondam corretamente para baixo (metade das magias
+                  conhecidas). Antes arredondava para cima, permitindo memorizar
+                  uma magia a mais do que o correto.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> A seleção de magias no wizard de
+                  level-up agora permite escolher magias de qualquer círculo
+                  disponível, não apenas do mais alto. Por exemplo, ao ganhar
+                  acesso ao 2º círculo, o jogador pode optar por aprender uma
+                  magia do 1º círculo.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> A calculadora de CD de magias
+                  (Atributo-Chave, Modificador e Teste de Resistência) agora
+                  aparece sempre que a ficha possui magias, mesmo que a classe
+                  não seja conjuradora. O atributo-chave padrão é Sabedoria,
+                  podendo ser alterado pelo usuário.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que o Usurpador
+                  ficava travado no passo &quot;Magias Iniciais&quot; do wizard
+                  de criação de personagem, sem conseguir avançar.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Bônus manuais em perícias (campo
+                  &quot;Outros&quot;) agora persistem corretamente ao editar
+                  outras partes da ficha. Antes, qualquer edição em poderes,
+                  equipamentos ou informações do personagem zerava os bônus
+                  manuais das perícias.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Agora é possível editar o nome,
+                  espaços e rolagens de itens esotéricos na ficha, assim como já
+                  era possível com vestuários, alquímicos e alimentação.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido Golem Desperto com
+                  chassi Mashin: o wizard agora permite substituir uma das duas
+                  perícias por uma maravilha mecânica (antes obrigava escolher
+                  ambas). As perícias escolhidas agora aparecem corretamente
+                  como treinadas na ficha.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug em que o bônus de
+                  +2 em perícia da habilidade Deformidade (Lefou) não aparecia
+                  na ficha final, mesmo após o jogador selecionar as perícias
+                  durante a criação.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido bug da origem Futura
+                  Lenda em que poderes de classe acumulavam a cada recálculo da
+                  ficha e não podiam ser removidos pelo editor de poderes.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido problema onde convites
+                  para mesa virtual não podiam ser aceitos. A notificação de
+                  convite agora direciona corretamente para a página de mesas, e
+                  os convites pendentes são recarregados ao navegar para a
+                  página.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigidos diversos problemas ao
+                  salvar armas e equipamentos durante sessões de mesa virtual.
+                  Edições locais não são mais sobrescritas por atualizações do
+                  socket, erros de conexão agora mostram feedback ao usuário, e
+                  drawers de edição fecham automaticamente ao perder conexão.
                 </li>
               </ul>
 
