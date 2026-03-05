@@ -50,7 +50,7 @@ const generateSpellText = (spell: Spell): string => {
 const preparePDF: (
   sheet: CharacterSheet
 ) => Promise<Uint8Array<ArrayBufferLike>> = async (sheet) => {
-  const url = 'https://fichasdenimb.com.br/sheet.pdf';
+  const url = `${import.meta.env.BASE_URL}sheet.pdf`;
   const existingPdfBytes = await fetch(url).then((res) => res.arrayBuffer());
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
   const form = pdfDoc.getForm();
