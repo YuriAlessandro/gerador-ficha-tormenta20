@@ -3083,21 +3083,22 @@ export function applyManualLevelUp(
   selections: import('../interfaces/WizardSelections').LevelUpSelections
 ): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
+
+  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class
+  if (!updatedSheet.classLevels) {
+    updatedSheet.classLevels = initializeClassLevels(updatedSheet);
+  }
+
   updatedSheet.nivel += 1;
 
   // Multiclass: resolve selected class for this level
   const selectedClassName =
     selections.selectedClassName || updatedSheet.classe.name;
-  const selectedClassSubname = selections.selectedClassSubname;
+  const { selectedClassSubname } = selections;
   const selectedClassDesc = findClassDescription(
     selectedClassName,
     selectedClassSubname
   );
-
-  // Initialize and update classLevels
-  if (!updatedSheet.classLevels) {
-    updatedSheet.classLevels = initializeClassLevels(updatedSheet);
-  }
   const newEntry: ClassLevelEntry = {
     level: updatedSheet.nivel,
     className: selectedClassName,
@@ -3436,6 +3437,15 @@ export function applyManualLevelUp(
   const allAvailableAbilities = primaryOriginalAbilities.filter(
     (ability) => ability.nivel <= primaryClassLevel
   );
+
+  // For multiclass: also include newly available abilities from secondary classes
+  if (
+    selectedClassName !== updatedSheet.classe.name &&
+    newlyAvailableAbilities.length > 0
+  ) {
+    allAvailableAbilities.push(...newlyAvailableAbilities);
+  }
+
   updatedSheet.classe.abilities = allAvailableAbilities;
 
   // Apply text modifications from chooseFromOptions history

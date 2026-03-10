@@ -16,7 +16,7 @@ import CharacterSheet from '@/interfaces/CharacterSheet';
 import { ClassDescription } from '@/interfaces/Class';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
-import { getClassLevelsMap, isMulticlass } from '@/functions/multiclass';
+import { getClassLevelsMap } from '@/functions/multiclass';
 
 interface ClassSelectionStepProps {
   simulatedSheet: CharacterSheet;
@@ -49,9 +49,6 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
 
   const isNewClass = !currentClassLevels.has(selectedClassName);
 
-  const isCurrentSheetMulticlass = isMulticlass(simulatedSheet);
-  const primaryClassName = simulatedSheet.classe.name;
-
   // Group classes: current classes first, then others
   const { currentClasses, otherClasses } = useMemo(() => {
     const current: ClassDescription[] = [];
@@ -68,30 +65,10 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
     return { currentClasses: current, otherClasses: other };
   }, [availableClasses, currentClassLevels]);
 
-  if (!hasAccess && supporterOnly) {
-    return (
-      <Box>
-        <Alert
-          severity='info'
-          icon={<LockIcon />}
-          sx={{ mb: 2 }}
-          action={
-            <Button color='inherit' size='small' href='/apoiar' target='_blank'>
-              Apoiar o projeto
-            </Button>
-          }
-        >
-          Multiclasse e exclusiva para apoiadores do projeto!
-        </Alert>
-        <Typography variant='body2' color='text.secondary'>
-          Ao apoiar o projeto, voce desbloqueia a multiclasse e ajuda a manter o
-          desenvolvimento de novas funcionalidades.
-        </Typography>
-      </Box>
-    );
-  }
+  // Non-supporters can only select current classes; other classes are locked
+  const isOtherClassLocked = !hasAccess && supporterOnly;
 
-  const renderClassItem = (cls: ClassDescription) => {
+  const renderClassItem = (cls: ClassDescription, locked: boolean = false) => {
     const classLevel = currentClassLevels.get(cls.name);
     const isSelected =
       cls.name === selectedClassName &&
@@ -102,18 +79,21 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
       <ListItemButton
         key={`${cls.name}-${cls.subname ?? ''}`}
         selected={isSelected}
-        onClick={() => onClassSelect(cls.name, cls.subname)}
+        disabled={locked}
+        onClick={() => !locked && onClassSelect(cls.name, cls.subname)}
         sx={{
           borderRadius: 1,
           mb: 0.5,
           border: isSelected ? 2 : 1,
           borderColor: isSelected ? 'primary.main' : 'divider',
+          opacity: locked ? 0.6 : 1,
         }}
       >
         <ListItemText
           primary={
             <Box display='flex' alignItems='center' gap={1}>
-              {isSelected && (
+              {locked && <LockIcon fontSize='small' color='disabled' />}
+              {!locked && isSelected && (
                 <CheckCircleIcon color='primary' fontSize='small' />
               )}
               <Typography variant='body1' fontWeight={isSelected ? 600 : 400}>
@@ -168,9 +148,24 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
             Suas classes atuais
           </Typography>
           <List dense disablePadding>
-            {currentClasses.map(renderClassItem)}
+            {currentClasses.map((cls) => renderClassItem(cls))}
           </List>
         </Paper>
+      )}
+
+      {isOtherClassLocked && (
+        <Alert
+          severity='info'
+          icon={<LockIcon />}
+          sx={{ mb: 2 }}
+          action={
+            <Button color='inherit' size='small' href='/apoiar' target='_blank'>
+              Apoiar o projeto
+            </Button>
+          }
+        >
+          Multiclasse é exclusiva para apoiadores do projeto!
+        </Alert>
       )}
 
       <Paper variant='outlined' sx={{ p: 1, maxHeight: 300, overflow: 'auto' }}>
@@ -178,7 +173,7 @@ const ClassSelectionStep: React.FC<ClassSelectionStepProps> = ({
           Outras classes
         </Typography>
         <List dense disablePadding>
-          {otherClasses.map(renderClassItem)}
+          {otherClasses.map((cls) => renderClassItem(cls, isOtherClassLocked))}
         </List>
       </Paper>
     </Box>

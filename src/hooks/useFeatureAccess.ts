@@ -22,9 +22,12 @@ export function useFeatureAccess(featureName: keyof FeatureFlags) {
   const flags = featureFlags ?? DEFAULT_FEATURE_FLAGS;
   const flag = flags[featureName];
 
-  if (!flag || !flag.enabled) {
+  const isEnabled = !!flag?.enabled;
+
+  if (!isEnabled) {
     return {
       hasAccess: false,
+      isEnabled: false,
       isLoading: false,
       supporterOnly: flag?.supporterOnly ?? false,
     };
@@ -33,6 +36,7 @@ export function useFeatureAccess(featureName: keyof FeatureFlags) {
   if (flag.supporterOnly) {
     return {
       hasAccess: isSupporter,
+      isEnabled: true,
       isLoading: false,
       supporterOnly: true,
     };
@@ -40,6 +44,7 @@ export function useFeatureAccess(featureName: keyof FeatureFlags) {
 
   return {
     hasAccess: true,
+    isEnabled: true,
     isLoading: false,
     supporterOnly: false,
   };

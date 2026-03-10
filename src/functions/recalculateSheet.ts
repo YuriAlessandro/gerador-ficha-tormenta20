@@ -26,12 +26,13 @@ import CORE_CLASSES from '@/data/systems/tormenta20/core/classes';
 import DEUSES_ARTON_CLASSES from '@/data/systems/tormenta20/deuses-de-arton/classes';
 import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/classes';
 import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
-import { ClassDescription } from '@/interfaces/Class';
+import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import {
   isMulticlass,
   calculateMulticlassPV,
   calculateMulticlassPM,
   getClassLevel,
+  getMulticlassAvailableAbilities,
 } from './multiclass';
 
 import {
@@ -576,21 +577,33 @@ function applyClassAbilities(
   // For multiclass: filter by primary class level, not character level
   const primaryClassLevel = getClassLevel(sheet, sheetClone.classe.name);
   const filterLevel = primaryClassLevel > 0 ? primaryClassLevel : sheet.nivel;
-  const availableAbilities = originalAbilities.filter(
-    (ability) => ability.nivel <= filterLevel
-  );
+  const availableAbilities: ClassAbility[] = originalAbilities
+    .filter((ability) => ability.nivel <= filterLevel)
+    .map((a) => ({ ...a, sourceClassName: sheetClone.classe.name }));
 
   // Preserve originalAbilities for future level changes
   if (!sheetClone.classe.originalAbilities) {
     sheetClone.classe.originalAbilities = [...originalAbilities];
   }
 
-  sheetClone.classe.abilities = availableAbilities;
+  // For multiclass: also include abilities from secondary classes
+  let allAbilities = availableAbilities;
+  if (isMulticlass(sheet)) {
+    const multiclassAbilities = getMulticlassAvailableAbilities(sheet);
+    // Filter out primary class abilities (already in availableAbilities) to avoid duplicates
+    const primaryAbilityNames = new Set(availableAbilities.map((a) => a.name));
+    const secondaryAbilities = multiclassAbilities.filter(
+      (a) => !primaryAbilityNames.has(a.name)
+    );
+    allAbilities = [...availableAbilities, ...secondaryAbilities];
+  }
+
+  sheetClone.classe.abilities = allAbilities;
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
 
-  sheetClone = availableAbilities.reduce((acc, ability) => {
+  sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
     return newAcc;

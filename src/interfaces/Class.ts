@@ -55,6 +55,7 @@ export type ClassAbility = {
   name: string;
   text: string;
   nivel: number;
+  sourceClassName?: string; // Para multiclasse: qual classe originou esta habilidade
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário

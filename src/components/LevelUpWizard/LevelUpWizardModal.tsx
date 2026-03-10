@@ -31,17 +31,17 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { getCurrentPlateau } from '@/functions/powers/general';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import PowerSelectionStep from './steps/PowerSelectionStep';
-import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
-import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
-import LevelBenefitsStep from './steps/LevelBenefitsStep';
-import ClassSelectionStep from './steps/ClassSelectionStep';
-import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
   getClassLevel,
   initializeClassLevels,
   findClassDescription,
 } from '@/functions/multiclass';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import PowerSelectionStep from './steps/PowerSelectionStep';
+import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
+import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
+import LevelBenefitsStep from './steps/LevelBenefitsStep';
+import ClassSelectionStep from './steps/ClassSelectionStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -63,6 +63,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Multiclass feature access
   const {
     hasAccess: hasMulticlassAccess,
+    isEnabled: isMulticlassEnabled,
     supporterOnly: multiclassSupporterOnly,
   } = useFeatureAccess('multiclass');
 
@@ -132,7 +133,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Get the selected class name and compute class level for the current level-up
   const selectedClassName =
     currentLevelSelection.selectedClassName || simulatedSheet.classe.name;
-  const selectedClassSubname = currentLevelSelection.selectedClassSubname;
+  const { selectedClassSubname } = currentLevelSelection;
   const selectedClassLevel =
     getClassLevel(simulatedSheet, selectedClassName) + 1; // +1 because we're adding this level
   const selectedClassDesc = findClassDescription(
@@ -140,6 +141,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     selectedClassSubname,
     supplements
   );
+
+  // Multiclass: first level in a new class grants no power
+  const isFirstLevelInNewClass =
+    selectedClassLevel === 1 &&
+    selectedClassName !== simulatedSheet.classe.name;
 
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
@@ -440,15 +446,19 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // Build steps for current level
   const getSteps = (): string[] => {
     const steps: string[] = [];
-    // Multiclass: add class selection as first step if user has access
-    if (hasMulticlassAccess) {
+    // Multiclass: add class selection step if feature is enabled (even for non-supporters)
+    if (isMulticlassEnabled) {
       steps.push('Escolha de Classe');
     }
     steps.push('Ganhos do Nível');
-    steps.push('Escolha de Poder');
 
-    if (needsPowerEffectSelections()) {
-      steps.push('Efeitos do Poder');
+    // First level in a new class (multiclass) grants no power
+    if (!isFirstLevelInNewClass) {
+      steps.push('Escolha de Poder');
+
+      if (needsPowerEffectSelections()) {
+        steps.push('Efeitos do Poder');
+      }
     }
 
     if (needsAbilityEffectSelections()) {

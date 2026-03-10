@@ -1,7 +1,5 @@
 import { cloneDeep } from 'lodash';
-import CharacterSheet, {
-  ClassLevelEntry,
-} from '../../interfaces/CharacterSheet';
+import CharacterSheet from '../../interfaces/CharacterSheet';
 import { ClassDescription } from '../../interfaces/Class';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
@@ -245,7 +243,7 @@ describe('calculateMulticlassPV', () => {
     addpv: 5,
   });
 
-  const barbaro = makeClassDesc({
+  makeClassDesc({
     name: 'Bárbaro',
     pv: 24,
     addpv: 6,
@@ -337,7 +335,7 @@ describe('calculateMulticlassPM', () => {
     addpm: 3,
   });
 
-  const arcanista = makeClassDesc({
+  makeClassDesc({
     name: 'Arcanista',
     pm: 6,
     addpm: 6,

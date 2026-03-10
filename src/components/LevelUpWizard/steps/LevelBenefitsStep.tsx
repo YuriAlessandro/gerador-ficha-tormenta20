@@ -177,7 +177,7 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
 
     return {
       pvGain,
-      pvClassBase: isNewClass ? pmBase : pvClassBase,
+      pvClassBase,
       pvAttrMod,
       pvAttrName: ATTR_ABBREVIATIONS[hpAttribute],
       pmGain,

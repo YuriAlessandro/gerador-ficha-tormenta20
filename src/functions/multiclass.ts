@@ -123,7 +123,6 @@ export function calculateMulticlassPV(sheet: CharacterSheet): number {
 
   const classLevelsMap = getClassLevelsMap(sheet);
   const primaryClassName = sheet.classLevels![0].className;
-  const primarySubname = sheet.classLevels![0].classSubname;
   let totalPV = 0;
 
   classLevelsMap.forEach((classLevel, className) => {
@@ -241,7 +240,9 @@ export function getMulticlassAvailableAbilities(
 
     if (!classDesc) return;
 
-    const filtered = classDesc.abilities.filter((a) => a.nivel <= classLevel);
+    const filtered = classDesc.abilities
+      .filter((a) => a.nivel <= classLevel)
+      .map((a) => ({ ...a, sourceClassName: className }));
     allAbilities.push(...filtered);
   });
 
