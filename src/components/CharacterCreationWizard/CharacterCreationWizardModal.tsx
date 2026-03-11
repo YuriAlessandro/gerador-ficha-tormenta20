@@ -746,6 +746,8 @@ const CharacterCreationWizardModal: React.FC<
                 characterGender: info.gender,
               })
             }
+            raceName={selectedOptions.raca}
+            supplements={supplements}
           />
         );
 

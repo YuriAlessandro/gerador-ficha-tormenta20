@@ -21,6 +21,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Tooltip,
+  Alert,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -35,7 +36,7 @@ import {
   modifyAttributesBasedOnRace,
   applyManualLevelUp,
 } from '@/functions/general';
-import { nomes, nameGenerators } from '@/data/systems/tormenta20/nomes';
+import getNameSuggestions from '@/functions/nameSuggestions';
 import { useAuth } from '@/hooks/useAuth';
 import { SupplementId } from '@/types/supplement.types';
 import {
@@ -72,6 +73,10 @@ import {
   removeOriginBenefits,
 } from '@/functions/originBenefits';
 import { GeneralPower } from '@/interfaces/Poderes';
+import {
+  isMulticlass,
+  getMulticlassDisplayName,
+} from '@/functions/multiclass';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
@@ -113,42 +118,6 @@ interface EditedData {
   manualMaxPM: number | undefined; // Manual max PM override
 }
 
-// Helper function to get name suggestions based on race and gender
-const getNameSuggestions = (
-  raceName: string,
-  gender: string,
-  supplements: SupplementId[]
-): string[] => {
-  // Convert gender from display format to data format
-  const genderKey = gender === 'Masculino' ? 'Homem' : 'Mulher';
-
-  // Check if this race has specific names
-  if (nomes[raceName] && nomes[raceName][genderKey]) {
-    return nomes[raceName][genderKey];
-  }
-
-  // For special races like Lefou, Osteon, etc., try to get names from name generators
-  const race = dataRegistry.getRaceByName(raceName, supplements);
-  if (race && nameGenerators[raceName]) {
-    // For complex name generators, return a sample of generated names
-    const sampleNames: string[] = [];
-    for (let i = 0; i < 10; i += 1) {
-      try {
-        const name = nameGenerators[raceName](race, genderKey);
-        if (name && !sampleNames.includes(name)) {
-          sampleNames.push(name);
-        }
-      } catch (error) {
-        // If name generation fails, break the loop
-        break;
-      }
-    }
-    return sampleNames;
-  }
-
-  // Default fallback to Humano names if no specific names found
-  return nomes.Humano[genderKey] || [];
-};
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   open,
   onClose,
@@ -156,6 +125,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   onSave,
 }) => {
   const { user } = useAuth();
+  const sheetIsMulticlass = isMulticlass(sheet);
   // Memoize to prevent creating new array on every render (which would cause infinite reset loop)
   const userSupplements = useMemo(
     () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
@@ -2053,47 +2023,63 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </Box>
                   )}
 
-                  <FormControl fullWidth>
-                    <InputLabel>Classe</InputLabel>
-                    <Select
-                      value={editedData.className}
-                      label='Classe'
-                      onChange={(e) =>
-                        setEditedData({
-                          ...editedData,
-                          className: e.target.value,
-                        })
-                      }
-                    >
-                      {CLASSES_WITH_INFO.map((cls) => (
-                        <MenuItem key={cls.name} value={cls.name}>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                              width: '100%',
-                            }}
-                          >
-                            <span>{cls.name}</span>
-                            {cls.supplementId !==
-                              SupplementId.TORMENTA20_CORE && (
-                              <Chip
-                                label={cls.supplementName}
-                                size='small'
-                                sx={{
-                                  height: '20px',
-                                  fontSize: '0.7rem',
-                                  ml: 'auto',
-                                }}
-                                color='primary'
-                              />
-                            )}
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  {sheetIsMulticlass ? (
+                    <>
+                      <TextField
+                        label='Classe'
+                        value={getMulticlassDisplayName(sheet)}
+                        disabled
+                        fullWidth
+                      />
+                      <Alert severity='info' sx={{ mt: 1 }}>
+                        Não é possível alterar as classes de uma ficha
+                        multiclasse. Use o sistema de Subir Nível para
+                        gerenciar classes.
+                      </Alert>
+                    </>
+                  ) : (
+                    <FormControl fullWidth>
+                      <InputLabel>Classe</InputLabel>
+                      <Select
+                        value={editedData.className}
+                        label='Classe'
+                        onChange={(e) =>
+                          setEditedData({
+                            ...editedData,
+                            className: e.target.value,
+                          })
+                        }
+                      >
+                        {CLASSES_WITH_INFO.map((cls) => (
+                          <MenuItem key={cls.name} value={cls.name}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                                width: '100%',
+                              }}
+                            >
+                              <span>{cls.name}</span>
+                              {cls.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={cls.supplementName}
+                                  size='small'
+                                  sx={{
+                                    height: '20px',
+                                    fontSize: '0.7rem',
+                                    ml: 'auto',
+                                  }}
+                                  color='primary'
+                                />
+                              )}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
 
                   <FormControl fullWidth>
                     <InputLabel>Origem</InputLabel>
