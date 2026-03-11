@@ -69,6 +69,15 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.5 - Update 2026.2</h3>
+              <ul>
+                <li>
+                  <strong>✨ Novo:</strong> Adicionada sugestão de nomes no
+                  wizard de criação de personagem. O campo de nome agora sugere
+                  nomes baseados na raça e gênero selecionados, assim como já
+                  acontecia na edição de ficha.
+                </li>
+              </ul>
               <h3>4.4</h3>
               <ul>
                 <li>
