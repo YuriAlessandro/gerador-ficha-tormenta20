@@ -73,10 +73,7 @@ import {
   removeOriginBenefits,
 } from '@/functions/originBenefits';
 import { GeneralPower } from '@/interfaces/Poderes';
-import {
-  isMulticlass,
-  getMulticlassDisplayName,
-} from '@/functions/multiclass';
+import { isMulticlass, getMulticlassDisplayName } from '@/functions/multiclass';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
@@ -2033,8 +2030,8 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       />
                       <Alert severity='info' sx={{ mt: 1 }}>
                         Não é possível alterar as classes de uma ficha
-                        multiclasse. Use o sistema de Subir Nível para
-                        gerenciar classes.
+                        multiclasse. Use o sistema de Subir Nível para gerenciar
+                        classes.
                       </Alert>
                     </>
                   ) : (
