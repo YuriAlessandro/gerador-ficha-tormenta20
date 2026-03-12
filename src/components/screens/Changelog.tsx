@@ -122,6 +122,11 @@ const Changelog: React.FC = () => {
                   nomes baseados na raça e gênero selecionados, assim como já
                   acontecia na edição de ficha.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Kallyanach agora permite
+                  escolher 2 Bênçãos Dracônicas na criação do personagem,
+                  conforme descrito no livro.
+                </li>
               </ul>
               <h3>4.4</h3>
               <ul>
