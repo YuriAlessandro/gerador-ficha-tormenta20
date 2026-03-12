@@ -165,6 +165,11 @@ const Changelog: React.FC = () => {
                   Traje de viajante) não voltam mais ao inventário após serem
                   removidos pelo usuário.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido erro ao gerar PDF de
+                  fichas com muitas armas ou armaduras/escudos no inventário
+                  (excedendo os campos disponíveis na ficha).
+                </li>
               </ul>
               <h3>4.4</h3>
               <ul>

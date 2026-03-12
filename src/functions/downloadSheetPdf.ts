@@ -133,8 +133,11 @@ const preparePDF: (
   pmMaxField.setText(sheet.pm.toString());
 
   // Add sheet equipaments
+  const MAX_WEAPON_FIELDS = 5;
+  const MAX_DEFENSE_FIELDS = 2;
+
   const bagEquipaments = sheet.bag.getEquipments();
-  const weapons = bagEquipaments.Arma;
+  const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
 
   const fightSkill = sheet.completeSkills?.find(
     (skill) => skill.name === 'Luta'
@@ -184,7 +187,7 @@ const preparePDF: (
 
   const defenseEquipments = bagEquipaments.Armadura.concat(
     bagEquipaments.Escudo
-  );
+  ).slice(0, MAX_DEFENSE_FIELDS);
   defenseEquipments.forEach((defense, index) => {
     const defenseNameField = form.getTextField(`armadura${index + 1}`);
     const defenseBonusField = form.getTextField(`defesa${index + 1}`);
@@ -220,14 +223,19 @@ const preparePDF: (
     )
     .join('\n');
 
-  const weaponsNames = weapons
+  const allWeapons = bagEquipaments.Arma;
+  const allDefenseEquipments = bagEquipaments.Armadura.concat(
+    bagEquipaments.Escudo
+  );
+
+  const weaponsNames = allWeapons
     .map(
       (weapon) =>
         `${weapon.nome}${weapon.spaces ? ` (${weapon.spaces} espaços)` : ''}`
     )
     .join('\n');
 
-  const defenseNames = defenseEquipments
+  const defenseNames = allDefenseEquipments
     .map(
       (defense) =>
         `${defense.nome}${defense.spaces ? ` (${defense.spaces} espaços)` : ''}`
