@@ -127,6 +127,11 @@ const Changelog: React.FC = () => {
                   escolher 2 Bênçãos Dracônicas na criação do personagem,
                   conforme descrito no livro.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Tatuagem Mística do Qareen agora
+                  exibe todas as magias de 1º círculo (arcanas e divinas), e não
+                  apenas as arcanas.
+                </li>
               </ul>
               <h3>4.4</h3>
               <ul>
