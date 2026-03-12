@@ -132,6 +132,13 @@ const Changelog: React.FC = () => {
                   exibe todas as magias de 1º círculo (arcanas e divinas), e não
                   apenas as arcanas.
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigidos pré-requisitos de
+                  poderes que não eram reconhecidos por inconsistências nos
+                  nomes (Trespassar/Ataque Poderoso, Melodia
+                  Restauradora/Melodia Curativa, Armadilheiro/Arataca,
+                  Aparar/Esgrimista).
+                </li>
               </ul>
               <h3>4.4</h3>
               <ul>
