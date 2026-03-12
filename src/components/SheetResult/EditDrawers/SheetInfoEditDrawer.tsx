@@ -73,7 +73,13 @@ import {
   removeOriginBenefits,
 } from '@/functions/originBenefits';
 import { GeneralPower } from '@/interfaces/Poderes';
-import { isMulticlass, getMulticlassDisplayName } from '@/functions/multiclass';
+import {
+  isMulticlass,
+  getMulticlassDisplayName,
+  calculateMulticlassPV,
+  calculateMulticlassPM,
+  findClassDescription,
+} from '@/functions/multiclass';
 import OriginEditDrawer from './OriginEditDrawer';
 import DeityPowerEditDrawer from './DeityPowerEditDrawer';
 import LevelUpWizardModal from '../../LevelUpWizard/LevelUpWizardModal';
@@ -1352,27 +1358,87 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   };
 
   // Calculate PV preview based on current edits
-  const calculatePVPreview = () =>
-    recalculatePV(
+  const calculatePVPreview = () => {
+    if (sheetIsMulticlass) return calculateMulticlassPV(sheet);
+    return recalculatePV(
       editedData.nivel,
       editedData.className,
       editedData.attributes,
       editedData.customPVPerLevel,
       editedData.bonusPV
     );
+  };
 
   // Calculate PM preview based on current edits
-  const calculatePMPreview = () =>
-    recalculatePM(
+  const calculatePMPreview = () => {
+    if (sheetIsMulticlass) return calculateMulticlassPM(sheet);
+    return recalculatePM(
       editedData.nivel,
       editedData.className,
       editedData.attributes,
       editedData.customPMPerLevel,
       editedData.bonusPM
     );
+  };
 
   // Generate PV calculation formula string
   const getPVCalculationFormula = () => {
+    if (sheetIsMulticlass && sheet.classLevels) {
+      const conMod = Math.max(sheet.atributos.Constituição?.value || 0, 0);
+      const lines: string[] = [];
+      const classLevelCounters = new Map<string, number>();
+      let runningTotal = 0;
+
+      sheet.classLevels.forEach((cl) => {
+        const currentCount = classLevelCounters.get(cl.className) ?? 0;
+        classLevelCounters.set(cl.className, currentCount + 1);
+        const classDesc = findClassDescription(cl.className, cl.classSubname);
+        if (!classDesc) return;
+
+        const isPrimaryFirst =
+          currentCount === 0 && cl === sheet.classLevels![0];
+        const pvValue = isPrimaryFirst ? classDesc.pv : classDesc.addpv;
+        const label = isPrimaryFirst ? 'base' : 'por nível';
+        const subtotal = pvValue + conMod;
+        runningTotal += subtotal;
+
+        lines.push(
+          `Nv ${cl.level} — ${cl.className}: ${pvValue} (${label}) + ${conMod} (CON) = ${subtotal}`
+        );
+      });
+
+      // Power bonuses
+      const pvBonuses = sheet.sheetBonuses.filter(
+        (b) => b.target.type === 'PV'
+      );
+      pvBonuses.forEach((b) => {
+        const value = calculateBonusValue(
+          b.modifier,
+          sheet.nivel,
+          sheet.atributos,
+          sheet.classe.spellPath?.keyAttribute
+        );
+        if (value !== 0) {
+          let sourceName = 'Desconhecido';
+          if (b.source?.type === 'power') sourceName = b.source.name;
+          else if (b.source?.type === 'origin')
+            sourceName = b.source.originName || 'Origem';
+          else if (b.source?.type === 'race')
+            sourceName = b.source.raceName || 'Raça';
+          runningTotal += value;
+          lines.push(`+ ${value} (${sourceName})`);
+        }
+      });
+
+      if (sheet.bonusPV) {
+        runningTotal += sheet.bonusPV;
+        lines.push(`+ ${sheet.bonusPV} (bônus manual)`);
+      }
+
+      lines.push(`Total: ${runningTotal}`);
+      return lines.join('\n');
+    }
+
     const classData = CLASSES.find((c) => c.name === editedData.className);
     if (!classData) return '';
 
@@ -1438,6 +1504,65 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
   // Generate PM calculation formula string
   const getPMCalculationFormula = () => {
+    if (sheetIsMulticlass && sheet.classLevels) {
+      const { spellPath } = sheet.classe;
+      const lines: string[] = [];
+      const classLevelCounters = new Map<string, number>();
+      let runningTotal = 0;
+
+      sheet.classLevels.forEach((cl) => {
+        const currentCount = classLevelCounters.get(cl.className) ?? 0;
+        classLevelCounters.set(cl.className, currentCount + 1);
+        const classDesc = findClassDescription(cl.className, cl.classSubname);
+        if (!classDesc) return;
+
+        const isFirst = currentCount === 0;
+        const pmValue = isFirst ? classDesc.pm : classDesc.addpm;
+        const label = isFirst ? 'base' : 'por nível';
+        runningTotal += pmValue;
+
+        lines.push(
+          `Nv ${cl.level} — ${cl.className}: ${pmValue} (${label}) = ${pmValue}`
+        );
+      });
+
+      // Power bonuses
+      const pmBonuses = sheet.sheetBonuses.filter(
+        (b) => b.target.type === 'PM'
+      );
+      pmBonuses.forEach((b) => {
+        const value = calculateBonusValue(
+          b.modifier,
+          sheet.nivel,
+          sheet.atributos,
+          spellPath?.keyAttribute
+        );
+        if (value !== 0) {
+          let sourceName = 'Desconhecido';
+          if (b.source?.type === 'power') sourceName = b.source.name;
+          else if (b.source?.type === 'origin')
+            sourceName = b.source.originName || 'Origem';
+          else if (b.source?.type === 'race')
+            sourceName = b.source.raceName || 'Raça';
+          runningTotal += value;
+          lines.push(`+ ${value} (${sourceName})`);
+        }
+      });
+
+      if (sheet.bonusPM) {
+        runningTotal += sheet.bonusPM;
+        lines.push(`+ ${sheet.bonusPM} (bônus manual)`);
+      }
+
+      if (sheet.manualPMEdit) {
+        runningTotal += sheet.manualPMEdit;
+        lines.push(`+ ${sheet.manualPMEdit} (ajuste manual)`);
+      }
+
+      lines.push(`Total: ${runningTotal}`);
+      return lines.join('\n');
+    }
+
     const classData = CLASSES.find((c) => c.name === editedData.className);
     if (!classData) return '';
 
@@ -2368,6 +2493,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           color: 'text.secondary',
                           fontFamily: 'monospace',
                           wordBreak: 'break-word',
+                          whiteSpace: 'pre-line',
                         }}
                       >
                         {getPVCalculationFormula()}
@@ -2385,6 +2511,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           color: 'text.secondary',
                           fontFamily: 'monospace',
                           wordBreak: 'break-word',
+                          whiteSpace: 'pre-line',
                         }}
                       >
                         {getPMCalculationFormula()}

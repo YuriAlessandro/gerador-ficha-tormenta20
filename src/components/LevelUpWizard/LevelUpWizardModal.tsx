@@ -35,6 +35,9 @@ import {
   getClassLevel,
   initializeClassLevels,
   findClassDescription,
+  buildSpellPathFromSetup,
+  serializeSpellPath,
+  getClassSetupAbilities,
 } from '@/functions/multiclass';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import PowerSelectionStep from './steps/PowerSelectionStep';
@@ -42,6 +45,7 @@ import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
 import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
+import ClassSetupStep from './steps/ClassSetupStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -147,6 +151,12 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     selectedClassLevel === 1 &&
     selectedClassName !== simulatedSheet.classe.name;
 
+  // Classes that require user choices during first-level setup
+  const CLASSES_NEEDING_USER_SETUP = ['Arcanista', 'Bardo', 'Druida'];
+  const classNeedsUserSetup =
+    isFirstLevelInNewClass &&
+    CLASSES_NEEDING_USER_SETUP.includes(selectedClassName);
+
   // Get available powers for current simulated sheet
   const getAvailablePowers = (): {
     classPowers: ClassPower[];
@@ -240,14 +250,44 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     crossTraditionLimit?: number;
   } | null => {
     // Use the selected class's spellPath (for multiclass support)
-    const activeClassDesc = selectedClassDesc || simulatedSheet.classe;
-    if (!activeClassDesc.spellPath) {
+    // For first level in new class, build spellPath from setup choices
+    let spellPath;
+    if (isFirstLevelInNewClass) {
+      spellPath = buildSpellPathFromSetup(
+        selectedClassName,
+        selectedClassSubname,
+        currentLevelSelection.classSetup,
+        supplements
+      );
+    } else {
+      const activeClassDesc = selectedClassDesc || simulatedSheet.classe;
+      // Check multiclassSpellPaths for secondary caster classes (spellPath stored from setup)
+      const storedPath =
+        simulatedSheet.multiclassSpellPaths?.[selectedClassName];
+      if (storedPath && activeClassDesc.name !== simulatedSheet.classe.name) {
+        // Rebuild full SpellPath with functions from the stored serializable data
+        spellPath = buildSpellPathFromSetup(
+          storedPath.className,
+          storedPath.classSubname,
+          { spellSchools: storedPath.schools },
+          supplements
+        );
+      } else {
+        spellPath = activeClassDesc.spellPath || null;
+      }
+    }
+    if (!spellPath) {
       return null;
     }
 
-    const { spellPath } = activeClassDesc;
     // Use CLASS level for spell progression, not character level
-    const spellCount = spellPath.qtySpellsLearnAtLevel(selectedClassLevel);
+    // For first level in new class via multiclass, use initialSpells
+    let spellCount;
+    if (isFirstLevelInNewClass && spellPath.initialSpells > 0) {
+      spellCount = spellPath.initialSpells;
+    } else {
+      spellCount = spellPath.qtySpellsLearnAtLevel(selectedClassLevel);
+    }
 
     if (spellCount === 0) {
       return null; // No spells this level
@@ -431,9 +471,14 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
   // For multiclass: use selected class's abilities filtered by CLASS level
   const needsAbilityEffectSelections = (): boolean => {
     const activeClassDesc = selectedClassDesc || simulatedSheet.classe;
-    const originalAbilities =
+    const baseAbilities =
       activeClassDesc.originalAbilities || activeClassDesc.abilities;
-    const newlyAvailableAbilities = originalAbilities.filter(
+    const setupAbilities = getClassSetupAbilities(
+      selectedClassName,
+      currentLevelSelection.classSetup
+    );
+    const allAbilities = [...baseAbilities, ...setupAbilities];
+    const newlyAvailableAbilities = allAbilities.filter(
       (ability) => ability.nivel === selectedClassLevel
     );
 
@@ -449,6 +494,10 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     // Multiclass: add class selection step if feature is enabled (even for non-supporters)
     if (isMulticlassEnabled) {
       steps.push('Escolha de Classe');
+    }
+    // Multiclass: class setup step for classes needing user choices (Arcanista, Bardo, Druida)
+    if (classNeedsUserSetup) {
+      steps.push('Configuração da Classe');
     }
     steps.push('Ganhos do Nível');
 
@@ -482,6 +531,27 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     switch (stepName) {
       case 'Escolha de Classe':
         return !!currentLevelSelection.selectedClassName;
+
+      case 'Configuração da Classe': {
+        const setup = currentLevelSelection.classSetup;
+        if (!setup) return false;
+        if (selectedClassName === 'Arcanista') {
+          if (!setup.arcanistaSubtype) return false;
+          if (setup.arcanistaSubtype === 'Feiticeiro') {
+            if (!setup.feiticeiroLinhagem) return false;
+            if (
+              setup.feiticeiroLinhagem === 'Linhagem Dracônica' &&
+              !setup.draconicaDamageType
+            )
+              return false;
+          }
+          return true;
+        }
+        if (selectedClassName === 'Bardo' || selectedClassName === 'Druida') {
+          return setup.spellSchools?.length === 3;
+        }
+        return true;
+      }
 
       case 'Ganhos do Nível':
         return true;
@@ -617,10 +687,26 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 ...currentLevelSelection,
                 selectedClassName: className,
                 selectedClassSubname: subname,
+                classSetup: undefined,
               })
             }
             hasAccess={hasMulticlassAccess}
             supporterOnly={multiclassSupporterOnly}
+          />
+        );
+      }
+
+      case 'Configuração da Classe': {
+        return (
+          <ClassSetupStep
+            selectedClassName={selectedClassName}
+            classSetup={currentLevelSelection.classSetup || {}}
+            onChange={(setup) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                classSetup: setup,
+              })
+            }
           />
         );
       }
@@ -753,8 +839,20 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       }
 
       case 'Efeitos de Habilidades': {
-        // For multiclass: use the selected class for ability effects
+        // For multiclass: use the selected class for ability effects,
+        // injecting setup abilities (e.g. Feiticeiro linhagem)
         const activeClass = selectedClassDesc || simulatedSheet.classe;
+        const setupAbilitiesForStep = getClassSetupAbilities(
+          selectedClassName,
+          currentLevelSelection.classSetup
+        );
+        const expandedClass =
+          setupAbilitiesForStep.length > 0
+            ? {
+                ...activeClass,
+                abilities: [...activeClass.abilities, ...setupAbilitiesForStep],
+              }
+            : activeClass;
         return (
           <Box>
             <Typography variant='h6' gutterBottom>
@@ -766,7 +864,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             </Typography>
             <PowerEffectSelectionStep
               race={simulatedSheet.raca}
-              classe={activeClass}
+              classe={expandedClass}
               origin={undefined}
               selections={currentLevelSelection.abilityEffectSelections || {}}
               onChange={(selections) =>
@@ -857,6 +955,26 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           ...(nextSheet.classLevels || []),
           newClassLevelEntry,
         ];
+
+        // Store spellPath for new multiclass caster class
+        if (isFirstLevelInNewClass) {
+          const newSpellPath = buildSpellPathFromSetup(
+            selectedClassName,
+            selectedClassSubname,
+            currentLevelSelection.classSetup,
+            supplements
+          );
+          if (newSpellPath) {
+            nextSheet.multiclassSpellPaths = {
+              ...(nextSheet.multiclassSpellPaths || {}),
+              [selectedClassName]: serializeSpellPath(
+                newSpellPath,
+                selectedClassName,
+                selectedClassSubname
+              ),
+            };
+          }
+        }
 
         // Add selected power to the simulated sheet
         if (

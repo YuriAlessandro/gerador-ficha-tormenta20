@@ -438,6 +438,22 @@ export default interface CharacterSheet {
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
+  multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
+}
+
+/** SpellPath sem funções — para persistência. As funções são restauradas via restoreSpellPath. */
+export interface SerializedSpellPath {
+  initialSpells: number;
+  spellType: 'Arcane' | 'Divine' | 'Both';
+  schools?: SpellSchool[];
+  excludeSchools?: SpellSchool[];
+  includeDivineSchools?: SpellSchool[];
+  includeArcaneSchools?: SpellSchool[];
+  crossTraditionLimit?: number;
+  keyAttribute: Atributo;
+  // Metadata para restaurar funções
+  className: string;
+  classSubname?: string;
 }
 
 export interface Step {

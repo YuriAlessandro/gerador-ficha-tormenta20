@@ -1,7 +1,19 @@
-import CharacterSheet, { ClassLevelEntry } from '@/interfaces/CharacterSheet';
-import { ClassAbility, ClassDescription } from '@/interfaces/Class';
+import CharacterSheet, {
+  ClassLevelEntry,
+  SerializedSpellPath,
+} from '@/interfaces/CharacterSheet';
+import { ClassAbility, ClassDescription, SpellPath } from '@/interfaces/Class';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
+import { LevelUpSelections } from '@/interfaces/WizardSelections';
+import {
+  arcanistaSpellPaths,
+  ArcanistaSubtypes,
+  classAbilities as arcanistaClassAbilities,
+  feiticeiroPaths,
+} from '@/data/systems/tormenta20/classes/arcanista';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+import { SpellSchool } from '@/interfaces/Spells';
 
 /**
  * Verifica se a sheet tem multiclasse.
@@ -247,4 +259,165 @@ export function getMulticlassAvailableAbilities(
   });
 
   return allAbilities;
+}
+
+/**
+ * Constrói um SpellPath a partir das escolhas de classSetup do wizard de level-up.
+ * Para classes com setup() automático (Clérigo, Frade), chama setup() diretamente.
+ * Para classes com spellPath estático (Necromante, Ventanista), retorna o spellPath da ClassDescription.
+ * Retorna null se a classe não é conjuradora.
+ */
+export function buildSpellPathFromSetup(
+  className: string,
+  classSubname: string | undefined,
+  classSetup: NonNullable<LevelUpSelections['classSetup']> | undefined,
+  supplements?: SupplementId[]
+): SpellPath | null {
+  const classDesc = findClassDescription(className, classSubname, supplements);
+  if (!classDesc) return null;
+
+  // Classes com spellPath estático (variantes como Necromante, Ventanista)
+  if (classDesc.spellPath) {
+    return classDesc.spellPath;
+  }
+
+  // Arcanista: usar subtype das choices
+  if (className === 'Arcanista' && classSetup?.arcanistaSubtype) {
+    const subtype = classSetup.arcanistaSubtype as ArcanistaSubtypes;
+    return { ...arcanistaSpellPaths[subtype] };
+  }
+
+  // Bardo: Both (arcana + divina) com escolas selecionadas
+  if (className === 'Bardo' && classSetup?.spellSchools) {
+    return {
+      initialSpells: 2,
+      spellType: 'Both',
+      qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
+      schools: classSetup.spellSchools as SpellSchool[],
+      spellCircleAvailableAtLevel: (level: number) => {
+        if (level < 6) return 1;
+        if (level < 10) return 2;
+        if (level < 14) return 3;
+        return 4;
+      },
+      keyAttribute: Atributo.CARISMA,
+    };
+  }
+
+  // Druida: Divine com escolas selecionadas
+  if (className === 'Druida' && classSetup?.spellSchools) {
+    return {
+      initialSpells: 2,
+      spellType: 'Divine',
+      qtySpellsLearnAtLevel: (level: number) => (level % 2 === 0 ? 1 : 0),
+      schools: classSetup.spellSchools as SpellSchool[],
+      spellCircleAvailableAtLevel: (level: number) => {
+        if (level < 5) return 1;
+        if (level < 9) return 2;
+        if (level < 13) return 3;
+        if (level < 17) return 4;
+        return 5;
+      },
+      keyAttribute: Atributo.SABEDORIA,
+    };
+  }
+
+  // Clérigo/Frade: setup() automático (sem choices do usuário)
+  if (classDesc.setup) {
+    const setupClass = classDesc.setup(classDesc);
+    if (setupClass.spellPath) {
+      return setupClass.spellPath;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Serializa um SpellPath para persistência (remove funções).
+ */
+export function serializeSpellPath(
+  spellPath: SpellPath,
+  className: string,
+  classSubname?: string
+): SerializedSpellPath {
+  return {
+    initialSpells: spellPath.initialSpells,
+    spellType: spellPath.spellType,
+    schools: spellPath.schools,
+    excludeSchools: spellPath.excludeSchools,
+    includeDivineSchools: spellPath.includeDivineSchools,
+    includeArcaneSchools: spellPath.includeArcaneSchools,
+    crossTraditionLimit: spellPath.crossTraditionLimit,
+    keyAttribute: spellPath.keyAttribute,
+    className,
+    classSubname,
+  };
+}
+
+/**
+ * Aplica campos serializados (customizados pelo usuário) sobre um SpellPath restaurado.
+ */
+export function applySerializedOverrides(
+  target: SpellPath,
+  serialized: SerializedSpellPath
+): void {
+  if (serialized.schools) {
+    target.schools = serialized.schools;
+  }
+  if (serialized.keyAttribute) {
+    target.keyAttribute = serialized.keyAttribute;
+  }
+  if (serialized.excludeSchools) {
+    target.excludeSchools = serialized.excludeSchools;
+  }
+  if (serialized.includeDivineSchools) {
+    target.includeDivineSchools = serialized.includeDivineSchools;
+  }
+  if (serialized.includeArcaneSchools) {
+    target.includeArcaneSchools = serialized.includeArcaneSchools;
+  }
+  if (serialized.crossTraditionLimit !== undefined) {
+    target.crossTraditionLimit = serialized.crossTraditionLimit;
+  }
+}
+
+/**
+ * Retorna habilidades adicionais de classe que vêm do setup/configuração
+ * e não estão na ClassDescription base (ex: linhagens do Feiticeiro).
+ * Usado para injetar essas abilities no wizard de level-up e em applyManualLevelUp.
+ */
+export function getClassSetupAbilities(
+  className: string,
+  classSetup?: LevelUpSelections['classSetup']
+): ClassAbility[] {
+  if (!classSetup) return [];
+
+  if (className === 'Arcanista' && classSetup.arcanistaSubtype) {
+    const abilities: ClassAbility[] = [];
+
+    // Habilidade do subtipo (Caminho do Arcanista)
+    const subtypeAbility =
+      arcanistaClassAbilities[classSetup.arcanistaSubtype as ArcanistaSubtypes];
+    if (subtypeAbility) {
+      abilities.push(subtypeAbility);
+    }
+
+    // Linhagem do Feiticeiro (pode ter sheetActions com picks)
+    if (
+      classSetup.arcanistaSubtype === 'Feiticeiro' &&
+      classSetup.feiticeiroLinhagem
+    ) {
+      const linhagemAbility = feiticeiroPaths.find(
+        (p) => p.name === classSetup.feiticeiroLinhagem
+      );
+      if (linhagemAbility) {
+        abilities.push(linhagemAbility);
+      }
+    }
+
+    return abilities;
+  }
+
+  return [];
 }

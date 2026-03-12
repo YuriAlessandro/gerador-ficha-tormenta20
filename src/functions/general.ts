@@ -121,6 +121,10 @@ import {
   initializeClassLevels,
   getClassLevel,
   findClassDescription,
+  buildSpellPathFromSetup,
+  serializeSpellPath,
+  applySerializedOverrides,
+  getClassSetupAbilities,
 } from './multiclass';
 import Skill, {
   SkillsAttrs,
@@ -3110,6 +3114,25 @@ export function applyManualLevelUp(
   const newClassLevel = getClassLevel(updatedSheet, selectedClassName);
   const isFirstLevelInClass = newClassLevel === 1;
 
+  // Multiclass: persist spellPath for new caster class
+  if (isFirstLevelInClass) {
+    const newSpellPath = buildSpellPathFromSetup(
+      selectedClassName,
+      selectedClassSubname,
+      selections.classSetup
+    );
+    if (newSpellPath) {
+      updatedSheet.multiclassSpellPaths = {
+        ...(updatedSheet.multiclassSpellPaths || {}),
+        [selectedClassName]: serializeSpellPath(
+          newSpellPath,
+          selectedClassName,
+          selectedClassSubname
+        ),
+      };
+    }
+  }
+
   // Use selected class for PV/PM calculations
   const activeClassForCalc = selectedClassDesc || updatedSheet.classe;
 
@@ -3385,14 +3408,20 @@ export function applyManualLevelUp(
   }
 
   // Apply newly available class abilities for this level
-  // For multiclass: use selected class's abilities filtered by CLASS level
+  // For multiclass: use selected class's abilities filtered by CLASS level,
+  // plus any setup abilities (e.g. Feiticeiro linhagem)
   const activeClassForAbilities = selectedClassDesc || updatedSheet.classe;
-  const originalAbilitiesForLevel =
+  const baseAbilitiesForLevel =
     activeClassForAbilities.originalAbilities ||
     activeClassForAbilities.abilities;
-  const newlyAvailableAbilities = originalAbilitiesForLevel.filter(
-    (ability) => ability.nivel === newClassLevel
+  const setupAbilities = getClassSetupAbilities(
+    selectedClassName,
+    selections.classSetup
   );
+  const newlyAvailableAbilities = [
+    ...baseAbilitiesForLevel,
+    ...setupAbilities,
+  ].filter((ability) => ability.nivel === newClassLevel);
 
   if (newlyAvailableAbilities.length > 0) {
     const abilitySubSteps: SubStep[] = [];
@@ -5413,24 +5442,35 @@ export function restoreSpellPath(
     }
   }
 
-  // Restore original schools (selected during creation, preserved in serialized data)
-  if (originalSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.schools = originalSchools;
+  // Restore user-customized fields from serialized data onto the restored spellPath
+  if (sheet.classe.spellPath) {
+    applySerializedOverrides(sheet.classe.spellPath, {
+      initialSpells: sheet.classe.spellPath.initialSpells,
+      spellType: sheet.classe.spellPath.spellType,
+      schools: originalSchools,
+      excludeSchools: sheet.classe.spellPath.excludeSchools,
+      includeDivineSchools: originalIncludeDivineSchools,
+      includeArcaneSchools: originalIncludeArcaneSchools,
+      crossTraditionLimit: originalCrossTraditionLimit,
+      keyAttribute: originalKeyAttribute,
+      className: sheet.classe.name,
+      classSubname: sheet.classe.subname,
+    });
   }
 
-  // Restore original keyAttribute (may have been manually changed by user)
-  if (originalKeyAttribute && sheet.classe.spellPath) {
-    sheet.classe.spellPath.keyAttribute = originalKeyAttribute;
-  }
-
-  // Restore cross-tradition fields (set dynamically by Teurgista Místico)
-  if (originalIncludeDivineSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.includeDivineSchools = originalIncludeDivineSchools;
-  }
-  if (originalIncludeArcaneSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.includeArcaneSchools = originalIncludeArcaneSchools;
-  }
-  if (originalCrossTraditionLimit !== undefined && sheet.classe.spellPath) {
-    sheet.classe.spellPath.crossTraditionLimit = originalCrossTraditionLimit;
+  // Restore multiclass spellPaths (secondary caster classes)
+  if (sheet.multiclassSpellPaths) {
+    Object.keys(sheet.multiclassSpellPaths).forEach((className) => {
+      const serialized = sheet.multiclassSpellPaths![className];
+      // Pass schools via classSetup so Bardo/Druida can rebuild their spellPath
+      const restored = buildSpellPathFromSetup(
+        serialized.className,
+        serialized.classSubname,
+        serialized.schools ? { spellSchools: serialized.schools } : undefined
+      );
+      if (restored) {
+        applySerializedOverrides(restored, serialized);
+      }
+    });
   }
 }

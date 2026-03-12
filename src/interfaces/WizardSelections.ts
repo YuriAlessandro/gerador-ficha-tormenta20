@@ -30,6 +30,16 @@ export interface LevelUpSelections {
   abilityEffectSelections?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
+  // Multiclasse: configuração de primeira vez na nova classe
+  classSetup?: {
+    arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';
+    feiticeiroLinhagem?:
+      | 'Linhagem Dracônica'
+      | 'Linhagem Feérica'
+      | 'Linhagem Rubra';
+    draconicaDamageType?: string;
+    spellSchools?: SpellSchool[];
+  };
 }
 
 export interface WizardSelections {
