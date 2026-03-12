@@ -122,6 +122,7 @@ export interface CombatItems {
   escudos: DefenseEquipment[];
   armasExoticas: Equipment[];
   armasDeFogo: Equipment[];
+  municao: Equipment[];
 }
 
 export interface BagEquipments {

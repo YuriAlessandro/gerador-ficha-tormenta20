@@ -1,7 +1,23 @@
 import { cloneDeep, differenceBy, isArray, merge, mergeWith } from 'lodash';
 import Equipment, { BagEquipments } from './Equipment';
 
+const emptyEquipments: BagEquipments = {
+  'Item Geral': [],
+  Alimentação: [],
+  Alquimía: [],
+  Animal: [],
+  Arma: [],
+  Armadura: [],
+  Escudo: [],
+  Esotérico: [],
+  Hospedagem: [],
+  Serviço: [],
+  Vestuário: [],
+  Veículo: [],
+};
+
 const defaultEquipments: BagEquipments = {
+  ...emptyEquipments,
   'Item Geral': [
     {
       nome: 'Mochila',
@@ -19,17 +35,6 @@ const defaultEquipments: BagEquipments = {
       spaces: 0,
     },
   ],
-  Alimentação: [],
-  Alquimía: [],
-  Animal: [],
-  Arma: [],
-  Armadura: [],
-  Escudo: [],
-  Esotérico: [],
-  Hospedagem: [],
-  Serviço: [],
-  Vestuário: [],
-  Veículo: [],
 };
 
 function calcBagSpaces(bagEquipments: BagEquipments): number {
@@ -69,8 +74,9 @@ export default class Bag {
 
   public armorPenalty: number;
 
-  constructor(equipments = {}) {
-    this.equipments = merge(cloneDeep(defaultEquipments), equipments);
+  constructor(equipments = {}, skipDefaults = false) {
+    const base = skipDefaults ? emptyEquipments : defaultEquipments;
+    this.equipments = merge(cloneDeep(base), equipments);
 
     this.spaces = calcBagSpaces(this.equipments);
     this.armorPenalty = calcArmorPenalty(this.equipments);

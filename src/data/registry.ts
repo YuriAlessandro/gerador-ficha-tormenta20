@@ -23,7 +23,14 @@ import {
 import { MarketEquipment } from '../interfaces/MarketEquipment';
 import Equipment, { DefenseEquipment } from '../interfaces/Equipment';
 import { Armas, Armaduras, Escudos } from './systems/tormenta20/equipamentos';
-import { esotericos, animais } from './systems/tormenta20/equipamentos-gerais';
+import {
+  esotericos,
+  animais,
+  generalItems as coreGeneralItems,
+  clothingItems as coreClothingItems,
+  alchemyItems as coreAlchemyItems,
+  foodItems as coreFoodItems,
+} from './systems/tormenta20/equipamentos-gerais';
 import { Spell, SpellCircle, spellsCircles } from '../interfaces/Spells';
 import {
   arcaneSpellsCircle1,
@@ -658,8 +665,20 @@ class DataRegistry {
       result.shields.push(shield);
     });
 
+    // Add core general items
+    result.generalItems.push(...coreGeneralItems);
+
     // Add core esoteric items
     result.esoteric.push(...esotericos);
+
+    // Add core clothing
+    result.clothing.push(...coreClothingItems);
+
+    // Add core alchemy
+    result.alchemy.push(...coreAlchemyItems);
+
+    // Add core food
+    result.food.push(...coreFoodItems);
 
     // Add core animal items
     result.animals.push(...animais);

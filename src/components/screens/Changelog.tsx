@@ -139,6 +139,21 @@ const Changelog: React.FC = () => {
                   Restauradora/Melodia Curativa, Armadilheiro/Arataca,
                   Aparar/Esgrimista).
                 </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Itens gerais, vestuário,
+                  alquimia e alimentação agora aparecem na loja durante a
+                  criação de personagem (ex: Veste de seda).
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Munição (Flechas, Balas,
+                  Virotes) agora pode ser adicionada pelo editor de inventário
+                  após a criação da ficha.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Itens padrão (Saco de dormir,
+                  Traje de viajante) não voltam mais ao inventário após serem
+                  removidos pelo usuário.
+                </li>
               </ul>
               <h3>4.4</h3>
               <ul>

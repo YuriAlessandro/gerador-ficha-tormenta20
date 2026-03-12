@@ -1570,7 +1570,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     };
 
     // Create a new Bag instance with updated equipment
-    const updatedBag = new Bag(updatedBagEquipments);
+    const updatedBag = new Bag(updatedBagEquipments, true);
 
     // Create updated sheet with new bag, dinheiro, and customMaxSpaces
     const sheetWithNewBag = {
@@ -2972,6 +2972,37 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           )}
                       </Box>
                     ))}
+                  </Stack>
+
+                  {/* Ammunition */}
+                  <Typography
+                    variant='subtitle2'
+                    fontWeight='bold'
+                    sx={{ mb: 1 }}
+                  >
+                    Munição
+                  </Typography>
+                  <Stack spacing={1} sx={{ mb: 2 }}>
+                    {[...EQUIPAMENTOS.municao]
+                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                      .map((weapon) => (
+                        <Box
+                          key={weapon.nome}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                        >
+                          {renderAddButton(weapon, () =>
+                            handleWeaponToggle(weapon)
+                          )}
+                          <Typography variant='body2' sx={{ flex: 1 }}>
+                            {weapon.nome}
+                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''}
+                          </Typography>
+                        </Box>
+                      ))}
                   </Stack>
 
                   <Button
