@@ -133,6 +133,12 @@ const Changelog: React.FC = () => {
                   apenas as arcanas.
                 </li>
                 <li>
+                  <strong>🐛 Correção:</strong> Poderes e perícias de
+                  habilidades raciais (Ambição Herdada, Versatilidade,
+                  Deformidade, Memória Póstuma, etc.) não são mais inseridos
+                  aleatoriamente ao editar ou reabrir fichas.
+                </li>
+                <li>
                   <strong>🐛 Correção:</strong> Corrigida origem Herói Camponês
                   que impedia a geração de fichas pelo wizard (poderes gerais da
                   origem não eram classificados corretamente).

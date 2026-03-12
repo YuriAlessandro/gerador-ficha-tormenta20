@@ -411,6 +411,29 @@ export default interface CharacterSheet {
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
   qareenElement?: DamageType; // For Qareen (chosen elemental resistance)
   cavaleiroCaminho?: 'Bastião' | 'Montaria'; // For Cavaleiro (path choice at level 5)
+  // Seleções persistentes de habilidades de raça (evita re-seleção aleatória durante recalculação)
+  humanoVersatilSkill?: string; // Perícia escolhida por Versátil (Humano)
+  humanoVersatilChoice?:
+    | { type: 'skill'; value: string }
+    | { type: 'power'; value: string }; // Segunda escolha
+  lefouDeformidadeSkills?: string[]; // Perícias escolhidas por Deformidade (Lefou)
+  lefouDeformidadePower?: string; // Poder da Tormenta escolhido (se aplicável)
+  osteonMemoriaPostumaChoice?: {
+    type: 'skill' | 'power' | 'raceAbility';
+    value: string;
+  }; // Escolha de Memória Póstuma
+  yidishanNaturezaChoice?: {
+    type: 'skill' | 'power' | 'raceAbility';
+    value: string;
+  }; // Escolha de Natureza Orgânica
+  meioElfoAmbicaoType?: 'generalPower' | 'originPower'; // Tipo de Ambição Herdada
+  meioElfoAmbicaoPower?: string; // Nome do poder escolhido por Ambição Herdada
+  mashinChassiSkill?: string; // Perícia escolhida por Chassi Mashin
+  mashinChassiChoice?:
+    | { type: 'skill'; value: string }
+    | { type: 'power'; value: string }; // Segunda escolha
+  moreauSapienciaSpell?: string; // Magia escolhida por Sapiência (Moreau)
+  moreauEspertezaSkills?: [string, string]; // Perícias escolhidas por Esperteza Vulpina (Moreau)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
