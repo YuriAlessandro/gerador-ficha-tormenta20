@@ -91,7 +91,7 @@ export function getMulticlassDisplayName(sheet: CharacterSheet): string {
   classLevelsMap.forEach((level, className) => {
     parts.push(`${className} ${level}`);
   });
-  return parts.join(' / ');
+  return parts.join(' · ');
 }
 
 /**

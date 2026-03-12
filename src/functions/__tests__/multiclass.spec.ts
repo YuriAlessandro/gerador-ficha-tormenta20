@@ -460,7 +460,7 @@ describe('Edge cases', () => {
     expect(isMulticlass(sheet)).toBe(true);
     expect(getClassLevel(sheet, 'Guerreiro')).toBe(3);
     expect(getClassLevel(sheet, 'Bárbaro')).toBe(1);
-    expect(getMulticlassDisplayName(sheet)).toBe('Guerreiro 3 / Bárbaro 1');
+    expect(getMulticlassDisplayName(sheet)).toBe('Guerreiro 3 · Bárbaro 1');
   });
 
   test('3 classes diferentes', () => {

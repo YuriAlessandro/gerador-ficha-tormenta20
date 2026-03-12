@@ -33,7 +33,11 @@ import {
   calculateCurrencySpaces,
   calculateMaxSpaces,
 } from '@/functions/general';
-import { isMulticlass, getMulticlassDisplayName } from '@/functions/multiclass';
+import {
+  isMulticlass,
+  getMulticlassDisplayName,
+  getClassLevelsMap,
+} from '@/functions/multiclass';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
@@ -472,6 +476,35 @@ const Result: React.FC<ResultProps> = (props) => {
     if (classe.subname) className = `${className} (${classe.subname})`;
   }
 
+  const multiclassDisplay = isMulticlass(currentSheet)
+    ? (() => {
+        const classLevelsMap = getClassLevelsMap(currentSheet);
+        const parts: React.ReactNode[] = [];
+        const entries = Array.from(classLevelsMap.entries());
+        entries.forEach(([clsName, level], idx) => {
+          if (idx > 0) {
+            parts.push(
+              <span
+                key={`sep-${clsName}`}
+                style={{ margin: '0 6px', opacity: 0.5 }}
+              >
+                ·
+              </span>
+            );
+          }
+          parts.push(
+            <span key={`cls-${clsName}`}>
+              {clsName}{' '}
+              <strong style={{ color: theme.palette.primary.main }}>
+                {level}
+              </strong>
+            </span>
+          );
+        });
+        return <>{parts}</>;
+      })()
+    : null;
+
   const periciasSorted = completeSkills
     ? [...completeSkills].sort((skillA, skillB) =>
         skillA.name < skillB.name ? -1 : 1
@@ -858,14 +891,36 @@ const Result: React.FC<ResultProps> = (props) => {
                     </Tooltip>
                   </Stack>
                   <LabelDisplay
-                    text={`${raca.name}${
-                      raca.name === 'Moreau' && raceHeritage
-                        ? ` (${
-                            MOREAU_HERITAGES[raceHeritage as MoreauHeritageName]
-                              ?.name || raceHeritage
-                          })`
-                        : ''
-                    } ${className}${sexo ? ` (${sexo})` : ''}`}
+                    text={
+                      multiclassDisplay ? (
+                        <>
+                          {`${raca.name}${
+                            raca.name === 'Moreau' && raceHeritage
+                              ? ` (${
+                                  MOREAU_HERITAGES[
+                                    raceHeritage as MoreauHeritageName
+                                  ]?.name || raceHeritage
+                                })`
+                              : ''
+                          }`}
+                          <span style={{ margin: '0 6px', opacity: 0.5 }}>
+                            ·
+                          </span>
+                          {multiclassDisplay}
+                          {sexo ? ` (${sexo})` : ''}
+                        </>
+                      ) : (
+                        `${raca.name}${
+                          raca.name === 'Moreau' && raceHeritage
+                            ? ` (${
+                                MOREAU_HERITAGES[
+                                  raceHeritage as MoreauHeritageName
+                                ]?.name || raceHeritage
+                              })`
+                            : ''
+                        } ${className}${sexo ? ` (${sexo})` : ''}`
+                      )
+                    }
                     size='medium'
                   />
                   <LabelDisplay title='Nível' text={`${nivel}`} size='small' />
