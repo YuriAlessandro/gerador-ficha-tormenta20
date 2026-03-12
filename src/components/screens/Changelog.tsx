@@ -133,6 +133,11 @@ const Changelog: React.FC = () => {
                   apenas as arcanas.
                 </li>
                 <li>
+                  <strong>🐛 Correção:</strong> Corrigida origem Herói Camponês
+                  que impedia a geração de fichas pelo wizard (poderes gerais da
+                  origem não eram classificados corretamente).
+                </li>
+                <li>
                   <strong>🐛 Correção:</strong> Corrigidos pré-requisitos de
                   poderes que não eram reconhecidos por inconsistências nos
                   nomes (Trespassar/Ataque Poderoso, Melodia

@@ -5117,9 +5117,13 @@ export function generateEmptySheet(
           ? selectedOrigin.getPowersAndSkills(emptySheet.skills, selectedOrigin)
           : {
               powers: {
-                origin:
-                  selectedOrigin.poderes as import('../interfaces/Poderes').OriginPower[],
+                origin: selectedOrigin.poderes.filter(
+                  (p) => p.type === 'ORIGEM'
+                ) as import('../interfaces/Poderes').OriginPower[],
                 general: [],
+                generalPowers: selectedOrigin.poderes.filter(
+                  (p) => p.type !== 'ORIGEM'
+                ) as import('../interfaces/Poderes').GeneralPower[],
               },
               skills: selectedOrigin.pericias,
             };

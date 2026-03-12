@@ -112,9 +112,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       ? origin.getPowersAndSkills(usedSkills, origin, true)
       : {
           powers: {
-            origin:
-              origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+            origin: origin.poderes.filter(
+              (p) => p.type === 'ORIGEM'
+            ) as import('@/interfaces/Poderes').OriginPower[],
             general: [],
+            generalPowers: origin.poderes.filter(
+              (p) => p.type !== 'ORIGEM'
+            ) as GeneralPower[],
           },
           skills: origin.pericias,
         };
@@ -197,9 +201,13 @@ const OriginSelectionStep: React.FC<OriginSelectionStepProps> = ({
       ? origin.getPowersAndSkills(usedSkills, origin, true)
       : {
           powers: {
-            origin:
-              origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+            origin: origin.poderes.filter(
+              (p) => p.type === 'ORIGEM'
+            ) as import('@/interfaces/Poderes').OriginPower[],
             general: [],
+            generalPowers: origin.poderes.filter(
+              (p) => p.type !== 'ORIGEM'
+            ) as GeneralPower[],
           },
           skills: origin.pericias,
         });
