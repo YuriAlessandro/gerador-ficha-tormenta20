@@ -70,6 +70,51 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.5 - Update 2026.2</h3>
+              <p>
+                A update 2026.2 é a primeira update feita através do sistema de
+                apoiadores do Projeto. A feature principal foi decidida mediante{' '}
+                <a href='https://fichasdenimb.com.br/blog/as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores'>
+                  votação dos apoiadores
+                </a>
+                .
+              </p>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Multiclasse
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  A feature mais votada pelos apoiadores chegou! Agora é
+                  possível <strong>multiclassar</strong> seus personagens
+                  diretamente pelo wizard de level-up. Ao subir de nível, você
+                  pode escolher uma classe diferente para aquele nível,
+                  combinando habilidades, poderes e magias de múltiplas classes.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  O sistema calcula automaticamente PV, PM, perícias e magias
+                  para cada classe. Classes conjuradoras como Arcanista, Bardo,
+                  Druida e Clérigo possuem configuração completa ao entrar pela
+                  primeira vez, incluindo seleção de subtipo, escolas de magia e
+                  magias iniciais. A ficha exibe todas as classes com seus
+                  respectivos níveis (ex: &quot;Guerreiro 3 / Arcanista
+                  2&quot;).
+                </Typography>
+              </Alert>
+
               <ul>
                 <li>
                   <strong>✨ Novo:</strong> Adicionada sugestão de nomes no
