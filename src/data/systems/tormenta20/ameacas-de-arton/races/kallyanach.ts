@@ -37,14 +37,14 @@ const kallyanachAbilities: RaceAbility[] = [
   {
     name: 'Bênção de Kallyadranoch',
     description:
-      'Escolha uma Bênção Dracônica. Você só pode escolher uma Bênção Dracônica por patamar de nível (Iniciante: 1º ao 4º, Veterano: 5º ao 10º, Campeão: 11º ao 16º, Herói: 17º ao 20º).',
+      'Escolha duas Bênçãos Dracônicas. Você só pode escolher uma Bênção Dracônica por patamar de nível (Iniciante: 1º ao 4º, Veterano: 5º ao 10º, Campeão: 11º ao 16º, Herói: 17º ao 20º).',
     sheetActions: [
       {
         source: { type: 'power', name: 'Bênção de Kallyadranoch' },
         action: {
           type: 'getGeneralPower',
           availablePowers: DRACONIC_BLESSINGS,
-          pick: 1,
+          pick: 2,
         },
       },
     ],

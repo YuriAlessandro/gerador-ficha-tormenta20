@@ -65,7 +65,7 @@ export const arcanistaSpellPaths: Record<ArcanistaSubtypes, SpellPath> = {
   },
 };
 
-const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
+export const classAbilities: Record<ArcanistaSubtypes, ClassAbility> = {
   Bruxo: {
     name: 'Caminho do Arcanista',
     text: 'A magia é um poder incrível, capaz de alterar a realidade. Esse poder tem fontes distintas e cada uma opera conforme suas próprias regras. Você é um bruxo, capaz de lançar magias através de um foco como uma varinha, cajado, chapéu, etc.',

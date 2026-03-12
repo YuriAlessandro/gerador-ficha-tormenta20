@@ -221,7 +221,7 @@ const BARDO: ClassDescription = {
       name: 'Melodia Restauradora',
       text: 'Quando você usa  Música: Melodia Curativa, pode gastar +2 PM. Se fizer isso, escolha uma das condições a seguir:  abalado, alquebrado, apavorado, atordoado, cego, confuso, enfeitiçado, esmorecido, exausto, fatigado, frustrado, pasmo ou surdo. Você remove a condição escolhida das criaturas afetadas pela música.',
       requirements: [
-        [{ type: RequirementType.PODER, name: ' Música: Melodia Curativa' }],
+        [{ type: RequirementType.PODER, name: 'Música: Melodia Curativa' }],
       ],
     },
     {

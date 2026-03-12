@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -10,7 +10,10 @@ import {
   Radio,
   Alert,
   Link,
+  Autocomplete,
 } from '@mui/material';
+import { SupplementId } from '@/types/supplement.types';
+import getNameSuggestions from '@/functions/nameSuggestions';
 
 interface CharacterBasicInfo {
   name?: string;
@@ -20,18 +23,25 @@ interface CharacterBasicInfo {
 interface CharacterBasicInfoStepProps {
   basicInfo: CharacterBasicInfo;
   onChange: (info: CharacterBasicInfo) => void;
+  raceName: string;
+  supplements: SupplementId[];
 }
 
 const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   basicInfo,
   onChange,
+  raceName,
+  supplements,
 }) => {
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({
-      ...basicInfo,
-      name: event.target.value,
-    });
-  };
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
+    getNameSuggestions(raceName, basicInfo.gender || 'Masculino', supplements)
+  );
+
+  useEffect(() => {
+    setNameSuggestions(
+      getNameSuggestions(raceName, basicInfo.gender || 'Masculino', supplements)
+    );
+  }, [raceName, basicInfo.gender, supplements]);
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onChange({
@@ -74,14 +84,27 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
         Defina as informações básicas do seu personagem.
       </Typography>
 
-      <TextField
-        fullWidth
-        label='Nome do Personagem'
+      <Autocomplete
+        freeSolo
+        options={nameSuggestions}
         value={basicInfo.name || ''}
-        onChange={handleNameChange}
-        placeholder='Ex: Thorin Escudo de Pedra'
-        required
-        helperText='Digite o nome do seu personagem'
+        onChange={(_event, newValue) => {
+          onChange({ ...basicInfo, name: newValue || '' });
+        }}
+        onInputChange={(_event, newInputValue) => {
+          onChange({ ...basicInfo, name: newInputValue });
+        }}
+        renderInput={(params) => (
+          <TextField
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...params}
+            fullWidth
+            label='Nome do Personagem'
+            placeholder='Ex: Thorin Escudo de Pedra'
+            required
+            helperText='Digite ou selecione um nome baseado na raça e gênero'
+          />
+        )}
       />
 
       <FormControl component='fieldset'>

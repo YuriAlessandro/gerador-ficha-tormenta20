@@ -26,7 +26,14 @@ import CORE_CLASSES from '@/data/systems/tormenta20/core/classes';
 import DEUSES_ARTON_CLASSES from '@/data/systems/tormenta20/deuses-de-arton/classes';
 import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/classes';
 import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
-import { ClassDescription } from '@/interfaces/Class';
+import { ClassAbility, ClassDescription } from '@/interfaces/Class';
+import {
+  isMulticlass,
+  calculateMulticlassPV,
+  calculateMulticlassPM,
+  getClassLevel,
+  getMulticlassAvailableAbilities,
+} from './multiclass';
 
 import {
   applyRaceAbilities,
@@ -567,21 +574,36 @@ function applyClassAbilities(
     }
   }
 
-  const availableAbilities = originalAbilities.filter(
-    (ability) => ability.nivel <= sheet.nivel
-  );
+  // For multiclass: filter by primary class level, not character level
+  const primaryClassLevel = getClassLevel(sheet, sheetClone.classe.name);
+  const filterLevel = primaryClassLevel > 0 ? primaryClassLevel : sheet.nivel;
+  const availableAbilities: ClassAbility[] = originalAbilities
+    .filter((ability) => ability.nivel <= filterLevel)
+    .map((a) => ({ ...a, sourceClassName: sheetClone.classe.name }));
 
   // Preserve originalAbilities for future level changes
   if (!sheetClone.classe.originalAbilities) {
     sheetClone.classe.originalAbilities = [...originalAbilities];
   }
 
-  sheetClone.classe.abilities = availableAbilities;
+  // For multiclass: also include abilities from secondary classes
+  let allAbilities = availableAbilities;
+  if (isMulticlass(sheet)) {
+    const multiclassAbilities = getMulticlassAvailableAbilities(sheet);
+    // Filter out primary class abilities (already in availableAbilities) to avoid duplicates
+    const primaryAbilityNames = new Set(availableAbilities.map((a) => a.name));
+    const secondaryAbilities = multiclassAbilities.filter(
+      (a) => !primaryAbilityNames.has(a.name)
+    );
+    allAbilities = [...availableAbilities, ...secondaryAbilities];
+  }
+
+  sheetClone.classe.abilities = allAbilities;
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(sheetClone);
 
-  sheetClone = availableAbilities.reduce((acc, ability) => {
+  sheetClone = allAbilities.reduce((acc, ability) => {
     const abilitySelections = manualSelections?.[ability.name];
     const [newAcc] = applyPower(acc, ability, abilitySelections);
     return newAcc;
@@ -971,6 +993,9 @@ export function recalculateSheet(
     if (hasManualMaxPV) {
       // Player has set manual max - skip all calculations, just use the manual value
       updatedSheet.pv = updatedSheet.manualMaxPV!;
+    } else if (updatedSheet.classLevels && isMulticlass(updatedSheet)) {
+      // Multiclass PV calculation
+      updatedSheet.pv = calculateMulticlassPV(updatedSheet);
     } else {
       // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
       const basePV = updatedSheet.classe.pv || 0;
@@ -1011,6 +1036,9 @@ export function recalculateSheet(
     if (hasManualMaxPM) {
       // Player has set manual max - skip all calculations, just use the manual value
       updatedSheet.pm = updatedSheet.manualMaxPM!;
+    } else if (updatedSheet.classLevels && isMulticlass(updatedSheet)) {
+      // Multiclass PM calculation
+      updatedSheet.pm = calculateMulticlassPM(updatedSheet);
     } else {
       // PM base = classe.pm + (classe.addpm * (level - 1))
       // Note: Key attribute bonus (INT/CAR/SAB) is NOT added here - it comes from
@@ -1272,10 +1300,10 @@ export function recalculateSheet(
     }
   });
 
-  // Bárbaro: Resistência a Dano (RD Geral escalável com nível)
-  if (updatedSheet.classe.name === 'Bárbaro' && updatedSheet.nivel >= 5) {
-    const rdValue =
-      2 * Math.min(5, 1 + Math.floor((updatedSheet.nivel - 5) / 3));
+  // Bárbaro: Resistência a Dano (RD Geral escalável com nível de Bárbaro)
+  const barbaroLevel = getClassLevel(updatedSheet, 'Bárbaro');
+  if (barbaroLevel >= 5) {
+    const rdValue = 2 * Math.min(5, 1 + Math.floor((barbaroLevel - 5) / 3));
     computedRd.Geral = (computedRd.Geral ?? 0) + rdValue;
   }
 

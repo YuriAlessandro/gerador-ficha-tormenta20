@@ -746,6 +746,8 @@ const CharacterCreationWizardModal: React.FC<
                 characterGender: info.gender,
               })
             }
+            raceName={selectedOptions.raca}
+            supplements={supplements}
           />
         );
 
@@ -1479,9 +1481,13 @@ const CharacterCreationWizardModal: React.FC<
           ? origin.getPowersAndSkills(allUsedSkills, origin, true)
           : {
               powers: {
-                origin:
-                  origin.poderes as import('@/interfaces/Poderes').OriginPower[],
+                origin: origin.poderes.filter(
+                  (p) => p.type === 'ORIGEM'
+                ) as import('@/interfaces/Poderes').OriginPower[],
                 general: [],
+                generalPowers: origin.poderes.filter(
+                  (p) => p.type !== 'ORIGEM'
+                ) as import('@/interfaces/Poderes').GeneralPower[],
               },
               skills: origin.pericias,
             };

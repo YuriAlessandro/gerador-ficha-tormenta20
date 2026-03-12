@@ -111,11 +111,21 @@ import {
   RequirementType,
 } from '../interfaces/Poderes';
 import CharacterSheet, {
+  ClassLevelEntry,
   SheetChangeSource,
   StatModifier,
   Step,
   SubStep,
 } from '../interfaces/CharacterSheet';
+import {
+  initializeClassLevels,
+  getClassLevel,
+  findClassDescription,
+  buildSpellPathFromSetup,
+  serializeSpellPath,
+  applySerializedOverrides,
+  getClassSetupAbilities,
+} from './multiclass';
 import Skill, {
   SkillsAttrs,
   SkillsWithArmorPenalty,
@@ -3077,7 +3087,54 @@ export function applyManualLevelUp(
   selections: import('../interfaces/WizardSelections').LevelUpSelections
 ): CharacterSheet {
   let updatedSheet = cloneDeep(sheet);
+
+  // Initialize classLevels BEFORE incrementing nivel to avoid counting the new level as primary class
+  if (!updatedSheet.classLevels) {
+    updatedSheet.classLevels = initializeClassLevels(updatedSheet);
+  }
+
   updatedSheet.nivel += 1;
+
+  // Multiclass: resolve selected class for this level
+  const selectedClassName =
+    selections.selectedClassName || updatedSheet.classe.name;
+  const { selectedClassSubname } = selections;
+  const selectedClassDesc = findClassDescription(
+    selectedClassName,
+    selectedClassSubname
+  );
+  const newEntry: ClassLevelEntry = {
+    level: updatedSheet.nivel,
+    className: selectedClassName,
+    classSubname: selectedClassSubname,
+  };
+  updatedSheet.classLevels.push(newEntry);
+
+  // Compute new class level for the selected class
+  const newClassLevel = getClassLevel(updatedSheet, selectedClassName);
+  const isFirstLevelInClass = newClassLevel === 1;
+
+  // Multiclass: persist spellPath for new caster class
+  if (isFirstLevelInClass) {
+    const newSpellPath = buildSpellPathFromSetup(
+      selectedClassName,
+      selectedClassSubname,
+      selections.classSetup
+    );
+    if (newSpellPath) {
+      updatedSheet.multiclassSpellPaths = {
+        ...(updatedSheet.multiclassSpellPaths || {}),
+        [selectedClassName]: serializeSpellPath(
+          newSpellPath,
+          selectedClassName,
+          selectedClassSubname
+        ),
+      };
+    }
+  }
+
+  // Use selected class for PV/PM calculations
+  const activeClassForCalc = selectedClassDesc || updatedSheet.classe;
 
   // Check if there's an HP attribute replacement (Dom da Esperança)
   const hpReplacement = updatedSheet.sheetBonuses.find(
@@ -3089,12 +3146,18 @@ export function applyManualLevelUp(
     hpAttribute = hpReplacement.target.newAttribute;
   }
 
+  // PV: always use addpv (subsequent level PV) from selected class
   let addPv =
-    updatedSheet.classe.addpv + updatedSheet.atributos[hpAttribute].value;
+    activeClassForCalc.addpv + updatedSheet.atributos[hpAttribute].value;
 
   if (addPv < 1) addPv = 1;
 
   const newPvTotal = updatedSheet.pv + addPv;
+
+  // PM: use selected class's addpm (or pm for first level in a new class)
+  const pmFromClass = isFirstLevelInClass
+    ? activeClassForCalc.pm
+    : activeClassForCalc.addpm;
 
   // Calculate PM bonus from sheetBonuses that scale with level
   // We need to add the incremental bonus for the new level
@@ -3126,19 +3189,22 @@ export function applyManualLevelUp(
     }
   });
 
-  const newPmTotal =
-    updatedSheet.pm + updatedSheet.classe.addpm + levelCalcPMBonus;
+  const newPmTotal = updatedSheet.pm + pmFromClass + levelCalcPMBonus;
 
   const subSteps = [];
 
   // Aumentar PV e PM
+  const classLabel =
+    selectedClassName !== updatedSheet.classe.name
+      ? ` [${selectedClassName}]`
+      : '';
   subSteps.push(
     {
-      name: `PV (${updatedSheet.pv} + ${addPv} por nível - ${hpAttribute})`,
+      name: `PV (${updatedSheet.pv} + ${addPv} por nível${classLabel} - ${hpAttribute})`,
       value: newPvTotal,
     },
     {
-      name: `PM (${updatedSheet.pm} + ${updatedSheet.classe.addpm}${
+      name: `PM (${updatedSheet.pm} + ${pmFromClass}${classLabel}${
         levelCalcPMBonus > 0 ? ` + ${levelCalcPMBonus} bônus racial` : ''
       } por nível)`,
       value: newPmTotal,
@@ -3208,7 +3274,10 @@ export function applyManualLevelUp(
   // Aplicar poder escolhido (classe ou geral)
   if (selections.powerChoice === 'class' && selections.selectedClassPower) {
     const nSubSteps: SubStep[] = [];
-    const newPower = selections.selectedClassPower;
+    const newPower = {
+      ...selections.selectedClassPower,
+      className: selectedClassName, // Track which class granted this power
+    };
 
     if (updatedSheet.classPowers) {
       updatedSheet.classPowers.push(newPower);
@@ -3224,12 +3293,12 @@ export function applyManualLevelUp(
       if (nSubSteps.length) {
         updatedSheet.steps.push({
           type: 'Poderes',
-          label: `Novo poder de ${updatedSheet.classe.name}`,
+          label: `Novo poder de ${selectedClassName}`,
           value: nSubSteps,
         });
       } else {
         subSteps.push({
-          name: `Novo poder de ${updatedSheet.classe.name}`,
+          name: `Novo poder de ${selectedClassName}`,
           value: newPower.name,
         });
       }
@@ -3339,11 +3408,20 @@ export function applyManualLevelUp(
   }
 
   // Apply newly available class abilities for this level
-  const originalAbilities =
-    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
-  const newlyAvailableAbilities = originalAbilities.filter(
-    (ability) => ability.nivel === updatedSheet.nivel
+  // For multiclass: use selected class's abilities filtered by CLASS level,
+  // plus any setup abilities (e.g. Feiticeiro linhagem)
+  const activeClassForAbilities = selectedClassDesc || updatedSheet.classe;
+  const baseAbilitiesForLevel =
+    activeClassForAbilities.originalAbilities ||
+    activeClassForAbilities.abilities;
+  const setupAbilities = getClassSetupAbilities(
+    selectedClassName,
+    selections.classSetup
   );
+  const newlyAvailableAbilities = [
+    ...baseAbilitiesForLevel,
+    ...setupAbilities,
+  ].filter((ability) => ability.nivel === newClassLevel);
 
   if (newlyAvailableAbilities.length > 0) {
     const abilitySubSteps: SubStep[] = [];
@@ -3361,7 +3439,7 @@ export function applyManualLevelUp(
     if (abilitySubSteps.length) {
       updatedSheet.steps.push({
         type: 'Poderes',
-        label: `Novas habilidades de classe (Nível ${updatedSheet.nivel})`,
+        label: `Novas habilidades de ${selectedClassName} (Nível ${newClassLevel})`,
         value: abilitySubSteps,
       });
     }
@@ -3376,16 +3454,31 @@ export function applyManualLevelUp(
         powerName: ability.name,
       })),
     });
-
-    // Update displayed abilities to include newly available ones
-    const allAvailableAbilities = originalAbilities.filter(
-      (ability) => ability.nivel <= updatedSheet.nivel
-    );
-    updatedSheet.classe.abilities = allAvailableAbilities;
-
-    // Apply text modifications from chooseFromOptions history
-    applyOptionChosenTexts(updatedSheet);
   }
+
+  // Update displayed abilities for primary class (always reflect current character level)
+  const primaryOriginalAbilities =
+    updatedSheet.classe.originalAbilities || updatedSheet.classe.abilities;
+  const primaryClassLevel = getClassLevel(
+    updatedSheet,
+    updatedSheet.classe.name
+  );
+  const allAvailableAbilities = primaryOriginalAbilities.filter(
+    (ability) => ability.nivel <= primaryClassLevel
+  );
+
+  // For multiclass: also include newly available abilities from secondary classes
+  if (
+    selectedClassName !== updatedSheet.classe.name &&
+    newlyAvailableAbilities.length > 0
+  ) {
+    allAvailableAbilities.push(...newlyAvailableAbilities);
+  }
+
+  updatedSheet.classe.abilities = allAvailableAbilities;
+
+  // Apply text modifications from chooseFromOptions history
+  applyOptionChosenTexts(updatedSheet);
 
   return updatedSheet;
 }
@@ -5024,9 +5117,13 @@ export function generateEmptySheet(
           ? selectedOrigin.getPowersAndSkills(emptySheet.skills, selectedOrigin)
           : {
               powers: {
-                origin:
-                  selectedOrigin.poderes as import('../interfaces/Poderes').OriginPower[],
+                origin: selectedOrigin.poderes.filter(
+                  (p) => p.type === 'ORIGEM'
+                ) as import('../interfaces/Poderes').OriginPower[],
                 general: [],
+                generalPowers: selectedOrigin.poderes.filter(
+                  (p) => p.type !== 'ORIGEM'
+                ) as import('../interfaces/Poderes').GeneralPower[],
               },
               skills: selectedOrigin.pericias,
             };
@@ -5349,24 +5446,35 @@ export function restoreSpellPath(
     }
   }
 
-  // Restore original schools (selected during creation, preserved in serialized data)
-  if (originalSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.schools = originalSchools;
+  // Restore user-customized fields from serialized data onto the restored spellPath
+  if (sheet.classe.spellPath) {
+    applySerializedOverrides(sheet.classe.spellPath, {
+      initialSpells: sheet.classe.spellPath.initialSpells,
+      spellType: sheet.classe.spellPath.spellType,
+      schools: originalSchools,
+      excludeSchools: sheet.classe.spellPath.excludeSchools,
+      includeDivineSchools: originalIncludeDivineSchools,
+      includeArcaneSchools: originalIncludeArcaneSchools,
+      crossTraditionLimit: originalCrossTraditionLimit,
+      keyAttribute: originalKeyAttribute,
+      className: sheet.classe.name,
+      classSubname: sheet.classe.subname,
+    });
   }
 
-  // Restore original keyAttribute (may have been manually changed by user)
-  if (originalKeyAttribute && sheet.classe.spellPath) {
-    sheet.classe.spellPath.keyAttribute = originalKeyAttribute;
-  }
-
-  // Restore cross-tradition fields (set dynamically by Teurgista Místico)
-  if (originalIncludeDivineSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.includeDivineSchools = originalIncludeDivineSchools;
-  }
-  if (originalIncludeArcaneSchools && sheet.classe.spellPath) {
-    sheet.classe.spellPath.includeArcaneSchools = originalIncludeArcaneSchools;
-  }
-  if (originalCrossTraditionLimit !== undefined && sheet.classe.spellPath) {
-    sheet.classe.spellPath.crossTraditionLimit = originalCrossTraditionLimit;
+  // Restore multiclass spellPaths (secondary caster classes)
+  if (sheet.multiclassSpellPaths) {
+    Object.keys(sheet.multiclassSpellPaths).forEach((className) => {
+      const serialized = sheet.multiclassSpellPaths![className];
+      // Pass schools via classSetup so Bardo/Druida can rebuild their spellPath
+      const restored = buildSpellPathFromSetup(
+        serialized.className,
+        serialized.classSubname,
+        serialized.schools ? { spellSchools: serialized.schools } : undefined
+      );
+      if (restored) {
+        applySerializedOverrides(restored, serialized);
+      }
+    });
   }
 }

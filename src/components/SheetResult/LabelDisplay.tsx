@@ -7,7 +7,7 @@ import { useDynamicSvg } from '@/hooks/useDynamicSvg';
 
 interface Props {
   title?: string;
-  text: string;
+  text: React.ReactNode;
   size: 'small' | 'medium' | 'large';
 }
 

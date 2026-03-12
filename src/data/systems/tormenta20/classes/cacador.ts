@@ -105,7 +105,7 @@ const CACADOR: ClassDescription = {
       ],
     },
     {
-      name: 'Armadilha: Arataca.',
+      name: 'Armadilha: Arataca',
       text: 'A vítima sofre 2d6 pontos de dano de perfuração e fica agarrada. Uma criatura agarrada pode escapar com uma ação padrão e um teste de Acrobacia ou Atletismo (CD Sab).',
       requirements: [],
       rolls: [

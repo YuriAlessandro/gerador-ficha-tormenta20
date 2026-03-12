@@ -350,6 +350,12 @@ export interface MovementTypes {
   pairar?: boolean;
 }
 
+export interface ClassLevelEntry {
+  level: number;
+  className: string;
+  classSubname?: string;
+}
+
 // TODO: Once all type errors are fixed, change this into a proper class with constructor and stuff.
 export default interface CharacterSheet {
   id: string;
@@ -405,6 +411,29 @@ export default interface CharacterSheet {
   duendeTabuSkill?: string; // For Duende (skill with -5 penalty)
   qareenElement?: DamageType; // For Qareen (chosen elemental resistance)
   cavaleiroCaminho?: 'Bastião' | 'Montaria'; // For Cavaleiro (path choice at level 5)
+  // Seleções persistentes de habilidades de raça (evita re-seleção aleatória durante recalculação)
+  humanoVersatilSkill?: string; // Perícia escolhida por Versátil (Humano)
+  humanoVersatilChoice?:
+    | { type: 'skill'; value: string }
+    | { type: 'power'; value: string }; // Segunda escolha
+  lefouDeformidadeSkills?: string[]; // Perícias escolhidas por Deformidade (Lefou)
+  lefouDeformidadePower?: string; // Poder da Tormenta escolhido (se aplicável)
+  osteonMemoriaPostumaChoice?: {
+    type: 'skill' | 'power' | 'raceAbility';
+    value: string;
+  }; // Escolha de Memória Póstuma
+  yidishanNaturezaChoice?: {
+    type: 'skill' | 'power' | 'raceAbility';
+    value: string;
+  }; // Escolha de Natureza Orgânica
+  meioElfoAmbicaoType?: 'generalPower' | 'originPower'; // Tipo de Ambição Herdada
+  meioElfoAmbicaoPower?: string; // Nome do poder escolhido por Ambição Herdada
+  mashinChassiSkill?: string; // Perícia escolhida por Chassi Mashin
+  mashinChassiChoice?:
+    | { type: 'skill'; value: string }
+    | { type: 'power'; value: string }; // Segunda escolha
+  moreauSapienciaSpell?: string; // Magia escolhida por Sapiência (Moreau)
+  moreauEspertezaSkills?: [string, string]; // Perícias escolhidas por Esperteza Vulpina (Moreau)
   customPVPerLevel?: number; // Custom PV per level (overrides classe.addpv if defined)
   customPMPerLevel?: number; // Custom PM per level (overrides classe.addpm if defined)
   bonusPV?: number; // Bonus PV added to total
@@ -431,6 +460,23 @@ export default interface CharacterSheet {
   notes?: string; // Anotações livres do jogador
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
+  classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
+  multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
+}
+
+/** SpellPath sem funções — para persistência. As funções são restauradas via restoreSpellPath. */
+export interface SerializedSpellPath {
+  initialSpells: number;
+  spellType: 'Arcane' | 'Divine' | 'Both';
+  schools?: SpellSchool[];
+  excludeSchools?: SpellSchool[];
+  includeDivineSchools?: SpellSchool[];
+  includeArcaneSchools?: SpellSchool[];
+  crossTraditionLimit?: number;
+  keyAttribute: Atributo;
+  // Metadata para restaurar funções
+  className: string;
+  classSubname?: string;
 }
 
 export interface Step {

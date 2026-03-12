@@ -199,7 +199,17 @@ export function getPowersAllowedByRequirements(
     });
 }
 
-export function getAllowedClassPowers(sheet: CharacterSheet): ClassPower[] {
+export function getAllowedClassPowers(
+  sheet: CharacterSheet,
+  options?: { classLevel?: number }
+): ClassPower[] {
+  // If classLevel is provided, create a temporary sheet with that level
+  // so that NIVEL requirements check against class level instead of character level
+  const sheetForCheck =
+    options?.classLevel !== undefined
+      ? { ...sheet, nivel: options.classLevel }
+      : sheet;
+
   return sheet.classe.powers.filter((power) => {
     const existingClassPowers = sheet.classPowers || [];
     const isRepeatedPower = existingClassPowers.find(
@@ -210,7 +220,7 @@ export function getAllowedClassPowers(sheet: CharacterSheet): ClassPower[] {
       return power.canRepeat;
     }
 
-    return isPowerAvailable(sheet, power);
+    return isPowerAvailable(sheetForCheck, power);
   });
 }
 

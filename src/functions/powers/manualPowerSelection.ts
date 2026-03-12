@@ -426,52 +426,8 @@ export function getFilteredAvailableOptions(
     case 'learnSpell': {
       const spells = availableOptions as Spell[];
 
-      // Check if this is "all arcane spells of circle X" - if so, expand with supplements
-      const arcaneCheck = isAllArcaneSpellsOfCircle(spells);
-      if (arcaneCheck.isMatch) {
-        const allSpellsWithSupplements =
-          dataRegistry.getArcaneSpellsByCircleAndSupplements(
-            arcaneCheck.circle,
-            supplements
-          );
-
-        // Preserve custom attributes from original spells if present
-        const originalCustomAttr = spells.find(
-          (s) => s.customKeyAttr
-        )?.customKeyAttr;
-        const enrichedSpells = originalCustomAttr
-          ? allSpellsWithSupplements.map((s) => ({
-              ...s,
-              customKeyAttr: originalCustomAttr,
-            }))
-          : allSpellsWithSupplements;
-
-        return enrichedSpells
-          .filter(
-            (spell) =>
-              !sheet.spells?.some((existing) => existing.nome === spell.nome)
-          )
-          .sort((a, b) => a.nome.localeCompare(b.nome));
-      }
-
-      // Check if this is "all divine spells of circle X" - if so, expand with supplements
-      const divineCheck = isAllDivineSpellsOfCircle(spells);
-      if (divineCheck.isMatch) {
-        const allSpellsWithSupplements =
-          dataRegistry.getDivineSpellsByCircleAndSupplements(
-            divineCheck.circle,
-            supplements
-          );
-
-        return allSpellsWithSupplements
-          .filter(
-            (spell) =>
-              !sheet.spells?.some((existing) => existing.nome === spell.nome)
-          )
-          .sort((a, b) => a.nome.localeCompare(b.nome));
-      }
-
-      // Check if this is "all spells (arcane+divine) of circle X"
+      // Check "all spells (arcane+divine)" FIRST to avoid false positives
+      // from arcane/divine checks when the list contains both traditions
       const allSpellsCheck = isAllSpellsOfCircle(spells);
       if (allSpellsCheck.isMatch) {
         const arcaneSpells = dataRegistry.getArcaneSpellsByCircleAndSupplements(
@@ -502,6 +458,51 @@ export function getFilteredAvailableOptions(
           : uniqueSpells;
 
         return enrichedSpells
+          .filter(
+            (spell) =>
+              !sheet.spells?.some((existing) => existing.nome === spell.nome)
+          )
+          .sort((a, b) => a.nome.localeCompare(b.nome));
+      }
+
+      // Check if this is "all arcane spells of circle X" - if so, expand with supplements
+      const arcaneCheck = isAllArcaneSpellsOfCircle(spells);
+      if (arcaneCheck.isMatch) {
+        const arcaneSpellsWithSupplements =
+          dataRegistry.getArcaneSpellsByCircleAndSupplements(
+            arcaneCheck.circle,
+            supplements
+          );
+
+        // Preserve custom attributes from original spells if present
+        const originalCustomAttr2 = spells.find(
+          (s) => s.customKeyAttr
+        )?.customKeyAttr;
+        const enrichedArcaneSpells = originalCustomAttr2
+          ? arcaneSpellsWithSupplements.map((s) => ({
+              ...s,
+              customKeyAttr: originalCustomAttr2,
+            }))
+          : arcaneSpellsWithSupplements;
+
+        return enrichedArcaneSpells
+          .filter(
+            (spell) =>
+              !sheet.spells?.some((existing) => existing.nome === spell.nome)
+          )
+          .sort((a, b) => a.nome.localeCompare(b.nome));
+      }
+
+      // Check if this is "all divine spells of circle X" - if so, expand with supplements
+      const divineCheck = isAllDivineSpellsOfCircle(spells);
+      if (divineCheck.isMatch) {
+        const allSpellsWithSupplements2 =
+          dataRegistry.getDivineSpellsByCircleAndSupplements(
+            divineCheck.circle,
+            supplements
+          );
+
+        return allSpellsWithSupplements2
           .filter(
             (spell) =>
               !sheet.spells?.some((existing) => existing.nome === spell.nome)

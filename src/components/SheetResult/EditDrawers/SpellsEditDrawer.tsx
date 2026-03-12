@@ -475,6 +475,8 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               p: 2,
               backgroundColor: 'action.hover',
               borderRadius: 1,
+              maxHeight: 200,
+              overflow: 'auto',
             }}
           >
             <Typography variant='subtitle2' sx={{ mb: 1 }}>

@@ -17,6 +17,8 @@ export interface OriginBenefit {
 
 export interface LevelUpSelections {
   level: number;
+  selectedClassName?: string; // Multiclasse: classe escolhida para este nível
+  selectedClassSubname?: string; // Multiclasse: subtipo se aplicável
   // Escolha: poder de classe, poder geral OU poder de Alma Livre
   powerChoice: 'class' | 'general' | 'almaLivre';
   selectedClassPower?: ClassPower;
@@ -28,6 +30,16 @@ export interface LevelUpSelections {
   abilityEffectSelections?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
+  // Multiclasse: configuração de primeira vez na nova classe
+  classSetup?: {
+    arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';
+    feiticeiroLinhagem?:
+      | 'Linhagem Dracônica'
+      | 'Linhagem Feérica'
+      | 'Linhagem Rubra';
+    draconicaDamageType?: string;
+    spellSchools?: SpellSchool[];
+  };
 }
 
 export interface WizardSelections {

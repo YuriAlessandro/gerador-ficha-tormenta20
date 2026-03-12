@@ -69,7 +69,7 @@ const combatPowers: Record<string, GeneralPower> = {
     ],
   },
   ATAQUE_PODEROSO: {
-    name: 'Ataque poderoso',
+    name: 'Ataque Poderoso',
     description:
       'Sempre que faz um ataque corpo a corpo, você pode sofrer –2 no teste de ataque para receber +5 na rolagem de dano.',
     type: GeneralPowerType.COMBATE,

@@ -49,6 +49,7 @@ import { useAuth } from './hooks/useAuth';
 import { useUserPreferences } from './hooks/useUserPreferences';
 import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
+import { setFeatureFlags } from './store/slices/system/systemSlice';
 import { SupplementId } from './types/supplement.types';
 import logoFichasDeNimb from './assets/images/logoFichasDeNimb.svg';
 // Support page
@@ -77,6 +78,7 @@ import {
   EditThreadPage,
   AdminPage,
   PushNotificationPrompt,
+  getFeatureFlags,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
 // import CreatureSheet from './components/screens/CreatureSheet';
@@ -194,9 +196,19 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
 function ThemedApp(): JSX.Element {
   const history = useHistory();
   const location = useLocation();
+  const dispatch = useDispatch<AppDispatch>();
   const { accentColor, darkMode, setDarkMode } = useUserPreferences();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
+
+  // Fetch feature flags on mount (public endpoint, no auth required)
+  React.useEffect(() => {
+    getFeatureFlags()
+      .then((flags) => dispatch(setFeatureFlags(flags)))
+      .catch(() => {
+        // Silently fail - redux-persist cache will be used as fallback
+      });
+  }, [dispatch]);
 
   // Detectar se estamos na página de sessão (mesa virtual)
   const isGameSession = location.pathname.startsWith('/sessao/');

@@ -113,7 +113,7 @@ export const useSubscription = () => {
   );
 
   // Check if user is a supporter (any paid level)
-  const isUserSupporter = checkIsSupporter(tier);
+  const isUserSupporter = isAuthenticated && checkIsSupporter(tier);
 
   // Check if user can access game tables (NIVEL_2 or higher)
   const canAccessGameTables = checkCanAccessGameTables(tier) && isActive;

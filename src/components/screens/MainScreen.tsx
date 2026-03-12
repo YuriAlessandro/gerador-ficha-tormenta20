@@ -672,36 +672,46 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   const handleWizardConfirm = (
     wizardSelections: import('@/interfaces/WizardSelections').WizardSelections
   ) => {
-    setWizardModalOpen(false);
-    setShowHistoric(false);
-    const presentation = document.getElementById('presentation');
-    if (presentation) {
-      setInterval(() => {
-        presentation.style.opacity = '0';
-        presentation.style.display = 'none';
-      }, 200);
+    try {
+      // Generate level 1 sheet with wizard selections and race customization
+      const level1Sheet = generateEmptySheet(
+        selectedOptions,
+        wizardSelections,
+        raceCustomization
+      );
+      level1Sheet.bag = new Bag(level1Sheet.bag?.equipments);
+
+      // Only close wizard after successful generation
+      setWizardModalOpen(false);
+      setShowHistoric(false);
+      const presentation = document.getElementById('presentation');
+      if (presentation) {
+        setInterval(() => {
+          presentation.style.opacity = '0';
+          presentation.style.display = 'none';
+        }, 200);
+      }
+
+      // Clear race customization after use
+      setRaceCustomization({});
+
+      // If level > 1, open level up wizard modal
+      if (selectedOptions.nivel > 1) {
+        setPendingLevel1Sheet(level1Sheet);
+        setLevelUpWizardModalOpen(true);
+        return;
+      }
+
+      // Level 1 character - finalize immediately
+      finalizeSheet(level1Sheet);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao gerar ficha:', error);
+      showAlert(
+        'Ocorreu um erro ao gerar a ficha. Por favor, tente novamente.',
+        'Erro na Geração'
+      );
     }
-
-    // Generate level 1 sheet with wizard selections and race customization
-    const level1Sheet = generateEmptySheet(
-      selectedOptions,
-      wizardSelections,
-      raceCustomization
-    );
-    level1Sheet.bag = new Bag(level1Sheet.bag?.equipments);
-
-    // Clear race customization after use
-    setRaceCustomization({});
-
-    // If level > 1, open level up wizard modal
-    if (selectedOptions.nivel > 1) {
-      setPendingLevel1Sheet(level1Sheet);
-      setLevelUpWizardModalOpen(true);
-      return;
-    }
-
-    // Level 1 character - finalize immediately
-    finalizeSheet(level1Sheet);
   };
 
   const handleLevelUpWizardConfirm = (

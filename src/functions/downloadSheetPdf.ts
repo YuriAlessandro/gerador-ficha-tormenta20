@@ -9,6 +9,7 @@ import Skill from '@/interfaces/Skills';
 import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
+import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -92,10 +93,14 @@ const preparePDF: (
   nameField.setText(sheet.nome);
   raceField.setText(sheet.raca.name);
   originField.setText(sheet.origin?.name || '');
-  const classDisplay =
-    sheet.classe.isVariant && sheet.classe.baseClassName
-      ? `${sheet.classe.name} (${sheet.classe.baseClassName}) ${sheet.nivel}`
-      : `${sheet.classe.name} ${sheet.nivel}`;
+  let classDisplay: string;
+  if (isMulticlass(sheet)) {
+    classDisplay = getMulticlassDisplayName(sheet);
+  } else if (sheet.classe.isVariant && sheet.classe.baseClassName) {
+    classDisplay = `${sheet.classe.name} (${sheet.classe.baseClassName}) ${sheet.nivel}`;
+  } else {
+    classDisplay = `${sheet.classe.name} ${sheet.nivel}`;
+  }
   classField.setText(classDisplay);
   deytiField.setText(sheet.devoto?.divindade.name || '');
   forceField.setText(sheet.atributos.Força.value.toString());
@@ -128,8 +133,11 @@ const preparePDF: (
   pmMaxField.setText(sheet.pm.toString());
 
   // Add sheet equipaments
+  const MAX_WEAPON_FIELDS = 5;
+  const MAX_DEFENSE_FIELDS = 2;
+
   const bagEquipaments = sheet.bag.getEquipments();
-  const weapons = bagEquipaments.Arma;
+  const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
 
   const fightSkill = sheet.completeSkills?.find(
     (skill) => skill.name === 'Luta'
@@ -179,7 +187,7 @@ const preparePDF: (
 
   const defenseEquipments = bagEquipaments.Armadura.concat(
     bagEquipaments.Escudo
-  );
+  ).slice(0, MAX_DEFENSE_FIELDS);
   defenseEquipments.forEach((defense, index) => {
     const defenseNameField = form.getTextField(`armadura${index + 1}`);
     const defenseBonusField = form.getTextField(`defesa${index + 1}`);
@@ -215,14 +223,19 @@ const preparePDF: (
     )
     .join('\n');
 
-  const weaponsNames = weapons
+  const allWeapons = bagEquipaments.Arma;
+  const allDefenseEquipments = bagEquipaments.Armadura.concat(
+    bagEquipaments.Escudo
+  );
+
+  const weaponsNames = allWeapons
     .map(
       (weapon) =>
         `${weapon.nome}${weapon.spaces ? ` (${weapon.spaces} espaços)` : ''}`
     )
     .join('\n');
 
-  const defenseNames = defenseEquipments
+  const defenseNames = allDefenseEquipments
     .map(
       (defense) =>
         `${defense.nome}${defense.spaces ? ` (${defense.spaces} espaços)` : ''}`

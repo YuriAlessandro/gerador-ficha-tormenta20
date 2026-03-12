@@ -22,10 +22,16 @@ import {
   Atributo,
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
+import { SupplementId } from '@/types/supplement.types';
+import { findClassDescription, getClassLevel } from '@/functions/multiclass';
 
 interface LevelBenefitsStepProps {
   simulatedSheet: CharacterSheet;
   currentLevel: number;
+  selectedClassName?: string;
+  selectedClassSubname?: string;
+  selectedClassLevel?: number;
+  supplements?: SupplementId[];
 }
 
 interface LevelBenefits {
@@ -54,6 +60,10 @@ const skillTrainingMod = (level: number): number => {
 const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
   simulatedSheet,
   currentLevel,
+  selectedClassName,
+  selectedClassSubname,
+  selectedClassLevel: selectedClassLevelProp,
+  supplements,
 }) => {
   const [expandedAbilities, setExpandedAbilities] = useState<
     Record<string, boolean>
@@ -66,8 +76,25 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
     }));
   };
 
+  // Resolve the active class for this level (multiclass support)
+  const activeClassName = selectedClassName || simulatedSheet.classe.name;
+  const activeClassDesc = selectedClassName
+    ? findClassDescription(selectedClassName, selectedClassSubname, supplements)
+    : null;
+  const activeClass = activeClassDesc || simulatedSheet.classe;
+
+  // Compute class level: use prop if provided, else compute from sheet
+  const classLevel =
+    selectedClassLevelProp ??
+    getClassLevel(simulatedSheet, activeClassName) + 1;
+
+  // Is this a new class (first level in it)?
+  const isNewClass =
+    activeClassName !== simulatedSheet.classe.name &&
+    getClassLevel(simulatedSheet, activeClassName) === 0;
+
   const benefits: LevelBenefits = useMemo(() => {
-    // PV calculation
+    // PV calculation - always use addpv (subsequent level PV)
     const hpReplacement = simulatedSheet.sheetBonuses.find(
       (bonus) => bonus.target.type === 'HPAttributeReplacement'
     );
@@ -79,13 +106,14 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
       hpAttribute = hpReplacement.target.newAttribute;
     }
 
-    const pvClassBase = simulatedSheet.classe.addpv;
+    // Use selected class's addpv (multiclass: new class contributes its own addpv)
+    const pvClassBase = activeClass.addpv;
     const pvAttrMod = simulatedSheet.atributos[hpAttribute].value;
     let pvGain = pvClassBase + pvAttrMod;
     if (pvGain < 1) pvGain = 1;
 
-    // PM calculation
-    const pmClassBase = simulatedSheet.classe.addpm;
+    // PM calculation - use selected class's addpm
+    const pmClassBase = activeClass.addpm;
     let pmLevelCalcBonus = 0;
     simulatedSheet.sheetBonuses.forEach((bonus) => {
       if (bonus.target.type === 'PM' && bonus.modifier.type === 'LevelCalc') {
@@ -109,23 +137,24 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
         pmLevelCalcBonus += calcBonus(newLevel) - calcBonus(oldLevel);
       }
     });
-    const pmGain = pmClassBase + pmLevelCalcBonus;
+    // For first level in a new class: pm base instead of addpm
+    const pmBase = isNewClass ? activeClass.pm : pmClassBase;
+    const pmGain = pmBase + pmLevelCalcBonus;
 
-    // New class abilities
+    // New class abilities - use selected class abilities at CLASS level
     const originalAbilities =
-      simulatedSheet.classe.originalAbilities ||
-      simulatedSheet.classe.abilities;
+      activeClass.originalAbilities || activeClass.abilities;
     const newAbilities = originalAbilities.filter(
-      (ability) => ability.nivel === currentLevel
+      (ability) => ability.nivel === classLevel
     );
 
-    // Skill training bonus change
+    // Skill training bonus change (uses CHARACTER level, not class level)
     const oldTraining = skillTrainingMod(currentLevel - 1);
     const newTraining = skillTrainingMod(currentLevel);
     const hasSkillBonusChange = newTraining > oldTraining;
 
-    // Spell circle access
-    const { spellPath } = simulatedSheet.classe;
+    // Spell circle access - use selected class's spellPath with CLASS level
+    const { spellPath } = activeClass;
     let hasNewSpellCircle = false;
     let newSpellCircle = 0;
     let spellCount = 0;
@@ -134,8 +163,8 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
       spellPath &&
       typeof spellPath.spellCircleAvailableAtLevel === 'function'
     ) {
-      const oldCircle = spellPath.spellCircleAvailableAtLevel(currentLevel - 1);
-      const newCircle = spellPath.spellCircleAvailableAtLevel(currentLevel);
+      const oldCircle = spellPath.spellCircleAvailableAtLevel(classLevel - 1);
+      const newCircle = spellPath.spellCircleAvailableAtLevel(classLevel);
       if (newCircle > oldCircle) {
         hasNewSpellCircle = true;
         newSpellCircle = newCircle;
@@ -143,7 +172,7 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
     }
 
     if (spellPath && typeof spellPath.qtySpellsLearnAtLevel === 'function') {
-      spellCount = spellPath.qtySpellsLearnAtLevel(currentLevel);
+      spellCount = spellPath.qtySpellsLearnAtLevel(classLevel);
     }
 
     return {
@@ -152,7 +181,7 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
       pvAttrMod,
       pvAttrName: ATTR_ABBREVIATIONS[hpAttribute],
       pmGain,
-      pmClassBase,
+      pmClassBase: pmBase,
       pmLevelCalcBonus,
       newAbilities,
       hasSkillBonusChange,
@@ -162,17 +191,30 @@ const LevelBenefitsStep: React.FC<LevelBenefitsStepProps> = ({
       newSpellCircle,
       spellCount,
     };
-  }, [simulatedSheet, currentLevel]);
+  }, [simulatedSheet, currentLevel, activeClass, classLevel, isNewClass]);
 
   return (
     <Box>
       <Typography variant='h6' gutterBottom>
         Ganhos do Nível {currentLevel}
+        {selectedClassName &&
+          selectedClassName !== simulatedSheet.classe.name &&
+          ` — ${selectedClassName}${
+            selectedClassSubname ? ` (${selectedClassSubname})` : ''
+          }`}
       </Typography>
       <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
         Confira os benefícios automáticos deste nível antes de fazer suas
         escolhas.
       </Typography>
+
+      {isNewClass && (
+        <Alert severity='warning' sx={{ mb: 2 }}>
+          <strong>Multiclasse:</strong> Esta é sua primeira vez nesta classe.
+          Você ganha PV de nível subsequente e PM base da classe, mas não ganha
+          perícias treinadas nem proficiências novas.
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* PV Gain */}

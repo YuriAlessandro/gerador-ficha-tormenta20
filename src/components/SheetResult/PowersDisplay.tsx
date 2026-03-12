@@ -118,7 +118,8 @@ const PowersDisplay: React.FC<{
       return `Habilidade de ${raceName}`;
     }
     if (filteredClassAbilities.includes(pw as ClassAbility)) {
-      return `Habilidade de ${className}`;
+      const ability = pw as ClassAbility;
+      return `Habilidade de ${ability.sourceClassName || className}`;
     }
     if (originPowers.includes(pw as OriginPower)) {
       return 'Poder de Origem';

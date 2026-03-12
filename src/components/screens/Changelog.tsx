@@ -69,6 +69,108 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.5 - Update 2026.2</h3>
+              <p>
+                A update 2026.2 é a primeira update feita através do sistema de
+                apoiadores do Projeto. A feature principal foi decidida mediante{' '}
+                <a href='https://fichasdenimb.com.br/blog/as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores'>
+                  votação dos apoiadores
+                </a>
+                .
+              </p>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Multiclasse
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  A feature mais votada pelos apoiadores chegou! Agora é
+                  possível <strong>multiclassar</strong> seus personagens
+                  diretamente pelo wizard de level-up. Ao subir de nível, você
+                  pode escolher uma classe diferente para aquele nível,
+                  combinando habilidades, poderes e magias de múltiplas classes.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  O sistema calcula automaticamente PV, PM, perícias e magias
+                  para cada classe. Classes conjuradoras como Arcanista, Bardo,
+                  Druida e Clérigo possuem configuração completa ao entrar pela
+                  primeira vez, incluindo seleção de subtipo, escolas de magia e
+                  magias iniciais. A ficha exibe todas as classes com seus
+                  respectivos níveis (ex: &quot;Guerreiro 3 / Arcanista
+                  2&quot;).
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>✨ Novo:</strong> Adicionada sugestão de nomes no
+                  wizard de criação de personagem. O campo de nome agora sugere
+                  nomes baseados na raça e gênero selecionados, assim como já
+                  acontecia na edição de ficha.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Kallyanach agora permite
+                  escolher 2 Bênçãos Dracônicas na criação do personagem,
+                  conforme descrito no livro.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Tatuagem Mística do Qareen agora
+                  exibe todas as magias de 1º círculo (arcanas e divinas), e não
+                  apenas as arcanas.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Poderes e perícias de
+                  habilidades raciais (Ambição Herdada, Versatilidade,
+                  Deformidade, Memória Póstuma, etc.) não são mais inseridos
+                  aleatoriamente ao editar ou reabrir fichas.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigida origem Herói Camponês
+                  que impedia a geração de fichas pelo wizard (poderes gerais da
+                  origem não eram classificados corretamente).
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigidos pré-requisitos de
+                  poderes que não eram reconhecidos por inconsistências nos
+                  nomes (Trespassar/Ataque Poderoso, Melodia
+                  Restauradora/Melodia Curativa, Armadilheiro/Arataca,
+                  Aparar/Esgrimista).
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Itens gerais, vestuário,
+                  alquimia e alimentação agora aparecem na loja durante a
+                  criação de personagem (ex: Veste de seda).
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Munição (Flechas, Balas,
+                  Virotes) agora pode ser adicionada pelo editor de inventário
+                  após a criação da ficha.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Itens padrão (Saco de dormir,
+                  Traje de viajante) não voltam mais ao inventário após serem
+                  removidos pelo usuário.
+                </li>
+                <li>
+                  <strong>🐛 Correção:</strong> Corrigido erro ao gerar PDF de
+                  fichas com muitas armas ou armaduras/escudos no inventário
+                  (excedendo os campos disponíveis na ficha).
+                </li>
+              </ul>
               <h3>4.4</h3>
               <ul>
                 <li>
