@@ -36,10 +36,6 @@ interface ProcessedAttribute {
 }
 
 const processRaceAttributes = (race: Race): ProcessedAttribute[] => {
-  if (race.name === 'Humano') {
-    return [{ label: '+2 em três atributos à sua escolha', type: 'special' }];
-  }
-
   const specificAttrs = race.attributes.attrs.filter(
     (attr) => attr.attr !== 'any'
   );

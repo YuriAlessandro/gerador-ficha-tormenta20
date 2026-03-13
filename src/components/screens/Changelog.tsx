@@ -69,6 +69,14 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.6</h3>
+              <ul>
+                <li>
+                  Corrigido modificador de atributos do Humano na enciclopédia
+                  (exibia +2 ao invés de +1).
+                </li>
+              </ul>
+
               <h3>4.5 - Update 2026.2</h3>
               <p>
                 A update 2026.2 é a primeira update feita através do sistema de
