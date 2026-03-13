@@ -559,6 +559,12 @@ export function applyMeioElfoAmbicaoHerdada(
     return substeps;
   }
 
+  // If the user intentionally cleared the Ambição Herdada power via editing,
+  // do not re-add it or select a new one.
+  if (sheet.meioElfoAmbicaoType === 'cleared') {
+    return substeps;
+  }
+
   // MANUAL or RANDOM PATH: First-time generation
   if (hasManualPowers) {
     const selectedPower = manualSelections.powers![0];

@@ -426,7 +426,7 @@ export default interface CharacterSheet {
     type: 'skill' | 'power' | 'raceAbility';
     value: string;
   }; // Escolha de Natureza Orgânica
-  meioElfoAmbicaoType?: 'generalPower' | 'originPower'; // Tipo de Ambição Herdada
+  meioElfoAmbicaoType?: 'generalPower' | 'originPower' | 'cleared'; // Tipo de Ambição Herdada
   meioElfoAmbicaoPower?: string; // Nome do poder escolhido por Ambição Herdada
   mashinChassiSkill?: string; // Perícia escolhida por Chassi Mashin
   mashinChassiChoice?:

@@ -1309,6 +1309,35 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       }
     }
 
+    // Detect if the Meio-Elfo Ambição Herdada power was removed
+    let shouldClearMeioElfoAmbicao = false;
+    if (
+      sheet.meioElfoAmbicaoPower &&
+      sheet.meioElfoAmbicaoType &&
+      sheet.meioElfoAmbicaoType !== 'cleared'
+    ) {
+      const ambicaoPowerName = sheet.meioElfoAmbicaoPower;
+      if (sheet.meioElfoAmbicaoType === 'generalPower') {
+        const wasInOriginal = sheet.generalPowers?.some(
+          (p) => p.name === ambicaoPowerName
+        );
+        const isInNew = selectedPowers.some((p) => p.name === ambicaoPowerName);
+        if (wasInOriginal && !isInNew) {
+          shouldClearMeioElfoAmbicao = true;
+        }
+      } else if (sheet.meioElfoAmbicaoType === 'originPower') {
+        const wasInOriginal = sheet.origin?.powers?.some(
+          (p) => p.name === ambicaoPowerName
+        );
+        const isInNew = selectedOriginPowers.some(
+          (p) => p.name === ambicaoPowerName
+        );
+        if (wasInOriginal && !isInNew) {
+          shouldClearMeioElfoAmbicao = true;
+        }
+      }
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -1316,6 +1345,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       classPowers: selectedClassPowers,
       customPowers: selectedCustomPowers,
       customGrantedPowers: selectedCustomGrantedPowers,
+      // Clear Meio-Elfo Ambição Herdada when the granted power was removed
+      ...(shouldClearMeioElfoAmbicao
+        ? {
+            meioElfoAmbicaoType: 'cleared' as const,
+            meioElfoAmbicaoPower: undefined,
+          }
+        : {}),
       origin: sheet.origin
         ? {
             ...sheet.origin,

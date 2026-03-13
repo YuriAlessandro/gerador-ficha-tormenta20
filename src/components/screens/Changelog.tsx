@@ -75,6 +75,10 @@ const Changelog: React.FC = () => {
                   Corrigido modificador de atributos do Humano na enciclopédia
                   (exibia +2 ao invés de +1).
                 </li>
+                <li>
+                  Corrigido bug do Meio-Elfo onde o poder da Ambição Herdada não
+                  podia ser removido ou substituído após a geração da ficha.
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>
