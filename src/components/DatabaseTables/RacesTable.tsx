@@ -198,6 +198,16 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
                     />
                   ))}
                 </Box>
+                {race.heritages && (
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ mt: 1 }}
+                  >
+                    Os modificadores específicos variam de acordo com a herança
+                    escolhida. Veja os detalhes abaixo.
+                  </Typography>
+                )}
               </Box>
 
               <Divider sx={{ my: 2 }} />
@@ -210,28 +220,109 @@ const Row: React.FC<{ race: RaceWithSupplement; defaultOpen: boolean }> = ({
               >
                 Habilidades Raciais
               </Typography>
-              {race.abilities.map((ability) => (
-                <Box key={ability.name} sx={{ mb: 2 }}>
-                  <Typography
-                    variant='h6'
-                    color='primary'
-                    sx={{
-                      fontFamily: 'Tfont, serif',
-                      fontSize: '1rem',
-                      mb: 1,
-                    }}
-                  >
-                    {ability.name}
-                  </Typography>
-                  <Typography variant='body1' paragraph>
-                    {ability.description}
-                  </Typography>
-                  {ability.name !==
-                    race.abilities[race.abilities.length - 1]?.name && (
-                    <Divider sx={{ my: 1.5 }} />
-                  )}
-                </Box>
-              ))}
+
+              {race.heritages
+                ? Object.entries(race.heritages).map(
+                    ([heritageKey, heritage], heritageIdx, heritageArr) => (
+                      <Box key={heritageKey} sx={{ mb: 3 }}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mb: 1.5,
+                          }}
+                        >
+                          <Typography
+                            variant='h6'
+                            color='secondary'
+                            sx={{
+                              fontFamily: 'Tfont, serif',
+                              fontSize: '1.05rem',
+                            }}
+                          >
+                            {heritage.name}
+                          </Typography>
+                        </Box>
+
+                        <Box
+                          display='flex'
+                          gap={0.5}
+                          flexWrap='wrap'
+                          sx={{ mb: 1.5 }}
+                        >
+                          {processRaceAttributes({
+                            ...race,
+                            attributes: { attrs: heritage.attributes },
+                          } as Race).map((attrInfo) => (
+                            <Chip
+                              key={`${heritageKey}-attr-${attrInfo.label.replace(
+                                /[^a-zA-Z0-9]/g,
+                                '-'
+                              )}`}
+                              label={attrInfo.label}
+                              variant='outlined'
+                              color={
+                                attrInfo.type === 'any'
+                                  ? 'secondary'
+                                  : 'primary'
+                              }
+                              size='small'
+                              sx={{ fontFamily: 'Tfont, serif' }}
+                            />
+                          ))}
+                        </Box>
+
+                        {heritage.abilities.map((ability, abilityIdx) => (
+                          <Box key={ability.name} sx={{ mb: 1.5 }}>
+                            <Typography
+                              variant='h6'
+                              color='primary'
+                              sx={{
+                                fontFamily: 'Tfont, serif',
+                                fontSize: '1rem',
+                                mb: 0.5,
+                              }}
+                            >
+                              {ability.name}
+                            </Typography>
+                            <Typography variant='body1' paragraph>
+                              {ability.description}
+                            </Typography>
+                            {abilityIdx < heritage.abilities.length - 1 && (
+                              <Divider sx={{ my: 1 }} />
+                            )}
+                          </Box>
+                        ))}
+
+                        {heritageIdx < heritageArr.length - 1 && (
+                          <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
+                        )}
+                      </Box>
+                    )
+                  )
+                : race.abilities.map((ability) => (
+                    <Box key={ability.name} sx={{ mb: 2 }}>
+                      <Typography
+                        variant='h6'
+                        color='primary'
+                        sx={{
+                          fontFamily: 'Tfont, serif',
+                          fontSize: '1rem',
+                          mb: 1,
+                        }}
+                      >
+                        {ability.name}
+                      </Typography>
+                      <Typography variant='body1' paragraph>
+                        {ability.description}
+                      </Typography>
+                      {ability.name !==
+                        race.abilities[race.abilities.length - 1]?.name && (
+                        <Divider sx={{ my: 1.5 }} />
+                      )}
+                    </Box>
+                  ))}
             </Box>
           </Collapse>
         </TableCell>
@@ -263,6 +354,16 @@ const RacesTable: React.FC = () => {
         const abltNames = race.abilities.map((ablt) => ablt.name);
         if (abltNames.find((name) => name.toLowerCase().includes(search)))
           return true;
+        if (race.heritages) {
+          const heritageMatch = Object.values(race.heritages).some(
+            (heritage) =>
+              heritage.name.toLowerCase().includes(search) ||
+              heritage.abilities.some((ablt) =>
+                ablt.name.toLowerCase().includes(search)
+              )
+          );
+          if (heritageMatch) return true;
+        }
         return false;
       });
     }

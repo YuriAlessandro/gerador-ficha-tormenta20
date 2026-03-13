@@ -85,6 +85,11 @@ const Changelog: React.FC = () => {
                   especialmente com classes variantes de suplementos (ex:
                   Magimarcialista, Usurpador).
                 </li>
+                <li>
+                  Corrigido bug onde as habilidades de raça do Moreau não
+                  apareciam na enciclopédia. Agora todas as 12 heranças são
+                  exibidas com seus respectivos atributos e habilidades.
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>

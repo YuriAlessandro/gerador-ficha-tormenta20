@@ -55,6 +55,7 @@ const MOREAU: Race = {
     OCEANO: 1,
   },
   abilities: [], // Will be populated by heritage
+  heritages: MOREAU_HERITAGES,
   setup: (race) => {
     // Randomly select a heritage
     const heritageName = getRandomItemFromArray<MoreauHeritageName>(

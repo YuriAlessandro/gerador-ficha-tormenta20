@@ -68,6 +68,13 @@ export type RaceAbility = {
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
 };
 
+export interface RaceHeritage {
+  name: string;
+  attributes: RaceAttributeAbility[];
+  abilities: RaceAbility[];
+  displacement?: number;
+}
+
 export type RaceNames =
   | 'Humano'
   | 'Dahlan'
@@ -134,6 +141,7 @@ export default interface Race {
   abilities: RaceAbility[];
   oldRace?: Race;
   heritage?: string; // For races with heritages (like Moreau)
+  heritages?: Record<string, RaceHeritage>; // All heritage options for encyclopedia display
   chassis?: string; // For Golem Desperto
   energySource?: string; // For Golem Desperto
   sizeCategory?: string; // For Golem Desperto and Duende
