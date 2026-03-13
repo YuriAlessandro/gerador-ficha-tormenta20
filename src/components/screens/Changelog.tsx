@@ -79,6 +79,12 @@ const Changelog: React.FC = () => {
                   Corrigido bug do Meio-Elfo onde o poder da Ambição Herdada não
                   podia ser removido ou substituído após a geração da ficha.
                 </li>
+                <li>
+                  Corrigido bug onde os cálculos de PV e PM ficavam incorretos
+                  ao usar multiclasse via o editor de ficha (Subir Nível),
+                  especialmente com classes variantes de suplementos (ex:
+                  Magimarcialista, Usurpador).
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>

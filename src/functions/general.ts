@@ -3505,8 +3505,17 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
-      const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].value;
+      let attr = sheet.classe.spellPath?.keyAttribute;
+
+      // Multiclass fallback: if primary class has no spellPath, check secondary
+      if (!attr && sheet.multiclassSpellPaths) {
+        const spellPathEntries = Object.values(sheet.multiclassSpellPaths);
+        if (spellPathEntries.length > 0) {
+          attr = spellPathEntries[0].keyAttribute;
+        }
+      }
+
+      return sheet.atributos[attr || Atributo.CARISMA].value;
     }
   }
   if (bonus.type === 'Fixed') {

@@ -22,10 +22,6 @@ import {
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
-import CORE_CLASSES from '@/data/systems/tormenta20/core/classes';
-import DEUSES_ARTON_CLASSES from '@/data/systems/tormenta20/deuses-de-arton/classes';
-import HEROIS_ARTON_CLASSES from '@/data/systems/tormenta20/herois-de-arton/classes';
-import AMEACAS_ARTON_CLASSES from '@/data/systems/tormenta20/ameacas-de-arton/classes';
 import { ClassAbility, ClassDescription } from '@/interfaces/Class';
 import {
   isMulticlass,
@@ -33,6 +29,7 @@ import {
   calculateMulticlassPM,
   getClassLevel,
   getMulticlassAvailableAbilities,
+  findClassDescription,
 } from './multiclass';
 
 import {
@@ -45,28 +42,15 @@ import {
 import { countTormentaPowers } from './randomUtils';
 import { getRemovedPowers } from './reverseSheetActions';
 
-// Combined list of all available classes for ability lookup
-const ALL_CLASSES: ClassDescription[] = [
-  ...CORE_CLASSES,
-  ...DEUSES_ARTON_CLASSES,
-  ...HEROIS_ARTON_CLASSES,
-  ...AMEACAS_ARTON_CLASSES,
-];
-
 /**
- * Finds a class definition by name and optional subname
+ * Finds a class definition by name and optional subname.
+ * Delegates to findClassDescription which searches all supplements.
  */
 function findClassDefinition(
   name: string,
   subname?: string
 ): ClassDescription | undefined {
-  return ALL_CLASSES.find((c) => {
-    if (c.name !== name) return false;
-    if (subname) {
-      return c.subname === subname;
-    }
-    return !c.subname;
-  });
+  return findClassDescription(name, subname);
 }
 
 // Note: resetAttributesToBase was removed as part of attribute system simplification.
@@ -182,8 +166,17 @@ const calculateBonusValue = (
   }
   if (bonus.type === 'SpecialAttribute') {
     if (bonus.attribute === 'spellKeyAttr') {
-      const attr = sheet.classe.spellPath?.keyAttribute || Atributo.CARISMA;
-      return sheet.atributos[attr].value;
+      let attr = sheet.classe.spellPath?.keyAttribute;
+
+      // Multiclass fallback: if primary class has no spellPath, check secondary
+      if (!attr && sheet.multiclassSpellPaths) {
+        const spellPathEntries = Object.values(sheet.multiclassSpellPaths);
+        if (spellPathEntries.length > 0) {
+          attr = spellPathEntries[0].keyAttribute;
+        }
+      }
+
+      return sheet.atributos[attr || Atributo.CARISMA].value;
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {

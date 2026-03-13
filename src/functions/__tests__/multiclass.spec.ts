@@ -12,6 +12,7 @@ import {
   calculateMulticlassPV,
   calculateMulticlassPM,
   getMulticlassAvailableAbilities,
+  findClassDescription,
 } from '../multiclass';
 
 // Helper: create a simple class description for testing
@@ -496,5 +497,110 @@ describe('Edge cases', () => {
     expect(entries).toHaveLength(1);
     expect(entries[0].className).toBe('Guerreiro');
     expect(entries[0].level).toBe(1);
+  });
+});
+
+// ===== findClassDescription =====
+describe('findClassDescription', () => {
+  test('encontra classe core sem suplementos explícitos', () => {
+    const result = findClassDescription('Guerreiro');
+    expect(result).toBeDefined();
+    expect(result!.name).toBe('Guerreiro');
+  });
+
+  test('encontra classe variante de suplemento sem suplementos explícitos', () => {
+    // Magimarcialista é variante de Bardo do suplemento Heróis de Arton
+    const result = findClassDescription('Magimarcialista');
+    expect(result).toBeDefined();
+    expect(result!.name).toBe('Magimarcialista');
+    expect(result!.isVariant).toBe(true);
+  });
+
+  test('encontra classe variante Usurpador sem suplementos explícitos', () => {
+    const result = findClassDescription('Usurpador');
+    expect(result).toBeDefined();
+    expect(result!.name).toBe('Usurpador');
+    expect(result!.isVariant).toBe(true);
+  });
+
+  test('fallback para classe sem subname quando subname do setup não bate', () => {
+    // Arcanista no registry não tem subname (é definido pelo setup())
+    // Buscar com subname 'Mago' deve encontrar via fallback
+    const result = findClassDescription('Arcanista', 'Mago');
+    expect(result).toBeDefined();
+    expect(result!.name).toBe('Arcanista');
+  });
+
+  test('retorna undefined para classe inexistente', () => {
+    const result = findClassDescription('ClasseQueNaoExiste');
+    expect(result).toBeUndefined();
+  });
+});
+
+// ===== Multiclass PV/PM com classes variantes de suplementos =====
+describe('calculateMulticlassPV com classes variantes', () => {
+  test('calcula PV corretamente para Magimarcialista/Usurpador multiclasse', () => {
+    const magimarcialista = findClassDescription('Magimarcialista')!;
+    const usurpador = findClassDescription('Usurpador')!;
+
+    expect(magimarcialista).toBeDefined();
+    expect(usurpador).toBeDefined();
+
+    // Magimarcialista 6 / Usurpador 4, CON mod = 3
+    const sheet = createMulticlassSheet(
+      magimarcialista,
+      [
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+      ],
+      3
+    );
+
+    // Magimarcialista (primary, 6 levels): pv(16) + addpv(4) * (6-1) = 36
+    // Usurpador (secondary, 4 levels): addpv(4) * 4 = 16
+    // CON: max(3,0) * 10 = 30
+    // Total: 36 + 16 + 30 = 82
+    expect(calculateMulticlassPV(sheet)).toBe(82);
+  });
+});
+
+describe('calculateMulticlassPM com classes variantes', () => {
+  test('calcula PM corretamente para Magimarcialista/Usurpador multiclasse', () => {
+    const magimarcialista = findClassDescription('Magimarcialista')!;
+    const usurpador = findClassDescription('Usurpador')!;
+
+    expect(magimarcialista).toBeDefined();
+    expect(usurpador).toBeDefined();
+
+    // Magimarcialista 6 / Usurpador 4
+    const sheet = createMulticlassSheet(
+      magimarcialista,
+      [
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Magimarcialista' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+        { className: 'Usurpador' },
+      ],
+      0
+    );
+
+    // Magimarcialista (6 levels): pm(4) + addpm(4) * (6-1) = 24
+    // Usurpador (4 levels): pm(5) + addpm(5) * (4-1) = 20
+    // Total: 24 + 20 = 44
+    expect(calculateMulticlassPM(sheet)).toBe(44);
   });
 });

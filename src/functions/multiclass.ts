@@ -96,20 +96,34 @@ export function getMulticlassDisplayName(sheet: CharacterSheet): string {
 
 /**
  * Busca a ClassDescription de uma classe pelo nome, usando o registry.
- * Tenta primeiro pelo registry (com suplementos), fallback para lookup direto.
+ * Quando supplements não é fornecido, busca em TODOS os suplementos para
+ * garantir que classes variantes de suplementos sejam encontradas.
+ * Inclui fallback para classes com subname dinâmico (ex: Arcanista/Mago).
  */
 export function findClassDescription(
   className: string,
   classSubname?: string,
   supplements?: SupplementId[]
 ): ClassDescription | undefined {
-  const supps = supplements ?? [];
+  const supps = supplements ?? Object.values(SupplementId);
   const allClasses = dataRegistry.getClassesBySupplements(supps);
-  return allClasses.find((c) => {
+
+  // Exact match first (handles variant classes with explicit subname)
+  const exactMatch = allClasses.find((c) => {
     if (c.name !== className) return false;
     if (classSubname) return c.subname === classSubname;
     return !c.subname;
   });
+
+  if (exactMatch) return exactMatch;
+
+  // Fallback: match by name only when subname is from setup() (not in registry)
+  // Ex: Arcanista has subname 'Mago' set by setup(), but registry has no subname
+  if (classSubname) {
+    return allClasses.find((c) => c.name === className && !c.subname);
+  }
+
+  return undefined;
 }
 
 /**
