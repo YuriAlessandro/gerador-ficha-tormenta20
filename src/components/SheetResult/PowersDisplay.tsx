@@ -42,6 +42,7 @@ const PowersDisplay: React.FC<{
     newRolls: DiceRoll[]
   ) => void;
   characterName?: string;
+  onCompanionClick?: () => void;
 }> = ({
   sheetHistory,
   classPowers,
@@ -57,6 +58,7 @@ const PowersDisplay: React.FC<{
   deityName,
   onUpdateRolls,
   characterName,
+  onCompanionClick,
 }) => {
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
@@ -147,6 +149,9 @@ const PowersDisplay: React.FC<{
           count={powerCount[power.name]}
           onUpdateRolls={onUpdateRolls}
           characterName={characterName}
+          onCompanionClick={
+            power.name === 'Melhor Amigo' ? onCompanionClick : undefined
+          }
         />
       ))}
     </Box>

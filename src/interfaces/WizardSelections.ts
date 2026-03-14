@@ -8,6 +8,13 @@ import { OriginBenefits } from './Origin';
 import { MarketSelections } from './MarketEquipment';
 import { AttributeVariant } from './Race';
 import { DamageType } from './CharacterSheet';
+import {
+  CompanionType,
+  CompanionSize,
+  CompanionTrick,
+  NaturalWeaponDamageType,
+  SpiritEnergyType,
+} from './Companion';
 
 export interface OriginBenefit {
   type: 'skill' | 'item' | 'power';
@@ -30,6 +37,9 @@ export interface LevelUpSelections {
   abilityEffectSelections?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
+  // Truque do parceiro (Treinador nos níveis 4, 7, 10, 13, 16, 19)
+  companionTrick?: CompanionTrick;
+
   // Multiclasse: configuração de primeira vez na nova classe
   classSetup?: {
     arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';
@@ -128,4 +138,13 @@ export interface WizardSelections {
 
   // Market step selections (equipment and money)
   marketSelections?: MarketSelections;
+
+  // Seleções do parceiro (classe Treinador)
+  companionName?: string;
+  companionType?: CompanionType;
+  companionSize?: CompanionSize;
+  companionWeaponDamageType?: NaturalWeaponDamageType;
+  companionSpiritEnergyType?: SpiritEnergyType;
+  companionSkills?: Skill[];
+  companionTricks?: CompanionTrick[];
 }

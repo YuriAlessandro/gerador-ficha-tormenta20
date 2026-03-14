@@ -8,6 +8,7 @@ import CharacterSheet, {
   SheetActionHistoryEntry,
   Step,
 } from '@/interfaces/CharacterSheet';
+import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import Equipment from '@/interfaces/Equipment';
 import { ManualPowerSelections } from '@/interfaces/PowerSelections';
 import { RequirementType } from '@/interfaces/Poderes';
@@ -1391,7 +1392,18 @@ export function recalculateSheet(
     pmAfter: updatedSheet.pm,
   });
 
-  // Step 15: Deduplicate arrays to prevent accumulation
+  // Step 15: Recalculate companion stats (Treinador)
+  if (updatedSheet.companions?.length) {
+    const trainerLevel =
+      getClassLevel(updatedSheet, 'Treinador') || updatedSheet.nivel;
+    const trainerCharisma =
+      updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+    updatedSheet.companions = updatedSheet.companions.map((companion) =>
+      calculateCompanionStats(companion, trainerLevel, trainerCharisma)
+    );
+  }
+
+  // Step 16: Deduplicate arrays to prevent accumulation
   updatedSheet.spells = deduplicateSpells(updatedSheet.spells);
   updatedSheet.sheetActionHistory = deduplicateHistory(
     updatedSheet.sheetActionHistory

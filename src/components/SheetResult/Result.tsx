@@ -60,6 +60,7 @@ import AttributeDisplay from './AttributeDisplay';
 import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
+import CompanionSheetModal from './CompanionSheetModal';
 import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
@@ -146,6 +147,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [sizeDisplacementDrawerOpen, setSizeDisplacementDrawerOpen] =
     useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [companionModalOpen, setCompanionModalOpen] = useState(false);
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
@@ -1244,6 +1246,11 @@ const Result: React.FC<ResultProps> = (props) => {
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
                   }
                   characterName={nome}
+                  onCompanionClick={
+                    currentSheet.companions?.length
+                      ? () => setCompanionModalOpen(true)
+                      : undefined
+                  }
                 />
               </Box>
             </Card>
@@ -1757,6 +1764,15 @@ const Result: React.FC<ResultProps> = (props) => {
           notes={currentSheet.notes || ''}
           onSave={handleNotesSave}
         />
+        {currentSheet.companions?.[0] && (
+          <CompanionSheetModal
+            open={companionModalOpen}
+            onClose={() => setCompanionModalOpen(false)}
+            companion={currentSheet.companions[0]}
+            trainerLevel={currentSheet.nivel}
+            trainerName={currentSheet.nome}
+          />
+        )}
       </>
     </BackgroundBox>
   );

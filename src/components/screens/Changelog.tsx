@@ -72,6 +72,30 @@ const Changelog: React.FC = () => {
               <h3>4.6</h3>
               <ul>
                 <li>
+                  <strong>Melhor Amigo (Treinador):</strong> Implementado
+                  sistema completo de parceiro para a classe Treinador. Inclui
+                  ficha própria com atributos, PV, Defesa, armas naturais,
+                  perícias, truques e habilidades especiais por tipo (Animal,
+                  Construto, Espírito, Monstro, Morto-Vivo).
+                </li>
+                <li>
+                  <strong>Criação de Parceiro:</strong> Novo passo no wizard de
+                  criação de personagem para configurar o Melhor Amigo (tipo,
+                  tamanho, arma natural, perícias e truques iniciais). Geração
+                  aleatória também inclui parceiro.
+                </li>
+                <li>
+                  <strong>Level Up do Parceiro:</strong> Novos truques podem ser
+                  escolhidos nos níveis 4, 7, 10, 13, 16 e 19 do Treinador
+                  durante o Subir Nível.
+                </li>
+                <li>
+                  <strong>Ficha do Parceiro:</strong> Ícone clicável ao lado do
+                  poder Melhor Amigo abre a ficha completa do parceiro em modal.
+                  A ficha permite rolagens de ataque com armas naturais, testes
+                  de atributo e testes de perícia.
+                </li>
+                <li>
                   Corrigido modificador de atributos do Humano na enciclopédia
                   (exibia +2 ao invés de +1).
                 </li>

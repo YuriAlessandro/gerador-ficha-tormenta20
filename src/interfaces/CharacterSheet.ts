@@ -9,6 +9,7 @@ import { Atributo } from '../data/systems/tormenta20/atributos';
 import { BagEquipments } from './Equipment';
 import { OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
+import { CompanionSheet } from './Companion';
 
 export type SheetChangeSource =
   | {
@@ -464,6 +465,7 @@ export default interface CharacterSheet {
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
+  companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
 }
 
 /** SpellPath sem funções — para persistência. As funções são restauradas via restoreSpellPath. */

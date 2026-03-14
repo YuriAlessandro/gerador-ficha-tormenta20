@@ -59,6 +59,7 @@ import MarketStep from './steps/MarketStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
 import PropositoCriacaoStep from './steps/PropositoCriacaoStep';
+import CompanionCreationStep from './steps/CompanionCreationStep';
 
 interface RaceCustomization {
   // Golem Desperto
@@ -299,6 +300,8 @@ const CharacterCreationWizardModal: React.FC<
     // For now, always skip (placeholder implementation)
     false;
 
+  const needsCompanionCreation = (): boolean => classe?.name === 'Treinador';
+
   const needsPowerEffectSelections = (): boolean => {
     if (!race || !classe) return false;
 
@@ -530,6 +533,7 @@ const CharacterCreationWizardModal: React.FC<
     if (needsPowerEffectSelections()) stepsArray.push('Efeitos de Poderes');
     if (needsClassPowers()) stepsArray.push('Poderes da Classe');
     if (needsOriginPowers()) stepsArray.push('Poderes da Origem');
+    if (needsCompanionCreation()) stepsArray.push('Melhor Amigo');
     stepsArray.push('Mercado'); // Always show as final step
     return stepsArray;
   };
@@ -1108,6 +1112,46 @@ const CharacterCreationWizardModal: React.FC<
           />
         );
 
+      case 'Melhor Amigo':
+        return (
+          <CompanionCreationStep
+            companionName={selections.companionName}
+            companionType={selections.companionType}
+            companionSize={selections.companionSize}
+            companionWeaponDamageType={selections.companionWeaponDamageType}
+            companionSpiritEnergyType={selections.companionSpiritEnergyType}
+            companionSkills={selections.companionSkills || []}
+            companionTricks={selections.companionTricks || []}
+            onNameChange={(name) =>
+              setSelections((prev) => ({ ...prev, companionName: name }))
+            }
+            onTypeChange={(type) =>
+              setSelections((prev) => ({ ...prev, companionType: type }))
+            }
+            onSizeChange={(size) =>
+              setSelections((prev) => ({ ...prev, companionSize: size }))
+            }
+            onWeaponDamageTypeChange={(damageType) =>
+              setSelections((prev) => ({
+                ...prev,
+                companionWeaponDamageType: damageType,
+              }))
+            }
+            onSpiritEnergyTypeChange={(energyType) =>
+              setSelections((prev) => ({
+                ...prev,
+                companionSpiritEnergyType: energyType,
+              }))
+            }
+            onSkillsChange={(skills) =>
+              setSelections((prev) => ({ ...prev, companionSkills: skills }))
+            }
+            onTricksChange={(tricks) =>
+              setSelections((prev) => ({ ...prev, companionTricks: tricks }))
+            }
+          />
+        );
+
       case 'Mercado': {
         // Calculate initial money
         const moneyInfo = getInitialMoneyWithDetails(
@@ -1450,6 +1494,25 @@ const CharacterCreationWizardModal: React.FC<
 
           return count >= effectivePick;
         });
+      }
+
+      case 'Melhor Amigo': {
+        const hasType = !!selections.companionType;
+        const hasSize = !!selections.companionSize;
+        const hasDamageType = !!selections.companionWeaponDamageType;
+        const hasSkills = selections.companionSkills?.length === 3;
+        const hasTricks = selections.companionTricks?.length === 2;
+        const hasSpiritEnergy =
+          selections.companionType !== 'Espírito' ||
+          !!selections.companionSpiritEnergyType;
+        return (
+          hasType &&
+          hasSize &&
+          hasDamageType &&
+          hasSkills &&
+          hasTricks &&
+          hasSpiritEnergy
+        );
       }
 
       case 'Mercado':

@@ -55,6 +55,10 @@ import {
   rollDice,
 } from './randomUtils';
 import todasProficiencias from '../data/systems/tormenta20/proficiencias';
+import {
+  generateRandomCompanion,
+  createCompanion,
+} from '../data/systems/tormenta20/herois-de-arton/companion';
 import { generateEquipmentRewards } from './equipmentRewardGenerator';
 import {
   getOriginBenefits,
@@ -2673,6 +2677,18 @@ function applyClassAbilities(
       });
     }
 
+    // Treinador: gerar Melhor Amigo aleatório
+    if (ability.name === 'Melhor Amigo' && !newAcc.companions?.length) {
+      const trainerCharisma = newAcc.atributos[Atributo.CARISMA]?.value ?? 0;
+      newAcc.companions = [
+        generateRandomCompanion(newAcc.nivel, trainerCharisma),
+      ];
+      subSteps.push({
+        name: 'Melhor Amigo',
+        value: `${newAcc.companions[0].companionType} ${newAcc.companions[0].size}`,
+      });
+    }
+
     return newAcc;
   }, sheetClone);
 
@@ -3479,6 +3495,19 @@ export function applyManualLevelUp(
 
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(updatedSheet);
+
+  // Treinador: aplicar truque do parceiro selecionado no level up
+  if (selections.companionTrick && updatedSheet.companions?.length) {
+    updatedSheet.companions = updatedSheet.companions.map((companion, idx) => {
+      if (idx === 0) {
+        return {
+          ...companion,
+          tricks: [...companion.tricks, selections.companionTrick!],
+        };
+      }
+      return companion;
+    });
+  }
 
   return updatedSheet;
 }
@@ -5403,6 +5432,31 @@ export function generateEmptySheet(
       type: 'Modificação de Atributo de Perícia',
       value: modifySkillAttrSubSteps,
     });
+  }
+
+  // Treinador: criar parceiro a partir das seleções do wizard
+  if (
+    wizardSelections?.companionType &&
+    wizardSelections.companionSize &&
+    wizardSelections.companionWeaponDamageType &&
+    wizardSelections.companionSkills &&
+    wizardSelections.companionTricks &&
+    emptySheet.classe.name === 'Treinador'
+  ) {
+    const trainerCharisma = emptySheet.atributos[Atributo.CARISMA]?.value ?? 0;
+    emptySheet.companions = [
+      createCompanion({
+        name: wizardSelections.companionName,
+        type: wizardSelections.companionType,
+        size: wizardSelections.companionSize,
+        weaponDamageType: wizardSelections.companionWeaponDamageType,
+        spiritEnergyType: wizardSelections.companionSpiritEnergyType,
+        skills: wizardSelections.companionSkills,
+        tricks: wizardSelections.companionTricks,
+        trainerLevel: 1,
+        trainerCharisma,
+      }),
+    ];
   }
 
   return emptySheet;

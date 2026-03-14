@@ -46,6 +46,7 @@ import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffe
 import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
+import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -519,6 +520,16 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Seleção de Magias');
     }
 
+    // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
+    const COMPANION_TRICK_LEVELS = [4, 7, 10, 13, 16, 19];
+    if (
+      selectedClassName === 'Treinador' &&
+      COMPANION_TRICK_LEVELS.includes(selectedClassLevel) &&
+      simulatedSheet.companions?.length
+    ) {
+      steps.push('Truque do Melhor Amigo');
+    }
+
     return steps;
   };
 
@@ -664,6 +675,9 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         const selectedCount = currentLevelSelection.spellsLearned?.length || 0;
         return selectedCount === spellInfo.spellCount;
       }
+
+      case 'Truque do Melhor Amigo':
+        return !!currentLevelSelection.companionTrick;
 
       default:
         return false;
@@ -912,6 +926,24 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 });
               }
             }}
+          />
+        );
+      }
+
+      case 'Truque do Melhor Amigo': {
+        const companion = simulatedSheet.companions?.[0];
+        if (!companion) return null;
+        return (
+          <CompanionTrickSelectionStep
+            companion={companion}
+            trainerLevel={selectedClassLevel}
+            selectedTrick={currentLevelSelection.companionTrick}
+            onSelectTrick={(trick) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionTrick: trick,
+              })
+            }
           />
         );
       }

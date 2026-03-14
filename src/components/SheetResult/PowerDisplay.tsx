@@ -4,6 +4,7 @@ import { RaceAbility } from '@/interfaces/Race';
 import React, { useCallback, useMemo, useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PetsIcon from '@mui/icons-material/Pets';
 import {
   Accordion,
   AccordionDetails,
@@ -44,10 +45,19 @@ interface PowerDisplayProps {
     newRolls: DiceRoll[]
   ) => void;
   characterName?: string;
+  onCompanionClick?: () => void;
 }
 
 const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
-  ({ sheetHistory, power, type, count, onUpdateRolls, characterName }) => {
+  ({
+    sheetHistory,
+    power,
+    type,
+    count,
+    onUpdateRolls,
+    characterName,
+    onCompanionClick,
+  }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
     const theme = useTheme();
@@ -165,6 +175,17 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
               {power.name}
               {count > 1 ? ` (x${count})` : ''}
             </Typography>
+            {onCompanionClick && (
+              <Box onClick={(e) => e.stopPropagation()}>
+                <IconButton
+                  size='small'
+                  onClick={onCompanionClick}
+                  title='Ver ficha do Melhor Amigo'
+                >
+                  <PetsIcon fontSize='small' color='primary' />
+                </IconButton>
+              </Box>
+            )}
           </Stack>
           <Typography sx={{ color: 'text.secondary' }}>{type}</Typography>
         </AccordionSummary>
