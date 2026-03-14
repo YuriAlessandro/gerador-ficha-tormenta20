@@ -1338,6 +1338,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       }
     }
 
+    // Detect if the Humano Versátil power was removed
+    let shouldClearHumanoVersatil = false;
+    if (
+      sheet.humanoVersatilChoice &&
+      sheet.humanoVersatilChoice.type === 'power'
+    ) {
+      const versatilPowerName = sheet.humanoVersatilChoice.value;
+      const wasInOriginal = sheet.generalPowers?.some(
+        (p) => p.name === versatilPowerName
+      );
+      const isInNew = selectedPowers.some((p) => p.name === versatilPowerName);
+      if (wasInOriginal && !isInNew) {
+        shouldClearHumanoVersatil = true;
+      }
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -1351,6 +1367,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             meioElfoAmbicaoType: 'cleared' as const,
             meioElfoAmbicaoPower: undefined,
           }
+        : {}),
+      // Clear Humano Versátil when the granted power was removed
+      ...(shouldClearHumanoVersatil
+        ? { humanoVersatilChoice: { type: 'cleared' as const } }
         : {}),
       origin: sheet.origin
         ? {

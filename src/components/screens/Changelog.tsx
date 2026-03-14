@@ -101,6 +101,12 @@ const Changelog: React.FC = () => {
                   equipamentos (ex: Flauta Mística) agora também são aplicados
                   corretamente.
                 </li>
+                <li>
+                  Corrigido bug onde o Humano Versátil re-adicionava poderes
+                  removidos pelo editor durante a recalculação da ficha,
+                  impedindo a remoção permanente do poder e mantendo efeitos
+                  como Redução de Dano.
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>

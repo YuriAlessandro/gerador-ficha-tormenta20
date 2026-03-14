@@ -415,7 +415,8 @@ export default interface CharacterSheet {
   humanoVersatilSkill?: string; // Perícia escolhida por Versátil (Humano)
   humanoVersatilChoice?:
     | { type: 'skill'; value: string }
-    | { type: 'power'; value: string }; // Segunda escolha
+    | { type: 'power'; value: string }
+    | { type: 'cleared' }; // Segunda escolha
   lefouDeformidadeSkills?: string[]; // Perícias escolhidas por Deformidade (Lefou)
   lefouDeformidadePower?: string; // Poder da Tormenta escolhido (se aplicável)
   osteonMemoriaPostumaChoice?: {

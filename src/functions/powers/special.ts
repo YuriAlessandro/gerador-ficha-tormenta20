@@ -41,23 +41,24 @@ export function applyHumanoVersatil(
       sheet.skills.push(storedSkill);
     }
 
-    if (sheet.humanoVersatilChoice.type === 'power') {
-      if (
-        !sheet.generalPowers.some(
-          (p) => p.name === sheet.humanoVersatilChoice!.value
-        )
-      ) {
+    if (sheet.humanoVersatilChoice.type === 'cleared') {
+      // User explicitly removed the granted power/skill — only replay first skill
+      substeps.push({
+        name: 'Versátil',
+        value: `Perícia treinada (${storedSkill})`,
+      });
+    } else if (sheet.humanoVersatilChoice.type === 'power') {
+      const powerName = sheet.humanoVersatilChoice.value;
+      if (!sheet.generalPowers.some((p) => p.name === powerName)) {
         const allowedPowers = getPowersAllowedByRequirements(sheet);
-        const storedPower = allowedPowers.find(
-          (p) => p.name === sheet.humanoVersatilChoice!.value
-        );
+        const storedPower = allowedPowers.find((p) => p.name === powerName);
         if (storedPower) {
           sheet.generalPowers.push(storedPower);
         }
       }
       substeps.push({
         name: 'Versátil',
-        value: `Poder geral recebido (${sheet.humanoVersatilChoice.value})`,
+        value: `Poder geral recebido (${powerName})`,
       });
     } else {
       const storedSecondSkill = sheet.humanoVersatilChoice.value as Skill;
