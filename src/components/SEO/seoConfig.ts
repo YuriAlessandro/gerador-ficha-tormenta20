@@ -101,6 +101,11 @@ export const SEO_CONFIG = {
       description:
         'Instale o Fichas de Nimb no seu dispositivo e acesse suas fichas de Tormenta 20 a qualquer momento, mesmo offline.',
     },
+    wyrt: {
+      title: 'Wyrt - Jogo de Cartas de Arton',
+      description:
+        'Jogue Wyrt, o jogo de cartas do universo de Tormenta 20. Aposte, blefe e tente acertar o Número da Raposa! Jogue solo contra bots ou online com amigos.',
+    },
   },
 };
 
