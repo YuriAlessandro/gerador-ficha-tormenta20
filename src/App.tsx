@@ -43,6 +43,7 @@ import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloud
 import SheetViewPage from './components/screens/SheetViewPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import InstallPage from './components/screens/InstallPage';
+import { WyrtScreen } from './components/Wyrt';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
@@ -211,7 +212,8 @@ function ThemedApp(): JSX.Element {
   }, [dispatch]);
 
   // Detectar se estamos na página de sessão (mesa virtual)
-  const isGameSession = location.pathname.startsWith('/sessao/');
+  const isGameSession =
+    location.pathname.startsWith('/sessao/') || location.pathname === '/wyrt';
 
   const theme = React.useMemo(
     () => createTormentaTheme(darkMode ? 'dark' : 'light', accentColor),
@@ -444,6 +446,9 @@ function ThemedApp(): JSX.Element {
                                   <ProtectedRoute requireAuth redirectTo='/'>
                                     <AdminPage />
                                   </ProtectedRoute>
+                                </Route>
+                                <Route path='/wyrt'>
+                                  <WyrtScreen />
                                 </Route>
                                 <Route path='/instalar'>
                                   <InstallPage />

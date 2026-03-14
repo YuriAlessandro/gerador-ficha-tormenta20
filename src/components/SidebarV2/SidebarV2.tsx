@@ -38,13 +38,14 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import StarIcon from '@mui/icons-material/Star';
+import CasinoIcon from '@mui/icons-material/Casino';
 
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.6';
+const APP_VERSION = '4.6.1';
 
 interface SidebarV2Props {
   visible: boolean;
@@ -370,6 +371,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                 <AutoFixHighIcon />
               </ListItemIcon>
               <Typography variant='inherit'>Criar Item Mágico</Typography>
+            </StyledMenuItem>
+            <StyledMenuItem onClick={() => navigateTo('/wyrt')}>
+              <ListItemIcon>
+                <CasinoIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Wyrt (Jogo de Cartas)</Typography>
             </StyledMenuItem>
 
             <Divider sx={{ my: 1 }} />
