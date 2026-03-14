@@ -33,6 +33,7 @@ import {
   rollCriticalDamage,
 } from '@/functions/diceRoller';
 import { useDiceRoll } from '@/premium/hooks/useDiceRoll';
+import StatControl from './StatControl';
 
 interface CompanionSheetModalProps {
   open: boolean;
@@ -40,6 +41,7 @@ interface CompanionSheetModalProps {
   companion: CompanionSheet;
   trainerLevel: number;
   trainerName?: string;
+  onCompanionUpdate?: (updated: CompanionSheet) => void;
 }
 
 const CompanionAttributeDisplay: React.FC<{
@@ -105,6 +107,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   companion,
   trainerLevel,
   trainerName,
+  onCompanionUpdate,
 }) => {
   const isMobile = useMemo(() => window.innerWidth < 720, []);
   const theme = useTheme();
@@ -116,6 +119,24 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   );
 
   const displayName = companion.name || 'Melhor Amigo';
+
+  const handlePVCurrentUpdate = useCallback(
+    (newCurrent: number) => {
+      if (onCompanionUpdate) {
+        onCompanionUpdate({ ...companion, currentPV: newCurrent });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
+
+  const handlePVIncrementUpdate = useCallback(
+    (newIncrement: number) => {
+      if (onCompanionUpdate) {
+        onCompanionUpdate({ ...companion, pvIncrement: newIncrement });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
 
   const handleAttributeRoll = useCallback(
     (attrLabel: string, modifier: number) => {
@@ -322,6 +343,20 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
 
         <Divider sx={{ my: 1.5 }} />
 
+        {/* PV Control */}
+        <Stack direction='row' justifyContent='center' sx={{ mb: 2 }}>
+          <StatControl
+            type='PV'
+            current={companion.currentPV ?? companion.pv}
+            max={companion.pv}
+            calculatedMax={companion.pv}
+            increment={companion.pvIncrement ?? 1}
+            onUpdateCurrent={handlePVCurrentUpdate}
+            onUpdateIncrement={handlePVIncrementUpdate}
+            disabled={!onCompanionUpdate}
+          />
+        </Stack>
+
         {/* Stats de Combate */}
         <Typography
           variant='subtitle2'
@@ -332,7 +367,6 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           Combate
         </Typography>
         <Stack spacing={0.5} sx={{ mb: 2 }}>
-          <StatRow label='Pontos de Vida' value={companion.pv} />
           <StatRow label='Defesa' value={companion.defesa} />
           <StatRow label='Deslocamento' value={`${companion.displacement}m`} />
           {companion.movementTypes?.voo && (

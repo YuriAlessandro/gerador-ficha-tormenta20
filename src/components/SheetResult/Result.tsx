@@ -43,6 +43,7 @@ import { Spell } from '@/interfaces/Spells';
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
+import { CompanionSheet } from '@/interfaces/Companion';
 import { CustomPower } from '@/interfaces/CustomPower';
 import { useSubscription } from '@/hooks/useSubscription';
 import CharacterSheet, {
@@ -431,6 +432,21 @@ const Result: React.FC<ResultProps> = (props) => {
       setCurrentSheet(recalculated);
       if (onSheetUpdate) {
         onSheetUpdate(recalculated);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleCompanionUpdate = useCallback(
+    (updatedCompanion: CompanionSheet) => {
+      const companions = currentSheet.companions
+        ? [...currentSheet.companions]
+        : [];
+      companions[0] = updatedCompanion;
+      const updatedSheet = { ...currentSheet, companions };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -1771,6 +1787,9 @@ const Result: React.FC<ResultProps> = (props) => {
             companion={currentSheet.companions[0]}
             trainerLevel={currentSheet.nivel}
             trainerName={currentSheet.nome}
+            onCompanionUpdate={
+              onSheetUpdate ? handleCompanionUpdate : undefined
+            }
           />
         )}
       </>

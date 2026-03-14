@@ -35,6 +35,8 @@ export interface CompanionSheet {
   tricks: CompanionTrick[];
 
   pv: number;
+  currentPV?: number;
+  pvIncrement?: number;
   defesa: number;
   displacement: number;
   movementTypes?: { voo?: number; escalada?: number; natacao?: number };
