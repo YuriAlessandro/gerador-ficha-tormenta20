@@ -166,7 +166,7 @@ const SimpleResult: React.FC<ResultProps> = (props) => {
           <SheetText>Ataques</SheetText>
         </div>
         {sheet.bag.equipments.Arma.map((eq) => {
-          const isRange = eq.alcance && eq.alcance !== '-';
+          const isRange = eq.alcance && eq.alcance !== '-' && !eq.arremesso;
           const modAtk = isRange ? rangeSkill : fightSkill;
           return (
             <div key={getKey(eq.nome)}>

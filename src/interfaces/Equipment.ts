@@ -42,6 +42,7 @@ export default interface Equipment {
   spaces?: number;
   tipo?: string;
   alcance?: string;
+  arremesso?: boolean;
   group: equipGroup;
   atkBonus?: number;
   weaponTags?: string[];

@@ -178,7 +178,8 @@ const preparePDF: (
     weaponTypeField.setText(weapon.tipo || '');
     weaponRangeField.setText(weapon.alcance || '');
 
-    const isRange = weapon.alcance && weapon.alcance !== '-';
+    const isRange =
+      weapon.alcance && weapon.alcance !== '-' && !weapon.arremesso;
 
     const modAtk = isRange ? rangeBonus : fightBonus;
     const atk = weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk;

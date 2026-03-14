@@ -90,6 +90,11 @@ const Changelog: React.FC = () => {
                   apareciam na enciclopédia. Agora todas as 12 heranças são
                   exibidas com seus respectivos atributos e habilidades.
                 </li>
+                <li>
+                  Corrigido bug onde armas corpo a corpo com propriedade
+                  Arremesso (Lança, Lança de falange, Martelo leve) usavam o
+                  bônus de Pontaria ao invés de Luta.
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>

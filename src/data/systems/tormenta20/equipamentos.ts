@@ -103,6 +103,7 @@ export const Armas: Record<string, Equipment> = {
     spaces: 1,
     tipo: 'Perf.',
     alcance: 'Curto',
+    arremesso: true,
     group: 'Arma',
     preco: 2,
     weaponTags: ['armaDeMar'],

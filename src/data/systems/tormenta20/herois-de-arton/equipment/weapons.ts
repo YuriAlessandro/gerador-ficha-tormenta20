@@ -99,6 +99,7 @@ const MARTELO_LEVE: Equipment = {
   spaces: 1,
   tipo: 'Impacto',
   alcance: 'Curto',
+  arremesso: true,
   group: 'Arma',
   preco: 2,
 };
@@ -351,6 +352,7 @@ const LANCA_DE_FALANGE: Equipment = {
   spaces: 1,
   tipo: 'Perfuração',
   alcance: 'Curto',
+  arremesso: true,
   group: 'Arma',
   preco: 15,
 };

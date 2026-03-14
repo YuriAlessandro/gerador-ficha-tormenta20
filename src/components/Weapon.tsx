@@ -48,7 +48,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
   const { showDiceResult } = useDiceRoll();
   const [modeDialogOpen, setModeDialogOpen] = useState(false);
 
-  const isRange = alcance && alcance !== '-';
+  const isRange = alcance && alcance !== '-' && !equipment.arremesso;
 
   const modAtk = isRange ? rangeBonus : fightBonus;
   const atk = atkBonus ? atkBonus + modAtk : modAtk;
