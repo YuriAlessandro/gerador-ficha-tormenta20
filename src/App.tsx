@@ -43,7 +43,7 @@ import ThreatViewCloudWrapper from './components/ThreatGenerator/ThreatViewCloud
 import SheetViewPage from './components/screens/SheetViewPage';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import InstallPage from './components/screens/InstallPage';
-import { WyrtScreen } from './components/Wyrt';
+import { WyrtScreen } from './premium/components/Wyrt';
 import ErrorBoundary from './components/ErrorBoundary';
 import { SEOProvider } from './components/SEO';
 import { useAuth } from './hooks/useAuth';
