@@ -95,6 +95,12 @@ const Changelog: React.FC = () => {
                   Arremesso (Lança, Lança de falange, Martelo leve) usavam o
                   bônus de Pontaria ao invés de Luta.
                 </li>
+                <li>
+                  Adicionado campo de bônus manual para o Teste de Resistência
+                  de magias no editor de magias. Bônus automáticos de
+                  equipamentos (ex: Flauta Mística) agora também são aplicados
+                  corretamente.
+                </li>
               </ul>
 
               <h3>4.5 - Update 2026.2</h3>

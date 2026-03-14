@@ -81,6 +81,9 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   ) as SupplementId[];
 
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
+  const [bonusSpellDC, setBonusSpellDC] = useState<number>(
+    sheet.bonusSpellDC ?? 0
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCircle, setFilterCircle] = useState<number | 'all'>('all');
   const [spellType, setSpellType] = useState<'arcane' | 'divine' | 'both'>(
@@ -287,6 +290,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
 
     const updates: Partial<CharacterSheet> = {
       spells: selectedSpells,
+      bonusSpellDC: bonusSpellDC || undefined,
     };
 
     if (newSteps.length > 0) {
@@ -301,6 +305,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     if (sheet.spells) {
       setSelectedSpells([...sheet.spells]);
     }
+    setBonusSpellDC(sheet.bonusSpellDC ?? 0);
     setSearchTerm('');
     setFilterCircle('all');
     setSpellType('both');
@@ -345,6 +350,18 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           Selecione as magias do personagem. Magias que atendem aos
           pré-requisitos do seu nível são destacadas em verde.
         </Typography>
+
+        {/* Bonus Spell DC */}
+        <TextField
+          label='Bônus no Teste de Resistência'
+          type='number'
+          value={bonusSpellDC}
+          onChange={(e) => setBonusSpellDC(parseInt(e.target.value, 10) || 0)}
+          helperText='Bônus adicional na CD de magias de fontes não automáticas'
+          inputProps={{ min: -50, max: 50 }}
+          size='small'
+          sx={{ mb: 3, maxWidth: 300 }}
+        />
 
         {/* Filters */}
         <Stack direction='row' spacing={2} sx={{ mb: 3 }}>

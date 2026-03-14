@@ -10,13 +10,15 @@ interface SpellsProp {
   spellPath: SpellPath | undefined;
   keyAttr: CharacterAttribute | null;
   nivel: number;
+  bonusSpellDC?: number;
 }
 
 const SpellsMobile: React.FC<SpellsProp> = (props) => {
-  const { spells, spellPath, keyAttr, nivel } = props;
+  const { spells, spellPath, keyAttr, nivel, bonusSpellDC } = props;
 
   const mod = keyAttr ? keyAttr.value : 0;
-  const resistence = 10 + Math.floor(nivel * 0.5) + mod;
+  const bonus = bonusSpellDC || 0;
+  const resistence = 10 + Math.floor(nivel * 0.5) + mod + bonus;
 
   return (
     <div>

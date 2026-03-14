@@ -751,6 +751,18 @@ const Result: React.FC<ResultProps> = (props) => {
     Atributo.SABEDORIA;
   const keyAttr = atributos[effectiveKeyAttribute];
 
+  const spellDCBonus = useMemo(() => {
+    let total = currentSheet.bonusSpellDC ?? 0;
+    currentSheet.sheetBonuses
+      .filter((b) => b.target.type === 'SpellDC')
+      .forEach((b) => {
+        if (b.modifier.type === 'Fixed') {
+          total += b.modifier.value;
+        }
+      });
+    return total;
+  }, [currentSheet.bonusSpellDC, currentSheet.sheetBonuses]);
+
   // Helper function to format attribute modifiers correctly
   const formatAttributeModifier = useCallback(
     (value: number | string): string => {
@@ -1275,6 +1287,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   onToggleMemorized={
                     onSheetUpdate ? handleToggleMemorized : undefined
                   }
+                  bonusSpellDC={spellDCBonus}
                   onKeyAttributeChange={
                     onSheetUpdate ? handleKeyAttributeChange : undefined
                   }

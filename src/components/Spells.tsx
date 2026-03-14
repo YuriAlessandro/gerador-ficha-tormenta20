@@ -34,6 +34,7 @@ interface SpellsProp {
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
+  bonusSpellDC?: number;
 }
 
 const Spells: React.FC<SpellsProp> = (props) => {
@@ -50,6 +51,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     isMago,
     onToggleMemorized,
     onKeyAttributeChange,
+    bonusSpellDC,
   } = props;
 
   spells.sort((spell1, spell2) => {
@@ -58,7 +60,8 @@ const Spells: React.FC<SpellsProp> = (props) => {
   });
 
   const mod = keyAttr ? keyAttr.value : 0;
-  const resistence = 10 + Math.floor(nivel * 0.5) + mod;
+  const bonus = bonusSpellDC || 0;
+  const resistence = 10 + Math.floor(nivel * 0.5) + mod + bonus;
 
   const isMobile = window.innerWidth < 720;
 
@@ -95,7 +98,9 @@ const Spells: React.FC<SpellsProp> = (props) => {
           <span>
             <strong>Teste de Resistência:</strong> {resistence}
             <span className='spellCalc'>
-              {` (10 + ¹/₂ nível + atributo-chave)`}
+              {` (10 + ¹/₂ nível + atributo-chave${
+                bonus ? ` + ${bonus} bônus` : ''
+              })`}
             </span>
           </span>
         </div>
