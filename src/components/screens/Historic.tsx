@@ -18,6 +18,7 @@ import { styled, Stack } from '@mui/material';
 import { HistoricI } from '../../interfaces/Historic';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
+import { isMulticlass, getClassLevelsMap } from '../../functions/multiclass';
 
 const Historic: React.FC<{
   isDarkTheme: boolean;
@@ -123,7 +124,13 @@ const Historic: React.FC<{
                 </StyledTableCell>
                 <StyledTableCell>{row.sheet.nome}</StyledTableCell>
                 <StyledTableCell>{row.sheet.raca.name}</StyledTableCell>
-                <StyledTableCell>{row.sheet.classe.name}</StyledTableCell>
+                <StyledTableCell>
+                  {isMulticlass(row.sheet)
+                    ? Array.from(getClassLevelsMap(row.sheet).entries())
+                        .map(([name, level]) => `${name} ${level}`)
+                        .join(' / ')
+                    : row.sheet.classe.name}
+                </StyledTableCell>
                 <StyledTableCell>{row.sheet.nivel}</StyledTableCell>
                 <StyledTableCell>
                   <Stack direction='row' spacing={1}>

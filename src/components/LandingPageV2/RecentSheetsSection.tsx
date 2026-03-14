@@ -21,6 +21,7 @@ interface RecentSheetsSectionProps {
 interface SheetDataContent {
   raca?: { name: string };
   classe?: { name: string };
+  classLevels?: { className: string }[];
   nivel?: number;
   isThreat?: boolean;
 }
@@ -145,14 +146,35 @@ const RecentSheetsSection: React.FC<RecentSheetsSectionProps> = ({
                 </Typography>
 
                 <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
-                  {data.classe?.name && (
-                    <Chip
-                      label={data.classe.name}
-                      size='small'
-                      color='primary'
-                      sx={{ fontSize: '0.65rem', height: 20 }}
-                    />
-                  )}
+                  {(() => {
+                    let classLabel = data.classe?.name;
+                    if (
+                      data.classLevels &&
+                      Array.isArray(data.classLevels) &&
+                      data.classLevels.length > 0
+                    ) {
+                      const classMap = new Map<string, number>();
+                      data.classLevels.forEach((cl) => {
+                        classMap.set(
+                          cl.className,
+                          (classMap.get(cl.className) ?? 0) + 1
+                        );
+                      });
+                      if (classMap.size > 1) {
+                        classLabel = Array.from(classMap.entries())
+                          .map(([name, level]) => `${name} ${level}`)
+                          .join(' / ');
+                      }
+                    }
+                    return classLabel ? (
+                      <Chip
+                        label={classLabel}
+                        size='small'
+                        color='primary'
+                        sx={{ fontSize: '0.65rem', height: 20 }}
+                      />
+                    ) : null;
+                  })()}
                   {data.raca?.name && (
                     <Chip
                       label={data.raca.name}

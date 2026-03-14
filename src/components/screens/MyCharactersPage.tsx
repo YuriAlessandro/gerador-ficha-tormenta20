@@ -244,7 +244,24 @@ const MyCharactersPage: React.FC = () => {
     if (data.raca?.name) {
       parts.push(data.raca.name);
     }
-    if (data.classe?.name) {
+    if (
+      data.classLevels &&
+      Array.isArray(data.classLevels) &&
+      data.classLevels.length > 0
+    ) {
+      const classMap = new Map<string, number>();
+      (data.classLevels as { className: string }[]).forEach((cl) => {
+        classMap.set(cl.className, (classMap.get(cl.className) ?? 0) + 1);
+      });
+      if (classMap.size > 1) {
+        const classParts = Array.from(classMap.entries()).map(
+          ([name, level]) => `${name} ${level}`
+        );
+        parts.push(classParts.join(' / '));
+      } else if (data.classe?.name) {
+        parts.push(data.classe.name);
+      }
+    } else if (data.classe?.name) {
       parts.push(data.classe.name);
     }
     if (data.origin?.name) {
