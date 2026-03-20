@@ -17,6 +17,8 @@ import {
   Autocomplete,
   Chip,
   Checkbox,
+  Radio,
+  RadioGroup,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -26,6 +28,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
+import { AttributeVariant } from '@/interfaces/Race';
 import { dataRegistry } from '@/data/registry';
 import Divindade from '@/interfaces/Divindade';
 import DIVINDADES_DATA from '@/data/systems/tormenta20/divindades';
@@ -113,6 +116,7 @@ interface EditedData {
   deityName: string;
   attributes: CharacterAttributes;
   raceAttributeChoices: Atributo[]; // Manual choices for 'any' race attributes
+  selectedAttributeVariant: AttributeVariant | undefined; // Selected attribute variant
   customPVPerLevel: number | undefined; // Custom PV per level
   customPMPerLevel: number | undefined; // Custom PM per level
   bonusPV: number; // Bonus PV
@@ -165,6 +169,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     deityName: sheet.devoto?.divindade.name || '',
     attributes: { ...sheet.atributos },
     raceAttributeChoices: sheet.raceAttributeChoices || [],
+    selectedAttributeVariant: sheet.selectedAttributeVariant,
     customPVPerLevel: sheet.customPVPerLevel,
     customPMPerLevel: sheet.customPMPerLevel,
     bonusPV: sheet.bonusPV || 0,
@@ -233,6 +238,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
+      selectedAttributeVariant: sheet.selectedAttributeVariant,
       customPVPerLevel: sheet.customPVPerLevel,
       customPMPerLevel: sheet.customPMPerLevel,
       bonusPV: sheet.bonusPV || 0,
@@ -316,6 +322,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       );
     }
 
+    // Use selected attribute variant if available (e.g., Kallyanach +1x2 vs +2x1)
+    if (editedData.selectedAttributeVariant) {
+      return editedData.selectedAttributeVariant.attrs;
+    }
+
     // Default: use race attributes
     return selectedRace?.attributes.attrs || [];
   })();
@@ -343,6 +354,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         );
         return customizedRace.attributes.excludeFromAny || [];
       }
+    }
+    if (editedData.selectedAttributeVariant?.excludeFromAny) {
+      return editedData.selectedAttributeVariant.excludeFromAny;
     }
     return selectedRace?.attributes.excludeFromAny || [];
   })();
@@ -569,6 +583,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: editedData.sexo,
       atributos: editedData.attributes,
       raceAttributeChoices: editedData.raceAttributeChoices,
+      selectedAttributeVariant: editedData.selectedAttributeVariant,
       raceHeritage: editedData.raceHeritage,
       raceChassis: editedData.raceChassis,
       raceEnergySource: editedData.raceEnergySource,
@@ -648,7 +663,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           type: 'Atributos',
           value: editedData.raceAttributeChoices.map((attr) => ({
             name: attr,
-            value: 1,
+            value: raceAttributes.find((a) => a.attr === 'any')?.mod || 1,
           })),
         });
       }
@@ -1252,6 +1267,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       deityName: sheet.devoto?.divindade.name || '',
       attributes: { ...sheet.atributos },
       raceAttributeChoices: sheet.raceAttributeChoices || [],
+      selectedAttributeVariant: sheet.selectedAttributeVariant,
       customPVPerLevel: sheet.customPVPerLevel,
       customPMPerLevel: sheet.customPMPerLevel,
       bonusPV: sheet.bonusPV || 0,
@@ -2053,6 +2069,50 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                     </Box>
                   )}
 
+                  {/* Race Attribute Variant Selector */}
+                  {selectedRace?.attributeVariants &&
+                    selectedRace.attributeVariants.length > 1 && (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                        }}
+                      >
+                        <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                          Variante de Atributos
+                        </Typography>
+                        <RadioGroup
+                          value={
+                            editedData.selectedAttributeVariant?.label || ''
+                          }
+                          onChange={(e) => {
+                            const variant =
+                              selectedRace.attributeVariants!.find(
+                                (v) => v.label === e.target.value
+                              );
+                            if (variant) {
+                              setEditedData((prev) => ({
+                                ...prev,
+                                selectedAttributeVariant: variant,
+                                raceAttributeChoices: [],
+                              }));
+                            }
+                          }}
+                        >
+                          {selectedRace.attributeVariants.map((variant) => (
+                            <FormControlLabel
+                              key={variant.label}
+                              value={variant.label}
+                              control={<Radio />}
+                              label={variant.label}
+                            />
+                          ))}
+                        </RadioGroup>
+                      </Box>
+                    )}
+
                   {/* Race Attribute Selection - Show if race has 'any' attributes */}
                   {anyAttributeCount > 0 && (
                     <Box
@@ -2089,7 +2149,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                         {anyAttributeCount > 1 && fixedAttributes.length > 0
                           ? 's'
                           : ''}{' '}
-                        para receber +1:
+                        para receber +
+                        {raceAttributes.find((a) => a.attr === 'any')?.mod || 1}
+                        :
                       </Typography>
                       <FormGroup>
                         <Stack direction='row' flexWrap='wrap' gap={1}>

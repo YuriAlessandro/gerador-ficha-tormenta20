@@ -5121,6 +5121,21 @@ export function generateEmptySheet(
     wizardSelections?.powerEffectSelections
   );
 
+  // Override race attributes with selected variant (e.g., Kallyanach +1x2 vs +2x1)
+  if (wizardSelections?.attributeVariant) {
+    emptySheet.raca = {
+      ...emptySheet.raca,
+      attributes: {
+        ...emptySheet.raca.attributes,
+        attrs: wizardSelections.attributeVariant.attrs,
+        excludeFromAny:
+          wizardSelections.attributeVariant.excludeFromAny ||
+          emptySheet.raca.attributes.excludeFromAny,
+      },
+    };
+    emptySheet.selectedAttributeVariant = wizardSelections.attributeVariant;
+  }
+
   // Apply race attribute modifiers
   const tempSteps: Step[] = [];
   emptySheet.atributos = modifyAttributesBasedOnRace(

@@ -1,6 +1,6 @@
 import { ClassDescription, ClassPower } from './Class';
 import { GeneralPower, OriginPower } from './Poderes';
-import Race, { RaceSize } from './Race';
+import Race, { AttributeVariant, RaceSize } from './Race';
 import Bag from './Bag';
 import { Spell, SpellSchool } from './Spells';
 import { CharacterAttributes, CharacterReligion } from './Character';
@@ -402,6 +402,7 @@ export default interface CharacterSheet {
   dinheiroTO?: number;
   isThreat?: boolean;
   raceAttributeChoices?: Atributo[]; // Manual choices for 'any' race attributes
+  selectedAttributeVariant?: AttributeVariant; // Selected attribute variant (e.g., Kallyanach +2x1 vs +1x2)
   raceHeritage?: string; // For races with heritages (like Moreau)
   raceChassis?: string; // For Golem Desperto
   raceEnergySource?: string; // For Golem Desperto

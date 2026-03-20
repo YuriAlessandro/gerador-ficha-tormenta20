@@ -77,6 +77,23 @@ const Changelog: React.FC = () => {
                   Rúbea do Kaijin, Estandarte Vivo, etc.) não reapareciam mais
                   após serem removidos e a ficha ser salva.
                 </li>
+                <li>
+                  <strong>Correção (Kallyanach):</strong> Escolher &quot;+1 em 2
+                  atributos&quot; aplicava +2 em apenas 1 atributo. Agora a
+                  variante selecionada é persistida e aplicada corretamente.
+                </li>
+                <li>
+                  <strong>Correção (Kallyanach):</strong> O editor de ficha
+                  agora exibe corretamente a variante de atributos escolhida,
+                  com a quantidade certa de checkboxes e o modificador correto.
+                  Também é possível trocar a variante durante a edição.
+                </li>
+                <li>
+                  <strong>Correção (Kallyanach):</strong> Selecionar
+                  &quot;Prática Arcana&quot; na Bênção de Kallyadranoch agora
+                  exibe a seleção de magia corretamente, ao invés de pular
+                  direto para a tela final.
+                </li>
               </ul>
               <h3>4.6</h3>
               <ul>

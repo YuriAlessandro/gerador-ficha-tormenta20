@@ -1361,6 +1361,25 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             })}
           </FormGroup>
         </FormControl>
+
+        {/* Render nested spell requirements for multi-select powers */}
+        {type === 'getGeneralPower' &&
+          (() => {
+            const checkedPowers = powerSelections.powers || [];
+            return checkedPowers.map((checkedPower) => {
+              const fullPower = availableOptions.find(
+                (opt) => getItemName(opt) === getItemName(checkedPower)
+              ) as GeneralPower | undefined;
+              if (!fullPower) return null;
+              const nestedReqs = getNestedRequirements(fullPower).filter(
+                (req) => req.type === 'learnSpell'
+              );
+              if (nestedReqs.length === 0) return null;
+              return nestedReqs.map((req) =>
+                renderNestedSpellSelection(fullPower, req)
+              );
+            });
+          })()}
       </Box>
     );
   };

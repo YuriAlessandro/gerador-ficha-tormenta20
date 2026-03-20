@@ -1470,26 +1470,25 @@ const CharacterCreationWizardModal: React.FC<
           // For getGeneralPower, also check if nested power requirements are met
           if (type === 'getGeneralPower' && count >= effectivePick) {
             const powerSelections = effectSelections[powerName] || {};
-            const selectedPower = powerSelections.powers?.[0] as
-              | { name?: string; sheetActions?: unknown[] }
-              | undefined;
-            if (selectedPower?.name && selectedPower.sheetActions) {
+            const allSelectedPowers = (powerSelections.powers || []) as Array<{
+              name?: string;
+              sheetActions?: unknown[];
+            }>;
+            const hasUnmetNested = allSelectedPowers.some((selPower) => {
+              if (!selPower?.name || !selPower.sheetActions) return false;
               const nestedReqs = getPowerSelectionRequirements(
-                selectedPower as Parameters<
-                  typeof getPowerSelectionRequirements
-                >[0]
+                selPower as Parameters<typeof getPowerSelectionRequirements>[0]
               );
-              if (nestedReqs) {
-                // Check nested requirements under the nested power's name
-                return nestedReqs.requirements.every((nestedReq) => {
-                  const nestedCount = getSelectionCount(
-                    selectedPower.name!,
-                    nestedReq.type
-                  );
-                  return nestedCount >= nestedReq.pick;
-                });
-              }
-            }
+              if (!nestedReqs) return false;
+              return nestedReqs.requirements.some((nestedReq) => {
+                const nestedCount = getSelectionCount(
+                  selPower.name!,
+                  nestedReq.type
+                );
+                return nestedCount < nestedReq.pick;
+              });
+            });
+            if (hasUnmetNested) return false;
           }
 
           return count >= effectivePick;
