@@ -3518,7 +3518,7 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
   }
   if (bonus.type === 'LevelCalc') {
     const filledFormula = bonus.formula.replace(
-      '{level}',
+      /{level}/g,
       sheet.nivel.toString()
     );
     // eslint-disable-next-line no-eval
