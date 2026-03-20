@@ -742,12 +742,14 @@ const CharacterCreationWizardModal: React.FC<
             basicInfo={{
               name: selections.characterName,
               gender: selections.characterGender,
+              imageUrl: selections.characterImageUrl,
             }}
             onChange={(info) =>
               setSelections({
                 ...selections,
                 characterName: info.name,
                 characterGender: info.gender,
+                characterImageUrl: info.imageUrl,
               })
             }
             raceName={selectedOptions.raca}

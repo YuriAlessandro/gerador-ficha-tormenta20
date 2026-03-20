@@ -923,6 +923,23 @@ const Result: React.FC<ResultProps> = (props) => {
                 justifyContent='center'
                 gap={isMobile ? 5 : 0}
               >
+                {currentSheet.imageUrl && (
+                  <Box
+                    component='img'
+                    src={currentSheet.imageUrl}
+                    alt={nome}
+                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                    sx={{
+                      width: isMobile ? 80 : 100,
+                      height: isMobile ? 80 : 100,
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
                 <Box sx={{ flexGrow: 1 }}>
                   <Stack direction='row' alignItems='center' spacing={0.5}>
                     <LabelDisplay text={nome} size='large' />

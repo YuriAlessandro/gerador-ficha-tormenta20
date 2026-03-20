@@ -4421,6 +4421,9 @@ export function generateEmptySheet(
   if (wizardSelections?.characterGender) {
     emptySheet.sexo = wizardSelections.characterGender;
   }
+  if (wizardSelections?.characterImageUrl) {
+    emptySheet.imageUrl = wizardSelections.characterImageUrl;
+  }
 
   // Apply wizard base attribute values if provided
   // Note: baseAttributes now contains modifiers directly (not D&D-style base values)

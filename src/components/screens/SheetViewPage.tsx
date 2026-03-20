@@ -154,6 +154,7 @@ const SheetViewPage: React.FC = () => {
             typeof updateSheet
           >[1]['sheetData'],
           name: updatedSheet.nome,
+          image: updatedSheet.imageUrl,
         });
 
         // Update local state

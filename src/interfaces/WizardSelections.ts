@@ -56,6 +56,7 @@ export interface WizardSelections {
   // Basic character info
   characterName?: string;
   characterGender?: 'Masculino' | 'Feminino' | 'Outro';
+  characterImageUrl?: string;
 
   // Base attribute values (before racial modifiers)
   baseAttributes?: Record<Atributo, number>;

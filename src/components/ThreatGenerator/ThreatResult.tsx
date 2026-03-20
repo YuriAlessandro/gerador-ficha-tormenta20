@@ -540,17 +540,46 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
         <Card ref={resultRef} sx={{ p: 2, mt: viewOnly ? 0 : 2 }}>
           <Box
             sx={{
-              fontSize: '30px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 2,
               mb: '10px',
-              textTransform: 'uppercase',
-              color: 'primary.main',
-              fontWeight: 800,
             }}
           >
-            {threat.name}
+            {threat.imageUrl && (
+              <Box
+                component='img'
+                src={threat.imageUrl}
+                alt={threat.name}
+                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+                sx={{
+                  width: { xs: 120, md: 200 },
+                  height: { xs: 120, md: 200 },
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <Box>
+              <Box
+                sx={{
+                  fontSize: '30px',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  fontWeight: 800,
+                }}
+              >
+                {threat.name}
+              </Box>
+              <Box>
+                {threat.type} {threat.size} {threat.role}, ND{' '}
+                {threat.challengeLevel} ({tier})
+              </Box>
+            </Box>
           </Box>
-          {threat.type} {threat.size} {threat.role}, ND {threat.challengeLevel}{' '}
-          ({tier})
           <Box
             sx={{
               display: 'block',

@@ -18,6 +18,7 @@ import getNameSuggestions from '@/functions/nameSuggestions';
 interface CharacterBasicInfo {
   name?: string;
   gender?: 'Masculino' | 'Feminino' | 'Outro';
+  imageUrl?: string;
 }
 
 interface CharacterBasicInfoStepProps {
@@ -36,6 +37,7 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
     getNameSuggestions(raceName, basicInfo.gender || 'Masculino', supplements)
   );
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     setNameSuggestions(
@@ -106,6 +108,32 @@ const CharacterBasicInfoStep: React.FC<CharacterBasicInfoStepProps> = ({
           />
         )}
       />
+
+      <TextField
+        fullWidth
+        label='URL da Imagem (opcional)'
+        placeholder='https://exemplo.com/imagem.jpg'
+        helperText='Cole a URL de uma imagem para ilustrar seu personagem'
+        value={basicInfo.imageUrl || ''}
+        onChange={(e) => {
+          setImageError(false);
+          onChange({ ...basicInfo, imageUrl: e.target.value });
+        }}
+      />
+      {basicInfo.imageUrl && !imageError && (
+        <Box
+          component='img'
+          src={basicInfo.imageUrl}
+          alt='Preview'
+          onError={() => setImageError(true)}
+          sx={{
+            width: 80,
+            height: 80,
+            objectFit: 'cover',
+            borderRadius: 2,
+          }}
+        />
+      )}
 
       <FormControl component='fieldset'>
         <FormLabel component='legend'>Gênero (Opcional)</FormLabel>

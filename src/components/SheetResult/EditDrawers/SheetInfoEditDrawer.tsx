@@ -123,6 +123,7 @@ interface EditedData {
   bonusPM: number; // Bonus PM
   manualMaxPV: number | undefined; // Manual max PV override
   manualMaxPM: number | undefined; // Manual max PM override
+  imageUrl: string;
 }
 
 const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
@@ -176,7 +177,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     bonusPM: sheet.bonusPM || 0,
     manualMaxPV: sheet.manualMaxPV,
     manualMaxPM: sheet.manualMaxPM,
+    imageUrl: sheet.imageUrl || '',
   });
+
+  // State for image preview error
+  const [imagePreviewError, setImagePreviewError] = useState(false);
 
   // State for name suggestions
   const [nameSuggestions, setNameSuggestions] = useState<string[]>(() =>
@@ -245,7 +250,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: sheet.bonusPM || 0,
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
+      imageUrl: sheet.imageUrl || '',
     });
+    setImagePreviewError(false);
     setNameSuggestions(
       getNameSuggestions(
         sheet.raca.name,
@@ -598,6 +605,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: editedData.bonusPM,
       manualMaxPV: editedData.manualMaxPV,
       manualMaxPM: editedData.manualMaxPM,
+      imageUrl: editedData.imageUrl || undefined,
     };
 
     // Track manual edits in steps
@@ -1274,7 +1282,9 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       bonusPM: sheet.bonusPM || 0,
       manualMaxPV: sheet.manualMaxPV,
       manualMaxPM: sheet.manualMaxPM,
+      imageUrl: sheet.imageUrl || '',
     });
+    setImagePreviewError(false);
     setNameSuggestions(
       getNameSuggestions(
         sheet.raca.name,
@@ -1704,6 +1714,35 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       />
                     )}
                   />
+
+                  <TextField
+                    fullWidth
+                    label='URL da Imagem (opcional)'
+                    placeholder='https://exemplo.com/imagem.jpg'
+                    helperText='Cole a URL de uma imagem para ilustrar seu personagem'
+                    value={editedData.imageUrl}
+                    onChange={(e) => {
+                      setImagePreviewError(false);
+                      setEditedData({
+                        ...editedData,
+                        imageUrl: e.target.value,
+                      });
+                    }}
+                  />
+                  {editedData.imageUrl && !imagePreviewError && (
+                    <Box
+                      component='img'
+                      src={editedData.imageUrl}
+                      alt='Preview'
+                      onError={() => setImagePreviewError(true)}
+                      sx={{
+                        width: 80,
+                        height: 80,
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                      }}
+                    />
+                  )}
 
                   <Stack direction='row' spacing={1} alignItems='flex-start'>
                     <TextField

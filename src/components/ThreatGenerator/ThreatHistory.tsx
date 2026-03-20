@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardActions,
+  CardMedia,
   Button,
   IconButton,
   Chip,
@@ -157,6 +158,18 @@ const ThreatHistory: React.FC = () => {
             return (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={threat.id}>
                 <Card>
+                  {threat.imageUrl && (
+                    <CardMedia
+                      component='img'
+                      height='120'
+                      image={threat.imageUrl}
+                      alt={threat.name}
+                      sx={{ objectFit: 'cover', objectPosition: 'top' }}
+                      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
                   <CardContent>
                     <Typography variant='h6' gutterBottom>
                       {threat.name}

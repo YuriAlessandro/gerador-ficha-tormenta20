@@ -196,6 +196,9 @@ export interface ThreatSheet {
   // Metadados
   createdAt: Date;
   updatedAt: Date;
+
+  // Imagem
+  imageUrl?: string;
 }
 
 /** Ensures old threat data has resistanceAssignments populated. */

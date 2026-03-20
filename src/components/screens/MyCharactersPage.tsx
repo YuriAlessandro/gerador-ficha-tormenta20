@@ -621,10 +621,13 @@ const MyCharactersPage: React.FC = () => {
                   <CardMedia
                     component='img'
                     height='160'
-                    image={sheet.image || tormenta20}
+                    image={
+                      sheet.image || sheet.sheetData?.imageUrl || tormenta20
+                    }
                     alt={sheet.name}
                     sx={{
                       objectFit: 'cover',
+                      objectPosition: 'top',
                     }}
                   />
 

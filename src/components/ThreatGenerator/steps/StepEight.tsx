@@ -28,8 +28,15 @@ interface StepEightProps {
 }
 
 const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
+  const [imageError, setImageError] = React.useState(false);
+
   const handleNameChange = (name: string) => {
     onUpdate({ name });
+  };
+
+  const handleImageUrlChange = (imageUrl: string) => {
+    setImageError(false);
+    onUpdate({ imageUrl });
   };
 
   const handleSpecialQualitiesChange = (specialQualities: string) => {
@@ -73,6 +80,30 @@ const StepEight: React.FC<StepEightProps> = ({ threat, onUpdate }) => {
               placeholder='Ex: Goblin Guerreiro, Dragão Ancião, Golem de Ferro'
               helperText='Este será o nome exibido na ficha final'
             />
+            <TextField
+              fullWidth
+              label='URL da Imagem (opcional)'
+              placeholder='https://exemplo.com/imagem.jpg'
+              helperText='Cole a URL de uma imagem para ilustrar a ameaça'
+              value={threat.imageUrl || ''}
+              onChange={(e) => handleImageUrlChange(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+            {threat.imageUrl && !imageError && (
+              <Box
+                component='img'
+                src={threat.imageUrl}
+                alt='Preview'
+                onError={() => setImageError(true)}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  objectFit: 'cover',
+                  borderRadius: 2,
+                  mt: 1,
+                }}
+              />
+            )}
           </Paper>
         </Grid>
 

@@ -51,6 +51,9 @@ const ThreatViewCloudWrapper: React.FC = () => {
         const threatData = normalizeThreatSheet(
           fullSheet.sheetData as unknown as ThreatSheet
         );
+        if (fullSheet.image) {
+          threatData.imageUrl = fullSheet.image;
+        }
         setThreat(threatData);
       } catch (err) {
         console.error('Failed to load threat from cloud:', err);

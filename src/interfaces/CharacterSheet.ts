@@ -462,6 +462,7 @@ export default interface CharacterSheet {
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
   notes?: string; // Anotações livres do jogador
+  imageUrl?: string; // URL de imagem do personagem
   propositoCriacaoPower?: string; // Poder geral escolhido como Propósito de Criação (raças Golem)
   overrideKeyAttribute?: Atributo; // Atributo-chave manual para CD de magias (quando classe não tem spellPath)
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)

@@ -271,6 +271,7 @@ const saveSheetToDatabase = async (
         ...sheet,
         isThreat: false, // Generated characters are players, not threats
       } as unknown as CreateSheetRequest['sheetData'],
+      image: sheet.imageUrl,
       description: `Personagem gerado automaticamente (Nível ${sheet.nivel})`,
     };
 
@@ -841,6 +842,7 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       updateSheetAction(cloudSheetId, {
         name: updatedSheet.nome,
         sheetData: serializableSheet as any,
+        image: updatedSheet.imageUrl,
       });
     }
   };

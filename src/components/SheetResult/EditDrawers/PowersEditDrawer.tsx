@@ -438,7 +438,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   const handleClassPowerToggle = (power: ClassPower) => {
     const isSelected = selectedClassPowers.some((p) => p.name === power.name);
-    const canRepeat = power.canRepeat || false;
 
     // For repeatable powers, always add a new instance
     // For non-repeatable powers, toggle (add if not selected, remove if selected)

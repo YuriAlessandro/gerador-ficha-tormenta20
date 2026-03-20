@@ -166,6 +166,9 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
           const threatData = normalizeThreatSheet(
             fullSheet.sheetData as unknown as ThreatSheet
           );
+          if (fullSheet.image) {
+            threatData.imageUrl = fullSheet.image;
+          }
           setThreat(threatData);
           setIsEditing(true);
           setIsSavedToCloud(true);
@@ -258,6 +261,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
             ...completeThreat,
             isThreat: true,
           } as any,
+          image: completeThreat.imageUrl,
         });
       } catch (error) {
         console.error('Failed to update cloud threat:', error);
@@ -290,6 +294,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
           ...completeThreat,
           isThreat: true,
         } as any,
+        image: completeThreat.imageUrl,
       });
 
       if (result.type.endsWith('/fulfilled')) {
