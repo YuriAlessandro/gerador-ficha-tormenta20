@@ -72,6 +72,14 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Agora é possível adicionar uma URL de
+                  imagem para personalizar fichas de personagens e ameaças. A
+                  imagem pode ser informada durante a criação (wizard), na
+                  edição da ficha, ou no gerador de ameaças. A imagem aparece no
+                  resultado da ficha, nos cards de &quot;Meus Personagens&quot;
+                  e &quot;Minhas Ameaças&quot;, e é sincronizada com a nuvem.
+                </li>
+                <li>
                   <strong>Novo:</strong> Magos agora podem marcar magias como
                   &quot;Sempre Preparada&quot; (ícone de pin ao lado da magia).
                   Magias marcadas ficam sempre disponíveis e não contam no
