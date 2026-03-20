@@ -33,6 +33,7 @@ interface SpellsProp {
   onSpellCast?: (pmSpent: number) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
+  onToggleAlwaysPrepared?: (spell: Spell) => void;
   onKeyAttributeChange?: (newAttr: Atributo) => void;
   bonusSpellDC?: number;
 }
@@ -50,6 +51,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     onSpellCast,
     isMago,
     onToggleMemorized,
+    onToggleAlwaysPrepared,
     onKeyAttributeChange,
     bonusSpellDC,
   } = props;
@@ -105,23 +107,36 @@ const Spells: React.FC<SpellsProp> = (props) => {
           </span>
         </div>
       )}
-      {isMago && spells.length > 0 && (
-        <Box sx={{ mb: 1 }}>
-          <Chip
-            label={`Magias memorizadas: ${
-              spells.filter((s) => s.memorized).length
-            } / ${Math.floor(spells.length / 2)}`}
-            color={
-              spells.filter((s) => s.memorized).length >
-              Math.floor(spells.length / 2)
-                ? 'error'
-                : 'primary'
-            }
-            size='small'
-            variant='outlined'
-          />
-        </Box>
-      )}
+      {isMago &&
+        spells.length > 0 &&
+        (() => {
+          const preparableSpells = spells.filter((s) => !s.alwaysPrepared);
+          const alwaysPreparedCount = spells.filter(
+            (s) => s.alwaysPrepared
+          ).length;
+          const memorizedCount = preparableSpells.filter(
+            (s) => s.memorized
+          ).length;
+          const memorizedLimit = Math.floor(preparableSpells.length / 2);
+          return (
+            <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Chip
+                label={`Magias memorizadas: ${memorizedCount} / ${memorizedLimit}`}
+                color={memorizedCount > memorizedLimit ? 'error' : 'primary'}
+                size='small'
+                variant='outlined'
+              />
+              {alwaysPreparedCount > 0 && (
+                <Chip
+                  label={`Sempre preparadas: ${alwaysPreparedCount}`}
+                  color='warning'
+                  size='small'
+                  variant='outlined'
+                />
+              )}
+            </Box>
+          );
+        })()}
       {spells.length === 0 ? (
         <span>Não Possui</span>
       ) : (
@@ -185,6 +200,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   onSpellCast={onSpellCast}
                   isMago={isMago}
                   onToggleMemorized={onToggleMemorized}
+                  onToggleAlwaysPrepared={onToggleAlwaysPrepared}
                 />
               ))}
           </Box>

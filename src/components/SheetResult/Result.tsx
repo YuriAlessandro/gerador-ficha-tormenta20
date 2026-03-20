@@ -286,6 +286,26 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  const handleToggleAlwaysPrepared = useCallback(
+    (spell: Spell) => {
+      const updatedSpells = currentSheet.spells?.map((s) =>
+        s.nome === spell.nome
+          ? {
+              ...s,
+              alwaysPrepared: !s.alwaysPrepared,
+              memorized: !s.alwaysPrepared ? true : s.memorized,
+            }
+          : s
+      );
+      const updatedSheet = { ...currentSheet, spells: updatedSpells };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
   const handlePowerRollsUpdate = useCallback(
     (
       power:
@@ -1309,6 +1329,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   isMago={classe.subname === 'Mago'}
                   onToggleMemorized={
                     onSheetUpdate ? handleToggleMemorized : undefined
+                  }
+                  onToggleAlwaysPrepared={
+                    onSheetUpdate ? handleToggleAlwaysPrepared : undefined
                   }
                   bonusSpellDC={spellDCBonus}
                   onKeyAttributeChange={

@@ -188,13 +188,21 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         // Remove spell
         return prev.filter((s) => s.nome !== spell.nome);
       }
-      // Add spell - check if it was previously in the sheet with rolls
+      // Add spell - check if it was previously in the sheet with custom data
       const originalSpell = sheet.spells?.find((s) => s.nome === spell.nome);
-      if (originalSpell && originalSpell.rolls) {
-        // Preserve existing rolls
-        return [...prev, { ...spell, rolls: originalSpell.rolls }];
+      if (originalSpell) {
+        // Preserve existing rolls, memorized, and alwaysPrepared
+        return [
+          ...prev,
+          {
+            ...spell,
+            rolls: originalSpell.rolls,
+            memorized: originalSpell.memorized,
+            alwaysPrepared: originalSpell.alwaysPrepared,
+          },
+        ];
       }
-      // Add new spell without rolls
+      // Add new spell
       return [...prev, spell];
     });
   };

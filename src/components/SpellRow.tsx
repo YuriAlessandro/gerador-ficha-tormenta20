@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CasinoIcon from '@mui/icons-material/Casino';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { manaExpenseByCircle } from '../data/systems/tormenta20/magias/generalSpells';
 import { Spell } from '../interfaces/Spells';
@@ -29,6 +31,7 @@ interface SpellProps {
   onSpellCast?: (pmSpent: number) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
+  onToggleAlwaysPrepared?: (spell: Spell) => void;
 }
 
 const SpellRow: React.FC<SpellProps> = React.memo((props) => {
@@ -41,6 +44,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
     onSpellCast,
     isMago,
     onToggleMemorized,
+    onToggleAlwaysPrepared,
   } = props;
 
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -87,15 +91,49 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
           <Grid size={isMobile ? 12 : 2.5}>
             <Stack direction='row' alignItems='center' spacing={0.5}>
               {isMago && onToggleMemorized && (
-                <Tooltip title='Memorizar magia' arrow>
-                  <Checkbox
-                    size='small'
-                    checked={spell.memorized ?? false}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={() => onToggleMemorized(spell)}
-                    sx={{ p: 0, flexShrink: 0 }}
-                  />
-                </Tooltip>
+                <>
+                  {spell.alwaysPrepared ? (
+                    <Tooltip title='Remover sempre preparada' arrow>
+                      <IconButton
+                        size='small'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleAlwaysPrepared?.(spell);
+                        }}
+                        color='warning'
+                        sx={{ p: 0, flexShrink: 0 }}
+                      >
+                        <PushPinIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <>
+                      <Tooltip title='Memorizar magia' arrow>
+                        <Checkbox
+                          size='small'
+                          checked={spell.memorized ?? false}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => onToggleMemorized(spell)}
+                          sx={{ p: 0, flexShrink: 0 }}
+                        />
+                      </Tooltip>
+                      {onToggleAlwaysPrepared && (
+                        <Tooltip title='Marcar como sempre preparada' arrow>
+                          <IconButton
+                            size='small'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleAlwaysPrepared(spell);
+                            }}
+                            sx={{ p: 0, flexShrink: 0 }}
+                          >
+                            <PushPinOutlinedIcon fontSize='small' />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </>
+                  )}
+                </>
               )}
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
                 <IconButton
@@ -119,6 +157,15 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
               >
                 {spell.nome} {spell.customKeyAttr && `(${spell.customKeyAttr})`}
               </Typography>
+              {spell.alwaysPrepared && (
+                <Chip
+                  label='Sempre Preparada'
+                  size='small'
+                  color='warning'
+                  variant='outlined'
+                  sx={{ flexShrink: 0 }}
+                />
+              )}
               {spell.isCustom && (
                 <Chip
                   label='Personalizada'
