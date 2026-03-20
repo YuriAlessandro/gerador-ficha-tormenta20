@@ -44,12 +44,27 @@ Also update the "Última atualização em" date in the introductory paragraph to
 
 Run `npx prettier --write src/components/screens/Changelog.tsx` to ensure consistent formatting.
 
-### Step 4: Stage and commit everything
+### Step 4: Commit changes
 
-1. Stage all pending changes: `git add -A`
-2. Create a single commit with the message: `release: v$ARGUMENTS`
+There are two types of changes to commit — handle them separately:
 
-Include the co-author line:
+#### 4a. Commit pending code changes (if any)
+
+If there are uncommitted changes **other than** `Changelog.tsx` (e.g., bug fixes, data corrections, new features), commit them first with a message that describes **what was actually changed** — not the version number. For example: `fix: corrigir duração da magia Velocidade`.
+
+1. Stage only the non-changelog files: `git add <files>`
+2. Create a commit with a descriptive message reflecting the change.
+
+If there are multiple unrelated changes, create separate commits for each.
+
+#### 4b. Commit the changelog
+
+After all code changes are committed:
+
+1. Stage only the changelog: `git add src/components/screens/Changelog.tsx`
+2. Create a commit with the message: `release: v$ARGUMENTS`
+
+Include the co-author line in all commits:
 ```
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 ```
