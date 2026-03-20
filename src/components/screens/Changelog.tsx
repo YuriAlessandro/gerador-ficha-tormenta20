@@ -72,6 +72,19 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> PV e PM temporários agora são
+                  rastreados separadamente dos valores normais. É possível
+                  adicionar PV/PM temporários mesmo quando o personagem não está
+                  com vida ou mana cheia — ideal para habilidades como
+                  Inspiração (Bardo), Canalizar Energia (Paladino) ou a magia
+                  Dadivosa. Ao tomar dano ou gastar PM, os valores temporários
+                  são consumidos primeiro. O campo &quot;Temp&quot; aparece no
+                  popup de controle dos círculos de PV/PM, com botão
+                  &quot;Limpar&quot; para remover ao fim de uma cena. Fichas
+                  antigas com valores acima do máximo são migradas
+                  automaticamente.
+                </li>
+                <li>
                   <strong>Novo:</strong> Os campos de texto nas Builds
                   (descrição, notas do personagem, notas de perícias e notas por
                   nível) agora usam um editor Markdown com toolbar de
