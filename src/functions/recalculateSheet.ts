@@ -1462,9 +1462,9 @@ export function recalculateSheet(
 
   if (updatedSheet.bonusRd) {
     Object.entries(updatedSheet.bonusRd).forEach(([key, value]) => {
-      if (value && value > 0) {
+      if (value !== undefined && value !== 0) {
         const dt = key as DamageType;
-        computedRd[dt] = (computedRd[dt] ?? 0) + value;
+        computedRd[dt] = Math.max(0, (computedRd[dt] ?? 0) + value);
       }
     });
   }

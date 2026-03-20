@@ -52,9 +52,8 @@ const RdEditDrawer: React.FC<RdEditDrawerProps> = ({
   }, [open, sheet.reducaoDeDano]);
 
   const handleChange = (type: DamageType, value: number) => {
-    const autoValue = getAutoRd(sheet, type);
-    // Don't allow going below the auto value
-    const clampedValue = Math.max(autoValue, value);
+    // Don't allow going below 0
+    const clampedValue = Math.max(0, value);
     setEditedRd((prev) => ({
       ...prev,
       [type]: clampedValue,
@@ -68,7 +67,7 @@ const RdEditDrawer: React.FC<RdEditDrawerProps> = ({
       const type = key as DamageType;
       const autoValue = getAutoRd(sheet, type);
       const manualValue = (totalValue ?? 0) - autoValue;
-      if (manualValue > 0) {
+      if (manualValue !== 0) {
         newBonusRd[type] = manualValue;
       }
     });
