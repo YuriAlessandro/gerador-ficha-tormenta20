@@ -72,6 +72,13 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Magos agora podem marcar magias como
+                  &quot;Sempre Preparada&quot; (ícone de pin ao lado da magia).
+                  Magias marcadas ficam sempre disponíveis e não contam no
+                  limite de magias memorizadas — ideal para magias raciais, de
+                  origem ou outras fontes que não sejam a habilidade de classe.
+                </li>
+                <li>
                   <strong>Correção:</strong> Poderes com repetição (como
                   Especialização em Magia) não apareciam como selecionados no
                   editor de ficha — o checkbox ficava desmarcado mesmo após
