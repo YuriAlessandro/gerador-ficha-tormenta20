@@ -72,6 +72,14 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Os campos de texto nas Builds
+                  (descrição, notas do personagem, notas de perícias e notas por
+                  nível) agora usam um editor Markdown com toolbar de
+                  formatação. É possível usar negrito, listas, cabeçalhos e
+                  outras formatações. Builds existentes com texto puro continuam
+                  funcionando normalmente.
+                </li>
+                <li>
                   <strong>Novo:</strong> Agora é possível adicionar uma URL de
                   imagem para personalizar fichas de personagens e ameaças. A
                   imagem pode ser informada durante a criação (wizard), na
