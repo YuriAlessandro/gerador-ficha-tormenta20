@@ -351,18 +351,6 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
   const isLastStep = activeStep === steps.length - 1;
   const canProceed = true; // TODO: Implementar validação por etapa
 
-  // Show result if threat is complete
-  if (showResult && threat) {
-    return (
-      <ThreatResult
-        threat={threat as ThreatSheet}
-        onEdit={handleEdit}
-        isSavedToCloud={isSavedToCloud}
-        onSaveToCloud={handleSaveToCloud}
-      />
-    );
-  }
-
   // Renderizar componente da etapa atual
   const renderStepContent = (step: number) => {
     switch (step) {
@@ -391,11 +379,6 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
 
   return (
     <>
-      <SEO
-        title={threatGeneratorSEO.title}
-        description={threatGeneratorSEO.description}
-        url='/gerador-ameacas'
-      />
       <AlertDialog />
 
       {/* Sheet Limit Dialog */}
@@ -407,136 +390,156 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
         tierName={tier === SubscriptionTier.FREE ? 'Gratuito' : tier}
       />
 
-      <Container maxWidth='lg' sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-          {/* Header */}
-          <Box
-            sx={{
-              background: (muiTheme) =>
-                `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
-              color: 'white',
-              p: 3,
-            }}
-          >
-            <Box
-              display='flex'
-              justifyContent='space-between'
-              alignItems='center'
-            >
-              <Box>
-                <Typography
-                  variant={isMobile ? 'h5' : 'h4'}
-                  component='h1'
-                  gutterBottom
-                >
-                  {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
-                </Typography>
-                <Typography variant='body1' sx={{ opacity: 0.9 }}>
-                  Crie inimigos e NPCs seguindo as regras do Tormenta 20
-                </Typography>
-              </Box>
-              <IconButton
-                onClick={handleViewHistory}
-                sx={{ color: 'white' }}
-                title='Ver Histórico'
-              >
-                <HistoryIcon />
-              </IconButton>
-            </Box>
-          </Box>
+      {showResult && threat ? (
+        <ThreatResult
+          threat={threat as ThreatSheet}
+          onEdit={handleEdit}
+          isSavedToCloud={isSavedToCloud}
+          onSaveToCloud={handleSaveToCloud}
+        />
+      ) : (
+        <>
+          <SEO
+            title={threatGeneratorSEO.title}
+            description={threatGeneratorSEO.description}
+            url='/gerador-ameacas'
+          />
 
-          {/* Stepper */}
-          <Box
-            sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}
-          >
-            <Stepper
-              activeStep={activeStep}
-              orientation={isMobile ? 'vertical' : 'horizontal'}
-              sx={{
-                '& .MuiStepLabel-label': {
-                  fontSize: isMobile ? '0.875rem' : '1rem',
-                },
-              }}
-            >
-              {steps.map((label, index) => (
-                <Step key={label}>
-                  <StepLabel
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': {
-                        '& .MuiStepLabel-label': {
-                          color: theme.palette.primary.main,
-                        },
-                      },
-                    }}
-                    onClick={() => handleStepClick(index)}
+          <Container maxWidth='lg' sx={{ py: 4 }}>
+            <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+              {/* Header */}
+              <Box
+                sx={{
+                  background: (muiTheme) =>
+                    `linear-gradient(135deg, ${muiTheme.palette.primary.main} 0%, ${muiTheme.palette.primary.dark} 100%)`,
+                  color: 'white',
+                  p: 3,
+                }}
+              >
+                <Box
+                  display='flex'
+                  justifyContent='space-between'
+                  alignItems='center'
+                >
+                  <Box>
+                    <Typography
+                      variant={isMobile ? 'h5' : 'h4'}
+                      component='h1'
+                      gutterBottom
+                    >
+                      {isEditing ? 'Editando Ameaça' : 'Gerador de Ameaças'}
+                    </Typography>
+                    <Typography variant='body1' sx={{ opacity: 0.9 }}>
+                      Crie inimigos e NPCs seguindo as regras do Tormenta 20
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    onClick={handleViewHistory}
+                    sx={{ color: 'white' }}
+                    title='Ver Histórico'
                   >
-                    {label}
-                  </StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-          </Box>
+                    <HistoryIcon />
+                  </IconButton>
+                </Box>
+              </Box>
 
-          {/* Step Content */}
-          <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
-
-          {/* Navigation */}
-          <Box
-            sx={{
-              p: 3,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              backgroundColor: theme.palette.background.default,
-            }}
-          >
-            <Stack
-              direction='row'
-              justifyContent='space-between'
-              alignItems='center'
-            >
-              <Button
-                variant='outlined'
-                onClick={handleBack}
-                disabled={activeStep === 0}
-                startIcon={<ArrowBackIcon />}
-                size={isMobile ? 'small' : 'medium'}
+              {/* Stepper */}
+              <Box
+                sx={{
+                  p: 3,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
               >
-                Anterior
-              </Button>
+                <Stepper
+                  activeStep={activeStep}
+                  orientation={isMobile ? 'vertical' : 'horizontal'}
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      fontSize: isMobile ? '0.875rem' : '1rem',
+                    },
+                  }}
+                >
+                  {steps.map((label, index) => (
+                    <Step key={label}>
+                      <StepLabel
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            '& .MuiStepLabel-label': {
+                              color: theme.palette.primary.main,
+                            },
+                          },
+                        }}
+                        onClick={() => handleStepClick(index)}
+                      >
+                        {label}
+                      </StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Box>
 
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{ display: { xs: 'none', sm: 'block' } }}
+              {/* Step Content */}
+              <Box sx={{ minHeight: 400 }}>{renderStepContent(activeStep)}</Box>
+
+              {/* Navigation */}
+              <Box
+                sx={{
+                  p: 3,
+                  borderTop: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: theme.palette.background.default,
+                }}
               >
-                Etapa {activeStep + 1} de {steps.length}
-              </Typography>
+                <Stack
+                  direction='row'
+                  justifyContent='space-between'
+                  alignItems='center'
+                >
+                  <Button
+                    variant='outlined'
+                    onClick={handleBack}
+                    disabled={activeStep === 0}
+                    startIcon={<ArrowBackIcon />}
+                    size={isMobile ? 'small' : 'medium'}
+                  >
+                    Anterior
+                  </Button>
 
-              {isLastStep ? (
-                <Button
-                  variant='contained'
-                  onClick={handleFinish}
-                  disabled={!canProceed}
-                  startIcon={<CheckIcon />}
-                  size={isMobile ? 'small' : 'medium'}
-                >
-                  {isEditing ? 'Salvar Alterações' : 'Finalizar'}
-                </Button>
-              ) : (
-                <Button
-                  variant='contained'
-                  onClick={handleNext}
-                  disabled={!canProceed}
-                  endIcon={<ArrowForwardIcon />}
-                  size={isMobile ? 'small' : 'medium'}
-                >
-                  Próximo
-                </Button>
-              )}
-            </Stack>
-          </Box>
-        </Paper>
-      </Container>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{ display: { xs: 'none', sm: 'block' } }}
+                  >
+                    Etapa {activeStep + 1} de {steps.length}
+                  </Typography>
+
+                  {isLastStep ? (
+                    <Button
+                      variant='contained'
+                      onClick={handleFinish}
+                      disabled={!canProceed}
+                      startIcon={<CheckIcon />}
+                      size={isMobile ? 'small' : 'medium'}
+                    >
+                      {isEditing ? 'Salvar Alterações' : 'Finalizar'}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant='contained'
+                      onClick={handleNext}
+                      disabled={!canProceed}
+                      endIcon={<ArrowForwardIcon />}
+                      size={isMobile ? 'small' : 'medium'}
+                    >
+                      Próximo
+                    </Button>
+                  )}
+                </Stack>
+              </Box>
+            </Paper>
+          </Container>
+        </>
+      )}
     </>
   );
 };
