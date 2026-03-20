@@ -2649,10 +2649,10 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     execucao: 'Padrão',
     alcance: 'Curto',
     alvo: '1 criatura',
-    duracao: 'Cena',
+    duracao: 'Sustentada',
     school: 'Trans',
     description:
-      'O alvo pode realizar uma ação de movimento adicional em seu turno. Essa ação de movimento não pode ser usada para lançar magias.',
+      'O alvo pode realizar uma ação padrão adicional em seu turno. Essa ação não pode ser usada para lançar magias.',
     aprimoramentos: [
       {
         addPm: 0,

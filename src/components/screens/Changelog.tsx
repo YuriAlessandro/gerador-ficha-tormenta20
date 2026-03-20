@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            04/03/2026.
+            20/03/2026.
           </p>
 
           <p>
@@ -105,6 +105,19 @@ const Changelog: React.FC = () => {
                   &quot;Prática Arcana&quot; na Bênção de Kallyadranoch agora
                   exibe a seleção de magia corretamente, ao invés de pular
                   direto para a tela final.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Crash ao usar o wizard de criação
+                  com a origem Herói Camponês.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Dialog de limite de ameaças não
+                  aparecia ao salvar fichas na nuvem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Magia Velocidade estava com duração
+                  &quot;Cena&quot; ao invés de &quot;Sustentada&quot; e
+                  descrevia ação de movimento ao invés de ação padrão.
                 </li>
               </ul>
               <h3>4.6</h3>
