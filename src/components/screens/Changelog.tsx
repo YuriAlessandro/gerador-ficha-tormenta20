@@ -119,6 +119,11 @@ const Changelog: React.FC = () => {
                   &quot;Cena&quot; ao invés de &quot;Sustentada&quot; e
                   descrevia ação de movimento ao invés de ação padrão.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Não era possível reduzir a Redução
+                  de Dano abaixo do valor automático no editor de ficha (ex:
+                  Bárbaro com RD 10 não podia ser reduzido para menos).
+                </li>
               </ul>
               <h3>4.6</h3>
               <ul>
