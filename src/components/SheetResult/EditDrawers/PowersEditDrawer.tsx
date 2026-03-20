@@ -442,7 +442,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     // For repeatable powers, always add a new instance
     // For non-repeatable powers, toggle (add if not selected, remove if selected)
-    if (isSelected && !canRepeat) {
+    if (isSelected) {
       // Remove non-repeatable power and its selections
       setSelectedClassPowers((prev) =>
         prev.filter((p) => p.name !== power.name)
@@ -696,21 +696,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     });
   };
 
-  const isPowerSelected = (power: GeneralPower) => {
-    if (power.canRepeat) {
-      // For repeatable powers, never show as "selected" (always allow adding more)
-      return false;
-    }
-    return selectedPowers.some((p) => p.name === power.name);
-  };
+  const isPowerSelected = (power: GeneralPower) =>
+    selectedPowers.some((p) => p.name === power.name);
 
-  const isClassPowerSelected = (power: ClassPower) => {
-    if (power.canRepeat) {
-      // For repeatable powers, never show as "selected" (always allow adding more)
-      return false;
-    }
-    return selectedClassPowers.some((p) => p.name === power.name);
-  };
+  const isClassPowerSelected = (power: ClassPower) =>
+    selectedClassPowers.some((p) => p.name === power.name);
 
   const checkRequirements = (power: GeneralPower): boolean => {
     if (!power.requirements || power.requirements.length === 0) {

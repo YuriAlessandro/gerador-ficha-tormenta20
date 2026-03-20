@@ -72,6 +72,12 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Poderes com repetição (como
+                  Especialização em Magia) não apareciam como selecionados no
+                  editor de ficha — o checkbox ficava desmarcado mesmo após
+                  adicionar o poder.
+                </li>
+                <li>
                   <strong>Correção:</strong> Bônus de perícias ficavam negativos
                   absurdamente após editar e salvar a ficha. O problema era
                   causado por perda dos bônus de sistema ao salvar, e o valor
