@@ -37,6 +37,7 @@ export interface CompanionSheet {
   pv: number;
   currentPV?: number;
   pvIncrement?: number;
+  tempPV?: number;
   defesa: number;
   displacement: number;
   movementTypes?: { voo?: number; escalada?: number; natacao?: number };

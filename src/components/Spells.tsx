@@ -30,6 +30,7 @@ interface SpellsProp {
   characterName?: string;
   currentPM?: number;
   maxPM?: number;
+  tempPM?: number;
   onSpellCast?: (pmSpent: number) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
@@ -48,6 +49,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
     characterName,
     currentPM,
     maxPM,
+    tempPM,
     onSpellCast,
     isMago,
     onToggleMemorized,
@@ -197,6 +199,7 @@ const Spells: React.FC<SpellsProp> = (props) => {
                   characterName={characterName}
                   currentPM={currentPM}
                   maxPM={maxPM}
+                  tempPM={tempPM}
                   onSpellCast={onSpellCast}
                   isMago={isMago}
                   onToggleMemorized={onToggleMemorized}

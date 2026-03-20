@@ -138,6 +138,33 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
     [companion, onCompanionUpdate]
   );
 
+  const handlePVTempUpdate = useCallback(
+    (newTemp: number) => {
+      if (onCompanionUpdate) {
+        onCompanionUpdate({ ...companion, tempPV: newTemp });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
+
+  const handlePVDecrement = useCallback(
+    (amount: number) => {
+      if (onCompanionUpdate) {
+        const currentTemp = companion.tempPV ?? 0;
+        const currentPVVal = companion.currentPV ?? companion.pv;
+        const tempConsumed = Math.min(currentTemp, amount);
+        const remaining = amount - tempConsumed;
+        const pvMinimo = Math.min(-10, -Math.floor(companion.pv / 2));
+        onCompanionUpdate({
+          ...companion,
+          tempPV: currentTemp - tempConsumed,
+          currentPV: Math.max(pvMinimo, currentPVVal - remaining),
+        });
+      }
+    },
+    [companion, onCompanionUpdate]
+  );
+
   const handleAttributeRoll = useCallback(
     (attrLabel: string, modifier: number) => {
       const d20Roll = rollD20();
@@ -351,8 +378,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             max={companion.pv}
             calculatedMax={companion.pv}
             increment={companion.pvIncrement ?? 1}
+            temp={companion.tempPV ?? 0}
             onUpdateCurrent={handlePVCurrentUpdate}
             onUpdateIncrement={handlePVIncrementUpdate}
+            onUpdateTemp={handlePVTempUpdate}
+            onDecrement={handlePVDecrement}
             disabled={!onCompanionUpdate}
           />
         </Stack>

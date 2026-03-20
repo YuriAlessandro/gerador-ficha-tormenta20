@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Box,
+  Button,
   Chip,
   CircularProgress,
   IconButton,
@@ -13,8 +14,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import HotelIcon from '@mui/icons-material/Hotel';
-
-const DEBOUNCE_DELAY = 500; // ms to wait before sending update
+import ClearIcon from '@mui/icons-material/Clear';
 
 interface StatControlProps {
   type: 'PV' | 'PM';
@@ -22,8 +22,11 @@ interface StatControlProps {
   max: number;
   calculatedMax: number;
   increment: number;
+  temp: number;
   onUpdateCurrent: (newCurrent: number) => void;
   onUpdateIncrement: (newIncrement: number) => void;
+  onUpdateTemp: (newTemp: number) => void;
+  onDecrement: (amount: number) => void;
   disabled?: boolean;
 }
 
@@ -33,101 +36,49 @@ const StatControl: React.FC<StatControlProps> = ({
   max,
   calculatedMax,
   increment,
+  temp,
   onUpdateCurrent,
   onUpdateIncrement,
+  onUpdateTemp,
+  onDecrement,
   disabled = false,
 }) => {
   const theme = useTheme();
   const [isHovering, setIsHovering] = useState(false);
 
-  // Debounced update state
-  const [pendingValue, setPendingValue] = useState<number | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // The displayed value is the pending value if set, otherwise the actual current
-  const displayedCurrent = pendingValue !== null ? pendingValue : current;
-
-  // Sync pending value when current changes externally
-  useEffect(() => {
-    if (pendingValue !== null && current === pendingValue) {
-      setPendingValue(null);
-    }
-  }, [current, pendingValue]);
-
-  // Cleanup timer on unmount
-  useEffect(
-    () => () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    },
-    []
-  );
-
-  // Debounced update function
-  const debouncedUpdate = useCallback(
-    (newValue: number) => {
-      setPendingValue(newValue);
-
-      // Clear existing timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      // Set new timer
-      debounceTimerRef.current = setTimeout(() => {
-        onUpdateCurrent(newValue);
-        debounceTimerRef.current = null;
-      }, DEBOUNCE_DELAY);
-    },
-    [onUpdateCurrent]
-  );
-
-  // Detect over-max state (temporary bonuses) - use displayedCurrent for UI
-  const isOverMax = displayedCurrent > max;
-  const bonus = isOverMax ? displayedCurrent - max : 0;
+  const hasTemp = temp > 0;
 
   // Calculate PV minimum (only for PV, not PM)
-  // Minimum is -10 or -max/2, whichever is lower (more negative)
   const pvMinimo = type === 'PV' ? Math.min(-10, -Math.floor(max / 2)) : 0;
 
-  // Character states - use displayedCurrent for UI
-  const isNegative = type === 'PV' && displayedCurrent < 0;
-  const isUnconscious =
-    type === 'PV' && displayedCurrent <= 0 && displayedCurrent > pvMinimo;
-  const isDead = type === 'PV' && displayedCurrent <= pvMinimo;
+  // Character states
+  const isNegative = type === 'PV' && current < 0;
+  const isUnconscious = type === 'PV' && current <= 0 && current > pvMinimo;
+  const isDead = type === 'PV' && current <= pvMinimo;
 
-  // Calculate percentage for circular progress (cap at 100% when over-max, 0% when negative)
+  // Calculate percentage for circular progress
   const percentage =
-    max > 0 ? Math.max(0, Math.min((displayedCurrent / max) * 100, 100)) : 0;
+    max > 0 ? Math.max(0, Math.min((current / max) * 100, 100)) : 0;
 
-  // Determine color based on type and state
+  // Colors
   const normalColor =
     type === 'PV' ? theme.palette.success.main : theme.palette.info.main;
   const normalDarkColor =
     type === 'PV' ? theme.palette.success.dark : theme.palette.info.dark;
-
-  // Over-max colors (golden/warning)
-  const overMaxColor = theme.palette.warning.main;
-  const overMaxDarkColor = theme.palette.warning.dark;
-
-  // Negative/dead colors
+  const tempColor = theme.palette.warning.main;
   const negativeColor = theme.palette.error.main;
   const negativeDarkColor = theme.palette.error.dark;
   const deadColor = theme.palette.grey[500];
 
-  // Select color based on state
   const getColor = () => {
     if (isDead) return deadColor;
     if (isNegative) return negativeColor;
-    if (isOverMax) return overMaxColor;
     return normalColor;
   };
 
   const getDarkColor = () => {
     if (isDead) return theme.palette.grey[700];
     if (isNegative) return negativeDarkColor;
-    if (isOverMax) return overMaxDarkColor;
     return normalDarkColor;
   };
 
@@ -135,40 +86,19 @@ const StatControl: React.FC<StatControlProps> = ({
   const darkColor = getDarkColor();
 
   const handleIncrement = useCallback(() => {
-    // Use displayed value (which includes pending changes) for calculation
-    const baseValue = displayedCurrent;
-    // Se ainda não atingiu o máximo, cap no máximo (healing normal)
-    if (baseValue < max) {
-      const newValue = Math.min(baseValue + increment, max);
-      debouncedUpdate(newValue);
-    }
-    // Se já está no máximo ou acima, adiciona como bônus temporário
-    else {
-      const newValue = baseValue + increment;
-      debouncedUpdate(newValue);
-    }
-  }, [displayedCurrent, increment, max, debouncedUpdate]);
+    const newValue = Math.min(current + increment, max);
+    onUpdateCurrent(newValue);
+  }, [current, increment, max, onUpdateCurrent]);
 
   const handleDecrement = useCallback(() => {
-    // Use displayed value (which includes pending changes) for calculation
-    const baseValue = displayedCurrent;
-    if (type === 'PV') {
-      // For PV, allow going down to minimum (negative)
-      const newValue = Math.max(baseValue - increment, pvMinimo);
-      debouncedUpdate(newValue);
-    } else {
-      // For PM, keep minimum at 0
-      const newValue = Math.max(baseValue - increment, 0);
-      debouncedUpdate(newValue);
-    }
-  }, [displayedCurrent, increment, pvMinimo, type, debouncedUpdate]);
+    onDecrement(increment);
+  }, [increment, onDecrement]);
 
-  // Estado local para o input de incremento (permite campo vazio)
+  // Estado local para o input de incremento
   const [incrementInputValue, setIncrementInputValue] = useState(
     String(increment)
   );
 
-  // Sincroniza o estado local quando increment muda externamente
   useEffect(() => {
     setIncrementInputValue(String(increment));
   }, [increment]);
@@ -176,16 +106,10 @@ const StatControl: React.FC<StatControlProps> = ({
   const handleIncrementChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = event.target.value;
-
-      // Só aceita números (sem negativo, pois incremento é sempre positivo)
       if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
         return;
       }
-
-      // Sempre atualiza o estado local
       setIncrementInputValue(inputValue);
-
-      // Propaga para o parent se for número válido >= 1
       const numValue = parseInt(inputValue, 10);
       if (!Number.isNaN(numValue) && numValue >= 1) {
         onUpdateIncrement(numValue);
@@ -194,29 +118,59 @@ const StatControl: React.FC<StatControlProps> = ({
     [onUpdateIncrement]
   );
 
+  // Estado local para o input de temp
+  const [tempInputValue, setTempInputValue] = useState(String(temp));
+
+  useEffect(() => {
+    setTempInputValue(String(temp));
+  }, [temp]);
+
+  const handleTempChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = event.target.value;
+      if (inputValue !== '' && !/^\d*$/.test(inputValue)) {
+        return;
+      }
+      setTempInputValue(inputValue);
+      const numValue = parseInt(inputValue, 10);
+      if (!Number.isNaN(numValue) && numValue >= 0) {
+        onUpdateTemp(numValue);
+      }
+    },
+    [onUpdateTemp]
+  );
+
+  const handleClearTemp = useCallback(() => {
+    onUpdateTemp(0);
+  }, [onUpdateTemp]);
+
+  const isDecrementDisabled =
+    type === 'PV'
+      ? current <= pvMinimo && temp <= 0
+      : current <= 0 && temp <= 0;
+
   const tooltipContent = (
     <Box>
       <Typography variant='caption'>
-        Atual: {displayedCurrent}/{max}
-        {isOverMax && ` (+${bonus} temporário)`}
+        Atual: {current}/{max}
       </Typography>
+      {hasTemp && (
+        <>
+          <br />
+          <Typography
+            variant='caption'
+            sx={{ color: tempColor, fontWeight: 'bold' }}
+          >
+            Temporario: +{temp}
+          </Typography>
+        </>
+      )}
       <br />
       <Typography variant='caption'>Calculado: {calculatedMax}</Typography>
       {type === 'PV' && (
         <>
           <br />
-          <Typography variant='caption'>Mínimo: {pvMinimo}</Typography>
-        </>
-      )}
-      {isOverMax && (
-        <>
-          <br />
-          <Typography
-            variant='caption'
-            sx={{ color: overMaxColor, fontWeight: 'bold' }}
-          >
-            ⭐ Bônus temporário ativo
-          </Typography>
+          <Typography variant='caption'>Minimo: {pvMinimo}</Typography>
         </>
       )}
       {isUnconscious && (
@@ -226,7 +180,7 @@ const StatControl: React.FC<StatControlProps> = ({
             variant='caption'
             sx={{ color: negativeColor, fontWeight: 'bold' }}
           >
-            💤 Desacordado
+            Desacordado
           </Typography>
         </>
       )}
@@ -237,7 +191,7 @@ const StatControl: React.FC<StatControlProps> = ({
             variant='caption'
             sx={{ color: deadColor, fontWeight: 'bold' }}
           >
-            💀 Morto
+            Morto
           </Typography>
         </>
       )}
@@ -286,7 +240,7 @@ const StatControl: React.FC<StatControlProps> = ({
             sx={{
               color,
               position: 'absolute',
-              ...((isOverMax || isNegative) && {
+              ...(isNegative && {
                 filter: 'drop-shadow(0 0 8px currentColor)',
                 animation: 'pulse 2s ease-in-out infinite',
                 '@keyframes pulse': {
@@ -312,7 +266,6 @@ const StatControl: React.FC<StatControlProps> = ({
             }}
           >
             {isDead ? (
-              // Skull icon when dead
               <Typography
                 sx={{
                   fontSize: '40px',
@@ -330,24 +283,24 @@ const StatControl: React.FC<StatControlProps> = ({
                     fontFamily: 'Tfont',
                     color,
                     fontWeight: 'bold',
-                    ...((isOverMax || isNegative) && {
+                    ...(isNegative && {
                       textShadow: `0 0 10px ${color}`,
                     }),
                   }}
                 >
-                  {displayedCurrent}
+                  {current}
                 </Typography>
-                {isOverMax && (
+                {hasTemp && (
                   <Typography
                     variant='caption'
                     sx={{
                       fontSize: '10px',
-                      color,
+                      color: tempColor,
                       fontWeight: 'bold',
                       lineHeight: 0.8,
                     }}
                   >
-                    +{bonus}
+                    +{temp}
                   </Typography>
                 )}
               </>
@@ -366,6 +319,19 @@ const StatControl: React.FC<StatControlProps> = ({
         >
           {type}
         </Typography>
+
+        {/* Temp indicator chip */}
+        {hasTemp && (
+          <Chip
+            size='small'
+            label={`+${temp} temp`}
+            color='warning'
+            sx={{
+              height: 20,
+              fontSize: '0.65rem',
+            }}
+          />
+        )}
 
         {/* Unconscious indicator */}
         {isUnconscious && (
@@ -425,11 +391,7 @@ const StatControl: React.FC<StatControlProps> = ({
               <IconButton
                 size='small'
                 onClick={handleDecrement}
-                disabled={
-                  type === 'PV'
-                    ? displayedCurrent <= pvMinimo
-                    : displayedCurrent <= 0
-                }
+                disabled={isDecrementDisabled}
                 sx={{
                   backgroundColor: color,
                   color: 'white',
@@ -461,26 +423,24 @@ const StatControl: React.FC<StatControlProps> = ({
                   sx={{
                     fontWeight: 'bold',
                     color:
-                      isDead || isNegative || isOverMax
-                        ? color
-                        : theme.palette.text.primary,
+                      isDead || isNegative ? color : theme.palette.text.primary,
                     fontSize: '0.95rem',
                     lineHeight: 1.2,
                   }}
                 >
-                  {isDead ? '💀' : `${displayedCurrent}/${max}`}
+                  {isDead ? '💀' : `${current}/${max}`}
                 </Typography>
-                {isOverMax && (
+                {hasTemp && (
                   <Typography
                     variant='caption'
                     sx={{
                       fontSize: '0.7rem',
-                      color: overMaxColor,
+                      color: tempColor,
                       fontWeight: 600,
                       lineHeight: 1,
                     }}
                   >
-                    (+{bonus})
+                    (+{temp} temp)
                   </Typography>
                 )}
                 {isUnconscious && (
@@ -501,7 +461,7 @@ const StatControl: React.FC<StatControlProps> = ({
               <IconButton
                 size='small'
                 onClick={handleIncrement}
-                disabled={false}
+                disabled={current >= max}
                 sx={{
                   backgroundColor: color,
                   color: 'white',
@@ -509,6 +469,10 @@ const StatControl: React.FC<StatControlProps> = ({
                   '&:hover': {
                     backgroundColor: darkColor,
                     boxShadow: 4,
+                  },
+                  '&:disabled': {
+                    backgroundColor: theme.palette.grey[400],
+                    color: theme.palette.grey[600],
                   },
                 }}
               >
@@ -564,6 +528,77 @@ const StatControl: React.FC<StatControlProps> = ({
                   },
                 }}
               />
+            </Stack>
+
+            {/* Temp Control */}
+            <Stack direction='row' spacing={0.5} alignItems='center'>
+              <Typography
+                variant='caption'
+                sx={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: tempColor,
+                }}
+              >
+                Temp:
+              </Typography>
+              <TextField
+                size='small'
+                value={tempInputValue}
+                onChange={handleTempChange}
+                inputProps={{
+                  style: {
+                    textAlign: 'center',
+                    padding: '2px 4px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                  },
+                }}
+                sx={{
+                  width: 50,
+                  '& .MuiOutlinedInput-root': {
+                    height: 24,
+                    backgroundColor:
+                      theme.palette.mode === 'dark' ? '#404040' : '#f5f5f5',
+                    '& fieldset': {
+                      borderColor: tempColor,
+                      borderWidth: '1px',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: theme.palette.warning.dark,
+                      borderWidth: '2px',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: tempColor,
+                      borderWidth: '2px',
+                    },
+                  },
+                  '& .MuiInputBase-input': {
+                    color: theme.palette.text.primary,
+                  },
+                }}
+              />
+              {hasTemp && (
+                <Button
+                  size='small'
+                  variant='outlined'
+                  color='warning'
+                  onClick={handleClearTemp}
+                  startIcon={<ClearIcon sx={{ fontSize: 12 }} />}
+                  sx={{
+                    minWidth: 0,
+                    height: 24,
+                    fontSize: '0.6rem',
+                    padding: '2px 6px',
+                    '& .MuiButton-startIcon': {
+                      marginRight: '2px',
+                      marginLeft: 0,
+                    },
+                  }}
+                >
+                  Limpar
+                </Button>
+              )}
             </Stack>
           </Box>
         )}

@@ -35,6 +35,7 @@ interface SpellCastDialogProps {
   spell: Spell;
   currentPM: number;
   maxPM: number;
+  tempPM?: number;
   onCast: (pmSpent: number) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
@@ -52,6 +53,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   spell,
   currentPM,
   maxPM,
+  tempPM,
   onCast,
   onUpdateRolls,
   characterName,
@@ -120,7 +122,8 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     return effectiveBasePM + aprimoramentoCost;
   }, [effectiveBasePM, aprimoramentoCost, hasTruqueSelected]);
 
-  const insufficientPM = currentPM < totalPMCost;
+  const effectivePM = currentPM + (tempPM ?? 0);
+  const insufficientPM = effectivePM < totalPMCost;
 
   useEffect(() => {
     if (open) {
@@ -530,7 +533,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                     onChange={(e) => setShouldSpendPM(e.target.checked)}
                   />
                 }
-                label={`Gastar PM (PM Atual: ${currentPM}/${maxPM})`}
+                label={`Gastar PM (PM Atual: ${effectivePM}/${maxPM}${
+                  tempPM ? ` [+${tempPM} temp]` : ''
+                })`}
               />
               {insufficientPM && (
                 <Typography variant='body2' color='error'>

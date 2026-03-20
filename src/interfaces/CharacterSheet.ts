@@ -455,6 +455,8 @@ export default interface CharacterSheet {
   manualMaxPV?: number; // Manual override for maximum PV (replaces calculated value if set)
   pmIncrement?: number; // Increment value for PM +/- buttons (default: 1)
   pvIncrement?: number; // Increment value for PV +/- buttons (default: 1)
+  tempPV?: number; // PV temporário (separado do currentPV, consumido primeiro ao tomar dano)
+  tempPM?: number; // PM temporário (separado do currentPM, consumido primeiro ao gastar PM)
   reducaoDeDano?: DamageReduction; // Redução de Dano total (calculado: auto + manual)
   bonusRd?: DamageReduction; // Bônus manual de RD por tipo (adicionado ao calculado)
   customProficiencias?: string[]; // Proficiências adicionadas manualmente pelo usuário

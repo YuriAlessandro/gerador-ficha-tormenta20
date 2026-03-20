@@ -28,6 +28,7 @@ interface SpellProps {
   characterName?: string;
   currentPM?: number;
   maxPM?: number;
+  tempPM?: number;
   onSpellCast?: (pmSpent: number) => void;
   isMago?: boolean;
   onToggleMemorized?: (spell: Spell) => void;
@@ -41,6 +42,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
     characterName,
     currentPM,
     maxPM,
+    tempPM,
     onSpellCast,
     isMago,
     onToggleMemorized,
@@ -292,6 +294,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         spell={spell}
         currentPM={currentPM ?? 0}
         maxPM={maxPM ?? 0}
+        tempPM={tempPM}
         onCast={handleSpellCast}
         onUpdateRolls={onUpdateRolls}
         characterName={characterName}

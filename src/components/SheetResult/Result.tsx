@@ -393,6 +393,37 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  const handlePVTempUpdate = useCallback(
+    (newTemp: number) => {
+      const updatedSheet = { ...currentSheet, tempPV: newTemp };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePVDecrement = useCallback(
+    (amount: number) => {
+      const currentTemp = currentSheet.tempPV ?? 0;
+      const currentPVVal = currentSheet.currentPV ?? currentSheet.pv;
+      const tempConsumed = Math.min(currentTemp, amount);
+      const remaining = amount - tempConsumed;
+      const pvMinimo = Math.min(-10, -Math.floor(currentSheet.pv / 2));
+      const updatedSheet = {
+        ...currentSheet,
+        tempPV: currentTemp - tempConsumed,
+        currentPV: Math.max(pvMinimo, currentPVVal - remaining),
+      };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
   const handlePMCurrentUpdate = useCallback(
     (newCurrent: number) => {
       const updatedSheet = { ...currentSheet, currentPM: newCurrent };
@@ -415,11 +446,47 @@ const Result: React.FC<ResultProps> = (props) => {
     [currentSheet, onSheetUpdate]
   );
 
+  const handlePMTempUpdate = useCallback(
+    (newTemp: number) => {
+      const updatedSheet = { ...currentSheet, tempPM: newTemp };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePMDecrement = useCallback(
+    (amount: number) => {
+      const currentTemp = currentSheet.tempPM ?? 0;
+      const currentPMVal = currentSheet.currentPM ?? currentSheet.pm;
+      const tempConsumed = Math.min(currentTemp, amount);
+      const remaining = amount - tempConsumed;
+      const updatedSheet = {
+        ...currentSheet,
+        tempPM: currentTemp - tempConsumed,
+        currentPM: Math.max(0, currentPMVal - remaining),
+      };
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
   const handleSpellCast = useCallback(
     (pmSpent: number) => {
+      const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
-      const newPM = Math.max(0, currentPMValue - pmSpent);
-      const updatedSheet = { ...currentSheet, currentPM: newPM };
+      const tempConsumed = Math.min(currentTemp, pmSpent);
+      const remaining = pmSpent - tempConsumed;
+      const updatedSheet = {
+        ...currentSheet,
+        tempPM: currentTemp - tempConsumed,
+        currentPM: Math.max(0, currentPMValue - remaining),
+      };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
@@ -1025,8 +1092,11 @@ const Result: React.FC<ResultProps> = (props) => {
                       max={pv}
                       calculatedMax={pv}
                       increment={currentSheet.pvIncrement ?? 1}
+                      temp={currentSheet.tempPV ?? 0}
                       onUpdateCurrent={handlePVCurrentUpdate}
                       onUpdateIncrement={handlePVIncrementUpdate}
+                      onUpdateTemp={handlePVTempUpdate}
+                      onDecrement={handlePVDecrement}
                       disabled={!onSheetUpdate}
                     />
                     {currentSheet.manualMaxPV !== undefined &&
@@ -1054,8 +1124,11 @@ const Result: React.FC<ResultProps> = (props) => {
                       max={pm}
                       calculatedMax={pm}
                       increment={currentSheet.pmIncrement ?? 1}
+                      temp={currentSheet.tempPM ?? 0}
                       onUpdateCurrent={handlePMCurrentUpdate}
                       onUpdateIncrement={handlePMIncrementUpdate}
+                      onUpdateTemp={handlePMTempUpdate}
+                      onDecrement={handlePMDecrement}
                       disabled={!onSheetUpdate}
                     />
                     {currentSheet.manualMaxPM !== undefined &&
@@ -1342,6 +1415,7 @@ const Result: React.FC<ResultProps> = (props) => {
                   characterName={nome}
                   currentPM={currentSheet.currentPM ?? pm}
                   maxPM={pm}
+                  tempPM={currentSheet.tempPM ?? 0}
                   onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
                   isMago={classe.subname === 'Mago'}
                   onToggleMemorized={

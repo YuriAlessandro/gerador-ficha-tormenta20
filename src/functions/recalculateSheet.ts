@@ -1108,6 +1108,15 @@ export function recalculateSheet(
       updatedSheet.currentPV = updatedSheet.pv;
     }
 
+    // Migrate old over-max PV to temp PV
+    if (
+      updatedSheet.currentPV > updatedSheet.pv &&
+      updatedSheet.tempPV === undefined
+    ) {
+      updatedSheet.tempPV = updatedSheet.currentPV - updatedSheet.pv;
+      updatedSheet.currentPV = updatedSheet.pv;
+    }
+
     // Initialize increment if not set
     if (updatedSheet.pvIncrement === undefined) {
       updatedSheet.pvIncrement = 1;
@@ -1149,14 +1158,20 @@ export function recalculateSheet(
       updatedSheet.currentPM = updatedSheet.pm;
     }
 
+    // Migrate old over-max PM to temp PM
+    if (
+      updatedSheet.currentPM > updatedSheet.pm &&
+      updatedSheet.tempPM === undefined
+    ) {
+      updatedSheet.tempPM = updatedSheet.currentPM - updatedSheet.pm;
+      updatedSheet.currentPM = updatedSheet.pm;
+    }
+
     // Initialize increment if not set
     if (updatedSheet.pmIncrement === undefined) {
       updatedSheet.pmIncrement = 1;
     }
   }
-
-  // Note: We allow current values to exceed maximums for temporary bonuses
-  // (buffs, magic items, etc.). No validation needed here.
 
   // Step 7.7: Recalculate skills (resets others to 0)
   updatedSheet = recalculateCompleteSkills(updatedSheet);
