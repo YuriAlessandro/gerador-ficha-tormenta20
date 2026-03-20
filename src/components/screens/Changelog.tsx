@@ -69,6 +69,15 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.7</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Poderes concedidos por habilidades
+                  (como Visco Rubro via Linhagem Rubra do Arcanista, Couraça
+                  Rúbea do Kaijin, Estandarte Vivo, etc.) não reapareciam mais
+                  após serem removidos e a ficha ser salva.
+                </li>
+              </ul>
               <h3>4.6</h3>
               <ul>
                 <li>

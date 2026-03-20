@@ -219,7 +219,7 @@ describe('getMulticlassDisplayName', () => {
     ];
 
     const display = getMulticlassDisplayName(sheet);
-    expect(display).toBe('Guerreiro 3 / Bárbaro 2');
+    expect(display).toBe('Guerreiro 3 · Bárbaro 2');
   });
 
   test('mostra variante corretamente para mono-classe', () => {

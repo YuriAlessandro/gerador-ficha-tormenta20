@@ -5,6 +5,7 @@ import { CharacterAttributes } from '@/interfaces/Character';
 import CharacterSheet, {
   DamageReduction,
   DamageType,
+  SheetAction,
   SheetActionHistoryEntry,
   Step,
 } from '@/interfaces/CharacterSheet';
@@ -751,6 +752,88 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Synthesizes sheetActionHistory entries for powers that were removed by the user
+ * but could be re-granted by abilities with `getGeneralPower` sheetActions.
+ *
+ * This fixes a bug where old sheets (created before the history system) have empty
+ * sheetActionHistory, causing `isActionAlreadyApplied()` to return false and
+ * re-executing `getGeneralPower` actions — which re-adds a random power from
+ * `availablePowers`, making the removed power effectively impossible to delete.
+ *
+ * By synthesizing a history entry for the source ability, `isActionAlreadyApplied`
+ * returns true and skips re-execution.
+ */
+function synthesizeHistoryForRemovedPowers(
+  sheet: CharacterSheet,
+  removedPowerNames: string[]
+): void {
+  // Collect all abilities that have getGeneralPower sheetActions
+  const sourcesWithGetPower: Array<{
+    abilityName: string;
+    sheetAction: SheetAction;
+    availablePowerNames: string[];
+  }> = [];
+
+  const collectFromActions = (
+    abilityName: string,
+    sheetActions: SheetAction[] | undefined
+  ) => {
+    if (!sheetActions) return;
+    sheetActions.forEach((sa) => {
+      if (sa.action.type === 'getGeneralPower') {
+        sourcesWithGetPower.push({
+          abilityName,
+          sheetAction: sa,
+          availablePowerNames: sa.action.availablePowers.map((p) => p.name),
+        });
+      }
+    });
+  };
+
+  // Class abilities
+  (sheet.classe.abilities || []).forEach((ability) =>
+    collectFromActions(ability.name, ability.sheetActions)
+  );
+
+  // Race abilities
+  (sheet.raca.abilities || []).forEach((ability) =>
+    collectFromActions(ability.name, ability.sheetActions)
+  );
+
+  // Origin powers
+  (sheet.origin?.powers || []).forEach((power) =>
+    collectFromActions(power.name, power.sheetActions)
+  );
+
+  // Deity powers
+  (sheet.devoto?.poderes || []).forEach((power) =>
+    collectFromActions(power.name, power.sheetActions)
+  );
+
+  // For each removed power, check if any source could have granted it
+  removedPowerNames.forEach((removedPower) => {
+    sourcesWithGetPower.forEach((source) => {
+      if (!source.availablePowerNames.includes(removedPower)) return;
+
+      // Check if history already has an entry for this source ability
+      const hasHistory = sheet.sheetActionHistory.some(
+        (entry) =>
+          entry.powerName === source.abilityName &&
+          entry.changes.some((c) => c.type === 'PowerAdded')
+      );
+
+      if (!hasHistory) {
+        sheet.sheetActionHistory.push({
+          source: source.sheetAction.source,
+          powerName: source.abilityName,
+          changes: [{ type: 'PowerAdded', powerName: removedPower }],
+        });
+      }
+    });
+  });
+}
+
+/**
  * Options for controlling what gets recalculated
  */
 export interface RecalculateOptions {
@@ -940,6 +1023,12 @@ export function recalculateSheet(
         (entry) => entry.powerName !== powerName
       );
     });
+  }
+
+  // Step 0.5: Synthesize history entries for removed powers so that
+  // getGeneralPower actions from source abilities don't re-execute
+  if (removedPowerNames.length > 0) {
+    synthesizeHistoryForRemovedPowers(updatedSheet, removedPowerNames);
   }
 
   // Step 1: Clear existing bonuses to avoid accumulation
