@@ -190,12 +190,12 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
 
         const computedOthers =
           (originalSkill.others ?? 0) - (originalSkill.manualOthers ?? 0);
-        const newManualOthers = editedSkill.others - computedOthers;
         return {
           ...originalSkill,
           training: skillTrainingMod(editedSkill.trained, sheet.nivel),
-          others: editedSkill.others,
-          manualOthers: newManualOthers !== 0 ? newManualOthers : undefined,
+          others: computedOthers + editedSkill.others,
+          manualOthers:
+            editedSkill.others !== 0 ? editedSkill.others : undefined,
           modAttr: editedSkill.modAttr,
         };
       });

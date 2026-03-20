@@ -72,6 +72,12 @@ const Changelog: React.FC = () => {
               <h3>4.7</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Bônus de perícias ficavam negativos
+                  absurdamente após editar e salvar a ficha. O problema era
+                  causado por perda dos bônus de sistema ao salvar, e o valor
+                  manual ficava cada vez mais negativo a cada salvamento.
+                </li>
+                <li>
                   <strong>Correção:</strong> Poderes concedidos por habilidades
                   (como Visco Rubro via Linhagem Rubra do Arcanista, Couraça
                   Rúbea do Kaijin, Estandarte Vivo, etc.) não reapareciam mais
