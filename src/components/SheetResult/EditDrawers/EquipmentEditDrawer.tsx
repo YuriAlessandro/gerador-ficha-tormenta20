@@ -39,6 +39,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import CheckIcon from '@mui/icons-material/Check';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
@@ -119,6 +121,8 @@ interface SelectedEquipment {
   food: Equipment[];
   animals: Equipment[];
 }
+
+type QuantityCategory = 'generalItems' | 'esoteric' | 'alchemy' | 'food';
 
 type CustomItemCategory =
   | 'generalItems'
@@ -1290,23 +1294,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleRemoveGeneralItem = (item: Equipment) => {
     if (autoDescontarTibares) {
       const price = item.preco || 0;
-      if (price > 0) setDinheiro((d) => d + price);
+      const qty = item.quantity || 1;
+      if (price > 0) setDinheiro((d) => d + price * qty);
     }
-    setSelectedEquipment((prev) => {
-      const existingItem = prev.generalItems.find((i) => i.nome === item.nome);
-      if (existingItem && (existingItem.quantity || 1) > 1) {
-        return {
-          ...prev,
-          generalItems: prev.generalItems.map((i) =>
-            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
-          ),
-        };
-      }
-      return {
-        ...prev,
-        generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
-      };
-    });
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      generalItems: prev.generalItems.filter((i) => i.nome !== item.nome),
+    }));
   };
 
   // Handlers for Esoteric
@@ -1338,23 +1332,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleRemoveEsoteric = (item: Equipment) => {
     if (autoDescontarTibares) {
       const price = item.preco || 0;
-      if (price > 0) setDinheiro((d) => d + price);
+      const qty = item.quantity || 1;
+      if (price > 0) setDinheiro((d) => d + price * qty);
     }
-    setSelectedEquipment((prev) => {
-      const existingItem = prev.esoteric.find((i) => i.nome === item.nome);
-      if (existingItem && (existingItem.quantity || 1) > 1) {
-        return {
-          ...prev,
-          esoteric: prev.esoteric.map((i) =>
-            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
-          ),
-        };
-      }
-      return {
-        ...prev,
-        esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
-      };
-    });
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      esoteric: prev.esoteric.filter((i) => i.nome !== item.nome),
+    }));
   };
 
   // Handlers for Clothing
@@ -1413,23 +1397,13 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleRemoveAlchemy = (item: Equipment) => {
     if (autoDescontarTibares) {
       const price = item.preco || 0;
-      if (price > 0) setDinheiro((d) => d + price);
+      const qty = item.quantity || 1;
+      if (price > 0) setDinheiro((d) => d + price * qty);
     }
-    setSelectedEquipment((prev) => {
-      const existingItem = prev.alchemy.find((i) => i.nome === item.nome);
-      if (existingItem && (existingItem.quantity || 1) > 1) {
-        return {
-          ...prev,
-          alchemy: prev.alchemy.map((i) =>
-            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
-          ),
-        };
-      }
-      return {
-        ...prev,
-        alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
-      };
-    });
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      alchemy: prev.alchemy.filter((i) => i.nome !== item.nome),
+    }));
   };
 
   // Handlers for Food
@@ -1461,23 +1435,96 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleRemoveFood = (item: Equipment) => {
     if (autoDescontarTibares) {
       const price = item.preco || 0;
-      if (price > 0) setDinheiro((d) => d + price);
+      const qty = item.quantity || 1;
+      if (price > 0) setDinheiro((d) => d + price * qty);
     }
-    setSelectedEquipment((prev) => {
-      const existingItem = prev.food.find((i) => i.nome === item.nome);
-      if (existingItem && (existingItem.quantity || 1) > 1) {
-        return {
-          ...prev,
-          food: prev.food.map((i) =>
-            i.nome === item.nome ? { ...i, quantity: (i.quantity || 1) - 1 } : i
-          ),
-        };
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      food: prev.food.filter((i) => i.nome !== item.nome),
+    }));
+  };
+
+  // Handler for changing quantity of items with stepper
+  const handleChangeItemQuantity = (
+    category: QuantityCategory,
+    itemNome: string,
+    newQuantity: number,
+    currentQuantity: number,
+    pricePerUnit: number
+  ) => {
+    const delta = newQuantity - currentQuantity;
+    if (newQuantity < 1) return;
+
+    if (delta > 0 && autoDescontarTibares) {
+      const totalCost = pricePerUnit * delta;
+      if (totalCost > dinheiro) return;
+    }
+
+    setSelectedEquipment((prev) => ({
+      ...prev,
+      [category]: (prev[category] as Equipment[]).map((i) =>
+        i.nome === itemNome ? { ...i, quantity: newQuantity } : i
+      ),
+    }));
+
+    if (autoDescontarTibares && pricePerUnit > 0) {
+      if (delta > 0) {
+        setDinheiro((d) => d - pricePerUnit * delta);
+      } else {
+        setDinheiro((d) => d + pricePerUnit * Math.abs(delta));
       }
-      return {
-        ...prev,
-        food: prev.food.filter((i) => i.nome !== item.nome),
-      };
-    });
+    }
+  };
+
+  const renderQuantityStepper = (
+    item: Equipment,
+    category: QuantityCategory
+  ) => {
+    const qty = item.quantity || 1;
+    const price = item.preco || 0;
+    const canIncrement = !autoDescontarTibares || price <= dinheiro;
+
+    return (
+      <Stack
+        direction='row'
+        alignItems='center'
+        spacing={0}
+        sx={{ display: 'inline-flex', mr: 0.5 }}
+      >
+        <IconButton
+          size='small'
+          onClick={() =>
+            handleChangeItemQuantity(category, item.nome, qty - 1, qty, price)
+          }
+          disabled={qty <= 1}
+          sx={{ p: 0.25 }}
+        >
+          <RemoveIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+        <Typography
+          variant='body2'
+          sx={{
+            minWidth: 20,
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '0.8rem',
+            userSelect: 'none',
+          }}
+        >
+          {qty}
+        </Typography>
+        <IconButton
+          size='small'
+          onClick={() =>
+            handleChangeItemQuantity(category, item.nome, qty + 1, qty, price)
+          }
+          disabled={!canIncrement}
+          sx={{ p: 0.25 }}
+        >
+          <AddIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Stack>
+    );
   };
 
   // Handlers for Animals
@@ -2540,12 +2587,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               alignItems='center'
                               spacing={0.5}
                             >
-                              <span>
-                                {item.quantity && item.quantity > 1
-                                  ? `${item.quantity}x `
-                                  : ''}
-                                {item.nome}
-                              </span>
+                              <span>{item.nome}</span>
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2557,14 +2599,25 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             </Stack>
                           }
                           secondary={`${
-                            item.preco ? `Preço: T$ ${item.preco} | ` : ''
-                          }Espaços: ${item.spaces || 0}${
+                            item.preco
+                              ? `T$ ${item.preco}${
+                                  (item.quantity || 1) > 1
+                                    ? ` (total: T$ ${
+                                        item.preco * (item.quantity || 1)
+                                      })`
+                                    : ''
+                                } | `
+                              : ''
+                          }Espaços: ${
+                            (item.spaces || 0) * (item.quantity || 1)
+                          }${
                             item.rolls && item.rolls.length > 0
                               ? ` | ${item.rolls.length} rolagem(ns)`
                               : ''
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          {renderQuantityStepper(item, 'generalItems')}
                           <IconButton
                             size='small'
                             onClick={() => handleOpenEditItem(item, index)}
@@ -2573,14 +2626,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            edge='end'
-                            size='small'
-                            onClick={() => handleRemoveGeneralItem(item)}
-                            color='error'
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          <Tooltip title='Remover todos'>
+                            <IconButton
+                              edge='end'
+                              size='small'
+                              onClick={() => handleRemoveGeneralItem(item)}
+                              color='error'
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </ListItemSecondaryAction>
                       </ListItem>
                     ))}
@@ -2643,12 +2698,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               alignItems='center'
                               spacing={0.5}
                             >
-                              <span>
-                                {item.quantity && item.quantity > 1
-                                  ? `${item.quantity}x `
-                                  : ''}
-                                {item.nome}
-                              </span>
+                              <span>{item.nome}</span>
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2660,30 +2710,43 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                             </Stack>
                           }
                           secondary={`${
-                            item.preco ? `Preço: T$ ${item.preco} | ` : ''
-                          }Espaços: ${item.spaces || 0}${
+                            item.preco
+                              ? `T$ ${item.preco}${
+                                  (item.quantity || 1) > 1
+                                    ? ` (total: T$ ${
+                                        item.preco * (item.quantity || 1)
+                                      })`
+                                    : ''
+                                } | `
+                              : ''
+                          }Espaços: ${
+                            (item.spaces || 0) * (item.quantity || 1)
+                          }${
                             item.rolls && item.rolls.length > 0
                               ? ` | ${item.rolls.length} rolagem(ns)`
                               : ''
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          {renderQuantityStepper(item, 'esoteric')}
                           <IconButton
                             size='small'
                             onClick={() => handleOpenEditEsoteric(item, index)}
                             color='primary'
-                            sx={{ mr: 1 }}
+                            sx={{ mr: 0.5 }}
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            edge='end'
-                            size='small'
-                            onClick={() => handleRemoveEsoteric(item)}
-                            color='error'
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          <Tooltip title='Remover todos'>
+                            <IconButton
+                              edge='end'
+                              size='small'
+                              onClick={() => handleRemoveEsoteric(item)}
+                              color='error'
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </ListItemSecondaryAction>
                       </ListItem>
                     ))}
@@ -2840,12 +2903,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               alignItems='center'
                               spacing={0.5}
                             >
-                              <span>
-                                {item.quantity && item.quantity > 1
-                                  ? `${item.quantity}x `
-                                  : ''}
-                                {item.nome}
-                              </span>
+                              <span>{item.nome}</span>
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2856,8 +2914,14 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               )}
                             </Stack>
                           }
-                          secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
-                            item.spaces || 0
+                          secondary={`T$ ${item.preco || 0}${
+                            (item.quantity || 1) > 1
+                              ? ` (total: T$ ${
+                                  (item.preco || 0) * (item.quantity || 1)
+                                })`
+                              : ''
+                          } | Espaços: ${
+                            (item.spaces || 0) * (item.quantity || 1)
                           }${
                             item.rolls && item.rolls.length > 0
                               ? ` | ${item.rolls.length} rolagem(ns)`
@@ -2865,22 +2929,25 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          {renderQuantityStepper(item, 'alchemy')}
                           <IconButton
                             size='small'
                             onClick={() => handleOpenEditAlchemy(item, index)}
                             color='primary'
-                            sx={{ mr: 1 }}
+                            sx={{ mr: 0.5 }}
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            edge='end'
-                            size='small'
-                            onClick={() => handleRemoveAlchemy(item)}
-                            color='error'
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          <Tooltip title='Remover todos'>
+                            <IconButton
+                              edge='end'
+                              size='small'
+                              onClick={() => handleRemoveAlchemy(item)}
+                              color='error'
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </ListItemSecondaryAction>
                       </ListItem>
                     ))}
@@ -2939,12 +3006,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               alignItems='center'
                               spacing={0.5}
                             >
-                              <span>
-                                {item.quantity && item.quantity > 1
-                                  ? `${item.quantity}x `
-                                  : ''}
-                                {item.nome}
-                              </span>
+                              <span>{item.nome}</span>
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2955,8 +3017,14 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               )}
                             </Stack>
                           }
-                          secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
-                            item.spaces || 0
+                          secondary={`T$ ${item.preco || 0}${
+                            (item.quantity || 1) > 1
+                              ? ` (total: T$ ${
+                                  (item.preco || 0) * (item.quantity || 1)
+                                })`
+                              : ''
+                          } | Espaços: ${
+                            (item.spaces || 0) * (item.quantity || 1)
                           }${
                             item.rolls && item.rolls.length > 0
                               ? ` | ${item.rolls.length} rolagem(ns)`
@@ -2964,22 +3032,25 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                           }`}
                         />
                         <ListItemSecondaryAction>
+                          {renderQuantityStepper(item, 'food')}
                           <IconButton
                             size='small'
                             onClick={() => handleOpenEditFood(item, index)}
                             color='primary'
-                            sx={{ mr: 1 }}
+                            sx={{ mr: 0.5 }}
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton
-                            edge='end'
-                            size='small'
-                            onClick={() => handleRemoveFood(item)}
-                            color='error'
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          <Tooltip title='Remover todos'>
+                            <IconButton
+                              edge='end'
+                              size='small'
+                              onClick={() => handleRemoveFood(item)}
+                              color='error'
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </ListItemSecondaryAction>
                       </ListItem>
                     ))}
