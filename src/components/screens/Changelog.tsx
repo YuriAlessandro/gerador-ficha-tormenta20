@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/03/2026.
+            21/03/2026.
           </p>
 
           <p>
@@ -159,6 +159,16 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> Não era possível reduzir a Redução
                   de Dano abaixo do valor automático no editor de ficha (ex:
                   Bárbaro com RD 10 não podia ser reduzido para menos).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora é possível criar itens
+                  personalizados em todas as categorias de equipamento — não
+                  apenas &quot;Item Geral&quot;. O botão
+                  &quot;Personalizado&quot; aparece em Armas, Armaduras,
+                  Escudos, Esotéricos, Vestuário, Alquimia, Alimentação e
+                  Animais. Armas customizadas permitem definir dano, bônus de
+                  ataque e crítico; armaduras e escudos permitem definir bônus
+                  de defesa e penalidade.
                 </li>
               </ul>
               <h3>4.6</h3>
