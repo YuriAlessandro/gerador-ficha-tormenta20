@@ -297,7 +297,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   const handlePowerToggle = (power: GeneralPower) => {
     const isSelected = selectedPowers.some((p) => p.name === power.name);
 
-    // Simplified: all powers behave as non-repeatable (one instance max)
     if (isSelected) {
       // Remove power and its selections
       setSelectedPowers((prev) => prev.filter((p) => p.name !== power.name));
@@ -360,7 +359,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
         // Apply power with auto-selections and add to selected list
         setManualSelections((prev) => {
-          const isPowerRepeatable = power.canRepeat || false;
+          const isPowerRepeatable =
+            power.canRepeat || power.allowSeveralPicks || false;
 
           if (isPowerRepeatable) {
             // For repeatable powers, combine selections
@@ -421,19 +421,125 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   };
 
+  // Handler for adding another instance of a repeatable general power (via "+" button)
+  const handleAddRepeatablePower = (power: GeneralPower) => {
+    const requirements = getPowerSelectionRequirements(power);
+
+    if (requirements) {
+      const requiresUserInput = requirements.requirements.some((req) => {
+        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        return (
+          availableOptions.length > 1 && req.pick < availableOptions.length
+        );
+      });
+
+      if (requiresUserInput) {
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: false,
+        });
+      } else {
+        const autoSelections: SelectionOptions = {};
+        requirements.requirements.forEach((req) => {
+          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          if (
+            availableOptions.length === req.pick ||
+            availableOptions.length === 1
+          ) {
+            if (req.type === 'learnSkill') {
+              autoSelections.skills = availableOptions as string[];
+            } else if (req.type === 'addProficiency') {
+              autoSelections.proficiencies = availableOptions as string[];
+            } else if (req.type === 'getGeneralPower') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.powers = availableOptions as any[];
+            } else if (
+              req.type === 'learnSpell' ||
+              req.type === 'learnAnySpellFromHighestCircle'
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.spells = availableOptions as any[];
+            } else if (req.type === 'increaseAttribute') {
+              autoSelections.attributes = availableOptions as string[];
+            }
+          }
+        });
+
+        setManualSelections((prev) => {
+          const currentSelections =
+            (prev[power.name] as SelectionOptions) || {};
+          const combined: SelectionOptions = { ...currentSelections };
+
+          if (autoSelections.spells) {
+            combined.spells = [
+              ...(combined.spells || []),
+              ...autoSelections.spells,
+            ];
+          }
+          if (autoSelections.skills) {
+            combined.skills = [
+              ...(combined.skills || []),
+              ...autoSelections.skills,
+            ];
+          }
+          if (autoSelections.proficiencies) {
+            combined.proficiencies = [
+              ...(combined.proficiencies || []),
+              ...autoSelections.proficiencies,
+            ];
+          }
+          if (autoSelections.powers) {
+            combined.powers = [
+              ...(combined.powers || []),
+              ...autoSelections.powers,
+            ];
+          }
+          if (autoSelections.attributes) {
+            combined.attributes = autoSelections.attributes;
+          }
+
+          return {
+            ...prev,
+            [power.name]: combined,
+          };
+        });
+        setSelectedPowers((prev) => [
+          ...prev,
+          getOriginalPowerWithRolls(power),
+        ]);
+      }
+    } else {
+      setSelectedPowers((prev) => [...prev, getOriginalPowerWithRolls(power)]);
+    }
+  };
+
   // Handler for removing specific power instances (called from chip delete buttons)
   const handlePowerRemove = (powerToRemove: GeneralPower) => {
-    // Remove all instances of this power from selected powers
-    setSelectedPowers((prev) =>
-      prev.filter((p) => p.name !== powerToRemove.name)
-    );
+    const count = selectedPowers.filter(
+      (p) => p.name === powerToRemove.name
+    ).length;
 
-    // Remove all selections for this power
-    setManualSelections((prev) => {
-      const updated = { ...prev };
-      delete updated[powerToRemove.name];
-      return updated;
-    });
+    if (count <= 1) {
+      // Last instance: remove entirely and clean up selections
+      setSelectedPowers((prev) =>
+        prev.filter((p) => p.name !== powerToRemove.name)
+      );
+      setManualSelections((prev) => {
+        const updated = { ...prev };
+        delete updated[powerToRemove.name];
+        return updated;
+      });
+    } else {
+      // Multiple instances: remove only the last occurrence
+      setSelectedPowers((prev) => {
+        const lastIndex = prev
+          .map((p) => p.name)
+          .lastIndexOf(powerToRemove.name);
+        return prev.filter((_p, index) => index !== lastIndex);
+      });
+    }
   };
 
   const handleClassPowerToggle = (power: ClassPower) => {
@@ -580,17 +686,134 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
   // Handler for removing specific class power instances (called from chip delete buttons)
   const handleClassPowerRemove = (powerToRemove: ClassPower) => {
-    // Remove all instances of this power from selected class powers
-    setSelectedClassPowers((prev) =>
-      prev.filter((p) => p.name !== powerToRemove.name)
-    );
+    const count = selectedClassPowers.filter(
+      (p) => p.name === powerToRemove.name
+    ).length;
 
-    // Remove all selections for this power
-    setManualSelections((prev) => {
-      const updated = { ...prev };
-      delete updated[powerToRemove.name];
-      return updated;
-    });
+    if (count <= 1) {
+      // Last instance: remove entirely and clean up selections
+      setSelectedClassPowers((prev) =>
+        prev.filter((p) => p.name !== powerToRemove.name)
+      );
+      setManualSelections((prev) => {
+        const updated = { ...prev };
+        delete updated[powerToRemove.name];
+        return updated;
+      });
+    } else {
+      // Multiple instances: remove only the last occurrence
+      setSelectedClassPowers((prev) => {
+        const lastIndex = prev
+          .map((p) => p.name)
+          .lastIndexOf(powerToRemove.name);
+        return prev.filter((_p, index) => index !== lastIndex);
+      });
+    }
+  };
+
+  // Handler for adding another instance of a repeatable class power (via "+" button)
+  const handleAddRepeatableClassPower = (power: ClassPower) => {
+    if (power.name === 'Golpe Pessoal') {
+      setGolpePessoalDialog({
+        open: true,
+        powerToAdd: power,
+      });
+      return;
+    }
+
+    const requirements = getPowerSelectionRequirements(power);
+
+    if (requirements) {
+      const requiresUserInput = requirements.requirements.some((req) => {
+        const availableOptions = getFilteredAvailableOptions(req, sheet);
+        return (
+          availableOptions.length > 1 && req.pick < availableOptions.length
+        );
+      });
+
+      if (requiresUserInput) {
+        setSelectionDialog({
+          open: true,
+          requirements,
+          powerToAdd: power,
+          isClassPower: true,
+        });
+      } else {
+        const autoSelections: SelectionOptions = {};
+        requirements.requirements.forEach((req) => {
+          const availableOptions = getFilteredAvailableOptions(req, sheet);
+          if (
+            availableOptions.length === req.pick ||
+            availableOptions.length === 1
+          ) {
+            if (req.type === 'learnSkill') {
+              autoSelections.skills = availableOptions as string[];
+            } else if (req.type === 'addProficiency') {
+              autoSelections.proficiencies = availableOptions as string[];
+            } else if (req.type === 'getGeneralPower') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.powers = availableOptions as any[];
+            } else if (
+              req.type === 'learnSpell' ||
+              req.type === 'learnAnySpellFromHighestCircle'
+            ) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              autoSelections.spells = availableOptions as any[];
+            } else if (req.type === 'increaseAttribute') {
+              autoSelections.attributes = availableOptions as string[];
+            }
+          }
+        });
+
+        setManualSelections((prev) => {
+          const currentSelections =
+            (prev[power.name] as SelectionOptions) || {};
+          const combined: SelectionOptions = { ...currentSelections };
+
+          if (autoSelections.spells) {
+            combined.spells = [
+              ...(combined.spells || []),
+              ...autoSelections.spells,
+            ];
+          }
+          if (autoSelections.skills) {
+            combined.skills = [
+              ...(combined.skills || []),
+              ...autoSelections.skills,
+            ];
+          }
+          if (autoSelections.proficiencies) {
+            combined.proficiencies = [
+              ...(combined.proficiencies || []),
+              ...autoSelections.proficiencies,
+            ];
+          }
+          if (autoSelections.powers) {
+            combined.powers = [
+              ...(combined.powers || []),
+              ...autoSelections.powers,
+            ];
+          }
+          if (autoSelections.attributes) {
+            combined.attributes = autoSelections.attributes;
+          }
+
+          return {
+            ...prev,
+            [power.name]: combined,
+          };
+        });
+        setSelectedClassPowers((prev) => [
+          ...prev,
+          getOriginalClassPowerWithRolls(power),
+        ]);
+      }
+    } else {
+      setSelectedClassPowers((prev) => [
+        ...prev,
+        getOriginalClassPowerWithRolls(power),
+      ]);
+    }
   };
 
   // Selection dialog handlers
@@ -599,7 +822,11 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
 
     if (powerToAdd) {
       const canRepeat =
-        ('canRepeat' in powerToAdd ? powerToAdd.canRepeat : false) || false;
+        ('canRepeat' in powerToAdd ? powerToAdd.canRepeat : false) ||
+        ('allowSeveralPicks' in powerToAdd
+          ? powerToAdd.allowSeveralPicks
+          : false) ||
+        false;
 
       // Store the selections - for repeatable powers, combine all selections
       setManualSelections((prev) => {
@@ -1838,6 +2065,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                 : 'background.paper';
                             })(),
                             opacity: meetsRequirements ? 1 : 0.7,
+                            display: 'flex',
+                            alignItems: 'flex-start',
                           }}
                         >
                           <FormControlLabel
@@ -1855,6 +2084,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   direction='row'
                                   alignItems='center'
                                   spacing={1}
+                                  flexWrap='wrap'
                                 >
                                   <Typography
                                     variant='body1'
@@ -1876,6 +2106,34 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                       sx={{ fontSize: '0.65rem', height: 20 }}
                                     />
                                   )}
+                                  {power.canRepeat && (
+                                    <Chip
+                                      label='Repetível'
+                                      size='small'
+                                      color='info'
+                                      sx={{ fontSize: '0.65rem', height: 20 }}
+                                    />
+                                  )}
+                                  {isClassPowerSelected(power) &&
+                                    power.canRepeat &&
+                                    selectedClassPowers.filter(
+                                      (p) => p.name === power.name
+                                    ).length > 1 && (
+                                      <Chip
+                                        label={`${
+                                          selectedClassPowers.filter(
+                                            (p) => p.name === power.name
+                                          ).length
+                                        }x`}
+                                        size='small'
+                                        variant='outlined'
+                                        color='info'
+                                        sx={{
+                                          fontSize: '0.65rem',
+                                          height: 20,
+                                        }}
+                                      />
+                                    )}
                                 </Stack>
                                 <Typography
                                   variant='body2'
@@ -1900,8 +2158,25 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   )}
                               </Box>
                             }
-                            sx={{ alignItems: 'flex-start', width: '100%' }}
+                            sx={{
+                              alignItems: 'flex-start',
+                              width: '100%',
+                              flex: 1,
+                            }}
                           />
+                          {power.canRepeat && isClassPowerSelected(power) && (
+                            <IconButton
+                              size='small'
+                              color='info'
+                              onClick={() =>
+                                handleAddRepeatableClassPower(power)
+                              }
+                              title='Adicionar outra instância'
+                              sx={{ mt: 0.5 }}
+                            >
+                              <AddIcon fontSize='small' />
+                            </IconButton>
+                          )}
                         </Box>
                       );
                     })}
@@ -2045,6 +2320,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   : 'background.paper';
                               })(),
                               opacity: meetsRequirements ? 1 : 0.7,
+                              display: 'flex',
+                              alignItems: 'flex-start',
                             }}
                           >
                             <FormControlLabel
@@ -2070,17 +2347,61 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                               }
                               label={
                                 <Box sx={{ width: '100%' }}>
-                                  <Typography
-                                    variant='body1'
-                                    fontWeight='bold'
-                                    color={
-                                      meetsRequirements
-                                        ? 'text.primary'
-                                        : 'error.main'
-                                    }
+                                  <Stack
+                                    direction='row'
+                                    alignItems='center'
+                                    spacing={1}
+                                    flexWrap='wrap'
                                   >
-                                    {power.name}
-                                  </Typography>
+                                    <Typography
+                                      variant='body1'
+                                      fontWeight='bold'
+                                      color={
+                                        meetsRequirements
+                                          ? 'text.primary'
+                                          : 'error.main'
+                                      }
+                                    >
+                                      {power.name}
+                                    </Typography>
+                                    {!isOriginPower &&
+                                      ((power as GeneralPower).canRepeat ||
+                                        (power as GeneralPower)
+                                          .allowSeveralPicks) && (
+                                        <Chip
+                                          label='Repetível'
+                                          size='small'
+                                          color='info'
+                                          sx={{
+                                            fontSize: '0.65rem',
+                                            height: 20,
+                                          }}
+                                        />
+                                      )}
+                                    {isSelected &&
+                                      !isOriginPower &&
+                                      ((power as GeneralPower).canRepeat ||
+                                        (power as GeneralPower)
+                                          .allowSeveralPicks) &&
+                                      selectedPowers.filter(
+                                        (p) => p.name === power.name
+                                      ).length > 1 && (
+                                        <Chip
+                                          label={`${
+                                            selectedPowers.filter(
+                                              (p) => p.name === power.name
+                                            ).length
+                                          }x`}
+                                          size='small'
+                                          variant='outlined'
+                                          color='info'
+                                          sx={{
+                                            fontSize: '0.65rem',
+                                            height: 20,
+                                          }}
+                                        />
+                                      )}
+                                  </Stack>
                                   <Typography
                                     variant='body2'
                                     color='text.secondary'
@@ -2110,8 +2431,31 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                   )}
                                 </Box>
                               }
-                              sx={{ alignItems: 'flex-start', width: '100%' }}
+                              sx={{
+                                alignItems: 'flex-start',
+                                width: '100%',
+                                flex: 1,
+                              }}
                             />
+                            {!isOriginPower &&
+                              !isGrantedPower &&
+                              isSelected &&
+                              ((power as GeneralPower).canRepeat ||
+                                (power as GeneralPower).allowSeveralPicks) && (
+                                <IconButton
+                                  size='small'
+                                  color='info'
+                                  onClick={() =>
+                                    handleAddRepeatablePower(
+                                      power as GeneralPower
+                                    )
+                                  }
+                                  title='Adicionar outra instância'
+                                  sx={{ mt: 0.5 }}
+                                >
+                                  <AddIcon fontSize='small' />
+                                </IconButton>
+                              )}
                           </Box>
                         );
                       })}
