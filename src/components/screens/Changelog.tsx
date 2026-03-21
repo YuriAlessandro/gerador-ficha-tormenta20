@@ -170,6 +170,22 @@ const Changelog: React.FC = () => {
                   ataque e crítico; armaduras e escudos permitem definir bônus
                   de defesa e penalidade.
                 </li>
+                <li>
+                  <strong>Novo:</strong> Itens gerais, esotéricos, alquímicos e
+                  de alimentação agora possuem botões de quantidade (+/-)
+                  diretamente no editor de equipamento. O preço e os espaços
+                  exibidos refletem o total de acordo com a quantidade, e ao
+                  remover um item com múltiplas unidades, o valor total é
+                  reembolsado corretamente.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Poderes repetíveis (como Especialização
+                  em Magia, Magia Aprimorada, etc.) agora podem ser adicionados
+                  múltiplas vezes no editor de ficha. Um chip
+                  &quot;Repetível&quot; identifica esses poderes, e botões de
+                  &quot;+&quot; e &quot;-&quot; permitem adicionar ou remover
+                  instâncias individualmente.
+                </li>
               </ul>
               <h3>4.6</h3>
               <ul>
