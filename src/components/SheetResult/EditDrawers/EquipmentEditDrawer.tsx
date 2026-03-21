@@ -120,6 +120,41 @@ interface SelectedEquipment {
   animals: Equipment[];
 }
 
+type CustomItemCategory =
+  | 'generalItems'
+  | 'esoteric'
+  | 'clothing'
+  | 'alchemy'
+  | 'food'
+  | 'animals'
+  | 'weapons'
+  | 'armors'
+  | 'shields';
+
+const categoryToGroupMap: Record<CustomItemCategory, string> = {
+  generalItems: 'Item Geral',
+  esoteric: 'Esotérico',
+  clothing: 'Vestuário',
+  alchemy: 'Alquimía',
+  food: 'Alimentação',
+  animals: 'Animal',
+  weapons: 'Arma',
+  armors: 'Armadura',
+  shields: 'Escudo',
+};
+
+const categoryLabels: Record<CustomItemCategory, string> = {
+  generalItems: 'Item Geral',
+  esoteric: 'Item Esotérico',
+  clothing: 'Vestuário',
+  alchemy: 'Item de Alquimia',
+  food: 'Alimentação',
+  animals: 'Animal',
+  weapons: 'Arma',
+  armors: 'Armadura',
+  shields: 'Escudo',
+};
+
 interface EquipmentWithSupplement extends Equipment {
   supplementId?: SupplementId;
 }
@@ -202,6 +237,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [showItemRollsDialog, setShowItemRollsDialog] = useState(false);
   const [itemNomeError, setItemNomeError] = useState('');
   const [itemSpacesError, setItemSpacesError] = useState('');
+  const [customItemCategory, setCustomItemCategory] =
+    useState<CustomItemCategory>('generalItems');
+  // Campos extras para armas customizadas
+  const [customItemDano, setCustomItemDano] = useState('1d6');
+  const [customItemAtkBonus, setCustomItemAtkBonus] = useState('0');
+  const [customItemMargemAmeaca, setCustomItemMargemAmeaca] = useState('20');
+  const [customItemMultCritico, setCustomItemMultCritico] = useState('2');
+  // Campos extras para armaduras/escudos customizados
+  const [customItemDefenseBonus, setCustomItemDefenseBonus] = useState('0');
+  const [customItemArmorPenalty, setCustomItemArmorPenalty] = useState('0');
+  const [customItemIsHeavy, setCustomItemIsHeavy] = useState(false);
 
   // Estados para edição de armadura
   const [editingArmor, setEditingArmor] = useState<DefenseEquipment | null>(
@@ -818,21 +864,52 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setCustomItemRolls([]);
     setItemNomeError('');
     setItemSpacesError('');
+    setCustomItemDano('1d6');
+    setCustomItemAtkBonus('0');
+    setCustomItemMargemAmeaca('20');
+    setCustomItemMultCritico('2');
+    setCustomItemDefenseBonus('0');
+    setCustomItemArmorPenalty('0');
+    setCustomItemIsHeavy(false);
   };
 
-  const handleOpenCustomItemDialog = () => {
+  const handleOpenCustomItemDialog = (
+    category: CustomItemCategory = 'generalItems'
+  ) => {
     setShowCustomItemDialog(true);
     setEditingItem(null);
     setEditingItemIndex(null);
     resetCustomItemForm();
+    setCustomItemCategory(category);
   };
 
-  const handleOpenEditItem = (item: Equipment, index: number) => {
+  const handleOpenEditItem = (
+    item: Equipment,
+    index: number,
+    category: CustomItemCategory = 'generalItems'
+  ) => {
     setEditingItem(item);
     setEditingItemIndex(index);
     setCustomItemNome(item.nome);
     setCustomItemSpaces(item.spaces?.toString() || '0');
     setCustomItemRolls(item.rolls || []);
+    setCustomItemCategory(category);
+    if (category === 'weapons') {
+      setCustomItemDano(item.dano || '1d6');
+      setCustomItemAtkBonus(String(item.atkBonus || 0));
+      const critico = item.critico || '20/x2';
+      const parts = critico.split('/x');
+      setCustomItemMargemAmeaca(parts[0] || '20');
+      setCustomItemMultCritico(parts[1] || '2');
+    }
+    if (category === 'armors' || category === 'shields') {
+      const defItem = item as DefenseEquipment;
+      setCustomItemDefenseBonus(String(defItem.defenseBonus || 0));
+      setCustomItemArmorPenalty(String(defItem.armorPenalty || 0));
+      if (category === 'armors') {
+        setCustomItemIsHeavy(defItem.isHeavyArmor || false);
+      }
+    }
     setShowCustomItemDialog(true);
   };
 
@@ -867,29 +944,98 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const handleSaveCustomItem = () => {
     if (!validateCustomItemForm()) return;
 
-    const customItem: Equipment = {
-      id: editingItem?.id || uuid(), // Manter id existente ou gerar novo
+    const group = categoryToGroupMap[customItemCategory];
+    const baseFields = {
+      id: editingItem?.id || uuid(),
       nome: customItemNome.trim(),
       spaces: parseFloat(customItemSpaces),
-      group: 'Item Geral',
       rolls: customItemRolls.length > 0 ? customItemRolls : undefined,
       isCustom: true,
     };
 
-    if (editingItem && editingItemIndex !== null) {
-      // Editando item existente
-      setSelectedEquipment((prev) => ({
-        ...prev,
-        generalItems: prev.generalItems.map((item, i) =>
-          i === editingItemIndex ? customItem : item
-        ),
-      }));
+    if (customItemCategory === 'weapons') {
+      const critico = `${customItemMargemAmeaca}/x${customItemMultCritico}`;
+      const customWeapon: Equipment = {
+        ...baseFields,
+        group: 'Arma',
+        dano: customItemDano,
+        baseDano: customItemDano,
+        atkBonus: parseInt(customItemAtkBonus, 10) || 0,
+        baseAtkBonus: parseInt(customItemAtkBonus, 10) || 0,
+        critico,
+        baseCritico: critico,
+      };
+      if (editingItem && editingItemIndex !== null) {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          weapons: prev.weapons.map((w, i) =>
+            i === editingItemIndex ? customWeapon : w
+          ),
+        }));
+      } else {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          weapons: [...prev.weapons, customWeapon],
+        }));
+      }
+    } else if (
+      customItemCategory === 'armors' ||
+      customItemCategory === 'shields'
+    ) {
+      const defBonus = parseInt(customItemDefenseBonus, 10) || 0;
+      const penalty = parseInt(customItemArmorPenalty, 10) || 0;
+      const customDefItem: DefenseEquipment = {
+        ...baseFields,
+        group: group as 'Armadura' | 'Escudo',
+        defenseBonus: defBonus,
+        baseDefenseBonus: defBonus,
+        armorPenalty: penalty,
+        baseArmorPenalty: penalty,
+        isHeavyArmor:
+          customItemCategory === 'armors' ? customItemIsHeavy : false,
+      };
+      const key = customItemCategory;
+      if (editingItem && editingItemIndex !== null) {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          [key]: prev[key].map((item: DefenseEquipment, i: number) =>
+            i === editingItemIndex ? customDefItem : item
+          ),
+        }));
+      } else {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          [key]: [...prev[key], customDefItem],
+        }));
+      }
     } else {
-      // Adicionando novo item
-      setSelectedEquipment((prev) => ({
-        ...prev,
-        generalItems: [...prev.generalItems, customItem],
-      }));
+      const customItem: Equipment = {
+        ...baseFields,
+        group: group as
+          | 'Item Geral'
+          | 'Esotérico'
+          | 'Vestuário'
+          | 'Alquimía'
+          | 'Alimentação'
+          | 'Animal',
+      };
+      if (editingItem && editingItemIndex !== null) {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          [customItemCategory]: (prev[customItemCategory] as Equipment[]).map(
+            (item: Equipment, i: number) =>
+              i === editingItemIndex ? customItem : item
+          ),
+        }));
+      } else {
+        setSelectedEquipment((prev) => ({
+          ...prev,
+          [customItemCategory]: [
+            ...(prev[customItemCategory] as Equipment[]),
+            customItem,
+          ],
+        }));
+      }
     }
 
     handleCloseCustomItemDialog();
@@ -2067,17 +2213,28 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Armas ({selectedEquipment.weapons.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddWeapons ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleWeapons}
-                    variant={showAddWeapons ? 'contained' : 'outlined'}
-                    color={showAddWeapons ? 'primary' : 'inherit'}
-                  >
-                    {showAddWeapons ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('weapons')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddWeapons ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleWeapons}
+                      variant={showAddWeapons ? 'contained' : 'outlined'}
+                      color={showAddWeapons ? 'primary' : 'inherit'}
+                    >
+                      {showAddWeapons ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.weapons.length > 0 ? (
                   <List dense>
@@ -2085,7 +2242,23 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                       // eslint-disable-next-line react/no-array-index-key
                       <ListItem key={index}>
                         <ListItemText
-                          primary={weapon.nome}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>{weapon.nome}</span>
+                              {weapon.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Dano: ${weapon.dano} | Crítico: ${
                             weapon.critico || '20/x2'
                           } | Bônus Ataque: ${weapon.atkBonus || 0}`}
@@ -2135,25 +2308,52 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         : ''
                     }`}
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddArmor ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleArmor}
-                    variant={showAddArmor ? 'contained' : 'outlined'}
-                    color={showAddArmor ? 'primary' : 'inherit'}
-                    disabled={selectedEquipment.armors.length > 0}
-                  >
-                    {showAddArmor ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('armors')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddArmor ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleArmor}
+                      variant={showAddArmor ? 'contained' : 'outlined'}
+                      color={showAddArmor ? 'primary' : 'inherit'}
+                      disabled={selectedEquipment.armors.length > 0}
+                    >
+                      {showAddArmor ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.armors.length > 0 ? (
                   <List dense>
                     {selectedEquipment.armors.map((armor, index) => (
                       <ListItem key={armor.nome}>
                         <ListItemText
-                          primary={armor.nome}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>{armor.nome}</span>
+                              {armor.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Defesa: +${
                             armor.defenseBonus
                           } | Penalidade: ${armor.armorPenalty}${
@@ -2207,25 +2407,52 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                         : ''
                     }`}
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddShield ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleShield}
-                    variant={showAddShield ? 'contained' : 'outlined'}
-                    color={showAddShield ? 'primary' : 'inherit'}
-                    disabled={selectedEquipment.shields.length > 0}
-                  >
-                    {showAddShield ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('shields')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddShield ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleShield}
+                      variant={showAddShield ? 'contained' : 'outlined'}
+                      color={showAddShield ? 'primary' : 'inherit'}
+                      disabled={selectedEquipment.shields.length > 0}
+                    >
+                      {showAddShield ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.shields.length > 0 ? (
                   <List dense>
                     {selectedEquipment.shields.map((shield, index) => (
                       <ListItem key={shield.nome}>
                         <ListItemText
-                          primary={shield.nome}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>{shield.nome}</span>
+                              {shield.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Defesa: +${
                             shield.defenseBonus
                           } | Penalidade: ${shield.armorPenalty}${
@@ -2279,7 +2506,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     <Button
                       size='small'
                       startIcon={<AddCircleOutlineIcon />}
-                      onClick={handleOpenCustomItemDialog}
+                      onClick={() => handleOpenCustomItemDialog('generalItems')}
                       variant='outlined'
                       color='secondary'
                     >
@@ -2378,28 +2605,60 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Esotéricos ({selectedEquipment.esoteric.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddEsoteric ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleEsoteric}
-                    variant={showAddEsoteric ? 'contained' : 'outlined'}
-                    color={showAddEsoteric ? 'primary' : 'inherit'}
-                  >
-                    {showAddEsoteric ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('esoteric')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddEsoteric ? (
+                          <ExpandLessIcon />
+                        ) : (
+                          <ExpandMoreIcon />
+                        )
+                      }
+                      onClick={handleToggleEsoteric}
+                      variant={showAddEsoteric ? 'contained' : 'outlined'}
+                      color={showAddEsoteric ? 'primary' : 'inherit'}
+                    >
+                      {showAddEsoteric ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.esoteric.length > 0 ? (
                   <List dense>
                     {selectedEquipment.esoteric.map((item, index) => (
-                      <ListItem key={item.nome}>
+                      <ListItem key={item.id || item.nome}>
                         <ListItemText
-                          primary={`${
-                            item.quantity && item.quantity > 1
-                              ? `${item.quantity}x `
-                              : ''
-                          }${item.nome}`}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>
+                                {item.quantity && item.quantity > 1
+                                  ? `${item.quantity}x `
+                                  : ''}
+                                {item.nome}
+                              </span>
+                              {item.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`${
                             item.preco ? `Preço: T$ ${item.preco} | ` : ''
                           }Espaços: ${item.spaces || 0}${
@@ -2449,24 +2708,55 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Vestuário ({selectedEquipment.clothing.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddClothing ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleClothing}
-                    variant={showAddClothing ? 'contained' : 'outlined'}
-                    color={showAddClothing ? 'primary' : 'inherit'}
-                  >
-                    {showAddClothing ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('clothing')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddClothing ? (
+                          <ExpandLessIcon />
+                        ) : (
+                          <ExpandMoreIcon />
+                        )
+                      }
+                      onClick={handleToggleClothing}
+                      variant={showAddClothing ? 'contained' : 'outlined'}
+                      color={showAddClothing ? 'primary' : 'inherit'}
+                    >
+                      {showAddClothing ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.clothing.length > 0 ? (
                   <List dense>
                     {selectedEquipment.clothing.map((item, index) => (
-                      <ListItem key={item.nome}>
+                      <ListItem key={item.id || item.nome}>
                         <ListItemText
-                          primary={item.nome}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>{item.nome}</span>
+                              {item.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
                           }${
@@ -2516,28 +2806,56 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Alquimia ({selectedEquipment.alchemy.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddAlchemy ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleAlchemy}
-                    variant={showAddAlchemy ? 'contained' : 'outlined'}
-                    color={showAddAlchemy ? 'primary' : 'inherit'}
-                  >
-                    {showAddAlchemy ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('alchemy')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddAlchemy ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleAlchemy}
+                      variant={showAddAlchemy ? 'contained' : 'outlined'}
+                      color={showAddAlchemy ? 'primary' : 'inherit'}
+                    >
+                      {showAddAlchemy ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.alchemy.length > 0 ? (
                   <List dense>
                     {selectedEquipment.alchemy.map((item, index) => (
-                      <ListItem key={item.nome}>
+                      <ListItem key={item.id || item.nome}>
                         <ListItemText
-                          primary={`${
-                            item.quantity && item.quantity > 1
-                              ? `${item.quantity}x `
-                              : ''
-                          }${item.nome}`}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>
+                                {item.quantity && item.quantity > 1
+                                  ? `${item.quantity}x `
+                                  : ''}
+                                {item.nome}
+                              </span>
+                              {item.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
                           }${
@@ -2587,28 +2905,56 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Alimentação ({selectedEquipment.food.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddFood ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleFood}
-                    variant={showAddFood ? 'contained' : 'outlined'}
-                    color={showAddFood ? 'primary' : 'inherit'}
-                  >
-                    {showAddFood ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('food')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddFood ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleFood}
+                      variant={showAddFood ? 'contained' : 'outlined'}
+                      color={showAddFood ? 'primary' : 'inherit'}
+                    >
+                      {showAddFood ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.food.length > 0 ? (
                   <List dense>
                     {selectedEquipment.food.map((item, index) => (
-                      <ListItem key={item.nome}>
+                      <ListItem key={item.id || item.nome}>
                         <ListItemText
-                          primary={`${
-                            item.quantity && item.quantity > 1
-                              ? `${item.quantity}x `
-                              : ''
-                          }${item.nome}`}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>
+                                {item.quantity && item.quantity > 1
+                                  ? `${item.quantity}x `
+                                  : ''}
+                                {item.nome}
+                              </span>
+                              {item.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`Preço: T$ ${item.preco || 0} | Espaços: ${
                             item.spaces || 0
                           }${
@@ -2658,24 +3004,51 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                   <Typography variant='subtitle1' fontWeight='bold'>
                     Animais ({selectedEquipment.animals.length})
                   </Typography>
-                  <Button
-                    size='small'
-                    startIcon={
-                      showAddAnimals ? <ExpandLessIcon /> : <ExpandMoreIcon />
-                    }
-                    onClick={handleToggleAnimals}
-                    variant={showAddAnimals ? 'contained' : 'outlined'}
-                    color={showAddAnimals ? 'primary' : 'inherit'}
-                  >
-                    {showAddAnimals ? 'Fechar' : 'Adicionar'}
-                  </Button>
+                  <Stack direction='row' spacing={1}>
+                    <Button
+                      size='small'
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() => handleOpenCustomItemDialog('animals')}
+                      variant='outlined'
+                      color='secondary'
+                    >
+                      Personalizado
+                    </Button>
+                    <Button
+                      size='small'
+                      startIcon={
+                        showAddAnimals ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                      }
+                      onClick={handleToggleAnimals}
+                      variant={showAddAnimals ? 'contained' : 'outlined'}
+                      color={showAddAnimals ? 'primary' : 'inherit'}
+                    >
+                      {showAddAnimals ? 'Fechar' : 'Adicionar'}
+                    </Button>
+                  </Stack>
                 </Stack>
                 {selectedEquipment.animals.length > 0 ? (
                   <List dense>
                     {selectedEquipment.animals.map((item, index) => (
-                      <ListItem key={item.nome}>
+                      <ListItem key={item.id || item.nome}>
                         <ListItemText
-                          primary={item.nome}
+                          primary={
+                            <Stack
+                              direction='row'
+                              alignItems='center'
+                              spacing={0.5}
+                            >
+                              <span>{item.nome}</span>
+                              {item.isCustom && (
+                                <Chip
+                                  size='small'
+                                  label='Personalizado'
+                                  variant='outlined'
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </Stack>
+                          }
                           secondary={`${
                             item.preco ? `Preço: T$ ${item.preco} | ` : ''
                           }Espaços: ${item.spaces || 0}${
@@ -3964,7 +4337,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         fullWidth
       >
         <DialogTitle>
-          {editingItem ? 'Editar Item' : 'Criar Item Personalizado'}
+          {editingItem
+            ? `Editar ${categoryLabels[customItemCategory]}`
+            : `Criar ${categoryLabels[customItemCategory]} Personalizado`}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -3989,6 +4364,82 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 itemSpacesError || 'Quantidade de espaços ocupados na mochila'
               }
             />
+
+            {/* Campos extras para armas */}
+            {customItemCategory === 'weapons' && (
+              <>
+                <TextField
+                  label='Dano'
+                  value={customItemDano}
+                  onChange={(e) => setCustomItemDano(e.target.value)}
+                  fullWidth
+                  helperText='Ex: 1d6, 2d8+2, 1d12'
+                />
+                <TextField
+                  label='Bônus de Ataque'
+                  type='number'
+                  value={customItemAtkBonus}
+                  onChange={(e) => setCustomItemAtkBonus(e.target.value)}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+                <Stack direction='row' spacing={2}>
+                  <TextField
+                    label='Margem de Ameaça'
+                    type='number'
+                    value={customItemMargemAmeaca}
+                    onChange={(e) => setCustomItemMargemAmeaca(e.target.value)}
+                    fullWidth
+                    inputProps={{ min: 1, max: 20 }}
+                    helperText='Padrão: 20'
+                  />
+                  <TextField
+                    label='Multiplicador Crítico'
+                    type='number'
+                    value={customItemMultCritico}
+                    onChange={(e) => setCustomItemMultCritico(e.target.value)}
+                    fullWidth
+                    inputProps={{ min: 2 }}
+                    helperText='Padrão: x2'
+                  />
+                </Stack>
+              </>
+            )}
+
+            {/* Campos extras para armaduras/escudos */}
+            {(customItemCategory === 'armors' ||
+              customItemCategory === 'shields') && (
+              <>
+                <TextField
+                  label='Bônus de Defesa'
+                  type='number'
+                  value={customItemDefenseBonus}
+                  onChange={(e) => setCustomItemDefenseBonus(e.target.value)}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                />
+                <TextField
+                  label='Penalidade de Armadura'
+                  type='number'
+                  value={customItemArmorPenalty}
+                  onChange={(e) => setCustomItemArmorPenalty(e.target.value)}
+                  fullWidth
+                  inputProps={{ max: 0 }}
+                  helperText='Use valores negativos (ex: -2)'
+                />
+                {customItemCategory === 'armors' && (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={customItemIsHeavy}
+                        onChange={(e) => setCustomItemIsHeavy(e.target.checked)}
+                      />
+                    }
+                    label='Armadura Pesada'
+                  />
+                )}
+              </>
+            )}
 
             {/* Seção de Rolagens */}
             <Box>
