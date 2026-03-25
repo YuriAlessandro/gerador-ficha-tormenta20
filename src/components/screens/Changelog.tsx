@@ -90,6 +90,16 @@ const Changelog: React.FC = () => {
                   Essas melhorias foram pensadas especialmente para quem joga
                   presencialmente usando o celular.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Poderes com restrição por patamar
+                  (como Aumento de Atributo) não ficavam disponíveis
+                  corretamente ao atingir um novo patamar pelo wizard de
+                  level-up. Por exemplo, ao subir do nível 4 para o 5 (início do
+                  patamar Veterano), o sistema ainda tratava o personagem como
+                  Iniciante, impedindo a re-seleção de atributos já aumentados
+                  no patamar anterior. Agora a mudança de patamar é reconhecida
+                  corretamente.
+                </li>
               </ul>
               <h3>4.7</h3>
               <ul>
