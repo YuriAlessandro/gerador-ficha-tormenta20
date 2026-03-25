@@ -107,6 +107,17 @@ const Changelog: React.FC = () => {
                   básico. Para o Golem Desperto, só está disponível como
                   Maravilha Mecânica do chassi Mashin.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder &quot;Armamento
+                  Kallyanach&quot; aparecia como habilidade racial padrão de
+                  todos os Kallyanach, adicionando automaticamente uma arma
+                  natural à ficha. Na verdade, ele é uma Bênção Dracônica
+                  opcional, escolhida através da habilidade &quot;Bênção de
+                  Kallyadranoch&quot;. Também corrigida a descrição de
+                  &quot;Herança Dracônica&quot;, que não mencionava a redução de
+                  dano 5 e estava sem &quot;fogo&quot; na lista de tipos de
+                  dano.
+                </li>
               </ul>
               <h3>4.7</h3>
               <ul>
