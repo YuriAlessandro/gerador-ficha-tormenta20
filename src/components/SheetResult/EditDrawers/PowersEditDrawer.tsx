@@ -49,6 +49,7 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
+import { normalizeSearch } from '@/functions/stringUtils';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
   isGenericOficio,
@@ -1301,14 +1302,14 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     powers: T[]
   ): T[] => {
     if (!searchTerm) return powers;
+    const search = normalizeSearch(searchTerm);
     return powers.filter((power) => {
-      const searchLower = searchTerm.toLowerCase();
-      const nameMatch = power.name.toLowerCase().includes(searchLower);
+      const nameMatch = normalizeSearch(power.name).includes(search);
       const descriptionMatch = power.description
-        ? power.description.toLowerCase().includes(searchLower)
+        ? normalizeSearch(power.description).includes(search)
         : false;
       const textMatch = power.text
-        ? power.text.toLowerCase().includes(searchLower)
+        ? normalizeSearch(power.text).includes(search)
         : false;
       return nameMatch || descriptionMatch || textMatch;
     });

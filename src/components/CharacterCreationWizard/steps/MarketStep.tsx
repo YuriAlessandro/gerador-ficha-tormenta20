@@ -33,6 +33,7 @@ import {
   MarketSelections,
 } from '@/interfaces/MarketEquipment';
 import { calculateCurrencySpaces } from '@/functions/general';
+import { normalizeSearch } from '@/functions/stringUtils';
 
 interface MarketStepProps {
   initialMoney: number;
@@ -120,8 +121,10 @@ const MarketStep: React.FC<MarketStepProps> = ({
 
     // Filter by search query if provided
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((item) => item.nome.toLowerCase().includes(query));
+      const query = normalizeSearch(searchQuery);
+      result = result.filter((item) =>
+        normalizeSearch(item.nome).includes(query)
+      );
     }
 
     // Sort alphabetically by name

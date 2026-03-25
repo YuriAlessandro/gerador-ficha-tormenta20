@@ -53,6 +53,7 @@ import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import SupporterBadge from '../Premium/SupporterBadge';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -117,12 +118,14 @@ const MyCharactersPage: React.FC = () => {
 
   // Filter and sort sheets
   const filteredSheets = currentSheets
-    .filter(
-      (sheet) =>
-        sheet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    .filter((sheet) => {
+      const search = normalizeSearch(searchTerm);
+      return (
+        normalizeSearch(sheet.name).includes(search) ||
         (sheet.description &&
-          sheet.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+          normalizeSearch(sheet.description).includes(search))
+      );
+    })
     .sort((a, b) => {
       switch (sortBy) {
         case 'name':

@@ -29,6 +29,7 @@ import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, RaceWithSupplement } from '../../data/registry';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 interface ProcessedAttribute {
   label: string;
@@ -344,22 +345,22 @@ const RacesTable: React.FC = () => {
   const races = useMemo(() => {
     const allRaces =
       dataRegistry.getRacesWithSupplementInfo(selectedSupplements);
-    const search = value.toLocaleLowerCase();
+    const search = normalizeSearch(value);
 
     if (search.length > 0) {
       return allRaces.filter((race) => {
-        if (race.name.toLowerCase().includes(search)) {
+        if (normalizeSearch(race.name).includes(search)) {
           return true;
         }
         const abltNames = race.abilities.map((ablt) => ablt.name);
-        if (abltNames.find((name) => name.toLowerCase().includes(search)))
+        if (abltNames.find((name) => normalizeSearch(name).includes(search)))
           return true;
         if (race.heritages) {
           const heritageMatch = Object.values(race.heritages).some(
             (heritage) =>
-              heritage.name.toLowerCase().includes(search) ||
+              normalizeSearch(heritage.name).includes(search) ||
               heritage.abilities.some((ablt) =>
-                ablt.name.toLowerCase().includes(search)
+                normalizeSearch(ablt.name).includes(search)
               )
           );
           if (heritageMatch) return true;

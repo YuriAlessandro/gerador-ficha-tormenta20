@@ -30,6 +30,7 @@ import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, ClassWithSupplement } from '../../data/registry';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 interface IProps {
   classe: ClassWithSupplement;
@@ -459,25 +460,26 @@ const ClassesTable: React.FC = () => {
       sorted.push(...variants.filter((v) => v.baseClassName === base.name));
     });
 
-    const search = value.toLocaleLowerCase();
+    const search = normalizeSearch(value);
 
     if (search.length > 0) {
       return sorted.filter((classe) => {
         if (
-          classe.name.toLowerCase().includes(search) ||
-          classe.subname?.toLowerCase().includes(search) ||
+          normalizeSearch(classe.name).includes(search) ||
+          (classe.subname &&
+            normalizeSearch(classe.subname).includes(search)) ||
           (classe.baseClassName &&
-            classe.baseClassName.toLowerCase().includes(search))
+            normalizeSearch(classe.baseClassName).includes(search))
         ) {
           return true;
         }
         const abltNames = classe.abilities.map((ablt) => ablt.name);
         const powersnames = classe.powers.map((power) => power.name);
 
-        if (abltNames.find((name) => name.toLowerCase().includes(search)))
+        if (abltNames.find((name) => normalizeSearch(name).includes(search)))
           return true;
 
-        if (powersnames.find((name) => name.toLowerCase().includes(search)))
+        if (powersnames.find((name) => normalizeSearch(name).includes(search)))
           return true;
 
         return false;

@@ -24,6 +24,7 @@ import { CompleteSkill, TrainedOnlySkills } from '../../interfaces/Skills';
 import { ATTR_ABBREVIATIONS } from '../../data/systems/tormenta20/atributos';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
+import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
 
@@ -80,8 +81,9 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
   const filteredSkills = useMemo(() => {
     if (!skills) return [];
     if (!searchQuery) return skills;
+    const search = normalizeSearch(searchQuery);
     return skills.filter((skill) =>
-      skill.name.toLowerCase().includes(searchQuery.toLowerCase())
+      normalizeSearch(skill.name).includes(search)
     );
   }, [skills, searchQuery]);
 

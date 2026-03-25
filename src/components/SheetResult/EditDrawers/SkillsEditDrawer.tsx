@@ -32,6 +32,7 @@ import {
   Atributo,
   ATTR_ABBREVIATIONS,
 } from '@/data/systems/tormenta20/atributos';
+import { normalizeSearch } from '@/functions/stringUtils';
 
 interface SkillsEditDrawerProps {
   open: boolean;
@@ -341,7 +342,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
   const sortedSkills = useMemo(() => {
     const filtered = searchQuery
       ? editedSkills.filter((skill) =>
-          skill.name.toLowerCase().includes(searchQuery.toLowerCase())
+          normalizeSearch(skill.name).includes(normalizeSearch(searchQuery))
         )
       : editedSkills;
     return filtered.sort((a, b) => a.name.localeCompare(b.name));

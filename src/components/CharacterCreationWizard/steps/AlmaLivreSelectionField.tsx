@@ -20,6 +20,7 @@ import { SelectionOptions } from '@/interfaces/PowerSelections';
 import { RequirementType } from '@/interfaces/Poderes';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
+import { normalizeSearch } from '@/functions/stringUtils';
 
 interface AlmaLivreSelectionFieldProps {
   availableClasses: ClassDescription[];
@@ -63,11 +64,11 @@ const AlmaLivreSelectionField: React.FC<AlmaLivreSelectionFieldProps> = ({
   // Filter powers by search query
   const filteredPowers = useMemo(() => {
     if (!searchQuery) return selectedClassPowers;
-    const lowerQuery = searchQuery.toLowerCase();
+    const query = normalizeSearch(searchQuery);
     return selectedClassPowers.filter(
       (power) =>
-        power.name.toLowerCase().includes(lowerQuery) ||
-        power.text.toLowerCase().includes(lowerQuery)
+        normalizeSearch(power.name).includes(query) ||
+        normalizeSearch(power.text).includes(query)
     );
   }, [selectedClassPowers, searchQuery]);
 

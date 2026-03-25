@@ -20,6 +20,7 @@ import { ClassDescription } from '@/interfaces/Class';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
 import Skill from '@/interfaces/Skills';
+import { normalizeSearch } from '@/functions/stringUtils';
 
 interface PropositoCriacaoStepProps {
   selectedPower?: GeneralPower;
@@ -136,7 +137,7 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
     return grouped;
   }, [supplements, mockSheet]);
 
-  const normalizedFilter = searchFilter.toLowerCase().trim();
+  const normalizedFilter = normalizeSearch(searchFilter.trim());
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -160,7 +161,7 @@ const PropositoCriacaoStep: React.FC<PropositoCriacaoStepProps> = ({
 
         const filteredPowers = normalizedFilter
           ? powers.filter((p) =>
-              p.power.name.toLowerCase().includes(normalizedFilter)
+              normalizeSearch(p.power.name).includes(normalizedFilter)
             )
           : powers;
 

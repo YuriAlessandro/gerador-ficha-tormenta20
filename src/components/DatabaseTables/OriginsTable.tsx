@@ -29,6 +29,7 @@ import { dataRegistry, OriginWithSupplement } from '../../data/registry';
 import { ORIGIN_POWER_TYPE } from '../../data/systems/tormenta20/powers/originPowers';
 import TormentaTitle from '../Database/TormentaTitle';
 import CopyUrlButton from '../Database/CopyUrlButton';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 const Row: React.FC<{ origin: OriginWithSupplement; defaultOpen: boolean }> = ({
   origin,
@@ -233,11 +234,11 @@ const OriginsTable: React.FC = () => {
   const origins = useMemo(() => {
     const allOrigins =
       dataRegistry.getOriginsBySupplements(selectedSupplements);
-    const search = value.toLocaleLowerCase();
+    const search = normalizeSearch(value);
 
     if (search.length > 0) {
       return allOrigins.filter((origin) =>
-        origin.name.toLowerCase().includes(search)
+        normalizeSearch(origin.name).includes(search)
       );
     }
     return allOrigins;

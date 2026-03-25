@@ -31,6 +31,7 @@ import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpell
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
+import { normalizeSearch } from '@/functions/stringUtils';
 import CustomSpellDialog from './CustomSpellDialog';
 
 interface SpellsEditDrawerProps {
@@ -226,11 +227,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
 
   const filterSpells = (spells: Spell[]) => {
     if (!searchTerm) return spells;
+    const search = normalizeSearch(searchTerm);
     return spells.filter(
       (spell) =>
-        spell.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        spell.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        spell.school.toLowerCase().includes(searchTerm.toLowerCase())
+        normalizeSearch(spell.nome).includes(search) ||
+        normalizeSearch(spell.description).includes(search) ||
+        normalizeSearch(spell.school).includes(search)
     );
   };
 

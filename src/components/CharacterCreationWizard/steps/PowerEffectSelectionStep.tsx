@@ -47,6 +47,7 @@ import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import MashinSelectionField from './MashinSelectionField';
+import { normalizeSearch } from '@/functions/stringUtils';
 
 interface PowerEffectSelectionStepProps {
   race: Race;
@@ -287,21 +288,21 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
   const filterOptions = (options: any[], searchQuery: string): any[] => {
     if (!searchQuery) return options;
 
-    const lowerQuery = searchQuery.toLowerCase();
+    const query = normalizeSearch(searchQuery);
     return options.filter((option) => {
-      const name = getItemName(option).toLowerCase();
+      const name = normalizeSearch(getItemName(option));
       let description = '';
 
       // Only check for description if option is an object (not a string or primitive)
       if (typeof option === 'object' && option !== null) {
         if ('description' in option) {
-          description = option.description.toLowerCase();
+          description = normalizeSearch(option.description);
         } else if ('descricao' in option) {
-          description = option.descricao.toLowerCase();
+          description = normalizeSearch(option.descricao);
         }
       }
 
-      return name.includes(lowerQuery) || description.includes(lowerQuery);
+      return name.includes(query) || description.includes(query);
     });
   };
 

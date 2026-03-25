@@ -38,6 +38,7 @@ import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import { SubscriptionTier } from '../../types/subscription.types';
 import SheetLimitDialog from '../common/SheetLimitDialog';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 const ThreatHistory: React.FC = () => {
   const history = useHistory();
@@ -55,12 +56,14 @@ const ThreatHistory: React.FC = () => {
     threatName: string;
   }>({ open: false, threatId: null, threatName: '' });
 
-  const filteredThreats = threats.filter(
-    (threat) =>
-      threat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      threat.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredThreats = threats.filter((threat) => {
+    const search = normalizeSearch(searchTerm);
+    return (
+      normalizeSearch(threat.name).includes(search) ||
+      normalizeSearch(threat.type).includes(search) ||
       threat.challengeLevel.toString().includes(searchTerm)
-  );
+    );
+  });
 
   const handleView = (threat: ThreatSheet) => {
     dispatch(selectThreat(threat.id));

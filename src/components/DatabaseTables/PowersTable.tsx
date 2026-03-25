@@ -31,6 +31,7 @@ import CopyUrlButton from '../Database/CopyUrlButton';
 import SupplementFilter from './SupplementFilter';
 import { SupplementId } from '../../types/supplement.types';
 import { dataRegistry, GeneralPowerWithSupplement } from '../../data/registry';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 const Req: React.FC<{ requirement: Requirement }> = ({ requirement }) => {
   let reqText = '';
@@ -234,7 +235,7 @@ const PowersTable: React.FC = () => {
 
   // Derive filtered powers using useMemo - always in sync with state
   const powers = useMemo(() => {
-    const search = value.toLocaleLowerCase();
+    const search = normalizeSearch(value);
     if (search.length > 0) {
       const allPowersList = [
         ...allPowersByCategory.COMBATE,
@@ -245,7 +246,7 @@ const PowersTable: React.FC = () => {
         ...allPowersByCategory.RACA,
       ];
       return allPowersList.filter((power) =>
-        power.name.toLowerCase().includes(search)
+        normalizeSearch(power.name).includes(search)
       );
     }
     return [];

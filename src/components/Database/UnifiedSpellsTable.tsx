@@ -50,6 +50,7 @@ import {
 } from '../../types/supplement.types';
 import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
 import SupplementFilter from '../DatabaseTables/SupplementFilter';
+import { normalizeSearch } from '../../functions/stringUtils';
 
 interface ExtendedSpell extends Spell {
   spellType: 'arcane' | 'divine';
@@ -420,15 +421,15 @@ const UnifiedSpellsTable: React.FC = () => {
 
     // Search filter (searches in name, description, and enhancements)
     if (filters.search.trim()) {
-      const searchTerm = filters.search.toLowerCase().trim();
+      const searchTerm = normalizeSearch(filters.search.trim());
       filtered = filtered.filter(
         (spell) =>
-          spell.nome.toLowerCase().includes(searchTerm) ||
-          spell.description.toLowerCase().includes(searchTerm) ||
-          spell.school.toLowerCase().includes(searchTerm) ||
+          normalizeSearch(spell.nome).includes(searchTerm) ||
+          normalizeSearch(spell.description).includes(searchTerm) ||
+          normalizeSearch(spell.school).includes(searchTerm) ||
           (spell.aprimoramentos &&
             spell.aprimoramentos.some((apr) =>
-              apr.text.toLowerCase().includes(searchTerm)
+              normalizeSearch(apr.text).includes(searchTerm)
             ))
       );
     }
