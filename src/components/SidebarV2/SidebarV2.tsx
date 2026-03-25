@@ -43,7 +43,7 @@ import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.7';
+const APP_VERSION = '4.8';
 
 interface SidebarV2Props {
   visible: boolean;

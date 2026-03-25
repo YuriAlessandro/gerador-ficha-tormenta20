@@ -80,6 +80,16 @@ const Changelog: React.FC = () => {
                   magias), editores de ficha (poderes, magias, perícias), wizard
                   de criação, enciclopédia, builds e buscas de ameaças.
                 </li>
+                <li>
+                  <strong>Melhoria:</strong> Estabilidade das mesas virtuais
+                  significativamente melhorada. Corrigimos problemas que
+                  causavam desconexões frequentes durante as sessões. Agora, ao
+                  bloquear a tela do celular ou trocar de aplicativo, a
+                  reconexão acontece automaticamente em poucos segundos. A tela
+                  também não desliga mais sozinha durante uma sessão ativa.
+                  Essas melhorias foram pensadas especialmente para quem joga
+                  presencialmente usando o celular.
+                </li>
               </ul>
               <h3>4.7</h3>
               <ul>
