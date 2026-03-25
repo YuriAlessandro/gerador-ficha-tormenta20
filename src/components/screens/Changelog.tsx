@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            21/03/2026.
+            25/03/2026.
           </p>
 
           <p>
@@ -69,6 +69,18 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.8</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> Todas as buscas do sistema agora
+                  ignoram acentos. Pesquisar &quot;essencia de mana&quot;
+                  encontra &quot;Essência de Mana&quot;, &quot;barbaro&quot;
+                  encontra &quot;Bárbaro&quot;, etc. Isso vale para o Mercado,
+                  tabelas do banco de dados (classes, raças, origens, poderes,
+                  magias), editores de ficha (poderes, magias, perícias), wizard
+                  de criação, enciclopédia, builds e buscas de ameaças.
+                </li>
+              </ul>
               <h3>4.7</h3>
               <ul>
                 <li>
