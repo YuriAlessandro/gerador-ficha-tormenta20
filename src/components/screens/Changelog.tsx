@@ -100,6 +100,13 @@ const Changelog: React.FC = () => {
                   no patamar anterior. Agora a mudança de patamar é reconhecida
                   corretamente.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder &quot;Canalizar
+                  Reparos&quot; aparecia como habilidade racial padrão de todos
+                  os Golens Despertos, mas ele é exclusivo do Golem do livro
+                  básico. Para o Golem Desperto, só está disponível como
+                  Maravilha Mecânica do chassi Mashin.
+                </li>
               </ul>
               <h3>4.7</h3>
               <ul>
