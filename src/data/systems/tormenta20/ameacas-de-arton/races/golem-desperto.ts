@@ -19,13 +19,7 @@ export const GOLEM_DESPERTO_BASE_ATTRIBUTES: RaceAttributeAbility[] = [
   { attr: Atributo.CARISMA, mod: -1 },
 ];
 
-// Habilidades fixas do Golem Desperto (herdadas do Golem original)
-const CANALIZAR_REPAROS = {
-  name: 'Canalizar Reparos',
-  description:
-    'Como uma ação completa, você pode gastar pontos de mana para recuperar pontos de vida, à taxa de 5 PV por PM.',
-};
-
+// Habilidades fixas do Golem Desperto
 const CRIATURA_ARTIFICIAL = {
   name: 'Criatura Artificial',
   description:
@@ -55,11 +49,7 @@ const SEM_ORIGEM = {
 };
 
 // Habilidades fixas exportadas (para uso em applyGolemDespertoCustomization)
-export const GOLEM_DESPERTO_FIXED_ABILITIES = [
-  CANALIZAR_REPAROS,
-  CRIATURA_ARTIFICIAL,
-  SEM_ORIGEM,
-];
+export const GOLEM_DESPERTO_FIXED_ABILITIES = [CRIATURA_ARTIFICIAL, SEM_ORIGEM];
 
 // Placeholders para habilidades dinâmicas (serão substituídas)
 const CHASSI_PLACEHOLDER = {
