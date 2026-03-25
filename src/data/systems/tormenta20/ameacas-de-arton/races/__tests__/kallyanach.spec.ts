@@ -75,13 +75,12 @@ describe('Testa modificações da raça Kallyanach com setup aleatório', () => 
 });
 
 describe('Testa que Kallyanach possui as habilidades corretas', () => {
-  test('Kallyanach deve ter exatamente 3 habilidades', () => {
-    expect(KALLYANACH.abilities).toHaveLength(3);
+  test('Kallyanach deve ter exatamente 2 habilidades', () => {
+    expect(KALLYANACH.abilities).toHaveLength(2);
 
     const abilityNames = KALLYANACH.abilities.map((a) => a.name);
 
     expect(abilityNames).toContain('Herança Dracônica');
-    expect(abilityNames).toContain('Armamento Kallyanach');
     expect(abilityNames).toContain('Bênção de Kallyadranoch');
   });
 

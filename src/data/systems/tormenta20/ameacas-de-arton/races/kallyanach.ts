@@ -1,38 +1,12 @@
-import Equipment from '../../../../../interfaces/Equipment';
 import Race, { RaceAbility } from '../../../../../interfaces/Race';
 import DRACONIC_BLESSINGS from '../powers/draconicBlessings';
-
-// Arma natural baseada na herança dracônica
-const garrasKallyanach: Equipment = {
-  group: 'Arma',
-  nome: 'Garras / Chifres',
-  dano: '1d6',
-  critico: 'x2',
-  tipo: 'Cort.',
-  preco: 0,
-};
 
 // Habilidades compartilhadas entre as variantes
 const kallyanachAbilities: RaceAbility[] = [
   {
     name: 'Herança Dracônica',
     description:
-      'Você é uma criatura do tipo monstro e reduz o tipo de dano a sua escolha dentre ácido, eletricidade, frio, luz ou trevas.',
-  },
-  {
-    name: 'Armamento Kallyanach',
-    description:
-      'Você possui uma arma natural (garra, chifre, capa, chifres, garras ou mordida) com a escolha dentre três, ácido, crítico, perfuração ou corte. Uma vez por rodada, quando usa a ação acertar para atacar com outra arma, pode gastar 1 PM para fazer um ataque corpo a corpo extra com a arma natural, desde que esteja livre e não tenha sido usada para atacar neste turno.',
-    sheetActions: [
-      {
-        source: { type: 'power', name: 'Kallyanach' },
-        action: {
-          type: 'addEquipment',
-          equipment: { Arma: [garrasKallyanach] },
-          description: 'Garras/Chifres podem ser usados como arma natural.',
-        },
-      },
-    ],
+      'Você é uma criatura do tipo monstro e recebe redução de dano 5 contra um tipo de dano a sua escolha entre ácido, eletricidade, fogo, frio, luz ou trevas.',
   },
   {
     name: 'Bênção de Kallyadranoch',
