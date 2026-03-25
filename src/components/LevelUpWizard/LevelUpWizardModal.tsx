@@ -147,6 +147,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     supplements
   );
 
+  // Sheet with nivel reflecting the current level being processed
+  // (simulatedSheet.nivel lags behind on the first level-up of each session)
+  const sheetForCurrentLevel: CharacterSheet = {
+    ...simulatedSheet,
+    nivel: currentLevel,
+  };
+
   // Multiclass: first level in a new class grants no power
   const isFirstLevelInNewClass =
     selectedClassLevel === 1 &&
@@ -176,18 +183,18 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     const classForFiltering = classWithSupplementPowers || selectedClassDesc;
     const sheetForFiltering: CharacterSheet = classForFiltering
       ? {
-          ...simulatedSheet,
+          ...sheetForCurrentLevel,
           classe: {
-            ...simulatedSheet.classe,
+            ...sheetForCurrentLevel.classe,
             name: classNameForPowers,
             powers: classForFiltering.powers,
             proficiencias:
-              simulatedSheet.classe.proficiencias ||
+              sheetForCurrentLevel.classe.proficiencias ||
               classForFiltering.proficiencias ||
               [],
           },
         }
-      : simulatedSheet;
+      : sheetForCurrentLevel;
 
     // Get class powers using the selected class's powers
     const classPowers =
@@ -209,7 +216,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     ];
 
     // Track which powers are unavailable (requirements not met)
-    const existingGeneralPowers = simulatedSheet.generalPowers;
+    const existingGeneralPowers = sheetForCurrentLevel.generalPowers;
     const unavailableGeneralPowers: string[] = [];
     const generalPowers = allGeneralPowers.filter((power) => {
       const isRepeatedPower = existingGeneralPowers.find(
@@ -220,7 +227,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return true; // Keep in list; isPowerKnown handles disable in UI
       }
 
-      if (!isPowerAvailable(simulatedSheet, power)) {
+      if (!isPowerAvailable(sheetForCurrentLevel, power)) {
         unavailableGeneralPowers.push(power.name);
       }
       return true; // Always include
@@ -626,7 +633,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           // Check available options - if none available, consider requirement satisfied
           const availableOptions = getFilteredAvailableOptions(
             req,
-            simulatedSheet
+            sheetForCurrentLevel
           );
           if (availableOptions.length === 0) return true;
 
@@ -765,7 +772,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         if (showAlmaLivre && almaLivrePower) {
           const almaLivreSheet = {
             ...simulatedSheet,
-            nivel: Math.max(1, simulatedSheet.nivel - 4),
+            nivel: Math.max(1, currentLevel - 4),
           };
           almaLivrePowerAvailable = isPowerAvailable(
             almaLivreSheet,
@@ -845,7 +852,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 powerEffectSelections: selections,
               })
             }
-            actualSheet={simulatedSheet}
+            actualSheet={sheetForCurrentLevel}
             skipRaceAbilities
             supplements={supplements}
           />
@@ -887,7 +894,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                   abilityEffectSelections: selections,
                 })
               }
-              actualSheet={simulatedSheet}
+              actualSheet={sheetForCurrentLevel}
               skipRaceAbilities
               classAbilityLevel={selectedClassLevel}
               supplements={supplements}
