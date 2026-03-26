@@ -12,7 +12,7 @@ import {
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { CharacterAttribute } from '../interfaces/Character';
-import { Spell } from '../interfaces/Spells';
+import { Spell, spellsCircles } from '../interfaces/Spells';
 import SpellRow from './SpellRow';
 
 const SPELL_KEY_ATTRIBUTES = [
@@ -58,10 +58,17 @@ const Spells: React.FC<SpellsProp> = (props) => {
     bonusSpellDC,
   } = props;
 
-  spells.sort((spell1, spell2) => {
-    if (spell1.spellCircle < spell2.spellCircle) return -1;
-    return 1;
-  });
+  const circleOrder = Object.values(spellsCircles);
+
+  const spellsByCircle = circleOrder.reduce((groups, circle) => {
+    const circleSpells = spells
+      .filter((s) => s.spellCircle === circle)
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+    if (circleSpells.length > 0) {
+      groups.push({ circle, spells: circleSpells });
+    }
+    return groups;
+  }, [] as { circle: spellsCircles; spells: Spell[] }[]);
 
   const mod = keyAttr ? keyAttr.value : 0;
   const bonus = bonusSpellDC || 0;
@@ -189,23 +196,37 @@ const Spells: React.FC<SpellsProp> = (props) => {
             </Grid>
           )}
           <Box>
-            {spells
-              .sort((a, b) => a.nome.localeCompare(b.nome))
-              .map((spell) => (
-                <SpellRow
-                  key={spell.nome}
-                  spell={spell}
-                  onUpdateRolls={onUpdateRolls}
-                  characterName={characterName}
-                  currentPM={currentPM}
-                  maxPM={maxPM}
-                  tempPM={tempPM}
-                  onSpellCast={onSpellCast}
-                  isMago={isMago}
-                  onToggleMemorized={onToggleMemorized}
-                  onToggleAlwaysPrepared={onToggleAlwaysPrepared}
-                />
-              ))}
+            {spellsByCircle.map((group) => (
+              <Box key={group.circle}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                    mt: 2,
+                    mb: 1,
+                    px: 1,
+                    color: 'text.secondary',
+                  }}
+                >
+                  {group.circle}
+                </Typography>
+                {group.spells.map((spell) => (
+                  <SpellRow
+                    key={spell.nome}
+                    spell={spell}
+                    onUpdateRolls={onUpdateRolls}
+                    characterName={characterName}
+                    currentPM={currentPM}
+                    maxPM={maxPM}
+                    tempPM={tempPM}
+                    onSpellCast={onSpellCast}
+                    isMago={isMago}
+                    onToggleMemorized={onToggleMemorized}
+                    onToggleAlwaysPrepared={onToggleAlwaysPrepared}
+                  />
+                ))}
+              </Box>
+            ))}
           </Box>
         </Box>
       )}
