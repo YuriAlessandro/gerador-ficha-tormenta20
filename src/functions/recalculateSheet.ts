@@ -178,7 +178,9 @@ const calculateBonusValue = (
         }
       }
 
-      return sheet.atributos[attr || Atributo.CARISMA].value;
+      return sheet.atributos[
+        attr || sheet.overrideKeyAttribute || Atributo.CARISMA
+      ].value;
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {

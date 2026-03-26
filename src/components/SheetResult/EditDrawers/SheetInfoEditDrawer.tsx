@@ -447,8 +447,11 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       return atributos[attr]?.value || 0;
     }
     if (bonus.type === 'SpecialAttribute') {
-      if (bonus.attribute === 'spellKeyAttr' && spellKeyAttribute) {
-        return atributos[spellKeyAttribute].value;
+      if (bonus.attribute === 'spellKeyAttr') {
+        const keyAttr = spellKeyAttribute || sheet.overrideKeyAttribute;
+        if (keyAttr) {
+          return atributos[keyAttr].value;
+        }
       }
     }
     if (bonus.type === 'LevelCalc' && bonus.formula) {

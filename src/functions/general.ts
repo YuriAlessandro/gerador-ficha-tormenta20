@@ -3544,7 +3544,9 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
         }
       }
 
-      return sheet.atributos[attr || Atributo.CARISMA].value;
+      return sheet.atributos[
+        attr || sheet.overrideKeyAttribute || Atributo.CARISMA
+      ].value;
     }
   }
   if (bonus.type === 'Fixed') {
@@ -5488,7 +5490,27 @@ export function restoreSpellPath(
   sheet: CharacterSheet,
   classes: ClassDescription[]
 ): void {
-  if (!sheet.classe.spellPath) return;
+  // If spellPath is completely missing, try to create it for known spellcasters
+  // (e.g., old sheets or stripped exports where spellPath was never serialized)
+  if (!sheet.classe.spellPath) {
+    if (sheet.classe.name === 'Arcanista' && sheet.classe.subname) {
+      const subtype = sheet.classe.subname as ArcanistaSubtypes;
+      if (arcanistaSpellPaths[subtype]) {
+        sheet.classe.spellPath = { ...arcanistaSpellPaths[subtype] };
+      }
+    } else {
+      const baseClass = classes.find((c) => c.name === sheet.classe.name);
+      if (baseClass?.setup) {
+        const setupClass = baseClass.setup(sheet.classe);
+        if (setupClass.spellPath) {
+          sheet.classe.spellPath = setupClass.spellPath;
+        }
+      } else if (baseClass?.spellPath) {
+        sheet.classe.spellPath = baseClass.spellPath;
+      }
+    }
+    if (!sheet.classe.spellPath) return;
+  }
 
   // Preserve original values from serialized data (may have been manually changed)
   const originalSchools = sheet.classe.spellPath.schools;
