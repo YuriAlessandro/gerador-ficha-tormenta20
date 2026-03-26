@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.8</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Agora é possível criar pastas para
+                  organizar seus personagens e ameaças por campanha/aventura. As
+                  pastas são compartilhadas entre as abas de Personagens e
+                  Ameaças — uma pasta &quot;Campanha X&quot; mostra tanto os
+                  personagens quanto as ameaças daquela campanha. Uma barra de
+                  chips permite filtrar rapidamente por pasta, e cada ficha pode
+                  ser movida entre pastas pelo botão de ação no card.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Todas as buscas do sistema agora
                   ignoram acentos. Pesquisar &quot;essencia de mana&quot;
                   encontra &quot;Essência de Mana&quot;, &quot;barbaro&quot;
