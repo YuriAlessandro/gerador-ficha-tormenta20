@@ -128,6 +128,12 @@ const Changelog: React.FC = () => {
                   atributo-chave mesmo para fichas antigas que não tinham essa
                   informação salva.
                 </li>
+                <li>
+                  <strong>Melhoria:</strong> A lista de magias na ficha agora é
+                  organizada por círculo. Cada grupo de magias aparece sob uma
+                  label (1º Circulo, 2º Circulo, etc.), com as magias em ordem
+                  alfabética dentro de cada círculo.
+                </li>
               </ul>
               <h3>4.7</h3>
               <ul>
