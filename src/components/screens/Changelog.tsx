@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/03/2026.
+            26/03/2026.
           </p>
 
           <p>
@@ -117,6 +117,16 @@ const Changelog: React.FC = () => {
                   &quot;Herança Dracônica&quot;, que não mencionava a redução de
                   dano 5 e estava sem &quot;fogo&quot; na lista de tipos de
                   dano.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Fichas históricas de classes
+                  conjuradoras (como Arcanista) podiam perder o atributo-chave
+                  de magia ao serem carregadas, fazendo o cálculo de PM usar
+                  Carisma como fallback ao invés do atributo correto (ex:
+                  Inteligência para Magos). Isso causava PM máximo incorreto ao
+                  editar e salvar a ficha. Agora o sistema restaura o
+                  atributo-chave mesmo para fichas antigas que não tinham essa
+                  informação salva.
                 </li>
               </ul>
               <h3>4.7</h3>
