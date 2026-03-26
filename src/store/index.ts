@@ -16,6 +16,7 @@ import { sheetStorageSlice } from './slices/sheetStorage/sheetStorage';
 import threatStorageReducer from './slices/threatStorage';
 import authReducer from './slices/auth/authSlice';
 import sheetsReducer from './slices/sheets/sheetsSlice';
+import foldersReducer from './slices/folders/foldersSlice';
 import systemReducer from './slices/system/systemSlice';
 import subscriptionReducer from './slices/subscription/subscriptionSlice';
 import notificationReducer from './slices/notification/notificationSlice';
@@ -78,6 +79,7 @@ const store = configureStore({
     threatStorage: persistedThreatReducer,
     auth: persistedAuthReducer,
     sheets: sheetsReducer,
+    folders: foldersReducer,
     system: persistedSystemReducer,
     subscription: persistedSubscriptionReducer,
     notification: notificationReducer,

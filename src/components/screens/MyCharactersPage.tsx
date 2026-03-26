@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -32,6 +32,9 @@ import {
   Tabs,
   Tab,
   LinearProgress,
+  Menu,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -43,24 +46,34 @@ import {
   Person as PersonIcon,
   Dangerous as ThreatIcon,
   Groups as TableIcon,
+  CreateNewFolder as CreateNewFolderIcon,
+  FolderOpen as FolderOpenIcon,
+  DriveFileMove as MoveIcon,
+  FolderOff as FolderOffIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
+import { useFolders } from '../../hooks/useFolders';
 import { SheetListData } from '../../services/sheets.service';
+import { Folder } from '../../services/folders.service';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import SupporterBadge from '../Premium/SupporterBadge';
 import { normalizeSearch } from '../../functions/stringUtils';
 
+// Special filter values
+const FOLDER_ALL = '__all__';
+const FOLDER_NONE = '__none__';
+
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const history = useHistory();
   const location = useLocation();
-  useAuth(); // Hook needs to be called but user is not used
+  useAuth();
   const {
     sheets,
     loading,
@@ -69,6 +82,13 @@ const MyCharactersPage: React.FC = () => {
     duplicateSheet: duplicateSheetAction,
     clearError,
   } = useSheets();
+  const {
+    folders,
+    createFolder: createFolderAction,
+    updateFolder: updateFolderAction,
+    deleteFolder: deleteFolderAction,
+    moveSheetToFolder: moveSheetToFolderAction,
+  } = useFolders();
   const { supportLevel } = useSubscription();
   const {
     maxSheets,
@@ -88,16 +108,43 @@ const MyCharactersPage: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
     if (tab === 'ameacas') return 1;
-    return 0; // default to personagens
+    return 0;
+  };
+
+  const getInitialFolder = () => {
+    const params = new URLSearchParams(location.search);
+    return params.get('folder') || FOLDER_ALL;
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
+  const [selectedFolderId, setSelectedFolderId] = useState(getInitialFolder());
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'level'>('date');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [sheetToDelete, setSheetToDelete] = useState<SheetListData | null>(
     null
   );
+
+  // Folder management state
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [folderDialogMode, setFolderDialogMode] = useState<'create' | 'rename'>(
+    'create'
+  );
+  const [folderName, setFolderName] = useState('');
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
+  const [deleteFolderConfirmOpen, setDeleteFolderConfirmOpen] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
+
+  // Move to folder state
+  const [moveMenuAnchor, setMoveMenuAnchor] = useState<HTMLElement | null>(
+    null
+  );
+  const [sheetToMove, setSheetToMove] = useState<SheetListData | null>(null);
+
+  // Folder chip context menu state
+  const [folderContextAnchor, setFolderContextAnchor] =
+    useState<HTMLElement | null>(null);
+  const [contextFolder, setContextFolder] = useState<Folder | null>(null);
 
   // Sync tab with URL on location change (browser back/forward)
   React.useEffect(() => {
@@ -107,19 +154,54 @@ const MyCharactersPage: React.FC = () => {
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
-  }, [location.search]); // Only depend on location.search, not activeTab to avoid loops
+    const folder = params.get('folder') || FOLDER_ALL;
+    if (folder !== selectedFolderId) {
+      setSelectedFolderId(folder);
+    }
+  }, [location.search]); // Only depend on location.search, not activeTab/selectedFolderId to avoid loops
 
-  // Separate sheets by type (for now, all are player characters)
+  // Separate sheets by type
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
   const threatSheets = sheets.filter((sheet) => sheet.sheetData?.isThreat);
 
   // Get current tab sheets
   const currentSheets = activeTab === 0 ? playerSheets : threatSheets;
 
+  // Count sheets per folder (across both tabs for shared folders)
+  const folderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    sheets.forEach((sheet) => {
+      if (sheet.folderId) {
+        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [sheets]);
+
+  // Count sheets per folder for current tab only
+  const currentTabFolderCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    currentSheets.forEach((sheet) => {
+      if (sheet.folderId) {
+        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [currentSheets]);
+
   // Filter and sort sheets
   const filteredSheets = currentSheets
     .filter((sheet) => {
+      // Folder filter
+      if (selectedFolderId === FOLDER_NONE) {
+        if (sheet.folderId) return false;
+      } else if (selectedFolderId !== FOLDER_ALL) {
+        if (sheet.folderId !== selectedFolderId) return false;
+      }
+
+      // Search filter
       const search = normalizeSearch(searchTerm);
+      if (!search) return true;
       return (
         normalizeSearch(sheet.name).includes(search) ||
         (sheet.description &&
@@ -135,7 +217,6 @@ const MyCharactersPage: React.FC = () => {
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
         case 'level': {
-          // nivel is the Portuguese property name in sheetData
           const dataA = a.sheetData as unknown as { nivel?: number };
           const dataB = b.sheetData as unknown as { nivel?: number };
           const levelA = dataA?.nivel || 0;
@@ -147,47 +228,50 @@ const MyCharactersPage: React.FC = () => {
       }
     });
 
+  // URL update helper
+  const updateUrl = (tab: number, folder: string) => {
+    const tabName = tab === 0 ? 'personagens' : 'ameacas';
+    const params = new URLSearchParams();
+    params.set('tab', tabName);
+    if (folder !== FOLDER_ALL) {
+      params.set('folder', folder);
+    }
+    history.push(`/meus-personagens?${params.toString()}`);
+  };
+
   const handleCreateNewSheet = () => {
     if (activeTab === 0) {
-      // Players
       history.push('/criar-ficha');
     } else {
-      // Threats
       history.push('/gerador-ameacas');
     }
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-    setSearchTerm(''); // Clear search when switching tabs
+    setSearchTerm('');
+    updateUrl(newValue, selectedFolderId);
+  };
 
-    // Update URL with tab parameter
-    const tabName = newValue === 0 ? 'personagens' : 'ameacas';
-    history.push(`/meus-personagens?tab=${tabName}`);
+  const handleFolderSelect = (folderId: string) => {
+    setSelectedFolderId(folderId);
+    updateUrl(activeTab, folderId);
   };
 
   const handleViewSheet = (sheet: SheetListData) => {
-    // Check if it's a threat or character
     const isThreat = sheet.sheetData?.isThreat;
-
     if (isThreat) {
-      // For threats, pass only the id — full data is fetched on demand
       history.push('/threat-view', { cloudThreatId: sheet.id });
     } else {
-      // For characters, navigate to the shareable sheet page
       history.push(`/ficha/${sheet.id}`);
     }
   };
 
   const handleEditSheet = (sheet: SheetListData) => {
-    // Check if it's a threat or character
     const isThreat = sheet.sheetData?.isThreat;
-
     if (isThreat) {
-      // For threats, pass only the id — full data is fetched on demand
       history.push('/gerador-ameacas', { cloudThreatId: sheet.id });
     } else {
-      // For characters, load in MainScreen (same as view for now)
       history.push('/criar-ficha', { cloudSheet: sheet });
     }
   };
@@ -199,12 +283,11 @@ const MyCharactersPage: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!sheetToDelete) return;
-
     try {
       await deleteSheetAction(sheetToDelete.id);
       setDeleteConfirmOpen(false);
       setSheetToDelete(null);
-    } catch (err) {
+    } catch {
       // Silently fail - user will see the error from Redux
     }
   };
@@ -217,7 +300,7 @@ const MyCharactersPage: React.FC = () => {
   const handleDuplicate = async (sheet: SheetListData) => {
     try {
       await duplicateSheetAction(sheet.id);
-    } catch (err) {
+    } catch {
       // Silently fail - user will see the error from Redux
     }
   };
@@ -230,11 +313,118 @@ const MyCharactersPage: React.FC = () => {
     history.push(`/mesas/${tableId}`);
   };
 
+  // --- Folder CRUD handlers ---
+  const handleOpenCreateFolder = () => {
+    setFolderDialogMode('create');
+    setFolderName('');
+    setEditingFolder(null);
+    setFolderDialogOpen(true);
+  };
+
+  const handleOpenRenameFolder = (folder: Folder) => {
+    setFolderDialogMode('rename');
+    setFolderName(folder.name);
+    setEditingFolder(folder);
+    setFolderDialogOpen(true);
+    setFolderContextAnchor(null);
+    setContextFolder(null);
+  };
+
+  const handleFolderDialogConfirm = async () => {
+    const trimmed = folderName.trim();
+    if (!trimmed) return;
+
+    try {
+      if (folderDialogMode === 'create') {
+        await createFolderAction(trimmed);
+      } else if (editingFolder) {
+        await updateFolderAction(editingFolder.id, trimmed);
+      }
+      setFolderDialogOpen(false);
+      setFolderName('');
+      setEditingFolder(null);
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const handleFolderDialogCancel = () => {
+    setFolderDialogOpen(false);
+    setFolderName('');
+    setEditingFolder(null);
+  };
+
+  const handleOpenDeleteFolder = (folder: Folder) => {
+    setFolderToDelete(folder);
+    setDeleteFolderConfirmOpen(true);
+    setFolderContextAnchor(null);
+    setContextFolder(null);
+  };
+
+  const handleDeleteFolderConfirm = async () => {
+    if (!folderToDelete) return;
+    try {
+      await deleteFolderAction(folderToDelete.id);
+      // If we were viewing the deleted folder, go back to "all"
+      if (selectedFolderId === folderToDelete.id) {
+        handleFolderSelect(FOLDER_ALL);
+      }
+      setDeleteFolderConfirmOpen(false);
+      setFolderToDelete(null);
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const handleDeleteFolderCancel = () => {
+    setDeleteFolderConfirmOpen(false);
+    setFolderToDelete(null);
+  };
+
+  // --- Move to folder handlers ---
+  const handleOpenMoveMenu = (
+    event: React.MouseEvent<HTMLElement>,
+    sheet: SheetListData
+  ) => {
+    setMoveMenuAnchor(event.currentTarget);
+    setSheetToMove(sheet);
+  };
+
+  const handleMoveToFolder = async (folderId: string | null) => {
+    if (!sheetToMove) return;
+    try {
+      await moveSheetToFolderAction(sheetToMove.id, folderId);
+    } catch {
+      // Silently fail
+    }
+    setMoveMenuAnchor(null);
+    setSheetToMove(null);
+  };
+
+  const handleCloseMoveMenu = () => {
+    setMoveMenuAnchor(null);
+    setSheetToMove(null);
+  };
+
+  // --- Folder chip context menu ---
+  const handleFolderChipContext = (
+    event: React.MouseEvent<HTMLElement>,
+    folder: Folder
+  ) => {
+    event.preventDefault();
+    setFolderContextAnchor(event.currentTarget);
+    setContextFolder(folder);
+  };
+
+  const handleCloseFolderContext = () => {
+    setFolderContextAnchor(null);
+    setContextFolder(null);
+  };
+
   const getDescription = (sheet: SheetListData) => {
     const parts: string[] = [];
     const data = sheet.sheetData as any;
 
-    // Check if it's a threat
     if (data.isThreat) {
       if (data.type) parts.push(data.type);
       if (data.size) parts.push(data.size);
@@ -243,7 +433,6 @@ const MyCharactersPage: React.FC = () => {
       return parts.length > 0 ? parts.join(', ') : 'Ameaça de Tormenta 20';
     }
 
-    // Character description
     if (data.raca?.name) {
       parts.push(data.raca.name);
     }
@@ -279,12 +468,16 @@ const MyCharactersPage: React.FC = () => {
 
   const getLevel = (sheet: SheetListData) => {
     const data = sheet.sheetData as any;
-    // For threats, show challenge level
     if (data?.isThreat) {
       return `ND ${data.challengeLevel || '?'}`;
     }
-    // For characters, show nivel (Portuguese property name)
     return data?.nivel || 1;
+  };
+
+  const getFolderName = (folderId: string | null | undefined): string => {
+    if (!folderId) return '';
+    const folder = folders.find((f) => f.id === folderId);
+    return folder?.name || '';
   };
 
   const EmptyState = () => {
@@ -433,7 +626,6 @@ const MyCharactersPage: React.FC = () => {
                 variant='small'
                 showTooltip={false}
               />
-              {/* Character Sheets - only show counter when limit is not unlimited */}
               {activeTab === 0 && !isCharacterLimitUnlimited && (
                 <Stack direction='row' spacing={1} alignItems='center'>
                   <CharacterLimitIndicator
@@ -451,7 +643,6 @@ const MyCharactersPage: React.FC = () => {
                   </Typography>
                 </Stack>
               )}
-              {/* Menace Sheets - only show counter when limit is not unlimited */}
               {activeTab === 1 && !isMenaceLimitUnlimited && (
                 <Stack direction='row' spacing={1} alignItems='center'>
                   <CharacterLimitIndicator
@@ -472,7 +663,6 @@ const MyCharactersPage: React.FC = () => {
             </Stack>
           </Box>
 
-          {/* Near limit or at limit warning for Character Sheets */}
           {activeTab === 0 &&
             isNearCharacterLimit &&
             canCreateCharacter &&
@@ -491,7 +681,6 @@ const MyCharactersPage: React.FC = () => {
                 apoio. Delete algumas fichas antigas para criar novas.
               </Alert>
             )}
-          {/* Near limit or at limit warning for Menace Sheets */}
           {activeTab === 1 &&
             isNearMenaceLimit &&
             canCreateMenace &&
@@ -511,7 +700,7 @@ const MyCharactersPage: React.FC = () => {
         </Box>
 
         {/* Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -537,6 +726,132 @@ const MyCharactersPage: React.FC = () => {
             />
           </Tabs>
         </Box>
+
+        {/* Folder Chips Bar */}
+        {folders.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              mb: 2,
+              overflowX: 'auto',
+              flexWrap: 'nowrap',
+              pb: 1,
+              '&::-webkit-scrollbar': { height: 4 },
+              '&::-webkit-scrollbar-thumb': {
+                borderRadius: 2,
+                backgroundColor: 'action.disabled',
+              },
+            }}
+          >
+            <Chip
+              label={`Todos (${currentSheets.length})`}
+              color={selectedFolderId === FOLDER_ALL ? 'primary' : 'default'}
+              variant={selectedFolderId === FOLDER_ALL ? 'filled' : 'outlined'}
+              onClick={() => handleFolderSelect(FOLDER_ALL)}
+              sx={{ flexShrink: 0 }}
+            />
+            {folders.map((folder) => {
+              const count = currentTabFolderCounts[folder.id] || 0;
+              return (
+                <Chip
+                  key={folder.id}
+                  icon={<FolderOpenIcon sx={{ fontSize: '1rem !important' }} />}
+                  label={`${folder.name} (${count})`}
+                  color={selectedFolderId === folder.id ? 'primary' : 'default'}
+                  variant={
+                    selectedFolderId === folder.id ? 'filled' : 'outlined'
+                  }
+                  onClick={() => handleFolderSelect(folder.id)}
+                  onContextMenu={(e) => handleFolderChipContext(e, folder)}
+                  onDelete={() =>
+                    handleFolderChipContext(
+                      {
+                        currentTarget: document.getElementById(
+                          `folder-chip-${folder.id}`
+                        ),
+                        preventDefault: () => {},
+                      } as unknown as React.MouseEvent<HTMLElement>,
+                      folder
+                    )
+                  }
+                  deleteIcon={
+                    <EditIcon
+                      id={`folder-chip-${folder.id}`}
+                      sx={{ fontSize: '0.9rem !important' }}
+                    />
+                  }
+                  sx={{ flexShrink: 0 }}
+                />
+              );
+            })}
+            <Chip
+              label={
+                currentSheets.filter((s) => !s.folderId).length > 0
+                  ? `Sem pasta (${
+                      currentSheets.filter((s) => !s.folderId).length
+                    })`
+                  : 'Sem pasta'
+              }
+              icon={<FolderOffIcon sx={{ fontSize: '1rem !important' }} />}
+              color={selectedFolderId === FOLDER_NONE ? 'primary' : 'default'}
+              variant={selectedFolderId === FOLDER_NONE ? 'filled' : 'outlined'}
+              onClick={() => handleFolderSelect(FOLDER_NONE)}
+              sx={{ flexShrink: 0 }}
+            />
+            <Chip
+              icon={
+                <CreateNewFolderIcon sx={{ fontSize: '1rem !important' }} />
+              }
+              label='Nova Pasta'
+              variant='outlined'
+              onClick={handleOpenCreateFolder}
+              sx={{ flexShrink: 0 }}
+            />
+          </Box>
+        )}
+
+        {/* Create first folder hint (when no folders exist yet) */}
+        {folders.length === 0 && sheets.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Chip
+              icon={
+                <CreateNewFolderIcon sx={{ fontSize: '1rem !important' }} />
+              }
+              label='Criar pasta para organizar'
+              variant='outlined'
+              onClick={handleOpenCreateFolder}
+            />
+          </Box>
+        )}
+
+        {/* Folder chip context menu */}
+        <Menu
+          anchorEl={folderContextAnchor}
+          open={Boolean(folderContextAnchor)}
+          onClose={handleCloseFolderContext}
+        >
+          <MenuItem
+            onClick={() => {
+              if (contextFolder) handleOpenRenameFolder(contextFolder);
+            }}
+          >
+            <ListItemIcon>
+              <EditIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Renomear</ListItemText>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              if (contextFolder) handleOpenDeleteFolder(contextFolder);
+            }}
+          >
+            <ListItemIcon>
+              <DeleteIcon fontSize='small' color='error' />
+            </ListItemIcon>
+            <ListItemText sx={{ color: 'error.main' }}>Excluir</ListItemText>
+          </MenuItem>
+        </Menu>
 
         {/* Filters and Search */}
         {currentSheets.length > 0 && (
@@ -634,10 +949,9 @@ const MyCharactersPage: React.FC = () => {
                     }}
                   />
 
-                  {/* PV/PM Progress Bars - só para personagens, não para ameaças */}
+                  {/* PV/PM Progress Bars */}
                   {!sheet.sheetData?.isThreat && (
                     <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-                      {/* Barra de PV (Verde) */}
                       <Box sx={{ mb: 1 }}>
                         <Typography
                           variant='caption'
@@ -669,7 +983,6 @@ const MyCharactersPage: React.FC = () => {
                         />
                       </Box>
 
-                      {/* Barra de PM (Azul) */}
                       <Box>
                         <Typography
                           variant='caption'
@@ -746,6 +1059,19 @@ const MyCharactersPage: React.FC = () => {
                         color='primary'
                         variant='outlined'
                       />
+                      {sheet.folderId && (
+                        <Chip
+                          icon={
+                            <FolderOpenIcon
+                              sx={{ fontSize: '0.85rem !important' }}
+                            />
+                          }
+                          label={getFolderName(sheet.folderId)}
+                          size='small'
+                          variant='outlined'
+                          sx={{ maxWidth: 140 }}
+                        />
+                      )}
                       {sheet.assignedTableId && (
                         <Tooltip title='Ir para a mesa'>
                           <Chip
@@ -802,6 +1128,14 @@ const MyCharactersPage: React.FC = () => {
                         <DuplicateIcon />
                       </IconButton>
                     </Tooltip>
+                    <Tooltip title='Mover para pasta'>
+                      <IconButton
+                        size='small'
+                        onClick={(e) => handleOpenMoveMenu(e, sheet)}
+                      >
+                        <MoveIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                   <Tooltip title='Excluir'>
                     <IconButton
@@ -819,7 +1153,39 @@ const MyCharactersPage: React.FC = () => {
         </Grid>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Move to Folder Menu */}
+      <Menu
+        anchorEl={moveMenuAnchor}
+        open={Boolean(moveMenuAnchor)}
+        onClose={handleCloseMoveMenu}
+      >
+        <MenuItem
+          onClick={() => handleMoveToFolder(null)}
+          selected={!sheetToMove?.folderId}
+        >
+          <ListItemIcon>
+            <FolderOffIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Sem pasta</ListItemText>
+        </MenuItem>
+        {folders.map((folder) => (
+          <MenuItem
+            key={folder.id}
+            onClick={() => handleMoveToFolder(folder.id)}
+            selected={sheetToMove?.folderId === folder.id}
+          >
+            <ListItemIcon>
+              <FolderOpenIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>{folder.name}</ListItemText>
+            <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
+              {folderCounts[folder.id] || 0}
+            </Typography>
+          </MenuItem>
+        ))}
+      </Menu>
+
+      {/* Delete Sheet Confirmation Dialog */}
       <Dialog
         open={deleteConfirmOpen}
         onClose={handleDeleteCancel}
@@ -838,6 +1204,75 @@ const MyCharactersPage: React.FC = () => {
           <Button onClick={handleDeleteCancel}>Cancelar</Button>
           <Button
             onClick={handleDeleteConfirm}
+            color='error'
+            variant='contained'
+          >
+            Excluir
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Folder Create/Rename Dialog */}
+      <Dialog
+        open={folderDialogOpen}
+        onClose={handleFolderDialogCancel}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>
+          {folderDialogMode === 'create' ? 'Nova Pasta' : 'Renomear Pasta'}
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            label='Nome da pasta'
+            value={folderName}
+            onChange={(e) => setFolderName(e.target.value)}
+            inputProps={{ maxLength: 50 }}
+            helperText={`${folderName.length}/50 caracteres`}
+            sx={{ mt: 1 }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && folderName.trim()) {
+                handleFolderDialogConfirm();
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleFolderDialogCancel}>Cancelar</Button>
+          <Button
+            onClick={handleFolderDialogConfirm}
+            variant='contained'
+            disabled={!folderName.trim()}
+          >
+            {folderDialogMode === 'create' ? 'Criar' : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Folder Confirmation Dialog */}
+      <Dialog
+        open={deleteFolderConfirmOpen}
+        onClose={handleDeleteFolderCancel}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Excluir Pasta</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Tem certeza que deseja excluir a pasta{' '}
+            <strong>&ldquo;{folderToDelete?.name}&rdquo;</strong>?
+          </Typography>
+          <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+            As fichas dentro desta pasta não serão excluídas, apenas
+            desassociadas.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteFolderCancel}>Cancelar</Button>
+          <Button
+            onClick={handleDeleteFolderConfirm}
             color='error'
             variant='contained'
           >

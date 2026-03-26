@@ -5,6 +5,7 @@ import sheetsService, {
   CreateSheetRequest,
   UpdateSheetRequest,
 } from '../../../services/sheets.service';
+import { moveSheetToFolder } from '../folders/foldersSlice';
 
 export interface SheetsState {
   sheets: SheetListData[];
@@ -204,6 +205,15 @@ const sheetsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to duplicate sheet';
       });
+
+    // Update local sheet folderId when moved
+    builder.addCase(moveSheetToFolder.fulfilled, (state, action) => {
+      const { sheetId, folderId } = action.payload;
+      const sheet = state.sheets.find((s) => s.id === sheetId);
+      if (sheet) {
+        sheet.folderId = folderId;
+      }
+    });
   },
 });
 
