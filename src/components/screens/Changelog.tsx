@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            26/03/2026.
+            27/03/2026.
           </p>
 
           <p>
@@ -75,10 +75,11 @@ const Changelog: React.FC = () => {
                   <strong>Novo:</strong> Agora é possível criar pastas para
                   organizar seus personagens e ameaças por campanha/aventura. As
                   pastas são compartilhadas entre as abas de Personagens e
-                  Ameaças — uma pasta &quot;Campanha X&quot; mostra tanto os
-                  personagens quanto as ameaças daquela campanha. Uma barra de
-                  chips permite filtrar rapidamente por pasta, e cada ficha pode
-                  ser movida entre pastas pelo botão de ação no card.
+                  Ameaças — uma pasta &quot;Campanha X&quot; agrupa tanto os
+                  personagens quanto as ameaças daquela campanha. As pastas
+                  aparecem como cards visuais no grid e, ao clicar, abrem para
+                  mostrar as fichas dentro. Cada ficha pode ser movida entre
+                  pastas pelo botão de ação no card.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> Todas as buscas do sistema agora
