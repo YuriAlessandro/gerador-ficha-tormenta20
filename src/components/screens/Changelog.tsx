@@ -70,6 +70,37 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.8</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Wyrt
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Wyrt é um jogo de cartas e apostas ambientado no mundo de
+                  Arton. Cada jogador recebe 3 cartas e 1 dado — o objetivo é
+                  somar cartas de uma mesma cor para chegar o mais perto
+                  possível do Número da Raposa (a soma de todos os dados
+                  rolados). A cada turno você pode rolar o dado, descartar
+                  cartas para comprar novas, dobrar a aposta ou blefar até
+                  alguém pedir &quot;Mostrem!&quot; e revelar as mãos. Jogue
+                  solo contra bots ou online com amigos!
+                </Typography>
+              </Alert>
+
               <ul>
                 <li>
                   <strong>Novo:</strong> Agora é possível criar pastas para
