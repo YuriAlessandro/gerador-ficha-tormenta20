@@ -15,6 +15,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { BlogService, BlogPost } from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
 import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
+import wyrtImage from '../../assets/images/backgrounds/wyrt.png';
 // import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 // import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
 import p16Image from '../../assets/images/arts/p16.png';
@@ -44,15 +45,18 @@ export interface CarouselSlide {
 // CONFIGURE SLIDES HERE - Easy to update
 // ===========================================
 export const carouselSlides: CarouselSlide[] = [
-  // {
-  //   id: 'blog-destaque',
-  //   title: 'Carregando...',
-  //   subtitle: '',
-  //   type: 'blog',
-  //   blogPostSlug: 'as-novas-features-do-fichas-de-nimb-votacao-de-apoiadores',
-  //   category: 'Blog',
-  //   isNew: true,
-  // },
+  {
+    id: 'wyrt',
+    title: 'Jogue Wyrt online com amigos',
+    subtitle:
+      'O jogo de cartas do universo Tormenta, disponível agora com multiplayer.',
+    type: 'default',
+    category: 'Wyrt',
+    ctaText: 'Jogue agora',
+    ctaLink: '/wyrt',
+    isNew: true,
+    image: wyrtImage,
+  },
   {
     id: 'gerador-ficha',
     title: 'Criar personagem',
@@ -222,6 +226,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
       sx={{
         minHeight: { xs: '35vh', sm: '40vh', md: '50vh' },
         position: 'relative',
+        zIndex: 1,
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
