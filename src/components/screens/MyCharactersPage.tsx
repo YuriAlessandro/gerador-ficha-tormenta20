@@ -50,6 +50,8 @@ import {
   FolderOpen as FolderOpenIcon,
   DriveFileMove as MoveIcon,
   FolderOff as FolderOffIcon,
+  ArrowBack as ArrowBackIcon,
+  Folder as FolderIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
@@ -63,10 +65,6 @@ import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import SupporterBadge from '../Premium/SupporterBadge';
 import { normalizeSearch } from '../../functions/stringUtils';
-
-// Special filter values
-const FOLDER_ALL = '__all__';
-const FOLDER_NONE = '__none__';
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -113,11 +111,13 @@ const MyCharactersPage: React.FC = () => {
 
   const getInitialFolder = () => {
     const params = new URLSearchParams(location.search);
-    return params.get('folder') || FOLDER_ALL;
+    return params.get('folder') || null;
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab());
-  const [selectedFolderId, setSelectedFolderId] = useState(getInitialFolder());
+  const [openFolderId, setOpenFolderId] = useState<string | null>(
+    getInitialFolder()
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'level'>('date');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -141,12 +141,12 @@ const MyCharactersPage: React.FC = () => {
   );
   const [sheetToMove, setSheetToMove] = useState<SheetListData | null>(null);
 
-  // Folder chip context menu state
+  // Folder card context menu state
   const [folderContextAnchor, setFolderContextAnchor] =
     useState<HTMLElement | null>(null);
   const [contextFolder, setContextFolder] = useState<Folder | null>(null);
 
-  // Sync tab with URL on location change (browser back/forward)
+  // Sync tab/folder with URL on location change (browser back/forward)
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
@@ -154,11 +154,11 @@ const MyCharactersPage: React.FC = () => {
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
-    const folder = params.get('folder') || FOLDER_ALL;
-    if (folder !== selectedFolderId) {
-      setSelectedFolderId(folder);
+    const folder = params.get('folder') || null;
+    if (folder !== openFolderId) {
+      setOpenFolderId(folder);
     }
-  }, [location.search]); // Only depend on location.search, not activeTab/selectedFolderId to avoid loops
+  }, [location.search]); // Only depend on location.search to avoid loops
 
   // Separate sheets by type
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
@@ -167,7 +167,7 @@ const MyCharactersPage: React.FC = () => {
   // Get current tab sheets
   const currentSheets = activeTab === 0 ? playerSheets : threatSheets;
 
-  // Count sheets per folder (across both tabs for shared folders)
+  // Count sheets per folder (across both tabs for the move menu)
   const folderCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     sheets.forEach((sheet) => {
@@ -178,7 +178,7 @@ const MyCharactersPage: React.FC = () => {
     return counts;
   }, [sheets]);
 
-  // Count sheets per folder for current tab only
+  // Count sheets per folder for current tab
   const currentTabFolderCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     currentSheets.forEach((sheet) => {
@@ -189,17 +189,24 @@ const MyCharactersPage: React.FC = () => {
     return counts;
   }, [currentSheets]);
 
-  // Filter and sort sheets
-  const filteredSheets = currentSheets
-    .filter((sheet) => {
-      // Folder filter
-      if (selectedFolderId === FOLDER_NONE) {
-        if (sheet.folderId) return false;
-      } else if (selectedFolderId !== FOLDER_ALL) {
-        if (sheet.folderId !== selectedFolderId) return false;
-      }
+  // Get the currently open folder object
+  const openFolder = openFolderId
+    ? folders.find((f) => f.id === openFolderId) || null
+    : null;
 
-      // Search filter
+  // Sheets to display based on whether a folder is open
+  const visibleSheets = useMemo(() => {
+    if (openFolderId) {
+      // Inside a folder: show only sheets in this folder
+      return currentSheets.filter((s) => s.folderId === openFolderId);
+    }
+    // Root view: show only sheets NOT in any folder
+    return currentSheets.filter((s) => !s.folderId);
+  }, [currentSheets, openFolderId]);
+
+  // Filter and sort
+  const filteredSheets = visibleSheets
+    .filter((sheet) => {
       const search = normalizeSearch(searchTerm);
       if (!search) return true;
       return (
@@ -229,11 +236,11 @@ const MyCharactersPage: React.FC = () => {
     });
 
   // URL update helper
-  const updateUrl = (tab: number, folder: string) => {
+  const updateUrl = (tab: number, folder: string | null) => {
     const tabName = tab === 0 ? 'personagens' : 'ameacas';
     const params = new URLSearchParams();
     params.set('tab', tabName);
-    if (folder !== FOLDER_ALL) {
+    if (folder) {
       params.set('folder', folder);
     }
     history.push(`/meus-personagens?${params.toString()}`);
@@ -250,12 +257,19 @@ const MyCharactersPage: React.FC = () => {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     setSearchTerm('');
-    updateUrl(newValue, selectedFolderId);
+    updateUrl(newValue, openFolderId);
   };
 
-  const handleFolderSelect = (folderId: string) => {
-    setSelectedFolderId(folderId);
+  const handleOpenFolder = (folderId: string) => {
+    setOpenFolderId(folderId);
+    setSearchTerm('');
     updateUrl(activeTab, folderId);
+  };
+
+  const handleCloseFolder = () => {
+    setOpenFolderId(null);
+    setSearchTerm('');
+    updateUrl(activeTab, null);
   };
 
   const handleViewSheet = (sheet: SheetListData) => {
@@ -365,9 +379,8 @@ const MyCharactersPage: React.FC = () => {
     if (!folderToDelete) return;
     try {
       await deleteFolderAction(folderToDelete.id);
-      // If we were viewing the deleted folder, go back to "all"
-      if (selectedFolderId === folderToDelete.id) {
-        handleFolderSelect(FOLDER_ALL);
+      if (openFolderId === folderToDelete.id) {
+        handleCloseFolder();
       }
       setDeleteFolderConfirmOpen(false);
       setFolderToDelete(null);
@@ -406,12 +419,13 @@ const MyCharactersPage: React.FC = () => {
     setSheetToMove(null);
   };
 
-  // --- Folder chip context menu ---
-  const handleFolderChipContext = (
+  // --- Folder card context menu ---
+  const handleFolderCardContext = (
     event: React.MouseEvent<HTMLElement>,
     folder: Folder
   ) => {
     event.preventDefault();
+    event.stopPropagation();
     setFolderContextAnchor(event.currentTarget);
     setContextFolder(folder);
   };
@@ -543,6 +557,363 @@ const MyCharactersPage: React.FC = () => {
     );
   };
 
+  // Render a folder card
+  const renderFolderCard = (folder: Folder) => {
+    const count = currentTabFolderCounts[folder.id] || 0;
+    const tabLabel = activeTab === 0 ? 'personagem' : 'ameaça';
+    const countLabel = count === 1 ? `1 ${tabLabel}` : `${count} ${tabLabel}s`;
+
+    return (
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={folder.id}>
+        <Card
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'all 0.3s ease',
+            border: `1px solid`,
+            borderColor: 'divider',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: theme.shadows[8],
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          <CardActionArea
+            onClick={() => handleOpenFolder(folder.id)}
+            onContextMenu={(e) => handleFolderCardContext(e, folder)}
+            sx={{ flexGrow: 1 }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pt: 3,
+                pb: 1,
+              }}
+            >
+              <FolderIcon
+                sx={{
+                  fontSize: 64,
+                  color: 'primary.main',
+                  opacity: 0.85,
+                }}
+              />
+            </Box>
+            <CardContent sx={{ textAlign: 'center', pt: 0 }}>
+              <Typography
+                variant='h6'
+                component='h3'
+                sx={{
+                  fontFamily: 'Tfont',
+                  fontWeight: 'bold',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {folder.name}
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                {countLabel}
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+          <CardActions sx={{ justifyContent: 'center', px: 2 }}>
+            <Tooltip title='Renomear'>
+              <IconButton
+                size='small'
+                onClick={() => handleOpenRenameFolder(folder)}
+              >
+                <EditIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Excluir pasta'>
+              <IconButton
+                size='small'
+                color='error'
+                onClick={() => handleOpenDeleteFolder(folder)}
+              >
+                <DeleteIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  };
+
+  // Render the "Create new folder" card
+  const renderNewFolderCard = () => (
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'all 0.3s ease',
+          border: '2px dashed',
+          borderColor: 'divider',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            borderColor: 'primary.main',
+          },
+        }}
+      >
+        <CardActionArea
+          onClick={handleOpenCreateFolder}
+          sx={{
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            py: 4,
+          }}
+        >
+          <CreateNewFolderIcon
+            sx={{
+              fontSize: 48,
+              color: 'text.secondary',
+              mb: 1,
+            }}
+          />
+          <Typography variant='body1' color='text.secondary'>
+            Nova Pasta
+          </Typography>
+        </CardActionArea>
+      </Card>
+    </Grid>
+  );
+
+  // Render a sheet card
+  const renderSheetCard = (sheet: SheetListData) => (
+    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: theme.shadows[8],
+          },
+        }}
+      >
+        <CardActionArea
+          onClick={() => handleViewSheet(sheet)}
+          sx={{ flexGrow: 1 }}
+        >
+          <CardMedia
+            component='img'
+            height='160'
+            image={sheet.image || sheet.sheetData?.imageUrl || tormenta20}
+            alt={sheet.name}
+            sx={{
+              objectFit: 'cover',
+              objectPosition: 'top',
+            }}
+          />
+
+          {/* PV/PM Progress Bars */}
+          {!sheet.sheetData?.isThreat && (
+            <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+              <Box sx={{ mb: 1 }}>
+                <Typography
+                  variant='caption'
+                  sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                >
+                  PV:{' '}
+                  {(sheet.sheetData as any).currentPV ??
+                    (sheet.sheetData as any).pv}
+                  /{(sheet.sheetData as any).pv}
+                </Typography>
+                <LinearProgress
+                  variant='determinate'
+                  value={Math.min(
+                    (((sheet.sheetData as any).currentPV ??
+                      (sheet.sheetData as any).pv) /
+                      (sheet.sheetData as any).pv) *
+                      100,
+                    100
+                  )}
+                  sx={{
+                    height: 6,
+                    borderRadius: 1,
+                    backgroundColor: 'rgba(108,166,81, 0.2)',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: theme.palette.success.main,
+                      opacity: 100,
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                >
+                  PM:{' '}
+                  {(sheet.sheetData as any).currentPM ??
+                    (sheet.sheetData as any).pm}
+                  /{(sheet.sheetData as any).pm}
+                </Typography>
+                <LinearProgress
+                  variant='determinate'
+                  value={Math.min(
+                    (((sheet.sheetData as any).currentPM ??
+                      (sheet.sheetData as any).pm) /
+                      (sheet.sheetData as any).pm) *
+                      100,
+                    100
+                  )}
+                  sx={{
+                    height: 6,
+                    borderRadius: 1,
+                    backgroundColor: 'rgba(0, 139, 255, 0.2)',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: theme.palette.info.main,
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+
+          <CardContent sx={{ flexGrow: 1 }}>
+            <Typography
+              gutterBottom
+              variant='h6'
+              component='h3'
+              sx={{
+                fontFamily: 'Tfont',
+                fontWeight: 'bold',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {sheet.name}
+            </Typography>
+
+            <Typography
+              variant='body2'
+              color='text.secondary'
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                mb: 1,
+              }}
+            >
+              {getDescription(sheet)}
+            </Typography>
+
+            <Stack
+              direction='row'
+              spacing={1}
+              alignItems='center'
+              flexWrap='wrap'
+              useFlexGap
+            >
+              <Chip
+                label={`Nível ${getLevel(sheet)}`}
+                size='small'
+                color='primary'
+                variant='outlined'
+              />
+              {sheet.folderId && !openFolderId && (
+                <Chip
+                  icon={
+                    <FolderOpenIcon sx={{ fontSize: '0.85rem !important' }} />
+                  }
+                  label={getFolderName(sheet.folderId)}
+                  size='small'
+                  variant='outlined'
+                  sx={{ maxWidth: 140 }}
+                />
+              )}
+              {sheet.assignedTableId && (
+                <Tooltip title='Ir para a mesa'>
+                  <Chip
+                    icon={<TableIcon />}
+                    label={sheet.assignedTableId.name}
+                    size='small'
+                    color='secondary'
+                    variant='filled'
+                    onClick={(e) =>
+                      handleNavigateToTable(
+                        e,
+                        // eslint-disable-next-line no-underscore-dangle
+                        sheet.assignedTableId!._id
+                      )
+                    }
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'secondary.dark',
+                      },
+                    }}
+                  />
+                </Tooltip>
+              )}
+            </Stack>
+
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ mt: 1, display: 'block' }}
+            >
+              Editado em {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
+            </Typography>
+          </CardContent>
+        </CardActionArea>
+
+        <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+          <Box>
+            <Tooltip title='Editar'>
+              <IconButton
+                size='small'
+                color='primary'
+                onClick={() => handleEditSheet(sheet)}
+              >
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Duplicar'>
+              <IconButton size='small' onClick={() => handleDuplicate(sheet)}>
+                <DuplicateIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title='Mover para pasta'>
+              <IconButton
+                size='small'
+                onClick={(e) => handleOpenMoveMenu(e, sheet)}
+              >
+                <MoveIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Tooltip title='Excluir'>
+            <IconButton
+              size='small'
+              color='error'
+              onClick={() => handleDeleteClick(sheet)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </CardActions>
+      </Card>
+    </Grid>
+  );
+
   if (loading && sheets.length === 0) {
     return (
       <Container maxWidth='lg' sx={{ py: 4 }}>
@@ -557,6 +928,8 @@ const MyCharactersPage: React.FC = () => {
       </Container>
     );
   }
+
+  const isInsideFolder = Boolean(openFolderId);
 
   return (
     <Container maxWidth='lg' sx={{ py: 4 }}>
@@ -700,7 +1073,7 @@ const MyCharactersPage: React.FC = () => {
         </Box>
 
         {/* Tabs */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
@@ -727,131 +1100,33 @@ const MyCharactersPage: React.FC = () => {
           </Tabs>
         </Box>
 
-        {/* Folder Chips Bar */}
-        {folders.length > 0 && (
+        {/* Folder navigation bar (when inside a folder) */}
+        {isInsideFolder && openFolder && (
           <Box
+            display='flex'
+            alignItems='center'
+            gap={1}
+            mb={2}
             sx={{
-              display: 'flex',
-              gap: 1,
-              mb: 2,
-              overflowX: 'auto',
-              flexWrap: 'nowrap',
-              pb: 1,
-              '&::-webkit-scrollbar': { height: 4 },
-              '&::-webkit-scrollbar-thumb': {
-                borderRadius: 2,
-                backgroundColor: 'action.disabled',
-              },
+              py: 1,
+              px: 2,
+              borderRadius: 1,
+              backgroundColor: 'action.hover',
             }}
           >
-            <Chip
-              label={`Todos (${currentSheets.length})`}
-              color={selectedFolderId === FOLDER_ALL ? 'primary' : 'default'}
-              variant={selectedFolderId === FOLDER_ALL ? 'filled' : 'outlined'}
-              onClick={() => handleFolderSelect(FOLDER_ALL)}
-              sx={{ flexShrink: 0 }}
-            />
-            {folders.map((folder) => {
-              const count = currentTabFolderCounts[folder.id] || 0;
-              return (
-                <Chip
-                  key={folder.id}
-                  icon={<FolderOpenIcon sx={{ fontSize: '1rem !important' }} />}
-                  label={`${folder.name} (${count})`}
-                  color={selectedFolderId === folder.id ? 'primary' : 'default'}
-                  variant={
-                    selectedFolderId === folder.id ? 'filled' : 'outlined'
-                  }
-                  onClick={() => handleFolderSelect(folder.id)}
-                  onContextMenu={(e) => handleFolderChipContext(e, folder)}
-                  onDelete={() =>
-                    handleFolderChipContext(
-                      {
-                        currentTarget: document.getElementById(
-                          `folder-chip-${folder.id}`
-                        ),
-                        preventDefault: () => {},
-                      } as unknown as React.MouseEvent<HTMLElement>,
-                      folder
-                    )
-                  }
-                  deleteIcon={
-                    <EditIcon
-                      id={`folder-chip-${folder.id}`}
-                      sx={{ fontSize: '0.9rem !important' }}
-                    />
-                  }
-                  sx={{ flexShrink: 0 }}
-                />
-              );
-            })}
-            <Chip
-              label={
-                currentSheets.filter((s) => !s.folderId).length > 0
-                  ? `Sem pasta (${
-                      currentSheets.filter((s) => !s.folderId).length
-                    })`
-                  : 'Sem pasta'
-              }
-              icon={<FolderOffIcon sx={{ fontSize: '1rem !important' }} />}
-              color={selectedFolderId === FOLDER_NONE ? 'primary' : 'default'}
-              variant={selectedFolderId === FOLDER_NONE ? 'filled' : 'outlined'}
-              onClick={() => handleFolderSelect(FOLDER_NONE)}
-              sx={{ flexShrink: 0 }}
-            />
-            <Chip
-              icon={
-                <CreateNewFolderIcon sx={{ fontSize: '1rem !important' }} />
-              }
-              label='Nova Pasta'
-              variant='outlined'
-              onClick={handleOpenCreateFolder}
-              sx={{ flexShrink: 0 }}
-            />
+            <IconButton size='small' onClick={handleCloseFolder}>
+              <ArrowBackIcon />
+            </IconButton>
+            <FolderOpenIcon color='primary' />
+            <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
+              {openFolder.name}
+            </Typography>
+            <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
+              ({filteredSheets.length}{' '}
+              {activeTab === 0 ? 'personagens' : 'ameaças'})
+            </Typography>
           </Box>
         )}
-
-        {/* Create first folder hint (when no folders exist yet) */}
-        {folders.length === 0 && sheets.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Chip
-              icon={
-                <CreateNewFolderIcon sx={{ fontSize: '1rem !important' }} />
-              }
-              label='Criar pasta para organizar'
-              variant='outlined'
-              onClick={handleOpenCreateFolder}
-            />
-          </Box>
-        )}
-
-        {/* Folder chip context menu */}
-        <Menu
-          anchorEl={folderContextAnchor}
-          open={Boolean(folderContextAnchor)}
-          onClose={handleCloseFolderContext}
-        >
-          <MenuItem
-            onClick={() => {
-              if (contextFolder) handleOpenRenameFolder(contextFolder);
-            }}
-          >
-            <ListItemIcon>
-              <EditIcon fontSize='small' />
-            </ListItemIcon>
-            <ListItemText>Renomear</ListItemText>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              if (contextFolder) handleOpenDeleteFolder(contextFolder);
-            }}
-          >
-            <ListItemIcon>
-              <DeleteIcon fontSize='small' color='error' />
-            </ListItemIcon>
-            <ListItemText sx={{ color: 'error.main' }}>Excluir</ListItemText>
-          </MenuItem>
-        </Menu>
 
         {/* Filters and Search */}
         {currentSheets.length > 0 && (
@@ -896,11 +1171,11 @@ const MyCharactersPage: React.FC = () => {
           </Box>
         )}
 
-        {/* Summary */}
-        {currentSheets.length > 0 && (
+        {/* Summary (only at root when not searching) */}
+        {!isInsideFolder && currentSheets.length > 0 && (
           <Typography variant='body2' color='text.secondary'>
-            {filteredSheets.length} de {currentSheets.length}{' '}
-            {activeTab === 0 ? 'personagens' : 'ameaças'}
+            {currentSheets.length} {activeTab === 0 ? 'personagens' : 'ameaças'}{' '}
+            no total
           </Typography>
         )}
       </Box>
@@ -915,243 +1190,62 @@ const MyCharactersPage: React.FC = () => {
       {/* Empty State */}
       {!loading && currentSheets.length === 0 && <EmptyState />}
 
-      {/* Characters Grid */}
+      {/* Grid: folders + sheets */}
       {currentSheets.length > 0 && (
         <Grid container spacing={3}>
-          {filteredSheets.map((sheet) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: theme.shadows[8],
-                  },
-                }}
-              >
-                <CardActionArea
-                  onClick={() => handleViewSheet(sheet)}
-                  sx={{ flexGrow: 1 }}
-                >
-                  <CardMedia
-                    component='img'
-                    height='160'
-                    image={
-                      sheet.image || sheet.sheetData?.imageUrl || tormenta20
-                    }
-                    alt={sheet.name}
-                    sx={{
-                      objectFit: 'cover',
-                      objectPosition: 'top',
-                    }}
-                  />
+          {/* Folder cards (only at root level) */}
+          {!isInsideFolder && folders.map((folder) => renderFolderCard(folder))}
 
-                  {/* PV/PM Progress Bars */}
-                  {!sheet.sheetData?.isThreat && (
-                    <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-                      <Box sx={{ mb: 1 }}>
-                        <Typography
-                          variant='caption'
-                          sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                        >
-                          PV:{' '}
-                          {(sheet.sheetData as any).currentPV ??
-                            (sheet.sheetData as any).pv}
-                          /{(sheet.sheetData as any).pv}
-                        </Typography>
-                        <LinearProgress
-                          variant='determinate'
-                          value={Math.min(
-                            (((sheet.sheetData as any).currentPV ??
-                              (sheet.sheetData as any).pv) /
-                              (sheet.sheetData as any).pv) *
-                              100,
-                            100
-                          )}
-                          sx={{
-                            height: 6,
-                            borderRadius: 1,
-                            backgroundColor: 'rgba(108,166,81, 0.2)',
-                            '& .MuiLinearProgress-bar': {
-                              backgroundColor: theme.palette.success.main,
-                              opacity: 100,
-                            },
-                          }}
-                        />
-                      </Box>
+          {/* New folder card (only at root level, when sheets exist) */}
+          {!isInsideFolder && renderNewFolderCard()}
 
-                      <Box>
-                        <Typography
-                          variant='caption'
-                          sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                        >
-                          PM:{' '}
-                          {(sheet.sheetData as any).currentPM ??
-                            (sheet.sheetData as any).pm}
-                          /{(sheet.sheetData as any).pm}
-                        </Typography>
-                        <LinearProgress
-                          variant='determinate'
-                          value={Math.min(
-                            (((sheet.sheetData as any).currentPM ??
-                              (sheet.sheetData as any).pm) /
-                              (sheet.sheetData as any).pm) *
-                              100,
-                            100
-                          )}
-                          sx={{
-                            height: 6,
-                            borderRadius: 1,
-                            backgroundColor: 'rgba(0, 139, 255, 0.2)',
-                            '& .MuiLinearProgress-bar': {
-                              backgroundColor: theme.palette.info.main,
-                            },
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  )}
-
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography
-                      gutterBottom
-                      variant='h6'
-                      component='h3'
-                      sx={{
-                        fontFamily: 'Tfont',
-                        fontWeight: 'bold',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {sheet.name}
-                    </Typography>
-
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        mb: 1,
-                      }}
-                    >
-                      {getDescription(sheet)}
-                    </Typography>
-
-                    <Stack
-                      direction='row'
-                      spacing={1}
-                      alignItems='center'
-                      flexWrap='wrap'
-                      useFlexGap
-                    >
-                      <Chip
-                        label={`Nível ${getLevel(sheet)}`}
-                        size='small'
-                        color='primary'
-                        variant='outlined'
-                      />
-                      {sheet.folderId && (
-                        <Chip
-                          icon={
-                            <FolderOpenIcon
-                              sx={{ fontSize: '0.85rem !important' }}
-                            />
-                          }
-                          label={getFolderName(sheet.folderId)}
-                          size='small'
-                          variant='outlined'
-                          sx={{ maxWidth: 140 }}
-                        />
-                      )}
-                      {sheet.assignedTableId && (
-                        <Tooltip title='Ir para a mesa'>
-                          <Chip
-                            icon={<TableIcon />}
-                            label={sheet.assignedTableId.name}
-                            size='small'
-                            color='secondary'
-                            variant='filled'
-                            onClick={(e) =>
-                              handleNavigateToTable(
-                                e,
-                                // eslint-disable-next-line no-underscore-dangle
-                                sheet.assignedTableId!._id
-                              )
-                            }
-                            sx={{
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: 'secondary.dark',
-                              },
-                            }}
-                          />
-                        </Tooltip>
-                      )}
-                    </Stack>
-
-                    <Typography
-                      variant='caption'
-                      color='text.secondary'
-                      sx={{ mt: 1, display: 'block' }}
-                    >
-                      Editado em{' '}
-                      {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
-                    </Typography>
-                  </CardContent>
-                </CardActionArea>
-
-                <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                  <Box>
-                    <Tooltip title='Editar'>
-                      <IconButton
-                        size='small'
-                        color='primary'
-                        onClick={() => handleEditSheet(sheet)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Duplicar'>
-                      <IconButton
-                        size='small'
-                        onClick={() => handleDuplicate(sheet)}
-                      >
-                        <DuplicateIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title='Mover para pasta'>
-                      <IconButton
-                        size='small'
-                        onClick={(e) => handleOpenMoveMenu(e, sheet)}
-                      >
-                        <MoveIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                  <Tooltip title='Excluir'>
-                    <IconButton
-                      size='small'
-                      color='error'
-                      onClick={() => handleDeleteClick(sheet)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
+          {/* Sheet cards */}
+          {filteredSheets.map((sheet) => renderSheetCard(sheet))}
         </Grid>
       )}
+
+      {/* Empty folder state */}
+      {isInsideFolder && filteredSheets.length === 0 && !searchTerm && (
+        <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
+          <FolderOpenIcon
+            sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
+          />
+          <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
+            Pasta vazia
+          </Typography>
+          <Typography variant='body2' color='text.secondary'>
+            Mova fichas para esta pasta usando o botão de mover nos cards.
+          </Typography>
+        </Box>
+      )}
+
+      {/* Folder card context menu */}
+      <Menu
+        anchorEl={folderContextAnchor}
+        open={Boolean(folderContextAnchor)}
+        onClose={handleCloseFolderContext}
+      >
+        <MenuItem
+          onClick={() => {
+            if (contextFolder) handleOpenRenameFolder(contextFolder);
+          }}
+        >
+          <ListItemIcon>
+            <EditIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Renomear</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (contextFolder) handleOpenDeleteFolder(contextFolder);
+          }}
+        >
+          <ListItemIcon>
+            <DeleteIcon fontSize='small' color='error' />
+          </ListItemIcon>
+          <ListItemText sx={{ color: 'error.main' }}>Excluir</ListItemText>
+        </MenuItem>
+      </Menu>
 
       {/* Move to Folder Menu */}
       <Menu
