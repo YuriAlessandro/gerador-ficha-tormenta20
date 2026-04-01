@@ -14,12 +14,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { BlogService, BlogPost } from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
-import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
+// import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
 import wyrtImage from '../../assets/images/backgrounds/wyrt.png';
 // import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
 // import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
-import p16Image from '../../assets/images/arts/p16.png';
-import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
+// import p16Image from '../../assets/images/arts/p16.png';
+// import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
   id: string;
@@ -52,6 +52,10 @@ export const carouselSlides: CarouselSlide[] = [
       'Update 2026.2 - Os apoiadores decidirão em uma votação qual será a feature implementada no mês de Abril.',
     type: 'blog',
     blogPostSlug: 'votacao-de-apoiadores-update-2026-2',
+    image: heroImage,
+    ctaText: 'Ler post',
+    ctaLink: '/blog/votacao-de-apoiadores-update-2026-2',
+    category: 'Blog',
   },
   {
     id: 'wyrt',

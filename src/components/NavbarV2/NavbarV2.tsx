@@ -32,6 +32,7 @@ import BrowseGalleryIcon from '@mui/icons-material/BrowseGallery';
 import FilterDramaIcon from '@mui/icons-material/FilterDrama';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import InstagramIcon from '@mui/icons-material/Instagram';
+import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import logoFichasDeNimb from '@/assets/images/logoFichasDeNimbSmall.svg';
 import { useAuth } from '@/hooks/useAuth';
@@ -156,6 +157,11 @@ const navCategories: NavCategory[] = [
   {
     label: 'Comunidade',
     items: [
+      {
+        label: 'Wyrt',
+        link: '/wyrt',
+        icon: <DynamicFeedIcon fontSize='small' />,
+      },
       {
         label: 'Mesas Virtuais',
         link: '/mesas',

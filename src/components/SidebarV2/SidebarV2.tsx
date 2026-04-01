@@ -37,13 +37,14 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import StarIcon from '@mui/icons-material/Star';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.8.1';
+const APP_VERSION = '4.8.2';
 
 interface SidebarV2Props {
   visible: boolean;
@@ -404,6 +405,12 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 
             {/* COMUNIDADE */}
             <StyledSubheader>Comunidade</StyledSubheader>
+            <StyledMenuItem onClick={() => navigateTo('/wyrt')}>
+              <ListItemIcon>
+                <DynamicFeedIcon />
+              </ListItemIcon>
+              <Typography variant='inherit'>Wyrt</Typography>
+            </StyledMenuItem>
             <StyledMenuItem onClick={() => navigateTo('/forum')}>
               <ListItemIcon>
                 <ForumIcon />
