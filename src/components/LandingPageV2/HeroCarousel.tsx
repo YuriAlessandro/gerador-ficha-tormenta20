@@ -46,6 +46,14 @@ export interface CarouselSlide {
 // ===========================================
 export const carouselSlides: CarouselSlide[] = [
   {
+    id: 'votacao',
+    title: 'Votação de Apoiadores',
+    subtitle:
+      'Update 2026.2 - Os apoiadores decidirão em uma votação qual será a feature implementada no mês de Abril.',
+    type: 'blog',
+    blogPostSlug: 'votacao-de-apoiadores-update-2026-2',
+  },
+  {
     id: 'wyrt',
     title: 'Jogue Wyrt online com amigos',
     subtitle:
@@ -57,38 +65,38 @@ export const carouselSlides: CarouselSlide[] = [
     isNew: true,
     image: wyrtImage,
   },
-  {
-    id: 'gerador-ficha',
-    title: 'Criar personagem',
-    subtitle:
-      'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
-    image: sheetImage,
-    ctaText: 'Criar Ficha',
-    ctaLink: '/criar-ficha',
-    requireAuth: true,
-    secondaryCtaText: 'Meus Personagens',
-    secondaryCtaLink: '/meus-personagens',
-    secondaryRequireAuth: true,
-    category: 'Ferramentas',
-  },
-  {
-    id: 'apoio',
-    title: 'Apoie o Projeto!',
-    subtitle:
-      'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
-    image: lancaGalrasiaImage,
-    category: 'Recompensas incríveis te aguardam!',
-    ctaText: 'Apoiar',
-    ctaLink: '/apoiar',
-  },
-  {
-    id: 'fichas-de-nimb',
-    title: 'Fichas de Nimb',
-    subtitle: 'A melhor plataforma para Tormenta 20!',
-    image: heroImage,
-    bigText:
-      'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
-  },
+  // {
+  //   id: 'gerador-ficha',
+  //   title: 'Criar personagem',
+  //   subtitle:
+  //     'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
+  //   image: sheetImage,
+  //   ctaText: 'Criar Ficha',
+  //   ctaLink: '/criar-ficha',
+  //   requireAuth: true,
+  //   secondaryCtaText: 'Meus Personagens',
+  //   secondaryCtaLink: '/meus-personagens',
+  //   secondaryRequireAuth: true,
+  //   category: 'Ferramentas',
+  // },
+  // {
+  //   id: 'apoio',
+  //   title: 'Apoie o Projeto!',
+  //   subtitle:
+  //     'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
+  //   image: lancaGalrasiaImage,
+  //   category: 'Recompensas incríveis te aguardam!',
+  //   ctaText: 'Apoiar',
+  //   ctaLink: '/apoiar',
+  // },
+  // {
+  //   id: 'fichas-de-nimb',
+  //   title: 'Fichas de Nimb',
+  //   subtitle: 'A melhor plataforma para Tormenta 20!',
+  //   image: heroImage,
+  //   bigText:
+  //     'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
+  // },
   // {
   //   id: 'gerador-ameacas',
   //   title: 'Gerador de Ameaças',
@@ -99,17 +107,17 @@ export const carouselSlides: CarouselSlide[] = [
   //   ctaLink: '/gerador-ameacas',
   //   category: 'Ferramentas',
   // },
-  {
-    id: 'mesas-virtuais',
-    title: 'Mesas Virtuais',
-    subtitle:
-      'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
-    image: p16Image,
-    ctaText: 'Ver Mesas',
-    ctaLink: '/mesas',
-    category: 'Comunidade',
-    requireAuth: true,
-  },
+  // {
+  //   id: 'mesas-virtuais',
+  //   title: 'Mesas Virtuais',
+  //   subtitle:
+  //     'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
+  //   image: p16Image,
+  //   ctaText: 'Ver Mesas',
+  //   ctaLink: '/mesas',
+  //   category: 'Comunidade',
+  //   requireAuth: true,
+  // },
   // {
   //   id: 'builds',
   //   title: 'Planejador de Builds',
