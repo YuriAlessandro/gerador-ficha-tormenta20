@@ -72,6 +72,17 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Ataques de ameaças agora suportam dados
+                  de dano bônus com tipo (ex: &quot;mais 2d12 trevas&quot;,
+                  &quot;mais 1d6 ácido&quot;). No formulário de ataques, uma
+                  nova seção permite adicionar múltiplas entradas de dados bônus
+                  com autocomplete de tipo de dano. Os dados bônus são exibidos
+                  no formato do livro, rolados separadamente ao clicar no ataque
+                  e não são multiplicados em acertos críticos, seguindo as
+                  regras do T20. A exportação para Foundry VTT também inclui os
+                  dados bônus como partes adicionais de dano tipado.
+                </li>
+                <li>
                   <strong>Novo:</strong> A habilidade Treino Especializado do
                   Treinador (nível 5) agora oferece a escolha entre
                   &quot;Conquistar pelos Números&quot; e &quot;Treino
