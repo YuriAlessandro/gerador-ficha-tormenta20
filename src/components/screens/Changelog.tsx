@@ -113,6 +113,13 @@ const Changelog: React.FC = () => {
                   mudança vale tanto para a edição de fichas quanto para o
                   wizard de criação.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Ao visualizar a ficha de um Mago
+                  compartilhada por outro jogador, agora é possível ver quais
+                  magias estão memorizadas e quais estão sempre preparadas.
+                  Antes, os indicadores de memorização só apareciam no modo de
+                  edição.
+                </li>
               </ul>
               <h3>4.8</h3>
 
