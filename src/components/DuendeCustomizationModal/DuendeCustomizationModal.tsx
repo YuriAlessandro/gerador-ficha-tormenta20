@@ -123,10 +123,9 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
 
   const allAttributes = Object.values(Atributo);
 
-  // Calculate if attributes are valid
-  const attributesValid = isAnimal
-    ? true // Animal can have duplicates
-    : bonusAttr1 !== bonusAttr2; // Others must be different
+  // Dons devem SEMPRE ser dois atributos diferentes, mesmo para Animal.
+  // O bônus da Natureza Animal (bonusAttr3) pode repetir com um dos Dons.
+  const attributesValid = bonusAttr1 !== bonusAttr2;
 
   const presentesValid = selectedPresentes.length === 3;
 
@@ -259,8 +258,7 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
           {/* Dons - Atributos */}
           <Box>
             <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-              Dons (+1 em {isAnimal ? 'três' : 'dois'} atributos
-              {isAnimal ? ', pode repetir' : ' diferentes'})
+              Dons (+1 em dois atributos diferentes)
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <FormControl sx={{ minWidth: 150 }}>
@@ -281,7 +279,7 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
 
               <FormControl
                 sx={{ minWidth: 150 }}
-                error={!isAnimal && bonusAttr1 === bonusAttr2}
+                error={bonusAttr1 === bonusAttr2}
               >
                 <InputLabel id='attr2-label'>Atributo 2</InputLabel>
                 <Select
@@ -296,18 +294,20 @@ const DuendeCustomizationModal: React.FC<DuendeCustomizationModalProps> = ({
                     </MenuItem>
                   ))}
                 </Select>
-                {!isAnimal && bonusAttr1 === bonusAttr2 && (
-                  <FormHelperText>Deve ser diferente</FormHelperText>
+                {bonusAttr1 === bonusAttr2 && (
+                  <FormHelperText>
+                    Deve ser diferente do Atributo 1
+                  </FormHelperText>
                 )}
               </FormControl>
 
               {isAnimal && (
                 <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel id='attr3-label'>Atributo 3 (Animal)</InputLabel>
+                  <InputLabel id='attr3-label'>Natureza Animal (+1)</InputLabel>
                   <Select
                     labelId='attr3-label'
                     value={bonusAttr3}
-                    label='Atributo 3 (Animal)'
+                    label='Natureza Animal (+1)'
                     onChange={(e) => setBonusAttr3(e.target.value as Atributo)}
                   >
                     {allAttributes.map((attr) => (

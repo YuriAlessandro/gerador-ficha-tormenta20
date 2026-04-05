@@ -70,15 +70,23 @@ export function applyDuendeCustomization(
   }
 
   // Calcular atributos
-  // 1. Atributos dos Dons (+1 em dois atributos)
-  const donsAttrs: RaceAttributeAbility[] = bonusAttributes.map((attr) => ({
-    attr,
-    mod: 1,
-  }));
+  // 1. Atributos dos Dons (+1 em dois atributos diferentes)
+  //    bonusAttributes[0] e bonusAttributes[1] são sempre os Dons.
+  //    bonusAttributes[2], se presente, é o bônus da Natureza Animal.
+  const donsAttrs: RaceAttributeAbility[] = bonusAttributes
+    .slice(0, 2)
+    .map((attr) => ({
+      attr,
+      mod: 1,
+    }));
 
   // 2. Atributo extra da natureza Animal
+  //    Se bonusAttributes já inclui a 3ª escolha (UI flow), usar ela diretamente.
+  //    Se não (random flow legado com apenas 2 itens), adicionar como 'any'.
   const natureAttrs: RaceAttributeAbility[] = nature.extraAttribute
-    ? [{ attr: 'any' as const, mod: 1 }]
+    ? bonusAttributes.length >= 3
+      ? [{ attr: bonusAttributes[2], mod: 1 }]
+      : [{ attr: 'any' as const, mod: 1 }]
     : [];
 
   // 3. Atributos do tamanho
@@ -121,24 +129,28 @@ export function applyDuendeCustomization(
 
 /**
  * Gera atributos aleatórios para os Dons do Duende
- * Se a natureza for Animal, permite repetir um atributo dos dons
+ * Dons são sempre dois atributos diferentes.
+ * Se a natureza for Animal, adiciona um 3º atributo (pode repetir com um dos Dons).
  */
 function generateRandomBonusAttributes(isAnimal: boolean): Atributo[] {
   const allAttrs = Object.values(Atributo);
 
-  if (isAnimal) {
-    // Animal: pode repetir um atributo (para +2 em um só)
-    // 50% de chance de repetir
-    if (Math.random() > 0.5) {
-      const attr = getRandomItemFromArray(allAttrs);
-      return [attr, attr];
-    }
-  }
-
-  // Escolher dois atributos diferentes
+  // Dons: sempre dois atributos diferentes
   const firstAttr = getRandomItemFromArray(allAttrs);
   const remainingAttrs = allAttrs.filter((a) => a !== firstAttr);
   const secondAttr = getRandomItemFromArray(remainingAttrs);
+
+  if (isAnimal) {
+    // Natureza Animal: +1 em um atributo (pode acumular com os Dons)
+    // 50% de chance de repetir um dos Dons, 50% atributo aleatório
+    const thirdAttr =
+      Math.random() > 0.5
+        ? Math.random() > 0.5
+          ? firstAttr
+          : secondAttr
+        : getRandomItemFromArray(allAttrs);
+    return [firstAttr, secondAttr, thirdAttr];
+  }
 
   return [firstAttr, secondAttr];
 }
