@@ -72,6 +72,14 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigido o scroll do drawer de
+                  edição de magias. Antes, ao adicionar magias personalizadas, a
+                  lista de magias disponíveis era empurrada para fora da tela,
+                  impossibilitando a seleção de novas magias. Agora toda a seção
+                  (magias personalizadas, selecionadas e círculos) rola em
+                  conjunto, mantendo o cabeçalho e os botões fixos.
+                </li>
+                <li>
                   <strong>Novo:</strong> Ataques de ameaças agora suportam dados
                   de dano bônus com tipo (ex: &quot;mais 2d12 trevas&quot;,
                   &quot;mais 1d6 ácido&quot;). No formulário de ataques, uma
