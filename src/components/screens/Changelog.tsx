@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/04/2026.
+            05/04/2026.
           </p>
 
           <p>
@@ -103,6 +103,15 @@ const Changelog: React.FC = () => {
                   preencher o campo &quot;Descrição&quot;. Na ficha, um ícone de
                   informação aparece ao lado do nome do item e, ao passar o
                   mouse, exibe a descrição em um tooltip.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Poderes concedidos agora podem ser
+                  selecionados livremente, sem limite artificial. Antes, o
+                  número de poderes concedidos era limitado por classe
+                  (geralmente 1 ou 2). Agora funcionam como qualquer outro poder
+                  geral — o único pré-requisito é ter a devoção correta. A
+                  mudança vale tanto para a edição de fichas quanto para o
+                  wizard de criação.
                 </li>
               </ul>
               <h3>4.8</h3>
