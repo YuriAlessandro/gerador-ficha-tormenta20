@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Tooltip, Typography, useTheme } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Equipment from '../interfaces/Equipment';
 import {
   rollD20,
@@ -183,9 +184,25 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         onClick={handleWeaponClick}
         title={`Rolar ataque com ${nome}`}
       >
-        <Typography fontSize={16}>
+        <Typography
+          fontSize={16}
+          sx={{ display: 'flex', alignItems: 'center' }}
+        >
           {nome} {`${atk >= 0 ? '+' : ''}${atk}`} • {damage} • ({critico})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
+          {equipment.descricao && (
+            <Tooltip title={equipment.descricao} arrow>
+              <InfoOutlinedIcon
+                sx={{
+                  fontSize: 14,
+                  ml: 0.5,
+                  color: 'text.secondary',
+                  cursor: 'help',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
         </Typography>
       </Box>
       {dualMode && !dualMode.isSameDamage && (

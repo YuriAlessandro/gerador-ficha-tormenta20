@@ -42,6 +42,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CheckIcon from '@mui/icons-material/Check';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import EQUIPAMENTOS, {
@@ -230,6 +231,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editMargemAmeaca, setEditMargemAmeaca] = useState<string>('20');
   const [editMultCritico, setEditMultCritico] = useState<string>('2');
   const [editWeaponSpaces, setEditWeaponSpaces] = useState<string>('1');
+  const [editWeaponDescricao, setEditWeaponDescricao] = useState<string>('');
 
   // Estados para item customizado
   const [showCustomItemDialog, setShowCustomItemDialog] = useState(false);
@@ -252,6 +254,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [customItemDefenseBonus, setCustomItemDefenseBonus] = useState('0');
   const [customItemArmorPenalty, setCustomItemArmorPenalty] = useState('0');
   const [customItemIsHeavy, setCustomItemIsHeavy] = useState(false);
+  const [customItemDescricao, setCustomItemDescricao] = useState('');
 
   // Estados para edição de armadura
   const [editingArmor, setEditingArmor] = useState<DefenseEquipment | null>(
@@ -267,6 +270,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editArmorRolls, setEditArmorRolls] = useState<DiceRoll[]>([]);
   const [editArmorSpaces, setEditArmorSpaces] = useState<string>('0');
   const [editArmorIsHeavy, setEditArmorIsHeavy] = useState<boolean>(false);
+  const [editArmorDescricao, setEditArmorDescricao] = useState<string>('');
   const [showArmorRollsDialog, setShowArmorRollsDialog] = useState(false);
 
   // Estados para edição de escudo
@@ -282,6 +286,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editShieldPenalty, setEditShieldPenalty] = useState<string>('0');
   const [editShieldRolls, setEditShieldRolls] = useState<DiceRoll[]>([]);
   const [editShieldSpaces, setEditShieldSpaces] = useState<string>('0');
+  const [editShieldDescricao, setEditShieldDescricao] = useState<string>('');
   const [showShieldRollsDialog, setShowShieldRollsDialog] = useState(false);
 
   // Estados para edição de vestuário
@@ -294,6 +299,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editClothingNome, setEditClothingNome] = useState<string>('');
   const [editClothingRolls, setEditClothingRolls] = useState<DiceRoll[]>([]);
   const [editClothingSpaces, setEditClothingSpaces] = useState<string>('0');
+  const [editClothingDescricao, setEditClothingDescricao] =
+    useState<string>('');
   const [showClothingRollsDialog, setShowClothingRollsDialog] = useState(false);
 
   // Estados para edição de alquimia
@@ -304,6 +311,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editAlchemyNome, setEditAlchemyNome] = useState<string>('');
   const [editAlchemyRolls, setEditAlchemyRolls] = useState<DiceRoll[]>([]);
   const [editAlchemySpaces, setEditAlchemySpaces] = useState<string>('0');
+  const [editAlchemyDescricao, setEditAlchemyDescricao] = useState<string>('');
   const [showAlchemyRollsDialog, setShowAlchemyRollsDialog] = useState(false);
 
   // Estados para edição de alimentação
@@ -312,6 +320,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editFoodNome, setEditFoodNome] = useState<string>('');
   const [editFoodRolls, setEditFoodRolls] = useState<DiceRoll[]>([]);
   const [editFoodSpaces, setEditFoodSpaces] = useState<string>('0');
+  const [editFoodDescricao, setEditFoodDescricao] = useState<string>('');
   const [showFoodRollsDialog, setShowFoodRollsDialog] = useState(false);
 
   // Estados para edição de esotéricos
@@ -324,6 +333,8 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editEsotericNome, setEditEsotericNome] = useState<string>('');
   const [editEsotericRolls, setEditEsotericRolls] = useState<DiceRoll[]>([]);
   const [editEsotericSpaces, setEditEsotericSpaces] = useState<string>('0');
+  const [editEsotericDescricao, setEditEsotericDescricao] =
+    useState<string>('');
   const [showEsotericRollsDialog, setShowEsotericRollsDialog] = useState(false);
 
   // Estados para edição de animais
@@ -334,6 +345,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editAnimalNome, setEditAnimalNome] = useState<string>('');
   const [editAnimalRolls, setEditAnimalRolls] = useState<DiceRoll[]>([]);
   const [editAnimalSpaces, setEditAnimalSpaces] = useState<string>('0');
+  const [editAnimalDescricao, setEditAnimalDescricao] = useState<string>('');
   const [showAnimalRollsDialog, setShowAnimalRollsDialog] = useState(false);
 
   // Categorize supplement weapons by type
@@ -796,6 +808,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditAtkBonus(weapon.atkBonus?.toString() || '0');
     setEditDano(weapon.dano || '');
     setEditWeaponSpaces(weapon.spaces?.toString() || '1');
+    setEditWeaponDescricao(weapon.descricao || '');
 
     // Parse critico into margem and multiplicador
     // Formats: "19" (margem only), "x3" (mult only), "19/x3" (both)
@@ -822,6 +835,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditMargemAmeaca('20');
     setEditMultCritico('2');
     setEditWeaponSpaces('1');
+    setEditWeaponDescricao('');
   };
 
   const handleSaveEditWeapon = () => {
@@ -849,6 +863,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       baseCritico,
       // Mark as manually edited so recalculateSheet preserves these changes
       hasManualEdits: true,
+      descricao: editWeaponDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -875,6 +890,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setCustomItemDefenseBonus('0');
     setCustomItemArmorPenalty('0');
     setCustomItemIsHeavy(false);
+    setCustomItemDescricao('');
   };
 
   const handleOpenCustomItemDialog = (
@@ -897,6 +913,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setCustomItemNome(item.nome);
     setCustomItemSpaces(item.spaces?.toString() || '0');
     setCustomItemRolls(item.rolls || []);
+    setCustomItemDescricao(item.descricao || '');
     setCustomItemCategory(category);
     if (category === 'weapons') {
       setCustomItemDano(item.dano || '1d6');
@@ -955,6 +972,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(customItemSpaces),
       rolls: customItemRolls.length > 0 ? customItemRolls : undefined,
       isCustom: true,
+      descricao: customItemDescricao.trim() || undefined,
     };
 
     if (customItemCategory === 'weapons') {
@@ -1109,6 +1127,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditArmorRolls(armor.rolls || []);
     setEditArmorSpaces(armor.spaces?.toString() || '0');
     setEditArmorIsHeavy(isHeavyArmor(armor));
+    setEditArmorDescricao(armor.descricao || '');
   };
 
   const handleCloseEditArmor = () => {
@@ -1120,6 +1139,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditArmorRolls([]);
     setEditArmorSpaces('0');
     setEditArmorIsHeavy(false);
+    setEditArmorDescricao('');
   };
 
   const handleSaveEditArmor = () => {
@@ -1145,6 +1165,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       hasManualEdits: true,
       // Heavy armor flag for defense calculation
       isHeavyArmor: editArmorIsHeavy,
+      descricao: editArmorDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1220,6 +1241,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditShieldPenalty(shield.armorPenalty?.toString() || '0');
     setEditShieldRolls(shield.rolls || []);
     setEditShieldSpaces(shield.spaces?.toString() || '0');
+    setEditShieldDescricao(shield.descricao || '');
   };
 
   const handleCloseEditShield = () => {
@@ -1230,6 +1252,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditShieldPenalty('0');
     setEditShieldRolls([]);
     setEditShieldSpaces('0');
+    setEditShieldDescricao('');
   };
 
   const handleSaveEditShield = () => {
@@ -1253,6 +1276,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       baseArmorPenalty,
       // Mark as manually edited so recalculateSheet preserves these changes
       hasManualEdits: true,
+      descricao: editShieldDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1561,6 +1585,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditAnimalNome(item.nome);
     setEditAnimalRolls(item.rolls || []);
     setEditAnimalSpaces(item.spaces?.toString() || '0');
+    setEditAnimalDescricao(item.descricao || '');
   };
 
   const handleCloseEditAnimal = () => {
@@ -1569,6 +1594,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditAnimalNome('');
     setEditAnimalRolls([]);
     setEditAnimalSpaces('0');
+    setEditAnimalDescricao('');
   };
 
   const handleSaveEditAnimal = () => {
@@ -1580,6 +1606,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(editAnimalSpaces) || 0,
       rolls: editAnimalRolls.length > 0 ? editAnimalRolls : undefined,
       hasManualEdits: true,
+      descricao: editAnimalDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1599,6 +1626,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditClothingNome(item.nome);
     setEditClothingRolls(item.rolls || []);
     setEditClothingSpaces(item.spaces?.toString() || '0');
+    setEditClothingDescricao(item.descricao || '');
   };
 
   const handleCloseEditClothing = () => {
@@ -1607,6 +1635,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditClothingNome('');
     setEditClothingRolls([]);
     setEditClothingSpaces('0');
+    setEditClothingDescricao('');
   };
 
   const handleSaveEditClothing = () => {
@@ -1618,6 +1647,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(editClothingSpaces) || 0,
       rolls: editClothingRolls.length > 0 ? editClothingRolls : undefined,
       hasManualEdits: true,
+      descricao: editClothingDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1637,6 +1667,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditAlchemyNome(item.nome);
     setEditAlchemyRolls(item.rolls || []);
     setEditAlchemySpaces(item.spaces?.toString() || '0');
+    setEditAlchemyDescricao(item.descricao || '');
   };
 
   const handleCloseEditAlchemy = () => {
@@ -1645,6 +1676,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditAlchemyNome('');
     setEditAlchemyRolls([]);
     setEditAlchemySpaces('0');
+    setEditAlchemyDescricao('');
   };
 
   const handleSaveEditAlchemy = () => {
@@ -1656,6 +1688,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(editAlchemySpaces) || 0,
       rolls: editAlchemyRolls.length > 0 ? editAlchemyRolls : undefined,
       hasManualEdits: true,
+      descricao: editAlchemyDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1675,6 +1708,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditFoodNome(item.nome);
     setEditFoodRolls(item.rolls || []);
     setEditFoodSpaces(item.spaces?.toString() || '0');
+    setEditFoodDescricao(item.descricao || '');
   };
 
   const handleCloseEditFood = () => {
@@ -1683,6 +1717,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditFoodNome('');
     setEditFoodRolls([]);
     setEditFoodSpaces('0');
+    setEditFoodDescricao('');
   };
 
   const handleSaveEditFood = () => {
@@ -1694,6 +1729,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(editFoodSpaces) || 0,
       rolls: editFoodRolls.length > 0 ? editFoodRolls : undefined,
       hasManualEdits: true,
+      descricao: editFoodDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -1713,6 +1749,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditEsotericNome(item.nome);
     setEditEsotericRolls(item.rolls || []);
     setEditEsotericSpaces(item.spaces?.toString() || '0');
+    setEditEsotericDescricao(item.descricao || '');
   };
 
   const handleCloseEditEsoteric = () => {
@@ -1721,6 +1758,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditEsotericNome('');
     setEditEsotericRolls([]);
     setEditEsotericSpaces('0');
+    setEditEsotericDescricao('');
   };
 
   const handleSaveEditEsoteric = () => {
@@ -1732,6 +1770,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       spaces: parseFloat(editEsotericSpaces) || 0,
       rolls: editEsotericRolls.length > 0 ? editEsotericRolls : undefined,
       hasManualEdits: true,
+      descricao: editEsotericDescricao.trim() || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -2296,6 +2335,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{weapon.nome}</span>
+                              {weapon.descricao && (
+                                <Tooltip title={weapon.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {weapon.isCustom && (
                                 <Chip
                                   size='small'
@@ -2391,6 +2441,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{armor.nome}</span>
+                              {armor.descricao && (
+                                <Tooltip title={armor.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {armor.isCustom && (
                                 <Chip
                                   size='small'
@@ -2490,6 +2551,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{shield.nome}</span>
+                              {shield.descricao && (
+                                <Tooltip title={shield.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {shield.isCustom && (
                                 <Chip
                                   size='small'
@@ -2588,6 +2660,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2699,6 +2782,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2810,6 +2904,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -2904,6 +3009,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -3007,6 +3123,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -3110,6 +3237,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                               spacing={0.5}
                             >
                               <span>{item.nome}</span>
+                              {item.descricao && (
+                                <Tooltip title={item.descricao} arrow>
+                                  <InfoOutlinedIcon
+                                    sx={{
+                                      fontSize: 16,
+                                      color: 'text.secondary',
+                                      cursor: 'help',
+                                    }}
+                                  />
+                                </Tooltip>
+                              )}
                               {item.isCustom && (
                                 <Chip
                                   size='small'
@@ -4390,6 +4528,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
             />
+            <TextField
+              label='Descrição'
+              value={editWeaponDescricao}
+              onChange={(e) => setEditWeaponDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional da arma (visível na ficha)'
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -4434,6 +4582,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               helperText={
                 itemSpacesError || 'Quantidade de espaços ocupados na mochila'
               }
+            />
+            <TextField
+              label='Descrição'
+              value={customItemDescricao}
+              onChange={(e) => setCustomItemDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do item (visível na ficha)'
             />
 
             {/* Campos extras para armas */}
@@ -4633,6 +4791,17 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </Typography>
             </Box>
 
+            <TextField
+              label='Descrição'
+              value={editArmorDescricao}
+              onChange={(e) => setEditArmorDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional da armadura (visível na ficha)'
+            />
+
             {/* Seção de Rolagens */}
             <Box>
               <Stack
@@ -4734,6 +4903,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
             />
+            <TextField
+              label='Descrição'
+              value={editShieldDescricao}
+              onChange={(e) => setEditShieldDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do escudo (visível na ficha)'
+            />
 
             {/* Seção de Rolagens */}
             <Box>
@@ -4817,6 +4996,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               fullWidth
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
+            />
+            <TextField
+              label='Descrição'
+              value={editClothingDescricao}
+              onChange={(e) => setEditClothingDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do vestuário (visível na ficha)'
             />
 
             {/* Seção de Rolagens */}
@@ -4902,6 +5091,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
             />
+            <TextField
+              label='Descrição'
+              value={editAlchemyDescricao}
+              onChange={(e) => setEditAlchemyDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do item (visível na ficha)'
+            />
 
             {/* Seção de Rolagens */}
             <Box>
@@ -4985,6 +5184,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               fullWidth
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
+            />
+            <TextField
+              label='Descrição'
+              value={editFoodDescricao}
+              onChange={(e) => setEditFoodDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do item (visível na ficha)'
             />
 
             {/* Seção de Rolagens */}
@@ -5070,6 +5279,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
             />
+            <TextField
+              label='Descrição'
+              value={editEsotericDescricao}
+              onChange={(e) => setEditEsotericDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do item (visível na ficha)'
+            />
 
             {/* Seção de Rolagens */}
             <Box>
@@ -5153,6 +5372,16 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               fullWidth
               inputProps={{ min: 0, step: 0.5 }}
               helperText='Quantidade de espaços ocupados na mochila'
+            />
+            <TextField
+              label='Descrição'
+              value={editAnimalDescricao}
+              onChange={(e) => setEditAnimalDescricao(e.target.value)}
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              helperText='Descrição opcional do animal (visível na ficha)'
             />
 
             {/* Seção de Rolagens */}

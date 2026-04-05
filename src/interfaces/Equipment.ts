@@ -88,6 +88,9 @@ export default interface Equipment {
   // Quantity of this item (default 1)
   quantity?: number;
 
+  // User-defined description for the item
+  descricao?: string;
+
   // Supplement information (for items from supplements)
   supplementId?: string;
   supplementName?: string;

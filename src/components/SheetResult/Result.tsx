@@ -4,6 +4,7 @@ import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import {
   Box,
@@ -674,6 +675,18 @@ const Result: React.FC<ResultProps> = (props) => {
             : ''
         }`}
       />
+      {equip.descricao && (
+        <Tooltip title={equip.descricao} arrow>
+          <InfoOutlinedIcon
+            sx={{
+              fontSize: 16,
+              ml: 0.5,
+              color: 'text.secondary',
+              cursor: 'help',
+            }}
+          />
+        </Tooltip>
+      )}
       {equip.rolls && equip.rolls.length > 0 && (
         <RollButton
           rolls={equip.rolls}
@@ -698,6 +711,18 @@ const Result: React.FC<ResultProps> = (props) => {
               : ''
           }`}
         />
+        {weapon.descricao && (
+          <Tooltip title={weapon.descricao} arrow>
+            <InfoOutlinedIcon
+              sx={{
+                fontSize: 16,
+                ml: 0.5,
+                color: 'text.secondary',
+                cursor: 'help',
+              }}
+            />
+          </Tooltip>
+        )}
         {weapon.rolls && weapon.rolls.length > 0 && (
           <RollButton
             rolls={weapon.rolls}
@@ -723,6 +748,18 @@ const Result: React.FC<ResultProps> = (props) => {
               : ''
           }`}
         />
+        {armor.descricao && (
+          <Tooltip title={armor.descricao} arrow>
+            <InfoOutlinedIcon
+              sx={{
+                fontSize: 16,
+                ml: 0.5,
+                color: 'text.secondary',
+                cursor: 'help',
+              }}
+            />
+          </Tooltip>
+        )}
         {armor.rolls && armor.rolls.length > 0 && (
           <RollButton
             rolls={armor.rolls}
@@ -748,6 +785,18 @@ const Result: React.FC<ResultProps> = (props) => {
               : ''
           }`}
         />
+        {shield.descricao && (
+          <Tooltip title={shield.descricao} arrow>
+            <InfoOutlinedIcon
+              sx={{
+                fontSize: 16,
+                ml: 0.5,
+                color: 'text.secondary',
+                cursor: 'help',
+              }}
+            />
+          </Tooltip>
+        )}
         {shield.rolls && shield.rolls.length > 0 && (
           <RollButton
             rolls={shield.rolls}
