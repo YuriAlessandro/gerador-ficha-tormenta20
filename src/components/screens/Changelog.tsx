@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/04/2026.
+            06/04/2026.
           </p>
 
           <p>
@@ -71,6 +71,14 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.9</h3>
               <ul>
+                <li>
+                  <strong>Novo:</strong> Agora é possível exportar um PDF com
+                  múltiplas ameaças de uma só vez! Na aba Ameaças de Meus
+                  Personagens, clique em &quot;Selecionar&quot;, marque as
+                  ameaças desejadas e clique em &quot;Exportar PDF&quot;. Todas
+                  as fichas de ameaça selecionadas serão geradas em um único
+                  documento. Recurso disponível para apoiadores.
+                </li>
                 <li>
                   <strong>Melhoria:</strong> A tabela de magias na ficha agora
                   exibe os nomes das magias com muito mais espaço, facilitando a
