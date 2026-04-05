@@ -72,6 +72,22 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> Comentários no fórum agora podem
+                  ser aninhados sem limite de profundidade. Antes, o máximo era
+                  3 níveis. A partir do quinto nível, a indentação visual para
+                  de aumentar e os comentários ficam alinhados, evitando que
+                  fiquem espremidos na tela.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Comentários no fórum agora estão
+                  disponíveis para todos os usuários logados. Apoiadores
+                  (Aventureiros, Paladinos e Nimbianos) têm prioridade visual
+                  com badges e destaques em seus comentários.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Correção:</strong> Corrigido o drawer de edição de
                   poderes para personagens com multiclasse. Antes, apenas os
                   poderes da classe primária apareciam no accordion. Agora, cada
