@@ -72,6 +72,17 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> Agora é possível editar ataques,
+                  habilidades e magias já adicionados no gerador de ameaças. Um
+                  botão de editar aparece ao lado de cada item na lista, abrindo
+                  um dialog com todos os campos preenchidos para alteração.
+                  Antes era necessário excluir e recriar o item do zero para
+                  alterar qualquer campo.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Correção:</strong> Corrigido o deslocamento do Golem.
                   A habilidade Chassi agora respeita a regra oficial: o
                   deslocamento é fixo em 6m e não é reduzido por uso de armadura
