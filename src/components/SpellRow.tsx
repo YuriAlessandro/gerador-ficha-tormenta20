@@ -90,7 +90,7 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
         }}
       >
         <Grid container spacing={2} sx={{ width: '100%' }}>
-          <Grid size={isMobile ? 12 : 2.5}>
+          <Grid size={isMobile ? 12 : 4}>
             <Stack direction='row' alignItems='center' spacing={0.5}>
               {isMago && onToggleMemorized && (
                 <>
@@ -147,18 +147,28 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
                   <CasinoIcon fontSize='small' />
                 </IconButton>
               </Box>
-              <Typography
-                sx={{
-                  fontWeight: 'semi-bold',
-                  color: theme.palette.primary.main,
-                  fontSize: '0.9rem',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
+              <Tooltip
+                title={`${spell.nome}${
+                  spell.customKeyAttr ? ` (${spell.customKeyAttr})` : ''
+                }`}
+                arrow
+                disableInteractive
+                enterDelay={300}
               >
-                {spell.nome} {spell.customKeyAttr && `(${spell.customKeyAttr})`}
-              </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 'semi-bold',
+                    color: theme.palette.primary.main,
+                    fontSize: '0.9rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {spell.nome}{' '}
+                  {spell.customKeyAttr && `(${spell.customKeyAttr})`}
+                </Typography>
+              </Tooltip>
               {spell.alwaysPrepared && (
                 <Chip
                   label='Sempre Preparada'
@@ -181,21 +191,21 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
           </Grid>
           {!isMobile && (
             <>
-              <Grid size={1}>
+              <Grid size={0.75}>
                 <Typography noWrap>{spell.school}</Typography>
               </Grid>
-              <Grid size={1.5}>
+              <Grid size={1.25}>
                 <Typography noWrap>{spell.execucao}</Typography>
               </Grid>
               <Grid size={1}>
                 <Typography noWrap>{spell.alcance}</Typography>
               </Grid>
-              <Grid size={2}>
+              <Grid size={1.5}>
                 <Typography noWrap>
                   {spell.alvo || spell.area || '-'}
                 </Typography>
               </Grid>
-              <Grid size={2}>
+              <Grid size={1.5}>
                 <Typography noWrap>{spell.duracao}</Typography>
               </Grid>
               <Grid size={2}>
