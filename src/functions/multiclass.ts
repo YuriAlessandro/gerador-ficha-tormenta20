@@ -139,17 +139,18 @@ export function calculateMulticlassPV(sheet: CharacterSheet): number {
   if (!isMulticlass(sheet)) {
     // Fallback: fórmula mono-classe padrão
     const addPVPerLevel = sheet.customPVPerLevel ?? sheet.classe.addpv ?? 0;
-    const conMod = Math.max(sheet.atributos.Constituição?.value || 0, 0);
-    return (
-      (sheet.classe.pv || 0) +
-      addPVPerLevel * (sheet.nivel - 1) +
-      conMod * sheet.nivel
-    );
+    const conMod = sheet.atributos.Constituição?.value || 0;
+    // Constituição negativa reduz PV, mas ganho mínimo por nível é 1
+    const pvPerLevelGain = Math.max(addPVPerLevel + conMod, 1);
+    return (sheet.classe.pv || 0) + conMod + pvPerLevelGain * (sheet.nivel - 1);
   }
 
   const classLevelsMap = getClassLevelsMap(sheet);
   const primaryClassName = sheet.classLevels![0].className;
   let totalPV = 0;
+
+  // Constituição negativa reduz PV, mas ganho mínimo por nível é 1
+  const conMod = sheet.atributos.Constituição?.value || 0;
 
   classLevelsMap.forEach((classLevel, className) => {
     const isPrimary = className === primaryClassName;
@@ -162,21 +163,19 @@ export function calculateMulticlassPV(sheet: CharacterSheet): number {
     if (!classDesc) return;
 
     if (isPrimary) {
-      // Classe primária: base PV + addpv per subsequent level
+      // Classe primária: base PV + conMod + max(addpv + conMod, 1) * (classLevel - 1)
       const addpv =
         className === sheet.classe.name
           ? sheet.customPVPerLevel ?? classDesc.addpv
           : classDesc.addpv;
-      totalPV += classDesc.pv + addpv * (classLevel - 1);
+      const pvPerLevelGain = Math.max(addpv + conMod, 1);
+      totalPV += classDesc.pv + conMod + pvPerLevelGain * (classLevel - 1);
     } else {
-      // Classes secundárias: apenas addpv (sem base PV)
-      totalPV += classDesc.addpv * classLevel;
+      // Classes secundárias: max(addpv + conMod, 1) por nível (sem base PV)
+      const pvPerLevelGain = Math.max(classDesc.addpv + conMod, 1);
+      totalPV += pvPerLevelGain * classLevel;
     }
   });
-
-  // CON modifier por nível de personagem (min 0)
-  const conMod = Math.max(sheet.atributos.Constituição?.value || 0, 0);
-  totalPV += conMod * sheet.nivel;
 
   // Add bonus PV if defined
   if (sheet.bonusPV) {

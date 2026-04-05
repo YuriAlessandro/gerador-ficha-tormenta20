@@ -5344,8 +5344,7 @@ export function generateEmptySheet(
 
   // Step: Vida máxima (+CON)
   const conMod = emptySheet.atributos.Constituição?.value || 0;
-  const vidaMaxima =
-    generatedClass.pv + generatedClass.addpv + Math.max(conMod, 0);
+  const vidaMaxima = generatedClass.pv + generatedClass.addpv + conMod;
   emptySheet.steps.push({
     label: 'Vida máxima (+CON)',
     value: [{ value: vidaMaxima }],

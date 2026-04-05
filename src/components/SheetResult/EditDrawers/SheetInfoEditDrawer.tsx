@@ -481,7 +481,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     const conMod = attributes.Constituição.value;
     const pvBase = classData.pv + conMod;
-    const pvPerLevel = (customPVPerLevel ?? classData.addpv ?? 0) + conMod;
+    const pvPerLevel = Math.max(
+      (customPVPerLevel ?? classData.addpv ?? 0) + conMod,
+      1
+    );
     let total = pvBase + pvPerLevel * (level - 1) + bonusPV;
 
     // Add bonuses from powers/abilities
@@ -1413,7 +1416,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
   // Generate PV calculation formula string
   const getPVCalculationFormula = () => {
     if (sheetIsMulticlass && sheet.classLevels) {
-      const conMod = Math.max(sheet.atributos.Constituição?.value || 0, 0);
+      const conMod = sheet.atributos.Constituição?.value || 0;
       const lines: string[] = [];
       const classLevelCounters = new Map<string, number>();
       let runningTotal = 0;
@@ -1428,7 +1431,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           currentCount === 0 && cl === sheet.classLevels![0];
         const pvValue = isPrimaryFirst ? classDesc.pv : classDesc.addpv;
         const label = isPrimaryFirst ? 'base' : 'por nível';
-        const subtotal = pvValue + conMod;
+        // Ganho mínimo por nível é 1 (exceto nível 1 primário que usa base PV)
+        const subtotal = isPrimaryFirst
+          ? pvValue + conMod
+          : Math.max(pvValue + conMod, 1);
         runningTotal += subtotal;
 
         lines.push(

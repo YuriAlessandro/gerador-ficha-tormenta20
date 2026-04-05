@@ -290,11 +290,14 @@ const applyHPAttributeReplacement = (sheet: CharacterSheet): CharacterSheet => {
 
     // Recalculate HP using the new attribute instead of Constitution
     const baseHp = updatedSheet.classe.pv;
-    // Atributo negativo não reduz PV por nível (mínimo é 0)
-    const attrValue = Math.max(updatedSheet.atributos[newAttribute].value, 0);
-    const attributeBonus = attrValue * updatedSheet.nivel;
+    const attrValue = updatedSheet.atributos[newAttribute].value;
+    // Atributo negativo reduz PV, mas ganho mínimo por nível é 1
+    const addpv =
+      updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0;
+    const pvPerLevelGain = Math.max(addpv + attrValue, 1);
 
-    updatedSheet.pv = baseHp + attributeBonus;
+    updatedSheet.pv =
+      baseHp + attrValue + pvPerLevelGain * (updatedSheet.nivel - 1);
   }
 
   return updatedSheet;
@@ -1082,17 +1085,15 @@ export function recalculateSheet(
       // Multiclass PV calculation
       updatedSheet.pv = calculateMulticlassPV(updatedSheet);
     } else {
-      // PV base = classe.pv + (classe.addpv * (level - 1)) + (CON mod * level)
+      // PV base = classe.pv + conMod + max(addpv + conMod, 1) * (nivel - 1)
       const basePV = updatedSheet.classe.pv || 0;
       const addPVPerLevel =
         updatedSheet.customPVPerLevel ?? updatedSheet.classe.addpv ?? 0; // Use custom value if defined
       const conMod = updatedSheet.atributos.Constituição?.value || 0;
-      // Constituição negativa não reduz PV por nível (mínimo é 0)
-      const conModForPV = Math.max(conMod, 0);
+      // Constituição negativa reduz PV, mas ganho mínimo por nível é 1
+      const pvPerLevelGain = Math.max(addPVPerLevel + conMod, 1);
       updatedSheet.pv =
-        basePV +
-        addPVPerLevel * (updatedSheet.nivel - 1) +
-        conModForPV * updatedSheet.nivel;
+        basePV + conMod + pvPerLevelGain * (updatedSheet.nivel - 1);
 
       // Add bonus PV if defined
       if (updatedSheet.bonusPV) {
