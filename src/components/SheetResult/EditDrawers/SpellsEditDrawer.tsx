@@ -437,224 +437,224 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
           Adicionar Magia Personalizada
         </Button>
 
-        {/* Custom Spells Section */}
-        {customSpellsSelected.length > 0 && (
-          <Box
-            sx={{
-              mb: 3,
-              p: 2,
-              border: 2,
-              borderColor: 'success.main',
-              backgroundColor: 'success.50',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Magias Personalizadas ({customSpellsSelected.length}):
-            </Typography>
-            <Stack spacing={1}>
-              {customSpellsSelected.map((spell) => (
-                <Stack
-                  key={spell.nome}
-                  direction='row'
-                  alignItems='center'
-                  justifyContent='space-between'
-                >
-                  <Box>
-                    <Typography variant='body2' fontWeight='bold'>
-                      {spell.nome}
-                    </Typography>
-                    <Typography variant='caption' color='text.secondary'>
-                      {spell.school} • {spell.spellCircle} • {spell.execucao}
-                    </Typography>
-                  </Box>
-                  <Stack direction='row' spacing={0.5}>
-                    <IconButton
-                      size='small'
-                      onClick={() =>
-                        setCustomSpellDialog({
-                          open: true,
-                          spellToEdit: spell,
-                        })
-                      }
-                    >
-                      <EditIcon fontSize='small' />
-                    </IconButton>
-                    <IconButton
-                      size='small'
-                      color='error'
-                      onClick={() => handleRemoveCustomSpell(spell.nome)}
-                    >
-                      <DeleteIcon fontSize='small' />
-                    </IconButton>
-                  </Stack>
-                </Stack>
-              ))}
-            </Stack>
-          </Box>
-        )}
-
-        {/* Selected Spells Summary */}
-        {selectedSpells.length > 0 && (
-          <Box
-            sx={{
-              mb: 3,
-              p: 2,
-              backgroundColor: 'action.hover',
-              borderRadius: 1,
-              maxHeight: 200,
-              overflow: 'auto',
-            }}
-          >
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Magias Selecionadas ({selectedSpells.length}):
-            </Typography>
-            <Stack direction='row' spacing={1} flexWrap='wrap'>
-              {selectedSpells
-                .filter((s) => !s.isCustom)
-                .map((spell) => (
-                  <Chip
-                    key={spell.nome}
-                    label={`${spell.nome} (${spell.spellCircle})`}
-                    size='small'
-                    onDelete={() => handleSpellToggle(spell)}
-                  />
-                ))}
-              {selectedSpells
-                .filter((s) => s.isCustom)
-                .map((spell) => (
-                  <Chip
-                    key={spell.nome}
-                    label={`${spell.nome} (${spell.spellCircle})`}
-                    size='small'
-                    color='success'
-                    onDelete={() => handleRemoveCustomSpell(spell.nome)}
-                  />
-                ))}
-            </Stack>
-          </Box>
-        )}
-
         <Box sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-          {spellCategories.map((category) => {
-            const filteredSpells = filterSpells(category.spells);
-
-            if (filteredSpells.length === 0) return null;
-
-            const canCast = canCastCircle(category.circle);
-
-            return (
-              <Accordion key={category.name}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant='h6' color='text.primary'>
-                    {category.name} ({filteredSpells.length})
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Stack spacing={2}>
-                    {filteredSpells
-                      .sort((a, b) => a.nome.localeCompare(b.nome))
-                      .map((spell) => {
-                        // Find if this spell is from a supplement
-                        const supplementSpell = getSupplementSpells.find(
-                          (s) => s.spell.nome === spell.nome
-                        );
-
-                        return (
-                          <Box
-                            key={spell.nome}
-                            sx={{
-                              p: 2,
-                              border: 2,
-                              borderColor: (() => {
-                                if (isSpellSelected(spell))
-                                  return 'primary.main';
-                                if (canCast) return 'success.main';
-                                return 'grey.400';
-                              })(),
-                              borderRadius: 1,
-                              backgroundColor: isSpellSelected(spell)
-                                ? 'primary.50'
-                                : 'background.paper',
-                              opacity: canCast ? 1 : 0.6,
-                              '&:hover': {
-                                backgroundColor: isSpellSelected(spell)
-                                  ? 'primary.100'
-                                  : 'action.hover',
-                              },
-                            }}
-                          >
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={isSpellSelected(spell)}
-                                  onChange={() => handleSpellToggle(spell)}
-                                  size='small'
-                                />
-                              }
-                              label={
-                                <Box sx={{ width: '100%' }}>
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 1,
-                                    }}
-                                  >
-                                    <Typography
-                                      variant='body1'
-                                      fontWeight='bold'
-                                      color={
-                                        isSpellSelected(spell)
-                                          ? 'primary.main'
-                                          : 'text.primary'
-                                      }
-                                    >
-                                      {spell.nome}
-                                    </Typography>
-                                    {supplementSpell &&
-                                      supplementSpell.supplementId !==
-                                        SupplementId.TORMENTA20_CORE && (
-                                        <Chip
-                                          label={
-                                            SUPPLEMENT_METADATA[
-                                              supplementSpell.supplementId
-                                            ]?.abbreviation || ''
-                                          }
-                                          size='small'
-                                          color='primary'
-                                          variant='outlined'
-                                        />
-                                      )}
-                                  </Box>
-                                  <Typography
-                                    variant='caption'
-                                    color='text.secondary'
-                                    sx={{ display: 'block', mb: 1 }}
-                                  >
-                                    {spell.school} • {spell.execucao} •{' '}
-                                    {spell.alcance} • {spell.duracao}
-                                    {spell.manaExpense &&
-                                      ` • ${spell.manaExpense} PM`}
-                                  </Typography>
-                                  <Typography
-                                    variant='body2'
-                                    color='text.secondary'
-                                  >
-                                    {spell.description}
-                                  </Typography>
-                                </Box>
-                              }
-                              sx={{ alignItems: 'flex-start', width: '100%' }}
-                            />
-                          </Box>
-                        );
-                      })}
+          {/* Custom Spells Section */}
+          {customSpellsSelected.length > 0 && (
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                border: 2,
+                borderColor: 'success.main',
+                backgroundColor: 'success.50',
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Magias Personalizadas ({customSpellsSelected.length}):
+              </Typography>
+              <Stack spacing={1}>
+                {customSpellsSelected.map((spell) => (
+                  <Stack
+                    key={spell.nome}
+                    direction='row'
+                    alignItems='center'
+                    justifyContent='space-between'
+                  >
+                    <Box>
+                      <Typography variant='body2' fontWeight='bold'>
+                        {spell.nome}
+                      </Typography>
+                      <Typography variant='caption' color='text.secondary'>
+                        {spell.school} • {spell.spellCircle} • {spell.execucao}
+                      </Typography>
+                    </Box>
+                    <Stack direction='row' spacing={0.5}>
+                      <IconButton
+                        size='small'
+                        onClick={() =>
+                          setCustomSpellDialog({
+                            open: true,
+                            spellToEdit: spell,
+                          })
+                        }
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                      <IconButton
+                        size='small'
+                        color='error'
+                        onClick={() => handleRemoveCustomSpell(spell.nome)}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Stack>
                   </Stack>
-                </AccordionDetails>
-              </Accordion>
-            );
-          })}
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {/* Selected Spells Summary */}
+          {selectedSpells.length > 0 && (
+            <Box
+              sx={{
+                mb: 3,
+                p: 2,
+                backgroundColor: 'action.hover',
+                borderRadius: 1,
+              }}
+            >
+              <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                Magias Selecionadas ({selectedSpells.length}):
+              </Typography>
+              <Stack direction='row' spacing={1} flexWrap='wrap'>
+                {selectedSpells
+                  .filter((s) => !s.isCustom)
+                  .map((spell) => (
+                    <Chip
+                      key={spell.nome}
+                      label={`${spell.nome} (${spell.spellCircle})`}
+                      size='small'
+                      onDelete={() => handleSpellToggle(spell)}
+                    />
+                  ))}
+                {selectedSpells
+                  .filter((s) => s.isCustom)
+                  .map((spell) => (
+                    <Chip
+                      key={spell.nome}
+                      label={`${spell.nome} (${spell.spellCircle})`}
+                      size='small'
+                      color='success'
+                      onDelete={() => handleRemoveCustomSpell(spell.nome)}
+                    />
+                  ))}
+              </Stack>
+            </Box>
+          )}
+
+          <Box>
+            {spellCategories.map((category) => {
+              const filteredSpells = filterSpells(category.spells);
+
+              if (filteredSpells.length === 0) return null;
+
+              const canCast = canCastCircle(category.circle);
+
+              return (
+                <Accordion key={category.name}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant='h6' color='text.primary'>
+                      {category.name} ({filteredSpells.length})
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Stack spacing={2}>
+                      {filteredSpells
+                        .sort((a, b) => a.nome.localeCompare(b.nome))
+                        .map((spell) => {
+                          // Find if this spell is from a supplement
+                          const supplementSpell = getSupplementSpells.find(
+                            (s) => s.spell.nome === spell.nome
+                          );
+
+                          return (
+                            <Box
+                              key={spell.nome}
+                              sx={{
+                                p: 2,
+                                border: 2,
+                                borderColor: (() => {
+                                  if (isSpellSelected(spell))
+                                    return 'primary.main';
+                                  if (canCast) return 'success.main';
+                                  return 'grey.400';
+                                })(),
+                                borderRadius: 1,
+                                backgroundColor: isSpellSelected(spell)
+                                  ? 'primary.50'
+                                  : 'background.paper',
+                                opacity: canCast ? 1 : 0.6,
+                                '&:hover': {
+                                  backgroundColor: isSpellSelected(spell)
+                                    ? 'primary.100'
+                                    : 'action.hover',
+                                },
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isSpellSelected(spell)}
+                                    onChange={() => handleSpellToggle(spell)}
+                                    size='small'
+                                  />
+                                }
+                                label={
+                                  <Box sx={{ width: '100%' }}>
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='body1'
+                                        fontWeight='bold'
+                                        color={
+                                          isSpellSelected(spell)
+                                            ? 'primary.main'
+                                            : 'text.primary'
+                                        }
+                                      >
+                                        {spell.nome}
+                                      </Typography>
+                                      {supplementSpell &&
+                                        supplementSpell.supplementId !==
+                                          SupplementId.TORMENTA20_CORE && (
+                                          <Chip
+                                            label={
+                                              SUPPLEMENT_METADATA[
+                                                supplementSpell.supplementId
+                                              ]?.abbreviation || ''
+                                            }
+                                            size='small'
+                                            color='primary'
+                                            variant='outlined'
+                                          />
+                                        )}
+                                    </Box>
+                                    <Typography
+                                      variant='caption'
+                                      color='text.secondary'
+                                      sx={{ display: 'block', mb: 1 }}
+                                    >
+                                      {spell.school} • {spell.execucao} •{' '}
+                                      {spell.alcance} • {spell.duracao}
+                                      {spell.manaExpense &&
+                                        ` • ${spell.manaExpense} PM`}
+                                    </Typography>
+                                    <Typography
+                                      variant='body2'
+                                      color='text.secondary'
+                                    >
+                                      {spell.description}
+                                    </Typography>
+                                  </Box>
+                                }
+                                sx={{ alignItems: 'flex-start', width: '100%' }}
+                              />
+                            </Box>
+                          );
+                        })}
+                    </Stack>
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </Box>
         </Box>
 
         <Stack direction='row' spacing={2} sx={{ mt: 3, flexShrink: 0 }}>
