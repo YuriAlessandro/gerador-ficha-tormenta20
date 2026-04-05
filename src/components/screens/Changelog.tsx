@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            27/03/2026.
+            05/04/2026.
           </p>
 
           <p>
@@ -69,6 +69,18 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.9</h3>
+              <ul>
+                <li>
+                  <strong>Melhoria:</strong> A tabela de magias na ficha agora
+                  exibe os nomes das magias com muito mais espaço, facilitando a
+                  identificação. Colunas com valores curtos (Escola, Execução,
+                  Alvo/Área, Duração) foram reduzidas para dar mais destaque ao
+                  nome. Além disso, ao passar o mouse sobre o nome de uma magia,
+                  um tooltip exibe o nome completo — útil para magias com nomes
+                  longos.
+                </li>
+              </ul>
               <h3>4.8</h3>
 
               <Alert
