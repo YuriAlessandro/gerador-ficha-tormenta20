@@ -22,6 +22,7 @@ import {
   History as HistoryIcon,
   Home as HomeIcon,
   Dangerous as ThreatIcon,
+  FolderOpen as FolderOpenIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -43,6 +44,7 @@ import {
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
+import { FolderInfo } from './ThreatViewCloudWrapper';
 import {
   rollD20,
   rollDamage,
@@ -88,6 +90,7 @@ interface ThreatResultProps {
   isSavedToCloud?: boolean;
   onSaveToCloud?: () => Promise<void>;
   viewOnly?: boolean;
+  folderInfo?: FolderInfo | null;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -97,6 +100,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   isSavedToCloud = false,
   onSaveToCloud,
   viewOnly = false,
+  folderInfo,
 }) => {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -412,6 +416,15 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           label: 'Meus Personagens',
           href: '/meus-personagens?tab=ameacas',
         },
+        ...(folderInfo
+          ? [
+              {
+                label: folderInfo.folderName,
+                href: `/meus-personagens?tab=ameacas&folder=${folderInfo.folderId}`,
+                icon: <FolderOpenIcon fontSize='small' />,
+              },
+            ]
+          : []),
         { label: threat.name, icon: <ThreatIcon fontSize='small' /> },
       ]
     : [

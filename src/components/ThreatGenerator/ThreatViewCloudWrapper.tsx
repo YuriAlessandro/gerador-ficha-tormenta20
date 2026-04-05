@@ -17,12 +17,21 @@ import {
 } from '../../interfaces/ThreatSheet';
 import ThreatResult from './ThreatResult';
 
+export interface FolderInfo {
+  folderId: string;
+  folderName: string;
+}
+
 const ThreatViewCloudWrapper: React.FC = () => {
   const history = useHistory();
-  const location = useLocation<{ cloudThreatId?: string }>();
+  const location = useLocation<{
+    cloudThreatId?: string;
+    folderInfo?: FolderInfo;
+  }>();
 
   const [threat, setThreat] = useState<ThreatSheet | null>(null);
   const [cloudThreatId, setCloudThreatId] = useState<string | null>(null);
+  const [folderInfo, setFolderInfo] = useState<FolderInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const idExtracted = useRef(false);
@@ -40,6 +49,9 @@ const ThreatViewCloudWrapper: React.FC = () => {
 
     idExtracted.current = true;
     setCloudThreatId(id);
+    if (location.state?.folderInfo) {
+      setFolderInfo(location.state.folderInfo);
+    }
 
     // Clear the state to prevent reloading on subsequent renders
     history.replace('/threat-view', {});
@@ -122,6 +134,7 @@ const ThreatViewCloudWrapper: React.FC = () => {
       isFromHistory={false}
       isSavedToCloud
       onSaveToCloud={async () => {}}
+      folderInfo={folderInfo}
     />
   );
 };

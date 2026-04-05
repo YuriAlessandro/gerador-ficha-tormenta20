@@ -157,7 +157,11 @@ const sheetsSlice = createSlice({
           (sheet) => sheet.id === action.payload.id
         );
         if (index !== -1) {
-          state.sheets[index] = sheetsService.toSheetListData(action.payload);
+          const existingFolderId = state.sheets[index].folderId;
+          state.sheets[index] = {
+            ...sheetsService.toSheetListData(action.payload),
+            folderId: existingFolderId,
+          };
         }
         if (state.currentSheet && state.currentSheet.id === action.payload.id) {
           state.currentSheet = action.payload;

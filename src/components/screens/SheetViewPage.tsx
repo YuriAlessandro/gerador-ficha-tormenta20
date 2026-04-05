@@ -17,6 +17,7 @@ import {
   useTheme,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import ShareIcon from '@mui/icons-material/Share';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ExtensionIcon from '@mui/icons-material/Extension';
@@ -46,7 +47,10 @@ import { convertToFoundry, FoundryJSON } from '@/2foundry';
 const SheetViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-  const location = useLocation();
+  const location = useLocation<{
+    folderInfo?: { folderId: string; folderName: string };
+  }>();
+  const folderInfo = location.state?.folderInfo || null;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, firebaseUser, isAuthenticated } = useAuth();
@@ -370,6 +374,43 @@ const SheetViewPage: React.FC = () => {
                   <HomeIcon sx={{ mr: 0.5 }} fontSize='small' />
                   Home
                 </Link>
+                {folderInfo && (
+                  <>
+                    <Link
+                      color='inherit'
+                      href='/meus-personagens'
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        history.push('/meus-personagens');
+                      }}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Meus Personagens
+                    </Link>
+                    <Link
+                      color='inherit'
+                      href={`/meus-personagens?tab=personagens&folder=${folderInfo.folderId}`}
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        history.push(
+                          `/meus-personagens?tab=personagens&folder=${folderInfo.folderId}`
+                        );
+                      }}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <FolderOpenIcon sx={{ mr: 0.5 }} fontSize='small' />
+                      {folderInfo.folderName}
+                    </Link>
+                  </>
+                )}
                 <Typography color='text.primary'>
                   Ficha de {sheet.nome}
                 </Typography>

@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from 'react';
 import {
@@ -54,8 +55,15 @@ import {
   ArrowBack as ArrowBackIcon,
   Folder as FolderIcon,
   CheckBox as CheckBoxIcon,
+  DragIndicator as DragIndicatorIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from 'react-beautiful-dnd';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
 import { useAuth } from '../../hooks/useAuth';
 import { useSheets } from '../../hooks/useSheets';
@@ -164,6 +172,9 @@ const MyCharactersPage: React.FC = () => {
     null
   );
   const [sheetToMove, setSheetToMove] = useState<SheetListData | null>(null);
+
+  // Drag-and-drop state
+  const [isDragging, setIsDragging] = useState(false);
 
   // Folder card context menu state
   const [folderContextAnchor, setFolderContextAnchor] =
@@ -301,19 +312,59 @@ const MyCharactersPage: React.FC = () => {
 
   const handleViewSheet = (sheet: SheetListData) => {
     const isThreat = sheet.sheetData?.isThreat;
+    const sheetFolder = sheet.folderId
+      ? folders.find((f) => f.id === sheet.folderId)
+      : null;
+    const folderInfo = sheetFolder
+      ? { folderId: sheetFolder.id, folderName: sheetFolder.name }
+      : undefined;
     if (isThreat) {
-      history.push('/threat-view', { cloudThreatId: sheet.id });
+      history.push('/threat-view', { cloudThreatId: sheet.id, folderInfo });
     } else {
-      history.push(`/ficha/${sheet.id}`);
+      history.push(`/ficha/${sheet.id}`, { folderInfo });
     }
   };
 
   const handleEditSheet = (sheet: SheetListData) => {
     const isThreat = sheet.sheetData?.isThreat;
+    const sheetFolder = sheet.folderId
+      ? folders.find((f) => f.id === sheet.folderId)
+      : null;
+    const folderInfo = sheetFolder
+      ? { folderId: sheetFolder.id, folderName: sheetFolder.name }
+      : undefined;
     if (isThreat) {
-      history.push('/gerador-ameacas', { cloudThreatId: sheet.id });
+      history.push('/gerador-ameacas', {
+        cloudThreatId: sheet.id,
+        folderInfo,
+      });
     } else {
-      history.push('/criar-ficha', { cloudSheet: sheet });
+      history.push('/criar-ficha', { cloudSheet: sheet, folderInfo });
+    }
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = async (result: DropResult) => {
+    setIsDragging(false);
+    const { draggableId, destination } = result;
+    if (!destination) return;
+
+    const targetId = destination.droppableId;
+
+    if (targetId === 'root-drop-zone') {
+      const sheet = currentSheets.find((s) => s.id === draggableId);
+      if (sheet?.folderId) {
+        await moveSheetToFolderAction(draggableId, null);
+      }
+    } else if (targetId.startsWith('folder-')) {
+      const folderId = targetId.replace('folder-', '');
+      const sheet = currentSheets.find((s) => s.id === draggableId);
+      if (sheet?.folderId !== folderId) {
+        await moveSheetToFolderAction(draggableId, folderId);
+      }
     }
   };
 
@@ -584,92 +635,115 @@ const MyCharactersPage: React.FC = () => {
     );
   };
 
-  // Render a folder card
+  // Render a folder card (droppable target for drag-and-drop)
   const renderFolderCard = (folder: Folder) => {
     const count = currentTabFolderCounts[folder.id] || 0;
     const tabLabel = activeTab === 0 ? 'personagem' : 'ameaça';
     const countLabel = count === 1 ? `1 ${tabLabel}` : `${count} ${tabLabel}s`;
 
     return (
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={folder.id}>
-        <Card
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'all 0.3s ease',
-            border: `1px solid`,
-            borderColor: 'divider',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: theme.shadows[8],
-              borderColor: 'primary.main',
-            },
-          }}
-        >
-          <CardActionArea
-            onClick={() => handleOpenFolder(folder.id)}
-            onContextMenu={(e) => handleFolderCardContext(e, folder)}
-            sx={{ flexGrow: 1 }}
+      <Droppable droppableId={`folder-${folder.id}`} key={folder.id}>
+        {(droppableProvided, droppableSnapshot) => (
+          <Grid
+            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+            ref={droppableProvided.innerRef}
+            {...droppableProvided.droppableProps}
           >
-            <Box
+            <Card
               sx={{
+                height: '100%',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                pt: 3,
-                pb: 1,
+                flexDirection: 'column',
+                transition: 'all 0.3s ease',
+                border: droppableSnapshot.isDraggingOver
+                  ? '2px solid'
+                  : '1px solid',
+                borderColor: droppableSnapshot.isDraggingOver
+                  ? 'primary.main'
+                  : 'divider',
+                backgroundColor: droppableSnapshot.isDraggingOver
+                  ? 'action.hover'
+                  : undefined,
+                transform: droppableSnapshot.isDraggingOver
+                  ? 'scale(1.03)'
+                  : undefined,
+                '&:hover': {
+                  transform: droppableSnapshot.isDraggingOver
+                    ? 'scale(1.03)'
+                    : 'translateY(-4px)',
+                  boxShadow: theme.shadows[8],
+                  borderColor: 'primary.main',
+                },
               }}
             >
-              <FolderIcon
-                sx={{
-                  fontSize: 64,
-                  color: 'primary.main',
-                  opacity: 0.85,
-                }}
-              />
-            </Box>
-            <CardContent sx={{ textAlign: 'center', pt: 0 }}>
-              <Typography
-                variant='h6'
-                component='h3'
-                sx={{
-                  fontFamily: 'Tfont',
-                  fontWeight: 'bold',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
+              <CardActionArea
+                onClick={() => handleOpenFolder(folder.id)}
+                onContextMenu={(e) => handleFolderCardContext(e, folder)}
+                sx={{ flexGrow: 1 }}
               >
-                {folder.name}
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                {countLabel}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
-          <CardActions sx={{ justifyContent: 'center', px: 2 }}>
-            <Tooltip title='Renomear'>
-              <IconButton
-                size='small'
-                onClick={() => handleOpenRenameFolder(folder)}
-              >
-                <EditIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Excluir pasta'>
-              <IconButton
-                size='small'
-                color='error'
-                onClick={() => handleOpenDeleteFolder(folder)}
-              >
-                <DeleteIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-          </CardActions>
-        </Card>
-      </Grid>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pt: 3,
+                    pb: 1,
+                  }}
+                >
+                  <FolderIcon
+                    sx={{
+                      fontSize: 64,
+                      color: 'primary.main',
+                      opacity: 0.85,
+                    }}
+                  />
+                </Box>
+                <CardContent sx={{ textAlign: 'center', pt: 0 }}>
+                  <Typography
+                    variant='h6'
+                    component='h3'
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontWeight: 'bold',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {folder.name}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    {countLabel}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+              <CardActions sx={{ justifyContent: 'center', px: 2 }}>
+                <Tooltip title='Renomear'>
+                  <IconButton
+                    size='small'
+                    onClick={() => handleOpenRenameFolder(folder)}
+                  >
+                    <EditIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title='Excluir pasta'>
+                  <IconButton
+                    size='small'
+                    color='error'
+                    onClick={() => handleOpenDeleteFolder(folder)}
+                  >
+                    <DeleteIcon fontSize='small' />
+                  </IconButton>
+                </Tooltip>
+              </CardActions>
+            </Card>
+            <div style={{ display: 'none' }}>
+              {droppableProvided.placeholder}
+            </div>
+          </Grid>
+        )}
+      </Droppable>
     );
   };
 
@@ -715,261 +789,296 @@ const MyCharactersPage: React.FC = () => {
     </Grid>
   );
 
-  // Render a sheet card
-  const renderSheetCard = (sheet: SheetListData) => {
+  // Render a sheet card (draggable)
+  const renderSheetCard = (sheet: SheetListData, index: number) => {
     const isThreatSelectMode =
       isSelectMode && activeTab === 1 && Boolean(sheet.sheetData?.isThreat);
     return (
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
-        <Card
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            transition: 'all 0.3s ease',
-            ...(isThreatSelectMode &&
-              selectedThreatIds.has(sheet.id) && {
-                border: '2px solid',
-                borderColor: 'primary.main',
-              }),
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: theme.shadows[8],
-            },
-          }}
-        >
-          <CardActionArea
-            onClick={() =>
-              isThreatSelectMode
-                ? toggleSelection(sheet.id)
-                : handleViewSheet(sheet)
-            }
-            sx={{ flexGrow: 1 }}
+      <Draggable draggableId={sheet.id} index={index} key={sheet.id}>
+        {(dragProvided, dragSnapshot) => (
+          <Grid
+            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+            ref={dragProvided.innerRef}
+            {...dragProvided.draggableProps}
           >
-            <Box sx={{ position: 'relative' }}>
-              <CardMedia
-                component='img'
-                height='160'
-                image={sheet.image || sheet.sheetData?.imageUrl || tormenta20}
-                alt={sheet.name}
-                sx={{
-                  objectFit: 'cover',
-                  objectPosition: 'top',
-                }}
-              />
-              {isThreatSelectMode && (
-                <Checkbox
-                  checked={selectedThreatIds.has(sheet.id)}
-                  sx={{
-                    position: 'absolute',
-                    top: 4,
-                    left: 4,
-                    bgcolor: 'rgba(255,255,255,0.85)',
-                    borderRadius: '50%',
-                    p: 0.5,
-                    minWidth: 44,
-                    minHeight: 44,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.95)' },
-                  }}
-                />
-              )}
-            </Box>
-
-            {/* PV/PM Progress Bars */}
-            {!sheet.sheetData?.isThreat && (
-              <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-                <Box sx={{ mb: 1 }}>
-                  <Typography
-                    variant='caption'
-                    sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                  >
-                    PV:{' '}
-                    {(sheet.sheetData as any).currentPV ??
-                      (sheet.sheetData as any).pv}
-                    /{(sheet.sheetData as any).pv}
-                  </Typography>
-                  <LinearProgress
-                    variant='determinate'
-                    value={Math.min(
-                      (((sheet.sheetData as any).currentPV ??
-                        (sheet.sheetData as any).pv) /
-                        (sheet.sheetData as any).pv) *
-                        100,
-                      100
-                    )}
-                    sx={{
-                      height: 6,
-                      borderRadius: 1,
-                      backgroundColor: 'rgba(108,166,81, 0.2)',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: theme.palette.success.main,
-                        opacity: 100,
-                      },
-                    }}
-                  />
-                </Box>
-
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                  >
-                    PM:{' '}
-                    {(sheet.sheetData as any).currentPM ??
-                      (sheet.sheetData as any).pm}
-                    /{(sheet.sheetData as any).pm}
-                  </Typography>
-                  <LinearProgress
-                    variant='determinate'
-                    value={Math.min(
-                      (((sheet.sheetData as any).currentPM ??
-                        (sheet.sheetData as any).pm) /
-                        (sheet.sheetData as any).pm) *
-                        100,
-                      100
-                    )}
-                    sx={{
-                      height: 6,
-                      borderRadius: 1,
-                      backgroundColor: 'rgba(0, 139, 255, 0.2)',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: theme.palette.info.main,
-                      },
-                    }}
-                  />
-                </Box>
-              </Box>
-            )}
-
-            <CardContent sx={{ flexGrow: 1 }}>
-              <Typography
-                gutterBottom
-                variant='h6'
-                component='h3'
-                sx={{
-                  fontFamily: 'Tfont',
-                  fontWeight: 'bold',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
+            <Card
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                transition: dragSnapshot.isDragging ? 'none' : 'all 0.3s ease',
+                ...(isThreatSelectMode &&
+                  selectedThreatIds.has(sheet.id) && {
+                    border: '2px solid',
+                    borderColor: 'primary.main',
+                  }),
+                ...(dragSnapshot.isDragging && {
+                  boxShadow: theme.shadows[16],
+                  opacity: 0.9,
+                  transform: 'rotate(2deg)',
+                }),
+                '&:hover': {
+                  transform: dragSnapshot.isDragging
+                    ? 'rotate(2deg)'
+                    : 'translateY(-4px)',
+                  boxShadow: theme.shadows[8],
+                },
+              }}
+            >
+              <CardActionArea
+                onClick={() =>
+                  isThreatSelectMode
+                    ? toggleSelection(sheet.id)
+                    : handleViewSheet(sheet)
+                }
+                sx={{ flexGrow: 1 }}
               >
-                {sheet.name}
-              </Typography>
-
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  mb: 1,
-                }}
-              >
-                {getDescription(sheet)}
-              </Typography>
-
-              <Stack
-                direction='row'
-                spacing={1}
-                alignItems='center'
-                flexWrap='wrap'
-                useFlexGap
-              >
-                <Chip
-                  label={`Nível ${getLevel(sheet)}`}
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                />
-                {sheet.folderId && !openFolderId && (
-                  <Chip
-                    icon={
-                      <FolderOpenIcon sx={{ fontSize: '0.85rem !important' }} />
+                <Box sx={{ position: 'relative' }}>
+                  <CardMedia
+                    component='img'
+                    height='160'
+                    image={
+                      sheet.image || sheet.sheetData?.imageUrl || tormenta20
                     }
-                    label={getFolderName(sheet.folderId)}
-                    size='small'
-                    variant='outlined'
-                    sx={{ maxWidth: 140 }}
+                    alt={sheet.name}
+                    sx={{
+                      objectFit: 'cover',
+                      objectPosition: 'top',
+                    }}
                   />
-                )}
-                {sheet.assignedTableId && (
-                  <Tooltip title='Ir para a mesa'>
-                    <Chip
-                      icon={<TableIcon />}
-                      label={sheet.assignedTableId.name}
-                      size='small'
-                      color='secondary'
-                      variant='filled'
-                      onClick={(e) =>
-                        handleNavigateToTable(
-                          e,
-                          // eslint-disable-next-line no-underscore-dangle
-                          sheet.assignedTableId!._id
-                        )
-                      }
+                  {isThreatSelectMode && (
+                    <Checkbox
+                      checked={selectedThreatIds.has(sheet.id)}
                       sx={{
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: 'secondary.dark',
-                        },
+                        position: 'absolute',
+                        top: 4,
+                        left: 4,
+                        bgcolor: 'rgba(255,255,255,0.85)',
+                        borderRadius: '50%',
+                        p: 0.5,
+                        minWidth: 44,
+                        minHeight: 44,
+                        '&:hover': { bgcolor: 'rgba(255,255,255,0.95)' },
                       }}
                     />
-                  </Tooltip>
+                  )}
+                </Box>
+
+                {/* PV/PM Progress Bars */}
+                {!sheet.sheetData?.isThreat && (
+                  <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography
+                        variant='caption'
+                        sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                      >
+                        PV:{' '}
+                        {(sheet.sheetData as any).currentPV ??
+                          (sheet.sheetData as any).pv}
+                        /{(sheet.sheetData as any).pv}
+                      </Typography>
+                      <LinearProgress
+                        variant='determinate'
+                        value={Math.min(
+                          (((sheet.sheetData as any).currentPV ??
+                            (sheet.sheetData as any).pv) /
+                            (sheet.sheetData as any).pv) *
+                            100,
+                          100
+                        )}
+                        sx={{
+                          height: 6,
+                          borderRadius: 1,
+                          backgroundColor: 'rgba(108,166,81, 0.2)',
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: theme.palette.success.main,
+                            opacity: 100,
+                          },
+                        }}
+                      />
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant='caption'
+                        sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                      >
+                        PM:{' '}
+                        {(sheet.sheetData as any).currentPM ??
+                          (sheet.sheetData as any).pm}
+                        /{(sheet.sheetData as any).pm}
+                      </Typography>
+                      <LinearProgress
+                        variant='determinate'
+                        value={Math.min(
+                          (((sheet.sheetData as any).currentPM ??
+                            (sheet.sheetData as any).pm) /
+                            (sheet.sheetData as any).pm) *
+                            100,
+                          100
+                        )}
+                        sx={{
+                          height: 6,
+                          borderRadius: 1,
+                          backgroundColor: 'rgba(0, 139, 255, 0.2)',
+                          '& .MuiLinearProgress-bar': {
+                            backgroundColor: theme.palette.info.main,
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Box>
                 )}
-              </Stack>
 
-              <Typography
-                variant='caption'
-                color='text.secondary'
-                sx={{ mt: 1, display: 'block' }}
-              >
-                Editado em{' '}
-                {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
-              </Typography>
-            </CardContent>
-          </CardActionArea>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography
+                    gutterBottom
+                    variant='h6'
+                    component='h3'
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontWeight: 'bold',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {sheet.name}
+                  </Typography>
 
-          <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-            <Box>
-              <Tooltip title='Editar'>
-                <IconButton
-                  size='small'
-                  color='primary'
-                  onClick={() => handleEditSheet(sheet)}
-                >
-                  <EditIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title='Duplicar'>
-                <IconButton size='small' onClick={() => handleDuplicate(sheet)}>
-                  <DuplicateIcon />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title='Mover para pasta'>
-                <IconButton
-                  size='small'
-                  onClick={(e) => handleOpenMoveMenu(e, sheet)}
-                >
-                  <MoveIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-            <Tooltip title='Excluir'>
-              <IconButton
-                size='small'
-                color='error'
-                onClick={() => handleDeleteClick(sheet)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Tooltip>
-          </CardActions>
-        </Card>
-      </Grid>
+                  <Typography
+                    variant='body2'
+                    color='text.secondary'
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      mb: 1,
+                    }}
+                  >
+                    {getDescription(sheet)}
+                  </Typography>
+
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    alignItems='center'
+                    flexWrap='wrap'
+                    useFlexGap
+                  >
+                    <Chip
+                      label={`Nível ${getLevel(sheet)}`}
+                      size='small'
+                      color='primary'
+                      variant='outlined'
+                    />
+                    {sheet.folderId && !openFolderId && (
+                      <Chip
+                        icon={
+                          <FolderOpenIcon
+                            sx={{ fontSize: '0.85rem !important' }}
+                          />
+                        }
+                        label={getFolderName(sheet.folderId)}
+                        size='small'
+                        variant='outlined'
+                        sx={{ maxWidth: 140 }}
+                      />
+                    )}
+                    {sheet.assignedTableId && (
+                      <Tooltip title='Ir para a mesa'>
+                        <Chip
+                          icon={<TableIcon />}
+                          label={sheet.assignedTableId.name}
+                          size='small'
+                          color='secondary'
+                          variant='filled'
+                          onClick={(e) =>
+                            handleNavigateToTable(
+                              e,
+                              // eslint-disable-next-line no-underscore-dangle
+                              sheet.assignedTableId!._id
+                            )
+                          }
+                          sx={{
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: 'secondary.dark',
+                            },
+                          }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Stack>
+
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{ mt: 1, display: 'block' }}
+                  >
+                    Editado em{' '}
+                    {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+
+              <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+                <Box display='flex' alignItems='center'>
+                  <Tooltip title='Arrastar para mover'>
+                    <IconButton
+                      size='small'
+                      {...dragProvided.dragHandleProps}
+                      sx={{
+                        cursor: 'grab',
+                        color: 'text.secondary',
+                        '&:hover': { color: 'primary.main' },
+                      }}
+                    >
+                      <DragIndicatorIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Editar'>
+                    <IconButton
+                      size='small'
+                      color='primary'
+                      onClick={() => handleEditSheet(sheet)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Duplicar'>
+                    <IconButton
+                      size='small'
+                      onClick={() => handleDuplicate(sheet)}
+                    >
+                      <DuplicateIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title='Mover para pasta'>
+                    <IconButton
+                      size='small'
+                      onClick={(e) => handleOpenMoveMenu(e, sheet)}
+                    >
+                      <MoveIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Tooltip title='Excluir'>
+                  <IconButton
+                    size='small'
+                    color='error'
+                    onClick={() => handleDeleteClick(sheet)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              </CardActions>
+            </Card>
+          </Grid>
+        )}
+      </Draggable>
     );
   };
 
@@ -1261,19 +1370,74 @@ const MyCharactersPage: React.FC = () => {
       {/* Empty State */}
       {!loading && currentSheets.length === 0 && <EmptyState />}
 
-      {/* Grid: folders + sheets */}
-      {currentSheets.length > 0 && (
-        <Grid container spacing={3}>
-          {/* Folder cards (only at root level) */}
-          {!isInsideFolder && folders.map((folder) => renderFolderCard(folder))}
+      {/* Grid: folders + sheets (with drag-and-drop) */}
+      <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        {/* "Remove from folder" drop zone (when inside a folder) */}
+        {isInsideFolder && isDragging && (
+          <Droppable droppableId='root-drop-zone'>
+            {(rootProvided, rootSnapshot) => (
+              <Box
+                ref={rootProvided.innerRef}
+                {...rootProvided.droppableProps}
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  borderRadius: 1,
+                  border: '2px dashed',
+                  borderColor: rootSnapshot.isDraggingOver
+                    ? 'warning.main'
+                    : 'divider',
+                  backgroundColor: rootSnapshot.isDraggingOver
+                    ? 'warning.light'
+                    : 'transparent',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                }}
+              >
+                <FolderOffIcon
+                  color={rootSnapshot.isDraggingOver ? 'warning' : 'action'}
+                />
+                <Typography variant='body2' component='span'>
+                  Solte aqui para remover da pasta
+                </Typography>
+                <div style={{ display: 'none' }}>
+                  {rootProvided.placeholder}
+                </div>
+              </Box>
+            )}
+          </Droppable>
+        )}
 
-          {/* New folder card (only at root level, when sheets exist) */}
-          {!isInsideFolder && renderNewFolderCard()}
+        {currentSheets.length > 0 && (
+          <Droppable droppableId='sheets-list' isDropDisabled>
+            {(sheetsProvided) => (
+              <Grid
+                container
+                spacing={3}
+                ref={sheetsProvided.innerRef}
+                {...sheetsProvided.droppableProps}
+              >
+                {/* Folder cards (only at root level) */}
+                {!isInsideFolder &&
+                  folders.map((folder) => renderFolderCard(folder))}
 
-          {/* Sheet cards */}
-          {filteredSheets.map((sheet) => renderSheetCard(sheet))}
-        </Grid>
-      )}
+                {/* New folder card (only at root level, when sheets exist) */}
+                {!isInsideFolder && renderNewFolderCard()}
+
+                {/* Sheet cards */}
+                {filteredSheets.map((sheet, index) =>
+                  renderSheetCard(sheet, index)
+                )}
+                {sheetsProvided.placeholder}
+              </Grid>
+            )}
+          </Droppable>
+        )}
+      </DragDropContext>
 
       {/* Empty folder state */}
       {isInsideFolder && filteredSheets.length === 0 && !searchTerm && (
@@ -1285,7 +1449,8 @@ const MyCharactersPage: React.FC = () => {
             Pasta vazia
           </Typography>
           <Typography variant='body2' color='text.secondary'>
-            Mova fichas para esta pasta usando o botão de mover nos cards.
+            Mova fichas para esta pasta usando o botão de mover ou arrastando os
+            cards.
           </Typography>
         </Box>
       )}
