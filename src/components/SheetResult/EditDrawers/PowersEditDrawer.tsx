@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Drawer,
   Box,
@@ -49,6 +49,11 @@ import {
 } from '@/functions/powers/manualPowerSelection';
 import { GolpePessoalBuild } from '@/data/systems/tormenta20/golpePessoal';
 import { isClassOrVariantOf } from '@/functions/general';
+import {
+  isMulticlass,
+  getClassLevelsMap,
+  findClassDescription,
+} from '@/functions/multiclass';
 import { normalizeSearch } from '@/functions/stringUtils';
 import Skill, {
   ALL_SPECIFIC_OFICIOS,
@@ -220,6 +225,48 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   ];
   const allPowersByCategory =
     dataRegistry.getPowersBySupplements(allSupplements);
+
+  // Build class power sets: one entry per class (supports multiclass)
+  const classPowerSets = useMemo(() => {
+    const sets: Array<{ className: string; powers: ClassPower[] }> = [];
+
+    if (!isMulticlass(sheet)) {
+      // Single-class: use primary class powers
+      if (sheet.classe.powers && sheet.classe.powers.length > 0) {
+        sets.push({
+          className: sheet.classe.name,
+          powers: sheet.classe.powers,
+        });
+      }
+      return sets;
+    }
+
+    // Multiclass: one entry per unique class
+    const classLevelsMap = getClassLevelsMap(sheet);
+    classLevelsMap.forEach((_level, className) => {
+      if (className === sheet.classe.name) {
+        // Primary class: use sheet.classe.powers (may have setup modifications)
+        if (sheet.classe.powers && sheet.classe.powers.length > 0) {
+          sets.push({ className, powers: sheet.classe.powers });
+        }
+      } else {
+        // Secondary class: look up from registry
+        const subname = sheet.classLevels?.find(
+          (cl) => cl.className === className
+        )?.classSubname;
+        const classDesc = findClassDescription(
+          className,
+          subname,
+          allSupplements
+        );
+        if (classDesc?.powers && classDesc.powers.length > 0) {
+          sets.push({ className, powers: classDesc.powers });
+        }
+      }
+    });
+
+    return sets;
+  }, [sheet, allSupplements]);
 
   // Separate race-specific powers from other Destiny powers
   const isKallyanach = sheet.raca.name === 'Kallyanach';
@@ -543,7 +590,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     }
   };
 
-  const handleClassPowerToggle = (power: ClassPower) => {
+  const handleClassPowerToggle = (
+    power: ClassPower,
+    sourceClassName?: string
+  ) => {
     const isSelected = selectedClassPowers.some((p) => p.name === power.name);
 
     // For repeatable powers, always add a new instance
@@ -673,14 +723,20 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         });
         setSelectedClassPowers((prev) => [
           ...prev,
-          getOriginalClassPowerWithRolls(power),
+          {
+            ...getOriginalClassPowerWithRolls(power),
+            ...(sourceClassName ? { className: sourceClassName } : {}),
+          },
         ]);
       }
     } else {
       // Add power directly
       setSelectedClassPowers((prev) => [
         ...prev,
-        getOriginalClassPowerWithRolls(power),
+        {
+          ...getOriginalClassPowerWithRolls(power),
+          ...(sourceClassName ? { className: sourceClassName } : {}),
+        },
       ]);
     }
   };
@@ -713,7 +769,10 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
   };
 
   // Handler for adding another instance of a repeatable class power (via "+" button)
-  const handleAddRepeatableClassPower = (power: ClassPower) => {
+  const handleAddRepeatableClassPower = (
+    power: ClassPower,
+    sourceClassName?: string
+  ) => {
     if (power.name === 'Golpe Pessoal') {
       setGolpePessoalDialog({
         open: true,
@@ -806,13 +865,19 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         });
         setSelectedClassPowers((prev) => [
           ...prev,
-          getOriginalClassPowerWithRolls(power),
+          {
+            ...getOriginalClassPowerWithRolls(power),
+            ...(sourceClassName ? { className: sourceClassName } : {}),
+          },
         ]);
       }
     } else {
       setSelectedClassPowers((prev) => [
         ...prev,
-        getOriginalClassPowerWithRolls(power),
+        {
+          ...getOriginalClassPowerWithRolls(power),
+          ...(sourceClassName ? { className: sourceClassName } : {}),
+        },
       ]);
     }
   };
@@ -2014,110 +2079,90 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             </Accordion>
           )}
 
-          {/* Class Powers Section */}
-          {sheet.classe.powers && sheet.classe.powers.length > 0 && (
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant='h6'>
-                  Poderes de {sheet.classe.name} (
-                  {filterPowers(sheet.classe.powers).length})
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Stack spacing={2}>
-                  {filterPowers(sheet.classe.powers)
-                    .sort((a, b) => {
-                      const aQualifies = checkClassPowerRequirements(a);
-                      const bQualifies = checkClassPowerRequirements(b);
-                      if (aQualifies && !bQualifies) return -1;
-                      if (!aQualifies && bQualifies) return 1;
-                      return a.name.localeCompare(b.name);
-                    })
-                    .map((power) => {
-                      const meetsRequirements =
-                        checkClassPowerRequirements(power);
+          {/* Class Powers Section(s) - one accordion per class for multiclass */}
+          {classPowerSets.map(({ className: clsName, powers: clsPowers }) => {
+            const filtered = filterPowers(clsPowers);
+            if (filtered.length === 0) return null;
 
-                      return (
-                        <Box
-                          key={power.name}
-                          sx={{
-                            p: 2,
-                            border: 2,
-                            borderColor: meetsRequirements
-                              ? 'success.main'
-                              : 'error.main',
-                            borderRadius: 1,
-                            backgroundColor: (() => {
-                              if (isClassPowerSelected(power)) {
+            return (
+              <Accordion key={`class-powers-${clsName}`}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant='h6'>
+                    Poderes de {clsName} ({filtered.length})
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={2}>
+                    {filtered
+                      .sort((a, b) => {
+                        const aQualifies = checkClassPowerRequirements(a);
+                        const bQualifies = checkClassPowerRequirements(b);
+                        if (aQualifies && !bQualifies) return -1;
+                        if (!aQualifies && bQualifies) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((power) => {
+                        const meetsRequirements =
+                          checkClassPowerRequirements(power);
+
+                        return (
+                          <Box
+                            key={power.name}
+                            sx={{
+                              p: 2,
+                              border: 2,
+                              borderColor: meetsRequirements
+                                ? 'success.main'
+                                : 'error.main',
+                              borderRadius: 1,
+                              backgroundColor: (() => {
+                                if (isClassPowerSelected(power)) {
+                                  return meetsRequirements
+                                    ? 'success.light'
+                                    : 'error.light';
+                                }
                                 return meetsRequirements
-                                  ? 'success.light'
-                                  : 'error.light';
+                                  ? 'success.50'
+                                  : 'background.paper';
+                              })(),
+                              opacity: meetsRequirements ? 1 : 0.7,
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={isClassPowerSelected(power)}
+                                  onChange={() =>
+                                    handleClassPowerToggle(power, clsName)
+                                  }
+                                  size='small'
+                                  color='secondary'
+                                />
                               }
-                              return meetsRequirements
-                                ? 'success.50'
-                                : 'background.paper';
-                            })(),
-                            opacity: meetsRequirements ? 1 : 0.7,
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                          }}
-                        >
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={isClassPowerSelected(power)}
-                                onChange={() => handleClassPowerToggle(power)}
-                                size='small'
-                                color='secondary'
-                              />
-                            }
-                            label={
-                              <Box sx={{ width: '100%' }}>
-                                <Stack
-                                  direction='row'
-                                  alignItems='center'
-                                  spacing={1}
-                                  flexWrap='wrap'
-                                >
-                                  <Typography
-                                    variant='body1'
-                                    fontWeight='bold'
-                                    color={
-                                      meetsRequirements
-                                        ? 'text.primary'
-                                        : 'error.main'
-                                    }
+                              label={
+                                <Box sx={{ width: '100%' }}>
+                                  <Stack
+                                    direction='row'
+                                    alignItems='center'
+                                    spacing={1}
+                                    flexWrap='wrap'
                                   >
-                                    {power.name}
-                                  </Typography>
-                                  {power.supplementId && (
-                                    <Chip
-                                      label={power.supplementName}
-                                      size='small'
-                                      variant='outlined'
-                                      color='info'
-                                      sx={{ fontSize: '0.65rem', height: 20 }}
-                                    />
-                                  )}
-                                  {power.canRepeat && (
-                                    <Chip
-                                      label='Repetível'
-                                      size='small'
-                                      color='info'
-                                      sx={{ fontSize: '0.65rem', height: 20 }}
-                                    />
-                                  )}
-                                  {isClassPowerSelected(power) &&
-                                    power.canRepeat &&
-                                    selectedClassPowers.filter(
-                                      (p) => p.name === power.name
-                                    ).length > 1 && (
+                                    <Typography
+                                      variant='body1'
+                                      fontWeight='bold'
+                                      color={
+                                        meetsRequirements
+                                          ? 'text.primary'
+                                          : 'error.main'
+                                      }
+                                    >
+                                      {power.name}
+                                    </Typography>
+                                    {power.supplementId && (
                                       <Chip
-                                        label={`${
-                                          selectedClassPowers.filter(
-                                            (p) => p.name === power.name
-                                          ).length
-                                        }x`}
+                                        label={power.supplementName}
                                         size='small'
                                         variant='outlined'
                                         color='info'
@@ -2127,56 +2172,88 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                                         }}
                                       />
                                     )}
-                                </Stack>
-                                <Typography
-                                  variant='body2'
-                                  color='text.secondary'
-                                  sx={{ mb: 1 }}
-                                >
-                                  {power.text}
-                                </Typography>
-                                {power.requirements &&
-                                  power.requirements.length > 0 && (
-                                    <Typography
-                                      variant='caption'
-                                      color='text.secondary'
-                                      sx={{
-                                        display: 'block',
-                                        fontStyle: 'italic',
-                                      }}
-                                    >
-                                      <strong>Pré-requisitos:</strong>{' '}
-                                      {getRequirementText(power)}
-                                    </Typography>
-                                  )}
-                              </Box>
-                            }
-                            sx={{
-                              alignItems: 'flex-start',
-                              width: '100%',
-                              flex: 1,
-                            }}
-                          />
-                          {power.canRepeat && isClassPowerSelected(power) && (
-                            <IconButton
-                              size='small'
-                              color='info'
-                              onClick={() =>
-                                handleAddRepeatableClassPower(power)
+                                    {power.canRepeat && (
+                                      <Chip
+                                        label='Repetível'
+                                        size='small'
+                                        color='info'
+                                        sx={{
+                                          fontSize: '0.65rem',
+                                          height: 20,
+                                        }}
+                                      />
+                                    )}
+                                    {isClassPowerSelected(power) &&
+                                      power.canRepeat &&
+                                      selectedClassPowers.filter(
+                                        (p) => p.name === power.name
+                                      ).length > 1 && (
+                                        <Chip
+                                          label={`${
+                                            selectedClassPowers.filter(
+                                              (p) => p.name === power.name
+                                            ).length
+                                          }x`}
+                                          size='small'
+                                          variant='outlined'
+                                          color='info'
+                                          sx={{
+                                            fontSize: '0.65rem',
+                                            height: 20,
+                                          }}
+                                        />
+                                      )}
+                                  </Stack>
+                                  <Typography
+                                    variant='body2'
+                                    color='text.secondary'
+                                    sx={{ mb: 1 }}
+                                  >
+                                    {power.text}
+                                  </Typography>
+                                  {power.requirements &&
+                                    power.requirements.length > 0 && (
+                                      <Typography
+                                        variant='caption'
+                                        color='text.secondary'
+                                        sx={{
+                                          display: 'block',
+                                          fontStyle: 'italic',
+                                        }}
+                                      >
+                                        <strong>Pré-requisitos:</strong>{' '}
+                                        {getRequirementText(power)}
+                                      </Typography>
+                                    )}
+                                </Box>
                               }
-                              title='Adicionar outra instância'
-                              sx={{ mt: 0.5 }}
-                            >
-                              <AddIcon fontSize='small' />
-                            </IconButton>
-                          )}
-                        </Box>
-                      );
-                    })}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          )}
+                              sx={{
+                                alignItems: 'flex-start',
+                                width: '100%',
+                                flex: 1,
+                              }}
+                            />
+                            {power.canRepeat && isClassPowerSelected(power) && (
+                              <IconButton
+                                size='small'
+                                color='info'
+                                onClick={() =>
+                                  handleAddRepeatableClassPower(power, clsName)
+                                }
+                                title='Adicionar outra instância'
+                                sx={{ mt: 0.5 }}
+                              >
+                                <AddIcon fontSize='small' />
+                              </IconButton>
+                            )}
+                          </Box>
+                        );
+                      })}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
 
           {/* General Powers Sections */}
           {powerCategories.map((category) => {
