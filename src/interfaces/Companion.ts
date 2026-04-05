@@ -46,4 +46,11 @@ export interface CompanionSheet {
   reducaoDeDano?: number;
   proficiencies?: string[];
   hasAnatomiaHumanoide?: boolean;
+
+  /** Flag set when Treinador chooses "Treino Intensivo" at level 5 */
+  treinoIntensivo?: boolean;
+  /** Precomputed attack bonus from Treinamento Marcial trick */
+  attackBonus?: number;
+  /** Precomputed damage bonus from Treinamento Marcial trick */
+  damageBonus?: number;
 }

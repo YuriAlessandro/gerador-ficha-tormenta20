@@ -40,6 +40,7 @@ import {
   getClassSetupAbilities,
 } from '@/functions/multiclass';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { getAvailableTricks } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -528,10 +529,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
 
     // Treinador: truque do parceiro nos níveis 4, 7, 10, 13, 16, 19
+    // Treino Intensivo: truque extra nos níveis 5 e 11
     const COMPANION_TRICK_LEVELS = [4, 7, 10, 13, 16, 19];
+    const hasTreinoIntensivo = simulatedSheet.companions?.[0]?.treinoIntensivo;
+    const allTrickLevels = hasTreinoIntensivo
+      ? [...COMPANION_TRICK_LEVELS, 5, 11]
+      : COMPANION_TRICK_LEVELS;
     if (
       selectedClassName === 'Treinador' &&
-      COMPANION_TRICK_LEVELS.includes(selectedClassLevel) &&
+      allTrickLevels.includes(selectedClassLevel) &&
       simulatedSheet.companions?.length
     ) {
       steps.push('Truque do Melhor Amigo');
@@ -683,8 +689,26 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return selectedCount === spellInfo.spellCount;
       }
 
-      case 'Truque do Melhor Amigo':
-        return !!currentLevelSelection.companionTrick;
+      case 'Truque do Melhor Amigo': {
+        const trick = currentLevelSelection.companionTrick;
+        if (!trick) return false;
+        // Check sub-choices are complete if needed
+        const trickDef = getAvailableTricks(
+          selectedClassLevel,
+          simulatedSheet.companions?.[0]?.companionType || 'Animal',
+          simulatedSheet.companions?.[0]?.size || 'Médio',
+          simulatedSheet.companions?.[0]?.tricks || [],
+          simulatedSheet.companions?.[0]?.naturalWeapons.length || 1,
+          false
+        ).find((t) => t.name === trick.name);
+        if (trickDef?.hasSubChoice) {
+          if (trickDef.subChoiceType === 'attribute')
+            return !!trick.choices?.primary && !!trick.choices?.secondary;
+          if (trickDef.subChoiceType === 'movement')
+            return !!trick.choices?.type;
+        }
+        return true;
+      }
 
       default:
         return false;

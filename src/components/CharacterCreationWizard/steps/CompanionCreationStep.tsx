@@ -10,6 +10,10 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import Skill from '@/interfaces/Skills';
 import {
@@ -27,6 +31,15 @@ import {
   getAvailableTricks,
 } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import { CompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+
+const COMPANION_ATTRIBUTE_OPTIONS = [
+  Atributo.FORCA,
+  Atributo.DESTREZA,
+  Atributo.CONSTITUICAO,
+  Atributo.SABEDORIA,
+  Atributo.CARISMA,
+];
 
 interface CompanionCreationStepProps {
   companionName?: string;
@@ -97,6 +110,20 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
     } else if (companionTricks.length < 2) {
       onTricksChange([...companionTricks, { name: trick.name }]);
     }
+  };
+
+  const handleTrickChoiceChange = (
+    trickName: string,
+    choiceKey: string,
+    value: string
+  ) => {
+    onTricksChange(
+      companionTricks.map((t) =>
+        t.name === trickName
+          ? { ...t, choices: { ...t.choices, [choiceKey]: value } }
+          : t
+      )
+    );
   };
 
   const handleTypeChange = (newType: CompanionType) => {
@@ -297,6 +324,9 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
                 (t) => t.name === trick.name
               );
               const isDisabled = !isSelected && companionTricks.length >= 2;
+              const selectedTrickData = companionTricks.find(
+                (t) => t.name === trick.name
+              );
               return (
                 <Box key={trick.name} sx={{ mb: 2 }}>
                   <FormControlLabel
@@ -319,6 +349,91 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
                     }
                     sx={{ alignItems: 'flex-start' }}
                   />
+                  {isSelected &&
+                    trick.hasSubChoice &&
+                    trick.subChoiceType === 'attribute' && (
+                      <Box
+                        sx={{
+                          ml: 4,
+                          mt: 1,
+                          display: 'flex',
+                          gap: 2,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <FormControl size='small' sx={{ minWidth: 160 }}>
+                          <InputLabel>Primário (+2)</InputLabel>
+                          <Select
+                            label='Primário (+2)'
+                            value={selectedTrickData?.choices?.primary || ''}
+                            onChange={(e) =>
+                              handleTrickChoiceChange(
+                                trick.name,
+                                'primary',
+                                e.target.value
+                              )
+                            }
+                          >
+                            {COMPANION_ATTRIBUTE_OPTIONS.map((attr) => (
+                              <MenuItem key={attr} value={attr}>
+                                {attr}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                        <FormControl size='small' sx={{ minWidth: 160 }}>
+                          <InputLabel>Secundário (+1)</InputLabel>
+                          <Select
+                            label='Secundário (+1)'
+                            value={selectedTrickData?.choices?.secondary || ''}
+                            onChange={(e) =>
+                              handleTrickChoiceChange(
+                                trick.name,
+                                'secondary',
+                                e.target.value
+                              )
+                            }
+                          >
+                            {COMPANION_ATTRIBUTE_OPTIONS.filter(
+                              (attr) =>
+                                attr !== selectedTrickData?.choices?.primary
+                            ).map((attr) => (
+                              <MenuItem key={attr} value={attr}>
+                                {attr}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    )}
+                  {isSelected &&
+                    trick.hasSubChoice &&
+                    trick.subChoiceType === 'movement' && (
+                      <Box sx={{ ml: 4, mt: 1 }}>
+                        <RadioGroup
+                          row
+                          value={selectedTrickData?.choices?.type || ''}
+                          onChange={(e) =>
+                            handleTrickChoiceChange(
+                              trick.name,
+                              'type',
+                              e.target.value
+                            )
+                          }
+                        >
+                          <FormControlLabel
+                            value='Escalada'
+                            control={<Radio size='small' />}
+                            label='Escalada'
+                          />
+                          <FormControlLabel
+                            value='Natação'
+                            control={<Radio size='small' />}
+                            label='Natação'
+                          />
+                        </RadioGroup>
+                      </Box>
+                    )}
                 </Box>
               );
             })}
@@ -337,7 +452,15 @@ const CompanionCreationStep: React.FC<CompanionCreationStepProps> = ({
         companionWeaponDamageType &&
         companionSkills.length === 3 &&
         companionTricks.length === 2 &&
-        (companionType !== 'Espírito' || companionSpiritEnergyType) && (
+        (companionType !== 'Espírito' || companionSpiritEnergyType) &&
+        companionTricks.every((t) => {
+          const def = availableTricks.find((d) => d.name === t.name);
+          if (!def?.hasSubChoice) return true;
+          if (def.subChoiceType === 'attribute')
+            return t.choices?.primary && t.choices?.secondary;
+          if (def.subChoiceType === 'movement') return t.choices?.type;
+          return true;
+        }) && (
           <Alert severity='success'>
             Melhor Amigo configurado com sucesso! Você pode continuar para o
             próximo passo.

@@ -5,10 +5,25 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  RadioGroup,
+  Radio,
 } from '@mui/material';
 import { CompanionSheet, CompanionTrick } from '@/interfaces/Companion';
 import { getAvailableTricks } from '@/data/systems/tormenta20/herois-de-arton/companion';
 import { CompanionTrickDefinition } from '@/data/systems/tormenta20/herois-de-arton/companion/companionTricks';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
+
+const COMPANION_ATTRIBUTE_OPTIONS = [
+  Atributo.FORCA,
+  Atributo.DESTREZA,
+  Atributo.CONSTITUICAO,
+  Atributo.SABEDORIA,
+  Atributo.CARISMA,
+];
 
 interface CompanionTrickSelectionStepProps {
   companion: CompanionSheet;
@@ -49,7 +64,28 @@ const CompanionTrickSelectionStep: React.FC<
     }
   };
 
+  const handleChoiceChange = (choiceKey: string, value: string) => {
+    if (selectedTrick) {
+      onSelectTrick({
+        ...selectedTrick,
+        choices: { ...selectedTrick.choices, [choiceKey]: value },
+      });
+    }
+  };
+
   const companionName = companion.name || 'Melhor Amigo';
+
+  const isSelectionComplete = useMemo(() => {
+    if (!selectedTrick) return false;
+    const def = availableTricks.find((t) => t.name === selectedTrick.name);
+    if (!def?.hasSubChoice) return true;
+    if (def.subChoiceType === 'attribute')
+      return (
+        !!selectedTrick.choices?.primary && !!selectedTrick.choices?.secondary
+      );
+    if (def.subChoiceType === 'movement') return !!selectedTrick.choices?.type;
+    return true;
+  }, [selectedTrick, availableTricks]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -81,6 +117,78 @@ const CompanionTrickSelectionStep: React.FC<
                   }
                   sx={{ alignItems: 'flex-start' }}
                 />
+                {isSelected &&
+                  trick.hasSubChoice &&
+                  trick.subChoiceType === 'attribute' && (
+                    <Box
+                      sx={{
+                        ml: 4,
+                        mt: 1,
+                        display: 'flex',
+                        gap: 2,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <FormControl size='small' sx={{ minWidth: 160 }}>
+                        <InputLabel>Primário (+2)</InputLabel>
+                        <Select
+                          label='Primário (+2)'
+                          value={selectedTrick?.choices?.primary || ''}
+                          onChange={(e) =>
+                            handleChoiceChange('primary', e.target.value)
+                          }
+                        >
+                          {COMPANION_ATTRIBUTE_OPTIONS.map((attr) => (
+                            <MenuItem key={attr} value={attr}>
+                              {attr}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <FormControl size='small' sx={{ minWidth: 160 }}>
+                        <InputLabel>Secundário (+1)</InputLabel>
+                        <Select
+                          label='Secundário (+1)'
+                          value={selectedTrick?.choices?.secondary || ''}
+                          onChange={(e) =>
+                            handleChoiceChange('secondary', e.target.value)
+                          }
+                        >
+                          {COMPANION_ATTRIBUTE_OPTIONS.filter(
+                            (attr) => attr !== selectedTrick?.choices?.primary
+                          ).map((attr) => (
+                            <MenuItem key={attr} value={attr}>
+                              {attr}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
+                {isSelected &&
+                  trick.hasSubChoice &&
+                  trick.subChoiceType === 'movement' && (
+                    <Box sx={{ ml: 4, mt: 1 }}>
+                      <RadioGroup
+                        row
+                        value={selectedTrick?.choices?.type || ''}
+                        onChange={(e) =>
+                          handleChoiceChange('type', e.target.value)
+                        }
+                      >
+                        <FormControlLabel
+                          value='Escalada'
+                          control={<Radio size='small' />}
+                          label='Escalada'
+                        />
+                        <FormControlLabel
+                          value='Natação'
+                          control={<Radio size='small' />}
+                          label='Natação'
+                        />
+                      </RadioGroup>
+                    </Box>
+                  )}
               </Box>
             );
           })}
@@ -91,9 +199,15 @@ const CompanionTrickSelectionStep: React.FC<
         </Alert>
       )}
 
-      {selectedTrick && (
+      {selectedTrick && isSelectionComplete && (
         <Alert severity='success'>
           Truque selecionado: <strong>{selectedTrick.name}</strong>
+        </Alert>
+      )}
+
+      {selectedTrick && !isSelectionComplete && (
+        <Alert severity='warning'>
+          Preencha as escolhas do truque para continuar.
         </Alert>
       )}
 

@@ -2689,6 +2689,41 @@ function applyClassAbilities(
       });
     }
 
+    // Treinador: aplicar efeitos de Treino Especializado
+    if (ability.name === 'Treino Especializado' && newAcc.companions?.length) {
+      const treinoChoice = newAcc.sheetActionHistory
+        .flatMap((entry) => entry.changes)
+        .find(
+          (change) =>
+            change.type === 'OptionChosen' &&
+            change.optionKey === 'treinoEspecializado'
+        );
+
+      if (treinoChoice && treinoChoice.type === 'OptionChosen') {
+        if (treinoChoice.chosenName === 'Conquistar pelos Números') {
+          const trainerCha = newAcc.atributos[Atributo.CARISMA]?.value ?? 0;
+          const secondCompanion = generateRandomCompanion(
+            newAcc.nivel,
+            trainerCha
+          );
+          newAcc.companions.push(secondCompanion);
+          subSteps.push({
+            name: 'Conquistar pelos Números',
+            value: `Segundo melhor amigo: ${secondCompanion.companionType} ${secondCompanion.size}`,
+          });
+        } else if (treinoChoice.chosenName === 'Treino Intensivo') {
+          newAcc.companions[0] = {
+            ...newAcc.companions[0],
+            treinoIntensivo: true,
+          };
+          subSteps.push({
+            name: 'Treino Intensivo',
+            value: 'Melhor amigo recebe PV extra, RD e truque adicional',
+          });
+        }
+      }
+    }
+
     return newAcc;
   }, sheetClone);
 
@@ -3450,6 +3485,45 @@ export function applyManualLevelUp(
       );
       updatedSheet = newSheet;
       abilitySubSteps.push(...newSubSteps);
+
+      // Treinador: aplicar efeitos de Treino Especializado no level-up
+      if (
+        ability.name === 'Treino Especializado' &&
+        updatedSheet.companions?.length
+      ) {
+        const treinoChoice = updatedSheet.sheetActionHistory
+          .flatMap((entry) => entry.changes)
+          .find(
+            (change) =>
+              change.type === 'OptionChosen' &&
+              change.optionKey === 'treinoEspecializado'
+          );
+
+        if (treinoChoice && treinoChoice.type === 'OptionChosen') {
+          if (treinoChoice.chosenName === 'Conquistar pelos Números') {
+            const trainerCha =
+              updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+            const secondCompanion = generateRandomCompanion(
+              updatedSheet.nivel,
+              trainerCha
+            );
+            updatedSheet.companions.push(secondCompanion);
+            abilitySubSteps.push({
+              name: 'Conquistar pelos Números',
+              value: `Segundo melhor amigo: ${secondCompanion.companionType} ${secondCompanion.size}`,
+            });
+          } else if (treinoChoice.chosenName === 'Treino Intensivo') {
+            updatedSheet.companions[0] = {
+              ...updatedSheet.companions[0],
+              treinoIntensivo: true,
+            };
+            abilitySubSteps.push({
+              name: 'Treino Intensivo',
+              value: 'Melhor amigo recebe PV extra, RD e truque adicional',
+            });
+          }
+        }
+      }
     });
 
     if (abilitySubSteps.length) {

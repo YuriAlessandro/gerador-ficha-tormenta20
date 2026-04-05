@@ -196,11 +196,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
 
   const halfTrainerLevel = Math.floor(trainerLevel / 2);
   const forMod = companion.attributes[Atributo.FORCA];
+  const companionAtkBonus = companion.attackBonus || 0;
+  const companionDmgBonus = companion.damageBonus || 0;
 
   const handleWeaponRoll = useCallback(
     (weapon: CompanionNaturalWeapon, weaponIndex: number) => {
-      const atkBonus = forMod + halfTrainerLevel;
-      const damageModifier = forMod;
+      const atkBonus = forMod + halfTrainerLevel + companionAtkBonus;
+      const damageModifier = forMod + companionDmgBonus;
 
       const attackRoll = rollD20();
       const attackTotal = Math.max(1, attackRoll + atkBonus);
@@ -256,7 +258,14 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
         displayName
       );
     },
-    [forMod, halfTrainerLevel, showDiceResult, displayName]
+    [
+      forMod,
+      halfTrainerLevel,
+      companionAtkBonus,
+      companionDmgBonus,
+      showDiceResult,
+      displayName,
+    ]
   );
 
   const handleSkillRoll = useCallback(
@@ -472,9 +481,11 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               Armas Naturais
             </Typography>
             {companion.naturalWeapons.map((weapon, idx) => {
-              const atkBonus = forMod + halfTrainerLevel;
+              const atkBonus = forMod + halfTrainerLevel + companionAtkBonus;
               const atkStr = atkBonus >= 0 ? `+${atkBonus}` : `${atkBonus}`;
-              const dmgModStr = forMod >= 0 ? `+${forMod}` : `${forMod}`;
+              const totalDmgMod = forMod + companionDmgBonus;
+              const dmgModStr =
+                totalDmgMod >= 0 ? `+${totalDmgMod}` : `${totalDmgMod}`;
 
               return (
                 <Box

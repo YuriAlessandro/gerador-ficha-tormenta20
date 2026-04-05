@@ -158,7 +158,8 @@ function computeNaturalWeapons(
 
 function computeSkills(
   chosenSkills: Skill[],
-  typeDef: CompanionTypeDefinition
+  typeDef: CompanionTypeDefinition,
+  tricks: CompanionTrick[]
 ): Skill[] {
   const skills = [...chosenSkills];
   if (typeDef.trainedSkills) {
@@ -169,7 +170,12 @@ function computeSkills(
     });
   }
   // Veloz treina Atletismo
-  // (verificado na chamada via tricks, mas skills aqui é base)
+  if (
+    tricks.some((t) => t.name === 'Veloz') &&
+    !skills.includes(Skill.ATLETISMO)
+  ) {
+    skills.push(Skill.ATLETISMO);
+  }
   return skills;
 }
 
@@ -292,6 +298,17 @@ export function getTrickCount(trainerLevel: number): number {
   return count;
 }
 
+/**
+ * Calcula o bônus de Treinamento Marcial baseado no patamar do treinador.
+ * Iniciante (1-4): +2, Veterano (5-10): +3, Campeão (11-16): +4, Lenda (17-20): +5
+ */
+function getTreinamentoMarcialBonus(trainerLevel: number): number {
+  if (trainerLevel <= 4) return 2;
+  if (trainerLevel <= 10) return 3;
+  if (trainerLevel <= 16) return 4;
+  return 5;
+}
+
 /** Recalcula todos os stats derivados do parceiro */
 export function calculateCompanionStats(
   companion: CompanionSheet,
@@ -319,11 +336,35 @@ export function calculateCompanionStats(
     defesa += 2;
   }
 
+  // Treinamento Marcial: bônus de ataque e dano por patamar
+  const hasTreinamentoMarcial = companion.tricks.some(
+    (t) => t.name === 'Treinamento Marcial'
+  );
+  const treinamentoBonus = hasTreinamentoMarcial
+    ? getTreinamentoMarcialBonus(trainerLevel)
+    : 0;
+
+  // PV base
+  let pv = calculateCompanionPV(trainerLevel, attrs[Atributo.CONSTITUICAO]);
+
+  // Treino Intensivo: +4 PV por nível
+  if (companion.treinoIntensivo) {
+    pv += 4 * trainerLevel;
+  }
+
+  // RD base (truques) + Treino Intensivo
+  let rd = computeRd(companion.tricks) || 0;
+  if (companion.treinoIntensivo) {
+    if (trainerLevel >= 17) rd += 15;
+    else if (trainerLevel >= 11) rd += 10;
+    else rd += 5;
+  }
+
   return {
     ...companion,
     attributes: attrs,
     size,
-    pv: calculateCompanionPV(trainerLevel, attrs[Atributo.CONSTITUICAO]),
+    pv,
     defesa,
     displacement,
     naturalWeapons: computeNaturalWeapons(
@@ -334,12 +375,14 @@ export function calculateCompanionStats(
     movementTypes: computeMovementTypes(companion.tricks),
     senses: computeSenses(typeDef, companion.tricks),
     immunities: computeImmunities(typeDef),
-    reducaoDeDano: computeRd(companion.tricks),
+    reducaoDeDano: rd > 0 ? rd : undefined,
     proficiencies: computeProficiencies(companion.tricks),
     hasAnatomiaHumanoide: companion.tricks.some(
       (t) => t.name === 'Anatomia Humanoide'
     ),
-    skills: computeSkills(companion.skills, typeDef),
+    skills: computeSkills(companion.skills, typeDef, companion.tricks),
+    attackBonus: treinamentoBonus,
+    damageBonus: treinamentoBonus,
   };
 }
 
@@ -455,7 +498,43 @@ export function generateRandomCompanion(
     if (available.length === 0) break;
 
     const trick = available[Math.floor(Math.random() * available.length)];
-    tricks.push({ name: trick.name });
+    const trickEntry: CompanionTrick = { name: trick.name };
+
+    // Gerar sub-choices aleatórias para truques que exigem
+    if (trick.hasSubChoice) {
+      if (trick.subChoiceType === 'attribute') {
+        const validAttrs = [
+          Atributo.FORCA,
+          Atributo.DESTREZA,
+          Atributo.CONSTITUICAO,
+          Atributo.SABEDORIA,
+          Atributo.CARISMA,
+        ];
+        const primary =
+          validAttrs[Math.floor(Math.random() * validAttrs.length)];
+        const secondaryPool = validAttrs.filter((a) => a !== primary);
+        const secondary =
+          secondaryPool[Math.floor(Math.random() * secondaryPool.length)];
+        trickEntry.choices = { primary, secondary };
+      } else if (trick.subChoiceType === 'movement') {
+        const existingMovements = tricks
+          .filter((t) => t.name === 'Deslocamento Especial')
+          .map((t) => t.choices?.type)
+          .filter(Boolean);
+        const movementOptions = ['Escalada', 'Natação'].filter(
+          (m) => !existingMovements.includes(m)
+        );
+        const chosen =
+          movementOptions.length > 0
+            ? movementOptions[
+                Math.floor(Math.random() * movementOptions.length)
+              ]
+            : 'Escalada';
+        trickEntry.choices = { type: chosen };
+      }
+    }
+
+    tricks.push(trickEntry);
 
     // Atualizar contagem de armas naturais se ganhou nova
     if (trick.name === 'Arma Natural Adicional') {

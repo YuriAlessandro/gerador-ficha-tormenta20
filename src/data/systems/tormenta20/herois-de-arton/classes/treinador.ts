@@ -59,8 +59,27 @@ const TREINADOR: ClassDescription = {
     },
     {
       name: 'Treino Especializado',
-      text: 'No 5º nível, escolha entre Conquistar pelos Números e Treino Intensivo. Conquistar pelos Números: Você recebe um segundo melhor amigo. Uma vez por rodada, quando faz uma ação padrão com um de seus melhores amigos, você pode gastar 3 PM para fazer uma ação padrão com o outro. Treino Intensivo: Seu melhor amigo recebe +4 PV por nível, redução de dano 5 e um truque. No 11º nível, a RD aumenta para 10 e ele recebe outro truque. No 17º nível, a RD aumenta para 15.',
+      text: 'No 5º nível, escolha entre Conquistar pelos Números e Treino Intensivo.',
       nivel: 5,
+      sheetActions: [
+        {
+          source: { type: 'class', className: 'Treinador' },
+          action: {
+            type: 'chooseFromOptions',
+            optionKey: 'treinoEspecializado',
+            options: [
+              {
+                name: 'Conquistar pelos Números',
+                text: 'Você recebe um segundo melhor amigo. Uma vez por rodada, quando faz uma ação padrão com um de seus melhores amigos, você pode gastar 3 PM para fazer uma ação padrão com o outro.',
+              },
+              {
+                name: 'Treino Intensivo',
+                text: 'Seu melhor amigo recebe +4 PV por nível, redução de dano 5 e um truque. No 11º nível, a RD aumenta para 10 e ele recebe outro truque. No 17º nível, a RD aumenta para 15.',
+              },
+            ],
+          },
+        },
+      ],
     },
     {
       name: 'Sincronia de Combate',
