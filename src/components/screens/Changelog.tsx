@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/04/2026.
+            06/04/2026.
           </p>
 
           <p>
@@ -95,6 +95,14 @@ const Changelog: React.FC = () => {
                   negativo é aplicado, respeitando o ganho mínimo de 1 PV por
                   nível. A correção vale para fichas normais, multiclasse e
                   poderes como Dom da Esperança.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora é possível adicionar uma
+                  descrição a qualquer item de equipamento — tanto customizados
+                  quanto itens normais já na mochila. Basta editar o item e
+                  preencher o campo &quot;Descrição&quot;. Na ficha, um ícone de
+                  informação aparece ao lado do nome do item e, ao passar o
+                  mouse, exibe a descrição em um tooltip.
                 </li>
               </ul>
               <h3>4.8</h3>
