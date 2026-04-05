@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigido o deslocamento do Golem.
+                  A habilidade Chassi agora respeita a regra oficial: o
+                  deslocamento é fixo em 6m e não é reduzido por uso de armadura
+                  ou excesso de carga. Antes, o sobrepeso reduzia o deslocamento
+                  indevidamente. A mesma correção foi aplicada ao Golem Desperto
+                  para os chassis que possuem essa imunidade (Bronze, Carne,
+                  Ferro, Gelo Eterno, Pedra e Sucata).
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Melhoria:</strong> Quando o mestre ativa o modo de
                   rolagens privadas na mesa virtual, os PVs e PMs dos inimigos
                   no controlador de encontros agora ficam ocultos para os
