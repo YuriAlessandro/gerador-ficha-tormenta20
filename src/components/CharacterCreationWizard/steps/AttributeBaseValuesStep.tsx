@@ -35,7 +35,7 @@ const AttributeBaseValuesStep: React.FC<AttributeBaseValuesStepProps> = ({
 
     // Só propaga para o parent se for número válido
     const numValue = parseInt(value, 10);
-    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 10) {
+    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 50) {
       onChange({
         ...baseAttributes,
         [atributo]: numValue,

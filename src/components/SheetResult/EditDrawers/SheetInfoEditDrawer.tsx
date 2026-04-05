@@ -558,7 +558,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
 
     // Só propaga para editedData se for número válido
     const numValue = parseInt(value, 10);
-    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 10) {
+    if (!Number.isNaN(numValue) && numValue >= -4 && numValue <= 50) {
       setEditedData((prev) => ({
         ...prev,
         attributes: {
