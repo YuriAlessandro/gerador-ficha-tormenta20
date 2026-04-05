@@ -342,7 +342,16 @@ export function convertThreatToFoundry(threat: ThreatSheet): FoundryEnemyJSON {
                 'impacto',
                 '',
               ],
-              ['', '', ''],
+              ...(attack.bonusDamageDice && attack.bonusDamageDice.length > 0
+                ? attack.bonusDamageDice.map((bd): [string, string, string] => [
+                    bd.dice,
+                    bd.damageType
+                      .toLowerCase()
+                      .normalize('NFD')
+                      .replace(/[\u0300-\u036f]/g, ''),
+                    '',
+                  ])
+                : [['', '', ''] as [string, string, string]]),
             ],
             versatil: '',
           },

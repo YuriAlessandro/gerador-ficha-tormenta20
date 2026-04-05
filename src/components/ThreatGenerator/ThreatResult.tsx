@@ -266,28 +266,42 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
       ? `Dano x${criticalMultiplier} (normal: ${normalDamage})`
       : 'Dano';
 
-    showDiceResult(
-      `${threat.name}: ${attack.name}`,
-      [
-        {
-          label: 'Ataque',
-          diceNotation: attackDiceNotation,
-          rolls: [attackRoll],
-          modifier: attack.attackBonus,
-          total: attackTotal,
-          isCritical,
-          isFumble,
-        },
-        {
-          label: damageLabel,
-          diceNotation: damageRollResult.diceString,
-          rolls: damageRollResult.diceRolls,
-          modifier: damageRollResult.modifier,
-          total: finalDamage,
-        },
-      ],
-      threat.name
-    );
+    const rollGroups = [
+      {
+        label: 'Ataque',
+        diceNotation: attackDiceNotation,
+        rolls: [attackRoll],
+        modifier: attack.attackBonus,
+        total: attackTotal,
+        isCritical,
+        isFumble,
+      },
+      {
+        label: damageLabel,
+        diceNotation: damageRollResult.diceString,
+        rolls: damageRollResult.diceRolls,
+        modifier: damageRollResult.modifier,
+        total: finalDamage,
+      },
+    ];
+
+    // Dados de dano bônus NÃO são multiplicados em crítico (regra T20)
+    if (attack.bonusDamageDice && attack.bonusDamageDice.length > 0) {
+      attack.bonusDamageDice.forEach((bd) => {
+        const bonusRoll = rollDamage(bd.dice);
+        if (bonusRoll) {
+          rollGroups.push({
+            label: `Dano de ${bd.damageType}`,
+            diceNotation: bonusRoll.diceString,
+            rolls: bonusRoll.diceRolls,
+            modifier: bonusRoll.modifier,
+            total: Math.max(1, bonusRoll.total),
+          });
+        }
+      });
+    }
+
+    showDiceResult(`${threat.name}: ${attack.name}`, rollGroups, threat.name);
   };
 
   const handleSaveToCloud = async () => {
@@ -721,33 +735,42 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
           {threat.attacks.length === 0 ? (
             <div>Nenhum ataque configurado</div>
           ) : (
-            threat.attacks.map((attack) => (
-              <Box
-                key={getKey(attack.name)}
-                onClick={() => handleAttackClick(attack)}
-                sx={{
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  transition: 'all 0.2s ease',
-                  borderRadius: 1,
-                  px: 0.5,
-                  mx: -0.5,
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                    color: theme.palette.primary.main,
-                  },
-                  '&:active': {
-                    transform: 'scale(0.99)',
-                  },
-                }}
-                title={`Rolar ataque: ${attack.name}`}
-              >
-                {attack.name} +{attack.attackBonus} ({attack.damageDice}
-                {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''},{' '}
-                {attack.criticalThreshold || 20}/x
-                {attack.criticalMultiplier || 2})
-              </Box>
-            ))
+            threat.attacks.map((attack) => {
+              const bonusDiceText =
+                attack.bonusDamageDice && attack.bonusDamageDice.length > 0
+                  ? `, mais ${attack.bonusDamageDice
+                      .map((bd) => `${bd.dice} ${bd.damageType}`)
+                      .join(', ')}`
+                  : '';
+              return (
+                <Box
+                  key={getKey(attack.name)}
+                  onClick={() => handleAttackClick(attack)}
+                  sx={{
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    transition: 'all 0.2s ease',
+                    borderRadius: 1,
+                    px: 0.5,
+                    mx: -0.5,
+                    '&:hover': {
+                      backgroundColor: theme.palette.action.hover,
+                      color: theme.palette.primary.main,
+                    },
+                    '&:active': {
+                      transform: 'scale(0.99)',
+                    },
+                  }}
+                  title={`Rolar ataque: ${attack.name}`}
+                >
+                  {attack.name} +{attack.attackBonus} ({attack.damageDice}
+                  {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''},{' '}
+                  {attack.criticalThreshold || 20}/x
+                  {attack.criticalMultiplier || 2}
+                  {bonusDiceText})
+                </Box>
+              );
+            })
           )}
           <ThreatDivisor />
           <div>

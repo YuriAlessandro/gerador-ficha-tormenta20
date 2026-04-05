@@ -74,12 +74,19 @@ export type ThreatActionType =
   | 'Livre'
   | 'Reação';
 
+export interface BonusDamageDice {
+  id: string;
+  dice: string; // Ex: "2d12", "1d6"
+  damageType: string; // Ex: "trevas", "ácido", "fogo"
+}
+
 export interface ThreatAttack {
   id: string;
   name: string;
   attackBonus: number;
   damageDice: string; // Ex: "1d8", "2d6", "3d10"
   bonusDamage: number;
+  bonusDamageDice?: BonusDamageDice[]; // Dados de dano extra tipados
   averageDamage?: number; // Calculado automaticamente
   criticalThreshold?: number; // Margem de ameaça (padrão: 20)
   criticalMultiplier?: number; // Multiplicador de crítico (padrão: 2)
@@ -201,12 +208,25 @@ export interface ThreatSheet {
   imageUrl?: string;
 }
 
-/** Ensures old threat data has resistanceAssignments populated. */
+/** Ensures old threat data has resistanceAssignments and bonusDamageDice populated. */
 export function normalizeThreatSheet(threat: ThreatSheet): ThreatSheet {
-  if (!threat.resistanceAssignments) {
-    return { ...threat, resistanceAssignments: DEFAULT_RESISTANCE_ASSIGNMENTS };
+  let normalized = threat;
+  if (!normalized.resistanceAssignments) {
+    normalized = {
+      ...normalized,
+      resistanceAssignments: DEFAULT_RESISTANCE_ASSIGNMENTS,
+    };
   }
-  return threat;
+  if (normalized.attacks) {
+    normalized = {
+      ...normalized,
+      attacks: normalized.attacks.map((attack) => ({
+        ...attack,
+        bonusDamageDice: attack.bonusDamageDice || [],
+      })),
+    };
+  }
+  return normalized;
 }
 
 // Tipos auxiliares para o builder

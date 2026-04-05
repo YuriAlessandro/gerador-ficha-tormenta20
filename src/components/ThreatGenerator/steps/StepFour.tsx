@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
+  Autocomplete,
   Box,
   Typography,
   Grid,
   Paper,
   TextField,
   Button,
+  Chip,
   IconButton,
   List,
   ListItem,
@@ -17,9 +19,15 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAlert } from '../../../hooks/useDialog';
-import { ThreatSheet, ThreatAttack } from '../../../interfaces/ThreatSheet';
+import {
+  ThreatSheet,
+  ThreatAttack,
+  BonusDamageDice,
+} from '../../../interfaces/ThreatSheet';
+import { ALL_DAMAGE_TYPES } from '../../../interfaces/CharacterSheet';
 import {
   calculateDiceAverage,
+  calculateBonusDiceAverage,
   validateDiceString,
 } from '../../../functions/threatGenerator';
 
@@ -38,6 +46,37 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     criticalThreshold: '20',
     criticalMultiplier: '2',
   });
+  const [bonusDamageDice, setBonusDamageDice] = useState<BonusDamageDice[]>([]);
+  const [newBonusDice, setNewBonusDice] = useState({
+    dice: '',
+    damageType: '',
+  });
+
+  const generateBonusDiceId = () =>
+    `bd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  const handleAddBonusDice = () => {
+    if (
+      !newBonusDice.dice.trim() ||
+      !newBonusDice.damageType.trim() ||
+      !validateDiceString(newBonusDice.dice)
+    )
+      return;
+
+    setBonusDamageDice((prev) => [
+      ...prev,
+      {
+        id: generateBonusDiceId(),
+        dice: newBonusDice.dice.trim(),
+        damageType: newBonusDice.damageType.trim(),
+      },
+    ]);
+    setNewBonusDice({ dice: '', damageType: '' });
+  };
+
+  const handleRemoveBonusDice = (id: string) => {
+    setBonusDamageDice((prev) => prev.filter((bd) => bd.id !== id));
+  };
 
   // Update attack bonus when combat stats change
   React.useEffect(() => {
@@ -65,10 +104,9 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     }
 
     const bonusDamage = parseInt(newAttack.bonusDamage, 10) || 0;
-    const averageDamage = calculateDiceAverage(
-      newAttack.damageDice,
-      bonusDamage
-    );
+    const bonusDiceAvg = calculateBonusDiceAverage(bonusDamageDice);
+    const averageDamage =
+      calculateDiceAverage(newAttack.damageDice, bonusDamage) + bonusDiceAvg;
 
     const criticalThreshold = parseInt(newAttack.criticalThreshold, 10) || 20;
     const criticalMultiplier = parseInt(newAttack.criticalMultiplier, 10) || 2;
@@ -79,6 +117,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
       attackBonus: parseInt(newAttack.attackBonus, 10) || 0,
       damageDice: newAttack.damageDice.trim(),
       bonusDamage,
+      bonusDamageDice: bonusDamageDice.length > 0 ? bonusDamageDice : undefined,
       averageDamage,
       criticalThreshold:
         criticalThreshold !== 20 ? criticalThreshold : undefined,
@@ -98,6 +137,8 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
       criticalThreshold: '20',
       criticalMultiplier: '2',
     });
+    setBonusDamageDice([]);
+    setNewBonusDice({ dice: '', damageType: '' });
   };
 
   const handleRemoveAttack = (attackId: string) => {
@@ -201,6 +242,107 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                     helperText='Dano adicional fixo'
                   />
                 </Grid>
+
+                {/* Bonus Damage Dice Section */}
+                <Grid size={12}>
+                  <Typography variant='subtitle2' gutterBottom sx={{ mt: 1 }}>
+                    Dados de Dano Bônus
+                  </Typography>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    display='block'
+                    sx={{ mb: 1 }}
+                  >
+                    Dados de dano extra com tipo (ex: 2d12 trevas, 1d6 ácido)
+                  </Typography>
+                  <Grid container spacing={1} alignItems='flex-start'>
+                    <Grid size={4}>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        label='Dados'
+                        value={newBonusDice.dice}
+                        onChange={(e) =>
+                          setNewBonusDice({
+                            ...newBonusDice,
+                            dice: e.target.value,
+                          })
+                        }
+                        placeholder='Ex: 2d12'
+                        error={
+                          newBonusDice.dice.trim() !== '' &&
+                          !validateDiceString(newBonusDice.dice)
+                        }
+                      />
+                    </Grid>
+                    <Grid size={6}>
+                      <Autocomplete
+                        freeSolo
+                        size='small'
+                        options={ALL_DAMAGE_TYPES.filter((t) => t !== 'Geral')}
+                        value={newBonusDice.damageType}
+                        onInputChange={(_e, value) =>
+                          setNewBonusDice({
+                            ...newBonusDice,
+                            damageType: value,
+                          })
+                        }
+                        renderInput={(params) => {
+                          const { InputLabelProps, InputProps, ...rest } =
+                            params;
+                          return (
+                            <TextField
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...rest}
+                              InputLabelProps={InputLabelProps}
+                              InputProps={InputProps}
+                              placeholder='Tipo de dano'
+                              label='Tipo de Dano'
+                            />
+                          );
+                        }}
+                      />
+                    </Grid>
+                    <Grid size={2}>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleAddBonusDice}
+                        disabled={
+                          !newBonusDice.dice.trim() ||
+                          !newBonusDice.damageType.trim() ||
+                          !validateDiceString(newBonusDice.dice)
+                        }
+                        sx={{ minHeight: '40px' }}
+                      >
+                        <AddIcon fontSize='small' />
+                      </Button>
+                    </Grid>
+                  </Grid>
+                  {bonusDamageDice.length > 0 && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 0.5,
+                        mt: 1,
+                      }}
+                    >
+                      {bonusDamageDice.map((bd) => (
+                        <Chip
+                          key={bd.id}
+                          label={`${bd.dice} ${bd.damageType}`}
+                          onDelete={() => handleRemoveBonusDice(bd.id)}
+                          size='small'
+                          color='secondary'
+                          variant='outlined'
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Grid>
+
                 <Grid size={6}>
                   <TextField
                     fullWidth
@@ -268,7 +410,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                                 {calculateDiceAverage(
                                   newAttack.damageDice,
                                   parseInt(newAttack.bonusDamage, 10) || 0
-                                )}
+                                ) + calculateBonusDiceAverage(bonusDamageDice)}
                               </strong>
                             </Typography>
                           </Box>
@@ -282,10 +424,11 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                           </Box>
                           <Box>
                             {(() => {
-                              const calculated = calculateDiceAverage(
-                                newAttack.damageDice,
-                                parseInt(newAttack.bonusDamage, 10) || 0
-                              );
+                              const calculated =
+                                calculateDiceAverage(
+                                  newAttack.damageDice,
+                                  parseInt(newAttack.bonusDamage, 10) || 0
+                                ) + calculateBonusDiceAverage(bonusDamageDice);
                               const suggested = combatStats?.averageDamage || 0;
                               const diff = Math.abs(calculated - suggested);
                               const isClose = diff <= 2;
@@ -360,6 +503,13 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                       critThreshold === 20 && critMultiplier === 2
                         ? ''
                         : ` | Crítico: ${critThreshold}/x${critMultiplier}`;
+                    const bonusDiceText =
+                      attack.bonusDamageDice &&
+                      attack.bonusDamageDice.length > 0
+                        ? ` mais ${attack.bonusDamageDice
+                            .map((bd) => `${bd.dice} ${bd.damageType}`)
+                            .join(', ')}`
+                        : '';
 
                     return (
                       <React.Fragment key={attack.id}>
@@ -372,7 +522,9 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                               attack.bonusDamage > 0
                                 ? `+${attack.bonusDamage}`
                                 : ''
-                            } (${attack.averageDamage} médio)${critText}`}
+                            }${bonusDiceText} (${
+                              attack.averageDamage
+                            } médio)${critText}`}
                           />
                           <ListItemSecondaryAction>
                             <IconButton

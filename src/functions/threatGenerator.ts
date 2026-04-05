@@ -11,6 +11,7 @@ import {
   ThreatSheet,
   ResistanceAssignments,
   ResistanceType,
+  BonusDamageDice,
 } from '../interfaces/ThreatSheet';
 import { SkillsAttrs } from '../interfaces/Skills';
 
@@ -293,6 +294,18 @@ export function calculateDiceAverage(
   const totalDiceAverage = numDice * averagePerDie;
 
   return Math.round(totalDiceAverage + bonusDamage);
+}
+
+/**
+ * Calcula o dano médio de dados bônus tipados (ex: [{dice: "2d12"}, {dice: "1d6"}])
+ */
+export function calculateBonusDiceAverage(
+  bonusDice: BonusDamageDice[]
+): number {
+  return bonusDice.reduce((total, entry) => {
+    const avg = calculateDiceAverage(entry.dice, 0);
+    return total + avg;
+  }, 0);
 }
 
 /**
