@@ -72,87 +72,10 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
-                  <strong>Melhoria:</strong> Comentários no fórum agora podem
-                  ser aninhados sem limite de profundidade. Antes, o máximo era
-                  3 níveis. A partir do quinto nível, a indentação visual para
-                  de aumentar e os comentários ficam alinhados, evitando que
-                  fiquem espremidos na tela.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Comentários no fórum agora estão
-                  disponíveis para todos os usuários logados. Apoiadores
-                  (Aventureiros, Paladinos e Nimbianos) têm prioridade visual
-                  com badges e destaques em seus comentários.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Correção:</strong> Corrigido o drawer de edição de
-                  poderes para personagens com multiclasse. Antes, apenas os
-                  poderes da classe primária apareciam no accordion. Agora, cada
-                  classe do multiclasse tem seu próprio accordion de poderes
-                  (ex: &quot;Poderes de Lutador&quot; e &quot;Poderes de
-                  Ladino&quot;), permitindo adicionar e remover poderes de todas
-                  as classes.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Melhoria:</strong> Agora é possível editar ataques,
-                  habilidades e magias já adicionados no gerador de ameaças. Um
-                  botão de editar aparece ao lado de cada item na lista, abrindo
-                  um dialog com todos os campos preenchidos para alteração.
-                  Antes era necessário excluir e recriar o item do zero para
-                  alterar qualquer campo.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Correção:</strong> Corrigido o deslocamento do Golem.
-                  A habilidade Chassi agora respeita a regra oficial: o
-                  deslocamento é fixo em 6m e não é reduzido por uso de armadura
-                  ou excesso de carga. Antes, o sobrepeso reduzia o deslocamento
-                  indevidamente. A mesma correção foi aplicada ao Golem Desperto
-                  para os chassis que possuem essa imunidade (Bronze, Carne,
-                  Ferro, Gelo Eterno, Pedra e Sucata).
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Melhoria:</strong> Quando o mestre ativa o modo de
-                  rolagens privadas na mesa virtual, os PVs e PMs dos inimigos
-                  no controlador de encontros agora ficam ocultos para os
-                  jogadores. Isso permite que o mestre controle quais
-                  informações os jogadores podem ver durante o combate.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Correção:</strong> A Linhagem Abençoada do suplemento
-                  Deuses de Arton agora aparece corretamente na geração
-                  aleatória de fichas e no wizard de level-up/multiclasse. Antes
-                  ela só estava disponível no wizard de criação passo a passo.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Correção:</strong> Editar e salvar uma ficha ou ameaça
-                  que estava dentro de uma pasta não a remove mais da pasta.
-                  Antes, ao salvar qualquer edição, a ficha voltava para a raiz
-                  e era necessário movê-la novamente.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> Ao visualizar uma ficha ou ameaça
-                  que está em uma pasta, os breadcrumbs agora mostram o caminho
-                  completo: Home &gt; Meus Personagens &gt; Nome da Pasta &gt;
-                  Ficha. Cada segmento é clicável e leva de volta à pasta ou
-                  tela correspondente.
+                  <strong>Novo:</strong> Comentários no fórum, nas builds e nos
+                  posts do blog agora estão disponíveis para todos os usuários
+                  logados. Apoiadores (Aventureiros, Paladinos e Nimbianos) têm
+                  prioridade visual com badges e destaques em seus comentários.
                 </li>
                 <li>
                   <strong>Novo:</strong> Agora é possível arrastar e soltar
@@ -161,17 +84,6 @@ const Changelog: React.FC = () => {
                   Dentro de uma pasta, ao arrastar um card aparece uma zona de
                   soltar para remover a ficha da pasta. O botão de mover
                   continua funcionando como alternativa.
-                </li>
-              </ul>
-              <h3>4.9</h3>
-              <ul>
-                <li>
-                  <strong>Correção:</strong> Corrigido o scroll do drawer de
-                  edição de magias. Antes, ao adicionar magias personalizadas, a
-                  lista de magias disponíveis era empurrada para fora da tela,
-                  impossibilitando a seleção de novas magias. Agora toda a seção
-                  (magias personalizadas, selecionadas e círculos) rola em
-                  conjunto, mantendo o cabeçalho e os botões fixos.
                 </li>
                 <li>
                   <strong>Novo:</strong> Ataques de ameaças agora suportam dados
@@ -192,6 +104,104 @@ const Changelog: React.FC = () => {
                   Melhor Amigo e desbloqueia o poder Líder da Matilha. Treino
                   Intensivo aplica +4 PV por nível, redução de dano progressiva
                   (5/10/15) e truques extras ao Melhor Amigo.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora é possível exportar um PDF com
+                  múltiplas ameaças de uma só vez! Na aba Ameaças de Meus
+                  Personagens, clique em &quot;Selecionar&quot;, marque as
+                  ameaças desejadas e clique em &quot;Exportar PDF&quot;. Todas
+                  as fichas de ameaça selecionadas serão geradas em um único
+                  documento. Recurso disponível para apoiadores.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora é possível adicionar uma
+                  descrição a qualquer item de equipamento — tanto customizados
+                  quanto itens normais já na mochila. Basta editar o item e
+                  preencher o campo &quot;Descrição&quot;. Na ficha, um ícone de
+                  informação aparece ao lado do nome do item e, ao passar o
+                  mouse, exibe a descrição em um tooltip.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Comentários no fórum agora podem
+                  ser aninhados sem limite de profundidade. Antes, o máximo era
+                  3 níveis. A partir do quinto nível, a indentação visual para
+                  de aumentar e os comentários ficam alinhados, evitando que
+                  fiquem espremidos na tela.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Agora é possível editar ataques,
+                  habilidades e magias já adicionados no gerador de ameaças. Um
+                  botão de editar aparece ao lado de cada item na lista, abrindo
+                  um dialog com todos os campos preenchidos para alteração.
+                  Antes era necessário excluir e recriar o item do zero para
+                  alterar qualquer campo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Quando o mestre ativa o modo de
+                  rolagens privadas na mesa virtual, os PVs e PMs dos inimigos
+                  no controlador de encontros agora ficam ocultos para os
+                  jogadores. Isso permite que o mestre controle quais
+                  informações os jogadores podem ver durante o combate.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao visualizar uma ficha ou ameaça
+                  que está em uma pasta, os breadcrumbs agora mostram o caminho
+                  completo: Home &gt; Meus Personagens &gt; Nome da Pasta &gt;
+                  Ficha. Cada segmento é clicável e leva de volta à pasta ou
+                  tela correspondente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> A tabela de magias na ficha agora
+                  exibe os nomes das magias com muito mais espaço, facilitando a
+                  identificação. Colunas com valores curtos (Escola, Execução,
+                  Alvo/Área, Duração) foram reduzidas para dar mais destaque ao
+                  nome. Além disso, ao passar o mouse sobre o nome de uma magia,
+                  um tooltip exibe o nome completo — útil para magias com nomes
+                  longos.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Agora é possível definir atributos
+                  base com valores de até 50 (antes o limite era 10). A mudança
+                  vale tanto para a criação de personagem pelo wizard quanto
+                  para a edição de fichas existentes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o drawer de edição de
+                  poderes para personagens com multiclasse. Antes, apenas os
+                  poderes da classe primária apareciam no accordion. Agora, cada
+                  classe do multiclasse tem seu próprio accordion de poderes
+                  (ex: &quot;Poderes de Lutador&quot; e &quot;Poderes de
+                  Ladino&quot;), permitindo adicionar e remover poderes de todas
+                  as classes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o deslocamento do Golem.
+                  A habilidade Chassi agora respeita a regra oficial: o
+                  deslocamento é fixo em 6m e não é reduzido por uso de armadura
+                  ou excesso de carga. Antes, o sobrepeso reduzia o deslocamento
+                  indevidamente. A mesma correção foi aplicada ao Golem Desperto
+                  para os chassis que possuem essa imunidade (Bronze, Carne,
+                  Ferro, Gelo Eterno, Pedra e Sucata).
+                </li>
+                <li>
+                  <strong>Correção:</strong> A Linhagem Abençoada do suplemento
+                  Deuses de Arton agora aparece corretamente na geração
+                  aleatória de fichas e no wizard de level-up/multiclasse. Antes
+                  ela só estava disponível no wizard de criação passo a passo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Editar e salvar uma ficha ou ameaça
+                  que estava dentro de uma pasta não a remove mais da pasta.
+                  Antes, ao salvar qualquer edição, a ficha voltava para a raiz
+                  e era necessário movê-la novamente.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o scroll do drawer de
+                  edição de magias. Antes, ao adicionar magias personalizadas, a
+                  lista de magias disponíveis era empurrada para fora da tela,
+                  impossibilitando a seleção de novas magias. Agora toda a seção
+                  (magias personalizadas, selecionadas e círculos) rola em
+                  conjunto, mantendo o cabeçalho e os botões fixos.
                 </li>
                 <li>
                   <strong>Correção:</strong> Truques do Melhor Amigo que exigem
@@ -222,37 +232,12 @@ const Changelog: React.FC = () => {
                   extra para Duendes com Natureza Animal.
                 </li>
                 <li>
-                  <strong>Novo:</strong> Agora é possível exportar um PDF com
-                  múltiplas ameaças de uma só vez! Na aba Ameaças de Meus
-                  Personagens, clique em &quot;Selecionar&quot;, marque as
-                  ameaças desejadas e clique em &quot;Exportar PDF&quot;. Todas
-                  as fichas de ameaça selecionadas serão geradas em um único
-                  documento. Recurso disponível para apoiadores.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> A tabela de magias na ficha agora
-                  exibe os nomes das magias com muito mais espaço, facilitando a
-                  identificação. Colunas com valores curtos (Escola, Execução,
-                  Alvo/Área, Duração) foram reduzidas para dar mais destaque ao
-                  nome. Além disso, ao passar o mouse sobre o nome de uma magia,
-                  um tooltip exibe o nome completo — útil para magias com nomes
-                  longos.
-                </li>
-                <li>
                   <strong>Correção:</strong> Constituição negativa agora reduz
                   os PVs corretamente. Antes, personagens com CON negativa
                   recebiam PV como se tivessem CON 0. Agora o modificador
                   negativo é aplicado, respeitando o ganho mínimo de 1 PV por
                   nível. A correção vale para fichas normais, multiclasse e
                   poderes como Dom da Esperança.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Agora é possível adicionar uma
-                  descrição a qualquer item de equipamento — tanto customizados
-                  quanto itens normais já na mochila. Basta editar o item e
-                  preencher o campo &quot;Descrição&quot;. Na ficha, um ícone de
-                  informação aparece ao lado do nome do item e, ao passar o
-                  mouse, exibe a descrição em um tooltip.
                 </li>
                 <li>
                   <strong>Correção:</strong> Poderes concedidos agora podem ser
@@ -269,12 +254,6 @@ const Changelog: React.FC = () => {
                   magias estão memorizadas e quais estão sempre preparadas.
                   Antes, os indicadores de memorização só apareciam no modo de
                   edição.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> Agora é possível definir atributos
-                  base com valores de até 50 (antes o limite era 10). A mudança
-                  vale tanto para a criação de personagem pelo wizard quanto
-                  para a edição de fichas existentes.
                 </li>
               </ul>
               <h3>4.8</h3>
