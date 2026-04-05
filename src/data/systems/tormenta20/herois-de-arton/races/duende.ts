@@ -83,11 +83,12 @@ export function applyDuendeCustomization(
   // 2. Atributo extra da natureza Animal
   //    Se bonusAttributes já inclui a 3ª escolha (UI flow), usar ela diretamente.
   //    Se não (random flow legado com apenas 2 itens), adicionar como 'any'.
-  const natureAttrs: RaceAttributeAbility[] = nature.extraAttribute
-    ? bonusAttributes.length >= 3
-      ? [{ attr: bonusAttributes[2], mod: 1 }]
-      : [{ attr: 'any' as const, mod: 1 }]
-    : [];
+  let natureAttrs: RaceAttributeAbility[] = [];
+  if (nature.extraAttribute) {
+    const natureAttr =
+      bonusAttributes.length >= 3 ? bonusAttributes[2] : ('any' as const);
+    natureAttrs = [{ attr: natureAttr, mod: 1 }];
+  }
 
   // 3. Atributos do tamanho
   const sizeAttrs = size.attributeModifiers || [];
@@ -143,12 +144,10 @@ function generateRandomBonusAttributes(isAnimal: boolean): Atributo[] {
   if (isAnimal) {
     // Natureza Animal: +1 em um atributo (pode acumular com os Dons)
     // 50% de chance de repetir um dos Dons, 50% atributo aleatório
-    const thirdAttr =
-      Math.random() > 0.5
-        ? Math.random() > 0.5
-          ? firstAttr
-          : secondAttr
-        : getRandomItemFromArray(allAttrs);
+    const shouldRepeat = Math.random() > 0.5;
+    const thirdAttr = shouldRepeat
+      ? getRandomItemFromArray([firstAttr, secondAttr])
+      : getRandomItemFromArray(allAttrs);
     return [firstAttr, secondAttr, thirdAttr];
   }
 
