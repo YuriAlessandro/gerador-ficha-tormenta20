@@ -72,6 +72,16 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> Quando o mestre ativa o modo de
+                  rolagens privadas na mesa virtual, os PVs e PMs dos inimigos
+                  no controlador de encontros agora ficam ocultos para os
+                  jogadores. Isso permite que o mestre controle quais
+                  informações os jogadores podem ver durante o combate.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Correção:</strong> A Linhagem Abençoada do suplemento
                   Deuses de Arton agora aparece corretamente na geração
                   aleatória de fichas e no wizard de level-up/multiclasse. Antes
