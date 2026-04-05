@@ -30,6 +30,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import InfoIcon from '@mui/icons-material/Info';
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd';
 import CasinoIcon from '@mui/icons-material/Casino';
@@ -91,6 +92,40 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
   });
   const [newSpellRolls, setNewSpellRolls] = useState<AbilityRoll[]>([]);
   const [newSpellRoll, setNewSpellRoll] = useState({
+    name: '',
+    dice: '',
+    bonus: 0,
+  });
+
+  // Edit ability dialog state
+  const [editAbilityDialog, setEditAbilityDialog] = useState(false);
+  const [editingAbility, setEditingAbility] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    hasPmCost: boolean;
+    pmCost: number;
+    actionType: ThreatActionType;
+  } | null>(null);
+  const [editAbilityRolls, setEditAbilityRolls] = useState<AbilityRoll[]>([]);
+  const [editAbilityNewRoll, setEditAbilityNewRoll] = useState({
+    name: '',
+    dice: '',
+    bonus: 0,
+  });
+
+  // Edit spell dialog state
+  const [editSpellDialog, setEditSpellDialog] = useState(false);
+  const [editingSpell, setEditingSpell] = useState<{
+    id: string;
+    name: string;
+    description: string;
+    hasPmCost: boolean;
+    pmCost: number;
+    actionType: ThreatActionType;
+  } | null>(null);
+  const [editSpellRolls, setEditSpellRolls] = useState<AbilityRoll[]>([]);
+  const [editSpellNewRoll, setEditSpellNewRoll] = useState({
     name: '',
     dice: '',
     bonus: 0,
@@ -282,6 +317,131 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       (spell) => spell.id !== spellId
     );
     onUpdate({ spells: updatedSpells });
+  };
+
+  // Edit ability handlers
+  const handleEditAbility = (ability: ThreatAbility) => {
+    setEditingAbility({
+      id: ability.id,
+      name: ability.name,
+      description: ability.description,
+      hasPmCost: (ability.pmCost ?? 0) > 0,
+      pmCost: ability.pmCost || 1,
+      actionType: ability.actionType || 'Padrão',
+    });
+    setEditAbilityRolls(
+      ability.rolls ? ability.rolls.map((r) => ({ ...r })) : []
+    );
+    setEditAbilityNewRoll({ name: '', dice: '', bonus: 0 });
+    setEditAbilityDialog(true);
+  };
+
+  const handleEditAddAbilityRoll = () => {
+    if (!editAbilityNewRoll.name.trim() || !editAbilityNewRoll.dice.trim())
+      return;
+
+    const roll: AbilityRoll = {
+      id: generateRollId(),
+      name: editAbilityNewRoll.name.trim(),
+      dice: editAbilityNewRoll.dice.trim(),
+      bonus: editAbilityNewRoll.bonus,
+    };
+
+    setEditAbilityRolls([...editAbilityRolls, roll]);
+    setEditAbilityNewRoll({ name: '', dice: '', bonus: 0 });
+  };
+
+  const handleEditRemoveAbilityRoll = (rollId: string) => {
+    setEditAbilityRolls(editAbilityRolls.filter((r) => r.id !== rollId));
+  };
+
+  const handleSaveEditAbility = () => {
+    if (!editingAbility || !editingAbility.name.trim()) return;
+
+    const updatedAbility: ThreatAbility = {
+      id: editingAbility.id,
+      name: editingAbility.name.trim(),
+      description: editingAbility.description.trim(),
+      rolls: editAbilityRolls.length > 0 ? editAbilityRolls : undefined,
+      pmCost:
+        editingAbility.hasPmCost && editingAbility.pmCost > 0
+          ? editingAbility.pmCost
+          : undefined,
+      actionType:
+        editingAbility.actionType !== 'Padrão'
+          ? editingAbility.actionType
+          : undefined,
+    };
+
+    const updatedAbilities = (threat.abilities || []).map((a) =>
+      a.id === updatedAbility.id ? updatedAbility : a
+    );
+    onUpdate({ abilities: updatedAbilities });
+
+    setEditAbilityDialog(false);
+    setEditingAbility(null);
+    setEditAbilityRolls([]);
+  };
+
+  // Edit spell handlers
+  const handleEditSpell = (spell: ThreatSpell) => {
+    setEditingSpell({
+      id: spell.id,
+      name: spell.name,
+      description: spell.description,
+      hasPmCost: (spell.pmCost ?? 0) > 0,
+      pmCost: spell.pmCost || 1,
+      actionType: spell.actionType || 'Padrão',
+    });
+    setEditSpellRolls(spell.rolls ? spell.rolls.map((r) => ({ ...r })) : []);
+    setEditSpellNewRoll({ name: '', dice: '', bonus: 0 });
+    setEditSpellDialog(true);
+  };
+
+  const handleEditAddSpellRoll = () => {
+    if (!editSpellNewRoll.name.trim() || !editSpellNewRoll.dice.trim()) return;
+
+    const roll: AbilityRoll = {
+      id: generateRollId(),
+      name: editSpellNewRoll.name.trim(),
+      dice: editSpellNewRoll.dice.trim(),
+      bonus: editSpellNewRoll.bonus,
+    };
+
+    setEditSpellRolls([...editSpellRolls, roll]);
+    setEditSpellNewRoll({ name: '', dice: '', bonus: 0 });
+  };
+
+  const handleEditRemoveSpellRoll = (rollId: string) => {
+    setEditSpellRolls(editSpellRolls.filter((r) => r.id !== rollId));
+  };
+
+  const handleSaveEditSpell = () => {
+    if (!editingSpell || !editingSpell.name.trim()) return;
+
+    const updatedSpell: ThreatSpell = {
+      id: editingSpell.id,
+      name: editingSpell.name.trim(),
+      description: editingSpell.description.trim(),
+      rolls: editSpellRolls.length > 0 ? editSpellRolls : undefined,
+      pmCost:
+        editingSpell.hasPmCost && editingSpell.pmCost > 0
+          ? editingSpell.pmCost
+          : undefined,
+      actionType:
+        editingSpell.actionType !== 'Padrão'
+          ? editingSpell.actionType
+          : undefined,
+    };
+
+    const updatedSpells = (threat.spells || []).map((s) =>
+      s.id === updatedSpell.id ? updatedSpell : s
+    );
+    onUpdate({ spells: updatedSpells });
+
+    setEditSpellDialog(false);
+    setEditingSpell(null);
+    setEditSpellRolls([]);
   };
 
   // Get ability recommendations
@@ -666,6 +826,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                       />
                       <ListItemSecondaryAction>
                         <IconButton
+                          onClick={() => handleEditAbility(ability)}
+                          size='small'
+                          color='primary'
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
                           edge='end'
                           onClick={() => handleRemoveAbility(ability.id)}
                           size='small'
@@ -1001,6 +1168,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                       />
                       <ListItemSecondaryAction>
                         <IconButton
+                          onClick={() => handleEditSpell(spell)}
+                          size='small'
+                          color='primary'
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
                           edge='end'
                           onClick={() => handleRemoveSpell(spell.id)}
                           size='small'
@@ -1286,6 +1460,430 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
           <Button onClick={() => setCustomizeDialog(false)}>Cancelar</Button>
           <Button variant='contained' onClick={handleAddSuggestion}>
             Adicionar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Ability Dialog */}
+      <Dialog
+        open={editAbilityDialog}
+        onClose={() => setEditAbilityDialog(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Habilidade</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label='Nome'
+            value={editingAbility?.name || ''}
+            onChange={(e) =>
+              setEditingAbility((prev) =>
+                prev ? { ...prev, name: e.target.value } : null
+              )
+            }
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label='Descrição'
+            value={editingAbility?.description || ''}
+            onChange={(e) =>
+              setEditingAbility((prev) =>
+                prev ? { ...prev, description: e.target.value } : null
+              )
+            }
+            sx={{ mb: 2 }}
+          />
+
+          {/* Tipo de Ação */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Tipo de Ação</InputLabel>
+            <Select
+              value={editingAbility?.actionType || 'Padrão'}
+              label='Tipo de Ação'
+              onChange={(e) =>
+                setEditingAbility((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        actionType: e.target.value as ThreatActionType,
+                      }
+                    : null
+                )
+              }
+            >
+              <MenuItem value='Padrão'>Padrão</MenuItem>
+              <MenuItem value='Movimento'>Movimento</MenuItem>
+              <MenuItem value='Completa'>Completa</MenuItem>
+              <MenuItem value='Livre'>Livre</MenuItem>
+              <MenuItem value='Reação'>Reação</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Custo de PM */}
+          <Box
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 2,
+              mb: 2,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editingAbility?.hasPmCost || false}
+                  onChange={(e) =>
+                    setEditingAbility((prev) =>
+                      prev ? { ...prev, hasPmCost: e.target.checked } : null
+                    )
+                  }
+                />
+              }
+              label='Esta habilidade custa PM?'
+            />
+            {editingAbility?.hasPmCost && (
+              <TextField
+                fullWidth
+                type='number'
+                label='Custo em PM'
+                value={editingAbility?.pmCost || 1}
+                onChange={(e) =>
+                  setEditingAbility((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          pmCost: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 1
+                          ),
+                        }
+                      : null
+                  )
+                }
+                inputProps={{ min: 1 }}
+                sx={{ mt: 2 }}
+              />
+            )}
+          </Box>
+
+          {/* Rolls Section */}
+          <Box
+            sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 2 }}
+          >
+            <Typography variant='subtitle2' gutterBottom>
+              <CasinoIcon
+                fontSize='small'
+                sx={{ mr: 0.5, verticalAlign: 'middle' }}
+              />
+              Rolagens (Opcional)
+            </Typography>
+
+            {editAbilityRolls.length > 0 && (
+              <Box mb={2}>
+                {editAbilityRolls.map((roll) => (
+                  <Chip
+                    key={roll.id}
+                    label={`${roll.name}: ${roll.dice}${
+                      roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                    }`}
+                    onDelete={() => handleEditRemoveAbilityRoll(roll.id)}
+                    size='small'
+                    sx={{ mr: 0.5, mb: 0.5 }}
+                    icon={<CasinoIcon />}
+                  />
+                ))}
+              </Box>
+            )}
+
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Nome'
+                  value={editAbilityNewRoll.name}
+                  onChange={(e) =>
+                    setEditAbilityNewRoll({
+                      ...editAbilityNewRoll,
+                      name: e.target.value,
+                    })
+                  }
+                  placeholder='Dano'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Dado'
+                  value={editAbilityNewRoll.dice}
+                  onChange={(e) =>
+                    setEditAbilityNewRoll({
+                      ...editAbilityNewRoll,
+                      dice: e.target.value,
+                    })
+                  }
+                  placeholder='2d6'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Bônus'
+                  type='number'
+                  value={editAbilityNewRoll.bonus}
+                  onChange={(e) =>
+                    setEditAbilityNewRoll({
+                      ...editAbilityNewRoll,
+                      bonus: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 2 }}>
+                <Button
+                  size='small'
+                  variant='outlined'
+                  fullWidth
+                  onClick={handleEditAddAbilityRoll}
+                  disabled={
+                    !editAbilityNewRoll.name.trim() ||
+                    !editAbilityNewRoll.dice.trim()
+                  }
+                  sx={{ height: '40px' }}
+                >
+                  <AddIcon />
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditAbilityDialog(false)}>Cancelar</Button>
+          <Button
+            variant='contained'
+            onClick={handleSaveEditAbility}
+            disabled={!editingAbility?.name.trim()}
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Spell Dialog */}
+      <Dialog
+        open={editSpellDialog}
+        onClose={() => setEditSpellDialog(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Magia</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label='Nome'
+            value={editingSpell?.name || ''}
+            onChange={(e) =>
+              setEditingSpell((prev) =>
+                prev ? { ...prev, name: e.target.value } : null
+              )
+            }
+            sx={{ mb: 2, mt: 1 }}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label='Descrição'
+            value={editingSpell?.description || ''}
+            onChange={(e) =>
+              setEditingSpell((prev) =>
+                prev ? { ...prev, description: e.target.value } : null
+              )
+            }
+            sx={{ mb: 2 }}
+          />
+
+          {/* Tipo de Ação */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Tipo de Ação</InputLabel>
+            <Select
+              value={editingSpell?.actionType || 'Padrão'}
+              label='Tipo de Ação'
+              onChange={(e) =>
+                setEditingSpell((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        actionType: e.target.value as ThreatActionType,
+                      }
+                    : null
+                )
+              }
+            >
+              <MenuItem value='Padrão'>Padrão</MenuItem>
+              <MenuItem value='Movimento'>Movimento</MenuItem>
+              <MenuItem value='Completa'>Completa</MenuItem>
+              <MenuItem value='Livre'>Livre</MenuItem>
+              <MenuItem value='Reação'>Reação</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Custo de PM */}
+          <Box
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              p: 2,
+              mb: 2,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editingSpell?.hasPmCost || false}
+                  onChange={(e) =>
+                    setEditingSpell((prev) =>
+                      prev ? { ...prev, hasPmCost: e.target.checked } : null
+                    )
+                  }
+                />
+              }
+              label='Esta magia custa PM?'
+            />
+            {editingSpell?.hasPmCost && (
+              <TextField
+                fullWidth
+                type='number'
+                label='Custo em PM'
+                value={editingSpell?.pmCost || 1}
+                onChange={(e) =>
+                  setEditingSpell((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          pmCost: Math.max(
+                            1,
+                            parseInt(e.target.value, 10) || 1
+                          ),
+                        }
+                      : null
+                  )
+                }
+                inputProps={{ min: 1 }}
+                sx={{ mt: 2 }}
+              />
+            )}
+          </Box>
+
+          {/* Rolls Section */}
+          <Box
+            sx={{ border: 1, borderColor: 'divider', borderRadius: 1, p: 2 }}
+          >
+            <Typography variant='subtitle2' gutterBottom>
+              <CasinoIcon
+                fontSize='small'
+                sx={{ mr: 0.5, verticalAlign: 'middle' }}
+              />
+              Rolagens (Opcional)
+            </Typography>
+
+            {editSpellRolls.length > 0 && (
+              <Box mb={2}>
+                {editSpellRolls.map((roll) => (
+                  <Chip
+                    key={roll.id}
+                    label={`${roll.name}: ${roll.dice}${
+                      roll.bonus >= 0 ? `+${roll.bonus}` : roll.bonus
+                    }`}
+                    onDelete={() => handleEditRemoveSpellRoll(roll.id)}
+                    size='small'
+                    sx={{ mr: 0.5, mb: 0.5 }}
+                    icon={<CasinoIcon />}
+                  />
+                ))}
+              </Box>
+            )}
+
+            <Grid container spacing={1}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Nome'
+                  value={editSpellNewRoll.name}
+                  onChange={(e) =>
+                    setEditSpellNewRoll({
+                      ...editSpellNewRoll,
+                      name: e.target.value,
+                    })
+                  }
+                  placeholder='Dano'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Dado'
+                  value={editSpellNewRoll.dice}
+                  onChange={(e) =>
+                    setEditSpellNewRoll({
+                      ...editSpellNewRoll,
+                      dice: e.target.value,
+                    })
+                  }
+                  placeholder='8d6'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3 }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  label='Bônus'
+                  type='number'
+                  value={editSpellNewRoll.bonus}
+                  onChange={(e) =>
+                    setEditSpellNewRoll({
+                      ...editSpellNewRoll,
+                      bonus: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 2 }}>
+                <Button
+                  size='small'
+                  variant='outlined'
+                  fullWidth
+                  onClick={handleEditAddSpellRoll}
+                  disabled={
+                    !editSpellNewRoll.name.trim() ||
+                    !editSpellNewRoll.dice.trim()
+                  }
+                  sx={{ height: '40px' }}
+                >
+                  <AddIcon />
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditSpellDialog(false)}>Cancelar</Button>
+          <Button
+            variant='contained'
+            onClick={handleSaveEditSpell}
+            disabled={!editingSpell?.name.trim()}
+          >
+            Salvar
           </Button>
         </DialogActions>
       </Dialog>

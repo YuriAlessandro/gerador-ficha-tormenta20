@@ -15,9 +15,14 @@ import {
   ListItemSecondaryAction,
   Alert,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { useAlert } from '../../../hooks/useDialog';
 import {
   ThreatSheet,
@@ -48,6 +53,25 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
   });
   const [bonusDamageDice, setBonusDamageDice] = useState<BonusDamageDice[]>([]);
   const [newBonusDice, setNewBonusDice] = useState({
+    dice: '',
+    damageType: '',
+  });
+
+  // Edit dialog state
+  const [editDialog, setEditDialog] = useState(false);
+  const [editingAttack, setEditingAttack] = useState<{
+    id: string;
+    name: string;
+    attackBonus: string;
+    damageDice: string;
+    bonusDamage: string;
+    criticalThreshold: string;
+    criticalMultiplier: string;
+  } | null>(null);
+  const [editBonusDamageDice, setEditBonusDamageDice] = useState<
+    BonusDamageDice[]
+  >([]);
+  const [editNewBonusDice, setEditNewBonusDice] = useState({
     dice: '',
     damageType: '',
   });
@@ -145,6 +169,96 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     const { attacks = [] } = threat;
     const updatedAttacks = attacks.filter((attack) => attack.id !== attackId);
     onUpdate({ attacks: updatedAttacks });
+  };
+
+  const handleEditAttack = (attack: ThreatAttack) => {
+    setEditingAttack({
+      id: attack.id,
+      name: attack.name,
+      attackBonus: attack.attackBonus.toString(),
+      damageDice: attack.damageDice,
+      bonusDamage: attack.bonusDamage.toString(),
+      criticalThreshold: (attack.criticalThreshold || 20).toString(),
+      criticalMultiplier: (attack.criticalMultiplier || 2).toString(),
+    });
+    setEditBonusDamageDice(
+      attack.bonusDamageDice
+        ? attack.bonusDamageDice.map((bd) => ({ ...bd }))
+        : []
+    );
+    setEditNewBonusDice({ dice: '', damageType: '' });
+    setEditDialog(true);
+  };
+
+  const handleEditAddBonusDice = () => {
+    if (
+      !editNewBonusDice.dice.trim() ||
+      !editNewBonusDice.damageType.trim() ||
+      !validateDiceString(editNewBonusDice.dice)
+    )
+      return;
+
+    setEditBonusDamageDice((prev) => [
+      ...prev,
+      {
+        id: generateBonusDiceId(),
+        dice: editNewBonusDice.dice.trim(),
+        damageType: editNewBonusDice.damageType.trim(),
+      },
+    ]);
+    setEditNewBonusDice({ dice: '', damageType: '' });
+  };
+
+  const handleEditRemoveBonusDice = (id: string) => {
+    setEditBonusDamageDice((prev) => prev.filter((bd) => bd.id !== id));
+  };
+
+  const handleSaveEditAttack = () => {
+    if (!editingAttack) return;
+    if (!editingAttack.name.trim() || !editingAttack.damageDice.trim()) return;
+
+    if (!validateDiceString(editingAttack.damageDice)) {
+      showAlert(
+        'Formato de dados inválido. Use formatos como "1d8", "2d6", "3d10"',
+        'Formato Inválido'
+      );
+      return;
+    }
+
+    const bonusDamage = parseInt(editingAttack.bonusDamage, 10) || 0;
+    const bonusDiceAvg = calculateBonusDiceAverage(editBonusDamageDice);
+    const averageDamage =
+      calculateDiceAverage(editingAttack.damageDice, bonusDamage) +
+      bonusDiceAvg;
+
+    const criticalThreshold =
+      parseInt(editingAttack.criticalThreshold, 10) || 20;
+    const criticalMultiplier =
+      parseInt(editingAttack.criticalMultiplier, 10) || 2;
+
+    const updatedAttack: ThreatAttack = {
+      id: editingAttack.id,
+      name: editingAttack.name.trim(),
+      attackBonus: parseInt(editingAttack.attackBonus, 10) || 0,
+      damageDice: editingAttack.damageDice.trim(),
+      bonusDamage,
+      bonusDamageDice:
+        editBonusDamageDice.length > 0 ? editBonusDamageDice : undefined,
+      averageDamage,
+      criticalThreshold:
+        criticalThreshold !== 20 ? criticalThreshold : undefined,
+      criticalMultiplier:
+        criticalMultiplier !== 2 ? criticalMultiplier : undefined,
+    };
+
+    const updatedAttacks = (threat.attacks || []).map((a) =>
+      a.id === updatedAttack.id ? updatedAttack : a
+    );
+    onUpdate({ attacks: updatedAttacks });
+
+    setEditDialog(false);
+    setEditingAttack(null);
+    setEditBonusDamageDice([]);
   };
 
   const { combatStats } = threat;
@@ -528,6 +642,13 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                           />
                           <ListItemSecondaryAction>
                             <IconButton
+                              onClick={() => handleEditAttack(attack)}
+                              size='small'
+                              color='primary'
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
                               edge='end'
                               onClick={() => handleRemoveAttack(attack.id)}
                               size='small'
@@ -592,6 +713,261 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
           </Grid>
         </Box>
       </Box>
+
+      {/* Edit Attack Dialog */}
+      <Dialog
+        open={editDialog}
+        onClose={() => setEditDialog(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Editar Ataque</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                label='Nome do Ataque'
+                value={editingAttack?.name || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev ? { ...prev, name: e.target.value } : null
+                  )
+                }
+              />
+            </Grid>
+            <Grid size={6}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Bônus de Ataque'
+                value={editingAttack?.attackBonus || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev ? { ...prev, attackBonus: e.target.value } : null
+                  )
+                }
+              />
+            </Grid>
+            <Grid size={6}>
+              <TextField
+                fullWidth
+                label='Dados de Dano'
+                value={editingAttack?.damageDice || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev ? { ...prev, damageDice: e.target.value } : null
+                  )
+                }
+                helperText='Formato: XdY'
+                error={
+                  (editingAttack?.damageDice || '').trim() !== '' &&
+                  !validateDiceString(editingAttack?.damageDice || '')
+                }
+              />
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Dano Bônus'
+                value={editingAttack?.bonusDamage || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev ? { ...prev, bonusDamage: e.target.value } : null
+                  )
+                }
+              />
+            </Grid>
+
+            {/* Bonus Damage Dice */}
+            <Grid size={12}>
+              <Typography variant='subtitle2' gutterBottom>
+                Dados de Dano Bônus
+              </Typography>
+              <Grid container spacing={1} alignItems='flex-start'>
+                <Grid size={4}>
+                  <TextField
+                    fullWidth
+                    size='small'
+                    label='Dados'
+                    value={editNewBonusDice.dice}
+                    onChange={(e) =>
+                      setEditNewBonusDice({
+                        ...editNewBonusDice,
+                        dice: e.target.value,
+                      })
+                    }
+                    placeholder='Ex: 2d12'
+                    error={
+                      editNewBonusDice.dice.trim() !== '' &&
+                      !validateDiceString(editNewBonusDice.dice)
+                    }
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <Autocomplete
+                    freeSolo
+                    size='small'
+                    options={ALL_DAMAGE_TYPES.filter((t) => t !== 'Geral')}
+                    value={editNewBonusDice.damageType}
+                    onInputChange={(_e, value) =>
+                      setEditNewBonusDice({
+                        ...editNewBonusDice,
+                        damageType: value,
+                      })
+                    }
+                    renderInput={(params) => {
+                      const { InputLabelProps, InputProps, ...rest } = params;
+                      return (
+                        <TextField
+                          // eslint-disable-next-line react/jsx-props-no-spreading
+                          {...rest}
+                          InputLabelProps={InputLabelProps}
+                          InputProps={InputProps}
+                          placeholder='Tipo de dano'
+                          label='Tipo de Dano'
+                        />
+                      );
+                    }}
+                  />
+                </Grid>
+                <Grid size={2}>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    onClick={handleEditAddBonusDice}
+                    disabled={
+                      !editNewBonusDice.dice.trim() ||
+                      !editNewBonusDice.damageType.trim() ||
+                      !validateDiceString(editNewBonusDice.dice)
+                    }
+                    sx={{ minHeight: '40px' }}
+                  >
+                    <AddIcon fontSize='small' />
+                  </Button>
+                </Grid>
+              </Grid>
+              {editBonusDamageDice.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 0.5,
+                    mt: 1,
+                  }}
+                >
+                  {editBonusDamageDice.map((bd) => (
+                    <Chip
+                      key={bd.id}
+                      label={`${bd.dice} ${bd.damageType}`}
+                      onDelete={() => handleEditRemoveBonusDice(bd.id)}
+                      size='small'
+                      color='secondary'
+                      variant='outlined'
+                    />
+                  ))}
+                </Box>
+              )}
+            </Grid>
+
+            <Grid size={6}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Margem de Ameaça'
+                value={editingAttack?.criticalThreshold || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev ? { ...prev, criticalThreshold: e.target.value } : null
+                  )
+                }
+                helperText='Crítico em rolagem igual ou maior'
+                slotProps={{
+                  htmlInput: { min: 1, max: 20 },
+                }}
+              />
+            </Grid>
+            <Grid size={6}>
+              <TextField
+                fullWidth
+                type='number'
+                label='Multiplicador de Crítico'
+                value={editingAttack?.criticalMultiplier || ''}
+                onChange={(e) =>
+                  setEditingAttack((prev) =>
+                    prev
+                      ? { ...prev, criticalMultiplier: e.target.value }
+                      : null
+                  )
+                }
+                helperText='x2, x3, x4...'
+                slotProps={{
+                  htmlInput: { min: 2, max: 6 },
+                }}
+              />
+            </Grid>
+
+            {/* Damage Comparison */}
+            {editingAttack &&
+              editingAttack.damageDice.trim() !== '' &&
+              validateDiceString(editingAttack.damageDice) && (
+                <Grid size={12}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: 'background.paper',
+                      border: 1,
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                    }}
+                  >
+                    <Typography variant='body2' gutterBottom>
+                      <strong>Comparação de Dano:</strong>
+                    </Typography>
+                    <Box
+                      display='flex'
+                      justifyContent='space-between'
+                      alignItems='center'
+                    >
+                      <Box>
+                        <Typography variant='body2' color='text.secondary'>
+                          Dano calculado:{' '}
+                          <strong>
+                            {calculateDiceAverage(
+                              editingAttack.damageDice,
+                              parseInt(editingAttack.bonusDamage, 10) || 0
+                            ) + calculateBonusDiceAverage(editBonusDamageDice)}
+                          </strong>
+                        </Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant='body2' color='text.secondary'>
+                          Dano sugerido:{' '}
+                          <strong>{combatStats?.averageDamage || '?'}</strong>
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Grid>
+              )}
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialog(false)}>Cancelar</Button>
+          <Button
+            variant='contained'
+            onClick={handleSaveEditAttack}
+            disabled={
+              !editingAttack?.name.trim() ||
+              !editingAttack?.damageDice.trim() ||
+              !validateDiceString(editingAttack?.damageDice || '')
+            }
+          >
+            Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
