@@ -72,6 +72,30 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Editar e salvar uma ficha ou ameaça
+                  que estava dentro de uma pasta não a remove mais da pasta.
+                  Antes, ao salvar qualquer edição, a ficha voltava para a raiz
+                  e era necessário movê-la novamente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Ao visualizar uma ficha ou ameaça
+                  que está em uma pasta, os breadcrumbs agora mostram o caminho
+                  completo: Home &gt; Meus Personagens &gt; Nome da Pasta &gt;
+                  Ficha. Cada segmento é clicável e leva de volta à pasta ou
+                  tela correspondente.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Agora é possível arrastar e soltar
+                  fichas e ameaças para dentro das pastas! Basta arrastar um
+                  card pelo ícone de arrastar e soltá-lo sobre a pasta desejada.
+                  Dentro de uma pasta, ao arrastar um card aparece uma zona de
+                  soltar para remover a ficha da pasta. O botão de mover
+                  continua funcionando como alternativa.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Correção:</strong> Corrigido o scroll do drawer de
                   edição de magias. Antes, ao adicionar magias personalizadas, a
                   lista de magias disponíveis era empurrada para fora da tela,
