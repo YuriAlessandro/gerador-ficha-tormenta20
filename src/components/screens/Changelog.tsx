@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/04/2026.
+            05/04/2026.
           </p>
 
           <p>
@@ -87,6 +87,14 @@ const Changelog: React.FC = () => {
                   nome. Além disso, ao passar o mouse sobre o nome de uma magia,
                   um tooltip exibe o nome completo — útil para magias com nomes
                   longos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Constituição negativa agora reduz
+                  os PVs corretamente. Antes, personagens com CON negativa
+                  recebiam PV como se tivessem CON 0. Agora o modificador
+                  negativo é aplicado, respeitando o ganho mínimo de 1 PV por
+                  nível. A correção vale para fichas normais, multiclasse e
+                  poderes como Dom da Esperança.
                 </li>
               </ul>
               <h3>4.8</h3>
