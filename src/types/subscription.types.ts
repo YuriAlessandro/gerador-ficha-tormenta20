@@ -168,7 +168,7 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
   [SupportLevel.FREE]: {
     maxSheets: 10,
     maxMenaceSheets: 10,
-    canComment: false,
+    canComment: true,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
   },

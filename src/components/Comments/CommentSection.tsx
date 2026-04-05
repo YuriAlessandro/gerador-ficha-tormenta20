@@ -15,9 +15,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
-import StarIcon from '@mui/icons-material/Star';
 import { useAuth } from '../../hooks/useAuth';
-import { useSubscription } from '../../hooks/useSubscription';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { SupportLevel } from '../../types/subscription.types';
 import SupporterBadge from '../Premium/SupporterBadge';
@@ -43,7 +41,6 @@ interface CommentSectionProps {
   canDelete?: (comment: CommentData) => boolean;
   maxLength?: number;
   title?: string;
-  canCommentOverride?: boolean;
 }
 
 const formatDate = (dateString: string) => {
@@ -66,20 +63,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   canDelete,
   maxLength = 2000,
   title = 'Comentários',
-  canCommentOverride = false,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { isAuthenticated, firebaseUser } = useAuth();
-  const { canAccess } = useSubscription();
   const { openLoginModal } = useAuthContext();
 
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const canComment = canAccess('canComment') || canCommentOverride;
 
   const handleSubmit = async () => {
     if (!newComment.trim()) return;
@@ -168,33 +161,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             </Button>
           </Box>
         )}
-        {isAuthenticated && !canComment && (
-          <Box sx={{ textAlign: 'center', py: 2 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                mb: 2,
-              }}
-            >
-              <StarIcon sx={{ color: theme.palette.warning.main }} />
-              <Typography variant='body1' color='text.secondary'>
-                Comentários são exclusivos para apoiadores
-              </Typography>
-            </Box>
-            <Button
-              variant='contained'
-              color='primary'
-              component={RouterLink}
-              to='/perfil'
-            >
-              Apoiar o projeto
-            </Button>
-          </Box>
-        )}
-        {isAuthenticated && canComment && (
+        {isAuthenticated && (
           <Box>
             <TextField
               fullWidth
