@@ -72,6 +72,34 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> A habilidade Treino Especializado do
+                  Treinador (nível 5) agora oferece a escolha entre
+                  &quot;Conquistar pelos Números&quot; e &quot;Treino
+                  Intensivo&quot;. Conquistar pelos Números gera um segundo
+                  Melhor Amigo e desbloqueia o poder Líder da Matilha. Treino
+                  Intensivo aplica +4 PV por nível, redução de dano progressiva
+                  (5/10/15) e truques extras ao Melhor Amigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Truques do Melhor Amigo que exigem
+                  sub-escolhas (como Condicionamento Especial e Deslocamento
+                  Especial) agora apresentam campos de seleção tanto na criação
+                  do personagem quanto no level-up. Condicionamento Especial
+                  permite escolher os atributos (+2 e +1), e Deslocamento
+                  Especial permite escolher entre Escalada e Natação.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O bônus de ataque e dano do truque
+                  Treinamento Marcial (+2, escalando por patamar) agora é
+                  aplicado corretamente nas rolagens e na exibição da ficha do
+                  Melhor Amigo.
+                </li>
+                <li>
+                  <strong>Correção:</strong> O truque Veloz agora treina
+                  Atletismo automaticamente no Melhor Amigo, conforme descrito
+                  na regra.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigida a validação dos Dons do
                   Duende. Antes, era possível escolher o mesmo atributo três
                   vezes sem restrição. Agora os dois atributos dos Dons devem
