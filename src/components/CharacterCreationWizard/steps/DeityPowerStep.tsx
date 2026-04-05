@@ -62,41 +62,33 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
     );
   }
 
-  // Otherwise, allow selection (default to 1 if undefined)
-  const requiredCount = (qtdPoderesConcedidos as number) ?? 1;
+  // Allow free selection of deity powers (no hard limit)
   const availablePowers = deity.poderes;
 
   const handleToggle = (power: GeneralPower) => {
     const isSelected = selectedPowers.includes(power.name);
 
     if (isSelected) {
-      // Remove power
       onChange(selectedPowers.filter((p) => p !== power.name));
-    } else if (selectedPowers.length < requiredCount) {
-      // Add power if under limit
+    } else {
       onChange([...selectedPowers, power.name]);
     }
   };
 
-  const isComplete = selectedPowers.length === requiredCount;
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Typography variant='body1' color='text.secondary'>
-        A classe {classe.name} permite escolher {requiredCount} poder
-        {requiredCount > 1 ? 'es' : ''} concedido{requiredCount > 1 ? 's' : ''}{' '}
-        de {deity.name}. Selecione abaixo:
+        Selecione os poderes concedidos por {deity.name} desejados. Esta etapa é
+        opcional.
       </Typography>
 
       <Typography variant='caption' color='text.secondary'>
-        Selecionados: {selectedPowers.length} / {requiredCount}
+        Selecionados: {selectedPowers.length}
       </Typography>
 
       <Paper sx={{ p: 2 }}>
         {availablePowers.map((power) => {
           const isSelected = selectedPowers.includes(power.name);
-          const isDisabled =
-            !isSelected && selectedPowers.length >= requiredCount;
 
           return (
             <Box key={power.name} sx={{ mb: 2 }}>
@@ -105,7 +97,6 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
                   <Checkbox
                     checked={isSelected}
                     onChange={() => handleToggle(power)}
-                    disabled={isDisabled}
                   />
                 }
                 label={
@@ -122,19 +113,17 @@ const DeityPowerStep: React.FC<DeityPowerStepProps> = ({
         })}
       </Paper>
 
-      {!isComplete && selectedPowers.length > 0 && (
-        <Alert severity='warning'>
-          Selecione {requiredCount - selectedPowers.length} poder
-          {requiredCount - selectedPowers.length > 1 ? 'es' : ''} adicional
-          {requiredCount - selectedPowers.length > 1 ? 'is' : ''} para
-          continuar.
-        </Alert>
-      )}
-
-      {isComplete && (
+      {selectedPowers.length > 0 && (
         <Alert severity='success'>
           Poderes selecionados com sucesso! Você pode continuar para o próximo
           passo.
+        </Alert>
+      )}
+
+      {selectedPowers.length === 0 && (
+        <Alert severity='info'>
+          Você pode continuar sem selecionar poderes concedidos ou escolher
+          quantos desejar.
         </Alert>
       )}
     </Box>

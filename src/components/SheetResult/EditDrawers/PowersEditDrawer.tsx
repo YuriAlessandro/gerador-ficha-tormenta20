@@ -1247,11 +1247,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     ? dataRegistry.getDeityByName(storedDeity.name, allSupplements)
     : undefined;
   const deityPowers = enrichedDeity?.poderes || storedDeity?.poderes || [];
-  const { qtdPoderesConcedidos } = sheet.classe;
-  const getsAllDeityPowers = qtdPoderesConcedidos === 'all';
-  const maxDeityPowers =
-    typeof qtdPoderesConcedidos === 'number' ? qtdPoderesConcedidos : 1;
-
   const isDeityPowerSelected = (power: GeneralPower) =>
     selectedDeityPowers.some((p) => p.name === power.name);
 
@@ -1281,11 +1276,8 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       setSelectedDeityPowers((prev) =>
         prev.filter((p) => p.name !== power.name)
       );
-    } else if (
-      getsAllDeityPowers ||
-      selectedDeityPowers.length < maxDeityPowers
-    ) {
-      // Add power if under limit
+    } else {
+      // Add power (no limit - granted powers are treated as normal general powers)
       setSelectedDeityPowers((prev) => [...prev, power]);
     }
   };
@@ -2209,19 +2201,13 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                       <Typography
                         variant='caption'
                         color={
-                          selectedDeityPowers.length ===
-                          (getsAllDeityPowers
-                            ? deityPowers.length
-                            : maxDeityPowers)
+                          selectedDeityPowers.length > 0
                             ? 'success.main'
-                            : 'warning.main'
+                            : 'text.secondary'
                         }
                       >
                         Devoto de {deityName} - Selecionados:{' '}
-                        {selectedDeityPowers.length} /{' '}
-                        {getsAllDeityPowers
-                          ? deityPowers.length
-                          : maxDeityPowers}
+                        {selectedDeityPowers.length}
                       </Typography>
                     )}
                   </Box>
@@ -2292,13 +2278,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                           isSelected = isPowerSelected(power as GeneralPower);
                         }
 
-                        // For granted powers when devoto, check if at limit
-                        const atDeityLimit =
-                          isGrantedPower &&
-                          isDevoto &&
-                          !getsAllDeityPowers &&
-                          !isSelected &&
-                          selectedDeityPowers.length >= maxDeityPowers;
+                        const atDeityLimit = false;
 
                         return (
                           <Box

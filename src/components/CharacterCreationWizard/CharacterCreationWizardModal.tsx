@@ -1293,14 +1293,9 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Poderes da Divindade': {
         if (!classe || !deity) return false;
-        const qtd = classe.qtdPoderesConcedidos;
-
-        // If 'all', always allow
-        if (qtd === 'all') return true;
-
-        // Otherwise check selection count (default to 1 if undefined)
-        const requiredCount = (qtd as number) ?? 1;
-        return selections.deityPowers?.length === requiredCount;
+        // Step is always completable - deity powers are optional
+        // The 'all' case is handled by DeityPowerStep auto-selecting
+        return true;
       }
 
       case 'Caminho do Arcanista':
