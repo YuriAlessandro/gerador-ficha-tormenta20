@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigido o drawer de edição de
+                  poderes para personagens com multiclasse. Antes, apenas os
+                  poderes da classe primária apareciam no accordion. Agora, cada
+                  classe do multiclasse tem seu próprio accordion de poderes
+                  (ex: &quot;Poderes de Lutador&quot; e &quot;Poderes de
+                  Ladino&quot;), permitindo adicionar e remover poderes de todas
+                  as classes.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Melhoria:</strong> Agora é possível editar ataques,
                   habilidades e magias já adicionados no gerador de ameaças. Um
                   botão de editar aparece ao lado de cada item na lista, abrindo
