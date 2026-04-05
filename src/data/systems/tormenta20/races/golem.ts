@@ -10,6 +10,7 @@ const GOLEM: Race = {
       { attr: Atributo.CARISMA, mod: -1 },
     ],
   },
+  ignoreEncumbrance: true,
   faithProbability: {
     AHARADAK: 1,
     TANNATOH: 1,
@@ -25,7 +26,7 @@ const GOLEM: Race = {
     {
       name: 'Chassi',
       description:
-        'Seu corpo artificial é resistente, mas rígido. Você recebe +2 na Defesa, mas possui penalidade de armadura –2 e seu deslocamento é 6m. Você leva um dia para vestir ou remover uma armadura (pois precisa acoplar as peças dela a seu chassi).',
+        'Seu corpo artificial é resistente, mas rígido. Seu deslocamento é 6m, mas não é reduzido por uso de armadura ou excesso de carga. Você recebe +2 na Defesa, mas possui penalidade de armadura –2. Você leva um dia para vestir ou remover uma armadura (pois precisa acoplar as peças dela a seu chassi). Por ser acoplada, sua armadura não conta no limite de itens que você pode usar (mas você continua só podendo usar uma armadura).',
       sheetBonuses: [
         {
           source: {
@@ -51,19 +52,6 @@ const GOLEM: Race = {
           modifier: {
             type: 'Fixed',
             value: 2,
-          },
-        },
-        {
-          source: {
-            type: 'power',
-            name: 'Chassi',
-          },
-          target: {
-            type: 'Displacement',
-          },
-          modifier: {
-            type: 'Fixed',
-            value: -3,
           },
         },
       ],

@@ -132,6 +132,7 @@ export function applyGolemDespertoCustomization(
     chassis: chassisId,
     energySource: energySourceId,
     sizeCategory: sizeId,
+    ignoreEncumbrance: chassis.ignoreEncumbrance ?? false,
     attributes: {
       attrs: accumulatedAttrs,
     },

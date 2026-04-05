@@ -15,6 +15,7 @@ export interface GolemDespertoChassis {
   attributes: RaceAttributeAbility[];
   displacement: number;
   chassiAbility: RaceAbility;
+  ignoreEncumbrance?: boolean;
   energyRestrictions?: string[]; // IDs de fontes de energia incompatíveis
   sizeRestrictions?: string[]; // IDs de tamanhos incompatíveis
 }
@@ -65,6 +66,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
       description:
         'Seu corpo de bronze é nobre e versátil. Seu deslocamento não é reduzido por armaduras pesadas ou excesso de carga. Sua armadura não é acoplada ao seu corpo; você pode removê-la e colocá-la no tempo normal, mas ela conta em seu limite de itens vestidos.',
     },
+    ignoreEncumbrance: true,
     energyRestrictions: [], // Sem restrições
   },
 
@@ -91,6 +93,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         },
       ],
     },
+    ignoreEncumbrance: true,
     energyRestrictions: ['elemental-agua', 'elemental-fogo', 'vapor'],
   },
 
@@ -136,6 +139,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         },
       ],
     },
+    ignoreEncumbrance: true,
     energyRestrictions: [], // Sem restrições
   },
 
@@ -165,6 +169,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         },
       ],
     },
+    ignoreEncumbrance: true,
     energyRestrictions: ['elemental-fogo', 'vapor'],
   },
 
@@ -204,6 +209,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
         },
       ],
     },
+    ignoreEncumbrance: true,
     energyRestrictions: [], // Sem restrições
   },
 
@@ -220,6 +226,7 @@ export const GOLEM_DESPERTO_CHASSIS: Record<string, GolemDespertoChassis> = {
       description:
         'Seu corpo é formado por peças improvisadas, mas fácil de reparar. Seu deslocamento é 6m, mas não é reduzido por uso de armadura ou excesso de carga. Quando recebe cuidados prolongados com a perícia Ofício (artesão), sua recuperação de PV aumenta em +2 por nível nesse dia (em vez de +1).',
     },
+    ignoreEncumbrance: true,
     energyRestrictions: [], // Sem restrições
   },
 

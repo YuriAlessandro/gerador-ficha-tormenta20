@@ -155,5 +155,6 @@ export default interface Race {
   getAttributes?: (sex: 'Masculino' | 'Feminino') => RaceAttributeAbility[];
   faithProbability?: FaithProbability;
   size?: RaceSize;
+  ignoreEncumbrance?: boolean;
   deprecated?: boolean;
 }

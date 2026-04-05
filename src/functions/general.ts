@@ -1368,14 +1368,18 @@ function calcDisplacement(
   baseDisplacement: number,
   dinheiro = 0,
   dinheiroTC = 0,
-  dinheiroTO = 0
+  dinheiroTO = 0,
+  ignoreEncumbrance = false
 ): number {
-  const maxSpaces = calculateMaxSpaces(atributos.Força.value);
-  const totalUsedSpaces =
-    bag.getSpaces() + calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
+  if (!ignoreEncumbrance) {
+    const maxSpaces = calculateMaxSpaces(atributos.Força.value);
+    const totalUsedSpaces =
+      bag.getSpaces() +
+      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
 
-  if (totalUsedSpaces > maxSpaces) {
-    return raceDisplacement - 3;
+    if (totalUsedSpaces > maxSpaces) {
+      return raceDisplacement - 3;
+    }
   }
 
   return raceDisplacement + baseDisplacement;
@@ -4359,7 +4363,8 @@ export default function generateRandomSheet(
     charSheet.displacement,
     charSheet.dinheiro,
     charSheet.dinheiroTC,
-    charSheet.dinheiroTO
+    charSheet.dinheiroTO,
+    charSheet.raca.ignoreEncumbrance ?? false
   );
   charSheet.displacement = displacement;
 
