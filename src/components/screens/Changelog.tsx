@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigida a validação dos Dons do
+                  Duende. Antes, era possível escolher o mesmo atributo três
+                  vezes sem restrição. Agora os dois atributos dos Dons devem
+                  ser diferentes entre si, e apenas o bônus da Natureza Animal
+                  pode repetir com um dos Dons, seguindo a regra do livro.
+                  Também corrigida uma dupla contagem de atributos que dava +1
+                  extra para Duendes com Natureza Animal.
+                </li>
+                <li>
                   <strong>Novo:</strong> Agora é possível exportar um PDF com
                   múltiplas ameaças de uma só vez! Na aba Ameaças de Meus
                   Personagens, clique em &quot;Selecionar&quot;, marque as
