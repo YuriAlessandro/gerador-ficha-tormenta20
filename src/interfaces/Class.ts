@@ -106,7 +106,10 @@ export interface ClassDescription {
   faithProbability?: FaithProbability;
   attrPriority: Atributo[];
   spellPath?: SpellPath;
-  setup?: (classe: ClassDescription) => ClassDescription;
+  setup?: (
+    classe: ClassDescription,
+    supplements?: SupplementId[]
+  ) => ClassDescription;
   originalAbilities?: ClassAbility[]; // Internal field to preserve original abilities during level-ups
 }
 

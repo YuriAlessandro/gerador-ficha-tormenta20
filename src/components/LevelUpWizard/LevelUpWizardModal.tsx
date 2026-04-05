@@ -568,6 +568,11 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               !setup.draconicaDamageType
             )
               return false;
+            if (
+              setup.feiticeiroLinhagem === 'Linhagem Abençoada' &&
+              !setup.linhagemAbencoadaDeus
+            )
+              return false;
           }
           return true;
         }
@@ -752,6 +757,7 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
                 classSetup: setup,
               })
             }
+            activeSupplements={supplements}
           />
         );
       }

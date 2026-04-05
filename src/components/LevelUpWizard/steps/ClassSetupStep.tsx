@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
+import { SupplementId } from '@/types/supplement.types';
+import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
 
 type ClassSetupData = NonNullable<LevelUpSelections['classSetup']>;
 
@@ -18,6 +20,7 @@ interface ClassSetupStepProps {
   selectedClassName: string;
   classSetup: ClassSetupData;
   onChange: (setup: ClassSetupData) => void;
+  activeSupplements?: SupplementId[];
 }
 
 const SPELL_SCHOOL_LABELS: Record<SpellSchool, string> = {
@@ -35,6 +38,7 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
   selectedClassName,
   classSetup,
   onChange,
+  activeSupplements = [],
 }) => {
   if (selectedClassName === 'Arcanista') {
     return (
@@ -99,6 +103,13 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
                 <MenuItem value='Linhagem Rubra'>
                   Linhagem Rubra (conexão com a Tormenta)
                 </MenuItem>
+                {activeSupplements.includes(
+                  SupplementId.TORMENTA20_DEUSES_ARTON
+                ) && (
+                  <MenuItem value='Linhagem Abençoada'>
+                    Linhagem Abençoada (magias divinas + poder concedido)
+                  </MenuItem>
+                )}
               </Select>
             </FormControl>
 
@@ -119,6 +130,28 @@ const ClassSetupStep: React.FC<ClassSetupStepProps> = ({
                   <MenuItem value='Elétrico'>Elétrico</MenuItem>
                   <MenuItem value='Fogo'>Fogo</MenuItem>
                   <MenuItem value='Frio'>Frio</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+
+            {classSetup.feiticeiroLinhagem === 'Linhagem Abençoada' && (
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Deus Maior</InputLabel>
+                <Select
+                  value={classSetup.linhagemAbencoadaDeus || ''}
+                  label='Deus Maior'
+                  onChange={(e) =>
+                    onChange({
+                      ...classSetup,
+                      linhagemAbencoadaDeus: e.target.value,
+                    })
+                  }
+                >
+                  {DEUSES_MAIORES.map((deus) => (
+                    <MenuItem key={deus} value={deus}>
+                      {deus}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}

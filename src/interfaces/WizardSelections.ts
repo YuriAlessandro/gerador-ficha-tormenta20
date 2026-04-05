@@ -46,8 +46,10 @@ export interface LevelUpSelections {
     feiticeiroLinhagem?:
       | 'Linhagem Dracônica'
       | 'Linhagem Feérica'
-      | 'Linhagem Rubra';
+      | 'Linhagem Rubra'
+      | 'Linhagem Abençoada';
     draconicaDamageType?: string;
+    linhagemAbencoadaDeus?: string;
     spellSchools?: SpellSchool[];
   };
 }

@@ -12,6 +12,8 @@ import { Atributo } from '../atributos';
 import PROFICIENCIAS from '../proficiencias';
 import tormentaPowers from '../powers/tormentaPowers';
 import { spellsCircle1 } from '../magias/generalSpells';
+import { allSpellSchools } from '../../../../interfaces/Spells';
+import { SupplementId } from '../../../../types/supplement.types';
 
 export type ArcanistaSubtypes = 'Bruxo' | 'Mago' | 'Feiticeiro';
 const allArcanistaSubtypes: ArcanistaSubtypes[] = [
@@ -141,6 +143,37 @@ export const feiticeiroPaths: ClassAbility[] = [
     ],
   },
 ];
+
+export const DEUSES_MAIORES = [
+  'Aharadak',
+  'Allihanna',
+  'Arsenal',
+  'Azgher',
+  'Hyninn',
+  'Kallyadranoch',
+  'Khalmyr',
+  'Lena',
+  'Lin-Wu',
+  'Marah',
+  'Megalokk',
+  'Nimb',
+  'Oceano',
+  'Sszzaas',
+  'Tanna-Toh',
+  'Tenebra',
+  'Thwor',
+  'Thyatis',
+  'Valkaria',
+  'Wynna',
+];
+
+export function createLinhagemAbencoada(deus: string): ClassAbility {
+  return {
+    name: 'Linhagem Abençoada',
+    text: `Seu poder vem de ${deus}. Você aprende uma magia divina de 1º círculo e pode aprender magias divinas de 1º círculo como magias de feiticeiro.`,
+    nivel: 1,
+  };
+}
 
 const ARCANISTA: ClassDescription = {
   name: 'Arcanista',
@@ -425,7 +458,7 @@ const ARCANISTA: ClassDescription = {
     WYNNA: 1,
   },
   attrPriority: [Atributo.INTELIGENCIA],
-  setup: (classe) => {
+  setup: (classe, supplements) => {
     const modifiedClasse = _.cloneDeep(classe);
     const subtype = getRandomItemFromArray(allArcanistaSubtypes);
     modifiedClasse.subname = subtype;
@@ -433,7 +466,18 @@ const ARCANISTA: ClassDescription = {
     modifiedClasse.abilities.push(classAbilities[subtype]);
     if (subtype === 'Feiticeiro') {
       modifiedClasse.attrPriority = [Atributo.CARISMA];
-      const selectedSubType = getRandomItemFromArray(feiticeiroPaths);
+
+      const availablePaths: ClassAbility[] = [...feiticeiroPaths];
+      if (supplements?.includes(SupplementId.TORMENTA20_DEUSES_ARTON)) {
+        availablePaths.push({
+          name: 'Linhagem Abençoada',
+          text: '',
+          nivel: 1,
+        });
+      }
+
+      const selectedSubType = getRandomItemFromArray(availablePaths);
+
       if (selectedSubType.name === 'Linhagem Dracônica') {
         selectedSubType.text += `. Tipo escolhido: ${getRandomItemFromArray([
           'Ácido',
@@ -441,16 +485,23 @@ const ARCANISTA: ClassDescription = {
           'Fogo',
           'Frio',
         ])}`;
+        modifiedClasse.abilities.push(selectedSubType);
       } else if (selectedSubType.name === 'Linhagem Feérica') {
         modifiedClasse.periciasbasicas.push({
           type: 'and',
           list: [Skill.ENGANACAO],
         });
+        modifiedClasse.abilities.push(selectedSubType);
       } else if (selectedSubType.name === 'Linhagem Rubra') {
-        // Nothing here
+        modifiedClasse.abilities.push(selectedSubType);
+      } else if (selectedSubType.name === 'Linhagem Abençoada') {
+        const deus = getRandomItemFromArray(DEUSES_MAIORES);
+        const linhagemAbility = createLinhagemAbencoada(deus);
+        if (modifiedClasse.spellPath) {
+          modifiedClasse.spellPath.includeDivineSchools = allSpellSchools;
+        }
+        modifiedClasse.abilities.push(linhagemAbility);
       }
-
-      modifiedClasse.abilities.push(selectedSubType);
     }
 
     return modifiedClasse;

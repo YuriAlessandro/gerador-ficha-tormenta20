@@ -14,6 +14,7 @@ import {
   Chip,
 } from '@mui/material';
 import { SupplementId } from '@/types/supplement.types';
+import { DEUSES_MAIORES } from '@/data/systems/tormenta20/classes/arcanista';
 
 export type FeiticeiroLinhagem =
   | 'Linhagem Dracônica'
@@ -93,30 +94,6 @@ const deusesArtonLinhagemOptions: LinhagemOption[] = [
       'Suas magias divinas de círculo igual ou menor que sua Sabedoria custam –1 PM e você pode aprender magias divinas de 2º e 3º círculos como magias de feiticeiro.',
     supplementId: SupplementId.TORMENTA20_DEUSES_ARTON,
   },
-];
-
-// Deuses maiores disponíveis para Linhagem Abençoada
-const DEUSES_MAIORES = [
-  'Aharadak',
-  'Allihanna',
-  'Arsenal',
-  'Azgher',
-  'Hyninn',
-  'Kallyadranoch',
-  'Khalmyr',
-  'Lena',
-  'Lin-Wu',
-  'Marah',
-  'Megalokk',
-  'Nimb',
-  'Oceano',
-  'Sszzaas',
-  'Tanna-Toh',
-  'Tenebra',
-  'Thwor',
-  'Thyatis',
-  'Valkaria',
-  'Wynna',
 ];
 
 const FeiticeiroLinhagemSelectionStep: React.FC<

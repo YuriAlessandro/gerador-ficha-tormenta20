@@ -811,7 +811,8 @@ export function selectClass(
 
   if (!selectedClass) selectedClass = getRandomItemFromArray(allClasses);
   selectedClass = _.cloneDeep(selectedClass);
-  if (selectedClass.setup) return selectedClass.setup(selectedClass);
+  if (selectedClass.setup)
+    return selectedClass.setup(selectedClass, supplements);
   return selectedClass;
 }
 
@@ -4764,7 +4765,7 @@ export function generateEmptySheet(
   } else if (wizardSelections?.spellSchools && generatedClass.setup) {
     // Apply wizard spell school selections if provided (for Bardo/Druida)
     // Execute setup first to initialize spellPath
-    const setupClass = generatedClass.setup(generatedClass);
+    const setupClass = generatedClass.setup(generatedClass, supplements);
     // Override schools with wizard selections
     if (setupClass.spellPath) {
       setupClass.spellPath.schools = wizardSelections.spellSchools;
@@ -4773,7 +4774,7 @@ export function generateEmptySheet(
     }
   } else if (generatedClass.setup) {
     // No wizard selection, use random setup
-    emptySheet.classe = generatedClass.setup(generatedClass);
+    emptySheet.classe = generatedClass.setup(generatedClass, supplements);
   } else {
     emptySheet.classe = generatedClass;
   }

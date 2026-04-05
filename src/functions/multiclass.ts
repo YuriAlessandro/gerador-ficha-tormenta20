@@ -11,9 +11,10 @@ import {
   ArcanistaSubtypes,
   classAbilities as arcanistaClassAbilities,
   feiticeiroPaths,
+  createLinhagemAbencoada,
 } from '@/data/systems/tormenta20/classes/arcanista';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
-import { SpellSchool } from '@/interfaces/Spells';
+import { allSpellSchools, SpellSchool } from '@/interfaces/Spells';
 
 /**
  * Verifica se a sheet tem multiclasse.
@@ -297,7 +298,14 @@ export function buildSpellPathFromSetup(
   // Arcanista: usar subtype das choices
   if (className === 'Arcanista' && classSetup?.arcanistaSubtype) {
     const subtype = classSetup.arcanistaSubtype as ArcanistaSubtypes;
-    return { ...arcanistaSpellPaths[subtype] };
+    const spellPath = { ...arcanistaSpellPaths[subtype] };
+    if (
+      subtype === 'Feiticeiro' &&
+      classSetup.feiticeiroLinhagem === 'Linhagem Abençoada'
+    ) {
+      spellPath.includeDivineSchools = allSpellSchools;
+    }
+    return spellPath;
   }
 
   // Bardo: Both (arcana + divina) com escolas selecionadas
@@ -421,11 +429,16 @@ export function getClassSetupAbilities(
       classSetup.arcanistaSubtype === 'Feiticeiro' &&
       classSetup.feiticeiroLinhagem
     ) {
-      const linhagemAbility = feiticeiroPaths.find(
-        (p) => p.name === classSetup.feiticeiroLinhagem
-      );
-      if (linhagemAbility) {
-        abilities.push(linhagemAbility);
+      if (classSetup.feiticeiroLinhagem === 'Linhagem Abençoada') {
+        const deus = classSetup.linhagemAbencoadaDeus || 'um deus maior';
+        abilities.push(createLinhagemAbencoada(deus));
+      } else {
+        const linhagemAbility = feiticeiroPaths.find(
+          (p) => p.name === classSetup.feiticeiroLinhagem
+        );
+        if (linhagemAbility) {
+          abilities.push(linhagemAbility);
+        }
       }
     }
 
