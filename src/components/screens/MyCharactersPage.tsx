@@ -35,6 +35,7 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
+  Checkbox,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -52,6 +53,7 @@ import {
   FolderOff as FolderOffIcon,
   ArrowBack as ArrowBackIcon,
   Folder as FolderIcon,
+  CheckBox as CheckBoxIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import tormenta20 from '@/assets/images/tormenta20.jpg';
@@ -65,6 +67,12 @@ import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
 import SupporterBadge from '../Premium/SupporterBadge';
 import { normalizeSearch } from '../../functions/stringUtils';
+import {
+  BatchThreatExport,
+  BatchSelectToolbar,
+  useBatchThreatExport,
+} from '../../premium/components/BatchThreatExport';
+import { SupportLevel } from '../../types/subscription.types';
 
 const MyCharactersPage: React.FC = () => {
   const theme = useTheme();
@@ -100,6 +108,22 @@ const MyCharactersPage: React.FC = () => {
     isCharacterLimitUnlimited,
     isMenaceLimitUnlimited,
   } = useSheetLimit();
+
+  // Batch threat export
+  const {
+    isSelectMode,
+    selectedIds: selectedThreatIds,
+    loadedThreats,
+    loading: batchLoading,
+    progress: batchProgress,
+    error: batchError,
+    printRef,
+    toggleSelectMode,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    exportPdf,
+  } = useBatchThreatExport();
 
   // Get initial tab from URL query param
   const getInitialTab = () => {
@@ -257,6 +281,9 @@ const MyCharactersPage: React.FC = () => {
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     setSearchTerm('');
+    if (isSelectMode) {
+      toggleSelectMode();
+    }
     updateUrl(newValue, openFolderId);
   };
 
@@ -689,230 +716,262 @@ const MyCharactersPage: React.FC = () => {
   );
 
   // Render a sheet card
-  const renderSheetCard = (sheet: SheetListData) => (
-    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
-      <Card
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.shadows[8],
-          },
-        }}
-      >
-        <CardActionArea
-          onClick={() => handleViewSheet(sheet)}
-          sx={{ flexGrow: 1 }}
+  const renderSheetCard = (sheet: SheetListData) => {
+    const isThreatSelectMode =
+      isSelectMode && activeTab === 1 && Boolean(sheet.sheetData?.isThreat);
+    return (
+      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={sheet.id}>
+        <Card
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'all 0.3s ease',
+            ...(isThreatSelectMode &&
+              selectedThreatIds.has(sheet.id) && {
+                border: '2px solid',
+                borderColor: 'primary.main',
+              }),
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: theme.shadows[8],
+            },
+          }}
         >
-          <CardMedia
-            component='img'
-            height='160'
-            image={sheet.image || sheet.sheetData?.imageUrl || tormenta20}
-            alt={sheet.name}
-            sx={{
-              objectFit: 'cover',
-              objectPosition: 'top',
-            }}
-          />
-
-          {/* PV/PM Progress Bars */}
-          {!sheet.sheetData?.isThreat && (
-            <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-              <Box sx={{ mb: 1 }}>
-                <Typography
-                  variant='caption'
-                  sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                >
-                  PV:{' '}
-                  {(sheet.sheetData as any).currentPV ??
-                    (sheet.sheetData as any).pv}
-                  /{(sheet.sheetData as any).pv}
-                </Typography>
-                <LinearProgress
-                  variant='determinate'
-                  value={Math.min(
-                    (((sheet.sheetData as any).currentPV ??
-                      (sheet.sheetData as any).pv) /
-                      (sheet.sheetData as any).pv) *
-                      100,
-                    100
-                  )}
-                  sx={{
-                    height: 6,
-                    borderRadius: 1,
-                    backgroundColor: 'rgba(108,166,81, 0.2)',
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: theme.palette.success.main,
-                      opacity: 100,
-                    },
-                  }}
-                />
-              </Box>
-
-              <Box>
-                <Typography
-                  variant='caption'
-                  sx={{ fontSize: '0.7rem', fontWeight: 600 }}
-                >
-                  PM:{' '}
-                  {(sheet.sheetData as any).currentPM ??
-                    (sheet.sheetData as any).pm}
-                  /{(sheet.sheetData as any).pm}
-                </Typography>
-                <LinearProgress
-                  variant='determinate'
-                  value={Math.min(
-                    (((sheet.sheetData as any).currentPM ??
-                      (sheet.sheetData as any).pm) /
-                      (sheet.sheetData as any).pm) *
-                      100,
-                    100
-                  )}
-                  sx={{
-                    height: 6,
-                    borderRadius: 1,
-                    backgroundColor: 'rgba(0, 139, 255, 0.2)',
-                    '& .MuiLinearProgress-bar': {
-                      backgroundColor: theme.palette.info.main,
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-          )}
-
-          <CardContent sx={{ flexGrow: 1 }}>
-            <Typography
-              gutterBottom
-              variant='h6'
-              component='h3'
-              sx={{
-                fontFamily: 'Tfont',
-                fontWeight: 'bold',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-              }}
-            >
-              {sheet.name}
-            </Typography>
-
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                mb: 1,
-              }}
-            >
-              {getDescription(sheet)}
-            </Typography>
-
-            <Stack
-              direction='row'
-              spacing={1}
-              alignItems='center'
-              flexWrap='wrap'
-              useFlexGap
-            >
-              <Chip
-                label={`Nível ${getLevel(sheet)}`}
-                size='small'
-                color='primary'
-                variant='outlined'
+          <CardActionArea
+            onClick={() =>
+              isThreatSelectMode
+                ? toggleSelection(sheet.id)
+                : handleViewSheet(sheet)
+            }
+            sx={{ flexGrow: 1 }}
+          >
+            <Box sx={{ position: 'relative' }}>
+              <CardMedia
+                component='img'
+                height='160'
+                image={sheet.image || sheet.sheetData?.imageUrl || tormenta20}
+                alt={sheet.name}
+                sx={{
+                  objectFit: 'cover',
+                  objectPosition: 'top',
+                }}
               />
-              {sheet.folderId && !openFolderId && (
-                <Chip
-                  icon={
-                    <FolderOpenIcon sx={{ fontSize: '0.85rem !important' }} />
-                  }
-                  label={getFolderName(sheet.folderId)}
-                  size='small'
-                  variant='outlined'
-                  sx={{ maxWidth: 140 }}
+              {isThreatSelectMode && (
+                <Checkbox
+                  checked={selectedThreatIds.has(sheet.id)}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    left: 4,
+                    bgcolor: 'rgba(255,255,255,0.85)',
+                    borderRadius: '50%',
+                    p: 0.5,
+                    minWidth: 44,
+                    minHeight: 44,
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.95)' },
+                  }}
                 />
               )}
-              {sheet.assignedTableId && (
-                <Tooltip title='Ir para a mesa'>
-                  <Chip
-                    icon={<TableIcon />}
-                    label={sheet.assignedTableId.name}
-                    size='small'
-                    color='secondary'
-                    variant='filled'
-                    onClick={(e) =>
-                      handleNavigateToTable(
-                        e,
-                        // eslint-disable-next-line no-underscore-dangle
-                        sheet.assignedTableId!._id
-                      )
-                    }
+            </Box>
+
+            {/* PV/PM Progress Bars */}
+            {!sheet.sheetData?.isThreat && (
+              <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+                <Box sx={{ mb: 1 }}>
+                  <Typography
+                    variant='caption'
+                    sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                  >
+                    PV:{' '}
+                    {(sheet.sheetData as any).currentPV ??
+                      (sheet.sheetData as any).pv}
+                    /{(sheet.sheetData as any).pv}
+                  </Typography>
+                  <LinearProgress
+                    variant='determinate'
+                    value={Math.min(
+                      (((sheet.sheetData as any).currentPV ??
+                        (sheet.sheetData as any).pv) /
+                        (sheet.sheetData as any).pv) *
+                        100,
+                      100
+                    )}
                     sx={{
-                      cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: 'secondary.dark',
+                      height: 6,
+                      borderRadius: 1,
+                      backgroundColor: 'rgba(108,166,81, 0.2)',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: theme.palette.success.main,
+                        opacity: 100,
                       },
                     }}
                   />
-                </Tooltip>
-              )}
-            </Stack>
+                </Box>
 
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ mt: 1, display: 'block' }}
-            >
-              Editado em {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
-            </Typography>
-          </CardContent>
-        </CardActionArea>
+                <Box>
+                  <Typography
+                    variant='caption'
+                    sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                  >
+                    PM:{' '}
+                    {(sheet.sheetData as any).currentPM ??
+                      (sheet.sheetData as any).pm}
+                    /{(sheet.sheetData as any).pm}
+                  </Typography>
+                  <LinearProgress
+                    variant='determinate'
+                    value={Math.min(
+                      (((sheet.sheetData as any).currentPM ??
+                        (sheet.sheetData as any).pm) /
+                        (sheet.sheetData as any).pm) *
+                        100,
+                      100
+                    )}
+                    sx={{
+                      height: 6,
+                      borderRadius: 1,
+                      backgroundColor: 'rgba(0, 139, 255, 0.2)',
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: theme.palette.info.main,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
 
-        <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-          <Box>
-            <Tooltip title='Editar'>
+            <CardContent sx={{ flexGrow: 1 }}>
+              <Typography
+                gutterBottom
+                variant='h6'
+                component='h3'
+                sx={{
+                  fontFamily: 'Tfont',
+                  fontWeight: 'bold',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {sheet.name}
+              </Typography>
+
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  mb: 1,
+                }}
+              >
+                {getDescription(sheet)}
+              </Typography>
+
+              <Stack
+                direction='row'
+                spacing={1}
+                alignItems='center'
+                flexWrap='wrap'
+                useFlexGap
+              >
+                <Chip
+                  label={`Nível ${getLevel(sheet)}`}
+                  size='small'
+                  color='primary'
+                  variant='outlined'
+                />
+                {sheet.folderId && !openFolderId && (
+                  <Chip
+                    icon={
+                      <FolderOpenIcon sx={{ fontSize: '0.85rem !important' }} />
+                    }
+                    label={getFolderName(sheet.folderId)}
+                    size='small'
+                    variant='outlined'
+                    sx={{ maxWidth: 140 }}
+                  />
+                )}
+                {sheet.assignedTableId && (
+                  <Tooltip title='Ir para a mesa'>
+                    <Chip
+                      icon={<TableIcon />}
+                      label={sheet.assignedTableId.name}
+                      size='small'
+                      color='secondary'
+                      variant='filled'
+                      onClick={(e) =>
+                        handleNavigateToTable(
+                          e,
+                          // eslint-disable-next-line no-underscore-dangle
+                          sheet.assignedTableId!._id
+                        )
+                      }
+                      sx={{
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: 'secondary.dark',
+                        },
+                      }}
+                    />
+                  </Tooltip>
+                )}
+              </Stack>
+
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ mt: 1, display: 'block' }}
+              >
+                Editado em{' '}
+                {new Date(sheet.updatedAt).toLocaleDateString('pt-BR')}
+              </Typography>
+            </CardContent>
+          </CardActionArea>
+
+          <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+            <Box>
+              <Tooltip title='Editar'>
+                <IconButton
+                  size='small'
+                  color='primary'
+                  onClick={() => handleEditSheet(sheet)}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Duplicar'>
+                <IconButton size='small' onClick={() => handleDuplicate(sheet)}>
+                  <DuplicateIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title='Mover para pasta'>
+                <IconButton
+                  size='small'
+                  onClick={(e) => handleOpenMoveMenu(e, sheet)}
+                >
+                  <MoveIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+            <Tooltip title='Excluir'>
               <IconButton
                 size='small'
-                color='primary'
-                onClick={() => handleEditSheet(sheet)}
+                color='error'
+                onClick={() => handleDeleteClick(sheet)}
               >
-                <EditIcon />
+                <DeleteIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title='Duplicar'>
-              <IconButton size='small' onClick={() => handleDuplicate(sheet)}>
-                <DuplicateIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Mover para pasta'>
-              <IconButton
-                size='small'
-                onClick={(e) => handleOpenMoveMenu(e, sheet)}
-              >
-                <MoveIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Tooltip title='Excluir'>
-            <IconButton
-              size='small'
-              color='error'
-              onClick={() => handleDeleteClick(sheet)}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </CardActions>
-      </Card>
-    </Grid>
-  );
+          </CardActions>
+        </Card>
+      </Grid>
+    );
+  };
 
   if (loading && sheets.length === 0) {
     return (
@@ -1168,6 +1227,18 @@ const MyCharactersPage: React.FC = () => {
                 <MenuItem value='level'>Nível</MenuItem>
               </Select>
             </FormControl>
+
+            {/* Batch select button - threats tab only, premium users */}
+            {activeTab === 1 && supportLevel !== SupportLevel.FREE && (
+              <Button
+                variant={isSelectMode ? 'contained' : 'outlined'}
+                size='small'
+                startIcon={<CheckBoxIcon />}
+                onClick={toggleSelectMode}
+              >
+                {isMobile ? '' : 'Selecionar'}
+              </Button>
+            )}
           </Box>
         )}
 
@@ -1374,6 +1445,30 @@ const MyCharactersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Batch Threat Export */}
+      {isSelectMode && activeTab === 1 && (
+        <>
+          <BatchSelectToolbar
+            selectedCount={selectedThreatIds.size}
+            totalCount={filteredSheets.length}
+            onSelectAll={() => selectAll(filteredSheets.map((s) => s.id))}
+            onExportPdf={exportPdf}
+            onCancel={toggleSelectMode}
+            loading={batchLoading}
+          />
+          <BatchThreatExport
+            printRef={printRef}
+            loadedThreats={loadedThreats}
+            loading={batchLoading}
+            progress={batchProgress}
+            error={batchError}
+            onDismissError={clearSelection}
+          />
+          {/* Spacer to prevent content from being hidden behind fixed toolbar */}
+          <Box sx={{ height: 80 }} />
+        </>
+      )}
     </Container>
   );
 };
