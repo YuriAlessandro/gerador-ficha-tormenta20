@@ -137,6 +137,33 @@ const SpellRow: React.FC<SpellProps> = React.memo((props) => {
                   )}
                 </>
               )}
+              {isMago && !onToggleMemorized && (
+                <>
+                  {spell.alwaysPrepared ? (
+                    <Tooltip title='Sempre preparada' arrow>
+                      <PushPinIcon
+                        fontSize='small'
+                        color='warning'
+                        sx={{ flexShrink: 0 }}
+                      />
+                    </Tooltip>
+                  ) : (
+                    <Tooltip
+                      title={spell.memorized ? 'Memorizada' : 'Não memorizada'}
+                      arrow
+                    >
+                      <span>
+                        <Checkbox
+                          size='small'
+                          checked={spell.memorized ?? false}
+                          disabled
+                          sx={{ p: 0, flexShrink: 0 }}
+                        />
+                      </span>
+                    </Tooltip>
+                  )}
+                </>
+              )}
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
                 <IconButton
                   size='small'
