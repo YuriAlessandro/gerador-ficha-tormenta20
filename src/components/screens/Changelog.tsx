@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.9</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> A Linhagem Abençoada do suplemento
+                  Deuses de Arton agora aparece corretamente na geração
+                  aleatória de fichas e no wizard de level-up/multiclasse. Antes
+                  ela só estava disponível no wizard de criação passo a passo.
+                </li>
+              </ul>
+              <h3>4.9</h3>
+              <ul>
+                <li>
                   <strong>Correção:</strong> Editar e salvar uma ficha ou ameaça
                   que estava dentro de uma pasta não a remove mais da pasta.
                   Antes, ao salvar qualquer edição, a ficha voltava para a raiz
