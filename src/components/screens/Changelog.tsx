@@ -129,6 +129,12 @@ const Changelog: React.FC = () => {
                   Antes, os indicadores de memorização só apareciam no modo de
                   edição.
                 </li>
+                <li>
+                  <strong>Melhoria:</strong> Agora é possível definir atributos
+                  base com valores de até 50 (antes o limite era 10). A mudança
+                  vale tanto para a criação de personagem pelo wizard quanto
+                  para a edição de fichas existentes.
+                </li>
               </ul>
               <h3>4.8</h3>
 
