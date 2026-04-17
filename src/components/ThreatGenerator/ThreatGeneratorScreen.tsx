@@ -401,6 +401,7 @@ const ThreatGeneratorScreen: React.FC<ThreatGeneratorScreenProps> = () => {
           onEdit={handleEdit}
           isSavedToCloud={isSavedToCloud}
           onSaveToCloud={handleSaveToCloud}
+          onThreatUpdate={(updated) => setThreat(updated)}
         />
       ) : (
         <>

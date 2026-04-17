@@ -95,6 +95,14 @@ interface ThreatResultProps {
   onSaveToCloud?: () => Promise<void>;
   viewOnly?: boolean;
   folderInfo?: FolderInfo | null;
+  /**
+   * Optional callback invoked when the threat is mutated from inside (e.g. the
+   * user adds/removes a condition). When provided, it takes precedence over
+   * the default `dispatch(saveThreat(...))` path — use it in contexts where
+   * the parent manages the threat via local state and does not rely on
+   * the Redux `threatStorage` slice.
+   */
+  onThreatUpdate?: (updated: ThreatSheet) => void;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -105,6 +113,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   onSaveToCloud,
   viewOnly = false,
   folderInfo,
+  onThreatUpdate,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -125,15 +134,18 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const conditionsFeature = useFeatureAccess('conditions');
   const handleConditionsChange = React.useCallback(
     (next: ActiveCondition[]) => {
-      dispatch(
-        saveThreat({
-          ...rawThreat,
-          activeConditions: next,
-          updatedAt: new Date(),
-        })
-      );
+      const updated: ThreatSheet = {
+        ...rawThreat,
+        activeConditions: next,
+        updatedAt: new Date(),
+      };
+      if (onThreatUpdate) {
+        onThreatUpdate(updated);
+      } else {
+        dispatch(saveThreat(updated));
+      }
     },
-    [dispatch, rawThreat]
+    [dispatch, rawThreat, onThreatUpdate]
   );
 
   const resultRef = React.createRef<HTMLDivElement>();

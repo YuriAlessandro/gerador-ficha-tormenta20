@@ -135,6 +135,7 @@ const ThreatViewCloudWrapper: React.FC = () => {
       isSavedToCloud
       onSaveToCloud={async () => {}}
       folderInfo={folderInfo}
+      onThreatUpdate={setThreat}
     />
   );
 };
