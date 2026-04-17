@@ -328,13 +328,15 @@ const applyWeaponBonuses = (
       // Calculate total bonuses for this weapon
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;
-      let totalCriticalBonus = 0;
+      let totalThreatMarginBonus = 0;
+      let totalCriticalMultiplierBonus = 0;
 
       updatedSheet.sheetBonuses.forEach((bonus) => {
         if (
           (bonus.target.type === 'WeaponDamage' ||
             bonus.target.type === 'WeaponAttack' ||
-            bonus.target.type === 'WeaponCritical') &&
+            bonus.target.type === 'WeaponThreatMargin' ||
+            bonus.target.type === 'WeaponCriticalMultiplier') &&
           weaponMatchesBonus(weapon, bonus.target, updatedSheet)
         ) {
           const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
@@ -343,8 +345,10 @@ const applyWeaponBonuses = (
             totalAttackBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamage') {
             totalDamageBonus += bonusValue;
-          } else if (bonus.target.type === 'WeaponCritical') {
-            totalCriticalBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponThreatMargin') {
+            totalThreatMarginBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
+            totalCriticalMultiplierBonus += bonusValue;
           }
         }
       });
@@ -360,36 +364,55 @@ const applyWeaponBonuses = (
           : `+${totalDamageBonus}`;
       }
 
-      if (totalCriticalBonus > 0 && weaponCopy.critico) {
-        // Apply critical bonus logic (simplified for now)
-        if (weaponCopy.critico.includes('x')) {
-          const currentMult = parseInt(
-            weaponCopy.critico.match(/x(\d+)/)?.[1] || '2',
-            10
-          );
-          weaponCopy.critico = weaponCopy.critico.replace(
-            /x\d+/,
-            `x${currentMult + totalCriticalBonus}`
-          );
-        } else if (weaponCopy.critico.includes('/')) {
-          const parts = weaponCopy.critico.split('/');
-          if (parts[1].includes('x')) {
-            const currentMult = parseInt(
-              parts[1].match(/x(\d+)/)?.[1] || '2',
-              10
-            );
-            weaponCopy.critico = `${parts[0]}/x${
-              currentMult + totalCriticalBonus
-            }`;
+      if (
+        (totalThreatMarginBonus > 0 || totalCriticalMultiplierBonus > 0) &&
+        weaponCopy.critico
+      ) {
+        // Critical string may be "19", "x2" or "19/x2". Threat margin modifies
+        // the numeric part before "/" (or the whole string if no "/"); the
+        // multiplier modifies the "xN" portion.
+        const parts = weaponCopy.critico.split('/');
+        let marginPart: string | null = null;
+        let multPart: string | null = null;
+
+        if (parts.length === 1) {
+          const [only] = parts;
+          if (only.includes('x')) {
+            multPart = only;
+          } else {
+            marginPart = only;
           }
         } else {
-          const currentRange = parseInt(weaponCopy.critico, 10);
+          [marginPart, multPart] = parts;
+        }
+
+        if (totalThreatMarginBonus > 0 && marginPart !== null) {
+          const currentRange = parseInt(marginPart, 10);
           if (!Number.isNaN(currentRange)) {
-            weaponCopy.critico = `${Math.max(
+            marginPart = `${Math.max(
               1,
-              currentRange - totalCriticalBonus
+              currentRange - totalThreatMarginBonus
             )}`;
           }
+        }
+
+        if (totalCriticalMultiplierBonus > 0 && multPart !== null) {
+          const currentMult = parseInt(
+            multPart.match(/x(\d+)/)?.[1] || '2',
+            10
+          );
+          multPart = multPart.replace(
+            /x\d+/,
+            `x${currentMult + totalCriticalMultiplierBonus}`
+          );
+        }
+
+        if (marginPart !== null && multPart !== null) {
+          weaponCopy.critico = `${marginPart}/${multPart}`;
+        } else if (marginPart !== null) {
+          weaponCopy.critico = marginPart;
+        } else if (multPart !== null) {
+          weaponCopy.critico = multPart;
         }
       }
 

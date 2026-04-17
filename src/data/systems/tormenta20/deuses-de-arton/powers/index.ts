@@ -88,7 +88,10 @@ const DEUSES_ARTON_POWERS: { [key in GeneralPowerType]: GeneralPower[] } = {
         },
         {
           source: { type: 'power', name: 'Armas da Destruição' },
-          target: { type: 'WeaponCritical', proficiencyRequired: true },
+          target: {
+            type: 'WeaponCriticalMultiplier',
+            proficiencyRequired: true,
+          },
           modifier: { type: 'Fixed', value: 1 },
         },
       ],

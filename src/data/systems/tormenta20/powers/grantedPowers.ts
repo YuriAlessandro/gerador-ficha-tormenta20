@@ -68,7 +68,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           name: 'Armas da Ambição',
         },
         target: {
-          type: 'WeaponCritical',
+          type: 'WeaponThreatMargin',
           proficiencyRequired: true,
         },
         modifier: {
@@ -162,7 +162,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           name: 'Arsenal das profundezas',
         },
         target: {
-          type: 'WeaponCritical',
+          type: 'WeaponCriticalMultiplier',
           weaponTags: ['armaDeMar'],
         },
         modifier: {
@@ -971,7 +971,7 @@ const GRANTED_POWERS: Record<grantedPowers, GeneralPower> = {
           name: 'Tradição de Lin-Wu',
         },
         target: {
-          type: 'WeaponCritical',
+          type: 'WeaponThreatMargin',
           weaponName: 'Katana',
           proficiencyRequired: true,
         },

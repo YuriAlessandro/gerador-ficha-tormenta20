@@ -272,7 +272,13 @@ export type StatModifierTarget =
       proficiencyRequired?: boolean;
     }
   | {
-      type: 'WeaponCritical';
+      type: 'WeaponThreatMargin';
+      weaponName?: string;
+      weaponTags?: string[];
+      proficiencyRequired?: boolean;
+    }
+  | {
+      type: 'WeaponCriticalMultiplier';
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
