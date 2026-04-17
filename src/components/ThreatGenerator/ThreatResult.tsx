@@ -36,13 +36,17 @@ import {
   ThreatAbility,
   ThreatSpell,
 } from '../../interfaces/ThreatSheet';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
+import { ConditionsBar } from '../../premium/components/Conditions';
+import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
+import { getEffectiveThreat } from '../../premium/functions/threatConditions';
+import { saveThreat, deleteThreat } from '../../store/slices/threatStorage';
 import {
   getTierDisplayName,
   getTierByChallengeLevel,
   getEffectiveSkillTotal,
 } from '../../functions/threatGenerator';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
-import { deleteThreat } from '../../store/slices/threatStorage';
 import BreadcrumbNav, { BreadcrumbItem } from '../common/BreadcrumbNav';
 import { FolderInfo } from './ThreatViewCloudWrapper';
 import {
@@ -94,7 +98,7 @@ interface ThreatResultProps {
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
-  threat,
+  threat: rawThreat,
   onEdit,
   isFromHistory = false,
   isSavedToCloud = false,
@@ -102,6 +106,10 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   viewOnly = false,
   folderInfo,
 }) => {
+  const threat = React.useMemo(
+    () => getEffectiveThreat(rawThreat),
+    [rawThreat]
+  );
   const dispatch = useDispatch();
   const history = useHistory();
   const theme = useTheme();
@@ -113,6 +121,20 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   const [loadingFoundry, setLoadingFoundry] = React.useState(false);
   const [loadingPDF, setLoadingPDF] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+
+  const conditionsFeature = useFeatureAccess('conditions');
+  const handleConditionsChange = React.useCallback(
+    (next: ActiveCondition[]) => {
+      dispatch(
+        saveThreat({
+          ...rawThreat,
+          activeConditions: next,
+          updatedAt: new Date(),
+        })
+      );
+    },
+    [dispatch, rawThreat]
+  );
 
   const resultRef = React.createRef<HTMLDivElement>();
 
@@ -607,6 +629,19 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               </Box>
             </Box>
           </Box>
+          {conditionsFeature.isEnabled && (
+            <ConditionsBar
+              activeConditions={threat.activeConditions}
+              onChange={handleConditionsChange}
+              readonly={viewOnly}
+              lockReason={
+                !conditionsFeature.hasAccess && conditionsFeature.supporterOnly
+                  ? 'supporter'
+                  : undefined
+              }
+              dense
+            />
+          )}
           <Box
             sx={{
               display: 'block',

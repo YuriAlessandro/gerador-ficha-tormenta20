@@ -5,8 +5,10 @@ export interface FeatureFlag {
 
 export interface FeatureFlags {
   multiclass: FeatureFlag;
+  conditions: FeatureFlag;
 }
 
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   multiclass: { enabled: true, supporterOnly: true },
+  conditions: { enabled: false, supporterOnly: true },
 };

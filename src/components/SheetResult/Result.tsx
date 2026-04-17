@@ -47,6 +47,15 @@ import { RaceAbility } from '@/interfaces/Race';
 import { CompanionSheet } from '@/interfaces/Companion';
 import { CustomPower } from '@/interfaces/CustomPower';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import {
+  ConditionsBar,
+  ConditionMarker,
+  useConditionHighlights,
+} from '@/premium/components/Conditions';
+import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
+import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
+import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
 import CharacterSheet, {
   DamageReduction,
 } from '../../interfaces/CharacterSheet';
@@ -153,6 +162,44 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
+  const conditionsFeature = useFeatureAccess('conditions');
+  const encounterCtx = useOptionalEncounter();
+  const conditionHighlights = useConditionHighlights(currentSheet);
+  const markersEnabled = conditionsFeature.isEnabled;
+
+  const handleConditionsChange = useCallback(
+    (next: ActiveCondition[]) => {
+      // Run recalculateSheet so condition bonuses (penalties in skills,
+      // defense, attributes, displacement, attacks) are actually applied
+      // to the visible sheet values — not just stored in activeConditions.
+      const updatedSheet = recalculateSheet({
+        ...currentSheet,
+        activeConditions: next,
+      });
+
+      // Rehydrate Bag (recalculateSheet goes through cloneDeep and strips methods)
+      if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
+        const plainBag = updatedSheet.bag as unknown as {
+          equipments: Record<string, unknown>;
+        };
+        updatedSheet.bag = new Bag(plainBag.equipments || {});
+      }
+
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+      if (encounterCtx?.activeEncounter) {
+        const participant = encounterCtx.activeEncounter.participants.find(
+          (p) => p.sheetId === currentSheet.id
+        );
+        if (participant) {
+          encounterCtx.updateParticipantConditions(participant.id, next);
+        }
+      }
+    },
+    [currentSheet, onSheetUpdate, encounterCtx]
+  );
 
   // Update currentSheet when sheet prop changes
   React.useEffect(() => {
@@ -618,8 +665,16 @@ const Result: React.FC<ResultProps> = (props) => {
     : undefined;
 
   const periciasDiv = useMemo(
-    () => <SkillTable sheet={currentSheet} skills={periciasSorted} />,
-    [currentSheet, periciasSorted]
+    () => (
+      <SkillTable
+        sheet={currentSheet}
+        skills={periciasSorted}
+        skillHighlights={
+          markersEnabled ? conditionHighlights.skills : undefined
+        }
+      />
+    ),
+    [currentSheet, periciasSorted, markersEnabled, conditionHighlights.skills]
   );
 
   const effectiveProficiencias = useMemo(() => {
@@ -841,9 +896,20 @@ const Result: React.FC<ResultProps> = (props) => {
         rangeBonus={rangeBonus}
         modFor={modFor}
         characterName={nome}
+        attackConditions={
+          markersEnabled ? conditionHighlights.attack : undefined
+        }
       />
     ),
-    [bagEquipments.Arma, fightBonus, rangeBonus, modFor, nome]
+    [
+      bagEquipments.Arma,
+      fightBonus,
+      rangeBonus,
+      modFor,
+      nome,
+      markersEnabled,
+      conditionHighlights.attack,
+    ]
   );
 
   const defenseEquipments = useMemo(
@@ -1058,7 +1124,21 @@ const Result: React.FC<ResultProps> = (props) => {
                 )}
                 <Box sx={{ flexGrow: 1 }}>
                   <Stack direction='row' alignItems='center' spacing={0.5}>
-                    <LabelDisplay text={nome} size='large' />
+                    {markersEnabled && (
+                      <ConditionMarker
+                        conditions={conditionHighlights.name}
+                        fontSize='medium'
+                      />
+                    )}
+                    <Box
+                      sx={
+                        markersEnabled
+                          ? getConditionLabelStyle(conditionHighlights.name)
+                          : undefined
+                      }
+                    >
+                      <LabelDisplay text={nome} size='large' />
+                    </Box>
                     <Tooltip title='Anotações'>
                       <IconButton
                         size='small'
@@ -1119,6 +1199,20 @@ const Result: React.FC<ResultProps> = (props) => {
                       title='Divindade'
                       text={devoto.divindade.name}
                       size='small'
+                    />
+                  )}
+                  {conditionsFeature.isEnabled && (
+                    <ConditionsBar
+                      activeConditions={currentSheet.activeConditions}
+                      onChange={handleConditionsChange}
+                      readonly={!onSheetUpdate}
+                      lockReason={
+                        !conditionsFeature.hasAccess &&
+                        conditionsFeature.supporterOnly
+                          ? 'supporter'
+                          : undefined
+                      }
+                      dense
                     />
                   )}
                 </Box>
@@ -1205,7 +1299,13 @@ const Result: React.FC<ResultProps> = (props) => {
                     : { mt: '-90px', position: 'relative' }
                 }
               >
-                <AttributeDisplay attributes={atributos} characterName={nome} />
+                <AttributeDisplay
+                  attributes={atributos}
+                  characterName={nome}
+                  attributeHighlights={
+                    markersEnabled ? conditionHighlights.attributes : undefined
+                  }
+                />
               </Box>
             )}
             {isMobile && (
@@ -1218,7 +1318,13 @@ const Result: React.FC<ResultProps> = (props) => {
                 }}
               >
                 <BookTitle>Atributos</BookTitle>
-                <AttributeDisplay attributes={atributos} characterName={nome} />
+                <AttributeDisplay
+                  attributes={atributos}
+                  characterName={nome}
+                  attributeHighlights={
+                    markersEnabled ? conditionHighlights.attributes : undefined
+                  }
+                />
               </Card>
             )}
 
@@ -1282,7 +1388,23 @@ const Result: React.FC<ResultProps> = (props) => {
                   <EditIcon />
                 </IconButton>
               )}
-              <BookTitle>Defesa</BookTitle>
+              <Stack direction='row' alignItems='center' spacing={0.5}>
+                {markersEnabled && (
+                  <ConditionMarker
+                    conditions={conditionHighlights.defense}
+                    fontSize='medium'
+                  />
+                )}
+                <Box
+                  sx={
+                    markersEnabled
+                      ? getConditionLabelStyle(conditionHighlights.defense)
+                      : undefined
+                  }
+                >
+                  <BookTitle>Defesa</BookTitle>
+                </Box>
+              </Stack>
               <Stack
                 direction={isMobile ? 'column' : 'row'}
                 spacing={2}
@@ -1307,8 +1429,29 @@ const Result: React.FC<ResultProps> = (props) => {
                         fontSize: '68px',
                       }}
                     >
-                      <StatLabel theme={theme}>{defesa}</StatLabel>
-                      <StatTitle>Defesa</StatTitle>
+                      <StatLabel
+                        theme={theme}
+                        style={
+                          markersEnabled
+                            ? getConditionLabelStyle(
+                                conditionHighlights.defense
+                              )
+                            : undefined
+                        }
+                      >
+                        {defesa}
+                      </StatLabel>
+                      <StatTitle
+                        style={
+                          markersEnabled
+                            ? getConditionLabelStyle(
+                                conditionHighlights.defense
+                              )
+                            : undefined
+                        }
+                      >
+                        Defesa
+                      </StatTitle>
                     </Box>
                   </FancyBox>
                   {(hasAnyRd || onSheetUpdate) && (
@@ -1638,6 +1781,11 @@ const Result: React.FC<ResultProps> = (props) => {
                             textAlign: 'center',
                             lineHeight: 1,
                             margin: 0,
+                            ...(markersEnabled
+                              ? getConditionLabelStyle(
+                                  conditionHighlights.displacement
+                                )
+                              : {}),
                           }}
                         >
                           {displacement}
@@ -1653,7 +1801,30 @@ const Result: React.FC<ResultProps> = (props) => {
                         >
                           ({Math.floor(displacement / 1.5)}q)
                         </Typography>
-                        <StatTitle>Desl.</StatTitle>
+                        <Stack
+                          direction='row'
+                          alignItems='center'
+                          spacing={0.5}
+                          justifyContent='center'
+                        >
+                          {markersEnabled && (
+                            <ConditionMarker
+                              conditions={conditionHighlights.displacement}
+                              fontSize='small'
+                            />
+                          )}
+                          <StatTitle
+                            style={
+                              markersEnabled
+                                ? getConditionLabelStyle(
+                                    conditionHighlights.displacement
+                                  )
+                                : undefined
+                            }
+                          >
+                            Desl.
+                          </StatTitle>
+                        </Stack>
                       </Box>
                     </FancyBox>
                     {currentSheet.customDisplacement !== undefined && (

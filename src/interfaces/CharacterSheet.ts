@@ -10,6 +10,7 @@ import { BagEquipments } from './Equipment';
 import { OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
+import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 
 export type SheetChangeSource =
   | {
@@ -36,6 +37,10 @@ export type SheetChangeSource =
     }
   | {
       type: 'manualEdit';
+    }
+  | {
+      type: 'condition';
+      conditionId: string;
     };
 
 export type SheetAction = {
@@ -282,6 +287,16 @@ export type StatModifierTarget =
   | {
       type: 'DamageReduction';
       damageType: DamageType;
+    }
+  | {
+      type: 'Attribute';
+      attribute: Atributo;
+    }
+  | {
+      type: 'DisplacementOverride';
+    }
+  | {
+      type: 'AllAttackBonus';
     };
 
 export type StatModifier =
@@ -470,6 +485,12 @@ export default interface CharacterSheet {
   classLevels?: ClassLevelEntry[]; // Multiclasse: classe escolhida em cada nível (undefined = mono-classe)
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
+  activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
+  // Penalidades de atributo atualmente aplicadas por condições ativas.
+  // Rastreia o que foi mutado em `atributos[attr].value` para permitir reverter
+  // antes de reaplicar a cada recalc — sem esse rastreamento, remover uma
+  // condição não devolveria o atributo ao valor base.
+  conditionAttributePenalties?: Partial<Record<Atributo, number>>;
 }
 
 /** SpellPath sem funções — para persistência. As funções são restauradas via restoreSpellPath. */

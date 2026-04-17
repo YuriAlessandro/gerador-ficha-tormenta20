@@ -11,6 +11,9 @@ import {
 } from '../functions/diceRoller';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 import WeaponModeDialog from './WeaponModeDialog';
+import { ConditionMarker } from '../premium/components/Conditions';
+import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import { getConditionLabelStyle } from '../premium/functions/conditionHighlights';
 
 // Abbreviate damage type for display
 const abbreviateDamageType = (tipo?: string): string | undefined => {
@@ -40,10 +43,18 @@ interface WeaponProps {
   fightBonus: number;
   modDano: number;
   characterName?: string;
+  attackConditions?: ActiveCondition[];
 }
 
 const Weapon: React.FC<WeaponProps> = (props) => {
-  const { equipment, rangeBonus, fightBonus, modDano, characterName } = props;
+  const {
+    equipment,
+    rangeBonus,
+    fightBonus,
+    modDano,
+    characterName,
+    attackConditions,
+  } = props;
   const { nome, dano, critico, alcance, atkBonus } = equipment;
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
@@ -186,8 +197,13 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       >
         <Typography
           fontSize={16}
-          sx={{ display: 'flex', alignItems: 'center' }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            ...getConditionLabelStyle(attackConditions),
+          }}
         >
+          <ConditionMarker conditions={attackConditions} fontSize='inherit' />
           {nome} {`${atk >= 0 ? '+' : ''}${atk}`} • {damage} • ({critico})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
           {equipment.descricao && (

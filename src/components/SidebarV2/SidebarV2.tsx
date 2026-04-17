@@ -39,12 +39,14 @@ import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import StarIcon from '@mui/icons-material/Star';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 
 const APP_VERSION = '4.9.1';
+const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
   visible: boolean;
@@ -89,6 +91,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
 }) => {
   const history = useHistory();
   const { isAuthenticated, user } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
 
@@ -340,6 +343,14 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
                 </StyledMenuItem>
+                {isAdmin && (
+                  <StyledMenuItem onClick={() => navigateTo('/admin')}>
+                    <ListItemIcon>
+                      <AdminPanelSettingsIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>Página de Admin</Typography>
+                  </StyledMenuItem>
+                )}
               </>
             )}
 

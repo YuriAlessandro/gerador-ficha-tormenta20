@@ -1,4 +1,5 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
+import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 
 export enum ThreatType {
   ANIMAL = 'Animal',
@@ -206,6 +207,9 @@ export interface ThreatSheet {
 
   // Imagem
   imageUrl?: string;
+
+  // Condições (status effects) ativas na ameaça
+  activeConditions?: ActiveCondition[];
 }
 
 /** Ensures old threat data has resistanceAssignments and bonusDamageDice populated. */

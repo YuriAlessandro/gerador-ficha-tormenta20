@@ -1,19 +1,28 @@
 import React from 'react';
-import { Stack, useTheme } from '@mui/material';
+import { Stack, Box, useTheme } from '@mui/material';
 
 import styled from '@emotion/styled';
 import { CharacterAttributes } from '@/interfaces/Character';
+import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { addSign } from './common/StringHelper';
 import FancyBox from './common/FancyBox';
 import { rollD20 } from '../../functions/diceRoller';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
+import { ConditionMarker } from '../../premium/components/Conditions';
+import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
+import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 
 type Props = {
   attributes: CharacterAttributes;
   characterName?: string;
+  attributeHighlights?: Partial<Record<Atributo, ActiveCondition[]>>;
 };
 
-const AttributeDisplay = ({ attributes, characterName }: Props) => {
+const AttributeDisplay = ({
+  attributes,
+  characterName,
+  attributeHighlights,
+}: Props) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
 
@@ -74,15 +83,28 @@ const AttributeDisplay = ({ attributes, characterName }: Props) => {
     <Stack spacing={2} direction='row' flexWrap='wrap' justifyContent='center'>
       {Object.entries(attributes).map(([attribute, value]) => {
         const label = attribute;
+        const attrConditions = attributeHighlights?.[attribute as Atributo];
+        const labelStyle = getConditionLabelStyle(attrConditions);
         return (
           <FancyBox key={attribute}>
             <NumberDisplay
               onClick={() => handleAttributeClick(label, value.value)}
               title={`Rolar teste de ${label}`}
+              style={labelStyle}
             >
               {addSign(value.value)}
             </NumberDisplay>
-            <Title>{label}</Title>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.25,
+                ...labelStyle,
+              }}
+            >
+              <ConditionMarker conditions={attrConditions} fontSize='inherit' />
+              <Title>{label}</Title>
+            </Box>
           </FancyBox>
         );
       })}

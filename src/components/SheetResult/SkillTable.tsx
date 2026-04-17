@@ -20,20 +20,27 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CheckIcon from '@mui/icons-material/Check';
 import styled from '@emotion/styled';
 import CharacterSheet from '@/interfaces/CharacterSheet';
-import { CompleteSkill, TrainedOnlySkills } from '../../interfaces/Skills';
+import Skill, {
+  CompleteSkill,
+  TrainedOnlySkills,
+} from '../../interfaces/Skills';
 import { ATTR_ABBREVIATIONS } from '../../data/systems/tormenta20/atributos';
 import BookTitle from './common/BookTitle';
 import { rollD20 } from '../../functions/diceRoller';
 import { normalizeSearch } from '../../functions/stringUtils';
 import { useDiceRoll } from '../../premium/hooks/useDiceRoll';
 import SkillActionsDialog from './SkillActionsDialog';
+import { ConditionMarker } from '../../premium/components/Conditions';
+import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
+import { getConditionLabelStyle } from '../../premium/functions/conditionHighlights';
 
 interface IProps {
   sheet: CharacterSheet;
   skills?: CompleteSkill[];
+  skillHighlights?: Partial<Record<Skill, ActiveCondition[]>>;
 }
 
-const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
+const SkillTable: React.FC<IProps> = ({ sheet, skills, skillHighlights }) => {
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
   const [actionsDialogOpen, setActionsDialogOpen] = useState(false);
@@ -282,35 +289,52 @@ const SkillTable: React.FC<IProps> = ({ sheet, skills }) => {
                 ? ATTR_ABBREVIATIONS[skill.modAttr]
                 : '';
 
+              const skillConditions = skillHighlights?.[skill.name];
+              const skillLabelStyle = getConditionLabelStyle(skillConditions);
+
               return (
                 <StyledTableRow key={skill.name}>
                   <TableCellSkillTotal
                     align='center'
                     onClick={() => handleSkillTotalClick(skill, skillTotal)}
                     title={`Rolar ${skill.name}`}
+                    style={skillLabelStyle}
                   >
                     {skillTotal}
                   </TableCellSkillTotal>
                   <DefaultTbCell component='th' scope='row'>
-                    <ClickableSkillName
-                      onClick={() =>
-                        handleSkillNameClick(
-                          skill,
-                          skillTotal,
-                          attrValue,
-                          attrName
-                        )
-                      }
-                      title={`Ver ações de ${skill.name}`}
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                      }}
                     >
-                      {isTrained ? <strong>{skill.name}</strong> : skill.name}
-                      {isTrainedOnly && '*'}
-                      {attrAbbr && (
-                        <span style={{ opacity: 0.6, marginLeft: 4 }}>
-                          ({attrAbbr})
-                        </span>
-                      )}
-                    </ClickableSkillName>
+                      <ConditionMarker
+                        conditions={skillConditions}
+                        fontSize='inherit'
+                      />
+                      <ClickableSkillName
+                        onClick={() =>
+                          handleSkillNameClick(
+                            skill,
+                            skillTotal,
+                            attrValue,
+                            attrName
+                          )
+                        }
+                        title={`Ver ações de ${skill.name}`}
+                        style={skillLabelStyle}
+                      >
+                        {isTrained ? <strong>{skill.name}</strong> : skill.name}
+                        {isTrainedOnly && '*'}
+                        {attrAbbr && (
+                          <span style={{ opacity: 0.6, marginLeft: 4 }}>
+                            ({attrAbbr})
+                          </span>
+                        )}
+                      </ClickableSkillName>
+                    </Box>
                   </DefaultTbCell>
                   <DefaultTbCell align='center'>
                     {isTrained && (

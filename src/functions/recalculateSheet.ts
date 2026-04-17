@@ -25,6 +25,9 @@ import {
 } from '@/data/systems/tormenta20/equipamentos';
 import { getRaceDisplacement } from '@/data/systems/tormenta20/races/functions/functions';
 import { ClassAbility, ClassDescription } from '@/interfaces/Class';
+import { CONDITION_TEMPLATES } from '@/premium/data/conditions';
+import { aggregateConditionBonuses } from '@/premium/functions/conditionAggregation';
+import type { SheetBonus } from '@/interfaces/CharacterSheet';
 import {
   isMulticlass,
   calculateMulticlassPV,
@@ -761,6 +764,88 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Applies bonuses from active conditions, obeying the T20 non-stacking rule:
+ * conditions with the same effect target do not accumulate — only the most
+ * severe applies (aggregation via `aggregateConditionBonuses`).
+ *
+ * Pipeline:
+ *   1. REVERT any attribute penalties from a previous recalc by reading
+ *      `conditionAttributePenalties` (the ledger of what we mutated last time).
+ *      Without this, removing a condition would leave atributos stuck at the
+ *      reduced value — `atributos[attr].value` is the canonical source for
+ *      skills/defense and is persisted across saves.
+ *   2. Collect every bonus from every mechanical condition into a flat array.
+ *   3. Aggregate: group by target key and keep the winner per group.
+ *   4. Apply:
+ *      - For `Attribute` targets: mutate `atributos[attr].value` (so skills
+ *        and defense recalculate from adjusted stats) AND record the delta
+ *        in the fresh `conditionAttributePenalties` ledger.
+ *      - For everything else: push to `sheetBonuses` (main forEach consumes).
+ */
+function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  // Step 1: revert previously-applied attribute penalties
+  const previous = updated.conditionAttributePenalties;
+  if (previous) {
+    (Object.entries(previous) as [Atributo, number][]).forEach(
+      ([attr, delta]) => {
+        if (updated.atributos[attr]) {
+          updated.atributos[attr] = {
+            ...updated.atributos[attr],
+            value: updated.atributos[attr].value - delta,
+          };
+        }
+      }
+    );
+  }
+  updated.conditionAttributePenalties = undefined;
+
+  const active = updated.activeConditions ?? [];
+  if (active.length === 0) return updated;
+
+  // Step 2: collect bonuses
+  const collected: SheetBonus[] = [];
+  active.forEach((ac) => {
+    const tpl = CONDITION_TEMPLATES[ac.id];
+    if (!tpl?.mechanical || !tpl.generateBonuses) return;
+    tpl.generateBonuses(updated).forEach((b) => {
+      collected.push({
+        source: { type: 'condition', conditionId: ac.id },
+        target: b.target,
+        modifier: b.modifier,
+      });
+    });
+  });
+
+  // Step 3: aggregate (non-stacking rule)
+  const aggregated = aggregateConditionBonuses(collected);
+
+  // Step 4: apply
+  const newPenalties: Partial<Record<Atributo, number>> = {};
+  aggregated.forEach((b) => {
+    if (b.target.type === 'Attribute' && b.modifier.type === 'Fixed') {
+      const attr = b.target.attribute;
+      if (updated.atributos[attr]) {
+        updated.atributos[attr] = {
+          ...updated.atributos[attr],
+          value: updated.atributos[attr].value + b.modifier.value,
+        };
+        newPenalties[attr] = (newPenalties[attr] ?? 0) + b.modifier.value;
+      }
+      return;
+    }
+    updated.sheetBonuses.push(b);
+  });
+
+  if (Object.keys(newPenalties).length > 0) {
+    updated.conditionAttributePenalties = newPenalties;
+  }
+
+  return updated;
+}
+
+/**
  * Synthesizes sheetActionHistory entries for powers that were removed by the user
  * but could be re-granted by abilities with `getGeneralPower` sheetActions.
  *
@@ -1072,6 +1157,11 @@ export function recalculateSheet(
   // Step 7.3: Apply equipment bonuses
   updatedSheet = applyEquipmentBonuses(updatedSheet);
 
+  // Step 7.4: Apply active condition bonuses
+  //   - Attribute targets mutate atributos directly (before skills/defense recalc)
+  //   - Other targets are pushed to sheetBonuses for the main loop
+  updatedSheet = applyConditionBonuses(updatedSheet);
+
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined
   const hasManualMaxPV =
@@ -1287,6 +1377,11 @@ export function recalculateSheet(
         }
       } else if (bonus.target.type === 'Displacement') {
         updatedSheet.displacement += bonusValue;
+      } else if (bonus.target.type === 'DisplacementOverride') {
+        updatedSheet.displacement = bonusValue;
+      } else if (bonus.target.type === 'AllAttackBonus') {
+        addOtherBonusToSkill(updatedSheet, 'Luta' as Skill, bonusValue);
+        addOtherBonusToSkill(updatedSheet, 'Pontaria' as Skill, bonusValue);
       } else if (bonus.target.type === 'ArmorPenalty') {
         updatedSheet.extraArmorPenalty =
           (updatedSheet.extraArmorPenalty || 0) + bonusValue;
@@ -1361,8 +1456,19 @@ export function recalculateSheet(
   // Step 10: Apply defense bonuses from powers AFTER base calculation
   updatedSheet = applyDefenseBonuses(updatedSheet);
 
-  // Step 11: Recalculate displacement from ground up
-  if (updatedSheet.customDisplacement !== undefined) {
+  // Step 11: Recalculate displacement from ground up.
+  // DisplacementOverride (from active conditions like Caído/Imóvel) wins over
+  // everything — it's a rule that fixes displacement to a specific value.
+  const displacementOverrideBonus = updatedSheet.sheetBonuses.find(
+    (bonus) => bonus.target.type === 'DisplacementOverride'
+  );
+
+  if (displacementOverrideBonus) {
+    updatedSheet.displacement = calculateBonusValue(
+      updatedSheet,
+      displacementOverrideBonus.modifier
+    );
+  } else if (updatedSheet.customDisplacement !== undefined) {
     updatedSheet.displacement = updatedSheet.customDisplacement;
   } else {
     const baseDisplacementBonuses = updatedSheet.sheetBonuses

@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Equipment from '../interfaces/Equipment';
 import Weapon from './Weapon';
+import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 
 interface WeaponsProps {
   weapons: Equipment[];
@@ -10,11 +11,19 @@ interface WeaponsProps {
   fightBonus: number;
   modFor: number;
   characterName?: string;
+  attackConditions?: ActiveCondition[];
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
-  const { weapons, getKey, rangeBonus, fightBonus, modFor, characterName } =
-    props;
+  const {
+    weapons,
+    getKey,
+    rangeBonus,
+    fightBonus,
+    modFor,
+    characterName,
+    attackConditions,
+  } = props;
 
   if (!weapons || weapons.length === 0) {
     return (
@@ -32,6 +41,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       rangeBonus={rangeBonus}
       modDano={modFor}
       characterName={characterName}
+      attackConditions={attackConditions}
     />
   ));
 
