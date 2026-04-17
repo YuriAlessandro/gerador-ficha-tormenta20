@@ -2063,7 +2063,7 @@ export const spellsCircle2: Record<spellsCircle2Names, Spell> = {
     duracao: '1 dia',
     school: 'Adiv',
     description:
-      'Você cria um elo mental entre duas criaturas com Inteligência 3 ou maior (você pode ser uma delas). As criaturas podem se comunicar independente de idioma ou distância, mas não em mundos diferentes.',
+      'Você cria um elo mental entre duas criaturas com Inteligência –4 ou maior (você pode ser uma delas). As criaturas podem se comunicar independente de idioma ou distância, mas não em mundos diferentes.',
     aprimoramentos: [
       {
         addPm: 2,
