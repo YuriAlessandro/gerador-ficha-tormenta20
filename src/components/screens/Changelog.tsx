@@ -139,6 +139,17 @@ const Changelog: React.FC = () => {
                 </Typography>
               </Alert>
 
+              <ul>
+                <li>
+                  <strong>Correção:</strong> O poder de destino{' '}
+                  <strong>Impostor</strong> exigia &quot;Foco em Perícia
+                  (Enganação)&quot; como pré-requisito, o que impedia a seleção
+                  mesmo quando o personagem já possuía Foco em Perícia em outra
+                  perícia. O pré-requisito foi corrigido para &quot;Foco em
+                  Perícia&quot; (qualquer).
+                </li>
+              </ul>
+
               <h3>4.9</h3>
               <ul>
                 <li>

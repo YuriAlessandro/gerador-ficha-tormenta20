@@ -90,7 +90,7 @@ const destinyPowers: Record<string, GeneralPower> = {
     requirements: [
       [
         { type: RequirementType.ATRIBUTO, name: 'Carisma', value: 3 },
-        { type: RequirementType.PODER, name: 'Foco em Perícia (Enganação)' },
+        { type: RequirementType.PODER, name: 'Foco em Perícia' },
       ],
     ],
   },
