@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -12,9 +12,15 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tabs,
+  Tab,
+  Tooltip,
+  Button,
   useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { CompanionSheet, CompanionNaturalWeapon } from '@/interfaces/Companion';
 import {
@@ -42,6 +48,11 @@ interface CompanionSheetModalProps {
   trainerLevel: number;
   trainerName?: string;
   onCompanionUpdate?: (updated: CompanionSheet) => void;
+  totalCompanions?: number;
+  currentIndex?: number;
+  onIndexChange?: (index: number) => void;
+  onAdd?: () => void;
+  onRemove?: (index: number) => void;
 }
 
 const CompanionAttributeDisplay: React.FC<{
@@ -108,7 +119,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   trainerLevel,
   trainerName,
   onCompanionUpdate,
+  totalCompanions = 1,
+  currentIndex = 0,
+  onIndexChange,
+  onAdd,
+  onRemove,
 }) => {
+  const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const isMobile = useMemo(() => window.innerWidth < 720, []);
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
@@ -320,11 +337,31 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               {displayName}
             </Typography>
           </Stack>
-          <IconButton size='small' onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
+          <Stack direction='row' alignItems='center' spacing={0.5}>
+            {onAdd && (
+              <Tooltip title='Adicionar Melhor Amigo'>
+                <IconButton size='small' onClick={onAdd} color='primary'>
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {onRemove && totalCompanions > 0 && (
+              <Tooltip title='Remover este parceiro'>
+                <IconButton
+                  size='small'
+                  onClick={() => setConfirmRemoveOpen(true)}
+                  color='error'
+                >
+                  <DeleteOutlineIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            <IconButton size='small' onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
         </Stack>
-        <Stack direction='row' spacing={1} sx={{ mt: 0.5 }}>
+        <Stack direction='row' spacing={1} sx={{ mt: 0.5 }} flexWrap='wrap'>
           <Chip
             label={companion.companionType}
             size='small'
@@ -348,6 +385,24 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             />
           )}
         </Stack>
+        {totalCompanions > 1 && onIndexChange && (
+          <Tabs
+            value={currentIndex}
+            onChange={(_, idx) => onIndexChange(idx)}
+            variant='scrollable'
+            scrollButtons='auto'
+            sx={{ mt: 1, minHeight: 32 }}
+          >
+            {Array.from({ length: totalCompanions }).map((_, idx) => (
+              <Tab
+                // eslint-disable-next-line react/no-array-index-key
+                key={idx}
+                label={`Parceiro ${idx + 1}`}
+                sx={{ minHeight: 32, py: 0 }}
+              />
+            ))}
+          </Tabs>
+        )}
       </DialogTitle>
 
       <DialogContent dividers>
@@ -669,6 +724,32 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
           Nível do Treinador: {trainerLevel}
         </Typography>
       </DialogContent>
+      <Dialog
+        open={confirmRemoveOpen}
+        onClose={() => setConfirmRemoveOpen(false)}
+        maxWidth='xs'
+      >
+        <DialogTitle>Remover Melhor Amigo?</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2'>
+            Tem certeza que deseja remover <strong>{displayName}</strong> da sua
+            ficha? Essa ação não pode ser desfeita.
+          </Typography>
+        </DialogContent>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, p: 2 }}>
+          <Button onClick={() => setConfirmRemoveOpen(false)}>Cancelar</Button>
+          <Button
+            color='error'
+            variant='contained'
+            onClick={() => {
+              if (onRemove) onRemove(currentIndex);
+              setConfirmRemoveOpen(false);
+            }}
+          >
+            Remover
+          </Button>
+        </Box>
+      </Dialog>
     </Dialog>
   );
 };

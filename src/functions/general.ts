@@ -3588,6 +3588,34 @@ export function applyManualLevelUp(
     });
   }
 
+  // Multiclasse: primeiro nível de Treinador cria o Melhor Amigo
+  if (
+    isFirstLevelInClass &&
+    selectedClassName === 'Treinador' &&
+    selections.companionType &&
+    selections.companionSize &&
+    selections.companionWeaponDamageType &&
+    selections.companionSkills &&
+    selections.companionTricks &&
+    !updatedSheet.companions?.length
+  ) {
+    const trainerCharisma =
+      updatedSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+    updatedSheet.companions = [
+      createCompanion({
+        name: selections.companionName,
+        type: selections.companionType,
+        size: selections.companionSize,
+        weaponDamageType: selections.companionWeaponDamageType,
+        spiritEnergyType: selections.companionSpiritEnergyType,
+        skills: selections.companionSkills,
+        tricks: selections.companionTricks,
+        trainerLevel: 1,
+        trainerCharisma,
+      }),
+    ];
+  }
+
   return updatedSheet;
 }
 

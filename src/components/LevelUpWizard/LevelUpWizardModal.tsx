@@ -40,7 +40,10 @@ import {
   getClassSetupAbilities,
 } from '@/functions/multiclass';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
-import { getAvailableTricks } from '@/data/systems/tormenta20/herois-de-arton/companion';
+import {
+  getAvailableTricks,
+  createCompanion,
+} from '@/data/systems/tormenta20/herois-de-arton/companion';
 import PowerSelectionStep from './steps/PowerSelectionStep';
 import LevelSpellSelectionStep from './steps/LevelSpellSelectionStep';
 import PowerEffectSelectionStep from '../CharacterCreationWizard/steps/PowerEffectSelectionStep';
@@ -48,6 +51,7 @@ import LevelBenefitsStep from './steps/LevelBenefitsStep';
 import ClassSelectionStep from './steps/ClassSelectionStep';
 import ClassSetupStep from './steps/ClassSetupStep';
 import CompanionTrickSelectionStep from './steps/CompanionTrickSelectionStep';
+import CompanionCreationStep from '../CharacterCreationWizard/steps/CompanionCreationStep';
 
 interface LevelUpWizardModalProps {
   open: boolean;
@@ -510,6 +514,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
     }
     steps.push('Ganhos do Nível');
 
+    // Multiclasse: primeiro nível de Treinador exige criação do Melhor Amigo
+    if (
+      isFirstLevelInNewClass &&
+      selectedClassName === 'Treinador' &&
+      !simulatedSheet.companions?.length
+    ) {
+      steps.push('Melhor Amigo');
+    }
+
     // First level in a new class (multiclass) grants no power
     if (!isFirstLevelInNewClass) {
       steps.push('Escolha de Poder');
@@ -713,6 +726,39 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
             return !!trick.choices?.type;
         }
         return true;
+      }
+
+      case 'Melhor Amigo': {
+        const {
+          companionType,
+          companionSize,
+          companionWeaponDamageType,
+          companionSpiritEnergyType,
+          companionSkills,
+          companionTricks,
+        } = currentLevelSelection;
+        if (!companionType || !companionSize || !companionWeaponDamageType)
+          return false;
+        if (companionType === 'Espírito' && !companionSpiritEnergyType)
+          return false;
+        if (!companionSkills || companionSkills.length !== 3) return false;
+        if (!companionTricks || companionTricks.length !== 2) return false;
+        const availableTricks = getAvailableTricks(
+          1,
+          companionType,
+          companionSize,
+          companionTricks,
+          companionType === 'Monstro' ? 2 : 1,
+          true
+        );
+        return companionTricks.every((t) => {
+          const def = availableTricks.find((d) => d.name === t.name);
+          if (!def?.hasSubChoice) return true;
+          if (def.subChoiceType === 'attribute')
+            return !!t.choices?.primary && !!t.choices?.secondary;
+          if (def.subChoiceType === 'movement') return !!t.choices?.type;
+          return true;
+        });
       }
 
       default:
@@ -985,6 +1031,67 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
       }
 
+      case 'Melhor Amigo':
+        return (
+          <CompanionCreationStep
+            companionName={currentLevelSelection.companionName}
+            companionType={currentLevelSelection.companionType}
+            companionSize={currentLevelSelection.companionSize}
+            companionWeaponDamageType={
+              currentLevelSelection.companionWeaponDamageType
+            }
+            companionSpiritEnergyType={
+              currentLevelSelection.companionSpiritEnergyType
+            }
+            companionSkills={currentLevelSelection.companionSkills || []}
+            companionTricks={currentLevelSelection.companionTricks || []}
+            onNameChange={(name) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionName: name,
+              })
+            }
+            onTypeChange={(type) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionType: type,
+                companionTricks: [],
+              })
+            }
+            onSizeChange={(size) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionSize: size,
+                companionTricks: [],
+              })
+            }
+            onWeaponDamageTypeChange={(damageType) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionWeaponDamageType: damageType,
+              })
+            }
+            onSpiritEnergyTypeChange={(energyType) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionSpiritEnergyType: energyType,
+              })
+            }
+            onSkillsChange={(skills) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionSkills: skills,
+              })
+            }
+            onTricksChange={(tricks) =>
+              setCurrentLevelSelection({
+                ...currentLevelSelection,
+                companionTricks: tricks,
+              })
+            }
+          />
+        );
+
       default:
         return null;
     }
@@ -1043,6 +1150,34 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
               ),
             };
           }
+        }
+
+        // Multiclasse: criar Melhor Amigo no simulatedSheet ao pegar 1º nível de Treinador
+        if (
+          isFirstLevelInNewClass &&
+          selectedClassName === 'Treinador' &&
+          currentLevelSelection.companionType &&
+          currentLevelSelection.companionSize &&
+          currentLevelSelection.companionWeaponDamageType &&
+          currentLevelSelection.companionSkills &&
+          currentLevelSelection.companionTricks &&
+          !nextSheet.companions?.length
+        ) {
+          const trainerCharisma =
+            nextSheet.atributos[Atributo.CARISMA]?.value ?? 0;
+          nextSheet.companions = [
+            createCompanion({
+              name: currentLevelSelection.companionName,
+              type: currentLevelSelection.companionType,
+              size: currentLevelSelection.companionSize,
+              weaponDamageType: currentLevelSelection.companionWeaponDamageType,
+              spiritEnergyType: currentLevelSelection.companionSpiritEnergyType,
+              skills: currentLevelSelection.companionSkills,
+              tricks: currentLevelSelection.companionTricks,
+              trainerLevel: 1,
+              trainerCharisma,
+            }),
+          ];
         }
 
         // Add selected power to the simulated sheet

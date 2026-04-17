@@ -40,6 +40,15 @@ export interface LevelUpSelections {
   // Truque do parceiro (Treinador nos níveis 4, 7, 10, 13, 16, 19)
   companionTrick?: CompanionTrick;
 
+  // Multiclasse: criação do Melhor Amigo ao pegar o 1º nível de Treinador
+  companionName?: string;
+  companionType?: CompanionType;
+  companionSize?: CompanionSize;
+  companionWeaponDamageType?: NaturalWeaponDamageType;
+  companionSpiritEnergyType?: SpiritEnergyType;
+  companionSkills?: Skill[];
+  companionTricks?: CompanionTrick[];
+
   // Multiclasse: configuração de primeira vez na nova classe
   classSetup?: {
     arcanistaSubtype?: 'Bruxo' | 'Mago' | 'Feiticeiro';

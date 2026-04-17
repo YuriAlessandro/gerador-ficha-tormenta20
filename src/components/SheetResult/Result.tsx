@@ -38,6 +38,7 @@ import {
   isMulticlass,
   getMulticlassDisplayName,
   getClassLevelsMap,
+  getClassLevel,
 } from '@/functions/multiclass';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { Spell } from '@/interfaces/Spells';
@@ -72,6 +73,7 @@ import FancyBox from './common/FancyBox';
 import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
 import CompanionSheetModal from './CompanionSheetModal';
+import CompanionCreationDialog from './CompanionCreationDialog';
 import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
@@ -159,6 +161,8 @@ const Result: React.FC<ResultProps> = (props) => {
     useState(false);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
+  const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
+  const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
@@ -577,11 +581,44 @@ const Result: React.FC<ResultProps> = (props) => {
       const companions = currentSheet.companions
         ? [...currentSheet.companions]
         : [];
-      companions[0] = updatedCompanion;
+      companions[selectedCompanionIndex] = updatedCompanion;
       const updatedSheet = { ...currentSheet, companions };
       setCurrentSheet(updatedSheet);
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate, selectedCompanionIndex]
+  );
+
+  const handleCompanionAdd = useCallback(
+    (newCompanion: CompanionSheet) => {
+      const companions = [...(currentSheet.companions || []), newCompanion];
+      const updatedSheet = { ...currentSheet, companions };
+      setCurrentSheet(updatedSheet);
+      setSelectedCompanionIndex(companions.length - 1);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handleCompanionRemove = useCallback(
+    (index: number) => {
+      const companions = (currentSheet.companions || []).filter(
+        (_, i) => i !== index
+      );
+      const updatedSheet = { ...currentSheet, companions };
+      setCurrentSheet(updatedSheet);
+      setSelectedCompanionIndex(
+        Math.max(0, Math.min(index, companions.length - 1))
+      );
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+      if (companions.length === 0) {
+        setCompanionModalOpen(false);
       }
     },
     [currentSheet, onSheetUpdate]
@@ -1564,11 +1601,22 @@ const Result: React.FC<ResultProps> = (props) => {
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
                   }
                   characterName={nome}
-                  onCompanionClick={
-                    currentSheet.companions?.length
-                      ? () => setCompanionModalOpen(true)
-                      : undefined
-                  }
+                  onCompanionClick={(() => {
+                    const hasCompanion =
+                      (currentSheet.companions?.length || 0) > 0;
+                    const isTreinador =
+                      getClassLevel(currentSheet, 'Treinador') > 0;
+                    if (hasCompanion) {
+                      return () => {
+                        setSelectedCompanionIndex(0);
+                        setCompanionModalOpen(true);
+                      };
+                    }
+                    if (isTreinador && onSheetUpdate) {
+                      return () => setCompanionCreationOpen(true);
+                    }
+                    return undefined;
+                  })()}
                 />
               </Box>
             </Card>
@@ -2114,15 +2162,46 @@ const Result: React.FC<ResultProps> = (props) => {
           notes={currentSheet.notes || ''}
           onSave={handleNotesSave}
         />
-        {currentSheet.companions?.[0] && (
-          <CompanionSheetModal
-            open={companionModalOpen}
-            onClose={() => setCompanionModalOpen(false)}
-            companion={currentSheet.companions[0]}
+        {(() => {
+          const companions = currentSheet.companions || [];
+          const safeIndex = Math.min(
+            selectedCompanionIndex,
+            Math.max(0, companions.length - 1)
+          );
+          const currentCompanion = companions[safeIndex];
+          if (!currentCompanion) return null;
+          return (
+            <CompanionSheetModal
+              open={companionModalOpen}
+              onClose={() => setCompanionModalOpen(false)}
+              companion={currentCompanion}
+              trainerLevel={currentSheet.nivel}
+              trainerName={currentSheet.nome}
+              onCompanionUpdate={
+                onSheetUpdate ? handleCompanionUpdate : undefined
+              }
+              totalCompanions={companions.length}
+              currentIndex={safeIndex}
+              onIndexChange={setSelectedCompanionIndex}
+              onAdd={
+                onSheetUpdate ? () => setCompanionCreationOpen(true) : undefined
+              }
+              onRemove={onSheetUpdate ? handleCompanionRemove : undefined}
+            />
+          );
+        })()}
+        {onSheetUpdate && (
+          <CompanionCreationDialog
+            open={companionCreationOpen}
+            onClose={() => setCompanionCreationOpen(false)}
+            onConfirm={(newCompanion) => {
+              handleCompanionAdd(newCompanion);
+              setCompanionCreationOpen(false);
+              setCompanionModalOpen(true);
+            }}
             trainerLevel={currentSheet.nivel}
-            trainerName={currentSheet.nome}
-            onCompanionUpdate={
-              onSheetUpdate ? handleCompanionUpdate : undefined
+            trainerCharisma={
+              currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
             }
           />
         )}
