@@ -182,6 +182,12 @@ const Changelog: React.FC = () => {
                   validação procurava as habilidades de classe (Ataque Furtivo,
                   Código de Honra, Duelo, Encontrar Fraqueza) no lugar errado.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A descrição da magia{' '}
+                  <strong>Ligação Telepática</strong> exibia o requisito de
+                  Inteligência como &quot;3 ou maior&quot;, quando o valor
+                  correto no livro é &quot;–4 ou maior&quot;.
+                </li>
               </ul>
 
               <h3>4.9</h3>
