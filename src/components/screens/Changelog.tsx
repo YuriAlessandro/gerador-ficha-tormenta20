@@ -141,6 +141,29 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> Personagens que multclassam em{' '}
+                  <strong>Treinador</strong> pelo Level Up agora recebem um
+                  passo dedicado para criar o Melhor Amigo — antes, a criação só
+                  acontecia quando Treinador era a classe principal na criação
+                  da ficha, e quem pegava a classe via multiclasse ficava sem
+                  parceiro.
+                </li>
+                <li>
+                  <strong>Novo:</strong> A ficha agora permite{' '}
+                  <strong>adicionar e remover Melhor Amigos</strong> a qualquer
+                  momento. No modal do parceiro, um botão &quot;+&quot; abre o
+                  fluxo de criação e uma lixeira remove o companheiro atual (com
+                  confirmação). Quando há mais de um parceiro, o topo do modal
+                  mostra abas para alternar entre eles — útil pra Treinadores
+                  com Treino Especializado ou cenários especiais do mestre.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Fichas antigas que multclassaram em
+                  Treinador antes dessa atualização agora podem criar o Melhor
+                  Amigo diretamente da ficha, clicando na habilidade
+                  &quot;Melhor Amigo&quot; na lista de poderes.
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder de destino{' '}
                   <strong>Impostor</strong> exigia &quot;Foco em Perícia
                   (Enganação)&quot; como pré-requisito, o que impedia a seleção
