@@ -196,6 +196,17 @@ const Changelog: React.FC = () => {
                   habilidades são filtradas pelo nível específico daquela classe
                   (não pelo nível total do personagem).
                 </li>
+                <li>
+                  <strong>Correção:</strong> O poder concedido{' '}
+                  <strong>Armas da Ambição</strong> (Valkaria) aplicava o +1 no
+                  multiplicador de crítico (ex.: x2 → x3) em vez da margem de
+                  ameaça (ex.: 19-20 → 18-20). Os poderes{' '}
+                  <strong>Tradição de Lin-Wu</strong>,{' '}
+                  <strong>Arsenal das profundezas</strong> e{' '}
+                  <strong>Armas da Destruição</strong> também foram revisados
+                  para garantir que cada um modifique a parte correta do crítico
+                  da arma.
+                </li>
               </ul>
 
               <h3>4.9</h3>
