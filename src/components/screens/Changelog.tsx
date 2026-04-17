@@ -171,6 +171,17 @@ const Changelog: React.FC = () => {
                   perícia. O pré-requisito foi corrigido para &quot;Foco em
                   Perícia&quot; (qualquer).
                 </li>
+                <li>
+                  <strong>Correção:</strong> Os poderes de classe{' '}
+                  <strong>Precisão Furtiva</strong> (Ladino),{' '}
+                  <strong>Cavaleiro Bandido</strong> (Cavaleiro) e{' '}
+                  <strong>Explorar Fraqueza</strong> (Inventor) não apareciam
+                  como selecionáveis mesmo quando o personagem cumpria todos os
+                  requisitos. O tipo dos pré-requisitos estava marcado como
+                  &quot;poder&quot; em vez de &quot;habilidade&quot;, e a
+                  validação procurava as habilidades de classe (Ataque Furtivo,
+                  Código de Honra, Duelo, Encontrar Fraqueza) no lugar errado.
+                </li>
               </ul>
 
               <h3>4.9</h3>
