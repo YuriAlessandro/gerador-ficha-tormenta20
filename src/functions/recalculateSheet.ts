@@ -437,15 +437,17 @@ const calcDisplacement = (
   dinheiro = 0,
   dinheiroTC = 0,
   dinheiroTO = 0,
-  ignoreEncumbrance = false
+  ignoreEncumbrance = false,
+  hasHeavyArmor = false
 ): number => {
   if (!ignoreEncumbrance) {
     const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
+    const isOverloaded = totalUsedSpaces > maxSpaces;
 
-    if (totalUsedSpaces > maxSpaces) {
+    if (isOverloaded || hasHeavyArmor) {
       return raceDisplacement - 3;
     }
   }
@@ -955,6 +957,18 @@ export function recalculateSheet(
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
+
+  // Migração: remover Canalizar Reparos de fichas Golem Desperto antigas
+  // (era incluído antes do commit 711e921, mas só deve existir no Golem básico
+  // ou como Maravilha Mecânica do chassi Mashin)
+  if (
+    updatedSheet.raca.name === 'Golem Desperto' &&
+    updatedSheet.raca.abilities
+  ) {
+    updatedSheet.raca.abilities = updatedSheet.raca.abilities.filter(
+      (ability) => ability.name !== 'Canalizar Reparos'
+    );
+  }
 
   // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.
   // Race bonuses are already included in value from initial creation.
@@ -1486,7 +1500,8 @@ export function recalculateSheet(
       updatedSheet.dinheiro,
       updatedSheet.dinheiroTC,
       updatedSheet.dinheiroTO,
-      updatedSheet.raca.ignoreEncumbrance ?? false
+      updatedSheet.raca.ignoreEncumbrance ?? false,
+      heavyArmor
     );
   }
 

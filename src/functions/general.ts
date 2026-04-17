@@ -1369,15 +1369,17 @@ function calcDisplacement(
   dinheiro = 0,
   dinheiroTC = 0,
   dinheiroTO = 0,
-  ignoreEncumbrance = false
+  ignoreEncumbrance = false,
+  hasHeavyArmor = false
 ): number {
   if (!ignoreEncumbrance) {
     const maxSpaces = calculateMaxSpaces(atributos.Força.value);
     const totalUsedSpaces =
       bag.getSpaces() +
       calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO);
+    const isOverloaded = totalUsedSpaces > maxSpaces;
 
-    if (totalUsedSpaces > maxSpaces) {
+    if (isOverloaded || hasHeavyArmor) {
       return raceDisplacement - 3;
     }
   }
@@ -4384,6 +4386,8 @@ export default function generateRandomSheet(
     });
   }
 
+  const equippedArmors = charSheet.bag.equipments.Armadura || [];
+  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),
@@ -4392,7 +4396,8 @@ export default function generateRandomSheet(
     charSheet.dinheiro,
     charSheet.dinheiroTC,
     charSheet.dinheiroTO,
-    charSheet.raca.ignoreEncumbrance ?? false
+    charSheet.raca.ignoreEncumbrance ?? false,
+    hasHeavyArmor
   );
   charSheet.displacement = displacement;
 
