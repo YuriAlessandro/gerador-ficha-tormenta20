@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            05/04/2026.
+            17/04/2026.
           </p>
 
           <p>
@@ -69,6 +69,76 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.10</h3>
+              <p>
+                A segunda feature mais votada pelos apoiadores chegou! Como no
+                ciclo anterior da Multiclasse, essa é a{' '}
+                <strong>super feature</strong> desta update.
+              </p>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Condições (Status Effects)
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  O catálogo completo das <strong>33 condições oficiais</strong>{' '}
+                  do Tormenta 20 (Abalado, Cego, Caído, Debilitado,
+                  Desprevenido, Paralisado, Petrificado, Envenenado…) agora está
+                  integrado às fichas e à mesa virtual. Ao aplicar uma condição,
+                  a ficha reflete automaticamente as penalidades — Defesa,
+                  perícias, atributos, ataques e deslocamento são recalculados,
+                  e os valores afetados ganham destaque visual (ícone + cor da
+                  categoria + tooltip explicativo).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Cascata inteligente:</strong> condições que
+                  &quot;contêm&quot; outras aplicam as derivadas automaticamente
+                  (aplicar Cego já ativa Desprevenido e Lento; Paralisado já
+                  ativa Imóvel e Indefeso; Petrificado já ativa Inconsciente).
+                  As derivadas aparecem marcadas como implícitas e são removidas
+                  junto com a raiz.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Regra oficial de não-acúmulo:</strong> condições com
+                  mesmo efeito não empilham — Desprevenido (−5 Defesa) +
+                  Vulnerável (−2 Defesa) resulta em −5, não −7. O sistema aplica
+                  automaticamente a penalidade mais severa por alvo.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  <strong>Integração total com mesa virtual:</strong> o mestre
+                  pode aplicar condições em qualquer combatente direto da tela
+                  de combate (jogadores, ameaças ou combatentes manuais). Para
+                  jogadores, a edição propaga à ficha via socket. No início de
+                  cada turno, um popup lembra o mestre e o dono da ficha das
+                  condições ativas do combatente, com nome e texto integral de
+                  cada uma. Badges por combatente na lista de iniciativa dão
+                  visibilidade constante. É uma feature exclusiva para
+                  apoiadores.
+                </Typography>
+              </Alert>
+
               <h3>4.9</h3>
               <ul>
                 <li>
