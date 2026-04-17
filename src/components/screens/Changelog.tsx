@@ -207,6 +207,26 @@ const Changelog: React.FC = () => {
                   para garantir que cada um modifique a parte correta do crítico
                   da arma.
                 </li>
+                <li>
+                  <strong>Correção:</strong> O <strong>Golem Desperto</strong>{' '}
+                  (Inventor) tinha seu deslocamento fixado em 6m na ficha,
+                  ignorando as reduções por sobrepeso e armadura pesada. Além
+                  disso, a habilidade <strong>Canalizar Reparos</strong>{' '}
+                  aparecia residualmente após o Golem Desperto ser escolhido,
+                  mesmo não existindo mais como opção nesse caminho.
+                </li>
+                <li>
+                  <strong>Novo:</strong> Nas mesas virtuais, ao adicionar um
+                  novo combatente a um encontro ativo, o mestre agora pode
+                  escolher entre <strong>Importar Ameaça</strong> (selecionando
+                  direto entre as ameaças já vinculadas à mesa, com stats
+                  preenchidos automaticamente e numeração de instâncias como
+                  &quot;Bandido 2&quot;) ou <strong>Personalizado</strong>. No
+                  modo Personalizado, é possível marcar o combatente como{' '}
+                  <strong>Ameaça ou Jogador</strong> — útil para recepcionar um
+                  jogador que entrou no meio do combate ou adicionar um NPC
+                  aliado sem controle de PV.
+                </li>
               </ul>
 
               <h3>4.9</h3>
