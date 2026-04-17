@@ -31,7 +31,7 @@ import {
   RequirementType,
   OriginPower,
 } from '@/interfaces/Poderes';
-import { ClassPower } from '@/interfaces/Class';
+import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { ORIGINS } from '@/data/systems/tormenta20/origins';
 import { recalculateSheet } from '@/functions/recalculateSheet';
@@ -262,6 +262,55 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         if (classDesc?.powers && classDesc.powers.length > 0) {
           sets.push({ className, powers: classDesc.powers });
         }
+      }
+    });
+
+    return sets;
+  }, [sheet, allSupplements]);
+
+  // Build class ability sets: one entry per class (supports multiclass)
+  const classAbilitySets = useMemo(() => {
+    const sets: Array<{
+      className: string;
+      classLevel: number;
+      abilities: ClassAbility[];
+    }> = [];
+
+    if (!isMulticlass(sheet)) {
+      if (sheet.classe.abilities && sheet.classe.abilities.length > 0) {
+        const filtered = sheet.classe.abilities.filter(
+          (a) => a.nivel <= sheet.nivel
+        );
+        if (filtered.length > 0) {
+          sets.push({
+            className: sheet.classe.name,
+            classLevel: sheet.nivel,
+            abilities: filtered,
+          });
+        }
+      }
+      return sets;
+    }
+
+    const classLevelsMap = getClassLevelsMap(sheet);
+    classLevelsMap.forEach((classLevel, className) => {
+      let sourceAbilities: ClassAbility[] = [];
+      if (className === sheet.classe.name) {
+        sourceAbilities = sheet.classe.abilities ?? [];
+      } else {
+        const subname = sheet.classLevels?.find(
+          (cl) => cl.className === className
+        )?.classSubname;
+        const classDesc = findClassDescription(
+          className,
+          subname,
+          allSupplements
+        );
+        sourceAbilities = classDesc?.abilities ?? [];
+      }
+      const filtered = sourceAbilities.filter((a) => a.nivel <= classLevel);
+      if (filtered.length > 0) {
+        sets.push({ className, classLevel, abilities: filtered });
       }
     });
 
@@ -1945,38 +1994,43 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 </Stack>
               </>
             )}
-            {sheet.classe.abilities &&
-              sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
-                .length > 0 && (
-                <>
-                  <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                    Habilidades de Classe Ativas (
-                    {
-                      sheet.classe.abilities.filter(
-                        (a) => a.nivel <= sheet.nivel
-                      ).length
-                    }
-                    ):
-                  </Typography>
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                    flexWrap='wrap'
-                    sx={{ mb: 2 }}
-                  >
-                    {sheet.classe.abilities
-                      .filter((ability) => ability.nivel <= sheet.nivel)
-                      .map((ability) => (
-                        <Chip
-                          key={`class-${ability.name}-${ability.nivel}`}
-                          label={`${ability.name} (Nv.${ability.nivel})`}
-                          size='small'
-                          color='info'
-                        />
-                      ))}
-                  </Stack>
-                </>
-              )}
+            {classAbilitySets.length > 0 &&
+              (() => {
+                const totalAbilities = classAbilitySets.reduce(
+                  (sum, set) => sum + set.abilities.length,
+                  0
+                );
+                const showClassInLabel = isMulticlass(sheet);
+                return (
+                  <>
+                    <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                      Habilidades de Classe Ativas ({totalAbilities}):
+                    </Typography>
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      flexWrap='wrap'
+                      sx={{ mb: 2 }}
+                    >
+                      {classAbilitySets.flatMap(
+                        ({ className: clsName, abilities }) =>
+                          abilities.map((ability) => (
+                            <Chip
+                              key={`class-${clsName}-${ability.name}-${ability.nivel}`}
+                              label={
+                                showClassInLabel
+                                  ? `${ability.name} (${clsName} Nv.${ability.nivel})`
+                                  : `${ability.name} (Nv.${ability.nivel})`
+                              }
+                              size='small'
+                              color='info'
+                            />
+                          ))
+                      )}
+                    </Stack>
+                  </>
+                );
+              })()}
             {sheet.raca.abilities && sheet.raca.abilities.length > 0 && (
               <>
                 <Typography variant='subtitle2' sx={{ mb: 1 }}>
@@ -2037,27 +2091,22 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
             </Accordion>
           )}
 
-          {/* Class Abilities Section */}
-          {sheet.classe.abilities && sheet.classe.abilities.length > 0 && (
-            <Accordion>
+          {/* Class Abilities Section(s) - one accordion per class for multiclass */}
+          {classAbilitySets.map(({ className: clsName, abilities }) => (
+            <Accordion key={`class-abilities-${clsName}`}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography variant='h6'>
-                  Habilidades de {sheet.classe.name} (
-                  {
-                    sheet.classe.abilities.filter((a) => a.nivel <= sheet.nivel)
-                      .length
-                  }{' '}
-                  disponíveis)
+                  Habilidades de {clsName} ({abilities.length} disponíveis)
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Stack spacing={2}>
-                  {sheet.classe.abilities
-                    .filter((ability) => ability.nivel <= sheet.nivel)
+                  {abilities
+                    .slice()
                     .sort((a, b) => a.nivel - b.nivel)
                     .map((ability) => (
                       <Box
-                        key={`class-ability-${ability.name}-${ability.nivel}`}
+                        key={`class-ability-${clsName}-${ability.name}-${ability.nivel}`}
                         sx={{
                           p: 2,
                           border: 2,
@@ -2077,7 +2126,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
                 </Stack>
               </AccordionDetails>
             </Accordion>
-          )}
+          ))}
 
           {/* Class Powers Section(s) - one accordion per class for multiclass */}
           {classPowerSets.map(({ className: clsName, powers: clsPowers }) => {
