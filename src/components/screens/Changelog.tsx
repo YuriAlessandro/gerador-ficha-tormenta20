@@ -188,6 +188,14 @@ const Changelog: React.FC = () => {
                   Inteligência como &quot;3 ou maior&quot;, quando o valor
                   correto no livro é &quot;–4 ou maior&quot;.
                 </li>
+                <li>
+                  <strong>Correção:</strong> No editor de poderes de personagens
+                  multiclasse, as <strong>habilidades de classe</strong> das
+                  classes secundárias não apareciam — apenas as da classe
+                  inicial. Cada classe agora ganha sua própria seção, e as
+                  habilidades são filtradas pelo nível específico daquela classe
+                  (não pelo nível total do personagem).
+                </li>
               </ul>
 
               <h3>4.9</h3>
