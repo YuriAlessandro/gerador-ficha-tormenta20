@@ -85,7 +85,7 @@ const INVENTOR_POWERS: ClassPower[] = [
     name: 'Explorar Fraqueza',
     text: 'Quando usa Encontrar Fraqueza em um inimigo, você também ignora 5 pontos da redução de dano dele até o fim da cena.',
     requirements: [
-      [{ type: RequirementType.PODER, name: 'Encontrar Fraqueza' }],
+      [{ type: RequirementType.HABILIDADE, name: 'Encontrar Fraqueza' }],
     ],
   },
   {

@@ -23,8 +23,8 @@ const CAVALEIRO_POWERS: ClassPower[] = [
     text: 'Você abandonou sua honra em favor de vitórias fáceis. Você perde as habilidades Código de Honra e Duelo, mas recebe Ataque Furtivo como se fosse um ladino do seu nível de cavaleiro.',
     requirements: [
       [
-        { type: RequirementType.PODER, name: 'Código de Honra' },
-        { type: RequirementType.PODER, name: 'Duelo' },
+        { type: RequirementType.HABILIDADE, name: 'Código de Honra' },
+        { type: RequirementType.HABILIDADE, name: 'Duelo' },
       ],
     ],
   },

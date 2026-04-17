@@ -100,7 +100,7 @@ const LADINO_POWERS: ClassPower[] = [
     requirements: [
       [
         { type: RequirementType.PERICIA, name: 'Pontaria' },
-        { type: RequirementType.PODER, name: 'Ataque Furtivo' },
+        { type: RequirementType.HABILIDADE, name: 'Ataque Furtivo' },
       ],
     ],
   },
