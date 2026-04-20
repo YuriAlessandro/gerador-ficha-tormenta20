@@ -36,7 +36,7 @@ import SupportGoals from './SupportGoals';
 const SupportPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { openLoginModal } = useAuthContext();
   const {
     tier: currentTier,
@@ -223,8 +223,8 @@ const SupportPage: React.FC = () => {
       {hasActiveSubscription && (
         <Alert severity='info' sx={{ mb: 3 }}>
           Você já possui um apoio ativo. Para fazer upgrade ou downgrade do seu
-          nível de apoio, entre em contato com o suporte através do email{' '}
-          <strong>contato@fichasdenimb.com.br</strong>.
+          nível de apoio, entre em seu{' '}
+          <a href={`/perfil/${user?.username}`}>perfil</a>.
         </Alert>
       )}
 

@@ -58,7 +58,6 @@ export interface Subscription {
 export interface SubscriptionLimits {
   maxSheets: number;
   maxMenaceSheets: number; // -1 = unlimited
-  canComment: boolean;
   maxGameTables: number; // 0 = not available, -1 = unlimited
   maxPlayersPerTable: number; // -1 = unlimited
 }
@@ -168,49 +167,42 @@ export const SUPPORT_LIMITS: Record<SupportLevel, SubscriptionLimits> = {
   [SupportLevel.FREE]: {
     maxSheets: 10,
     maxMenaceSheets: 10,
-    canComment: true,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_1]: {
     maxSheets: 15,
     maxMenaceSheets: 50,
-    canComment: true,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_1_ANUAL]: {
     maxSheets: 15,
     maxMenaceSheets: 50,
-    canComment: true,
     maxGameTables: 1,
     maxPlayersPerTable: 6,
   },
   [SupportLevel.NIVEL_2]: {
     maxSheets: 20,
     maxMenaceSheets: 70,
-    canComment: true,
     maxGameTables: 5,
     maxPlayersPerTable: -1,
   },
   [SupportLevel.NIVEL_3]: {
     maxSheets: -1, // Unlimited
     maxMenaceSheets: -1, // Unlimited
-    canComment: true,
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
   },
   [SupportLevel.NIVEL_2_ANUAL]: {
     maxSheets: 20,
     maxMenaceSheets: 70,
-    canComment: true,
     maxGameTables: 5,
     maxPlayersPerTable: -1,
   },
   [SupportLevel.NIVEL_3_ANUAL]: {
     maxSheets: -1, // Unlimited
     maxMenaceSheets: -1,
-    canComment: true,
     maxGameTables: -1, // Unlimited
     maxPlayersPerTable: -1, // Unlimited
   },

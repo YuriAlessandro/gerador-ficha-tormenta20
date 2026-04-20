@@ -50,7 +50,8 @@ const GOALS: SupportGoal[] = [
     id: 5,
     target: 300,
     label: 'Meta 5',
-    description: '3 novas features por mês',
+    description:
+      'Aumento de 1.5x em todos os limites, para todos os usuários (grátis e apoiadores)',
   },
 ];
 
@@ -219,13 +220,21 @@ const SupportGoals: React.FC = () => {
                       />
                     )}
                     {state === 'active' && (
-                      <Typography
-                        variant='caption'
-                        color='primary'
-                        fontWeight='bold'
-                      >
-                        {count}/{goal.target}
-                      </Typography>
+                      <Stack direction='row' alignItems='center' spacing={1}>
+                        <Chip
+                          label='Em andamento!'
+                          size='small'
+                          color='primary'
+                          sx={{ fontWeight: 'bold', fontSize: '0.7rem' }}
+                        />
+                        <Typography
+                          variant='caption'
+                          color='primary'
+                          fontWeight='bold'
+                        >
+                          {count}/{goal.target}
+                        </Typography>
+                      </Stack>
                     )}
                   </Stack>
 
