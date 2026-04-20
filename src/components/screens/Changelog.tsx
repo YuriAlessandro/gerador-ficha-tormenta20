@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            17/04/2026.
+            20/04/2026.
           </p>
 
           <p>
@@ -140,6 +140,17 @@ const Changelog: React.FC = () => {
               </Alert>
 
               <ul>
+                <li>
+                  <strong>Novo:</strong> Na mesa virtual, o mestre agora pode{' '}
+                  <strong>adicionar fichas da própria conta</strong> como
+                  personagens da mesa — útil para rodar a ferramenta solo, sem
+                  depender de jogadores reais usarem o sistema. As fichas
+                  adicionadas funcionam como jogadores normais (aparecem nos
+                  encontros, rolam iniciativa, tomam dano), ficam ocultas para
+                  os jogadores reais da mesa e, como qualquer ficha vinculada,
+                  ficam exclusivas a uma mesa por vez (para usar em outra,
+                  duplique).
+                </li>
                 <li>
                   <strong>Novo:</strong> Personagens que multclassam em{' '}
                   <strong>Treinador</strong> pelo Level Up agora recebem um
