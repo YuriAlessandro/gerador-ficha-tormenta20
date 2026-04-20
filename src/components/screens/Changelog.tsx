@@ -152,22 +152,6 @@ const Changelog: React.FC = () => {
                   conteúdo alheio.
                 </li>
                 <li>
-                  <strong>Correção:</strong> No <strong>Wyrt</strong>, quando o
-                  último jogador aceitava ou recusava o dobro, a notificação
-                  podia ficar presa na tela e travar a partida — bots paravam de
-                  jogar e a tela ficava escurecida com o overlay no meio. O
-                  problema era de ciclo de vida do timer da notificação, que era
-                  cancelado quando a fase mudava enquanto o aviso ainda estava
-                  visível.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> No <strong>Wyrt</strong> online, ao
-                  fim de cada rodada as{' '}
-                  <strong>cartas de todos os jogadores</strong> são reveladas no
-                  resumo — antes só aparecia o total por cor, e agora dá pra ver
-                  exatamente quais cartas compuseram a soma de cada oponente.
-                </li>
-                <li>
                   <strong>Novo:</strong> Na mesa virtual, o mestre agora pode{' '}
                   <strong>adicionar fichas da própria conta</strong> como
                   personagens da mesa — útil para rodar a ferramenta solo, sem
@@ -196,10 +180,38 @@ const Changelog: React.FC = () => {
                   com Treino Especializado ou cenários especiais do mestre.
                 </li>
                 <li>
+                  <strong>Novo:</strong> Nas mesas virtuais, ao adicionar um
+                  novo combatente a um encontro ativo, o mestre agora pode
+                  escolher entre <strong>Importar Ameaça</strong> (selecionando
+                  direto entre as ameaças já vinculadas à mesa, com stats
+                  preenchidos automaticamente e numeração de instâncias como
+                  &quot;Bandido 2&quot;) ou <strong>Personalizado</strong>. No
+                  modo Personalizado, é possível marcar o combatente como{' '}
+                  <strong>Ameaça ou Jogador</strong> — útil para recepcionar um
+                  jogador que entrou no meio do combate ou adicionar um NPC
+                  aliado sem controle de PV.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No <strong>Wyrt</strong> online, ao
+                  fim de cada rodada as{' '}
+                  <strong>cartas de todos os jogadores</strong> são reveladas no
+                  resumo — antes só aparecia o total por cor, e agora dá pra ver
+                  exatamente quais cartas compuseram a soma de cada oponente.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Fichas antigas que multclassaram em
                   Treinador antes dessa atualização agora podem criar o Melhor
                   Amigo diretamente da ficha, clicando na habilidade
                   &quot;Melhor Amigo&quot; na lista de poderes.
+                </li>
+                <li>
+                  <strong>Correção:</strong> No <strong>Wyrt</strong>, quando o
+                  último jogador aceitava ou recusava o dobro, a notificação
+                  podia ficar presa na tela e travar a partida — bots paravam de
+                  jogar e a tela ficava escurecida com o overlay no meio. O
+                  problema era de ciclo de vida do timer da notificação, que era
+                  cancelado quando a fase mudava enquanto o aviso ainda estava
+                  visível.
                 </li>
                 <li>
                   <strong>Correção:</strong> O poder de destino{' '}
@@ -252,18 +264,6 @@ const Changelog: React.FC = () => {
                   disso, a habilidade <strong>Canalizar Reparos</strong>{' '}
                   aparecia residualmente após o Golem Desperto ser escolhido,
                   mesmo não existindo mais como opção nesse caminho.
-                </li>
-                <li>
-                  <strong>Novo:</strong> Nas mesas virtuais, ao adicionar um
-                  novo combatente a um encontro ativo, o mestre agora pode
-                  escolher entre <strong>Importar Ameaça</strong> (selecionando
-                  direto entre as ameaças já vinculadas à mesa, com stats
-                  preenchidos automaticamente e numeração de instâncias como
-                  &quot;Bandido 2&quot;) ou <strong>Personalizado</strong>. No
-                  modo Personalizado, é possível marcar o combatente como{' '}
-                  <strong>Ameaça ou Jogador</strong> — útil para recepcionar um
-                  jogador que entrou no meio do combate ou adicionar um NPC
-                  aliado sem controle de PV.
                 </li>
               </ul>
 
