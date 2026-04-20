@@ -141,6 +141,22 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Correção:</strong> No <strong>Wyrt</strong>, quando o
+                  último jogador aceitava ou recusava o dobro, a notificação
+                  podia ficar presa na tela e travar a partida — bots paravam de
+                  jogar e a tela ficava escurecida com o overlay no meio. O
+                  problema era de ciclo de vida do timer da notificação, que era
+                  cancelado quando a fase mudava enquanto o aviso ainda estava
+                  visível.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> No <strong>Wyrt</strong> online, ao
+                  fim de cada rodada as{' '}
+                  <strong>cartas de todos os jogadores</strong> são reveladas no
+                  resumo — antes só aparecia o total por cor, e agora dá pra ver
+                  exatamente quais cartas compuseram a soma de cada oponente.
+                </li>
+                <li>
                   <strong>Novo:</strong> Na mesa virtual, o mestre agora pode{' '}
                   <strong>adicionar fichas da própria conta</strong> como
                   personagens da mesa — útil para rodar a ferramenta solo, sem
