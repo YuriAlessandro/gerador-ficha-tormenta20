@@ -141,6 +141,17 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo:</strong> Usuários agora podem{' '}
+                  <strong>editar os próprios posts e comentários</strong> no
+                  fórum. Comentários têm edição inline direto no card (com
+                  suporte a menções da enciclopédia), e posts continuam sendo
+                  editados pela página dedicada. Um indicador discreto &quot;·
+                  editado&quot; aparece ao lado da data, com tooltip mostrando
+                  quando o conteúdo foi alterado. Threads travadas bloqueiam
+                  edição para usuários comuns, e moderadores também podem editar
+                  conteúdo alheio.
+                </li>
+                <li>
                   <strong>Correção:</strong> No <strong>Wyrt</strong>, quando o
                   último jogador aceitava ou recusava o dobro, a notificação
                   podia ficar presa na tela e travar a partida — bots paravam de
