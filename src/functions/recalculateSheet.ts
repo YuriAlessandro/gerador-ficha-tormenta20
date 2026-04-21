@@ -1493,6 +1493,26 @@ export function recalculateSheet(
   // Step 10: Apply defense bonuses from powers AFTER base calculation
   updatedSheet = applyDefenseBonuses(updatedSheet);
 
+  // Casca Grossa (Lutador/Atleta): soma Con na Defesa capado pelo nível da
+  // classe quando sem armadura pesada; +1 cumulativo a cada 4 níveis a partir
+  // do 7º (independe de armadura).
+  const cascaGrossa = updatedSheet.classe.abilities?.find(
+    (a) => a.name === 'Casca Grossa'
+  );
+  if (cascaGrossa) {
+    const sourceClass = cascaGrossa.sourceClassName || updatedSheet.classe.name;
+    const classLevel = getClassLevel(updatedSheet, sourceClass);
+
+    if (!heavyArmor) {
+      const conMod = updatedSheet.atributos.Constituição?.value ?? 0;
+      updatedSheet.defesa += Math.max(0, Math.min(conMod, classLevel));
+    }
+
+    if (classLevel >= 7) {
+      updatedSheet.defesa += Math.floor((classLevel - 3) / 4);
+    }
+  }
+
   // Step 11: Recalculate displacement from ground up.
   // DisplacementOverride (from active conditions like Caído/Imóvel) wins over
   // everything — it's a rule that fixes displacement to a specific value.

@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { recalculateSheet } from '../recalculateSheet';
 import { createMockCharacterSheet } from '../../__mocks__/characterSheet';
 import combatPowers from '../../data/systems/tormenta20/powers/combatPowers';
@@ -6,6 +7,10 @@ import tormentaPowers from '../../data/systems/tormenta20/powers/tormentaPowers'
 import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { GeneralPower, GeneralPowerType } from '../../interfaces/Poderes';
+import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
+import Bag from '../../interfaces/Bag';
+import { Atributo } from '../../data/systems/tormenta20/atributos';
+import { DefenseEquipment } from '../../interfaces/Equipment';
 
 describe('recalculateSheet', () => {
   let mockSheet: CharacterSheet;
@@ -477,6 +482,148 @@ describe('recalculateSheet', () => {
         (e) => e.powerName === 'Couraça Rúbea'
       );
       expect(syntheticEntry).toBeDefined();
+    });
+  });
+
+  describe('Casca Grossa (Lutador)', () => {
+    const buildLutadorSheet = (
+      level: number,
+      conMod: number,
+      heavyArmor = false
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(LUTADOR);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.CONSTITUICAO].value = conMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+
+      if (heavyArmor) {
+        const placas: DefenseEquipment = {
+          nome: 'Placas (teste)',
+          group: 'Armadura',
+          defenseBonus: 0,
+          armorPenalty: 0,
+          isHeavyArmor: true,
+        };
+        sheet.bag = new Bag({ Armadura: [placas] });
+      } else {
+        sheet.bag = new Bag();
+      }
+
+      return sheet;
+    };
+
+    const getBaselineDefense = (
+      level: number,
+      conMod: number,
+      heavyArmor = false
+    ): number => {
+      // Baseline = sheet recalculated com Lutador mas SEM Casca Grossa aplicada.
+      // Como o fix ainda não existe / quando o fix existir, usamos nível abaixo
+      // de 3 (onde Casca Grossa não se aplica) para obter a defesa base esperada.
+      const baseline = buildLutadorSheet(2, conMod, heavyArmor);
+      return recalculateSheet(baseline).defesa;
+    };
+
+    it('nível 3, Con +3, sem armadura pesada: adiciona +3 (capado pelo nível)', () => {
+      const sheet = buildLutadorSheet(3, 3);
+      const baseline = getBaselineDefense(3, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 3, Con +5, sem armadura pesada: cap do nível limita o bônus a +3', () => {
+      const sheet = buildLutadorSheet(3, 5);
+      const baseline = getBaselineDefense(3, 5);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 5, Con +3, sem armadura pesada: ainda apenas Con (+3), sem escalonamento', () => {
+      const sheet = buildLutadorSheet(5, 3);
+      const baseline = getBaselineDefense(5, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('nível 3, Con +3, com armadura pesada: Con não soma', () => {
+      const sheet = buildLutadorSheet(3, 3, true);
+      const baseline = getBaselineDefense(3, 3, true);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline);
+    });
+
+    it('nível 7, Con +3, sem armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
+      const sheet = buildLutadorSheet(7, 3);
+      const baseline = getBaselineDefense(7, 3);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 4);
+    });
+
+    it('nível 7, Con +3, com armadura pesada: apenas o escalonamento (+1)', () => {
+      const sheet = buildLutadorSheet(7, 3, true);
+      const baseline = getBaselineDefense(7, 3, true);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 1);
+    });
+
+    it('nível 11, Con +4, sem armadura: Con (+4) + escalonamento (+2) = +6', () => {
+      const sheet = buildLutadorSheet(11, 4);
+      const baseline = getBaselineDefense(11, 4);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 6);
+    });
+
+    it('nível 2 (Lutador sem Casca Grossa ainda): sem bônus', () => {
+      const sheetWithoutCasca = buildLutadorSheet(2, 3);
+      const defaultSheet = createMockCharacterSheet();
+      defaultSheet.nivel = 2;
+      defaultSheet.atributos[Atributo.CONSTITUICAO].value = 3;
+      defaultSheet.generalPowers = [];
+      defaultSheet.classPowers = [];
+      defaultSheet.sheetBonuses = [];
+      defaultSheet.sheetActionHistory = [];
+      defaultSheet.bag = new Bag();
+
+      const withLutador = recalculateSheet(sheetWithoutCasca).defesa;
+      const withSimple = recalculateSheet(defaultSheet).defesa;
+
+      expect(withLutador).toBe(withSimple);
+    });
+
+    it('classe sem Casca Grossa (regressão): Con não afeta Defesa', () => {
+      const sheet = createMockCharacterSheet();
+      sheet.nivel = 7;
+      sheet.atributos[Atributo.CONSTITUICAO].value = 5;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      const baselineCon0 = cloneDeep(sheet);
+      baselineCon0.atributos[Atributo.CONSTITUICAO].value = 0;
+
+      const result = recalculateSheet(sheet);
+      const baseline = recalculateSheet(baselineCon0);
+
+      expect(result.defesa).toBe(baseline.defesa);
     });
   });
 });
