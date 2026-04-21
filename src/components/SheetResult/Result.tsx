@@ -1608,7 +1608,9 @@ const Result: React.FC<ResultProps> = (props) => {
                 <TabContext value={activeTab}>
                   <TabList
                     onChange={onChangeTab}
-                    variant='fullWidth'
+                    variant='scrollable'
+                    scrollButtons='auto'
+                    allowScrollButtonsMobile
                     sx={{
                       borderBottom: 1,
                       borderColor: 'divider',
