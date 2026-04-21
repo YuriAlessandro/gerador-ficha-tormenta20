@@ -12,6 +12,7 @@ import {
   Chip,
   Container,
   Stack,
+  Tab,
   Tooltip,
   Typography,
   useTheme,
@@ -22,6 +23,7 @@ import {
   Alert,
   Link,
 } from '@mui/material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 import styled from '@emotion/styled';
 import {
   MOREAU_HERITAGES,
@@ -163,6 +165,16 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<
+    'pericias' | 'poderes' | 'magias' | 'equipamentos'
+  >('pericias');
+
+  const onChangeTab = (
+    _e: React.SyntheticEvent,
+    newValue: 'pericias' | 'poderes' | 'magias' | 'equipamentos'
+  ) => {
+    setActiveTab(newValue);
+  };
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
@@ -1560,117 +1572,6 @@ const Result: React.FC<ResultProps> = (props) => {
                 </Box>
               </Stack>
             </Card>
-            <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setPowersDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
-              <Box>
-                <BookTitle>Poderes</BookTitle>
-                <PowersDisplay
-                  sheetHistory={currentSheet.sheetActionHistory || []}
-                  classAbilities={classe.abilities}
-                  classPowers={classPowers}
-                  raceAbilities={raca.abilities}
-                  originPowers={origin?.powers || []}
-                  deityPowers={devoto?.poderes || []}
-                  generalPowers={generalPowers}
-                  customPowers={currentSheet.customPowers || []}
-                  customGrantedPowers={currentSheet.customGrantedPowers || []}
-                  className={classe.name}
-                  raceName={raca.name}
-                  deityName={devoto?.divindade?.name}
-                  onUpdateRolls={
-                    onSheetUpdate ? handlePowerRollsUpdate : undefined
-                  }
-                  characterName={nome}
-                  onCompanionClick={(() => {
-                    const hasCompanion =
-                      (currentSheet.companions?.length || 0) > 0;
-                    const isTreinador =
-                      getClassLevel(currentSheet, 'Treinador') > 0;
-                    if (hasCompanion) {
-                      return () => {
-                        setSelectedCompanionIndex(0);
-                        setCompanionModalOpen(true);
-                      };
-                    }
-                    if (isTreinador && onSheetUpdate) {
-                      return () => setCompanionCreationOpen(true);
-                    }
-                    return undefined;
-                  })()}
-                />
-              </Box>
-            </Card>
-            <Card
-              sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
-            >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setSpellsDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
-              <Box>
-                <BookTitle>Magias</BookTitle>
-                <Spells
-                  spells={spells}
-                  keyAttr={keyAttr}
-                  selectedKeyAttribute={effectiveKeyAttribute}
-                  nivel={nivel}
-                  onUpdateRolls={
-                    onSheetUpdate ? handleSpellRollsUpdate : undefined
-                  }
-                  characterName={nome}
-                  currentPM={currentSheet.currentPM ?? pm}
-                  maxPM={pm}
-                  tempPM={currentSheet.tempPM ?? 0}
-                  onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
-                  isMago={classe.subname === 'Mago'}
-                  onToggleMemorized={
-                    onSheetUpdate ? handleToggleMemorized : undefined
-                  }
-                  onToggleAlwaysPrepared={
-                    onSheetUpdate ? handleToggleAlwaysPrepared : undefined
-                  }
-                  bonusSpellDC={spellDCBonus}
-                  onKeyAttributeChange={
-                    onSheetUpdate ? handleKeyAttributeChange : undefined
-                  }
-                />
-              </Box>
-            </Card>
           </Box>
           {/* LADO DIREITO, 40% */}
           <Box width={isMobile ? '100%' : '40%'}>
@@ -1686,77 +1587,157 @@ const Result: React.FC<ResultProps> = (props) => {
                       backgroundColor: theme.palette.primary.main,
                       color: 'white',
                       borderRadius: 1,
+                      zIndex: 1,
                       '&:hover': {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => setSkillsDrawerOpen(true)}
+                    onClick={() => {
+                      if (activeTab === 'pericias') setSkillsDrawerOpen(true);
+                      else if (activeTab === 'poderes')
+                        setPowersDrawerOpen(true);
+                      else if (activeTab === 'magias')
+                        setSpellsDrawerOpen(true);
+                      else if (activeTab === 'equipamentos')
+                        setEquipmentDrawerOpen(true);
+                    }}
                   >
                     <EditIcon />
                   </IconButton>
                 )}
-                {periciasDiv}
-              </Card>
-              <Card sx={{ position: 'relative', overflow: 'visible' }}>
-                {onSheetUpdate && (
-                  <IconButton
-                    size='small'
+                <TabContext value={activeTab}>
+                  <TabList
+                    onChange={onChangeTab}
+                    variant='scrollable'
+                    scrollButtons='auto'
+                    allowScrollButtonsMobile
                     sx={{
-                      position: 'absolute',
-                      top: -16,
-                      right: 16,
-                      backgroundColor: theme.palette.primary.main,
-                      color: 'white',
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: theme.palette.primary.dark,
-                      },
+                      borderBottom: 1,
+                      borderColor: 'divider',
                     }}
-                    onClick={() => setEquipmentDrawerOpen(true)}
                   >
-                    <EditIcon />
-                  </IconButton>
-                )}
-                <Box p={2}>
-                  <BookTitle>Equipamentos</BookTitle>
-                  <Stack
-                    // spacing={2}
-                    direction='row'
-                    flexWrap='wrap'
-                    justifyContent='flex-start'
-                  >
-                    {equipamentosDiv}
-                  </Stack>
-                  <Box mt={2}>
-                    <strong>Dinheiro: </strong>
-                    T$ {dinheiro}
-                    {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
-                    {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
-                  </Box>
-                  <Box mt={1}>
-                    <strong>Espaços (atual/limite-máximo): </strong>
-                    {bag.getSpaces() +
-                      calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO)}
-                    /{customMaxSpaces ?? maxSpaces}-
-                    {(customMaxSpaces ?? maxSpaces) * 2}
-                    {calculateCurrencySpaces(dinheiro, dinheiroTC, dinheiroTO) >
-                      0 && (
-                      <Typography
-                        variant='caption'
-                        component='span'
-                        sx={{ ml: 0.5 }}
-                      >
-                        (
-                        {calculateCurrencySpaces(
+                    <Tab label='Perícias' value='pericias' />
+                    <Tab label='Poderes' value='poderes' />
+                    <Tab label='Magias' value='magias' />
+                    <Tab label='Equip.' value='equipamentos' />
+                  </TabList>
+                  <TabPanel value='pericias' sx={{ p: 0 }}>
+                    {periciasDiv}
+                  </TabPanel>
+                  <TabPanel value='poderes' sx={{ p: 2 }}>
+                    <BookTitle>Poderes</BookTitle>
+                    <PowersDisplay
+                      sheetHistory={currentSheet.sheetActionHistory || []}
+                      classAbilities={classe.abilities}
+                      classPowers={classPowers}
+                      raceAbilities={raca.abilities}
+                      originPowers={origin?.powers || []}
+                      deityPowers={devoto?.poderes || []}
+                      generalPowers={generalPowers}
+                      customPowers={currentSheet.customPowers || []}
+                      customGrantedPowers={
+                        currentSheet.customGrantedPowers || []
+                      }
+                      className={classe.name}
+                      raceName={raca.name}
+                      deityName={devoto?.divindade?.name}
+                      onUpdateRolls={
+                        onSheetUpdate ? handlePowerRollsUpdate : undefined
+                      }
+                      characterName={nome}
+                      onCompanionClick={(() => {
+                        const hasCompanion =
+                          (currentSheet.companions?.length || 0) > 0;
+                        const isTreinador =
+                          getClassLevel(currentSheet, 'Treinador') > 0;
+                        if (hasCompanion) {
+                          return () => {
+                            setSelectedCompanionIndex(0);
+                            setCompanionModalOpen(true);
+                          };
+                        }
+                        if (isTreinador && onSheetUpdate) {
+                          return () => setCompanionCreationOpen(true);
+                        }
+                        return undefined;
+                      })()}
+                    />
+                  </TabPanel>
+                  <TabPanel value='magias' sx={{ p: 2 }}>
+                    <BookTitle>Magias</BookTitle>
+                    <Spells
+                      spells={spells}
+                      keyAttr={keyAttr}
+                      selectedKeyAttribute={effectiveKeyAttribute}
+                      nivel={nivel}
+                      onUpdateRolls={
+                        onSheetUpdate ? handleSpellRollsUpdate : undefined
+                      }
+                      characterName={nome}
+                      currentPM={currentSheet.currentPM ?? pm}
+                      maxPM={pm}
+                      tempPM={currentSheet.tempPM ?? 0}
+                      onSpellCast={onSheetUpdate ? handleSpellCast : undefined}
+                      isMago={classe.subname === 'Mago'}
+                      onToggleMemorized={
+                        onSheetUpdate ? handleToggleMemorized : undefined
+                      }
+                      onToggleAlwaysPrepared={
+                        onSheetUpdate ? handleToggleAlwaysPrepared : undefined
+                      }
+                      bonusSpellDC={spellDCBonus}
+                      onKeyAttributeChange={
+                        onSheetUpdate ? handleKeyAttributeChange : undefined
+                      }
+                    />
+                  </TabPanel>
+                  <TabPanel value='equipamentos' sx={{ p: 2 }}>
+                    <BookTitle>Equipamentos</BookTitle>
+                    <Stack
+                      direction='row'
+                      flexWrap='wrap'
+                      justifyContent='flex-start'
+                    >
+                      {equipamentosDiv}
+                    </Stack>
+                    <Box mt={2}>
+                      <strong>Dinheiro: </strong>
+                      T$ {dinheiro}
+                      {dinheiroTC > 0 && <> | TC {dinheiroTC}</>}
+                      {dinheiroTO > 0 && <> | TO {dinheiroTO}</>}
+                    </Box>
+                    <Box mt={1}>
+                      <strong>Espaços (atual/limite-máximo): </strong>
+                      {bag.getSpaces() +
+                        calculateCurrencySpaces(
                           dinheiro,
                           dinheiroTC,
                           dinheiroTO
-                        )}{' '}
-                        de moedas)
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
+                        )}
+                      /{customMaxSpaces ?? maxSpaces}-
+                      {(customMaxSpaces ?? maxSpaces) * 2}
+                      {calculateCurrencySpaces(
+                        dinheiro,
+                        dinheiroTC,
+                        dinheiroTO
+                      ) > 0 && (
+                        <Typography
+                          variant='caption'
+                          component='span'
+                          sx={{ ml: 0.5 }}
+                        >
+                          (
+                          {calculateCurrencySpaces(
+                            dinheiro,
+                            dinheiroTC,
+                            dinheiroTO
+                          )}{' '}
+                          de moedas)
+                        </Typography>
+                      )}
+                    </Box>
+                  </TabPanel>
+                </TabContext>
               </Card>
               <Card sx={{ p: 2, position: 'relative', overflow: 'visible' }}>
                 {onSheetUpdate && (
