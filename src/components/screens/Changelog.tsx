@@ -72,6 +72,16 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigida a{' '}
+                  <strong>exportação de PDF</strong> que falhava silenciosamente
+                  em fichas com emojis ou caracteres especiais nos textos de
+                  poderes (caso típico: poder <strong>Golpe Pessoal</strong> com
+                  o ícone 💠 no resumo de custo). A geração agora sanitiza o
+                  texto antes de gravar nos campos do PDF, e erros eventuais
+                  passam a ser logados no console do navegador para facilitar o
+                  diagnóstico.
+                </li>
+                <li>
                   <strong>Novo:</strong> Na <strong>Mesa Virtual</strong>, cada
                   habilidade de ameaça ganhou um botão{' '}
                   <strong>&quot;Aplicar condição&quot;</strong> ao lado do nome
