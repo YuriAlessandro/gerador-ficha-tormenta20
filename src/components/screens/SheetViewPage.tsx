@@ -231,7 +231,9 @@ const SheetViewPage: React.FC = () => {
       link.download = `Ficha de ${sheet.nome}.pdf`;
       link.click();
       URL.revokeObjectURL(link.href);
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao gerar PDF:', err);
       setSnackbarMessage('Erro ao gerar PDF.');
       setSnackbarOpen(true);
     } finally {

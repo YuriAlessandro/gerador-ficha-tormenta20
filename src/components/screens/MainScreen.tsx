@@ -1098,6 +1098,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
         sessionStorage.setItem('fdnPdfSupportShown', 'true');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao gerar PDF:', error);
       showAlert('Erro ao gerar PDF.', 'Erro');
     } finally {
       setLoadingPDF(false);
