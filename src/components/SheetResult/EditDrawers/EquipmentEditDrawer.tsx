@@ -807,7 +807,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditNome(weapon.nome);
     setEditAtkBonus(weapon.atkBonus?.toString() || '0');
     setEditDano(weapon.dano || '');
-    setEditWeaponSpaces(weapon.spaces?.toString() || '1');
+    setEditWeaponSpaces(
+      weapon.spaces !== undefined ? weapon.spaces.toString() : '1'
+    );
     setEditWeaponDescricao(weapon.descricao || '');
 
     // Parse critico into margem and multiplicador
@@ -856,7 +858,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
       dano: editDano,
       critico,
-      spaces: parseFloat(editWeaponSpaces) || 1,
+      spaces: Number.isNaN(parseFloat(editWeaponSpaces))
+        ? 1
+        : parseFloat(editWeaponSpaces),
       // Store base values for future resets
       baseDano,
       baseAtkBonus,
