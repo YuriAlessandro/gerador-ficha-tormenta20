@@ -5,7 +5,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import LockIcon from '@mui/icons-material/Lock';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import {
@@ -171,7 +170,6 @@ const Result: React.FC<ResultProps> = (props) => {
   const theme = useTheme();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
-  const parodyFeature = useFeatureAccess('parodySpellPicker');
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -1612,30 +1610,14 @@ const Result: React.FC<ResultProps> = (props) => {
                     return undefined;
                   })()}
                   parodyButtonSlot={
-                    parodyFeature.isEnabled ? (
-                      <Tooltip
-                        title={
-                          parodyFeature.hasAccess
-                            ? 'Buscar magia para parodiar'
-                            : 'Recurso de apoiador'
-                        }
-                        arrow
+                    <Tooltip title='Buscar magia para parodiar' arrow>
+                      <IconButton
+                        size='small'
+                        onClick={() => setParodyDialogOpen(true)}
                       >
-                        <span>
-                          <IconButton
-                            size='small'
-                            onClick={() => setParodyDialogOpen(true)}
-                            disabled={!parodyFeature.hasAccess}
-                          >
-                            {parodyFeature.hasAccess ? (
-                              <SearchIcon fontSize='small' color='primary' />
-                            ) : (
-                              <LockIcon fontSize='small' />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    ) : undefined
+                        <SearchIcon fontSize='small' color='primary' />
+                      </IconButton>
+                    </Tooltip>
                   }
                 />
               </Box>
@@ -2148,7 +2130,7 @@ const Result: React.FC<ResultProps> = (props) => {
           onSave={handleSpellsUpdate}
         />
 
-        {parodyFeature.hasAccess && onSheetUpdate && (
+        {onSheetUpdate && (
           <ParodySpellPickerDialog
             open={parodyDialogOpen}
             onClose={() => setParodyDialogOpen(false)}
