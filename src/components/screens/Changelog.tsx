@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> O poder <strong>Paródia</strong>{' '}
+                  (Bardo) agora tem um ícone de busca ao lado do nome no
+                  accordion: ao clicar, abre um modal para pesquisar entre todas
+                  as magias do sistema (filtros por círculo e por tipo
+                  arcana/divina), ver os detalhes da magia escolhida e lançá-la
+                  diretamente — com seleção de aprimoramentos e gasto de PM
+                  igual às magias da ficha.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> Nas páginas{' '}
                   <strong>Meus Personagens</strong> e{' '}
                   <strong>Minhas Ameaças</strong>, os cards de fichas/ameaças
