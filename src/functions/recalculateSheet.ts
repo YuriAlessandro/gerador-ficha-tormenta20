@@ -991,6 +991,24 @@ export function recalculateSheet(
     updatedSheet.raca.abilities = updatedSheet.raca.abilities.filter(
       (ability) => ability.name !== 'Canalizar Reparos'
     );
+
+    if (updatedSheet.sheetActionHistory) {
+      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory
+        .map((entry) => {
+          if (entry.source.type !== 'race') return entry;
+          return {
+            ...entry,
+            changes: entry.changes.filter(
+              (change) =>
+                !(
+                  change.type === 'PowerAdded' &&
+                  change.powerName === 'Canalizar Reparos'
+                )
+            ),
+          };
+        })
+        .filter((entry) => entry.changes.length > 0);
+    }
   }
 
   // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.
