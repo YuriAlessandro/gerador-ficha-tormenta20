@@ -1425,12 +1425,22 @@ const Result: React.FC<ResultProps> = (props) => {
                   <EditIcon />
                 </IconButton>
               )}
-              <Stack direction='row' alignItems='center' spacing={0.5}>
-                {markersEnabled && (
-                  <ConditionMarker
-                    conditions={conditionHighlights.defense}
-                    fontSize='medium'
-                  />
+              <Box sx={{ position: 'relative' }}>
+                {markersEnabled && conditionHighlights.defense.length > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 1,
+                    }}
+                  >
+                    <ConditionMarker
+                      conditions={conditionHighlights.defense}
+                      fontSize='medium'
+                    />
+                  </Box>
                 )}
                 <Box
                   sx={
@@ -1441,7 +1451,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <BookTitle>Defesa</BookTitle>
                 </Box>
-              </Stack>
+              </Box>
               <Stack
                 direction={isMobile ? 'column' : 'row'}
                 spacing={2}
