@@ -49,7 +49,7 @@ const magicPowers: Record<string, GeneralPower> = {
       'Muda a execução da magia para ação livre. Você só pode aplicar este aprimoramento em magias com execução de movimento, padrão ou completa e só pode lançar uma magia como ação livre por rodada. Custo: +4 PM.',
     type: GeneralPowerType.DESTINO,
     requirements: [
-      [{ type: RequirementType.HABILIDADE, name: 'Magias', value: 2 }],
+      [{ type: RequirementType.TEXT, text: 'Lançar magias de 2º círculo' }],
     ],
   },
   MAGIA_AMPLIADA: {
