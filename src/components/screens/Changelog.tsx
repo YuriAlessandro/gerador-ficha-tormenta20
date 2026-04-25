@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/04/2026.
+            25/04/2026.
           </p>
 
           <p>
@@ -69,6 +69,24 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.11</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Corrigida a área de{' '}
+                  <strong>Condições</strong> no cabeçalho da ficha: em
+                  personagens com <strong>Divindade</strong>, o botão de
+                  adicionar condição e os chips ativos ficavam atrás dos
+                  atributos e não respondiam aos cliques.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O título{' '}
+                  <strong>&quot;Condições&quot;</strong> no cabeçalho da ficha
+                  agora usa a mesma fonte e cor dos demais labels (Nível,
+                  Origem, Divindade), integrando-se visualmente ao bloco de
+                  informações do personagem.
+                </li>
+              </ul>
+
               <h3>4.10</h3>
               <p>
                 A segunda feature mais votada pelos apoiadores chegou! Como no
