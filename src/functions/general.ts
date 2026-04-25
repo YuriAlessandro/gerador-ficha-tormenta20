@@ -1390,7 +1390,8 @@ function calcDisplacement(
 export const applyPower = (
   _sheet: CharacterSheet,
   powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>,
-  manualSelections?: SelectionOptions
+  manualSelections?: SelectionOptions,
+  forceApply?: boolean
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -1447,6 +1448,7 @@ export const applyPower = (
     powerOrAbility.sheetActions.forEach((sheetAction) => {
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
+        !forceApply &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         // For chooseFromOptions, re-apply sheetBonuses from the chosen option
@@ -3343,7 +3345,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3387,7 +3390,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3433,7 +3437,8 @@ export function applyManualLevelUp(
     const [newSheet, newSubSteps] = applyPower(
       updatedSheet,
       newPower,
-      selections.powerEffectSelections?.[newPower.name]
+      selections.powerEffectSelections?.[newPower.name],
+      true
     );
     nSubSteps.push(...newSubSteps);
     if (newSheet) updatedSheet = newSheet;
