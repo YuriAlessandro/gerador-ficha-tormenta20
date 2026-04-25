@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/04/2026.
+            25/04/2026 (v4.11).
           </p>
 
           <p>
@@ -77,6 +77,13 @@ const Changelog: React.FC = () => {
                   personagens com <strong>Divindade</strong>, o botão de
                   adicionar condição e os chips ativos ficavam atrás dos
                   atributos e não respondiam aos cliques.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o background do título{' '}
+                  <strong>&quot;Defesa&quot;</strong> na ficha, que aparecia
+                  quebrado/encolhido em telas de baixa resolução (mobile). Agora
+                  o layout segue o mesmo padrão dos demais títulos como
+                  &quot;Ataques&quot; e &quot;Proficiências&quot;.
                 </li>
                 <li>
                   <strong>Melhoria:</strong> O título{' '}
