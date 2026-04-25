@@ -127,6 +127,16 @@ const Changelog: React.FC = () => {
                   ser removida diretamente — para trocá-la, basta editar a
                   customização do Moreau.
                 </li>
+                <li>
+                  <strong>Correção:</strong> Seleções manuais em poderes
+                  repetíveis escolhidos durante o <strong>level-up</strong> não
+                  eram salvas na ficha a partir da segunda escolha. Afetava{' '}
+                  <strong>Aumentar Repertório</strong> (Bardo) — as 2 magias
+                  selecionadas eram ignoradas — e{' '}
+                  <strong>Aumento de Atributo</strong> — o atributo escolhido
+                  não recebia o +1. Cada nova escolha agora aplica corretamente
+                  os efeitos.
+                </li>
               </ul>
 
               <h3>4.10</h3>
