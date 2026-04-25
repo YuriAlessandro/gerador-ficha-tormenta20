@@ -1159,7 +1159,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     }}
                   />
                 )}
-                <Box sx={{ flexGrow: 1 }}>
+                <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
                   <Stack direction='row' alignItems='center' spacing={0.5}>
                     {markersEnabled && (
                       <ConditionMarker
