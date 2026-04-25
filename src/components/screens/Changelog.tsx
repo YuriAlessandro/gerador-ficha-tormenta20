@@ -72,6 +72,15 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Estendida a migração que remove{' '}
+                  <strong>Canalizar Reparos</strong> de fichas antigas de{' '}
+                  <strong>Golem Desperto</strong> (criadas antes do fix do
+                  chassi). Agora, além de limpar a habilidade da raça, também
+                  remove o registro residual no histórico da ficha, evitando que
+                  o poder reapareça em painéis e validações que consultam o
+                  histórico de ações.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigido o pré-requisito do poder{' '}
                   <strong>Magia Acelerada</strong>, que aceitava qualquer
                   conjurador (inclusive de 1º círculo). Agora exige{' '}
