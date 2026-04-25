@@ -46,6 +46,8 @@ import {
   ABILITY_SUGGESTIONS,
   ABILITY_CATEGORIES,
 } from '../../../data/systems/tormenta20/threats/abilitySuggestions';
+import { ConditionsListEditor } from '../../../premium/components/Conditions';
+import type { ConditionId } from '../../../premium/data/conditions';
 
 interface StepFiveProps {
   threat: Partial<ThreatSheet>;
@@ -62,6 +64,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
   });
   const [newAbilityRolls, setNewAbilityRolls] = useState<AbilityRoll[]>([]);
   const [newRoll, setNewRoll] = useState({ name: '', dice: '', bonus: 0 });
+  const [newAbilityConditions, setNewAbilityConditions] = useState<
+    ConditionId[]
+  >([]);
   const [suggestionDialog, setSuggestionDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [customizeDialog, setCustomizeDialog] = useState(false);
@@ -81,6 +86,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     dice: '',
     bonus: 0,
   });
+  const [selectedSuggestionConditions, setSelectedSuggestionConditions] =
+    useState<ConditionId[]>([]);
 
   // Estados para magias
   const [newSpell, setNewSpell] = useState({
@@ -96,6 +103,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     dice: '',
     bonus: 0,
   });
+  const [newSpellConditions, setNewSpellConditions] = useState<ConditionId[]>(
+    []
+  );
 
   // Edit ability dialog state
   const [editAbilityDialog, setEditAbilityDialog] = useState(false);
@@ -113,6 +123,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     dice: '',
     bonus: 0,
   });
+  const [editAbilityConditions, setEditAbilityConditions] = useState<
+    ConditionId[]
+  >([]);
 
   // Edit spell dialog state
   const [editSpellDialog, setEditSpellDialog] = useState(false);
@@ -130,6 +143,9 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     dice: '',
     bonus: 0,
   });
+  const [editSpellConditions, setEditSpellConditions] = useState<ConditionId[]>(
+    []
+  );
 
   const generateAbilityId = () =>
     `ability_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -194,6 +210,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
           : undefined,
       actionType:
         newAbility.actionType !== 'Padrão' ? newAbility.actionType : undefined,
+      grantsConditions:
+        newAbilityConditions.length > 0 ? newAbilityConditions : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
@@ -208,6 +226,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       actionType: 'Padrão',
     });
     setNewAbilityRolls([]);
+    setNewAbilityConditions([]);
   };
 
   const handleRemoveAbility = (abilityId: string) => {
@@ -229,6 +248,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     });
     setSelectedSuggestionRolls([]);
     setNewSuggestionRoll({ name: '', dice: '', bonus: 0 });
+    setSelectedSuggestionConditions([]);
     setSuggestionDialog(false);
     setCustomizeDialog(true);
   };
@@ -252,6 +272,10 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         selectedSuggestion.actionType !== 'Padrão'
           ? selectedSuggestion.actionType
           : undefined,
+      grantsConditions:
+        selectedSuggestionConditions.length > 0
+          ? selectedSuggestionConditions
+          : undefined,
     };
 
     const updatedAbilities = [...(threat.abilities || []), ability];
@@ -259,6 +283,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
 
     setSelectedSuggestion(null);
     setSelectedSuggestionRolls([]);
+    setSelectedSuggestionConditions([]);
     setCustomizeDialog(false);
   };
 
@@ -296,6 +321,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         newSpell.hasPmCost && newSpell.pmCost > 0 ? newSpell.pmCost : undefined,
       actionType:
         newSpell.actionType !== 'Padrão' ? newSpell.actionType : undefined,
+      grantsConditions:
+        newSpellConditions.length > 0 ? newSpellConditions : undefined,
     };
 
     const updatedSpells = [...(threat.spells || []), spell];
@@ -310,6 +337,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       actionType: 'Padrão',
     });
     setNewSpellRolls([]);
+    setNewSpellConditions([]);
   };
 
   const handleRemoveSpell = (spellId: string) => {
@@ -333,6 +361,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
       ability.rolls ? ability.rolls.map((r) => ({ ...r })) : []
     );
     setEditAbilityNewRoll({ name: '', dice: '', bonus: 0 });
+    setEditAbilityConditions(ability.grantsConditions ?? []);
     setEditAbilityDialog(true);
   };
 
@@ -371,6 +400,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         editingAbility.actionType !== 'Padrão'
           ? editingAbility.actionType
           : undefined,
+      grantsConditions:
+        editAbilityConditions.length > 0 ? editAbilityConditions : undefined,
     };
 
     const updatedAbilities = (threat.abilities || []).map((a) =>
@@ -381,6 +412,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     setEditAbilityDialog(false);
     setEditingAbility(null);
     setEditAbilityRolls([]);
+    setEditAbilityConditions([]);
   };
 
   // Edit spell handlers
@@ -395,6 +427,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     });
     setEditSpellRolls(spell.rolls ? spell.rolls.map((r) => ({ ...r })) : []);
     setEditSpellNewRoll({ name: '', dice: '', bonus: 0 });
+    setEditSpellConditions(spell.grantsConditions ?? []);
     setEditSpellDialog(true);
   };
 
@@ -432,6 +465,8 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
         editingSpell.actionType !== 'Padrão'
           ? editingSpell.actionType
           : undefined,
+      grantsConditions:
+        editSpellConditions.length > 0 ? editSpellConditions : undefined,
     };
 
     const updatedSpells = (threat.spells || []).map((s) =>
@@ -442,6 +477,7 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
     setEditSpellDialog(false);
     setEditingSpell(null);
     setEditSpellRolls([]);
+    setEditSpellConditions([]);
   };
 
   // Get ability recommendations
@@ -706,6 +742,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                     </Grid>
                   </Grid>
                 </Box>
+              </Grid>
+
+              <Grid size={12}>
+                <ConditionsListEditor
+                  value={newAbilityConditions}
+                  onChange={setNewAbilityConditions}
+                />
               </Grid>
 
               <Grid size={12}>
@@ -1075,6 +1118,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                     </Grid>
                   </Grid>
                 </Box>
+              </Grid>
+
+              <Grid size={12}>
+                <ConditionsListEditor
+                  value={newSpellConditions}
+                  onChange={setNewSpellConditions}
+                />
               </Grid>
 
               <Grid size={12}>
@@ -1455,6 +1505,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
               </Grid>
             </Grid>
           </Box>
+
+          <Box mt={3}>
+            <ConditionsListEditor
+              value={selectedSuggestionConditions}
+              onChange={setSelectedSuggestionConditions}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCustomizeDialog(false)}>Cancelar</Button>
@@ -1662,6 +1719,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                 </Button>
               </Grid>
             </Grid>
+          </Box>
+
+          <Box mt={3}>
+            <ConditionsListEditor
+              value={editAbilityConditions}
+              onChange={setEditAbilityConditions}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
@@ -1874,6 +1938,13 @@ const StepFive: React.FC<StepFiveProps> = ({ threat, onUpdate }) => {
                 </Button>
               </Grid>
             </Grid>
+          </Box>
+
+          <Box mt={3}>
+            <ConditionsListEditor
+              value={editSpellConditions}
+              onChange={setEditSpellConditions}
+            />
           </Box>
         </DialogContent>
         <DialogActions>

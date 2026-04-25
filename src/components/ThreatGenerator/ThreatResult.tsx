@@ -38,7 +38,10 @@ import {
   ThreatSpell,
 } from '../../interfaces/ThreatSheet';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
-import { ConditionsBar } from '../../premium/components/Conditions';
+import {
+  ConditionsBar,
+  ConditionChip,
+} from '../../premium/components/Conditions';
 import type { ActiveCondition } from '../../premium/interfaces/ActiveCondition';
 import { getEffectiveThreat } from '../../premium/functions/threatConditions';
 import { saveThreat, deleteThreat } from '../../store/slices/threatStorage';
@@ -108,6 +111,10 @@ interface ThreatResultProps {
   // the GM apply a condition derived from that ability to selected players.
   // Wired by the virtual-table ThreatViewDialog only.
   onApplyAbilityCondition?: (ability: ThreatAbility) => void;
+  // Same as above, but for attacks. Renders next to each attack line.
+  onApplyAttackCondition?: (attack: ThreatAttack) => void;
+  // Same as above, but for spells. Renders next to each spell line.
+  onApplySpellCondition?: (spell: ThreatSpell) => void;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -120,6 +127,8 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   folderInfo,
   onThreatUpdate,
   onApplyAbilityCondition,
+  onApplyAttackCondition,
+  onApplySpellCondition,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -811,29 +820,93 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
               return (
                 <Box
                   key={getKey(attack.name)}
-                  onClick={() => handleAttackClick(attack)}
                   sx={{
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                    transition: 'all 0.2s ease',
-                    borderRadius: 1,
-                    px: 0.5,
-                    mx: -0.5,
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
-                      color: theme.palette.primary.main,
-                    },
-                    '&:active': {
-                      transform: 'scale(0.99)',
-                    },
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 1,
                   }}
-                  title={`Rolar ataque: ${attack.name}`}
                 >
-                  {attack.name} +{attack.attackBonus} ({attack.damageDice}
-                  {attack.bonusDamage > 0 ? `+${attack.bonusDamage}` : ''},{' '}
-                  {attack.criticalThreshold || 20}/x
-                  {attack.criticalMultiplier || 2}
-                  {bonusDiceText})
+                  <Box
+                    component='span'
+                    onClick={() => handleAttackClick(attack)}
+                    sx={{
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      transition: 'all 0.2s ease',
+                      borderRadius: 1,
+                      px: 0.5,
+                      mx: -0.5,
+                      '&:hover': {
+                        backgroundColor: theme.palette.action.hover,
+                        color: theme.palette.primary.main,
+                      },
+                      '&:active': {
+                        transform: 'scale(0.99)',
+                      },
+                    }}
+                    title={`Rolar ataque: ${attack.name}`}
+                  >
+                    {attack.name} +{attack.attackBonus} ({attack.damageDice}
+                    {attack.bonusDamage > 0
+                      ? `+${attack.bonusDamage}`
+                      : ''}, {attack.criticalThreshold || 20}/x
+                    {attack.criticalMultiplier || 2}
+                    {bonusDiceText})
+                  </Box>
+                  {attack.grantsConditions &&
+                    attack.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {attack.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplyAttackCondition &&
+                    attack.grantsConditions &&
+                    attack.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplyAttackCondition(attack)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </Box>
               );
             })
@@ -954,32 +1027,61 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       ))}
                     </Box>
                   )}
-                  {onApplyAbilityCondition && (
-                    <Box
-                      component='span'
-                      onClick={() => onApplyAbilityCondition(ability)}
-                      sx={{
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        transition: 'all 0.2s ease',
-                        borderRadius: 1,
-                        px: 0.5,
-                        ml: 1,
-                        backgroundColor: theme.palette.warning.light,
-                        color: theme.palette.warning.contrastText,
-                        '&:hover': {
-                          backgroundColor: theme.palette.warning.main,
-                        },
-                      }}
-                      title='Aplicar condição aos jogadores'
-                    >
-                      <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
-                      Aplicar condição
-                    </Box>
-                  )}
+                  {ability.grantsConditions &&
+                    ability.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                          ml: 1,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {ability.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplyAbilityCondition &&
+                    ability.grantsConditions &&
+                    ability.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplyAbilityCondition(ability)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          ml: 1,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </div>
               ))}
             </>
@@ -1052,6 +1154,61 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                       ))}
                     </Box>
                   )}
+                  {spell.grantsConditions &&
+                    spell.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                          ml: 1,
+                        }}
+                      >
+                        <Box
+                          component='span'
+                          sx={{ fontStyle: 'italic', mr: 0.5 }}
+                        >
+                          Concede:
+                        </Box>
+                        {spell.grantsConditions.map((cid) => (
+                          <ConditionChip
+                            key={cid}
+                            conditionId={cid}
+                            size='small'
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  {onApplySpellCondition &&
+                    spell.grantsConditions &&
+                    spell.grantsConditions.length > 0 && (
+                      <Box
+                        component='span'
+                        onClick={() => onApplySpellCondition(spell)}
+                        sx={{
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          transition: 'all 0.2s ease',
+                          borderRadius: 1,
+                          px: 0.5,
+                          ml: 1,
+                          backgroundColor: theme.palette.warning.light,
+                          color: theme.palette.warning.contrastText,
+                          '&:hover': {
+                            backgroundColor: theme.palette.warning.main,
+                          },
+                        }}
+                        title='Aplicar condição aos jogadores'
+                      >
+                        <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                        Aplicar condição
+                      </Box>
+                    )}
                 </div>
               ))}
             </>

@@ -1,5 +1,6 @@
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import type { ConditionId } from '../premium/data/conditions';
 
 export enum ThreatType {
   ANIMAL = 'Animal',
@@ -91,6 +92,7 @@ export interface ThreatAttack {
   averageDamage?: number; // Calculado automaticamente
   criticalThreshold?: number; // Margem de ameaça (padrão: 20)
   criticalMultiplier?: number; // Multiplicador de crítico (padrão: 2)
+  grantsConditions?: ConditionId[]; // Condições concedidas pelo ataque (Mesa Virtual)
 }
 
 export interface AbilityRoll {
@@ -108,6 +110,7 @@ export interface ThreatAbility {
   rolls?: AbilityRoll[];
   pmCost?: number;
   actionType?: ThreatActionType;
+  grantsConditions?: ConditionId[]; // Condições concedidas pela habilidade (Mesa Virtual)
 }
 
 // Magias usam a mesma estrutura que habilidades
