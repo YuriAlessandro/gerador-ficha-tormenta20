@@ -46,6 +46,7 @@ interface PowerDisplayProps {
   ) => void;
   characterName?: string;
   onCompanionClick?: () => void;
+  headerActionSlot?: React.ReactNode;
 }
 
 const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
@@ -57,6 +58,7 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
     onUpdateRolls,
     characterName,
     onCompanionClick,
+    headerActionSlot,
   }) => {
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [rollsDialogOpen, setRollsDialogOpen] = useState(false);
@@ -185,6 +187,9 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
                   <PetsIcon fontSize='small' color='primary' />
                 </IconButton>
               </Box>
+            )}
+            {headerActionSlot && (
+              <Box onClick={(e) => e.stopPropagation()}>{headerActionSlot}</Box>
             )}
           </Stack>
           <Typography sx={{ color: 'text.secondary' }}>{type}</Typography>

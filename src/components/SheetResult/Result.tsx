@@ -5,7 +5,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import LockIcon from '@mui/icons-material/Lock';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Card,
@@ -54,6 +56,7 @@ import {
   ConditionMarker,
   useConditionHighlights,
 } from '@/premium/components/Conditions';
+import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker';
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
 import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
 import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
@@ -163,10 +166,12 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
+  const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
+  const parodyFeature = useFeatureAccess('parodySpellPicker');
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -1606,6 +1611,32 @@ const Result: React.FC<ResultProps> = (props) => {
                     }
                     return undefined;
                   })()}
+                  parodyButtonSlot={
+                    parodyFeature.isEnabled ? (
+                      <Tooltip
+                        title={
+                          parodyFeature.hasAccess
+                            ? 'Buscar magia para parodiar'
+                            : 'Recurso de apoiador'
+                        }
+                        arrow
+                      >
+                        <span>
+                          <IconButton
+                            size='small'
+                            onClick={() => setParodyDialogOpen(true)}
+                            disabled={!parodyFeature.hasAccess}
+                          >
+                            {parodyFeature.hasAccess ? (
+                              <SearchIcon fontSize='small' color='primary' />
+                            ) : (
+                              <LockIcon fontSize='small' />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    ) : undefined
+                  }
                 />
               </Box>
             </Card>
@@ -2116,6 +2147,18 @@ const Result: React.FC<ResultProps> = (props) => {
           sheet={currentSheet}
           onSave={handleSpellsUpdate}
         />
+
+        {parodyFeature.hasAccess && onSheetUpdate && (
+          <ParodySpellPickerDialog
+            open={parodyDialogOpen}
+            onClose={() => setParodyDialogOpen(false)}
+            currentPM={currentSheet.currentPM ?? currentSheet.pm}
+            maxPM={currentSheet.pm}
+            tempPM={currentSheet.tempPM ?? 0}
+            onCast={handleSpellCast}
+            characterName={nome}
+          />
+        )}
 
         <DefenseEditDrawer
           open={defenseDrawerOpen}
