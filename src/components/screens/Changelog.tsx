@@ -72,6 +72,12 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Permitido salvar armas com{' '}
+                  <strong>Espaço 0</strong> ao editar pelo drawer de
+                  equipamentos. O valor estava sendo convertido silenciosamente
+                  para 1, impedindo cadastrar itens muito pequenos/leves.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigida a área de{' '}
                   <strong>Condições</strong> no cabeçalho da ficha: em
                   personagens com <strong>Divindade</strong>, o botão de
