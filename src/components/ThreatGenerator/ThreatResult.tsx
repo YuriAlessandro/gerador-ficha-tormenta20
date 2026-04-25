@@ -23,6 +23,7 @@ import {
   Home as HomeIcon,
   Dangerous as ThreatIcon,
   FolderOpen as FolderOpenIcon,
+  LocalOffer as LocalOfferIcon,
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -103,6 +104,10 @@ interface ThreatResultProps {
    * the Redux `threatStorage` slice.
    */
   onThreatUpdate?: (updated: ThreatSheet) => void;
+  // When provided, renders an inline button next to each ability that lets
+  // the GM apply a condition derived from that ability to selected players.
+  // Wired by the virtual-table ThreatViewDialog only.
+  onApplyAbilityCondition?: (ability: ThreatAbility) => void;
 }
 
 const ThreatResult: React.FC<ThreatResultProps> = ({
@@ -114,6 +119,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   viewOnly = false,
   folderInfo,
   onThreatUpdate,
+  onApplyAbilityCondition,
 }) => {
   const threat = React.useMemo(
     () => getEffectiveThreat(rawThreat),
@@ -946,6 +952,32 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
                               : `${roll.bonus}`)}
                         </Box>
                       ))}
+                    </Box>
+                  )}
+                  {onApplyAbilityCondition && (
+                    <Box
+                      component='span'
+                      onClick={() => onApplyAbilityCondition(ability)}
+                      sx={{
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        transition: 'all 0.2s ease',
+                        borderRadius: 1,
+                        px: 0.5,
+                        ml: 1,
+                        backgroundColor: theme.palette.warning.light,
+                        color: theme.palette.warning.contrastText,
+                        '&:hover': {
+                          backgroundColor: theme.palette.warning.main,
+                        },
+                      }}
+                      title='Aplicar condição aos jogadores'
+                    >
+                      <LocalOfferIcon sx={{ fontSize: '0.9rem' }} />
+                      Aplicar condição
                     </Box>
                   )}
                 </div>
