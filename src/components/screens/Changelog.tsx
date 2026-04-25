@@ -115,6 +115,18 @@ const Changelog: React.FC = () => {
                   Origem, Divindade), integrando-se visualmente ao bloco de
                   informações do personagem.
                 </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Sapiência</strong> do <strong>Moreau Coruja</strong>{' '}
+                  agora permite escolher a magia de 1º círculo de Adivinhação,
+                  tanto na criação (novo passo no wizard) quanto em fichas já
+                  geradas (seletor adicionado à customização do Moreau e ao
+                  drawer de informações). Antes a magia era sorteada
+                  automaticamente (e voltava sozinha após cada edição). A magia
+                  agora também é tratada como fixa no drawer de magias: não pode
+                  ser removida diretamente — para trocá-la, basta editar a
+                  customização do Moreau.
+                </li>
               </ul>
 
               <h3>4.10</h3>
