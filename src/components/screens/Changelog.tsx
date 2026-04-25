@@ -72,6 +72,16 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigido o cálculo do bônus de{' '}
+                  <strong>iniciativa de ameaças</strong> na{' '}
+                  <strong>Mesa Virtual</strong>, que estava saindo sempre
+                  negativo (independentemente do modificador da ameaça). Agora o
+                  sistema usa a perícia <strong>Iniciativa</strong> da ficha da
+                  ameaça, considerando treino, bônus customizados e overrides
+                  manuais &mdash; igual ao comportamento das fichas de
+                  jogadores.
+                </li>
+                <li>
                   <strong>Correção:</strong> Permitido salvar armas com{' '}
                   <strong>Espaço 0</strong> ao editar pelo drawer de
                   equipamentos. O valor estava sendo convertido silenciosamente
