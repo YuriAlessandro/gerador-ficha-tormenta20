@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Na <strong>Mesa Virtual</strong>, cada
+                  habilidade de ameaça ganhou um botão{' '}
+                  <strong>&quot;Aplicar condição&quot;</strong> ao lado do nome
+                  no diálogo da ameaça. O mestre escolhe a condição (como{' '}
+                  <em>abalado</em>, <em>desprevenido</em>, <em>atordoado</em>{' '}
+                  etc.), marca quais jogadores recebem (ou cancela) e a condição
+                  é aplicada diretamente à ficha de cada um — com cascata
+                  automática de implicações (ex.: <em>cego</em> também aplica{' '}
+                  <em>desprevenido</em> e <em>lento</em>). Disponível apenas
+                  para o mestre durante encontros ativos.
+                </li>
+                <li>
                   <strong>Novo:</strong> O poder <strong>Paródia</strong>{' '}
                   (Bardo) agora tem um ícone de busca ao lado do nome no
                   accordion: ao clicar, abre um modal para pesquisar entre todas
