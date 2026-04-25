@@ -903,34 +903,13 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const modFor = atributos.Força.value;
 
-  const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
-  const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
-
-  const fightAttrBonus = fightSkill?.modAttr
-    ? currentSheet.atributos[fightSkill.modAttr].value
-    : 0;
-  const fightBonus =
-    (fightSkill?.halfLevel ?? 0) +
-    fightAttrBonus +
-    (fightSkill?.others ?? 0) +
-    (fightSkill?.training ?? 0);
-
-  const rangeAttrBonus = rangeSkill?.modAttr
-    ? currentSheet.atributos[rangeSkill.modAttr].value
-    : 0;
-  const rangeBonus =
-    (rangeSkill?.halfLevel ?? 0) +
-    rangeAttrBonus +
-    (rangeSkill?.others ?? 0) +
-    (rangeSkill?.training ?? 0);
-
   const weaponsDiv = useMemo(
     () => (
       <Weapons
         getKey={getKey}
         weapons={bagEquipments.Arma}
-        fightBonus={fightBonus}
-        rangeBonus={rangeBonus}
+        completeSkills={completeSkills}
+        atributos={atributos}
         modFor={modFor}
         characterName={nome}
         attackConditions={
@@ -940,8 +919,8 @@ const Result: React.FC<ResultProps> = (props) => {
     ),
     [
       bagEquipments.Arma,
-      fightBonus,
-      rangeBonus,
+      completeSkills,
+      atributos,
       modFor,
       nome,
       markersEnabled,

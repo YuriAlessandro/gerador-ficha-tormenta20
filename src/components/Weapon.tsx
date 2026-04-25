@@ -9,6 +9,13 @@ import {
   parseCritical,
   parseDualModeDamage,
 } from '../functions/diceRoller';
+import {
+  getWeaponSkill,
+  getSkillAttackBonus,
+  isWeaponMelee,
+} from '../functions/weaponSkill';
+import { CompleteSkill } from '../interfaces/Skills';
+import { CharacterAttributes } from '../interfaces/Character';
 import { useDiceRoll } from '../premium/hooks/useDiceRoll';
 import WeaponModeDialog from './WeaponModeDialog';
 import { ConditionMarker } from '../premium/components/Conditions';
@@ -39,8 +46,8 @@ const abbreviateDamageType = (tipo?: string): string | undefined => {
 
 interface WeaponProps {
   equipment: Equipment;
-  rangeBonus: number;
-  fightBonus: number;
+  completeSkills: CompleteSkill[] | undefined;
+  atributos: CharacterAttributes;
   modDano: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
@@ -49,23 +56,23 @@ interface WeaponProps {
 const Weapon: React.FC<WeaponProps> = (props) => {
   const {
     equipment,
-    rangeBonus,
-    fightBonus,
+    completeSkills,
+    atributos,
     modDano,
     characterName,
     attackConditions,
   } = props;
-  const { nome, dano, critico, alcance, atkBonus } = equipment;
+  const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
   const [modeDialogOpen, setModeDialogOpen] = useState(false);
 
-  const isRange = alcance && alcance !== '-' && !equipment.arremesso;
-
-  const modAtk = isRange ? rangeBonus : fightBonus;
+  const weaponSkill = getWeaponSkill(equipment);
+  const modAtk = getSkillAttackBonus(weaponSkill, completeSkills, atributos);
   const atk = atkBonus ? atkBonus + modAtk : modAtk;
 
-  const damageModifier = isRange ? 0 : modDano;
+  const isMelee = isWeaponMelee(equipment);
+  const damageModifier = isMelee ? modDano : 0;
   const damageModStr =
     damageModifier >= 0 ? `+${damageModifier}` : `${damageModifier}`;
 
@@ -74,7 +81,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     [dano]
   );
 
-  const damage = isRange || dualMode ? dano : `${dano}${damageModStr}`;
+  const damage = !isMelee || dualMode ? dano : `${dano}${damageModStr}`;
 
   const performWeaponRoll = useCallback(
     (selectedDano: string) => {
@@ -204,7 +211,9 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           }}
         >
           <ConditionMarker conditions={attackConditions} fontSize='inherit' />
-          {nome} {`${atk >= 0 ? '+' : ''}${atk}`} • {damage} • ({critico})
+          {nome}
+          {customSkill && ` (${customSkill})`} {`${atk >= 0 ? '+' : ''}${atk}`}{' '}
+          • {damage} • ({critico})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
           {equipment.descricao && (
             <Tooltip title={equipment.descricao} arrow>

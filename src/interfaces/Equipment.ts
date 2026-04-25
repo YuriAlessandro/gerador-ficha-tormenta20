@@ -57,6 +57,10 @@ export default interface Equipment {
   // When true, recalculateSheet will preserve user edits instead of resetting
   hasManualEdits?: boolean;
 
+  // Override which skill is rolled for this weapon's attack test.
+  // When undefined, falls back to the default rule (alcance/arremesso → Luta or Pontaria).
+  customSkill?: Skill;
+
   // Equipment bonuses (automatic bonuses to skills, stats, etc.)
   sheetBonuses?: SheetBonus[];
 

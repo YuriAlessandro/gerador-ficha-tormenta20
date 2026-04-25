@@ -10,6 +10,7 @@ import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
+import { getWeaponSkill, getSkillAttackBonus } from './weaponSkill';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -139,31 +140,6 @@ const preparePDF: (
   const bagEquipaments = sheet.bag.getEquipments();
   const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
 
-  const fightSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Luta'
-  );
-  const rangeSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Pontaria'
-  );
-
-  const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].value
-    : 0;
-  const fightBonus =
-    (fightSkill?.halfLevel ?? 0) +
-    fightAttrBonus +
-    (fightSkill?.others ?? 0) +
-    (fightSkill?.training ?? 0);
-
-  const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].value
-    : 0;
-  const rangeBonus =
-    (rangeSkill?.halfLevel ?? 0) +
-    rangeAttrBonus +
-    (rangeSkill?.others ?? 0) +
-    (rangeSkill?.training ?? 0);
-
   weapons.forEach((weapon, index) => {
     const weaponNameField = form.getTextField(`ataque${index + 1}`);
     const weaponBonusField = form.getTextField(`tAtak${index + 1}`);
@@ -172,16 +148,20 @@ const preparePDF: (
     const weaponTypeField = form.getTextField(`tipo${index + 1}`);
     const weaponRangeField = form.getTextField(`alcance${index + 1}`);
 
-    weaponNameField.setText(weapon.nome);
+    const weaponNameDisplay = weapon.customSkill
+      ? `${weapon.nome} (${weapon.customSkill})`
+      : weapon.nome;
+    weaponNameField.setText(weaponNameDisplay);
     weaponDamageField.setText(weapon.dano);
     weaponCritField.setText(weapon.critico);
     weaponTypeField.setText(weapon.tipo || '');
     weaponRangeField.setText(weapon.alcance || '');
 
-    const isRange =
-      weapon.alcance && weapon.alcance !== '-' && !weapon.arremesso;
-
-    const modAtk = isRange ? rangeBonus : fightBonus;
+    const modAtk = getSkillAttackBonus(
+      getWeaponSkill(weapon),
+      sheet.completeSkills,
+      sheet.atributos
+    );
     const atk = weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk;
     weaponBonusField.setText(`${atk >= 0 ? '+' : ''}${atk}`);
   });
