@@ -82,16 +82,32 @@ const Changelog: React.FC = () => {
                   diagnóstico.
                 </li>
                 <li>
-                  <strong>Novo:</strong> Na <strong>Mesa Virtual</strong>, cada
-                  habilidade de ameaça ganhou um botão{' '}
-                  <strong>&quot;Aplicar condição&quot;</strong> ao lado do nome
-                  no diálogo da ameaça. O mestre escolhe a condição (como{' '}
-                  <em>abalado</em>, <em>desprevenido</em>, <em>atordoado</em>{' '}
-                  etc.), marca quais jogadores recebem (ou cancela) e a condição
-                  é aplicada diretamente à ficha de cada um — com cascata
-                  automática de implicações (ex.: <em>cego</em> também aplica{' '}
-                  <em>desprevenido</em> e <em>lento</em>). Disponível apenas
-                  para o mestre durante encontros ativos.
+                  <strong>Novo:</strong> No editor de ameaças, cada{' '}
+                  <strong>habilidade</strong>, <strong>ataque</strong> e{' '}
+                  <strong>magia</strong> agora pode declarar uma ou mais{' '}
+                  <strong>condições concedidas</strong> (abalado, desprevenido,
+                  atordoado, agarrado etc.). A ficha da ameaça mostra as
+                  condições anotadas como chips no fim da linha (&quot;Concede:
+                  ...&quot;), e na <strong>Mesa Virtual</strong> aparece um
+                  botão <strong>&quot;Aplicar condição&quot;</strong> ao lado
+                  apenas dos itens anotados. O mestre clica → abre um modal já
+                  com as condições pré-selecionadas → marca quais jogadores
+                  recebem (ou cancela) → aplica direto na ficha de cada um, com
+                  cascata automática de implicações (ex.: <em>cego</em> também
+                  aplica <em>desprevenido</em> e <em>lento</em>). Disponível
+                  apenas para o mestre durante encontros ativos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionado um botão{' '}
+                  <strong>&quot;Atualizar dados&quot;</strong> no diálogo da
+                  ameaça na <strong>Mesa Virtual</strong>. Ao importar uma
+                  ameaça, a mesa guarda um snapshot estático — edições
+                  posteriores na ameaça original não eram refletidas. O novo
+                  botão re-sincroniza o snapshot com a versão atual da nuvem
+                  (corrigindo também dois bugs no backend: a resposta do
+                  endpoint de update vinha com formato errado e mutações no
+                  campo Mongoose Mixed não eram persistidas sem{' '}
+                  <code>markModified</code>).
                 </li>
                 <li>
                   <strong>Novo:</strong> O poder <strong>Paródia</strong>{' '}
