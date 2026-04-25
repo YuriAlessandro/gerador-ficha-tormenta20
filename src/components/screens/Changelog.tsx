@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Adicionado seletor de{' '}
+                  <strong>Perícia de Ataque</strong> no editor de armas. Por
+                  padrão, armas corpo a corpo continuam usando{' '}
+                  <strong>Luta</strong> e armas à distância usam{' '}
+                  <strong>Pontaria</strong>, mas agora é possível escolher
+                  qualquer outra perícia para o teste de ataque de uma arma
+                  específica &mdash; útil para poderes/magias como{' '}
+                  <strong>Esgrima Mágica</strong> (Atuação no lugar de Luta) e
+                  efeitos similares. O bônus de dano continua seguindo a regra
+                  padrão (corpo a corpo soma Força).
+                </li>
+                <li>
                   <strong>Correção:</strong> Estendida a migração que remove{' '}
                   <strong>Canalizar Reparos</strong> de fichas antigas de{' '}
                   <strong>Golem Desperto</strong> (criadas antes do fix do
