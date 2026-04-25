@@ -72,6 +72,14 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Melhoria:</strong> Nas páginas{' '}
+                  <strong>Meus Personagens</strong> e{' '}
+                  <strong>Minhas Ameaças</strong>, os cards de fichas/ameaças
+                  agora aparecem antes das pastas, deixando o acesso aos itens
+                  mais imediato (as pastas e o card &quot;Nova pasta&quot; ficam
+                  logo abaixo).
+                </li>
+                <li>
                   <strong>Novo:</strong> Adicionado seletor de{' '}
                   <strong>Perícia de Ataque</strong> no editor de armas. Por
                   padrão, armas corpo a corpo continuam usando{' '}
