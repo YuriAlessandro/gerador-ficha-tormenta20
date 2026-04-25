@@ -18,6 +18,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
@@ -182,7 +183,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     return categories;
   };
 
+  // Magia da Sapiência (Moreau Coruja) é fixa: não pode ser removida pelo usuário.
+  const isMoreauSapienciaSpell = (spell: Spell): boolean =>
+    !!sheet.moreauSapienciaSpell && spell.nome === sheet.moreauSapienciaSpell;
+
   const handleSpellToggle = (spell: Spell) => {
+    if (isMoreauSapienciaSpell(spell)) return;
     setSelectedSpells((prev) => {
       const existingSpell = prev.find((s) => s.nome === spell.nome);
       if (existingSpell) {
@@ -264,11 +270,30 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   const customSpellsSelected = selectedSpells.filter((s) => s.isCustom);
 
   const handleSave = () => {
+    // Defesa em profundidade: se a magia da Sapiência (Moreau Coruja) tiver
+    // sido removida da seleção, recuperá-la a partir da ficha original. Ela é
+    // re-aplicada pelo recalculate, mas evitamos sair do drawer com a lista
+    // visualmente inconsistente até lá.
+    let finalSelectedSpells = selectedSpells;
+    if (sheet.moreauSapienciaSpell) {
+      const stillIncluded = selectedSpells.some(
+        (s) => s.nome === sheet.moreauSapienciaSpell
+      );
+      if (!stillIncluded) {
+        const originalSapienciaSpell = sheet.spells?.find(
+          (s) => s.nome === sheet.moreauSapienciaSpell
+        );
+        if (originalSapienciaSpell) {
+          finalSelectedSpells = [...selectedSpells, originalSapienciaSpell];
+        }
+      }
+    }
+
     // Track spell changes in steps
     const originalSpellNames = sheet.spells?.map((s) => s.nome) || [];
-    const newSpellNames = selectedSpells.map((s) => s.nome);
+    const newSpellNames = finalSelectedSpells.map((s) => s.nome);
 
-    const addedSpells = selectedSpells.filter(
+    const addedSpells = finalSelectedSpells.filter(
       (s) => !originalSpellNames.includes(s.nome)
     );
     const removedSpells =
@@ -299,7 +324,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     }
 
     const updates: Partial<CharacterSheet> = {
-      spells: selectedSpells,
+      spells: finalSelectedSpells,
       bonusSpellDC: bonusSpellDC || undefined,
     };
 
@@ -511,14 +536,30 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
               <Stack direction='row' spacing={1} flexWrap='wrap'>
                 {selectedSpells
                   .filter((s) => !s.isCustom)
-                  .map((spell) => (
-                    <Chip
-                      key={spell.nome}
-                      label={`${spell.nome} (${spell.spellCircle})`}
-                      size='small'
-                      onDelete={() => handleSpellToggle(spell)}
-                    />
-                  ))}
+                  .map((spell) => {
+                    const locked = isMoreauSapienciaSpell(spell);
+                    const chip = (
+                      <Chip
+                        key={spell.nome}
+                        label={`${spell.nome} (${spell.spellCircle})`}
+                        size='small'
+                        color={locked ? 'primary' : 'default'}
+                        onDelete={
+                          locked ? undefined : () => handleSpellToggle(spell)
+                        }
+                      />
+                    );
+                    return locked ? (
+                      <Tooltip
+                        key={spell.nome}
+                        title='Magia fixa da habilidade Sapiência. Para trocar, edite a customização do Moreau.'
+                      >
+                        <span>{chip}</span>
+                      </Tooltip>
+                    ) : (
+                      chip
+                    );
+                  })}
                 {selectedSpells
                   .filter((s) => s.isCustom)
                   .map((spell) => (
@@ -584,12 +625,26 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
                               }}
                             >
                               <FormControlLabel
+                                disabled={isMoreauSapienciaSpell(spell)}
                                 control={
-                                  <Checkbox
-                                    checked={isSpellSelected(spell)}
-                                    onChange={() => handleSpellToggle(spell)}
-                                    size='small'
-                                  />
+                                  <Tooltip
+                                    title={
+                                      isMoreauSapienciaSpell(spell)
+                                        ? 'Magia fixa da habilidade Sapiência. Para trocar, edite a customização do Moreau.'
+                                        : ''
+                                    }
+                                  >
+                                    <span>
+                                      <Checkbox
+                                        checked={isSpellSelected(spell)}
+                                        onChange={() =>
+                                          handleSpellToggle(spell)
+                                        }
+                                        size='small'
+                                        disabled={isMoreauSapienciaSpell(spell)}
+                                      />
+                                    </span>
+                                  </Tooltip>
                                 }
                                 label={
                                   <Box sx={{ width: '100%' }}>

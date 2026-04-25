@@ -1335,7 +1335,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
   // Moreau modal handlers
   const handleMoreauConfirm = (
     heritageName: string,
-    bonusAttributes: Atributo[]
+    bonusAttributes: Atributo[],
+    sapienciaSpell?: string
   ) => {
     // Pre-wizard flow: store customization and open wizard
     if (pendingWizardAfterCustomization) {
@@ -1363,11 +1364,25 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       bonusAttributes
     );
 
+    // Drop the previously chosen Sapiência spell if heritage is Coruja and the
+    // user picked a different one (or moved away from Coruja entirely).
+    const previousSapienciaSpell = pendingMoreauSheet.moreauSapienciaSpell;
+    const nextSapienciaSpell =
+      heritageName === 'Coruja' ? sapienciaSpell : undefined;
+    const spellsAfterReplacement =
+      previousSapienciaSpell && previousSapienciaSpell !== nextSapienciaSpell
+        ? pendingMoreauSheet.spells.filter(
+            (s) => s.nome !== previousSapienciaSpell
+          )
+        : pendingMoreauSheet.spells;
+
     let finalSheet: CharacterSheet = {
       ...pendingMoreauSheet,
       raca: customizedRace,
       raceHeritage: heritageName,
       raceAttributeChoices: bonusAttributes,
+      moreauSapienciaSpell: nextSapienciaSpell,
+      spells: spellsAfterReplacement,
       displacement: customizedRace.getDisplacement
         ? customizedRace.getDisplacement(customizedRace)
         : pendingMoreauSheet.displacement,
@@ -1524,6 +1539,8 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           initialBonusAttributes={
             (pendingMoreauSheet?.raceAttributeChoices as Atributo[]) || []
           }
+          initialSapienciaSpell={pendingMoreauSheet?.moreauSapienciaSpell}
+          showSapienciaSelector={!pendingWizardAfterCustomization}
           onConfirm={handleMoreauConfirm}
           onCancel={handleMoreauCancel}
         />

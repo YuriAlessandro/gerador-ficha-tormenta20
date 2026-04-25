@@ -4625,6 +4625,15 @@ export function generateEmptySheet(
     emptySheet.qareenElement = wizardSelections.qareenElement;
   }
 
+  // Apply Moreau Coruja Sapiência spell selection from wizard
+  if (
+    wizardSelections?.moreauSapienciaSpell &&
+    emptySheet.raca.name === 'Moreau' &&
+    emptySheet.raceHeritage === 'Coruja'
+  ) {
+    emptySheet.moreauSapienciaSpell = wizardSelections.moreauSapienciaSpell;
+  }
+
   // Apply Osteon/Soterrado old race selection from wizard
   const wizardOldRaceName =
     wizardSelections?.powerEffectSelections?.['Memória Póstuma']
@@ -4958,6 +4967,19 @@ export function generateEmptySheet(
     emptySheet.steps.push({
       label: 'Elemento Qareen',
       value: [{ name: 'Elemento', value: wizardSelections.qareenElement }],
+    });
+  }
+
+  // Step: Moreau Coruja Sapiência spell selection
+  if (wizardSelections?.moreauSapienciaSpell) {
+    emptySheet.steps.push({
+      label: 'Sapiência (Moreau Coruja)',
+      value: [
+        {
+          name: 'Magia escolhida',
+          value: wizardSelections.moreauSapienciaSpell,
+        },
+      ],
     });
   }
 

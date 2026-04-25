@@ -47,6 +47,7 @@ import {
   MoreauHeritageName,
   MOREAU_HERITAGE_NAMES,
 } from '@/data/systems/tormenta20/ameacas-de-arton/races/moreau-heritages';
+import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import {
   GOLEM_DESPERTO_CHASSIS,
   GOLEM_DESPERTO_CHASSIS_NAMES,
@@ -104,6 +105,7 @@ interface EditedData {
   sexo: string;
   raceName: string;
   raceHeritage: string | undefined; // For races with heritages (like Moreau)
+  moreauSapienciaSpell: string | undefined; // For Moreau Coruja Sapiência ability
   raceChassis: string | undefined; // For Golem Desperto
   raceEnergySource: string | undefined; // For Golem Desperto
   raceSizeCategory: string | undefined; // For Golem Desperto
@@ -158,6 +160,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     sexo: sheet.sexo || 'Masculino',
     raceName: sheet.raca.name,
     raceHeritage: sheet.raceHeritage,
+    moreauSapienciaSpell: sheet.moreauSapienciaSpell,
     raceChassis: sheet.raceChassis,
     raceEnergySource: sheet.raceEnergySource,
     raceSizeCategory: sheet.raceSizeCategory,
@@ -197,6 +200,12 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     'info-basicas',
   ]);
 
+  // 1st-circle Divination spells available for Moreau Coruja Sapiência
+  const moreauSapienciaSpellOptions = useMemo(
+    () => getSpellsOfCircle(1).filter((spell) => spell.school === 'Adiv'),
+    []
+  );
+
   // State for OriginEditDrawer
   const [originEditDrawerOpen, setOriginEditDrawerOpen] = useState(false);
   const [pendingOrigin, setPendingOrigin] = useState<Origin | null>(null);
@@ -231,6 +240,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      moreauSapienciaSpell: sheet.moreauSapienciaSpell,
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -598,6 +608,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       raceAttributeChoices: editedData.raceAttributeChoices,
       selectedAttributeVariant: editedData.selectedAttributeVariant,
       raceHeritage: editedData.raceHeritage,
+      moreauSapienciaSpell: editedData.moreauSapienciaSpell,
       raceChassis: editedData.raceChassis,
       raceEnergySource: editedData.raceEnergySource,
       raceSizeCategory: editedData.raceSizeCategory,
@@ -696,6 +707,29 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         label: 'Edição Manual - Herança',
         type: 'Edição Manual',
         value: [{ name: 'Herança', value: heritageName }],
+      });
+    }
+
+    // Check for Moreau Sapiência spell change
+    const moreauSapienciaSpellChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.moreauSapienciaSpell !== sheet.moreauSapienciaSpell;
+    if (moreauSapienciaSpellChanged) {
+      // Drop the old spell so the recalc can re-add the new one (or none, if heritage left Coruja)
+      if (sheet.moreauSapienciaSpell) {
+        updates.spells = sheet.spells.filter(
+          (s) => s.nome !== sheet.moreauSapienciaSpell
+        );
+      }
+      newSteps.push({
+        label: 'Edição Manual - Sapiência',
+        type: 'Edição Manual',
+        value: [
+          {
+            name: 'Magia',
+            value: editedData.moreauSapienciaSpell || 'Removida',
+          },
+        ],
       });
     }
 
@@ -1244,12 +1278,17 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     const deityChanged =
       editedData.deityName !== (sheet.devoto?.divindade.name || '');
     const levelChanged = editedData.nivel !== sheet.nivel;
+    const heritageChanged =
+      editedData.raceName === 'Moreau' &&
+      editedData.raceHeritage !== sheet.raceHeritage;
     const shouldUseRecalculateSheet =
       attributesChanged ||
       raceChanged ||
       deityChanged ||
       levelChanged ||
-      manualMaxChanged;
+      manualMaxChanged ||
+      heritageChanged ||
+      moreauSapienciaSpellChanged;
 
     if (shouldUseRecalculateSheet) {
       const updatedSheet = { ...sheet, ...updates };
@@ -1269,6 +1308,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       sexo: sheet.sexo || 'Masculino',
       raceName: sheet.raca.name,
       raceHeritage: sheet.raceHeritage,
+      moreauSapienciaSpell: sheet.moreauSapienciaSpell,
       raceChassis: sheet.raceChassis,
       raceEnergySource: sheet.raceEnergySource,
       raceSizeCategory: sheet.raceSizeCategory,
@@ -1879,12 +1919,18 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       <Select
                         value={editedData.raceHeritage || ''}
                         label='Herança'
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newHeritage = e.target.value as string;
                           setEditedData({
                             ...editedData,
-                            raceHeritage: e.target.value as string,
-                          })
-                        }
+                            raceHeritage: newHeritage,
+                            // Clear stale Sapiência spell when leaving Coruja
+                            moreauSapienciaSpell:
+                              newHeritage === 'Coruja'
+                                ? editedData.moreauSapienciaSpell
+                                : undefined,
+                          });
+                        }}
                       >
                         {MOREAU_HERITAGE_NAMES.map((heritageName) => (
                           <MenuItem key={heritageName} value={heritageName}>
@@ -1894,6 +1940,40 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                       </Select>
                     </FormControl>
                   )}
+
+                  {/* Moreau Coruja Sapiência: choose 1st-circle Divination spell */}
+                  {editedData.raceName === 'Moreau' &&
+                    editedData.raceHeritage === 'Coruja' && (
+                      <FormControl
+                        fullWidth
+                        error={!editedData.moreauSapienciaSpell}
+                      >
+                        <Autocomplete
+                          options={moreauSapienciaSpellOptions.map(
+                            (s) => s.nome
+                          )}
+                          value={editedData.moreauSapienciaSpell || null}
+                          onChange={(_event, newValue) =>
+                            setEditedData({
+                              ...editedData,
+                              moreauSapienciaSpell: newValue || undefined,
+                            })
+                          }
+                          renderInput={(params) => (
+                            <TextField
+                              // eslint-disable-next-line react/jsx-props-no-spreading
+                              {...params}
+                              label='Magia da Sapiência (1º círculo, Adivinhação)'
+                              helperText={
+                                editedData.moreauSapienciaSpell
+                                  ? 'Atributo-chave: Sabedoria. Trocar a magia removerá a anterior da ficha.'
+                                  : 'Escolha uma magia para a habilidade Sapiência.'
+                              }
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    )}
 
                   {/* Golem Desperto Customizations - Only show for Golem Desperto */}
                   {editedData.raceName === 'Golem Desperto' && (
@@ -2634,7 +2714,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
           </Stack>
 
           <Stack direction='row' spacing={2} sx={{ mt: 4 }}>
-            <Button fullWidth variant='contained' onClick={handleSave}>
+            <Button
+              fullWidth
+              variant='contained'
+              onClick={handleSave}
+              disabled={
+                editedData.raceName === 'Moreau' &&
+                editedData.raceHeritage === 'Coruja' &&
+                !editedData.moreauSapienciaSpell
+              }
+            >
               Salvar
             </Button>
             <Button fullWidth variant='outlined' onClick={handleCancel}>
