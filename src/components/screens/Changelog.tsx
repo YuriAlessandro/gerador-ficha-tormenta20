@@ -72,6 +72,13 @@ const Changelog: React.FC = () => {
               <h3>4.11</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Corrigido o pré-requisito do poder{' '}
+                  <strong>Magia Acelerada</strong>, que aceitava qualquer
+                  conjurador (inclusive de 1º círculo). Agora exige{' '}
+                  <strong>lançar magias de 2º círculo</strong>, conforme a regra
+                  oficial.
+                </li>
+                <li>
                   <strong>Correção:</strong> Corrigido o cálculo do bônus de{' '}
                   <strong>iniciativa de ameaças</strong> na{' '}
                   <strong>Mesa Virtual</strong>, que estava saindo sempre
