@@ -41,6 +41,12 @@ export function stripSheetForStorage(
   // Mark as stripped for rehydration detection
   stripped[STRIPPED_MARKER] = true;
 
+  // Defensivo: nunca persistir o ledger deprecated `conditionAttributePenalties`.
+  // O efeito de condições é puramente temporário e re-derivado a partir de
+  // `activeConditions` no `recalculateSheet`. Mantido aqui como salvaguarda
+  // contra clientes/payloads antigos durante o rollout do fix.
+  delete stripped.conditionAttributePenalties;
+
   // Strip class data: remove the powers CATALOG (all available powers for this class).
   // Keep abilities (needed by recalculateSheet + Result display) and numeric fields.
   if (sheet.classe) {

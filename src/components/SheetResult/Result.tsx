@@ -1321,6 +1321,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 <AttributeDisplay
                   attributes={atributos}
                   characterName={nome}
+                  sheet={currentSheet}
                   attributeHighlights={
                     markersEnabled ? conditionHighlights.attributes : undefined
                   }
@@ -1340,6 +1341,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 <AttributeDisplay
                   attributes={atributos}
                   characterName={nome}
+                  sheet={currentSheet}
                   attributeHighlights={
                     markersEnabled ? conditionHighlights.attributes : undefined
                   }
