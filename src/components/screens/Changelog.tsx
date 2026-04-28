@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            25/04/2026 (v4.11).
+            28/04/2026 (v4.11.1).
           </p>
 
           <p>
@@ -69,6 +69,35 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.11.1</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Condições como{' '}
+                  <strong>Esmorecido</strong>, <strong>Frustrado</strong>,{' '}
+                  <strong>Fraco</strong> e <strong>Debilitado</strong> não
+                  alteram mais permanentemente os atributos da ficha. Antes, a
+                  penalidade era gravada no valor base do atributo, o que vazava
+                  para <strong>PM máximo</strong>, <strong>Defesa</strong>,{' '}
+                  <strong>PV</strong> e capacidade de carga, podendo deixar a
+                  ficha corrompida (atributos &quot;dobrando&quot; ao
+                  remover/reaplicar a condição). Agora a penalidade é puramente
+                  temporária: aparece apenas no rótulo do atributo e nas
+                  rolagens (testes de atributo e perícias derivadas),
+                  desaparecendo imediatamente ao remover a condição. Fichas que
+                  já estavam corrompidas são saneadas automaticamente no
+                  primeiro carregamento — atributos manualmente inflados podem
+                  precisar de um ajuste pontual.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a descrição do poder{' '}
+                  <strong>Ataque com Escudo</strong>, que estava exibindo o
+                  texto de outro poder (relacionado a armas de arremesso). Agora
+                  mostra o efeito correto do RAW: ataque corpo a corpo extra com
+                  o escudo gastando 1 PM ao usar a ação agredir, sem perder o
+                  bônus de Defesa do escudo.
+                </li>
+              </ul>
+
               <h3>4.11</h3>
               <ul>
                 <li>
