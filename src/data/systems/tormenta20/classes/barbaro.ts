@@ -60,7 +60,7 @@ const BARBARO: ClassDescription = {
           },
           modifier: {
             type: 'LevelCalc',
-            formula: 'Math.floor(({level} + 3) / 6)',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
           },
         },
         {
@@ -74,7 +74,7 @@ const BARBARO: ClassDescription = {
           },
           modifier: {
             type: 'LevelCalc',
-            formula: 'Math.floor(({level} + 3) / 6)',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
           },
         },
         {
@@ -87,7 +87,7 @@ const BARBARO: ClassDescription = {
           },
           modifier: {
             type: 'LevelCalc',
-            formula: 'Math.floor(({level} + 3) / 6)',
+            formula: 'Math.floor(({classLevel} + 3) / 6)',
           },
         },
       ],
@@ -96,6 +96,17 @@ const BARBARO: ClassDescription = {
       name: 'Resistência a Dano',
       text: 'Graças a seu vigor e força de vontade, você ignora parte de seus ferimentos. Você recebe resistência a dano 2 (todo dano que sofre é reduzido em 2). A cada três níveis, sua RD aumenta em 2, até um máximo de RD 10 no 17º nível.',
       nivel: 5,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Resistência a Dano' },
+          target: { type: 'DamageReduction', damageType: 'Geral' },
+          modifier: {
+            type: 'LevelCalc',
+            formula:
+              '{classLevel} >= 5 ? Math.min(10, 2 + 2 * Math.floor(({classLevel} - 5) / 3)) : 0',
+          },
+        },
+      ],
     },
     {
       name: 'Fúria Titânica',
@@ -228,6 +239,14 @@ const BARBARO: ClassDescription = {
       name: 'Pele de Ferro',
       text: 'Você recebe +4 na Defesa, mas apenas se não estiver usando armadura pesada.',
       requirements: [],
+      // Nota: condição "armadura pesada" do texto não é modelada — bônus aplica sempre.
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Pele de Ferro' },
+          target: { type: 'Defense' },
+          modifier: { type: 'Fixed', value: 4 },
+        },
+      ],
     },
     {
       name: 'Sangue dos Inimigos',
