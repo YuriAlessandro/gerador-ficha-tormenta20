@@ -1,14 +1,16 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import Equipment from '../interfaces/Equipment';
+import { CompleteSkill } from '../interfaces/Skills';
+import { CharacterAttributes } from '../interfaces/Character';
 import Weapon from './Weapon';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
 
 interface WeaponsProps {
   weapons: Equipment[];
   getKey: (eId: string) => string;
-  rangeBonus: number;
-  fightBonus: number;
+  completeSkills: CompleteSkill[] | undefined;
+  atributos: CharacterAttributes;
   modFor: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
@@ -18,8 +20,8 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
   const {
     weapons,
     getKey,
-    rangeBonus,
-    fightBonus,
+    completeSkills,
+    atributos,
     modFor,
     characterName,
     attackConditions,
@@ -37,8 +39,8 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     <Weapon
       key={getKey(equip.nome)}
       equipment={equip}
-      fightBonus={fightBonus}
-      rangeBonus={rangeBonus}
+      completeSkills={completeSkills}
+      atributos={atributos}
       modDano={modFor}
       characterName={characterName}
       attackConditions={attackConditions}

@@ -10,6 +10,7 @@ import { Spell } from '@/interfaces/Spells';
 import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
+import { getWeaponSkill, getSkillAttackBonus } from './weaponSkill';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -19,6 +20,29 @@ function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
     return true;
   });
 }
+
+const CP1252_REPLACEMENTS: Record<string, string> = {
+  '‘': "'",
+  '’': "'",
+  '“': '"',
+  '”': '"',
+  '–': '-',
+  '—': '-',
+  '…': '...',
+  '•': '*',
+  ' ': ' ',
+};
+
+const sanitizeForWinAnsi = (text: string | undefined | null): string => {
+  if (!text) return '';
+  let out = text;
+  Object.entries(CP1252_REPLACEMENTS).forEach(([from, to]) => {
+    out = out.split(from).join(to);
+  });
+  return Array.from(out)
+    .filter((char) => (char.codePointAt(0) ?? 0) <= 0xff)
+    .join('');
+};
 
 const generateClassPowerText = (power: ClassPower | ClassAbility) =>
   power.text || '';
@@ -90,9 +114,9 @@ const preparePDF: (
   const craftSkillFirstField = form.getTextField('Texto8');
   const craftSkillSecondField = form.getTextField('Texto9');
 
-  nameField.setText(sheet.nome);
-  raceField.setText(sheet.raca.name);
-  originField.setText(sheet.origin?.name || '');
+  nameField.setText(sanitizeForWinAnsi(sheet.nome));
+  raceField.setText(sanitizeForWinAnsi(sheet.raca.name));
+  originField.setText(sanitizeForWinAnsi(sheet.origin?.name));
   let classDisplay: string;
   if (isMulticlass(sheet)) {
     classDisplay = getMulticlassDisplayName(sheet);
@@ -101,8 +125,8 @@ const preparePDF: (
   } else {
     classDisplay = `${sheet.classe.name} ${sheet.nivel}`;
   }
-  classField.setText(classDisplay);
-  deytiField.setText(sheet.devoto?.divindade.name || '');
+  classField.setText(sanitizeForWinAnsi(classDisplay));
+  deytiField.setText(sanitizeForWinAnsi(sheet.devoto?.divindade.name));
   forceField.setText(sheet.atributos.Força.value.toString());
   dexterityField.setText(sheet.atributos.Destreza.value.toString());
   constitutionField.setText(sheet.atributos.Constituição.value.toString());
@@ -126,7 +150,7 @@ const preparePDF: (
       displacementText += ` (${parts.join(', ')})`;
     }
   }
-  displacimentField.setText(displacementText);
+  displacimentField.setText(sanitizeForWinAnsi(displacementText));
   halfLevelField.setText(Math.floor(sheet.nivel / 2).toString());
 
   pvMaxField.setText(sheet.pv.toString());
@@ -139,31 +163,6 @@ const preparePDF: (
   const bagEquipaments = sheet.bag.getEquipments();
   const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
 
-  const fightSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Luta'
-  );
-  const rangeSkill = sheet.completeSkills?.find(
-    (skill) => skill.name === 'Pontaria'
-  );
-
-  const fightAttrBonus = fightSkill?.modAttr
-    ? sheet.atributos[fightSkill.modAttr].value
-    : 0;
-  const fightBonus =
-    (fightSkill?.halfLevel ?? 0) +
-    fightAttrBonus +
-    (fightSkill?.others ?? 0) +
-    (fightSkill?.training ?? 0);
-
-  const rangeAttrBonus = rangeSkill?.modAttr
-    ? sheet.atributos[rangeSkill.modAttr].value
-    : 0;
-  const rangeBonus =
-    (rangeSkill?.halfLevel ?? 0) +
-    rangeAttrBonus +
-    (rangeSkill?.others ?? 0) +
-    (rangeSkill?.training ?? 0);
-
   weapons.forEach((weapon, index) => {
     const weaponNameField = form.getTextField(`ataque${index + 1}`);
     const weaponBonusField = form.getTextField(`tAtak${index + 1}`);
@@ -172,16 +171,20 @@ const preparePDF: (
     const weaponTypeField = form.getTextField(`tipo${index + 1}`);
     const weaponRangeField = form.getTextField(`alcance${index + 1}`);
 
-    weaponNameField.setText(weapon.nome);
-    weaponDamageField.setText(weapon.dano);
-    weaponCritField.setText(weapon.critico);
-    weaponTypeField.setText(weapon.tipo || '');
-    weaponRangeField.setText(weapon.alcance || '');
+    const weaponNameDisplay = weapon.customSkill
+      ? `${weapon.nome} (${weapon.customSkill})`
+      : weapon.nome;
+    weaponNameField.setText(sanitizeForWinAnsi(weaponNameDisplay));
+    weaponDamageField.setText(sanitizeForWinAnsi(weapon.dano));
+    weaponCritField.setText(sanitizeForWinAnsi(weapon.critico));
+    weaponTypeField.setText(sanitizeForWinAnsi(weapon.tipo));
+    weaponRangeField.setText(sanitizeForWinAnsi(weapon.alcance));
 
-    const isRange =
-      weapon.alcance && weapon.alcance !== '-' && !weapon.arremesso;
-
-    const modAtk = isRange ? rangeBonus : fightBonus;
+    const modAtk = getSkillAttackBonus(
+      getWeaponSkill(weapon),
+      sheet.completeSkills,
+      sheet.atributos
+    );
     const atk = weapon.atkBonus ? weapon.atkBonus + modAtk : modAtk;
     weaponBonusField.setText(`${atk >= 0 ? '+' : ''}${atk}`);
   });
@@ -194,7 +197,7 @@ const preparePDF: (
     const defenseBonusField = form.getTextField(`defesa${index + 1}`);
     const penaltyField = form.getTextField(`penalidade${index + 1}`);
 
-    defenseNameField.setText(defense.nome);
+    defenseNameField.setText(sanitizeForWinAnsi(defense.nome));
     defenseBonusField.setText(
       `${defense.defenseBonus >= 0 ? '+' : ''}${defense.defenseBonus}`
     );
@@ -244,8 +247,9 @@ const preparePDF: (
     .join('\n');
 
   const allEquipments = `${equipmentsNames}\n${weaponsNames}\n${defenseNames}`;
-  equipamentsFirstField.setText(allEquipments.slice(0, 1000));
-  equipamentsSecondField.setText(allEquipments.slice(1000, 2000));
+  const sanitizedEquipments = sanitizeForWinAnsi(allEquipments);
+  equipamentsFirstField.setText(sanitizedEquipments.slice(0, 1000));
+  equipamentsSecondField.setText(sanitizedEquipments.slice(1000, 2000));
 
   // Add equipment current cargo (including currency weight)
   const currencySpaces = calculateCurrencySpaces(
@@ -304,7 +308,7 @@ const preparePDF: (
       )}${generateGeneralPowerText(power as RaceAbility | OriginPower)}`;
     })
     .join('\n');
-  powersField.setText(powersText);
+  powersField.setText(sanitizeForWinAnsi(powersText));
   const powersFieldFontSize = () => {
     if (powersText.length > 7000) {
       return 6;
@@ -329,7 +333,7 @@ const preparePDF: (
     })
     .map(generateSpellText)
     .join('\n');
-  spellsField.setText(spellsText);
+  spellsField.setText(sanitizeForWinAnsi(spellsText));
   const spellsFieldFontSize = (): number => {
     if (spellsText.length > 7000) return 6;
     if (spellsText.length > 5000) return 7;
@@ -346,7 +350,7 @@ const preparePDF: (
   const proficienciesText = [...baseProficiencies, ...customProficiencies].join(
     '\n'
   );
-  proficienciesField.setText(proficienciesText);
+  proficienciesField.setText(sanitizeForWinAnsi(proficienciesText));
 
   // The PDF sheet only allows 30 skills, being two max "Oficios". We need to make sure we don't exceed that.
   // If there is more than 2 "Oficios", we will remove the extra ones. If there is only one, let's create a empty one (we need always two).
@@ -435,7 +439,9 @@ const preparePDF: (
         if (oficioText) {
           const oficioField =
             index === 22 ? craftSkillFirstField : craftSkillSecondField;
-          oficioField.setText(oficioText.replace('(', '').replace(')', ''));
+          oficioField.setText(
+            sanitizeForWinAnsi(oficioText.replace('(', '').replace(')', ''))
+          );
         }
       }
     });

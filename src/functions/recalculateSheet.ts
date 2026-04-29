@@ -832,43 +832,19 @@ function applyEquipmentBonuses(sheet: CharacterSheet): CharacterSheet {
  * conditions with the same effect target do not accumulate — only the most
  * severe applies (aggregation via `aggregateConditionBonuses`).
  *
- * Pipeline:
- *   1. REVERT any attribute penalties from a previous recalc by reading
- *      `conditionAttributePenalties` (the ledger of what we mutated last time).
- *      Without this, removing a condition would leave atributos stuck at the
- *      reduced value — `atributos[attr].value` is the canonical source for
- *      skills/defense and is persisted across saves.
- *   2. Collect every bonus from every mechanical condition into a flat array.
- *   3. Aggregate: group by target key and keep the winner per group.
- *   4. Apply:
- *      - For `Attribute` targets: mutate `atributos[attr].value` (so skills
- *        and defense recalculate from adjusted stats) AND record the delta
- *        in the fresh `conditionAttributePenalties` ledger.
- *      - For everything else: push to `sheetBonuses` (main forEach consumes).
+ * Conditions são puramente temporárias: emitem `SheetBonus` (Skill, Defense,
+ * Displacement, AllAttackBonus, etc.) e nunca mutam `atributos[attr].value`.
+ * Penalidades de "testes de atributo" são modeladas como `Skill` bonuses para
+ * cada perícia derivada do atributo (via `skillsByAttrsPenalty` em conditions.ts).
+ * Isso preserva PM máximo, Defesa, PV e demais stats derivados — eles continuam
+ * lendo o atributo base, conforme o RAW de T20.
  */
 function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
   const updated = _.cloneDeep(sheet);
 
-  // Step 1: revert previously-applied attribute penalties
-  const previous = updated.conditionAttributePenalties;
-  if (previous) {
-    (Object.entries(previous) as [Atributo, number][]).forEach(
-      ([attr, delta]) => {
-        if (updated.atributos[attr]) {
-          updated.atributos[attr] = {
-            ...updated.atributos[attr],
-            value: updated.atributos[attr].value - delta,
-          };
-        }
-      }
-    );
-  }
-  updated.conditionAttributePenalties = undefined;
-
   const active = updated.activeConditions ?? [];
   if (active.length === 0) return updated;
 
-  // Step 2: collect bonuses
   const collected: SheetBonus[] = [];
   active.forEach((ac) => {
     const tpl = CONDITION_TEMPLATES[ac.id];
@@ -882,29 +858,10 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
     });
   });
 
-  // Step 3: aggregate (non-stacking rule)
   const aggregated = aggregateConditionBonuses(collected);
-
-  // Step 4: apply
-  const newPenalties: Partial<Record<Atributo, number>> = {};
   aggregated.forEach((b) => {
-    if (b.target.type === 'Attribute' && b.modifier.type === 'Fixed') {
-      const attr = b.target.attribute;
-      if (updated.atributos[attr]) {
-        updated.atributos[attr] = {
-          ...updated.atributos[attr],
-          value: updated.atributos[attr].value + b.modifier.value,
-        };
-        newPenalties[attr] = (newPenalties[attr] ?? 0) + b.modifier.value;
-      }
-      return;
-    }
     updated.sheetBonuses.push(b);
   });
-
-  if (Object.keys(newPenalties).length > 0) {
-    updated.conditionAttributePenalties = newPenalties;
-  }
 
   return updated;
 }
@@ -1020,6 +977,30 @@ export function recalculateSheet(
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
 
+  // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
+  // anteriores aplicavam penalidades de condições mutando `atributos[attr].value`
+  // e rastreando o delta neste ledger. Isso vazava efeitos temporários para o
+  // estado persistido (PM máximo, Defesa, perícias) e corrompia atributos
+  // editados manualmente. Agora condições só emitem `Skill` bonuses; o ledger
+  // é revertido aqui (devolvendo `atributos` ao valor base) e descartado para
+  // sempre. Após esta passagem, a ficha é salva limpa naturalmente.
+  if (updatedSheet.conditionAttributePenalties) {
+    (
+      Object.entries(updatedSheet.conditionAttributePenalties) as [
+        Atributo,
+        number
+      ][]
+    ).forEach(([attr, delta]) => {
+      if (updatedSheet.atributos[attr]) {
+        updatedSheet.atributos[attr] = {
+          ...updatedSheet.atributos[attr],
+          value: updatedSheet.atributos[attr].value - delta,
+        };
+      }
+    });
+    updatedSheet.conditionAttributePenalties = undefined;
+  }
+
   // Migração: remover Canalizar Reparos de fichas Golem Desperto antigas
   // (era incluído antes do commit 711e921, mas só deve existir no Golem básico
   // ou como Maravilha Mecânica do chassi Mashin)
@@ -1030,6 +1011,24 @@ export function recalculateSheet(
     updatedSheet.raca.abilities = updatedSheet.raca.abilities.filter(
       (ability) => ability.name !== 'Canalizar Reparos'
     );
+
+    if (updatedSheet.sheetActionHistory) {
+      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory
+        .map((entry) => {
+          if (entry.source.type !== 'race') return entry;
+          return {
+            ...entry,
+            changes: entry.changes.filter(
+              (change) =>
+                !(
+                  change.type === 'PowerAdded' &&
+                  change.powerName === 'Canalizar Reparos'
+                )
+            ),
+          };
+        })
+        .filter((entry) => entry.changes.length > 0);
+    }
   }
 
   // Note: Attribute reset/re-application was removed - value now contains the final modifier directly.

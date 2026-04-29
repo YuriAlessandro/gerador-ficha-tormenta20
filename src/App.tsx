@@ -51,6 +51,7 @@ import { useUserPreferences } from './hooks/useUserPreferences';
 import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { setFeatureFlags } from './store/slices/system/systemSlice';
+import { DEFAULT_FEATURE_FLAGS } from './types/featureFlags.types';
 import { SupplementId } from './types/supplement.types';
 import logoFichasDeNimb from './assets/images/logoFichasDeNimb.svg';
 // Support page
@@ -205,7 +206,9 @@ function ThemedApp(): JSX.Element {
   // Fetch feature flags on mount (public endpoint, no auth required)
   React.useEffect(() => {
     getFeatureFlags()
-      .then((flags) => dispatch(setFeatureFlags(flags)))
+      .then((flags) =>
+        dispatch(setFeatureFlags({ ...DEFAULT_FEATURE_FLAGS, ...flags }))
+      )
       .catch(() => {
         // Silently fail - redux-persist cache will be used as fallback
       });

@@ -498,10 +498,15 @@ export default interface CharacterSheet {
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
-  // Penalidades de atributo atualmente aplicadas por condições ativas.
-  // Rastreia o que foi mutado em `atributos[attr].value` para permitir reverter
-  // antes de reaplicar a cada recalc — sem esse rastreamento, remover uma
-  // condição não devolveria o atributo ao valor base.
+  /**
+   * @deprecated Mantido por um ciclo de release apenas para deserializar
+   * fichas antigas. Versões anteriores aplicavam penalidades de condições
+   * mutando `atributos[attr].value` e rastreavam o delta neste ledger; isso
+   * vazava efeitos temporários para o estado persistido. Hoje condições só
+   * emitem `Skill` bonuses (ver `applyConditionBonuses`) e nunca tocam
+   * `atributos`. O `recalculateSheet` reverte e descarta este campo
+   * automaticamente quando encontrado. Remover em release subsequente.
+   */
   conditionAttributePenalties?: Partial<Record<Atributo, number>>;
 }
 

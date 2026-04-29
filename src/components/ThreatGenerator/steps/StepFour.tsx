@@ -35,6 +35,8 @@ import {
   calculateBonusDiceAverage,
   validateDiceString,
 } from '../../../functions/threatGenerator';
+import { ConditionsListEditor } from '../../../premium/components/Conditions';
+import type { ConditionId } from '../../../premium/data/conditions';
 
 interface StepFourProps {
   threat: Partial<ThreatSheet>;
@@ -56,6 +58,9 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     dice: '',
     damageType: '',
   });
+  const [newAttackConditions, setNewAttackConditions] = useState<ConditionId[]>(
+    []
+  );
 
   // Edit dialog state
   const [editDialog, setEditDialog] = useState(false);
@@ -75,6 +80,9 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     dice: '',
     damageType: '',
   });
+  const [editAttackConditions, setEditAttackConditions] = useState<
+    ConditionId[]
+  >([]);
 
   const generateBonusDiceId = () =>
     `bd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -147,6 +155,8 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
         criticalThreshold !== 20 ? criticalThreshold : undefined,
       criticalMultiplier:
         criticalMultiplier !== 2 ? criticalMultiplier : undefined,
+      grantsConditions:
+        newAttackConditions.length > 0 ? newAttackConditions : undefined,
     };
 
     const updatedAttacks = [...(threat.attacks || []), attack];
@@ -163,6 +173,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     });
     setBonusDamageDice([]);
     setNewBonusDice({ dice: '', damageType: '' });
+    setNewAttackConditions([]);
   };
 
   const handleRemoveAttack = (attackId: string) => {
@@ -187,6 +198,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
         : []
     );
     setEditNewBonusDice({ dice: '', damageType: '' });
+    setEditAttackConditions(attack.grantsConditions ?? []);
     setEditDialog(true);
   };
 
@@ -249,6 +261,8 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
         criticalThreshold !== 20 ? criticalThreshold : undefined,
       criticalMultiplier:
         criticalMultiplier !== 2 ? criticalMultiplier : undefined,
+      grantsConditions:
+        editAttackConditions.length > 0 ? editAttackConditions : undefined,
     };
 
     const updatedAttacks = (threat.attacks || []).map((a) =>
@@ -259,6 +273,7 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
     setEditDialog(false);
     setEditingAttack(null);
     setEditBonusDamageDice([]);
+    setEditAttackConditions([]);
   };
 
   const { combatStats } = threat;
@@ -573,6 +588,13 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                       </Box>
                     </Grid>
                   )}
+
+                <Grid size={12}>
+                  <ConditionsListEditor
+                    value={newAttackConditions}
+                    onChange={setNewAttackConditions}
+                  />
+                </Grid>
 
                 <Grid size={12}>
                   <Button
@@ -951,6 +973,13 @@ const StepFour: React.FC<StepFourProps> = ({ threat, onUpdate }) => {
                   </Box>
                 </Grid>
               )}
+
+            <Grid size={12}>
+              <ConditionsListEditor
+                value={editAttackConditions}
+                onChange={setEditAttackConditions}
+              />
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>

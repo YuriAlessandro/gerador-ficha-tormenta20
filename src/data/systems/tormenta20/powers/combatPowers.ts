@@ -53,7 +53,7 @@ const combatPowers: Record<string, GeneralPower> = {
   ATAQUE_COM_ESCUDO: {
     name: 'Ataque com Escudo',
     description:
-      'Uma vez por rodada, quando faz um ataque com uma arma de arremesso, você pode gastar 1 PM para fazer um ataque adicional contra o mesmo alvo, arremessando outra arma de arremesso.',
+      'Uma vez por rodada, se estiver empunhando um escudo e fizer a ação agredir, você pode gastar 1 PM para fazer um ataque corpo a corpo extra com o escudo. Este ataque não faz você perder o bônus do escudo na Defesa.',
     type: GeneralPowerType.COMBATE,
     requirements: [
       [{ type: RequirementType.PODER, name: 'Estilo de Arma e Escudo' }],

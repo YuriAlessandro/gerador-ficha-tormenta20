@@ -43,6 +43,7 @@ const PowersDisplay: React.FC<{
   ) => void;
   characterName?: string;
   onCompanionClick?: () => void;
+  parodyButtonSlot?: React.ReactNode;
 }> = ({
   sheetHistory,
   classPowers,
@@ -59,6 +60,7 @@ const PowersDisplay: React.FC<{
   onUpdateRolls,
   characterName,
   onCompanionClick,
+  parodyButtonSlot,
 }) => {
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
@@ -151,6 +153,9 @@ const PowersDisplay: React.FC<{
           characterName={characterName}
           onCompanionClick={
             power.name === 'Melhor Amigo' ? onCompanionClick : undefined
+          }
+          headerActionSlot={
+            power.name === 'Paródia' ? parodyButtonSlot : undefined
           }
         />
       ))}

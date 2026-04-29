@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            20/04/2026.
+            28/04/2026 (v4.11.1).
           </p>
 
           <p>
@@ -69,6 +69,181 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.11.1</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Condições como{' '}
+                  <strong>Esmorecido</strong>, <strong>Frustrado</strong>,{' '}
+                  <strong>Fraco</strong> e <strong>Debilitado</strong> não
+                  alteram mais permanentemente os atributos da ficha. Antes, a
+                  penalidade era gravada no valor base do atributo, o que vazava
+                  para <strong>PM máximo</strong>, <strong>Defesa</strong>,{' '}
+                  <strong>PV</strong> e capacidade de carga, podendo deixar a
+                  ficha corrompida (atributos &quot;dobrando&quot; ao
+                  remover/reaplicar a condição). Agora a penalidade é puramente
+                  temporária: aparece apenas no rótulo do atributo e nas
+                  rolagens (testes de atributo e perícias derivadas),
+                  desaparecendo imediatamente ao remover a condição. Fichas que
+                  já estavam corrompidas são saneadas automaticamente no
+                  primeiro carregamento — atributos manualmente inflados podem
+                  precisar de um ajuste pontual.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a descrição do poder{' '}
+                  <strong>Ataque com Escudo</strong>, que estava exibindo o
+                  texto de outro poder (relacionado a armas de arremesso). Agora
+                  mostra o efeito correto do RAW: ataque corpo a corpo extra com
+                  o escudo gastando 1 PM ao usar a ação agredir, sem perder o
+                  bônus de Defesa do escudo.
+                </li>
+              </ul>
+
+              <h3>4.11</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> Corrigida a{' '}
+                  <strong>exportação de PDF</strong> que falhava silenciosamente
+                  em fichas com emojis ou caracteres especiais nos textos de
+                  poderes (caso típico: poder <strong>Golpe Pessoal</strong> com
+                  o ícone 💠 no resumo de custo). A geração agora sanitiza o
+                  texto antes de gravar nos campos do PDF, e erros eventuais
+                  passam a ser logados no console do navegador para facilitar o
+                  diagnóstico.
+                </li>
+                <li>
+                  <strong>Novo:</strong> No editor de ameaças, cada{' '}
+                  <strong>habilidade</strong>, <strong>ataque</strong> e{' '}
+                  <strong>magia</strong> agora pode declarar uma ou mais{' '}
+                  <strong>condições concedidas</strong> (abalado, desprevenido,
+                  atordoado, agarrado etc.). A ficha da ameaça mostra as
+                  condições anotadas como chips no fim da linha (&quot;Concede:
+                  ...&quot;), e na <strong>Mesa Virtual</strong> aparece um
+                  botão <strong>&quot;Aplicar condição&quot;</strong> ao lado
+                  apenas dos itens anotados. O mestre clica → abre um modal já
+                  com as condições pré-selecionadas → marca quais jogadores
+                  recebem (ou cancela) → aplica direto na ficha de cada um, com
+                  cascata automática de implicações (ex.: <em>cego</em> também
+                  aplica <em>desprevenido</em> e <em>lento</em>). Disponível
+                  apenas para o mestre durante encontros ativos.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Adicionado um botão{' '}
+                  <strong>&quot;Atualizar dados&quot;</strong> no diálogo da
+                  ameaça na <strong>Mesa Virtual</strong>. Ao importar uma
+                  ameaça, a mesa guarda um snapshot estático — edições
+                  posteriores na ameaça original não eram refletidas. O novo
+                  botão re-sincroniza o snapshot com a versão atual da nuvem
+                  (corrigindo também dois bugs no backend: a resposta do
+                  endpoint de update vinha com formato errado e mutações no
+                  campo Mongoose Mixed não eram persistidas sem{' '}
+                  <code>markModified</code>).
+                </li>
+                <li>
+                  <strong>Novo:</strong> O poder <strong>Paródia</strong>{' '}
+                  (Bardo) agora tem um ícone de busca ao lado do nome no
+                  accordion: ao clicar, abre um modal para pesquisar entre todas
+                  as magias do sistema (filtros por círculo e por tipo
+                  arcana/divina), ver os detalhes da magia escolhida e lançá-la
+                  diretamente — com seleção de aprimoramentos e gasto de PM
+                  igual às magias da ficha.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> Nas páginas{' '}
+                  <strong>Meus Personagens</strong> e{' '}
+                  <strong>Minhas Ameaças</strong>, os cards de fichas/ameaças
+                  agora aparecem antes das pastas, deixando o acesso aos itens
+                  mais imediato (as pastas e o card &quot;Nova pasta&quot; ficam
+                  logo abaixo).
+                </li>
+                <li>
+                  <strong>Novo:</strong> Adicionado seletor de{' '}
+                  <strong>Perícia de Ataque</strong> no editor de armas. Por
+                  padrão, armas corpo a corpo continuam usando{' '}
+                  <strong>Luta</strong> e armas à distância usam{' '}
+                  <strong>Pontaria</strong>, mas agora é possível escolher
+                  qualquer outra perícia para o teste de ataque de uma arma
+                  específica &mdash; útil para poderes/magias como{' '}
+                  <strong>Esgrima Mágica</strong> (Atuação no lugar de Luta) e
+                  efeitos similares. O bônus de dano continua seguindo a regra
+                  padrão (corpo a corpo soma Força).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Estendida a migração que remove{' '}
+                  <strong>Canalizar Reparos</strong> de fichas antigas de{' '}
+                  <strong>Golem Desperto</strong> (criadas antes do fix do
+                  chassi). Agora, além de limpar a habilidade da raça, também
+                  remove o registro residual no histórico da ficha, evitando que
+                  o poder reapareça em painéis e validações que consultam o
+                  histórico de ações.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o pré-requisito do poder{' '}
+                  <strong>Magia Acelerada</strong>, que aceitava qualquer
+                  conjurador (inclusive de 1º círculo). Agora exige{' '}
+                  <strong>lançar magias de 2º círculo</strong>, conforme a regra
+                  oficial.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o cálculo do bônus de{' '}
+                  <strong>iniciativa de ameaças</strong> na{' '}
+                  <strong>Mesa Virtual</strong>, que estava saindo sempre
+                  negativo (independentemente do modificador da ameaça). Agora o
+                  sistema usa a perícia <strong>Iniciativa</strong> da ficha da
+                  ameaça, considerando treino, bônus customizados e overrides
+                  manuais &mdash; igual ao comportamento das fichas de
+                  jogadores.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Permitido salvar armas com{' '}
+                  <strong>Espaço 0</strong> ao editar pelo drawer de
+                  equipamentos. O valor estava sendo convertido silenciosamente
+                  para 1, impedindo cadastrar itens muito pequenos/leves.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigida a área de{' '}
+                  <strong>Condições</strong> no cabeçalho da ficha: em
+                  personagens com <strong>Divindade</strong>, o botão de
+                  adicionar condição e os chips ativos ficavam atrás dos
+                  atributos e não respondiam aos cliques.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Corrigido o background do título{' '}
+                  <strong>&quot;Defesa&quot;</strong> na ficha, que aparecia
+                  quebrado/encolhido em telas de baixa resolução (mobile). Agora
+                  o layout segue o mesmo padrão dos demais títulos como
+                  &quot;Ataques&quot; e &quot;Proficiências&quot;.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> O título{' '}
+                  <strong>&quot;Condições&quot;</strong> no cabeçalho da ficha
+                  agora usa a mesma fonte e cor dos demais labels (Nível,
+                  Origem, Divindade), integrando-se visualmente ao bloco de
+                  informações do personagem.
+                </li>
+                <li>
+                  <strong>Correção:</strong> A habilidade{' '}
+                  <strong>Sapiência</strong> do <strong>Moreau Coruja</strong>{' '}
+                  agora permite escolher a magia de 1º círculo de Adivinhação,
+                  tanto na criação (novo passo no wizard) quanto em fichas já
+                  geradas (seletor adicionado à customização do Moreau e ao
+                  drawer de informações). Antes a magia era sorteada
+                  automaticamente (e voltava sozinha após cada edição). A magia
+                  agora também é tratada como fixa no drawer de magias: não pode
+                  ser removida diretamente — para trocá-la, basta editar a
+                  customização do Moreau.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Seleções manuais em poderes
+                  repetíveis escolhidos durante o <strong>level-up</strong> não
+                  eram salvas na ficha a partir da segunda escolha. Afetava{' '}
+                  <strong>Aumentar Repertório</strong> (Bardo) — as 2 magias
+                  selecionadas eram ignoradas — e{' '}
+                  <strong>Aumento de Atributo</strong> — o atributo escolhido
+                  não recebia o +1. Cada nova escolha agora aplica corretamente
+                  os efeitos.
+                </li>
+              </ul>
+
               <h3>4.10</h3>
               <p>
                 A segunda feature mais votada pelos apoiadores chegou! Como no

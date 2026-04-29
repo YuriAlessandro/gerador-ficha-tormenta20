@@ -6,6 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Card,
@@ -54,6 +55,7 @@ import {
   ConditionMarker,
   useConditionHighlights,
 } from '@/premium/components/Conditions';
+import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker';
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
 import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
 import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
@@ -163,6 +165,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
+  const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
@@ -903,34 +906,13 @@ const Result: React.FC<ResultProps> = (props) => {
 
   const modFor = atributos.Força.value;
 
-  const fightSkill = completeSkills?.find((skill) => skill.name === 'Luta');
-  const rangeSkill = completeSkills?.find((skill) => skill.name === 'Pontaria');
-
-  const fightAttrBonus = fightSkill?.modAttr
-    ? currentSheet.atributos[fightSkill.modAttr].value
-    : 0;
-  const fightBonus =
-    (fightSkill?.halfLevel ?? 0) +
-    fightAttrBonus +
-    (fightSkill?.others ?? 0) +
-    (fightSkill?.training ?? 0);
-
-  const rangeAttrBonus = rangeSkill?.modAttr
-    ? currentSheet.atributos[rangeSkill.modAttr].value
-    : 0;
-  const rangeBonus =
-    (rangeSkill?.halfLevel ?? 0) +
-    rangeAttrBonus +
-    (rangeSkill?.others ?? 0) +
-    (rangeSkill?.training ?? 0);
-
   const weaponsDiv = useMemo(
     () => (
       <Weapons
         getKey={getKey}
         weapons={bagEquipments.Arma}
-        fightBonus={fightBonus}
-        rangeBonus={rangeBonus}
+        completeSkills={completeSkills}
+        atributos={atributos}
         modFor={modFor}
         characterName={nome}
         attackConditions={
@@ -940,8 +922,8 @@ const Result: React.FC<ResultProps> = (props) => {
     ),
     [
       bagEquipments.Arma,
-      fightBonus,
-      rangeBonus,
+      completeSkills,
+      atributos,
       modFor,
       nome,
       markersEnabled,
@@ -1159,7 +1141,7 @@ const Result: React.FC<ResultProps> = (props) => {
                     }}
                   />
                 )}
-                <Box sx={{ flexGrow: 1 }}>
+                <Box sx={{ flexGrow: 1, position: 'relative', zIndex: 1 }}>
                   <Stack direction='row' alignItems='center' spacing={0.5}>
                     {markersEnabled && (
                       <ConditionMarker
@@ -1339,6 +1321,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 <AttributeDisplay
                   attributes={atributos}
                   characterName={nome}
+                  sheet={currentSheet}
                   attributeHighlights={
                     markersEnabled ? conditionHighlights.attributes : undefined
                   }
@@ -1358,6 +1341,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 <AttributeDisplay
                   attributes={atributos}
                   characterName={nome}
+                  sheet={currentSheet}
                   attributeHighlights={
                     markersEnabled ? conditionHighlights.attributes : undefined
                   }
@@ -1425,12 +1409,22 @@ const Result: React.FC<ResultProps> = (props) => {
                   <EditIcon />
                 </IconButton>
               )}
-              <Stack direction='row' alignItems='center' spacing={0.5}>
-                {markersEnabled && (
-                  <ConditionMarker
-                    conditions={conditionHighlights.defense}
-                    fontSize='medium'
-                  />
+              <Box sx={{ position: 'relative' }}>
+                {markersEnabled && conditionHighlights.defense.length > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 1,
+                    }}
+                  >
+                    <ConditionMarker
+                      conditions={conditionHighlights.defense}
+                      fontSize='medium'
+                    />
+                  </Box>
                 )}
                 <Box
                   sx={
@@ -1441,7 +1435,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 >
                   <BookTitle>Defesa</BookTitle>
                 </Box>
-              </Stack>
+              </Box>
               <Stack
                 direction={isMobile ? 'column' : 'row'}
                 spacing={2}
@@ -1617,6 +1611,16 @@ const Result: React.FC<ResultProps> = (props) => {
                     }
                     return undefined;
                   })()}
+                  parodyButtonSlot={
+                    <Tooltip title='Buscar magia para parodiar' arrow>
+                      <IconButton
+                        size='small'
+                        onClick={() => setParodyDialogOpen(true)}
+                      >
+                        <SearchIcon fontSize='small' color='primary' />
+                      </IconButton>
+                    </Tooltip>
+                  }
                 />
               </Box>
             </Card>
@@ -2127,6 +2131,18 @@ const Result: React.FC<ResultProps> = (props) => {
           sheet={currentSheet}
           onSave={handleSpellsUpdate}
         />
+
+        {onSheetUpdate && (
+          <ParodySpellPickerDialog
+            open={parodyDialogOpen}
+            onClose={() => setParodyDialogOpen(false)}
+            currentPM={currentSheet.currentPM ?? currentSheet.pm}
+            maxPM={currentSheet.pm}
+            tempPM={currentSheet.tempPM ?? 0}
+            onCast={handleSpellCast}
+            characterName={nome}
+          />
+        )}
 
         <DefenseEditDrawer
           open={defenseDrawerOpen}

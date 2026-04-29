@@ -57,6 +57,7 @@ import SuragelAbilitySelectionStep from './steps/SuragelAbilitySelectionStep';
 import { RaceAttributeVariantStep } from './steps/RaceAttributeVariantStep';
 import MarketStep from './steps/MarketStep';
 import QareenElementSelectionStep from './steps/QareenElementSelectionStep';
+import MoreauSapienciaSpellStep from './steps/MoreauSapienciaSpellStep';
 import AlchemyItemSelectionStep from './steps/AlchemyItemSelectionStep';
 import PropositoCriacaoStep from './steps/PropositoCriacaoStep';
 import CompanionCreationStep from './steps/CompanionCreationStep';
@@ -400,6 +401,13 @@ const CharacterCreationWizardModal: React.FC<
     return race.name === 'Qareen';
   };
 
+  const needsMoreauSapienciaSelection = (): boolean => {
+    if (!race) return false;
+    return (
+      race.name === 'Moreau' && raceCustomization?.moreauHeritage === 'Coruja'
+    );
+  };
+
   // Check if the class has an addAlchemyItems action at level 1
   const getAlchemyItemsAction = (): {
     budget: number;
@@ -517,6 +525,7 @@ const CharacterCreationWizardModal: React.FC<
     stepsArray.push('Valores dos Atributos');
     if (needsSuragelAbilitySelection()) stepsArray.push('Habilidade Suraggel');
     if (needsQareenElementSelection()) stepsArray.push('Elemento do Qareen');
+    if (needsMoreauSapienciaSelection()) stepsArray.push('Magia da Sapiência');
     if (needsClassSkills()) stepsArray.push('Perícias da Classe');
     if (needsIntelligenceSkills()) stepsArray.push('Perícias por Inteligência');
     if (needsAlchemyItemSelection()) stepsArray.push('Itens Alquímicos');
@@ -834,6 +843,16 @@ const CharacterCreationWizardModal: React.FC<
             selectedElement={selections.qareenElement}
             onChange={(element) =>
               setSelections({ ...selections, qareenElement: element })
+            }
+          />
+        );
+
+      case 'Magia da Sapiência':
+        return (
+          <MoreauSapienciaSpellStep
+            selectedSpell={selections.moreauSapienciaSpell}
+            onChange={(spellName) =>
+              setSelections({ ...selections, moreauSapienciaSpell: spellName })
             }
           />
         );
@@ -1235,6 +1254,9 @@ const CharacterCreationWizardModal: React.FC<
 
       case 'Elemento do Qareen':
         return selections.qareenElement !== undefined;
+
+      case 'Magia da Sapiência':
+        return !!selections.moreauSapienciaSpell;
 
       case 'Perícias da Classe': {
         if (!classe) return false;

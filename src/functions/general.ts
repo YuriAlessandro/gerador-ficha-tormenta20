@@ -1395,7 +1395,8 @@ export const applyPower = (
   > & {
     sourceClassName?: string;
   },
-  manualSelections?: SelectionOptions
+  manualSelections?: SelectionOptions,
+  forceApply?: boolean
 ): [CharacterSheet, SubStep[]] => {
   const sheet = _.cloneDeep(_sheet);
   const subSteps: SubStep[] = [];
@@ -1452,6 +1453,7 @@ export const applyPower = (
     powerOrAbility.sheetActions.forEach((sheetAction) => {
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
+        !forceApply &&
         isActionAlreadyApplied(sheetAction.action.type, powerOrAbility.name)
       ) {
         // For chooseFromOptions, re-apply sheetBonuses from the chosen option
@@ -3360,7 +3362,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3404,7 +3407,8 @@ export function applyManualLevelUp(
       const [newSheet, newSubSteps] = applyPower(
         updatedSheet,
         newPower,
-        selections.powerEffectSelections?.[newPower.name]
+        selections.powerEffectSelections?.[newPower.name],
+        true
       );
       nSubSteps.push(...newSubSteps);
       if (newSheet) updatedSheet = newSheet;
@@ -3450,7 +3454,8 @@ export function applyManualLevelUp(
     const [newSheet, newSubSteps] = applyPower(
       updatedSheet,
       newPower,
-      selections.powerEffectSelections?.[newPower.name]
+      selections.powerEffectSelections?.[newPower.name],
+      true
     );
     nSubSteps.push(...newSubSteps);
     if (newSheet) updatedSheet = newSheet;
@@ -4663,6 +4668,15 @@ export function generateEmptySheet(
     emptySheet.qareenElement = wizardSelections.qareenElement;
   }
 
+  // Apply Moreau Coruja Sapiência spell selection from wizard
+  if (
+    wizardSelections?.moreauSapienciaSpell &&
+    emptySheet.raca.name === 'Moreau' &&
+    emptySheet.raceHeritage === 'Coruja'
+  ) {
+    emptySheet.moreauSapienciaSpell = wizardSelections.moreauSapienciaSpell;
+  }
+
   // Apply Osteon/Soterrado old race selection from wizard
   const wizardOldRaceName =
     wizardSelections?.powerEffectSelections?.['Memória Póstuma']
@@ -4996,6 +5010,19 @@ export function generateEmptySheet(
     emptySheet.steps.push({
       label: 'Elemento Qareen',
       value: [{ name: 'Elemento', value: wizardSelections.qareenElement }],
+    });
+  }
+
+  // Step: Moreau Coruja Sapiência spell selection
+  if (wizardSelections?.moreauSapienciaSpell) {
+    emptySheet.steps.push({
+      label: 'Sapiência (Moreau Coruja)',
+      value: [
+        {
+          name: 'Magia escolhida',
+          value: wizardSelections.moreauSapienciaSpell,
+        },
+      ],
     });
   }
 

@@ -1421,17 +1421,17 @@ const MyCharactersPage: React.FC = () => {
                 ref={sheetsProvided.innerRef}
                 {...sheetsProvided.droppableProps}
               >
+                {/* Sheet cards */}
+                {filteredSheets.map((sheet, index) =>
+                  renderSheetCard(sheet, index)
+                )}
+
                 {/* Folder cards (only at root level) */}
                 {!isInsideFolder &&
                   folders.map((folder) => renderFolderCard(folder))}
 
                 {/* New folder card (only at root level, when sheets exist) */}
                 {!isInsideFolder && renderNewFolderCard()}
-
-                {/* Sheet cards */}
-                {filteredSheets.map((sheet, index) =>
-                  renderSheetCard(sheet, index)
-                )}
                 {sheetsProvided.placeholder}
               </Grid>
             )}

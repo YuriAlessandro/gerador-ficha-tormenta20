@@ -32,6 +32,10 @@ import {
   DialogActions,
   Switch,
   Tooltip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -45,6 +49,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
+import Skill from '@/interfaces/Skills';
 import EQUIPAMENTOS, {
   calcDefense,
   isHeavyArmor,
@@ -232,6 +237,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [editMultCritico, setEditMultCritico] = useState<string>('2');
   const [editWeaponSpaces, setEditWeaponSpaces] = useState<string>('1');
   const [editWeaponDescricao, setEditWeaponDescricao] = useState<string>('');
+  const [editCustomSkill, setEditCustomSkill] = useState<Skill | ''>('');
 
   // Estados para item customizado
   const [showCustomItemDialog, setShowCustomItemDialog] = useState(false);
@@ -250,6 +256,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [customItemAtkBonus, setCustomItemAtkBonus] = useState('0');
   const [customItemMargemAmeaca, setCustomItemMargemAmeaca] = useState('20');
   const [customItemMultCritico, setCustomItemMultCritico] = useState('2');
+  const [customItemCustomSkill, setCustomItemCustomSkill] = useState<
+    Skill | ''
+  >('');
   // Campos extras para armaduras/escudos customizados
   const [customItemDefenseBonus, setCustomItemDefenseBonus] = useState('0');
   const [customItemArmorPenalty, setCustomItemArmorPenalty] = useState('0');
@@ -807,8 +816,11 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditNome(weapon.nome);
     setEditAtkBonus(weapon.atkBonus?.toString() || '0');
     setEditDano(weapon.dano || '');
-    setEditWeaponSpaces(weapon.spaces?.toString() || '1');
+    setEditWeaponSpaces(
+      weapon.spaces !== undefined ? weapon.spaces.toString() : '1'
+    );
     setEditWeaponDescricao(weapon.descricao || '');
+    setEditCustomSkill(weapon.customSkill ?? '');
 
     // Parse critico into margem and multiplicador
     // Formats: "19" (margem only), "x3" (mult only), "19/x3" (both)
@@ -836,6 +848,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setEditMultCritico('2');
     setEditWeaponSpaces('1');
     setEditWeaponDescricao('');
+    setEditCustomSkill('');
   };
 
   const handleSaveEditWeapon = () => {
@@ -856,7 +869,9 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       atkBonus: editAtkBonus ? parseInt(editAtkBonus, 10) : 0,
       dano: editDano,
       critico,
-      spaces: parseFloat(editWeaponSpaces) || 1,
+      spaces: Number.isNaN(parseFloat(editWeaponSpaces))
+        ? 1
+        : parseFloat(editWeaponSpaces),
       // Store base values for future resets
       baseDano,
       baseAtkBonus,
@@ -864,6 +879,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       // Mark as manually edited so recalculateSheet preserves these changes
       hasManualEdits: true,
       descricao: editWeaponDescricao.trim() || undefined,
+      customSkill: editCustomSkill || undefined,
     };
 
     setSelectedEquipment((prev) => ({
@@ -887,6 +903,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
     setCustomItemAtkBonus('0');
     setCustomItemMargemAmeaca('20');
     setCustomItemMultCritico('2');
+    setCustomItemCustomSkill('');
     setCustomItemDefenseBonus('0');
     setCustomItemArmorPenalty('0');
     setCustomItemIsHeavy(false);
@@ -922,6 +939,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       const parts = critico.split('/x');
       setCustomItemMargemAmeaca(parts[0] || '20');
       setCustomItemMultCritico(parts[1] || '2');
+      setCustomItemCustomSkill(item.customSkill ?? '');
     }
     if (category === 'armors' || category === 'shields') {
       const defItem = item as DefenseEquipment;
@@ -986,6 +1004,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
         baseAtkBonus: parseInt(customItemAtkBonus, 10) || 0,
         critico,
         baseCritico: critico,
+        customSkill: customItemCustomSkill || undefined,
       };
       if (editingItem && editingItemIndex !== null) {
         setSelectedEquipment((prev) => ({
@@ -4519,6 +4538,33 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                 }}
               />
             </Stack>
+            <FormControl fullWidth>
+              <InputLabel id='edit-weapon-skill-label'>
+                Perícia de Ataque
+              </InputLabel>
+              <Select
+                labelId='edit-weapon-skill-label'
+                label='Perícia de Ataque'
+                value={editCustomSkill}
+                onChange={(e) =>
+                  setEditCustomSkill(e.target.value as Skill | '')
+                }
+              >
+                <MenuItem value=''>Padrão (Luta/Pontaria)</MenuItem>
+                {Object.values(Skill).map((skillName) => (
+                  <MenuItem key={skillName} value={skillName}>
+                    {skillName}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography
+                variant='caption'
+                sx={{ mt: 0.5, ml: 1.75, color: 'text.secondary' }}
+              >
+                Perícia usada no teste de ataque. O bônus de dano continua
+                seguindo a regra padrão (corpo a corpo soma Força).
+              </Typography>
+            </FormControl>
             <TextField
               label='Espaços'
               type='number'
@@ -4632,6 +4678,33 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
                     helperText='Padrão: x2'
                   />
                 </Stack>
+                <FormControl fullWidth>
+                  <InputLabel id='custom-weapon-skill-label'>
+                    Perícia de Ataque
+                  </InputLabel>
+                  <Select
+                    labelId='custom-weapon-skill-label'
+                    label='Perícia de Ataque'
+                    value={customItemCustomSkill}
+                    onChange={(e) =>
+                      setCustomItemCustomSkill(e.target.value as Skill | '')
+                    }
+                  >
+                    <MenuItem value=''>Padrão (Luta/Pontaria)</MenuItem>
+                    {Object.values(Skill).map((skillName) => (
+                      <MenuItem key={skillName} value={skillName}>
+                        {skillName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Typography
+                    variant='caption'
+                    sx={{ mt: 0.5, ml: 1.75, color: 'text.secondary' }}
+                  >
+                    Perícia usada no teste de ataque. O bônus de dano continua
+                    seguindo a regra padrão.
+                  </Typography>
+                </FormControl>
               </>
             )}
 

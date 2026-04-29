@@ -134,6 +134,9 @@ export interface WizardSelections {
   // Qareen element selection (determines elemental resistance)
   qareenElement?: DamageType;
 
+  // Moreau Coruja Sapiência: 1st-circle Divination spell name
+  moreauSapienciaSpell?: string;
+
   // Osteon/Soterrado old race selection for Memória Póstuma
   osteonOldRace?: string;
 
