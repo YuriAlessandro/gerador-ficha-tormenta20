@@ -57,6 +57,17 @@ const GUERREIRO_POWERS: ClassPower[] = [
         },
       ],
     ],
+    sheetBonuses: [
+      {
+        source: { type: 'power', name: 'Defesa Estratégica' },
+        target: { type: 'Defense' },
+        modifier: {
+          type: 'CappedAttribute',
+          attribute: Atributo.INTELIGENCIA,
+          capBy: 'classLevel',
+        },
+      },
+    ],
   },
   {
     name: 'Determinação Inabalável',

@@ -714,7 +714,11 @@ function applyClassPowers(
 
     // All selections are now combined for repeatable powers
 
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc] = applyPower(
+      acc,
+      { ...power, sourceClassName: sheetClone.classe.name },
+      powerSelections
+    );
     return newAcc;
   }, sheetClone);
 

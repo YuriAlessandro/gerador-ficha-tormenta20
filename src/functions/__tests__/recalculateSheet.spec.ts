@@ -9,6 +9,8 @@ import Skill from '../../interfaces/Skills';
 import { GeneralPower, GeneralPowerType } from '../../interfaces/Poderes';
 import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
 import BUCANEIRO from '../../data/systems/tormenta20/classes/bucaneiro';
+import GUERREIRO from '../../data/systems/tormenta20/classes/guerreiro';
+import GUERREIRO_HEROIS_POWERS from '../../data/systems/tormenta20/herois-de-arton/classPowers/guerreiro';
 import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { DefenseEquipment } from '../../interfaces/Equipment';
@@ -757,6 +759,74 @@ describe('recalculateSheet', () => {
     it('Lutador 2, For +5: cap pelo nível limita a +2', () => {
       const sheet = buildLutadorWithBracos(2, 5);
       const baselineSheet = buildLutadorWithBracos(2, 5);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
+    });
+
+    it('multiclasse Lutador 3 / Guerreiro 4, For +5: cap pelo nível de Lutador (=3)', () => {
+      const classLevels = [
+        { level: 1, className: 'Lutador' },
+        { level: 2, className: 'Lutador' },
+        { level: 3, className: 'Lutador' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+
+      const baselineSheet = buildLutadorWithBracos(7, 5);
+      baselineSheet.classLevels = cloneDeep(classLevels);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const sheet = buildLutadorWithBracos(7, 5);
+      sheet.classLevels = cloneDeep(classLevels);
+      const result = recalculateSheet(sheet);
+
+      // Lutador classLevel = 3 → For +5 cap = +3
+      expect(result.defesa).toBe(baseline + 3);
+    });
+  });
+
+  describe('Defesa Estratégica (Guerreiro HdA)', () => {
+    const defesaEstrategicaPower = GUERREIRO_HEROIS_POWERS.find(
+      (p) => p.name === 'Defesa Estratégica'
+    )!;
+
+    const buildGuerreiroWithDefesaEstrategica = (
+      level: number,
+      intMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(GUERREIRO);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.INTELIGENCIA].value = intMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [defesaEstrategicaPower];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    it('Guerreiro 5, Int +3: +3 na Defesa (capado pelo nível)', () => {
+      const sheet = buildGuerreiroWithDefesaEstrategica(5, 3);
+      const baselineSheet = buildGuerreiroWithDefesaEstrategica(5, 3);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('Guerreiro 2, Int +5: cap pelo nível limita a +2', () => {
+      const sheet = buildGuerreiroWithDefesaEstrategica(2, 5);
+      const baselineSheet = buildGuerreiroWithDefesaEstrategica(2, 5);
       baselineSheet.classPowers = [];
       const baseline = recalculateSheet(baselineSheet).defesa;
 
