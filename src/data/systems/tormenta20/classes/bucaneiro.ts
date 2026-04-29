@@ -55,6 +55,17 @@ const BUCANEIRO: ClassDescription = {
       name: 'Insolência',
       text: 'Você soma seu Carisma na Defesa, limitado pelo seu nível. Esta habilidade exige liberdade de movimentos; você não pode usá-la se estiver de armadura pesada ou na condição imóvel.',
       nivel: 1,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Insolência' },
+          target: { type: 'Defense' },
+          modifier: {
+            type: 'CappedAttribute',
+            attribute: Atributo.CARISMA,
+            capBy: 'classLevel',
+          },
+        },
+      ],
     },
     {
       name: 'Evasão',

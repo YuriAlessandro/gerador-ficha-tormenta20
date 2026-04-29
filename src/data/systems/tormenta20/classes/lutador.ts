@@ -120,6 +120,17 @@ const LUTADOR: ClassDescription = {
       name: 'Braços Calejados',
       text: 'Se você não estiver usando armadura, soma sua Força na Defesa, limitado pelo seu nível.',
       requirements: [],
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Braços Calejados' },
+          target: { type: 'Defense' },
+          modifier: {
+            type: 'CappedAttribute',
+            attribute: Atributo.FORCA,
+            capBy: 'classLevel',
+          },
+        },
+      ],
     },
     {
       name: 'Cabeçada',

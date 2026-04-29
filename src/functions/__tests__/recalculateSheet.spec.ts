@@ -8,6 +8,7 @@ import CharacterSheet from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 import { GeneralPower, GeneralPowerType } from '../../interfaces/Poderes';
 import LUTADOR from '../../data/systems/tormenta20/classes/lutador';
+import BUCANEIRO from '../../data/systems/tormenta20/classes/bucaneiro';
 import Bag from '../../interfaces/Bag';
 import { Atributo } from '../../data/systems/tormenta20/atributos';
 import { DefenseEquipment } from '../../interfaces/Equipment';
@@ -644,6 +645,124 @@ describe('recalculateSheet', () => {
       // Lutador classLevel = 3 → Con +5 cap = +3 (e não +5 do nível total)
       // classLevel 3 < 7 → sem escalonamento
       expect(result.defesa).toBe(baseline + 3);
+    });
+  });
+
+  describe('Insolência (Bucaneiro)', () => {
+    const buildBucaneiroSheet = (
+      level: number,
+      chaMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(BUCANEIRO);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.CARISMA].value = chaMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    const getBaselineDefense = (level: number, chaMod: number): number => {
+      const baseline = buildBucaneiroSheet(level, chaMod);
+      baseline.atributos[Atributo.CARISMA].value = 0;
+      return recalculateSheet(baseline).defesa;
+    };
+
+    it('nível 1, Cha +0: sem bônus (Cha=0)', () => {
+      const sheet = buildBucaneiroSheet(1, 0);
+      const baseline = getBaselineDefense(1, 0);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline);
+    });
+
+    it('nível 3, Cha +2: +2 (capado pelo nível)', () => {
+      const sheet = buildBucaneiroSheet(3, 2);
+      const baseline = getBaselineDefense(3, 2);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
+    });
+
+    it('nível 1, Cha +5: cap pelo nível limita a +1', () => {
+      const sheet = buildBucaneiroSheet(1, 5);
+      const baseline = getBaselineDefense(1, 5);
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 1);
+    });
+
+    it('multiclasse Bucaneiro 2 / Guerreiro 5, Cha +5: cap pelo nível de Bucaneiro (=2)', () => {
+      const classLevels = [
+        { level: 1, className: 'Bucaneiro' },
+        { level: 2, className: 'Bucaneiro' },
+        { level: 3, className: 'Guerreiro' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+
+      const baselineSheet = buildBucaneiroSheet(7, 0);
+      baselineSheet.classLevels = cloneDeep(classLevels);
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const sheet = buildBucaneiroSheet(7, 5);
+      sheet.classLevels = cloneDeep(classLevels);
+      const result = recalculateSheet(sheet);
+
+      // Bucaneiro classLevel = 2 → Cha +5 cap = +2
+      expect(result.defesa).toBe(baseline + 2);
+    });
+  });
+
+  describe('Braços Calejados (Lutador)', () => {
+    const bracosCalejadosPower = LUTADOR.powers.find(
+      (p) => p.name === 'Braços Calejados'
+    )!;
+
+    const buildLutadorWithBracos = (
+      level: number,
+      forMod: number
+    ): CharacterSheet => {
+      const sheet = createMockCharacterSheet();
+      sheet.classe = cloneDeep(LUTADOR);
+      sheet.nivel = level;
+      sheet.atributos[Atributo.FORCA].value = forMod;
+      sheet.generalPowers = [];
+      sheet.classPowers = [bracosCalejadosPower];
+      sheet.sheetBonuses = [];
+      sheet.sheetActionHistory = [];
+      sheet.bag = new Bag();
+      return sheet;
+    };
+
+    it('Lutador 5, For +3: +3 na Defesa (capado pelo nível)', () => {
+      const sheet = buildLutadorWithBracos(5, 3);
+      const baselineSheet = buildLutadorWithBracos(5, 3);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 3);
+    });
+
+    it('Lutador 2, For +5: cap pelo nível limita a +2', () => {
+      const sheet = buildLutadorWithBracos(2, 5);
+      const baselineSheet = buildLutadorWithBracos(2, 5);
+      baselineSheet.classPowers = [];
+      const baseline = recalculateSheet(baselineSheet).defesa;
+
+      const result = recalculateSheet(sheet);
+
+      expect(result.defesa).toBe(baseline + 2);
     });
   });
 });
