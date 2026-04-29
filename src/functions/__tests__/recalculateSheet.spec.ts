@@ -555,13 +555,13 @@ describe('recalculateSheet', () => {
       expect(result.defesa).toBe(baseline + 3);
     });
 
-    it('nível 3, Con +3, com armadura pesada: Con não soma', () => {
+    it('nível 3, Con +3, com armadura pesada: Con soma normalmente (regra noHeavy ignorada)', () => {
       const sheet = buildLutadorSheet(3, 3, true);
       const baseline = getBaselineDefense(3, 3, true);
 
       const result = recalculateSheet(sheet);
 
-      expect(result.defesa).toBe(baseline);
+      expect(result.defesa).toBe(baseline + 3);
     });
 
     it('nível 7, Con +3, sem armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
@@ -573,13 +573,13 @@ describe('recalculateSheet', () => {
       expect(result.defesa).toBe(baseline + 4);
     });
 
-    it('nível 7, Con +3, com armadura pesada: apenas o escalonamento (+1)', () => {
+    it('nível 7, Con +3, com armadura pesada: Con (+3) + escalonamento (+1) = +4', () => {
       const sheet = buildLutadorSheet(7, 3, true);
       const baseline = getBaselineDefense(7, 3, true);
 
       const result = recalculateSheet(sheet);
 
-      expect(result.defesa).toBe(baseline + 1);
+      expect(result.defesa).toBe(baseline + 4);
     });
 
     it('nível 11, Con +4, sem armadura: Con (+4) + escalonamento (+2) = +6', () => {
@@ -624,6 +624,26 @@ describe('recalculateSheet', () => {
       const baseline = recalculateSheet(baselineCon0);
 
       expect(result.defesa).toBe(baseline.defesa);
+    });
+
+    it('multiclasse Lutador 3 / Guerreiro 4, Con +5: cap pelo nível de Lutador (=3), não pelo nível total', () => {
+      const sheet = buildLutadorSheet(7, 5);
+      sheet.classLevels = [
+        { level: 1, className: 'Lutador' },
+        { level: 2, className: 'Lutador' },
+        { level: 3, className: 'Lutador' },
+        { level: 4, className: 'Guerreiro' },
+        { level: 5, className: 'Guerreiro' },
+        { level: 6, className: 'Guerreiro' },
+        { level: 7, className: 'Guerreiro' },
+      ];
+      const baseline = getBaselineDefense(7, 5);
+
+      const result = recalculateSheet(sheet);
+
+      // Lutador classLevel = 3 → Con +5 cap = +3 (e não +5 do nível total)
+      // classLevel 3 < 7 → sem escalonamento
+      expect(result.defesa).toBe(baseline + 3);
     });
   });
 });

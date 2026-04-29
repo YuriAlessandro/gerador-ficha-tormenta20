@@ -56,6 +56,26 @@ const LUTADOR: ClassDescription = {
       name: 'Casca Grossa',
       text: 'No 3º nível, você soma sua Constituição na Defesa, limitado pelo seu nível e apenas se não estiver usando armadura pesada. Além disso, no 7º nível, e a cada quatro níveis, você recebe +1 na Defesa.',
       nivel: 3,
+      sheetBonuses: [
+        {
+          source: { type: 'power', name: 'Casca Grossa' },
+          target: { type: 'Defense' },
+          modifier: {
+            type: 'CappedAttribute',
+            attribute: Atributo.CONSTITUICAO,
+            capBy: 'classLevel',
+          },
+        },
+        {
+          source: { type: 'power', name: 'Casca Grossa' },
+          target: { type: 'Defense' },
+          modifier: {
+            type: 'LevelCalc',
+            formula:
+              '{classLevel} >= 7 ? Math.floor(({classLevel} - 3) / 4) : 0',
+          },
+        },
+      ],
     },
     {
       name: 'Golpe Cruel',
