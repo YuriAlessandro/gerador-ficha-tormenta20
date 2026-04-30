@@ -66,12 +66,12 @@ import {
 
 import generateRandomSheet, {
   generateEmptySheet,
-  applyPower,
   applyManualLevelUp,
   restoreSpellPath,
 } from '../../functions/general';
 import { migrateSheet, needsMigration } from '../../functions/migrateSheet';
 import { recalculateSheet } from '../../functions/recalculateSheet';
+import { applyRaceCustomizationToSheet } from '../../functions/applyRaceCustomizationToSheet';
 import { rehydrateSheet } from '../../functions/sheetPayloadOptimizer';
 import CharacterSheet from '../../interfaces/CharacterSheet';
 
@@ -1185,12 +1185,6 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
     const baseRace = RACAS.find((r) => r.name === 'Golem Desperto');
     if (!baseRace) return;
 
-    // Check if customization changed from what was originally generated
-    const customizationChanged =
-      chassisId !== pendingGolemDespertoSheet.raca.chassis ||
-      energySourceId !== pendingGolemDespertoSheet.raca.energySource ||
-      sizeId !== pendingGolemDespertoSheet.raca.sizeCategory;
-
     const customizedRace = applyGolemDespertoCustomization(
       baseRace,
       chassisId,
@@ -1198,40 +1192,15 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       sizeId
     );
 
-    let finalSheet: CharacterSheet = {
-      ...pendingGolemDespertoSheet,
-      raca: customizedRace,
-      raceChassis: chassisId,
-      raceEnergySource: energySourceId,
-      raceSizeCategory: sizeId,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingGolemDespertoSheet.displacement,
-      size: customizedRace.size || pendingGolemDespertoSheet.size,
-    };
-
-    // If customization changed, we need to reprocess the abilities
-    // to execute their sheetActions (like adding spells for Fonte Sagrada)
-    if (customizationChanged) {
-      // Get the new chassis and energy source abilities
-      const newAbilities = customizedRace.abilities.filter(
-        (a) =>
-          a.name.startsWith('Chassi') || a.name.startsWith('Fonte de Energia')
-      );
-
-      // Process each new ability's sheetActions
-      newAbilities.forEach((ability) => {
-        if (ability.sheetActions) {
-          const [updatedSheet] = applyPower(finalSheet, ability);
-          finalSheet = {
-            ...updatedSheet,
-            raceChassis: chassisId,
-            raceEnergySource: energySourceId,
-            raceSizeCategory: sizeId,
-          };
-        }
-      });
-    }
+    const finalSheet = applyRaceCustomizationToSheet(
+      pendingGolemDespertoSheet,
+      customizedRace,
+      {
+        raceChassis: chassisId,
+        raceEnergySource: energySourceId,
+        raceSizeCategory: sizeId,
+      }
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
@@ -1293,26 +1262,16 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
       tabuSkill
     );
 
-    let finalSheet: CharacterSheet = {
-      ...pendingDuendeSheet,
-      raca: customizedRace,
-      raceSizeCategory: sizeId,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingDuendeSheet.displacement,
-      size: customizedRace.size || pendingDuendeSheet.size,
-    };
-
-    // Process each ability's sheetActions
-    customizedRace.abilities.forEach((ability) => {
-      if (ability.sheetActions || ability.sheetBonuses) {
-        const [updatedSheet] = applyPower(finalSheet, ability);
-        finalSheet = {
-          ...updatedSheet,
-          raceSizeCategory: sizeId,
-        };
+    const finalSheet = applyRaceCustomizationToSheet(
+      pendingDuendeSheet,
+      customizedRace,
+      {
+        raceSizeCategory: sizeId,
+        duendeNature: natureId,
+        duendePresentes: presenteIds,
+        duendeTabuSkill: tabuSkill,
       }
-    });
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>
@@ -1378,29 +1337,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ isDarkMode }) => {
           )
         : pendingMoreauSheet.spells;
 
-    let finalSheet: CharacterSheet = {
+    const sheetWithAdjustedSpells: CharacterSheet = {
       ...pendingMoreauSheet,
-      raca: customizedRace,
-      raceHeritage: heritageName,
-      raceAttributeChoices: bonusAttributes,
       moreauSapienciaSpell: nextSapienciaSpell,
       spells: spellsAfterReplacement,
-      displacement: customizedRace.getDisplacement
-        ? customizedRace.getDisplacement(customizedRace)
-        : pendingMoreauSheet.displacement,
     };
 
-    // Process each ability's sheetActions and sheetBonuses
-    customizedRace.abilities.forEach((ability) => {
-      if (ability.sheetActions || ability.sheetBonuses) {
-        const [updatedSheet] = applyPower(finalSheet, ability);
-        finalSheet = {
-          ...updatedSheet,
-          raceHeritage: heritageName,
-          raceAttributeChoices: bonusAttributes,
-        };
+    const finalSheet = applyRaceCustomizationToSheet(
+      sheetWithAdjustedSpells,
+      customizedRace,
+      {
+        raceHeritage: heritageName,
+        raceAttributeChoices: bonusAttributes,
       }
-    });
+    );
 
     // Save to historic
     saveSheetOnHistoric(finalSheet, isAuthenticated, sheets.length, () =>

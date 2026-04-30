@@ -828,6 +828,136 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Reverts the side effects of a power/ability identified by `powerName` by
+ * walking its `sheetActionHistory` entries and undoing arrays mutated outside
+ * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
+ *
+ * Mutates `sheet` in place. Used by:
+ *   - `recalculateSheet` Step 0: to revert removed `generalPowers/classPowers/origin.powers`.
+ *   - `applyRaceCustomizationToSheet`: to revert removed race abilities when
+ *     a customizable race (Duende/Moreau/Golem Desperto) is reconfigured.
+ */
+export function reverseSheetActionsForPower(
+  sheet: CharacterSheet,
+  powerName: string
+): void {
+  const powerHistoryEntries = sheet.sheetActionHistory.filter(
+    (entry) => entry.powerName === powerName
+  );
+
+  // Reverse each action in reverse order (LIFO)
+  powerHistoryEntries.reverse().forEach((historyEntry) => {
+    historyEntry.changes.forEach((change) => {
+      switch (change.type) {
+        case 'Attribute': {
+          // Find the original modification to get the exact value that was added
+          const relevantHistory = sheet.sheetActionHistory.find(
+            (entry) =>
+              entry.powerName === powerName &&
+              entry.changes.some(
+                (c) =>
+                  c.type === 'Attribute' && c.attribute === change.attribute
+              )
+          );
+          if (relevantHistory) {
+            const attributeChange = relevantHistory.changes.find(
+              (c) => c.type === 'Attribute' && c.attribute === change.attribute
+            ) as { type: 'Attribute'; attribute: Atributo; value: number };
+            if (attributeChange) {
+              const originalValue = sheet.atributos[change.attribute].value;
+              const modificationValue = attributeChange.value - originalValue;
+              sheet.atributos[change.attribute].value -= modificationValue;
+            }
+          }
+          break;
+        }
+
+        case 'ProficiencyAdded': {
+          const profIndex = sheet.classe.proficiencias.indexOf(
+            change.proficiency
+          );
+          if (profIndex > -1) {
+            sheet.classe.proficiencias.splice(profIndex, 1);
+          }
+          break;
+        }
+
+        case 'SkillsAdded': {
+          change.skills.forEach((skill: string) => {
+            const skillIndex = sheet.skills.indexOf(skill as Skill);
+            if (skillIndex > -1) {
+              sheet.skills.splice(skillIndex, 1);
+            }
+          });
+          break;
+        }
+
+        case 'SenseAdded': {
+          if (sheet.sentidos) {
+            const senseIndex = sheet.sentidos.indexOf(change.sense);
+            if (senseIndex > -1) {
+              sheet.sentidos.splice(senseIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'PowerAdded': {
+          if (sheet.generalPowers) {
+            const powerIndex = sheet.generalPowers.findIndex(
+              (power) => power.name === change.powerName
+            );
+            if (powerIndex > -1) {
+              sheet.generalPowers.splice(powerIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'ClassPowerAdded': {
+          if (sheet.classPowers) {
+            const powerIndex = sheet.classPowers.findIndex(
+              (power) => power.name === change.powerName
+            );
+            if (powerIndex > -1) {
+              sheet.classPowers.splice(powerIndex, 1);
+            }
+          }
+          break;
+        }
+
+        case 'SpellsLearned': {
+          if (sheet.spells) {
+            change.spellNames.forEach((spellName: string) => {
+              const spellIndex = sheet.spells.findIndex(
+                (spell) => spell.nome === spellName
+              );
+              if (spellIndex > -1) {
+                sheet.spells.splice(spellIndex, 1);
+              }
+            });
+          }
+          break;
+        }
+
+        case 'AttributeIncreasedByAumentoDeAtributo':
+          sheet.atributos[change.attribute].value -= 1;
+          break;
+
+        default:
+          // Other action types not yet implemented
+          break;
+      }
+    });
+  });
+
+  // Remove history entries for this power
+  sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+    (entry) => entry.powerName !== powerName
+  );
+}
+
+/**
  * Synthesizes sheetActionHistory entries for powers that were removed by the user
  * but could be re-granted by abilities with `getGeneralPower` sheetActions.
  *
@@ -1032,126 +1162,7 @@ export function recalculateSheet(
 
     // Only reverse sheet actions (not bonuses) since bonuses will be cleared anyway
     removedPowerNames.forEach((powerName) => {
-      // Find all history entries for this power
-      const powerHistoryEntries = updatedSheet.sheetActionHistory.filter(
-        (entry) => entry.powerName === powerName
-      );
-
-      // Reverse each action in reverse order (LIFO)
-      powerHistoryEntries.reverse().forEach((historyEntry) => {
-        historyEntry.changes.forEach((change) => {
-          // Inline reversal logic to avoid circular imports
-          switch (change.type) {
-            case 'Attribute': {
-              // Find the original modification to get the exact value that was added
-              const relevantHistory = updatedSheet.sheetActionHistory.find(
-                (entry) =>
-                  entry.powerName === powerName &&
-                  entry.changes.some(
-                    (c) =>
-                      c.type === 'Attribute' && c.attribute === change.attribute
-                  )
-              );
-              if (relevantHistory) {
-                const attributeChange = relevantHistory.changes.find(
-                  (c) =>
-                    c.type === 'Attribute' && c.attribute === change.attribute
-                ) as { type: 'Attribute'; attribute: Atributo; value: number };
-                if (attributeChange) {
-                  const originalValue =
-                    updatedSheet.atributos[change.attribute].value;
-                  const modificationValue =
-                    attributeChange.value - originalValue;
-                  updatedSheet.atributos[change.attribute].value -=
-                    modificationValue;
-                }
-              }
-              break;
-            }
-
-            case 'ProficiencyAdded': {
-              const profIndex = updatedSheet.classe.proficiencias.indexOf(
-                change.proficiency
-              );
-              if (profIndex > -1) {
-                updatedSheet.classe.proficiencias.splice(profIndex, 1);
-              }
-              break;
-            }
-
-            case 'SkillsAdded': {
-              change.skills.forEach((skill: string) => {
-                const skillIndex = updatedSheet.skills.indexOf(skill as Skill);
-                if (skillIndex > -1) {
-                  updatedSheet.skills.splice(skillIndex, 1);
-                }
-              });
-              break;
-            }
-
-            case 'SenseAdded': {
-              if (updatedSheet.sentidos) {
-                const senseIndex = updatedSheet.sentidos.indexOf(change.sense);
-                if (senseIndex > -1) {
-                  updatedSheet.sentidos.splice(senseIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'PowerAdded': {
-              if (updatedSheet.generalPowers) {
-                const powerIndex = updatedSheet.generalPowers.findIndex(
-                  (power) => power.name === change.powerName
-                );
-                if (powerIndex > -1) {
-                  updatedSheet.generalPowers.splice(powerIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'ClassPowerAdded': {
-              if (updatedSheet.classPowers) {
-                const powerIndex = updatedSheet.classPowers.findIndex(
-                  (power) => power.name === change.powerName
-                );
-                if (powerIndex > -1) {
-                  updatedSheet.classPowers.splice(powerIndex, 1);
-                }
-              }
-              break;
-            }
-
-            case 'SpellsLearned': {
-              if (updatedSheet.spells) {
-                change.spellNames.forEach((spellName: string) => {
-                  const spellIndex = updatedSheet.spells.findIndex(
-                    (spell) => spell.nome === spellName
-                  );
-                  if (spellIndex > -1) {
-                    updatedSheet.spells.splice(spellIndex, 1);
-                  }
-                });
-              }
-              break;
-            }
-
-            case 'AttributeIncreasedByAumentoDeAtributo':
-              updatedSheet.atributos[change.attribute].value -= 1;
-              break;
-
-            default:
-              // Other action types not yet implemented
-              break;
-          }
-        });
-      });
-
-      // Remove history entries for this power
-      updatedSheet.sheetActionHistory = updatedSheet.sheetActionHistory.filter(
-        (entry) => entry.powerName !== powerName
-      );
+      reverseSheetActionsForPower(updatedSheet, powerName);
     });
   }
 

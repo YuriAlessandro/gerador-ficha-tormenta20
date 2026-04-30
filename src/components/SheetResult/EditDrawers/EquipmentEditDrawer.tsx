@@ -51,7 +51,6 @@ import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import Skill from '@/interfaces/Skills';
 import EQUIPAMENTOS, {
-  calcDefense,
   isHeavyArmor,
 } from '@/data/systems/tormenta20/equipamentos';
 import Bag from '@/interfaces/Bag';
@@ -2143,12 +2142,7 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
       }
     }
 
-    // If armor or shield changed, recalculate defense
     let finalSheet = recalculatedSheet;
-    if (armorChanged || shieldChanged) {
-      const sheetWithBaseDefense = { ...finalSheet, defesa: 10 };
-      finalSheet = calcDefense(sheetWithBaseDefense);
-    }
 
     // Add equipment change steps to the recalculated sheet's steps
     if (newSteps.length > 0) {
