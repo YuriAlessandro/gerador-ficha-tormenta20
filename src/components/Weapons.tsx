@@ -5,6 +5,7 @@ import { CompleteSkill } from '../interfaces/Skills';
 import { CharacterAttributes } from '../interfaces/Character';
 import Weapon from './Weapon';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import type { SheetBonus } from '../interfaces/CharacterSheet';
 
 interface WeaponsProps {
   weapons: Equipment[];
@@ -14,6 +15,7 @@ interface WeaponsProps {
   modFor: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
+  sheetBonuses?: SheetBonus[];
 }
 
 const Weapons: React.FC<WeaponsProps> = (props) => {
@@ -25,6 +27,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
     modFor,
     characterName,
     attackConditions,
+    sheetBonuses,
   } = props;
 
   if (!weapons || weapons.length === 0) {
@@ -44,6 +47,7 @@ const Weapons: React.FC<WeaponsProps> = (props) => {
       modDano={modFor}
       characterName={characterName}
       attackConditions={attackConditions}
+      sheetBonuses={sheetBonuses}
     />
   ));
 

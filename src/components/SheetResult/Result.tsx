@@ -918,6 +918,7 @@ const Result: React.FC<ResultProps> = (props) => {
         attackConditions={
           markersEnabled ? conditionHighlights.attack : undefined
         }
+        sheetBonuses={currentSheet.sheetBonuses}
       />
     ),
     [
@@ -928,6 +929,7 @@ const Result: React.FC<ResultProps> = (props) => {
       nome,
       markersEnabled,
       conditionHighlights.attack,
+      currentSheet.sheetBonuses,
     ]
   );
 
@@ -1595,6 +1597,15 @@ const Result: React.FC<ResultProps> = (props) => {
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
                   }
                   characterName={nome}
+                  sheet={currentSheet}
+                  onSheetUpdate={
+                    onSheetUpdate
+                      ? (updated) => {
+                          setCurrentSheet(updated);
+                          onSheetUpdate(updated);
+                        }
+                      : undefined
+                  }
                   onCompanionClick={(() => {
                     const hasCompanion =
                       (currentSheet.companions?.length || 0) > 0;

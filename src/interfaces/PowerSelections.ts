@@ -42,6 +42,14 @@ export interface ManualPowerSelections {
 }
 
 /**
+ * Bonus emitted by a `selectWeaponSpecialization` action.
+ */
+export type WeaponSpecializationBonus =
+  | { kind: 'attack'; value: number }
+  | { kind: 'damage'; value: number }
+  | { kind: 'damageStep'; steps: number };
+
+/**
  * Requirements for a power that needs manual selection
  */
 export interface PowerSelectionRequirement {
@@ -68,6 +76,11 @@ export interface PowerSelectionRequirement {
   availableOptions: any[];
   pick: number;
   label: string; // Human-readable label like "Selecione 2 perícias"
+  // For selectWeaponSpecialization: when true, listed options come only from
+  // weapons already in the sheet. When true on `optional`, user may pick none.
+  onlyFromSheet?: boolean;
+  optional?: boolean;
+  bonuses?: WeaponSpecializationBonus[];
   // Additional metadata for special cases
   metadata?: {
     allowedType?: 'Arcane' | 'Divine' | 'Both';

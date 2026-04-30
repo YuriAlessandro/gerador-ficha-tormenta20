@@ -65,6 +65,21 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
     const theme = useTheme();
     const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
 
+    const selectedWeapons = useMemo(
+      () =>
+        sheetHistory
+          .filter((entry) => entry.powerName === power.name)
+          .flatMap((entry) =>
+            entry.changes
+              .filter((c) => c.type === 'WeaponSpecializationSelected')
+              .map((c) =>
+                c.type === 'WeaponSpecializationSelected' ? c.weaponName : ''
+              )
+          )
+          .filter(Boolean),
+      [sheetHistory, power.name]
+    );
+
     const historySources = useMemo(
       () =>
         sheetHistory
@@ -211,6 +226,18 @@ const PowerDisplay: React.FC<PowerDisplayProps> = React.memo(
                 </Badge>
               </IconButton>
             </Box>
+          )}
+          {selectedWeapons.length > 0 && (
+            <Typography
+              variant='caption'
+              color='primary'
+              sx={{ display: 'block', mb: 1, fontWeight: 'bold' }}
+            >
+              {selectedWeapons.length > 1
+                ? 'Armas escolhidas: '
+                : 'Arma escolhida: '}
+              {selectedWeapons.join(', ')}
+            </Typography>
           )}
           {generateClassPowerDiv(power as ClassPower)}
           {generateGeneralPowerDiv(power as RaceAbility)}

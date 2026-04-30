@@ -4,10 +4,13 @@ import { RaceAbility } from '@/interfaces/Race';
 import { Box } from '@mui/material';
 import React, { useMemo } from 'react';
 import { DiceRoll } from '@/interfaces/DiceRoll';
-import { SheetActionHistoryEntry } from '@/interfaces/CharacterSheet';
+import CharacterSheet, {
+  SheetActionHistoryEntry,
+} from '@/interfaces/CharacterSheet';
 import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import { CustomPower } from '@/interfaces/CustomPower';
 import PowerDisplay from './PowerDisplay';
+import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -44,6 +47,8 @@ const PowersDisplay: React.FC<{
   characterName?: string;
   onCompanionClick?: () => void;
   parodyButtonSlot?: React.ReactNode;
+  sheet?: CharacterSheet;
+  onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
 }> = ({
   sheetHistory,
   classPowers,
@@ -61,6 +66,8 @@ const PowersDisplay: React.FC<{
   characterName,
   onCompanionClick,
   parodyButtonSlot,
+  sheet,
+  onSheetUpdate,
 }) => {
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
@@ -140,6 +147,35 @@ const PowersDisplay: React.FC<{
     return 'Poder Geral';
   };
 
+  const hasWeaponSpecAction = (
+    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
+  ): boolean => {
+    const actions =
+      'sheetActions' in pw && Array.isArray(pw.sheetActions)
+        ? pw.sheetActions
+        : [];
+    return actions.some(
+      (sa) => sa.action.type === 'selectWeaponSpecialization'
+    );
+  };
+
+  const buildHeaderActionSlot = (
+    pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
+  ): React.ReactNode => {
+    if (pw.name === 'Paródia') return parodyButtonSlot;
+    if (sheet && onSheetUpdate && hasWeaponSpecAction(pw)) {
+      return (
+        <PowerWeaponSelectionAction
+          power={pw as ClassPower | RaceAbility | ClassAbility | OriginPower}
+          instances={powerCount[pw.name] || 1}
+          sheet={sheet}
+          onSheetUpdate={onSheetUpdate}
+        />
+      );
+    }
+    return undefined;
+  };
+
   return (
     <Box>
       {uniquePowers.map((power) => (
@@ -154,9 +190,7 @@ const PowersDisplay: React.FC<{
           onCompanionClick={
             power.name === 'Melhor Amigo' ? onCompanionClick : undefined
           }
-          headerActionSlot={
-            power.name === 'Paródia' ? parodyButtonSlot : undefined
-          }
+          headerActionSlot={buildHeaderActionSlot(power)}
         />
       ))}
     </Box>

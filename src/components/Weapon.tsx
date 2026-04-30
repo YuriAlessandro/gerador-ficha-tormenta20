@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Box, Tooltip, Typography, useTheme } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Equipment from '../interfaces/Equipment';
+import type { SheetBonus } from '../interfaces/CharacterSheet';
 import {
   rollD20,
   rollDamage,
@@ -51,6 +53,7 @@ interface WeaponProps {
   modDano: number;
   characterName?: string;
   attackConditions?: ActiveCondition[];
+  sheetBonuses?: SheetBonus[];
 }
 
 const Weapon: React.FC<WeaponProps> = (props) => {
@@ -61,6 +64,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     modDano,
     characterName,
     attackConditions,
+    sheetBonuses,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
   const theme = useTheme();
@@ -80,6 +84,46 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     () => (dano ? parseDualModeDamage(dano) : null),
     [dano]
   );
+
+  const powerBonusEffects = useMemo<string[]>(() => {
+    if (!sheetBonuses) return [];
+    const effects: string[] = [];
+    sheetBonuses.forEach((b) => {
+      if (b.source.type !== 'power') return;
+      const targetType = b.target.type;
+      if (
+        targetType !== 'WeaponAttack' &&
+        targetType !== 'WeaponDamage' &&
+        targetType !== 'WeaponDamageStep'
+      ) {
+        return;
+      }
+      const matchesName =
+        'weaponName' in b.target && b.target.weaponName === nome;
+      const matchesTag =
+        'weaponTags' in b.target &&
+        b.target.weaponTags &&
+        b.target.weaponTags.length > 0 &&
+        (equipment.weaponTags || []).some((t) =>
+          (b.target as { weaponTags?: string[] }).weaponTags?.includes(t)
+        );
+      if (!matchesName && !matchesTag) return;
+      const value =
+        b.modifier.type === 'Fixed'
+          ? (b.modifier as { value: number }).value
+          : 0;
+      if (targetType === 'WeaponAttack') {
+        effects.push(`${b.source.name}: +${value} no ataque`);
+      } else if (targetType === 'WeaponDamage') {
+        effects.push(`${b.source.name}: +${value} no dano`);
+      } else if (targetType === 'WeaponDamageStep') {
+        effects.push(
+          `${b.source.name}: +${value} passo${value > 1 ? 's' : ''} de dano`
+        );
+      }
+    });
+    return effects;
+  }, [sheetBonuses, nome, equipment.weaponTags]);
 
   const damage = !isMelee || dualMode ? dano : `${dano}${damageModStr}`;
 
@@ -212,6 +256,30 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         >
           <ConditionMarker conditions={attackConditions} fontSize='inherit' />
           {nome}
+          {powerBonusEffects.length > 0 && (
+            <Tooltip
+              title={
+                <Box>
+                  {powerBonusEffects.map((effect) => (
+                    <Typography key={effect} variant='caption' display='block'>
+                      {effect}
+                    </Typography>
+                  ))}
+                </Box>
+              }
+              arrow
+            >
+              <AutoAwesomeIcon
+                sx={{
+                  fontSize: 14,
+                  ml: 0.5,
+                  color: theme.palette.primary.main,
+                  cursor: 'help',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
           {customSkill && ` (${customSkill})`} {`${atk >= 0 ? '+' : ''}${atk}`}{' '}
           • {damage} • ({critico})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}

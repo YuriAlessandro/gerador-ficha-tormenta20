@@ -131,18 +131,12 @@ const GUERREIRO: ClassDescription = {
           },
           action: {
             type: 'selectWeaponSpecialization',
+            bonuses: [{ kind: 'damage', value: 2 }],
+            onlyFromSheet: true,
+            optional: true,
           },
         },
       ],
-      // action: (sheet, subSteps) => {
-      //   // TODO
-      //   subSteps.push({
-      //     name: 'Escolha uma arma',
-      //     value:
-      //       'Escolha uma arma para receber +2 em rolagens de dano com ela.',
-      //   });
-      //   return sheet;
-      // },
     },
     {
       name: 'Especialização em Armadura',
@@ -184,6 +178,17 @@ const GUERREIRO: ClassDescription = {
           { type: RequirementType.PODER, name: 'Especialização em Arma' },
           { type: RequirementType.NIVEL, value: 2 },
         ],
+      ],
+      sheetActions: [
+        {
+          source: { type: 'power', name: 'Mestre em Arma' },
+          action: {
+            type: 'selectWeaponSpecialization',
+            bonuses: [{ kind: 'damageStep', steps: 1 }],
+            onlyFromSheet: true,
+            optional: true,
+          },
+        },
       ],
     },
     {

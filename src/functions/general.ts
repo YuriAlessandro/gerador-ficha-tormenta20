@@ -1449,6 +1449,129 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Unified handling for selectWeaponSpecialization (handles new instances,
+      // recalculation, and override-on-change in a single block — bypassing the
+      // generic isActionAlreadyApplied short-circuit below).
+      if (sheetAction.action.type === 'selectWeaponSpecialization') {
+        const { action } = sheetAction;
+        const allWeaponNames = Object.values(Armas).map((w) => w.nome);
+        const fallbackBonuses: typeof action.bonuses = [
+          { kind: 'damage', value: 2 },
+        ];
+        const bonuses = action.bonuses ?? fallbackBonuses;
+        const bonusesPerInstance = Math.max(1, bonuses.length);
+
+        // Count how many bonuses for this power+source have already been emitted
+        // in the current sheet pass — this determines which instance we're on.
+        const previousBonusCount = sheet.sheetBonuses.filter(
+          (b) =>
+            b.source.type === 'power' &&
+            b.source.name === powerOrAbility.name &&
+            (b.target.type === 'WeaponDamage' ||
+              b.target.type === 'WeaponAttack' ||
+              b.target.type === 'WeaponDamageStep')
+        ).length;
+        const instanceIndex = Math.floor(
+          previousBonusCount / bonusesPerInstance
+        );
+
+        const historicalEntries = sheet.sheetActionHistory.filter(
+          (entry) =>
+            entry.powerName === powerOrAbility.name &&
+            entry.changes.some((c) => c.type === 'WeaponSpecializationSelected')
+        );
+        const historicalForThisInstance = historicalEntries[instanceIndex];
+        const recordedChange = historicalForThisInstance?.changes.find(
+          (c) => c.type === 'WeaponSpecializationSelected'
+        );
+        const recordedWeapon =
+          recordedChange?.type === 'WeaponSpecializationSelected'
+            ? recordedChange.weaponName
+            : undefined;
+
+        const userWeapons = manualSelections?.weapons || [];
+        const userChoiceForThisInstance = userWeapons[instanceIndex];
+
+        // If user provided a different weapon than recorded, drop the recorded
+        // entry so we replace it with the new selection.
+        if (
+          userChoiceForThisInstance &&
+          recordedWeapon &&
+          userChoiceForThisInstance !== recordedWeapon &&
+          historicalForThisInstance
+        ) {
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) => entry !== historicalForThisInstance
+          );
+        }
+
+        let selectedWeapon = userChoiceForThisInstance || recordedWeapon;
+
+        if (!selectedWeapon) {
+          if (action.optional) {
+            // Optional and no choice: skip (no bonus, no history entry).
+            return;
+          }
+          selectedWeapon = getRandomItemFromArray(allWeaponNames);
+        }
+
+        bonuses.forEach((bonus) => {
+          if (bonus.kind === 'attack') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponAttack' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.value },
+            });
+          } else if (bonus.kind === 'damage') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponDamage' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.value },
+            });
+          } else if (bonus.kind === 'damageStep') {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponDamageStep' as const,
+                weaponName: selectedWeapon,
+              },
+              modifier: { type: 'Fixed' as const, value: bonus.steps },
+            });
+          }
+        });
+
+        subSteps.push({
+          name: getSourceName(sheetAction.source),
+          value: `Arma escolhida: ${selectedWeapon}`,
+        });
+
+        const stillHasEntry = sheet.sheetActionHistory.some(
+          (entry) =>
+            entry.powerName === powerOrAbility.name &&
+            entry === historicalForThisInstance
+        );
+        if (!stillHasEntry) {
+          sheet.sheetActionHistory.push({
+            source: sheetAction.source,
+            powerName: powerOrAbility.name,
+            changes: [
+              {
+                type: 'WeaponSpecializationSelected',
+                weaponName: selectedWeapon,
+              },
+            ],
+          });
+        }
+
+        return;
+      }
+
       // Override: if user provides a new manual selection that differs from the
       // recorded history, drop the old history entry so the handler runs fresh
       // with the new value (instead of being short-circuited by isActionAlreadyApplied).
@@ -1472,32 +1595,6 @@ export const applyPower = (
               !(
                 entry.powerName === powerOrAbility.name &&
                 entry.changes.some((c) => c.type === 'FamiliarSelected')
-              )
-          );
-        }
-      }
-      if (
-        sheetAction.action.type === 'selectWeaponSpecialization' &&
-        manualSelections?.weapons &&
-        manualSelections.weapons.length > 0
-      ) {
-        const [newWeapon] = manualSelections.weapons;
-        const recorded = sheet.sheetActionHistory
-          .filter((entry) => entry.powerName === powerOrAbility.name)
-          .flatMap((entry) => entry.changes)
-          .find((change) => change.type === 'WeaponSpecializationSelected');
-        if (
-          recorded &&
-          recorded.type === 'WeaponSpecializationSelected' &&
-          recorded.weaponName !== newWeapon
-        ) {
-          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-            (entry) =>
-              !(
-                entry.powerName === powerOrAbility.name &&
-                entry.changes.some(
-                  (c) => c.type === 'WeaponSpecializationSelected'
-                )
               )
           );
         }
@@ -1602,26 +1699,6 @@ export const applyPower = (
                 }
               }
             }
-          }
-        }
-        // For selectWeaponSpecialization, re-apply the +2 damage bonus
-        if (sheetAction.action.type === 'selectWeaponSpecialization') {
-          const previousResult = sheet.sheetActionHistory
-            .filter((entry) => entry.powerName === powerOrAbility.name)
-            .flatMap((entry) => entry.changes)
-            .find((change) => change.type === 'WeaponSpecializationSelected');
-          if (
-            previousResult &&
-            previousResult.type === 'WeaponSpecializationSelected'
-          ) {
-            sheet.sheetBonuses.push({
-              source: sheetAction.source,
-              target: {
-                type: 'WeaponDamage' as const,
-                weaponName: previousResult.weaponName,
-              },
-              modifier: { type: 'Fixed' as const, value: 2 },
-            });
           }
         }
         // For selectAnimalTotem, refresh power text (spell already in sheet.spells)
@@ -1959,49 +2036,6 @@ export const applyPower = (
           );
           // Skip adding to history or substeps when no valid attribute found
         }
-      } else if (sheetAction.action.type === 'selectWeaponSpecialization') {
-        // Get all available weapons
-        const allWeaponNames = Object.values(Armas).map(
-          (weapon) => weapon.nome
-        );
-
-        let selectedWeapon: string;
-
-        // Use manual selection if provided, otherwise random
-        if (manualSelections?.weapons && manualSelections.weapons.length > 0) {
-          [selectedWeapon] = manualSelections.weapons;
-        } else {
-          selectedWeapon = getRandomItemFromArray(allWeaponNames);
-        }
-
-        // Add weapon specialization bonus (+2 damage to the selected weapon)
-        sheet.sheetBonuses.push({
-          source: sheetAction.source,
-          target: {
-            type: 'WeaponDamage' as const,
-            weaponName: selectedWeapon,
-          },
-          modifier: {
-            type: 'Fixed' as const,
-            value: 2,
-          },
-        });
-
-        subSteps.push({
-          name: getSourceName(sheetAction.source),
-          value: `Especialização em ${selectedWeapon} (+2 dano)`,
-        });
-
-        sheet.sheetActionHistory.push({
-          source: sheetAction.source,
-          powerName: powerOrAbility.name,
-          changes: [
-            {
-              type: 'WeaponSpecializationSelected',
-              weaponName: selectedWeapon,
-            },
-          ],
-        });
       } else if (sheetAction.action.type === 'selectFamiliar') {
         // Get all available familiars
         const availableFamiliars = FAMILIAR_NAMES;

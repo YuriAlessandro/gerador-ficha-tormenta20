@@ -112,6 +112,13 @@ export type SheetActionStep =
   | {
       type: 'selectWeaponSpecialization';
       availableWeapons?: string[]; // List of weapon names to choose from, or empty for all weapons
+      bonuses?: Array<
+        | { kind: 'attack'; value: number }
+        | { kind: 'damage'; value: number }
+        | { kind: 'damageStep'; steps: number }
+      >;
+      onlyFromSheet?: boolean; // When true, list only weapons currently in the sheet
+      optional?: boolean; // When true, user can pick "no weapon"
     }
   | {
       type: 'selectFamiliar';
@@ -292,6 +299,12 @@ export type StatModifierTarget =
     }
   | {
       type: 'WeaponCriticalMultiplier';
+      weaponName?: string;
+      weaponTags?: string[];
+      proficiencyRequired?: boolean;
+    }
+  | {
+      type: 'WeaponDamageStep';
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;

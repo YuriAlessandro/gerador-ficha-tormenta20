@@ -34,6 +34,10 @@ interface PowerSelectionDialogProps {
   onConfirm: (selections: SelectionOptions) => void;
   requirements: PowerSelectionRequirements;
   sheet: CharacterSheet;
+  // For repeatable powers: how many instances of the power are on the sheet,
+  // and the currently-recorded selections (one per instance, in order).
+  instances?: number;
+  initialSelections?: SelectionOptions;
 }
 
 const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
@@ -42,6 +46,8 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   onConfirm,
   requirements,
   sheet,
+  instances = 1,
+  initialSelections,
 }) => {
   const [selections, setSelections] = useState<SelectionOptions>({});
   const [errors, setErrors] = useState<string[]>([]);
@@ -49,10 +55,10 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
   // Reset selections when dialog opens/closes or requirements change
   useEffect(() => {
     if (open) {
-      setSelections({});
+      setSelections(initialSelections || {});
       setErrors([]);
     }
-  }, [open, requirements.powerName]);
+  }, [open, requirements.powerName, initialSelections]);
 
   const handleSkillSelection = (
     skill: string,
@@ -185,30 +191,15 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
     });
   };
 
-  const handleWeaponSelection = (
-    weapon: string,
-    checked: boolean,
-    pick: number
-  ) => {
+  const handleWeaponSelection = (weapon: string, instanceIndex: number) => {
     setSelections((prev) => {
-      const currentWeapons = prev.weapons || [];
-      let newWeapons: string[];
-
-      if (pick === 1) {
-        // Single selection - replace (weapons are always single selection for specialization)
-        newWeapons = checked ? [weapon] : [];
-      } else if (checked) {
-        // Multiple selection (keeping for consistency)
-        if (currentWeapons.length < pick) {
-          newWeapons = [...currentWeapons, weapon];
-        } else {
-          newWeapons = currentWeapons;
-        }
-      } else {
-        newWeapons = currentWeapons.filter((w) => w !== weapon);
+      const currentWeapons = [...(prev.weapons || [])];
+      // Pad with empty strings to reach the index, then assign.
+      while (currentWeapons.length <= instanceIndex) {
+        currentWeapons.push('');
       }
-
-      return { ...prev, weapons: newWeapons };
+      currentWeapons[instanceIndex] = weapon;
+      return { ...prev, weapons: currentWeapons };
     });
   };
 
@@ -591,29 +582,79 @@ const PowerSelectionDialog: React.FC<PowerSelectionDialogProps> = ({
 
       case 'selectWeaponSpecialization': {
         const selectedWeapons = selections.weapons || [];
+        const isOptional = requirement.optional === true;
+        const NONE_VALUE = '__none__';
+
+        if (availableOptions.length === 0) {
+          return (
+            <Box key={index} mb={2}>
+              <Typography variant='h6' gutterBottom>
+                {label}
+              </Typography>
+              <Alert severity='info'>
+                Nenhuma arma na ficha. Adicione uma arma e abra novamente para
+                escolher.
+              </Alert>
+            </Box>
+          );
+        }
+
+        const renderOneInstance = (instanceIndex: number) => {
+          const currentValue = selectedWeapons[instanceIndex] || '';
+          const usedByOtherInstances = new Set(
+            selectedWeapons.filter(
+              (w, i) => i !== instanceIndex && w && w !== NONE_VALUE
+            )
+          );
+          const optionsForThisInstance = availableOptions.filter(
+            (weapon) =>
+              weapon === currentValue || !usedByOtherInstances.has(weapon)
+          );
+          const headerLabel =
+            instances > 1 ? `Arma ${instanceIndex + 1}` : label;
+          return (
+            <Box key={`weapon-instance-${instanceIndex}`} mb={2}>
+              <Typography variant='h6' gutterBottom>
+                {headerLabel}
+              </Typography>
+              <FormControl component='fieldset'>
+                <RadioGroup
+                  value={currentValue || (isOptional ? NONE_VALUE : '')}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value === NONE_VALUE ? '' : e.target.value;
+                    handleWeaponSelection(value, instanceIndex);
+                  }}
+                >
+                  {isOptional && (
+                    <FormControlLabel
+                      value={NONE_VALUE}
+                      control={<Radio />}
+                      label='Nenhuma arma'
+                    />
+                  )}
+                  {optionsForThisInstance.map((weapon) => (
+                    <FormControlLabel
+                      key={weapon}
+                      value={weapon}
+                      control={<Radio />}
+                      label={weapon}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            </Box>
+          );
+        };
 
         return (
           <Box key={index} mb={2}>
-            <Typography variant='h6' gutterBottom>
-              {label}
-            </Typography>
-            <FormControl component='fieldset'>
-              <RadioGroup
-                value={selectedWeapons[0] || ''}
-                onChange={(e) =>
-                  handleWeaponSelection(e.target.value, true, pick)
-                }
-              >
-                {availableOptions.map((weapon) => (
-                  <FormControlLabel
-                    key={weapon}
-                    value={weapon}
-                    control={<Radio />}
-                    label={weapon}
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
+            {instances > 1 && (
+              <Typography variant='subtitle2' gutterBottom>
+                {label}
+              </Typography>
+            )}
+            {Array.from({ length: instances }, (_, i) => renderOneInstance(i))}
           </Box>
         );
       }

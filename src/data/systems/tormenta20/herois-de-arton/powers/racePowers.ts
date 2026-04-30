@@ -32,6 +32,17 @@ const racePowers: Record<string, GeneralPower> = {
       [{ type: RequirementType.RACA, name: 'Anão' }],
       [{ type: RequirementType.RACA, name: 'Hobgoblin' }],
     ],
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Arma Amada' },
+        action: {
+          type: 'selectWeaponSpecialization',
+          bonuses: [{ kind: 'damage', value: 2 }],
+          onlyFromSheet: true,
+          optional: true,
+        },
+      },
+    ],
   },
   ARMA_NATURAL_APRIMORADA: {
     name: 'Arma Natural Aprimorada',

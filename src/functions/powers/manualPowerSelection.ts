@@ -214,8 +214,11 @@ export function getPowerSelectionRequirements(
         requirements.push({
           type: 'selectWeaponSpecialization',
           availableOptions: action.availableWeapons || [], // Will be populated dynamically if empty
-          pick: 1, // Always pick 1 weapon
+          pick: 1, // Always pick 1 weapon (per instance)
           label: 'Selecione 1 arma para especialização',
+          onlyFromSheet: action.onlyFromSheet,
+          optional: action.optional,
+          bonuses: action.bonuses,
         });
       }
 
@@ -599,6 +602,16 @@ export function getFilteredAvailableOptions(
     }
 
     case 'selectWeaponSpecialization': {
+      // When the action is configured to list only weapons in the sheet
+      if (requirement.onlyFromSheet) {
+        const sheetWeaponNames = Array.from(
+          new Set(
+            (sheet.bag?.equipments?.Arma || []).map((weapon) => weapon.nome)
+          )
+        );
+        return sheetWeaponNames.sort((a, b) => a.localeCompare(b));
+      }
+
       // If specific weapons were provided, use those
       if (availableOptions && availableOptions.length > 0) {
         return (availableOptions as string[]).sort((a, b) =>
@@ -848,7 +861,8 @@ export function validateSelections(
         break;
     }
 
-    if (selectedCount !== pick) {
+    const isOptional = requirement.optional === true;
+    if (!isOptional && selectedCount !== pick) {
       errors.push(
         `${requirement.label}: esperado ${pick}, selecionado ${selectedCount}`
       );
@@ -866,6 +880,10 @@ export function validateSelections(
 
     selectedItems.forEach((item) => {
       const itemName = getName(item);
+      // Empty strings represent "no choice" placeholders for optional requirements
+      if (isOptional && itemName === '') {
+        return;
+      }
       if (
         !availableOptions.some((available) => getName(available) === itemName)
       ) {

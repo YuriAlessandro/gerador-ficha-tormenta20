@@ -367,6 +367,18 @@ const combatPowers: Record<string, GeneralPower> = {
       'Escolha uma arma. Você recebe +2 em testes de ataque com essa arma. Você pode escolher este poder outras vezes para armas diferentes.',
     type: GeneralPowerType.COMBATE,
     requirements: [[{ type: RequirementType.PROFICIENCIA, name: 'all' }]],
+    canRepeat: true,
+    sheetActions: [
+      {
+        source: { type: 'power', name: 'Foco em Arma' },
+        action: {
+          type: 'selectWeaponSpecialization',
+          bonuses: [{ kind: 'attack', value: 2 }],
+          onlyFromSheet: true,
+          optional: true,
+        },
+      },
+    ],
   },
   GINETE: {
     name: 'Ginete',

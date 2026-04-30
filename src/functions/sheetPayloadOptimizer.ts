@@ -182,14 +182,62 @@ export function computeSheetDelta(
  * - Race functions: setup, getSize, getDisplacement, getAttributes (if present in registry)
  * - devoto.divindade.poderes: Full deity powers catalog (needed for DeityPowerEditDrawer)
  */
+/**
+ * Refresh `sheetActions` and `sheetBonuses` on every chosen power from the
+ * current data catalog. Existing sheets serialized before a power gained new
+ * behavior would otherwise stay frozen on the old definition. We preserve
+ * per-instance customizations (rolls, dynamicText) by spreading stored on top.
+ */
+function refreshChosenPowersFromCatalog(
+  sheet: CharacterSheet,
+  supplementIds: SupplementId[]
+) {
+  const allGeneralPowers =
+    dataRegistry.getAllPowersBySupplements(supplementIds);
+  if (sheet.generalPowers && allGeneralPowers.length > 0) {
+    sheet.generalPowers = sheet.generalPowers.map((stored) => {
+      const fresh = allGeneralPowers.find((p) => p.name === stored.name);
+      if (!fresh) return stored;
+      return {
+        ...fresh,
+        ...stored,
+        sheetActions: fresh.sheetActions,
+        sheetBonuses: fresh.sheetBonuses,
+      };
+    });
+  }
+  if (sheet.classPowers && sheet.classe?.name) {
+    const classDef = dataRegistry.getClassByName(
+      sheet.classe.name,
+      supplementIds
+    );
+    const classCatalog = classDef?.powers || sheet.classe.powers;
+    if (classCatalog && classCatalog.length > 0) {
+      sheet.classPowers = sheet.classPowers.map((stored) => {
+        const fresh = classCatalog.find((p) => p.name === stored.name);
+        if (!fresh) return stored;
+        return {
+          ...fresh,
+          ...stored,
+          sheetActions: fresh.sheetActions,
+          sheetBonuses: fresh.sheetBonuses,
+        };
+      });
+    }
+  }
+}
+
 export function rehydrateSheet(
   sheetData: Record<string, unknown>,
   supplementIds: SupplementId[]
 ): CharacterSheet {
   const sheet = sheetData as unknown as CharacterSheet;
 
-  // If not stripped, return as-is (backward compatibility with old sheets)
+  // If not stripped, we still refresh chosen powers from the catalog so that
+  // legacy sheets pick up new sheetActions/sheetBonuses added to a power's
+  // definition (e.g., weapon-specialization on Foco em Arma).
   if (!(STRIPPED_MARKER in sheetData)) {
+    refreshChosenPowersFromCatalog(sheet, supplementIds);
     return sheet;
   }
 
@@ -262,6 +310,8 @@ export function rehydrateSheet(
       };
     }
   }
+
+  refreshChosenPowersFromCatalog(sheet, supplementIds);
 
   return sheet;
 }

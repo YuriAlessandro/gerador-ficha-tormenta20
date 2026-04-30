@@ -36,6 +36,7 @@ import {
   getMulticlassAvailableAbilities,
   findClassDescription,
 } from './multiclass';
+import { stepUpDamage } from './weaponDamageStep';
 
 import {
   applyRaceAbilities,
@@ -328,6 +329,7 @@ const applyWeaponBonuses = (
       // Calculate total bonuses for this weapon
       let totalAttackBonus = 0;
       let totalDamageBonus = 0;
+      let totalDamageSteps = 0;
       let totalThreatMarginBonus = 0;
       let totalCriticalMultiplierBonus = 0;
 
@@ -335,6 +337,7 @@ const applyWeaponBonuses = (
         if (
           (bonus.target.type === 'WeaponDamage' ||
             bonus.target.type === 'WeaponAttack' ||
+            bonus.target.type === 'WeaponDamageStep' ||
             bonus.target.type === 'WeaponThreatMargin' ||
             bonus.target.type === 'WeaponCriticalMultiplier') &&
           weaponMatchesBonus(weapon, bonus.target, updatedSheet)
@@ -345,6 +348,8 @@ const applyWeaponBonuses = (
             totalAttackBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponDamage') {
             totalDamageBonus += bonusValue;
+          } else if (bonus.target.type === 'WeaponDamageStep') {
+            totalDamageSteps += bonusValue;
           } else if (bonus.target.type === 'WeaponThreatMargin') {
             totalThreatMarginBonus += bonusValue;
           } else if (bonus.target.type === 'WeaponCriticalMultiplier') {
@@ -356,6 +361,10 @@ const applyWeaponBonuses = (
       // Apply totaled bonuses
       if (totalAttackBonus > 0) {
         weaponCopy.atkBonus = totalAttackBonus;
+      }
+
+      if (totalDamageSteps > 0 && weaponCopy.dano) {
+        weaponCopy.dano = stepUpDamage(weaponCopy.dano, totalDamageSteps);
       }
 
       if (totalDamageBonus > 0) {
