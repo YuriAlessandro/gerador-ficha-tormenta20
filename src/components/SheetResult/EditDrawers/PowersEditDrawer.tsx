@@ -164,8 +164,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       } else {
         setSelectedCustomGrantedPowers([]);
       }
-      // Reset manual selections when opening
-      setManualSelections({});
+      // Pre-fill manual selections from history so the drawer reflects
+      // the previously-recorded familiar/weapon/totem choices.
+      const initialManualSelections: ManualPowerSelections = {};
+      sheet.sheetActionHistory?.forEach((entry) => {
+        const { powerName } = entry;
+        if (!powerName) return;
+        entry.changes.forEach((change) => {
+          if (change.type === 'FamiliarSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].familiars = [change.familiarKey];
+          } else if (change.type === 'WeaponSpecializationSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].weapons = [change.weaponName];
+          } else if (change.type === 'AnimalTotemSelected') {
+            if (!initialManualSelections[powerName]) {
+              initialManualSelections[powerName] = {};
+            }
+            initialManualSelections[powerName].animalTotems = [change.totemKey];
+          }
+        });
+      });
+      setManualSelections(initialManualSelections);
     }
   }, [
     sheet.generalPowers,

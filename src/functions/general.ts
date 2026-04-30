@@ -1428,6 +1428,9 @@ export const applyPower = (
     addAlchemyItems: ['EquipmentAdded'],
     chooseFromOptions: ['OptionChosen'],
     trainSkillOrBonus: ['SkillTrainedOrBonused'],
+    selectFamiliar: ['FamiliarSelected'],
+    selectWeaponSpecialization: ['WeaponSpecializationSelected'],
+    selectAnimalTotem: ['AnimalTotemSelected'],
   };
 
   const isActionAlreadyApplied = (
@@ -1446,6 +1449,89 @@ export const applyPower = (
   // sheet action
   if (powerOrAbility.sheetActions) {
     powerOrAbility.sheetActions.forEach((sheetAction) => {
+      // Override: if user provides a new manual selection that differs from the
+      // recorded history, drop the old history entry so the handler runs fresh
+      // with the new value (instead of being short-circuited by isActionAlreadyApplied).
+      if (
+        sheetAction.action.type === 'selectFamiliar' &&
+        manualSelections?.familiars &&
+        manualSelections.familiars.length > 0
+      ) {
+        const [newFamiliar] = manualSelections.familiars;
+        const recorded = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .find((change) => change.type === 'FamiliarSelected');
+        if (
+          recorded &&
+          recorded.type === 'FamiliarSelected' &&
+          recorded.familiarKey !== newFamiliar
+        ) {
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) =>
+              !(
+                entry.powerName === powerOrAbility.name &&
+                entry.changes.some((c) => c.type === 'FamiliarSelected')
+              )
+          );
+        }
+      }
+      if (
+        sheetAction.action.type === 'selectWeaponSpecialization' &&
+        manualSelections?.weapons &&
+        manualSelections.weapons.length > 0
+      ) {
+        const [newWeapon] = manualSelections.weapons;
+        const recorded = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .find((change) => change.type === 'WeaponSpecializationSelected');
+        if (
+          recorded &&
+          recorded.type === 'WeaponSpecializationSelected' &&
+          recorded.weaponName !== newWeapon
+        ) {
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) =>
+              !(
+                entry.powerName === powerOrAbility.name &&
+                entry.changes.some(
+                  (c) => c.type === 'WeaponSpecializationSelected'
+                )
+              )
+          );
+        }
+      }
+      if (
+        sheetAction.action.type === 'selectAnimalTotem' &&
+        manualSelections?.animalTotems &&
+        manualSelections.animalTotems.length > 0
+      ) {
+        const [newTotem] = manualSelections.animalTotems;
+        const recorded = sheet.sheetActionHistory
+          .filter((entry) => entry.powerName === powerOrAbility.name)
+          .flatMap((entry) => entry.changes)
+          .find((change) => change.type === 'AnimalTotemSelected');
+        if (
+          recorded &&
+          recorded.type === 'AnimalTotemSelected' &&
+          recorded.totemKey !== newTotem
+        ) {
+          // Remove the previously-learned totem spell so it doesn't accumulate
+          const oldSpellName = recorded.spellName;
+          if (oldSpellName) {
+            sheet.spells = sheet.spells.filter((s) => s.nome !== oldSpellName);
+          }
+          sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
+            (entry) =>
+              !(
+                entry.powerName === powerOrAbility.name &&
+                entry.changes.some((c) => c.type === 'AnimalTotemSelected')
+              )
+          );
+        }
+      }
+
       // Skip if this action was already applied (prevents duplication during recalculation)
       if (
         !forceApply &&
@@ -1486,6 +1572,76 @@ export const applyPower = (
               target: { type: 'Skill', name: previousResult.skill },
               modifier: { type: 'Fixed', value: 2 },
             });
+          }
+        }
+        // For selectFamiliar, re-apply Gato's +2 Furtividade and refresh power text
+        // (sheetBonuses are cleared during recalculation, so they need to be re-added)
+        if (sheetAction.action.type === 'selectFamiliar') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'FamiliarSelected');
+          if (previousResult && previousResult.type === 'FamiliarSelected') {
+            const familiar = FAMILIARS[previousResult.familiarKey];
+            if (familiar) {
+              if (previousResult.familiarKey === 'GATO') {
+                sheet.sheetBonuses.push({
+                  source: sheetAction.source,
+                  target: { type: 'Skill', name: Skill.FURTIVIDADE },
+                  modifier: { type: 'Fixed', value: 2 },
+                });
+              }
+              if (sheet.classPowers) {
+                const powerIndex = sheet.classPowers.findIndex(
+                  (power) => power.name === 'Familiar'
+                );
+                if (powerIndex !== -1) {
+                  sheet.classPowers[
+                    powerIndex
+                  ].text = `Você possui um familiar ${familiar.name}. ${familiar.description}`;
+                }
+              }
+            }
+          }
+        }
+        // For selectWeaponSpecialization, re-apply the +2 damage bonus
+        if (sheetAction.action.type === 'selectWeaponSpecialization') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'WeaponSpecializationSelected');
+          if (
+            previousResult &&
+            previousResult.type === 'WeaponSpecializationSelected'
+          ) {
+            sheet.sheetBonuses.push({
+              source: sheetAction.source,
+              target: {
+                type: 'WeaponDamage' as const,
+                weaponName: previousResult.weaponName,
+              },
+              modifier: { type: 'Fixed' as const, value: 2 },
+            });
+          }
+        }
+        // For selectAnimalTotem, refresh power text (spell already in sheet.spells)
+        if (sheetAction.action.type === 'selectAnimalTotem') {
+          const previousResult = sheet.sheetActionHistory
+            .filter((entry) => entry.powerName === powerOrAbility.name)
+            .flatMap((entry) => entry.changes)
+            .find((change) => change.type === 'AnimalTotemSelected');
+          if (previousResult && previousResult.type === 'AnimalTotemSelected') {
+            const totem = ANIMAL_TOTEMS[previousResult.totemKey];
+            if (totem && sheet.classPowers) {
+              const powerIndex = sheet.classPowers.findIndex(
+                (power) => power.name === 'Totem Espiritual'
+              );
+              if (powerIndex !== -1) {
+                sheet.classPowers[
+                  powerIndex
+                ].text = `Você soma seu bônus de Sabedoria no seu total de pontos de mana. Animal totêmico escolhido: ${totem.name}. ${totem.description}`;
+              }
+            }
           }
         }
         return;
@@ -1835,20 +1991,46 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Especialização em ${selectedWeapon} (+2 dano)`,
         });
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'WeaponSpecializationSelected',
+              weaponName: selectedWeapon,
+            },
+          ],
+        });
       } else if (sheetAction.action.type === 'selectFamiliar') {
         // Get all available familiars
         const availableFamiliars = FAMILIAR_NAMES;
 
         let selectedFamiliar: string;
 
-        // Use manual selection if provided, otherwise random
+        // Use manual selection if provided, otherwise try to recover from power text
+        // (migration for legacy sheets without FamiliarSelected history), else random.
         if (
           manualSelections?.familiars &&
           manualSelections.familiars.length > 0
         ) {
           [selectedFamiliar] = manualSelections.familiars;
         } else {
-          selectedFamiliar = getRandomItemFromArray(availableFamiliars);
+          let extracted: string | undefined;
+          if (sheet.classPowers) {
+            const existingPower = sheet.classPowers.find(
+              (p) => p.name === 'Familiar'
+            );
+            if (existingPower?.text) {
+              const lowerText = existingPower.text.toLowerCase();
+              const matchedEntry = Object.entries(FAMILIARS).find(([, f]) =>
+                lowerText.includes(`familiar ${f.name.toLowerCase()}.`)
+              );
+              if (matchedEntry) [extracted] = matchedEntry;
+            }
+          }
+          selectedFamiliar =
+            extracted ?? getRandomItemFromArray(availableFamiliars);
         }
 
         // Get familiar data
@@ -1885,19 +2067,41 @@ export const applyPower = (
           name: getSourceName(sheetAction.source),
           value: `Familiar selecionado: ${familiar.name}`,
         });
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            { type: 'FamiliarSelected', familiarKey: selectedFamiliar },
+          ],
+        });
       } else if (sheetAction.action.type === 'selectAnimalTotem') {
         // Get all available totems
         const availableTotems = ANIMAL_TOTEM_NAMES;
         let selectedTotem: string;
 
-        // Use manual selection if provided, otherwise random
+        // Use manual selection if provided, otherwise try to recover from power text
+        // (migration for legacy sheets without AnimalTotemSelected history), else random.
         if (
           manualSelections?.animalTotems &&
           manualSelections.animalTotems.length > 0
         ) {
           [selectedTotem] = manualSelections.animalTotems;
         } else {
-          selectedTotem = getRandomItemFromArray(availableTotems);
+          let extracted: string | undefined;
+          if (sheet.classPowers) {
+            const existingPower = sheet.classPowers.find(
+              (p) => p.name === 'Totem Espiritual'
+            );
+            if (existingPower?.text) {
+              const lowerText = existingPower.text.toLowerCase();
+              const matchedEntry = Object.entries(ANIMAL_TOTEMS).find(([, t]) =>
+                lowerText.includes(`escolhido: ${t.name.toLowerCase()}.`)
+              );
+              if (matchedEntry) [extracted] = matchedEntry;
+            }
+          }
+          selectedTotem = extracted ?? getRandomItemFromArray(availableTotems);
         }
 
         // Get totem data
@@ -1934,6 +2138,18 @@ export const applyPower = (
         subSteps.push({
           name: getSourceName(sheetAction.source),
           value: `Animal totêmico selecionado: ${totem.name}`,
+        });
+
+        sheet.sheetActionHistory.push({
+          source: sheetAction.source,
+          powerName: powerOrAbility.name,
+          changes: [
+            {
+              type: 'AnimalTotemSelected',
+              totemKey: selectedTotem,
+              spellName: spellToLearn?.nome ?? '',
+            },
+          ],
         });
       } else if (sheetAction.action.type === 'addTruqueMagicSpells') {
         // Add the three truque magic spells

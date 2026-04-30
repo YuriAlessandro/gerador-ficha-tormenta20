@@ -218,6 +218,19 @@ export type SheetActionReceipt =
       type: 'SkillTrainedOrBonused';
       skill: Skill;
       alreadyTrained: boolean; // true = got +2 bonus, false = newly trained
+    }
+  | {
+      type: 'FamiliarSelected';
+      familiarKey: string;
+    }
+  | {
+      type: 'WeaponSpecializationSelected';
+      weaponName: string;
+    }
+  | {
+      type: 'AnimalTotemSelected';
+      totemKey: string;
+      spellName: string;
     };
 
 export type SheetActionHistoryEntry = {

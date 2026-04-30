@@ -261,6 +261,124 @@ describe('recalculateSheet', () => {
     });
   });
 
+  describe('Familiar selection persistence', () => {
+    const familiarPower = {
+      name: 'Familiar',
+      text: 'Você possui um animal de estimação mágico. Escolha um familiar para receber seus benefícios.',
+      requirements: [],
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Familiar' },
+          action: { type: 'selectFamiliar' as const },
+        },
+      ],
+    };
+
+    it('should keep the same familiar across recalculations without manualSelections', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      const firstRun = recalculateSheet(mockSheet);
+      const firstFamiliar = firstRun.sheetActionHistory.find((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      expect(firstFamiliar).toBeDefined();
+      const firstFamiliarKey =
+        firstFamiliar &&
+        firstFamiliar.changes.find((c) => c.type === 'FamiliarSelected');
+      expect(firstFamiliarKey?.type).toBe('FamiliarSelected');
+
+      // Multiple recalculations without manualSelections should NOT re-randomize
+      let current = firstRun;
+      for (let i = 0; i < 5; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      const finalFamiliar = current.sheetActionHistory.find((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      const finalFamiliarKey =
+        finalFamiliar &&
+        finalFamiliar.changes.find((c) => c.type === 'FamiliarSelected');
+
+      expect(finalFamiliarKey).toEqual(firstFamiliarKey);
+      // Power text should remain consistent
+      const finalPower = current.classPowers?.find(
+        (p) => p.name === 'Familiar'
+      );
+      expect(finalPower?.text).toBe(
+        firstRun.classPowers?.find((p) => p.name === 'Familiar')?.text
+      );
+    });
+
+    it('should re-apply Gato +2 Furtividade bonus across recalculations', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      // Force Gato selection through the manualSelections path
+      const firstRun = recalculateSheet(mockSheet, undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+
+      const firstBonus = firstRun.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'Skill' &&
+          b.target.name === Skill.FURTIVIDADE &&
+          b.modifier.type === 'Fixed' &&
+          b.modifier.value === 2
+      );
+      expect(firstBonus).toBeDefined();
+
+      // After 3 recalculations without manualSelections, bonus should still be present
+      let current = firstRun;
+      for (let i = 0; i < 3; i += 1) {
+        current = recalculateSheet(current);
+      }
+
+      const finalBonus = current.sheetBonuses.find(
+        (b) =>
+          b.target.type === 'Skill' &&
+          b.target.name === Skill.FURTIVIDADE &&
+          b.modifier.type === 'Fixed' &&
+          b.modifier.value === 2
+      );
+      expect(finalBonus).toBeDefined();
+    });
+
+    it('should override the recorded familiar when a new manualSelection is provided', () => {
+      mockSheet.classPowers = [{ ...familiarPower }];
+
+      const withGato = recalculateSheet(mockSheet, undefined, {
+        Familiar: { familiars: ['GATO'] },
+      });
+      const gatoEntry = withGato.sheetActionHistory.find((entry) =>
+        entry.changes.some(
+          (c) => c.type === 'FamiliarSelected' && c.familiarKey === 'GATO'
+        )
+      );
+      expect(gatoEntry).toBeDefined();
+
+      const withMorcego = recalculateSheet(withGato, undefined, {
+        Familiar: { familiars: ['MORCEGO'] },
+      });
+      const morcegoEntries = withMorcego.sheetActionHistory.filter((entry) =>
+        entry.changes.some((c) => c.type === 'FamiliarSelected')
+      );
+      // Should have exactly one FamiliarSelected entry, and it should be Morcego
+      expect(morcegoEntries).toHaveLength(1);
+      const morcegoChange = morcegoEntries[0].changes.find(
+        (c) => c.type === 'FamiliarSelected'
+      );
+      expect(
+        morcegoChange?.type === 'FamiliarSelected' && morcegoChange.familiarKey
+      ).toBe('MORCEGO');
+
+      // +2 Furtividade should NOT be present anymore (Morcego doesn't grant it)
+      const furtividadeBonus = withMorcego.sheetBonuses.find(
+        (b) => b.target.type === 'Skill' && b.target.name === Skill.FURTIVIDADE
+      );
+      expect(furtividadeBonus).toBeUndefined();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle empty power lists', () => {
       mockSheet.generalPowers = [];
