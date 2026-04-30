@@ -131,9 +131,9 @@ export function findClassDescription(
  * Calcula PV total para multiclasse.
  *
  * Fórmula:
- * - Classe primária: pv (base) + addpv * (primaryLevel - 1)
- * - Classes secundárias: addpv * secondaryLevel (sem base)
- * - CON por nível: max(conMod, 0) * characterLevel
+ * - Classe primária: pv (base) + conMod + max(addpv + conMod, 1) * (primaryLevel - 1)
+ * - Classes secundárias: max(addpv + conMod, 1) * secondaryLevel (sem base)
+ * - CON negativo reduz o PV mas o ganho mínimo por nível é 1
  * - Bonus: bonusPV, manualPVEdit, customPVPerLevel
  */
 export function calculateMulticlassPV(sheet: CharacterSheet): number {

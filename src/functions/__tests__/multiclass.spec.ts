@@ -287,7 +287,7 @@ describe('calculateMulticlassPV', () => {
     expect(calculateMulticlassPV(sheet)).toBe(52);
   });
 
-  test('multiclasse com CON negativo usa mínimo 0', () => {
+  test('multiclasse com CON negativo reduz PV com piso de 1 por nível', () => {
     // Guerreiro 2 / Bárbaro 1, CON mod = -1
     const sheet = createMulticlassSheet(
       guerreiro,
@@ -299,11 +299,10 @@ describe('calculateMulticlassPV', () => {
       -1
     );
 
-    // Guerreiro: 20 + 5*(2-1) = 25
-    // Bárbaro: 6*1 = 6
-    // CON: max(-1, 0) * 3 = 0
-    // Total: 25 + 6 + 0 = 31
-    expect(calculateMulticlassPV(sheet)).toBe(31);
+    // Guerreiro (primária): 20 + (-1) + max(5 + -1, 1) * (2-1) = 19 + 4 = 23
+    // Bárbaro (secundária): max(6 + -1, 1) * 1 = 5
+    // Total: 23 + 5 = 28
+    expect(calculateMulticlassPV(sheet)).toBe(28);
   });
 
   test('multiclasse com bonusPV e manualPVEdit', () => {
