@@ -72,6 +72,25 @@ const Changelog: React.FC = () => {
               <h3>4.12</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> <strong>Foco em Arma</strong>,{' '}
+                  <strong>Especialização em Arma</strong>,{' '}
+                  <strong>Mestre em Arma</strong> e <strong>Arma Amada</strong>{' '}
+                  agora aplicam seus bônus mecânicos automaticamente na arma
+                  escolhida — +2 em ataque para Foco em Arma, +2 em dano para
+                  Especialização em Arma e Arma Amada, e{' '}
+                  <strong>aumento de um passo no dado de dano</strong> (1d8 →
+                  1d10, 1d12 → 3d6, etc.) para Mestre em Arma. Foco em Arma e
+                  Especialização em Arma podem ser pegos várias vezes para armas
+                  diferentes; cada instância tem sua própria seleção. A escolha
+                  é <strong>opcional</strong> no momento de pegar o poder e pode
+                  ser feita ou trocada <strong>a qualquer momento</strong>{' '}
+                  através do botão de mira no accordion do poder na ficha. Só é
+                  possível escolher armas já presentes na ficha. Armas com bônus
+                  aplicado mostram um ícone com tooltip listando os efeitos
+                  ativos. Fichas antigas recebem a feature automaticamente sem
+                  precisar regerar.
+                </li>
+                <li>
                   <strong>Correção:</strong> Ao editar uma{' '}
                   <strong>armadura ou escudo</strong> pela edição de
                   equipamentos, a <strong>defesa total</strong> deixava cair
@@ -104,6 +123,60 @@ const Changelog: React.FC = () => {
                   polling preso e logs com User-Agent para diagnóstico. Agora a
                   conexão se recupera sozinha quando o jogador volta ao app
                   depois de bloquear o celular ou trocar de aba.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Várias habilidades passivas de
+                  classe que eram apenas descritivas agora aplicam seus bônus
+                  mecânicos automaticamente na ficha:
+                  <ul>
+                    <li>
+                      <strong>Casca Grossa</strong> (Lutador / Atleta): soma{' '}
+                      <strong>Constituição</strong> (limitada pelo nível da
+                      classe) na Defesa quando sem armadura pesada, com{' '}
+                      <strong>+1 cumulativo</strong> a cada 4 níveis a partir do
+                      7º.
+                    </li>
+                    <li>
+                      <strong>Insolência</strong> (Bucaneiro 1): soma{' '}
+                      <strong>Carisma</strong> (limitado pelo nível de
+                      Bucaneiro) na Defesa.
+                    </li>
+                    <li>
+                      <strong>Braços Calejados</strong> (Lutador, poder): soma{' '}
+                      <strong>Força</strong> (limitada pelo nível de Lutador) na
+                      Defesa.
+                    </li>
+                    <li>
+                      <strong>Defesa Estratégica</strong> (Guerreiro de Heróis
+                      de Arton): soma <strong>Inteligência</strong> (limitada
+                      pelo nível de Guerreiro) na Defesa.
+                    </li>
+                    <li>
+                      <strong>Resistência a Dano</strong> (Bárbaro 5): aplica
+                      Redução de Dano Geral, escalonando até <strong>10</strong>{' '}
+                      no 19º nível.
+                    </li>
+                    <li>
+                      <strong>Pele de Ferro</strong> (poder de Bárbaro): aplica{' '}
+                      <strong>+4 Defesa</strong>.
+                    </li>
+                    <li>
+                      <strong>Discrição Divina</strong> (Usurpador 3): aplica{' '}
+                      <strong>+1</strong> em Furtividade, Fortitude, Reflexos e
+                      Vontade, escalonando com o nível.
+                    </li>
+                    <li>
+                      <strong>Resiliência Primal</strong> (Machado de Pedra 5):
+                      aplica Redução de Dano Geral, escalonando até{' '}
+                      <strong>15</strong>.
+                    </li>
+                    <li>
+                      <strong>Esquiva Sagaz</strong> (Bucaneiro 3) e{' '}
+                      <strong>Instinto Selvagem</strong> (Bárbaro 3) agora
+                      respeitam o <strong>nível da classe</strong> em
+                      multiclasse, em vez do nível total do personagem.
+                    </li>
+                  </ul>
                 </li>
               </ul>
 
