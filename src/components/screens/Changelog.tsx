@@ -72,6 +72,17 @@ const Changelog: React.FC = () => {
               <h3>4.12</h3>
               <ul>
                 <li>
+                  <strong>Correção:</strong> Ao editar uma{' '}
+                  <strong>armadura ou escudo</strong> pela edição de
+                  equipamentos, a <strong>defesa total</strong> deixava cair
+                  silenciosamente o <strong>bônus manual</strong> e os{' '}
+                  <strong>bônus vindos de poderes</strong> (como{' '}
+                  <strong>Carapaça</strong>, <strong>Encouraçado</strong> e{' '}
+                  <strong>Defesa Armada</strong>), passando a mostrar apenas
+                  base + armadura + escudo + atributo. Agora o recálculo após
+                  salvar preserva todos os bônus.
+                </li>
+                <li>
                   <strong>Correção:</strong> O poder <strong>Familiar</strong>{' '}
                   (Arcanista) agora <strong>persiste a escolha</strong> entre
                   acessos e edições da ficha. Antes, o familiar selecionado era
