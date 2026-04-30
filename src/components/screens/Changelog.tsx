@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            28/04/2026 (v4.11.1).
+            30/04/2026 (v4.12).
           </p>
 
           <p>
@@ -69,6 +69,33 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.12</h3>
+              <ul>
+                <li>
+                  <strong>Correção:</strong> O poder <strong>Familiar</strong>{' '}
+                  (Arcanista) agora <strong>persiste a escolha</strong> entre
+                  acessos e edições da ficha. Antes, o familiar selecionado era
+                  trocado por outro aleatório a cada edição (aplicar uma
+                  condição, alterar equipamento, defesa etc.), o que também
+                  fazia o <strong>+2 em Furtividade do Gato</strong> sumir
+                  silenciosamente. A mesma correção foi aplicada à{' '}
+                  <strong>Especialização em Arma</strong> (Guerreiro) e ao{' '}
+                  <strong>Animal Totêmico</strong> (Bárbaro), que tinham o mesmo
+                  bug estrutural. Fichas antigas recuperam a escolha
+                  automaticamente a partir do texto do poder.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Estabilidade da{' '}
+                  <strong>Mesa Virtual no iOS Safari</strong> — afrouxado o
+                  ping/pong de WebSocket para tolerar jitter móvel, adicionados
+                  handlers de pageshow/pagehide para restaurar a sessão saindo
+                  do BFCache (bloqueio/troca de app), watchdog para detectar
+                  polling preso e logs com User-Agent para diagnóstico. Agora a
+                  conexão se recupera sozinha quando o jogador volta ao app
+                  depois de bloquear o celular ou trocar de aba.
+                </li>
+              </ul>
+
               <h3>4.11.1</h3>
               <ul>
                 <li>
