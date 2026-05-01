@@ -72,6 +72,18 @@ const Changelog: React.FC = () => {
               <h3>4.12</h3>
               <ul>
                 <li>
+                  <strong>Novo:</strong> Campo de{' '}
+                  <strong>busca de equipamentos</strong> dentro de cada
+                  categoria do drawer de editar itens (Armas, Armadura, Escudo,
+                  Itens Gerais, Esotéricos, Vestuário, Alquimia, Alimentação e
+                  Animais). A busca filtra por nome com{' '}
+                  <strong>debounce de 300ms</strong>, é insensível a acentos
+                  (digitar &quot;espada&quot; encontra &quot;Espada Longa&quot;
+                  e similares) e esconde subcategorias vazias para evitar
+                  scrolls longos — útil principalmente em mobile, onde a maioria
+                  dos jogadores usa o app na mesa.
+                </li>
+                <li>
                   <strong>Novo:</strong> <strong>Foco em Arma</strong>,{' '}
                   <strong>Especialização em Arma</strong>,{' '}
                   <strong>Mestre em Arma</strong> e <strong>Arma Amada</strong>{' '}
