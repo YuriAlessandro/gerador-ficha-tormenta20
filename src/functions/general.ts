@@ -1389,7 +1389,12 @@ function calcDisplacement(
 
 export const applyPower = (
   _sheet: CharacterSheet,
-  powerOrAbility: Pick<GeneralPower, 'sheetActions' | 'sheetBonuses' | 'name'>,
+  powerOrAbility: Pick<
+    GeneralPower,
+    'sheetActions' | 'sheetBonuses' | 'name'
+  > & {
+    sourceClassName?: string;
+  },
   manualSelections?: SelectionOptions,
   forceApply?: boolean
 ): [CharacterSheet, SubStep[]] => {
@@ -2716,7 +2721,15 @@ export const applyPower = (
 
   // sheet bonuses
   if (powerOrAbility.sheetBonuses) {
-    sheet.sheetBonuses.push(...powerOrAbility.sheetBonuses);
+    const { sourceClassName } = powerOrAbility;
+    const bonusesToPush = sourceClassName
+      ? powerOrAbility.sheetBonuses.map((b) =>
+          b.source.type === 'power'
+            ? { ...b, source: { ...b.source, className: sourceClassName } }
+            : b
+        )
+      : powerOrAbility.sheetBonuses;
+    sheet.sheetBonuses.push(...bonusesToPush);
 
     // Generate substeps for important bonuses so they appear in the step-by-step
     powerOrAbility.sheetBonuses.forEach((bonus) => {
@@ -2923,7 +2936,11 @@ function applyClassAbilities(
   sheetClone = (availableAbilities || []).reduce((acc, ability) => {
     // Extract selections for this specific ability
     const abilitySelections = manualSelections?.[ability.name];
-    const [newAcc, newSubSteps] = applyPower(acc, ability, abilitySelections);
+    const [newAcc, newSubSteps] = applyPower(
+      acc,
+      { ...ability, sourceClassName: sheetClone.classe.name },
+      abilitySelections
+    );
     subSteps.push(...newSubSteps);
 
     // Cavaleiro: random path selection for Caminho do Cavaleiro
@@ -3876,15 +3893,30 @@ export function applyManualLevelUp(
   return updatedSheet;
 }
 
-const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
+const calculateBonusValue = (
+  sheet: CharacterSheet,
+  bonus: StatModifier,
+  source?: SheetChangeSource
+) => {
+  const resolveClassLevel = (): number => {
+    const className = source?.type === 'power' ? source.className : undefined;
+    return className ? getClassLevel(sheet, className) : sheet.nivel;
+  };
+
   if (bonus.type === 'Attribute') {
     return sheet.atributos[bonus.attribute].value;
   }
   if (bonus.type === 'LevelCalc') {
-    const filledFormula = bonus.formula.replace(
+    let filledFormula = bonus.formula.replace(
       /{level}/g,
       sheet.nivel.toString()
     );
+    if (filledFormula.includes('{classLevel}')) {
+      filledFormula = filledFormula.replace(
+        /{classLevel}/g,
+        resolveClassLevel().toString()
+      );
+    }
     // eslint-disable-next-line no-eval
     return eval(filledFormula);
   }
@@ -3913,6 +3945,12 @@ const calculateBonusValue = (sheet: CharacterSheet, bonus: StatModifier) => {
       ].value;
     }
   }
+  if (bonus.type === 'CappedAttribute') {
+    const attrValue = sheet.atributos[bonus.attribute]?.value ?? 0;
+    const cap =
+      bonus.capBy === 'classLevel' ? resolveClassLevel() : sheet.nivel;
+    return Math.max(0, Math.min(attrValue, cap));
+  }
   if (bonus.type === 'Fixed') {
     return bonus.value;
   }
@@ -3934,7 +3972,7 @@ const applyStatModifiers = (
   const modifySkillAttributeSubSteps: SubStep[] = [];
 
   sheet.sheetBonuses.forEach((bonus) => {
-    const bonusValue = calculateBonusValue(sheet, bonus.modifier);
+    const bonusValue = calculateBonusValue(sheet, bonus.modifier, bonus.source);
     const getSubStepName = (source: SheetChangeSource) => {
       if (source.type === 'power') {
         return `${source.name}:`;
@@ -5756,7 +5794,11 @@ export function generateEmptySheet(
   };
 
   emptySheet.sheetBonuses.forEach((bonus) => {
-    const bonusValue = calculateBonusValue(emptySheet, bonus.modifier);
+    const bonusValue = calculateBonusValue(
+      emptySheet,
+      bonus.modifier,
+      bonus.source
+    );
     const subStepName = getBonusStepName(bonus.source);
 
     if (bonus.target.type === 'PV') {

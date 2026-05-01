@@ -7,6 +7,7 @@ import CharacterSheet, {
   DamageType,
   SheetAction,
   SheetActionHistoryEntry,
+  SheetChangeSource,
   Step,
 } from '@/interfaces/CharacterSheet';
 import { calculateCompanionStats } from '@/data/systems/tormenta20/herois-de-arton/companion';
@@ -155,10 +156,25 @@ function deduplicateSpells(spells: Spell[]): Spell[] {
   return uniqueSpells;
 }
 
+const resolveClassLevel = (
+  sheet: CharacterSheet,
+  source?: SheetChangeSource
+): number => {
+  const className = source?.type === 'power' ? source.className : undefined;
+  return className ? getClassLevel(sheet, className) : sheet.nivel;
+};
+
 // We need to copy the applyStatModifiers function locally since it's not exported
 const calculateBonusValue = (
   sheet: CharacterSheet,
-  bonus: { type: string; value?: number; attribute?: string; formula?: string }
+  bonus: {
+    type: string;
+    value?: number;
+    attribute?: string;
+    formula?: string;
+    capBy?: 'level' | 'classLevel';
+  },
+  source?: SheetChangeSource
 ): number => {
   if (bonus.type === 'Level') {
     return sheet.nivel;
@@ -188,14 +204,29 @@ const calculateBonusValue = (
     }
   }
   if (bonus.type === 'LevelCalc' && bonus.formula) {
-    // Handle formulas like 'Math.floor(({level} + 3) / 4)'
-    const formula = bonus.formula.replace(/{level}/g, sheet.nivel.toString());
+    // Handle formulas like 'Math.floor(({level} + 3) / 4)' or with {classLevel}.
+    let formula = bonus.formula.replace(/{level}/g, sheet.nivel.toString());
+    if (formula.includes('{classLevel}')) {
+      formula = formula.replace(
+        /{classLevel}/g,
+        resolveClassLevel(sheet, source).toString()
+      );
+    }
     try {
       // eslint-disable-next-line no-eval
       return eval(formula);
     } catch {
       return 0;
     }
+  }
+  if (bonus.type === 'CappedAttribute') {
+    const attr = bonus.attribute as Atributo;
+    const attrValue = sheet.atributos[attr]?.value ?? 0;
+    const cap =
+      bonus.capBy === 'classLevel'
+        ? resolveClassLevel(sheet, source)
+        : sheet.nivel;
+    return Math.max(0, Math.min(attrValue, cap));
   }
   if (bonus.type === 'Fixed') {
     return bonus.value || 0;
@@ -342,7 +373,11 @@ const applyWeaponBonuses = (
             bonus.target.type === 'WeaponCriticalMultiplier') &&
           weaponMatchesBonus(weapon, bonus.target, updatedSheet)
         ) {
-          const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+          const bonusValue = calculateBonusValue(
+            updatedSheet,
+            bonus.modifier,
+            bonus.source
+          );
 
           if (bonus.target.type === 'WeaponAttack') {
             totalAttackBonus += bonusValue;
@@ -452,7 +487,11 @@ const applyDefenseBonuses = (sheet: CharacterSheet): CharacterSheet => {
 
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (bonus.target.type === 'Defense') {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
       updatedSheet.defesa += bonusValue;
     }
   });
@@ -684,7 +723,11 @@ function applyClassPowers(
 
     // All selections are now combined for repeatable powers
 
-    const [newAcc] = applyPower(acc, power, powerSelections);
+    const [newAcc] = applyPower(
+      acc,
+      { ...power, sourceClassName: sheetClone.classe.name },
+      powerSelections
+    );
     return newAcc;
   }, sheetClone);
 
@@ -1368,7 +1411,11 @@ export function recalculateSheet(
       bonus.target.type !== 'HPAttributeReplacement' &&
       bonus.target.type !== 'DamageReduction'
     ) {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
 
       if (
         bonus.target.type === 'PV' &&
@@ -1522,7 +1569,8 @@ export function recalculateSheet(
   if (displacementOverrideBonus) {
     updatedSheet.displacement = calculateBonusValue(
       updatedSheet,
-      displacementOverrideBonus.modifier
+      displacementOverrideBonus.modifier,
+      displacementOverrideBonus.source
     );
   } else if (updatedSheet.customDisplacement !== undefined) {
     updatedSheet.displacement = updatedSheet.customDisplacement;
@@ -1530,7 +1578,8 @@ export function recalculateSheet(
     const baseDisplacementBonuses = updatedSheet.sheetBonuses
       .filter((bonus) => bonus.target.type === 'Displacement')
       .reduce(
-        (acc, bonus) => acc + calculateBonusValue(updatedSheet, bonus.modifier),
+        (acc, bonus) =>
+          acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
         0
       );
 
@@ -1563,7 +1612,11 @@ export function recalculateSheet(
 
   updatedSheet.sheetBonuses.forEach((bonus) => {
     if (bonus.target.type === 'DamageReduction') {
-      const bonusValue = calculateBonusValue(updatedSheet, bonus.modifier);
+      const bonusValue = calculateBonusValue(
+        updatedSheet,
+        bonus.modifier,
+        bonus.source
+      );
       const { damageType } = bonus.target;
       computedRd[damageType] = (computedRd[damageType] ?? 0) + bonusValue;
     }

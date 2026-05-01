@@ -16,6 +16,7 @@ export type SheetChangeSource =
   | {
       type: 'power';
       name: string;
+      className?: string;
     }
   | {
       type: 'levelUp';
@@ -351,6 +352,11 @@ export type StatModifier =
   | {
       type: 'Fixed';
       value: number;
+    }
+  | {
+      type: 'CappedAttribute';
+      attribute: Atributo;
+      capBy: 'level' | 'classLevel';
     };
 
 export type SheetBonus = {
