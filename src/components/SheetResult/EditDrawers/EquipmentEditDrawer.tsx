@@ -25,6 +25,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   TextField,
+  InputAdornment,
   Chip,
   Dialog,
   DialogTitle,
@@ -37,6 +38,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import debounce from 'lodash/debounce';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -47,6 +49,9 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CheckIcon from '@mui/icons-material/Check';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import { normalizeSearch } from '@/functions/stringUtils';
 import CharacterSheet, { Step, SubStep } from '@/interfaces/CharacterSheet';
 import Equipment, { DefenseEquipment } from '@/interfaces/Equipment';
 import Skill from '@/interfaces/Skills';
@@ -223,6 +228,87 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
   const [showAddAlchemy, setShowAddAlchemy] = useState(false);
   const [showAddFood, setShowAddFood] = useState(false);
   const [showAddAnimals, setShowAddAnimals] = useState(false);
+
+  // Busca com debounce dentro dos acordeões de adicionar equipamento
+  const [equipmentSearch, setEquipmentSearch] = useState('');
+  const [localEquipmentSearch, setLocalEquipmentSearch] = useState('');
+
+  const debouncedSetEquipmentSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setEquipmentSearch(value);
+      }, 300),
+    []
+  );
+
+  useEffect(
+    () => () => {
+      debouncedSetEquipmentSearch.cancel();
+    },
+    [debouncedSetEquipmentSearch]
+  );
+
+  const handleEquipmentSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setLocalEquipmentSearch(value);
+      debouncedSetEquipmentSearch(value);
+    },
+    [debouncedSetEquipmentSearch]
+  );
+
+  const handleClearEquipmentSearch = useCallback(() => {
+    setLocalEquipmentSearch('');
+    setEquipmentSearch('');
+    debouncedSetEquipmentSearch.cancel();
+  }, [debouncedSetEquipmentSearch]);
+
+  const matchesEquipmentSearch = useCallback(
+    (nome: string) => {
+      if (!equipmentSearch) return true;
+      return normalizeSearch(nome).includes(normalizeSearch(equipmentSearch));
+    },
+    [equipmentSearch]
+  );
+
+  const hasAnyEquipmentMatch = useCallback(
+    (...lists: { nome: string }[][]) =>
+      lists.some((list) =>
+        list.some((item) => matchesEquipmentSearch(item.nome))
+      ),
+    [matchesEquipmentSearch]
+  );
+
+  const renderEquipmentSearchField = () => (
+    <TextField
+      fullWidth
+      size='small'
+      placeholder='Buscar equipamento...'
+      value={localEquipmentSearch}
+      onChange={handleEquipmentSearchChange}
+      sx={{ mb: 2 }}
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position='start'>
+            <SearchIcon fontSize='small' />
+          </InputAdornment>
+        ),
+        endAdornment: localEquipmentSearch ? (
+          <InputAdornment position='end'>
+            <IconButton size='small' onClick={handleClearEquipmentSearch}>
+              <ClearIcon fontSize='small' />
+            </IconButton>
+          </InputAdornment>
+        ) : null,
+      }}
+    />
+  );
+
+  const renderNoResultsMessage = () => (
+    <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+      Nenhum equipamento encontrado.
+    </Typography>
+  );
 
   // Estados para edição de arma
   const [editingWeapon, setEditingWeapon] = useState<Equipment | null>(null);
@@ -3317,288 +3403,347 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
+                  {renderEquipmentSearchField()}
+
                   {/* Simple Weapons */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armas Simples
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {[...EQUIPAMENTOS.armasSimples]
-                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                      .map((weapon) => (
-                        <Box
-                          key={weapon.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          {renderAddButton(weapon, () =>
-                            handleWeaponToggle(weapon)
-                          )}
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano}
-                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                          </Typography>
-                        </Box>
-                      ))}
-                    {/* Supplement simple weapons */}
-                    {getCategorizedWeapons.simple.map((weapon) => (
-                      <Box
-                        key={weapon.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armasSimples,
+                    getCategorizedWeapons.simple
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(weapon, () =>
-                          handleWeaponToggle(weapon)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano}
-                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                        </Typography>
-                        {weapon.supplementId &&
-                          weapon.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[weapon.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armas Simples
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {[...EQUIPAMENTOS.armasSimples]
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement simple weapons */}
+                        {getCategorizedWeapons.simple
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                              {weapon.supplementId &&
+                                weapon.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[weapon.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Martial Weapons */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armas Marciais
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {[...EQUIPAMENTOS.armasMarciais]
-                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                      .map((weapon) => (
-                        <Box
-                          key={weapon.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          {renderAddButton(weapon, () =>
-                            handleWeaponToggle(weapon)
-                          )}
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano}
-                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                          </Typography>
-                        </Box>
-                      ))}
-                    {/* Supplement martial weapons */}
-                    {getCategorizedWeapons.martial.map((weapon) => (
-                      <Box
-                        key={weapon.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armasMarciais,
+                    getCategorizedWeapons.martial
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(weapon, () =>
-                          handleWeaponToggle(weapon)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano}
-                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                        </Typography>
-                        {weapon.supplementId &&
-                          weapon.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[weapon.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armas Marciais
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {[...EQUIPAMENTOS.armasMarciais]
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement martial weapons */}
+                        {getCategorizedWeapons.martial
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                              {weapon.supplementId &&
+                                weapon.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[weapon.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Exotic Weapons */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armas Exóticas
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {[...EQUIPAMENTOS.armasExoticas]
-                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                      .map((weapon) => (
-                        <Box
-                          key={weapon.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          {renderAddButton(weapon, () =>
-                            handleWeaponToggle(weapon)
-                          )}
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano}
-                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                          </Typography>
-                        </Box>
-                      ))}
-                    {/* Supplement exotic weapons */}
-                    {getCategorizedWeapons.exotic.map((weapon) => (
-                      <Box
-                        key={weapon.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armasExoticas,
+                    getCategorizedWeapons.exotic
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(weapon, () =>
-                          handleWeaponToggle(weapon)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano}
-                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                        </Typography>
-                        {weapon.supplementId &&
-                          weapon.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[weapon.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armas Exóticas
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {[...EQUIPAMENTOS.armasExoticas]
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement exotic weapons */}
+                        {getCategorizedWeapons.exotic
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                              {weapon.supplementId &&
+                                weapon.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[weapon.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Firearms */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armas de Fogo
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {[...EQUIPAMENTOS.armasDeFogo]
-                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                      .map((weapon) => (
-                        <Box
-                          key={weapon.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          {renderAddButton(weapon, () =>
-                            handleWeaponToggle(weapon)
-                          )}
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome} (Dano: {weapon.dano}
-                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                          </Typography>
-                        </Box>
-                      ))}
-                    {/* Supplement firearms */}
-                    {getCategorizedWeapons.firearms.map((weapon) => (
-                      <Box
-                        key={weapon.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armasDeFogo,
+                    getCategorizedWeapons.firearms
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(weapon, () =>
-                          handleWeaponToggle(weapon)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {weapon.nome} (Dano: {weapon.dano}
-                          {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
-                        </Typography>
-                        {weapon.supplementId &&
-                          weapon.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[weapon.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armas de Fogo
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {[...EQUIPAMENTOS.armasDeFogo]
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement firearms */}
+                        {getCategorizedWeapons.firearms
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome} (Dano: {weapon.dano}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''})
+                              </Typography>
+                              {weapon.supplementId &&
+                                weapon.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[weapon.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Ammunition */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Munição
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {[...EQUIPAMENTOS.municao]
-                      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
-                      .map((weapon) => (
-                        <Box
-                          key={weapon.nome}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                          }}
-                        >
-                          {renderAddButton(weapon, () =>
-                            handleWeaponToggle(weapon)
-                          )}
-                          <Typography variant='body2' sx={{ flex: 1 }}>
-                            {weapon.nome}
-                            {weapon.preco ? ` | T$ ${weapon.preco}` : ''}
-                          </Typography>
-                        </Box>
-                      ))}
-                  </Stack>
+                  {hasAnyEquipmentMatch(EQUIPAMENTOS.municao) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
+                      >
+                        Munição
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {[...EQUIPAMENTOS.municao]
+                          .filter((w) => matchesEquipmentSearch(w.nome))
+                          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                          .map((weapon) => (
+                            <Box
+                              key={weapon.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(weapon, () =>
+                                handleWeaponToggle(weapon)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {weapon.nome}
+                                {weapon.preco ? ` | T$ ${weapon.preco}` : ''}
+                              </Typography>
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
+
+                  {!hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armasSimples,
+                    getCategorizedWeapons.simple,
+                    EQUIPAMENTOS.armasMarciais,
+                    getCategorizedWeapons.martial,
+                    EQUIPAMENTOS.armasExoticas,
+                    getCategorizedWeapons.exotic,
+                    EQUIPAMENTOS.armasDeFogo,
+                    getCategorizedWeapons.firearms,
+                    EQUIPAMENTOS.municao
+                  ) && renderNoResultsMessage()}
 
                   <Button
                     variant='outlined'
@@ -3620,171 +3765,206 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
+                  {renderEquipmentSearchField()}
+
                   {/* Light Armor */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armaduras Leves
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {EQUIPAMENTOS.armadurasLeves.map((armor) => (
-                      <Box
-                        key={armor.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armadurasLeves,
+                    getCategorizedArmors.light
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isArmorSelected(armor)}
-                              onChange={() => handleArmorToggle(armor)}
-                              size='small'
-                              disabled={
-                                !isArmorSelected(armor) && !canAfford(armor)
-                              }
-                            />
-                          }
-                          label={`${armor.nome} (Defesa: +${
-                            armor.defenseBonus
-                          }, Penalidade: ${armor.armorPenalty}${
-                            armor.preco ? ` | T$ ${armor.preco}` : ''
-                          })`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
-                      </Box>
-                    ))}
-                    {/* Supplement light armors */}
-                    {getCategorizedArmors.light.map((armor) => (
-                      <Box
-                        key={armor.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isArmorSelected(armor)}
-                              onChange={() => handleArmorToggle(armor)}
-                              size='small'
-                              disabled={
-                                !isArmorSelected(armor) && !canAfford(armor)
-                              }
-                            />
-                          }
-                          label={`${armor.nome} (Defesa: +${
-                            armor.defenseBonus
-                          }, Penalidade: ${armor.armorPenalty}${
-                            armor.preco ? ` | T$ ${armor.preco}` : ''
-                          })`}
-                          sx={{ flex: 1 }}
-                        />
-                        {armor.supplementId &&
-                          armor.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[armor.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armaduras Leves
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {EQUIPAMENTOS.armadurasLeves
+                          .filter((a) => matchesEquipmentSearch(a.nome))
+                          .map((armor) => (
+                            <Box
+                              key={armor.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isArmorSelected(armor)}
+                                    onChange={() => handleArmorToggle(armor)}
+                                    size='small'
+                                    disabled={
+                                      !isArmorSelected(armor) &&
+                                      !canAfford(armor)
+                                    }
+                                  />
+                                }
+                                label={`${armor.nome} (Defesa: +${
+                                  armor.defenseBonus
+                                }, Penalidade: ${armor.armorPenalty}${
+                                  armor.preco ? ` | T$ ${armor.preco}` : ''
+                                })`}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              />
+                            </Box>
+                          ))}
+                        {/* Supplement light armors */}
+                        {getCategorizedArmors.light
+                          .filter((a) => matchesEquipmentSearch(a.nome))
+                          .map((armor) => (
+                            <Box
+                              key={armor.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isArmorSelected(armor)}
+                                    onChange={() => handleArmorToggle(armor)}
+                                    size='small'
+                                    disabled={
+                                      !isArmorSelected(armor) &&
+                                      !canAfford(armor)
+                                    }
+                                  />
+                                }
+                                label={`${armor.nome} (Defesa: +${
+                                  armor.defenseBonus
+                                }, Penalidade: ${armor.armorPenalty}${
+                                  armor.preco ? ` | T$ ${armor.preco}` : ''
+                                })`}
+                                sx={{ flex: 1 }}
+                              />
+                              {armor.supplementId &&
+                                armor.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[armor.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Heavy Armor */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Armaduras Pesadas
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {EQUIPAMENTOS.armaduraPesada.map((armor) => (
-                      <Box
-                        key={armor.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armaduraPesada,
+                    getCategorizedArmors.heavy
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isArmorSelected(armor)}
-                              onChange={() => handleArmorToggle(armor)}
-                              size='small'
-                              disabled={
-                                !isArmorSelected(armor) && !canAfford(armor)
-                              }
-                            />
-                          }
-                          label={`${armor.nome} (Defesa: +${
-                            armor.defenseBonus
-                          }, Penalidade: ${armor.armorPenalty}${
-                            armor.preco ? ` | T$ ${armor.preco}` : ''
-                          })`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
-                      </Box>
-                    ))}
-                    {/* Supplement heavy armors */}
-                    {getCategorizedArmors.heavy.map((armor) => (
-                      <Box
-                        key={armor.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isArmorSelected(armor)}
-                              onChange={() => handleArmorToggle(armor)}
-                              size='small'
-                              disabled={
-                                !isArmorSelected(armor) && !canAfford(armor)
-                              }
-                            />
-                          }
-                          label={`${armor.nome} (Defesa: +${
-                            armor.defenseBonus
-                          }, Penalidade: ${armor.armorPenalty}${
-                            armor.preco ? ` | T$ ${armor.preco}` : ''
-                          })`}
-                          sx={{ flex: 1 }}
-                        />
-                        {armor.supplementId &&
-                          armor.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[armor.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Armaduras Pesadas
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {EQUIPAMENTOS.armaduraPesada
+                          .filter((a) => matchesEquipmentSearch(a.nome))
+                          .map((armor) => (
+                            <Box
+                              key={armor.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isArmorSelected(armor)}
+                                    onChange={() => handleArmorToggle(armor)}
+                                    size='small'
+                                    disabled={
+                                      !isArmorSelected(armor) &&
+                                      !canAfford(armor)
+                                    }
+                                  />
+                                }
+                                label={`${armor.nome} (Defesa: +${
+                                  armor.defenseBonus
+                                }, Penalidade: ${armor.armorPenalty}${
+                                  armor.preco ? ` | T$ ${armor.preco}` : ''
+                                })`}
+                                sx={{ flex: 1, minWidth: 0 }}
+                              />
+                            </Box>
+                          ))}
+                        {/* Supplement heavy armors */}
+                        {getCategorizedArmors.heavy
+                          .filter((a) => matchesEquipmentSearch(a.nome))
+                          .map((armor) => (
+                            <Box
+                              key={armor.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    checked={isArmorSelected(armor)}
+                                    onChange={() => handleArmorToggle(armor)}
+                                    size='small'
+                                    disabled={
+                                      !isArmorSelected(armor) &&
+                                      !canAfford(armor)
+                                    }
+                                  />
+                                }
+                                label={`${armor.nome} (Defesa: +${
+                                  armor.defenseBonus
+                                }, Penalidade: ${armor.armorPenalty}${
+                                  armor.preco ? ` | T$ ${armor.preco}` : ''
+                                })`}
+                                sx={{ flex: 1 }}
+                              />
+                              {armor.supplementId &&
+                                armor.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[armor.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
+
+                  {!hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.armadurasLeves,
+                    getCategorizedArmors.light,
+                    EQUIPAMENTOS.armaduraPesada,
+                    getCategorizedArmors.heavy
+                  ) && renderNoResultsMessage()}
 
                   <Button
                     variant='outlined'
@@ -3806,80 +3986,95 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {EQUIPAMENTOS.escudos.map((shield) => (
-                      <Box
-                        key={shield.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isShieldSelected(shield)}
-                              onChange={() => handleShieldToggle(shield)}
-                              size='small'
-                              disabled={
-                                !isShieldSelected(shield) && !canAfford(shield)
+                  {renderEquipmentSearchField()}
+
+                  {hasAnyEquipmentMatch(
+                    EQUIPAMENTOS.escudos,
+                    getCategorizedArmors.shields
+                  ) ? (
+                    <Stack spacing={1} sx={{ mb: 2 }}>
+                      {EQUIPAMENTOS.escudos
+                        .filter((s) => matchesEquipmentSearch(s.nome))
+                        .map((shield) => (
+                          <Box
+                            key={shield.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={isShieldSelected(shield)}
+                                  onChange={() => handleShieldToggle(shield)}
+                                  size='small'
+                                  disabled={
+                                    !isShieldSelected(shield) &&
+                                    !canAfford(shield)
+                                  }
+                                />
                               }
+                              label={`${shield.nome} (Defesa: +${
+                                shield.defenseBonus
+                              }, Penalidade: ${shield.armorPenalty}${
+                                shield.preco ? ` | T$ ${shield.preco}` : ''
+                              })`}
+                              sx={{ flex: 1, minWidth: 0 }}
                             />
-                          }
-                          label={`${shield.nome} (Defesa: +${
-                            shield.defenseBonus
-                          }, Penalidade: ${shield.armorPenalty}${
-                            shield.preco ? ` | T$ ${shield.preco}` : ''
-                          })`}
-                          sx={{ flex: 1, minWidth: 0 }}
-                        />
-                      </Box>
-                    ))}
-                    {/* Supplement shields */}
-                    {getCategorizedArmors.shields.map((shield) => (
-                      <Box
-                        key={shield.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={isShieldSelected(shield)}
-                              onChange={() => handleShieldToggle(shield)}
-                              size='small'
-                              disabled={
-                                !isShieldSelected(shield) && !canAfford(shield)
+                          </Box>
+                        ))}
+                      {/* Supplement shields */}
+                      {getCategorizedArmors.shields
+                        .filter((s) => matchesEquipmentSearch(s.nome))
+                        .map((shield) => (
+                          <Box
+                            key={shield.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={isShieldSelected(shield)}
+                                  onChange={() => handleShieldToggle(shield)}
+                                  size='small'
+                                  disabled={
+                                    !isShieldSelected(shield) &&
+                                    !canAfford(shield)
+                                  }
+                                />
                               }
+                              label={`${shield.nome} (Defesa: +${
+                                shield.defenseBonus
+                              }, Penalidade: ${shield.armorPenalty}${
+                                shield.preco ? ` | T$ ${shield.preco}` : ''
+                              })`}
+                              sx={{ flex: 1 }}
                             />
-                          }
-                          label={`${shield.nome} (Defesa: +${
-                            shield.defenseBonus
-                          }, Penalidade: ${shield.armorPenalty}${
-                            shield.preco ? ` | T$ ${shield.preco}` : ''
-                          })`}
-                          sx={{ flex: 1 }}
-                        />
-                        {shield.supplementId &&
-                          shield.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[shield.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                            {shield.supplementId &&
+                              shield.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={
+                                    SUPPLEMENT_METADATA[shield.supplementId]
+                                      ?.abbreviation || ''
+                                  }
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                />
+                              )}
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    renderNoResultsMessage()
+                  )}
 
                   <Button
                     variant='outlined'
@@ -3904,93 +4099,118 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
+                  {renderEquipmentSearchField()}
+
                   {/* Adventurer Equipment */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Equipamentos de Aventureiro
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.adventurerEquipment.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.adventurerEquipment,
+                    getSupplementGeneralItems
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(item, () =>
-                          handleAddGeneralItem(item)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getSupplementGeneralItems.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () =>
-                          handleAddGeneralItem(item)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Equipamentos de Aventureiro
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {/* Core items */}
+                        {GENERAL_EQUIPMENT.adventurerEquipment
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddGeneralItem(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement items */}
+                        {getSupplementGeneralItems
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddGeneralItem(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                              {item.supplementId &&
+                                item.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[item.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Tools */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Ferramentas
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {GENERAL_EQUIPMENT.tools.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(GENERAL_EQUIPMENT.tools) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(item, () =>
-                          handleAddGeneralItem(item)
-                        )}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Stack>
+                        Ferramentas
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {GENERAL_EQUIPMENT.tools
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddGeneralItem(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
+
+                  {!hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.adventurerEquipment,
+                    getSupplementGeneralItems,
+                    GENERAL_EQUIPMENT.tools
+                  ) && renderNoResultsMessage()}
 
                   <Button
                     variant='outlined'
@@ -4012,53 +4232,70 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.esoteric.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddEsoteric(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getSupplementEsoteric.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddEsoteric(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                  {renderEquipmentSearchField()}
+
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.esoteric,
+                    getSupplementEsoteric
+                  ) ? (
+                    <Stack spacing={1} sx={{ mb: 2 }}>
+                      {/* Core items */}
+                      {GENERAL_EQUIPMENT.esoteric
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddEsoteric(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                          </Box>
+                        ))}
+                      {/* Supplement items */}
+                      {getSupplementEsoteric
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddEsoteric(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                            {item.supplementId &&
+                              item.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={
+                                    SUPPLEMENT_METADATA[item.supplementId]
+                                      ?.abbreviation || ''
+                                  }
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                />
+                              )}
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    renderNoResultsMessage()
+                  )}
 
                   <Button
                     variant='outlined'
@@ -4080,53 +4317,70 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.clothing.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddClothing(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getSupplementClothing.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddClothing(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                  {renderEquipmentSearchField()}
+
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.clothing,
+                    getSupplementClothing
+                  ) ? (
+                    <Stack spacing={1} sx={{ mb: 2 }}>
+                      {/* Core items */}
+                      {GENERAL_EQUIPMENT.clothing
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddClothing(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                          </Box>
+                        ))}
+                      {/* Supplement items */}
+                      {getSupplementClothing
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddClothing(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                            {item.supplementId &&
+                              item.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={
+                                    SUPPLEMENT_METADATA[item.supplementId]
+                                      ?.abbreviation || ''
+                                  }
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                />
+                              )}
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    renderNoResultsMessage()
+                  )}
 
                   <Button
                     variant='outlined'
@@ -4150,173 +4404,229 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
+                  {renderEquipmentSearchField()}
+
                   {/* Prepared Items */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Preparados Alquímicos
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.alchemyPrepared.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.alchemyPrepared,
+                    getCategorizedAlchemy.prepared
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getCategorizedAlchemy.prepared.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Preparados Alquímicos
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {/* Core items */}
+                        {GENERAL_EQUIPMENT.alchemyPrepared
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement items */}
+                        {getCategorizedAlchemy.prepared
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                              {item.supplementId &&
+                                item.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[item.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Catalysts */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Catalisadores
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.alchemyCatalysts.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.alchemyCatalysts,
+                    getCategorizedAlchemy.catalysts
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getCategorizedAlchemy.catalysts.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Catalisadores
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {/* Core items */}
+                        {GENERAL_EQUIPMENT.alchemyCatalysts
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement items */}
+                        {getCategorizedAlchemy.catalysts
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                              {item.supplementId &&
+                                item.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[item.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
 
                   {/* Poisons */}
-                  <Typography
-                    variant='subtitle2'
-                    fontWeight='bold'
-                    sx={{ mb: 1 }}
-                  >
-                    Venenos
-                  </Typography>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.alchemyPoisons.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.alchemyPoisons,
+                    getCategorizedAlchemy.poisons
+                  ) && (
+                    <>
+                      <Typography
+                        variant='subtitle2'
+                        fontWeight='bold'
+                        sx={{ mb: 1 }}
                       >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getCategorizedAlchemy.poisons.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddAlchemy(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                        Venenos
+                      </Typography>
+                      <Stack spacing={1} sx={{ mb: 2 }}>
+                        {/* Core items */}
+                        {GENERAL_EQUIPMENT.alchemyPoisons
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                            </Box>
+                          ))}
+                        {/* Supplement items */}
+                        {getCategorizedAlchemy.poisons
+                          .filter((i) => matchesEquipmentSearch(i.nome))
+                          .map((item) => (
+                            <Box
+                              key={item.nome}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {renderAddButton(item, () =>
+                                handleAddAlchemy(item)
+                              )}
+                              <Typography variant='body2' sx={{ flex: 1 }}>
+                                {item.nome} (T$ {item.preco || 0})
+                              </Typography>
+                              {item.supplementId &&
+                                item.supplementId !==
+                                  SupplementId.TORMENTA20_CORE && (
+                                  <Chip
+                                    label={
+                                      SUPPLEMENT_METADATA[item.supplementId]
+                                        ?.abbreviation || ''
+                                    }
+                                    size='small'
+                                    color='primary'
+                                    variant='outlined'
+                                  />
+                                )}
+                            </Box>
+                          ))}
+                      </Stack>
+                    </>
+                  )}
+
+                  {!hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.alchemyPrepared,
+                    getCategorizedAlchemy.prepared,
+                    GENERAL_EQUIPMENT.alchemyCatalysts,
+                    getCategorizedAlchemy.catalysts,
+                    GENERAL_EQUIPMENT.alchemyPoisons,
+                    getCategorizedAlchemy.poisons
+                  ) && renderNoResultsMessage()}
 
                   <Button
                     variant='outlined'
@@ -4338,53 +4648,66 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.food.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddFood(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getSupplementFood.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddFood(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                  {renderEquipmentSearchField()}
+
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.food,
+                    getSupplementFood
+                  ) ? (
+                    <Stack spacing={1} sx={{ mb: 2 }}>
+                      {/* Core items */}
+                      {GENERAL_EQUIPMENT.food
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () => handleAddFood(item))}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                          </Box>
+                        ))}
+                      {/* Supplement items */}
+                      {getSupplementFood
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () => handleAddFood(item))}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                            {item.supplementId &&
+                              item.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={
+                                    SUPPLEMENT_METADATA[item.supplementId]
+                                      ?.abbreviation || ''
+                                  }
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                />
+                              )}
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    renderNoResultsMessage()
+                  )}
 
                   <Button
                     variant='outlined'
@@ -4406,53 +4729,70 @@ const EquipmentEditDrawer: React.FC<EquipmentEditDrawerProps> = ({
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {/* Core items */}
-                    {GENERAL_EQUIPMENT.animals.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddAnimals(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Supplement items */}
-                    {getSupplementAnimals.map((item) => (
-                      <Box
-                        key={item.nome}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                        }}
-                      >
-                        {renderAddButton(item, () => handleAddAnimals(item))}
-                        <Typography variant='body2' sx={{ flex: 1 }}>
-                          {item.nome} (T$ {item.preco || 0})
-                        </Typography>
-                        {item.supplementId &&
-                          item.supplementId !==
-                            SupplementId.TORMENTA20_CORE && (
-                            <Chip
-                              label={
-                                SUPPLEMENT_METADATA[item.supplementId]
-                                  ?.abbreviation || ''
-                              }
-                              size='small'
-                              color='primary'
-                              variant='outlined'
-                            />
-                          )}
-                      </Box>
-                    ))}
-                  </Stack>
+                  {renderEquipmentSearchField()}
+
+                  {hasAnyEquipmentMatch(
+                    GENERAL_EQUIPMENT.animals,
+                    getSupplementAnimals
+                  ) ? (
+                    <Stack spacing={1} sx={{ mb: 2 }}>
+                      {/* Core items */}
+                      {GENERAL_EQUIPMENT.animals
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddAnimals(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                          </Box>
+                        ))}
+                      {/* Supplement items */}
+                      {getSupplementAnimals
+                        .filter((i) => matchesEquipmentSearch(i.nome))
+                        .map((item) => (
+                          <Box
+                            key={item.nome}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
+                            {renderAddButton(item, () =>
+                              handleAddAnimals(item)
+                            )}
+                            <Typography variant='body2' sx={{ flex: 1 }}>
+                              {item.nome} (T$ {item.preco || 0})
+                            </Typography>
+                            {item.supplementId &&
+                              item.supplementId !==
+                                SupplementId.TORMENTA20_CORE && (
+                                <Chip
+                                  label={
+                                    SUPPLEMENT_METADATA[item.supplementId]
+                                      ?.abbreviation || ''
+                                  }
+                                  size='small'
+                                  color='primary'
+                                  variant='outlined'
+                                />
+                              )}
+                          </Box>
+                        ))}
+                    </Stack>
+                  ) : (
+                    renderNoResultsMessage()
+                  )}
 
                   <Button
                     variant='outlined'
