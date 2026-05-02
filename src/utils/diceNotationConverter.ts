@@ -15,6 +15,9 @@ export function rollGroupsToDiceNotation(rollGroups: RollGroup[]): string {
   const diceMap: Record<string, number> = {};
 
   rollGroups.forEach((group) => {
+    // Skip aggregate "Total" groups whose notation duplicates dice already counted in preceding groups
+    if (group.isSummary) return;
+
     // Parse notation like "2d6", "1d20", "3d8+5", "2d6-2"
     // We only care about the dice, not the modifier
     const diceRegex = /(\d+)d(\d+)/gi;
@@ -65,6 +68,8 @@ export function getTotalDiceCount(rollGroups: RollGroup[]): number {
   let total = 0;
 
   rollGroups.forEach((group) => {
+    if (group.isSummary) return;
+
     const diceRegex = /(\d+)d(\d+)/gi;
     const matches = Array.from(group.diceNotation.matchAll(diceRegex));
 
