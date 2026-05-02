@@ -181,6 +181,15 @@ const Changelog: React.FC = () => {
                   <strong>Cancelar</strong>.
                 </li>
                 <li>
+                  <strong>Melhoria: Card de Defesa com dois botões.</strong> O
+                  botão de <strong>lápis</strong> no card de Defesa agora abre
+                  diretamente a <strong>Mochila de Aventureiro</strong> (igual
+                  aos cards de Ataques e Equipamentos), facilitando a troca de
+                  armadura/escudo empunhado. As configurações finas de defesa
+                  (base, atributo usado, bônus manual) ficaram em um novo botão
+                  de <strong>engrenagem</strong> ao lado.
+                </li>
+                <li>
                   <strong>
                     Correção: Requisito do poder Sentidos Aguçados ajustado.
                   </strong>
