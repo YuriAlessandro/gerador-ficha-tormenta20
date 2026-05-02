@@ -182,43 +182,6 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Melhoria: Suplementos ativos respeitados no diálogo de
-                    adicionar item.
-                  </strong>{' '}
-                  Itens dos suplementos habilitados (Heróis de Arton, Ameaças de
-                  Arton, Deuses de Arton) aparecem agora como sub-grupos
-                  próprios em cada aba do diálogo, identificados pela abreviação
-                  do suplemento.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: Ordem manual da Mochila refletida na ficha.
-                  </strong>{' '}
-                  A ordem definida via drag-and-drop na Mochila é respeitada nas
-                  seções <strong>Ataques</strong>, <strong>Defesa</strong> e{' '}
-                  <strong>Equipamentos</strong> da ficha, e também no PDF (armas
-                  empunhadas aparecem primeiro, depois o resto na ordem manual).
-                </li>
-                <li>
-                  <strong>Melhoria: UX mobile da Mochila.</strong> AppBar mais
-                  compacta, filtros de categoria e seção de dinheiro/capacidade{' '}
-                  <strong>colapsados por padrão</strong> (com badge mostrando
-                  quantidade de filtros ativos), chips de empunhadura/vestida
-                  com emojis e variante outlined, totals inline, botão de
-                  adicionar com tamanho proporcional à largura da tela.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: Toggle de auto-descontar T$ movido para o diálogo
-                    de adicionar item.
-                  </strong>{' '}
-                  O switch ficou ao lado do saldo no rodapé do diálogo (onde a
-                  decisão de comprar acontece). Quando ativo e o saldo é
-                  insuficiente, o botão <strong>+</strong> do item fica
-                  desabilitado com tooltip explicando.
-                </li>
-                <li>
-                  <strong>
                     Correção: Requisito do poder Sentidos Aguçados ajustado.
                   </strong>
                 </li>
@@ -230,15 +193,6 @@ const Changelog: React.FC = () => {
                   grupos anteriores) eram contados em dobro ao processar
                   resultados 3D — agora são identificados como <em>summary</em>{' '}
                   e recalculados a partir dos grupos individuais.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Build oculta volta a ficar visível ao ser editada
-                    pelo dono.
-                  </strong>{' '}
-                  Quando uma build é ocultada por moderação, basta o autor
-                  editá-la e salvar para que volte a ficar visível, permitindo
-                  corrigir o conteúdo sem precisar contatar a moderação.
                 </li>
               </ul>
 
