@@ -72,6 +72,40 @@ const Changelog: React.FC = () => {
               <h3>4.13</h3>
               <ul>
                 <li>
+                  <strong>
+                    Novo: Dado percentual (d100) no rolador rápido.
+                  </strong>{' '}
+                  Adicionado ao QuickDiceRoller das mesas de jogo. Mostra
+                  valores 00, 10, 20, …, 90 (faces dezenas), seguindo a
+                  convenção de dado percentual sem ser clampeado para 1.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Requisito do poder Olho Atento ajustado.
+                  </strong>{' '}
+                  Era exigido <strong>Inteligência</strong>; passou a exigir{' '}
+                  <strong>Sabedoria</strong> e treino em{' '}
+                  <strong>Percepção</strong>, conforme regra oficial.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Total das rolagens 3D não duplica mais os dados.
+                  </strong>{' '}
+                  Grupos &quot;Total&quot; agregados (que repetiam a notação dos
+                  grupos anteriores) eram contados em dobro ao processar
+                  resultados 3D — agora são identificados como <em>summary</em>{' '}
+                  e recalculados a partir dos grupos individuais.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Build oculta volta a ficar visível ao ser editada
+                    pelo dono.
+                  </strong>{' '}
+                  Quando uma build é ocultada por moderação, basta o autor
+                  editá-la e salvar para que volte a ficar visível, permitindo
+                  corrigir o conteúdo sem precisar contatar a moderação.
+                </li>
+                <li>
                   <strong>Novo:</strong> <strong>Mochila de Aventureiro</strong>{' '}
                   substitui o drawer monolítico de edição de equipamentos por um{' '}
                   <strong>modal full-screen</strong> com grade visual de cards,
