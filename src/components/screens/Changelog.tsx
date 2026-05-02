@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            30/04/2026 (v4.12).
+            02/05/2026 (v4.13).
           </p>
 
           <p>
@@ -69,6 +69,154 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.13</h3>
+              <ul>
+                <li>
+                  <strong>Novo:</strong> <strong>Mochila de Aventureiro</strong>{' '}
+                  substitui o drawer monolítico de edição de equipamentos por um{' '}
+                  <strong>modal full-screen</strong> com grade visual de cards,
+                  ícones e cores por tipo, contagem de quantidade (xN),{' '}
+                  <strong>reordenamento por drag-and-drop</strong>,{' '}
+                  <strong>busca</strong>, filtros por categoria,{' '}
+                  <strong>toggle de agrupamento por categoria</strong> e edição
+                  completa de itens em abas (Geral / Estatísticas /
+                  Modificações). Itens superiores podem ser aplicados
+                  diretamente em armas, armaduras e escudos da mochila com{' '}
+                  <strong>aplicação automática dos bônus numéricos</strong>{' '}
+                  (Cruel, Atroz, Certeira, Pungente, Maciça, Precisa,
+                  Equilibrada, Discreta, Banhada a ouro, Luxuosa, Ajustada e
+                  outras). Capacidade de carga (10 + 2×Força) é informada — o
+                  jogador <strong>nunca é bloqueado</strong> de adicionar itens,
+                  mas vê banner e cards destacados quando sobrecarregado. Cada
+                  1.000 moedas conta como 1 espaço.
+                </li>
+                <li>
+                  <strong>Novo: Sistema de empunhadura.</strong> O jogador
+                  decide qual item está em cada mão (
+                  <strong>Principal / Secundária</strong>). Apenas o{' '}
+                  <strong>escudo empunhado</strong> aplica bônus de defesa, e{' '}
+                  <strong>armas de duas mãos</strong> ocupam ambos os slots. O
+                  controle aparece tanto na Mochila quanto na lista de Ataques
+                  (troca rápida sem abrir a mochila). Fichas antigas com 1
+                  escudo continuam aplicando bônus automaticamente
+                  (compatibilidade retroativa).
+                </li>
+                <li>
+                  <strong>Novo: Múltiplas armaduras e escudos.</strong> A
+                  mochila pode guardar várias armaduras e escudos
+                  simultaneamente. Apenas a <strong>armadura vestida</strong>{' '}
+                  aplica bônus de defesa, penalidade e flag de armadura pesada.
+                  Banner de aviso aparece quando há ≥2 armaduras sem nenhuma
+                  marcada como vestida.
+                </li>
+                <li>
+                  <strong>Novo: Sistema de munição.</strong> Flechas, Virotes,
+                  Balas, Pedras e Bolas de Ferro são rastreadas individualmente
+                  na ficha. Ao atacar com uma arma à distância, um diálogo
+                  pergunta se o jogador quer{' '}
+                  <strong>rolar consumindo munição</strong> ou rolar sem
+                  consumir; ao confirmar, a contagem é decrementada. Cada arma
+                  com munição mostra uma sub-linha 🎯 com a contagem atual em
+                  Ataques. Adicionar 1 stack de munição soma o pack-size correto
+                  (20 unidades para Flechas/Virotes/Balas/Pedras, 1 unidade para
+                  Bola de Ferro). Pedras (T$ 0) e Bola de Ferro foram
+                  adicionadas ao catálogo. Fichas antigas com Flechas/Virotes/
+                  Balas migram automaticamente.
+                </li>
+                <li>
+                  <strong>Novo: Modos de ataque alternativos.</strong> Armas com
+                  comportamentos diferentes apresentam um{' '}
+                  <strong>diálogo de seleção de modo</strong> antes da rolagem,
+                  com preview de atk/dano/crítico/atributo de cada modo:
+                  <ul>
+                    <li>
+                      <strong>
+                        Adaga, Lança, Machadinha, Tridente, Martelo Leve
+                      </strong>{' '}
+                      — corpo a corpo (Luta) ou arremessar (Pontaria).
+                    </li>
+                    <li>
+                      <strong>Azagaia</strong> — arremessar como padrão; corpo a
+                      corpo com penalidade de -5 no ataque.
+                    </li>
+                    <li>
+                      <strong>Funda</strong> — disparar Pedras (consome munição)
+                      ou pedra improvisada com -1 passo de dano (sem munição
+                      adequada).
+                    </li>
+                    <li>
+                      <strong>Lança de Fogo</strong> e{' '}
+                      <strong>Pistola-Punhal</strong> — corpo a corpo com opção
+                      de <strong>acionar mecanismo</strong> (consome 1 Bala,
+                      +2d8 / +2d6 se acertar) ou tiro à distância.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Novo: Atributo no dano configurável por arma.</strong>{' '}
+                  O jogador pode escolher qualquer um dos 6 atributos (Força,
+                  Destreza, Constituição, Inteligência, Sabedoria, Carisma) ou{' '}
+                  <strong>Nenhum</strong> como atributo somado ao dano, no nível
+                  da arma e por modo de ataque (corpo a corpo vs. arremesso).
+                  Por padrão, armas corpo a corpo somam <strong>Força</strong> e
+                  armas a distância somam <strong>Nenhum</strong>; algumas armas
+                  a distância seguem a regra oficial e somam Força (
+                  <strong>Funda</strong>, <strong>Arco Longo</strong>,{' '}
+                  <strong>Arco de Guerra</strong>, <strong>Balestra</strong>).
+                </li>
+                <li>
+                  <strong>Novo: Aviso ao atacar com arma não empunhada.</strong>{' '}
+                  Se a arma clicada não está em nenhuma mão (e a ficha já usa
+                  rastreamento de empunhadura), um diálogo oferece{' '}
+                  <strong>Empunhar e atacar</strong>,{' '}
+                  <strong>Atacar mesmo assim</strong> ou{' '}
+                  <strong>Cancelar</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: Suplementos ativos respeitados no diálogo de
+                    adicionar item.
+                  </strong>{' '}
+                  Itens dos suplementos habilitados (Heróis de Arton, Ameaças de
+                  Arton, Deuses de Arton) aparecem agora como sub-grupos
+                  próprios em cada aba do diálogo, identificados pela abreviação
+                  do suplemento.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: Ordem manual da Mochila refletida na ficha.
+                  </strong>{' '}
+                  A ordem definida via drag-and-drop na Mochila é respeitada nas
+                  seções <strong>Ataques</strong>, <strong>Defesa</strong> e{' '}
+                  <strong>Equipamentos</strong> da ficha, e também no PDF (armas
+                  empunhadas aparecem primeiro, depois o resto na ordem manual).
+                </li>
+                <li>
+                  <strong>Melhoria: UX mobile da Mochila.</strong> AppBar mais
+                  compacta, filtros de categoria e seção de dinheiro/capacidade{' '}
+                  <strong>colapsados por padrão</strong> (com badge mostrando
+                  quantidade de filtros ativos), chips de empunhadura/vestida
+                  com emojis e variante outlined, totals inline, botão de
+                  adicionar com tamanho proporcional à largura da tela.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: Toggle de auto-descontar T$ movido para o diálogo
+                    de adicionar item.
+                  </strong>{' '}
+                  O switch ficou ao lado do saldo no rodapé do diálogo (onde a
+                  decisão de comprar acontece). Quando ativo e o saldo é
+                  insuficiente, o botão <strong>+</strong> do item fica
+                  desabilitado com tooltip explicando.
+                </li>
+                <li>
+                  <strong>Remoção:</strong> O{' '}
+                  <strong>drawer antigo de edição de equipamentos</strong>{' '}
+                  (5.854 linhas) foi removido — toda a edição de itens passa
+                  pela nova Mochila de Aventureiro.
+                </li>
+              </ul>
+
               <h3>4.12</h3>
               <ul>
                 <li>
