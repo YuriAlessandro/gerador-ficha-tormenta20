@@ -64,7 +64,10 @@ import CharacterSheet, {
 } from '../../interfaces/CharacterSheet';
 import Weapons from '../Weapons';
 import DefenseEquipments from '../DefenseEquipments';
-import Equipment from '../../interfaces/Equipment';
+import Equipment, {
+  AmmoType,
+  DefenseEquipment,
+} from '../../interfaces/Equipment';
 import Bag from '../../interfaces/Bag';
 import '../../assets/css/result.css';
 import Spells from '../Spells';
@@ -79,7 +82,10 @@ import CompanionCreationDialog from './CompanionCreationDialog';
 import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
-import EquipmentEditDrawer from './EditDrawers/EquipmentEditDrawer';
+import { BackpackModal } from './BackpackModal';
+import { applyWielding, WieldingSlot } from './BackpackModal/wielding';
+import { getOrderedItemsByGroup } from './BackpackModal/bagOrdering';
+import { calcAmmoSpaces, findAmmoStack } from './BackpackModal/ammo';
 import PowersEditDrawer from './EditDrawers/PowersEditDrawer';
 import SpellsEditDrawer from './EditDrawers/SpellsEditDrawer';
 import DefenseEditDrawer from './EditDrawers/DefenseEditDrawer';
@@ -153,7 +159,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [currentSheet, setCurrentSheet] = useState(sheet);
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
-  const [equipmentDrawerOpen, setEquipmentDrawerOpen] = useState(false);
+  const [backpackOpen, setBackpackOpen] = useState(false);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
@@ -218,7 +224,7 @@ const Result: React.FC<ResultProps> = (props) => {
     if (!onSheetUpdate) {
       setSheetInfoDrawerOpen(false);
       setSkillsDrawerOpen(false);
-      setEquipmentDrawerOpen(false);
+      setBackpackOpen(false);
       setPowersDrawerOpen(false);
       setSpellsDrawerOpen(false);
       setDefenseDrawerOpen(false);
@@ -744,70 +750,42 @@ const Result: React.FC<ResultProps> = (props) => {
     return bag.equipments;
   }, [bag]);
 
-  const equipsEntriesNoWeapons: Equipment[] = useMemo(
-    () =>
-      Object.entries(bagEquipments)
-        .filter(
-          ([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo'
-        )
-        .flatMap((value) => value[1]),
-    [bagEquipments]
+  // All bag items in user-defined display order. The Equipamentos chip list
+  // mirrors the manual ordering set in the Mochila so reorder gestures
+  // performed there propagate to the sheet view.
+  const equipamentosOrdered: Equipment[] = useMemo(
+    () => getOrderedItemsByGroup(bag, () => true),
+    [bag]
   );
 
-  const equipamentosDiv = equipsEntriesNoWeapons.map((equip) => (
-    <Box
-      key={equip.nome}
-      sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
-    >
-      <Chip
-        sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
-        label={`${
-          equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : ''
-        }${equip.nome} ${
-          equip.spaces
-            ? equip.spaces > 0 &&
-              `[${equip.spaces * (equip.quantity || 1)} espaço(s)]`
-            : ''
-        }`}
-      />
-      {equip.descricao && (
-        <Tooltip title={equip.descricao} arrow>
-          <InfoOutlinedIcon
-            sx={{
-              fontSize: 16,
-              ml: 0.5,
-              color: 'text.secondary',
-              cursor: 'help',
-            }}
-          />
-        </Tooltip>
-      )}
-      {equip.rolls && equip.rolls.length > 0 && (
-        <RollButton
-          rolls={equip.rolls}
-          iconOnly
-          size='small'
-          characterName={nome}
-        />
-      )}
-    </Box>
-  ));
-
-  equipamentosDiv.push(
-    ...bagEquipments.Arma.map((weapon) => (
+  const equipamentosDiv = equipamentosOrdered.map((equip) => {
+    let chipLabel: string;
+    if (equip.isAmmo) {
+      const units = equip.unitsRemaining ?? 0;
+      const ammoSpaces = calcAmmoSpaces(equip);
+      chipLabel = `${equip.nome}: ${units}${
+        ammoSpaces > 0 ? ` [${ammoSpaces} espaço(s)]` : ''
+      }`;
+    } else {
+      const qty =
+        equip.quantity && equip.quantity > 1 ? `${equip.quantity}x ` : '';
+      const spaceText =
+        equip.spaces && equip.spaces > 0
+          ? `[${equip.spaces * (equip.quantity || 1)} espaço(s)]`
+          : '';
+      chipLabel = `${qty}${equip.nome} ${spaceText}`;
+    }
+    return (
       <Box
-        key={getKey(weapon.nome)}
+        key={equip.nome}
         sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
       >
         <Chip
-          label={`${weapon.nome} ${
-            weapon.spaces
-              ? weapon.spaces > 0 && `[${weapon.spaces} espaço(s)]`
-              : ''
-          }`}
+          sx={{ marginRight: equip.rolls && equip.rolls.length > 0 ? 0 : 0 }}
+          label={chipLabel}
         />
-        {weapon.descricao && (
-          <Tooltip title={weapon.descricao} arrow>
+        {equip.descricao && (
+          <Tooltip title={equip.descricao} arrow>
             <InfoOutlinedIcon
               sx={{
                 fontSize: 16,
@@ -818,99 +796,179 @@ const Result: React.FC<ResultProps> = (props) => {
             />
           </Tooltip>
         )}
-        {weapon.rolls && weapon.rolls.length > 0 && (
+        {equip.rolls && equip.rolls.length > 0 && (
           <RollButton
-            rolls={weapon.rolls}
+            rolls={equip.rolls}
             iconOnly
             size='small'
             characterName={nome}
           />
         )}
       </Box>
-    ))
-  );
+    );
+  });
 
-  equipamentosDiv.push(
-    ...bagEquipments.Armadura.map((armor) => (
-      <Box
-        key={getKey(armor.nome)}
-        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
-      >
-        <Chip
-          label={`${armor.nome} ${
-            armor.spaces
-              ? armor.spaces > 0 && `[${armor.spaces} espaço(s)]`
-              : ''
-          }`}
-        />
-        {armor.descricao && (
-          <Tooltip title={armor.descricao} arrow>
-            <InfoOutlinedIcon
-              sx={{
-                fontSize: 16,
-                ml: 0.5,
-                color: 'text.secondary',
-                cursor: 'help',
-              }}
-            />
-          </Tooltip>
-        )}
-        {armor.rolls && armor.rolls.length > 0 && (
-          <RollButton
-            rolls={armor.rolls}
-            iconOnly
-            size='small'
-            characterName={nome}
-          />
-        )}
-      </Box>
-    ))
-  );
-
-  equipamentosDiv.push(
-    ...bagEquipments.Escudo.map((shield) => (
-      <Box
-        key={getKey(shield.nome)}
-        sx={{ display: 'inline-flex', alignItems: 'center', margin: 0.5 }}
-      >
-        <Chip
-          label={`${shield.nome} ${
-            shield.spaces
-              ? shield.spaces > 0 && `[${shield.spaces} espaço(s)]`
-              : ''
-          }`}
-        />
-        {shield.descricao && (
-          <Tooltip title={shield.descricao} arrow>
-            <InfoOutlinedIcon
-              sx={{
-                fontSize: 16,
-                ml: 0.5,
-                color: 'text.secondary',
-                cursor: 'help',
-              }}
-            />
-          </Tooltip>
-        )}
-        {shield.rolls && shield.rolls.length > 0 && (
-          <RollButton
-            rolls={shield.rolls}
-            iconOnly
-            size='small'
-            characterName={nome}
-          />
-        )}
-      </Box>
-    ))
-  );
+  // Note: weapons, armors and shields are already included in
+  // `equipamentosOrdered` via the displayOrder traversal — no extra pushes
+  // needed.
 
   const modFor = atributos.Força.value;
 
-  const weaponsDiv = useMemo(
-    () => (
+  const handleConsumeAmmo = useCallback(
+    (ammoType: AmmoType) => {
+      const stack = findAmmoStack(bagEquipments, ammoType);
+      if (!stack || !stack.id || (stack.unitsRemaining ?? 0) <= 0) return;
+
+      const nextEquipments: typeof bagEquipments = { ...bagEquipments };
+      (Object.keys(nextEquipments) as (keyof typeof nextEquipments)[]).forEach(
+        (cat) => {
+          const list = nextEquipments[cat];
+          if (!Array.isArray(list)) return;
+          const idx = list.findIndex((it) => it.id === stack.id);
+          if (idx >= 0) {
+            const updated: Equipment = {
+              ...list[idx],
+              unitsRemaining: Math.max(0, (list[idx].unitsRemaining ?? 0) - 1),
+            };
+            nextEquipments[cat] = [
+              ...list.slice(0, idx),
+              updated,
+              ...list.slice(idx + 1),
+            ] as never;
+          }
+        }
+      );
+      const nextBag = new Bag(nextEquipments, true, bag.displayOrder);
+      const updatedSheet: CharacterSheet = { ...currentSheet, bag: nextBag };
+      const recomputed = recalculateSheet(updatedSheet, undefined, undefined, {
+        skipPMRecalc: true,
+        skipPVRecalc: true,
+      });
+      // Rehydrate Bag class methods after recalculateSheet's cloneDeep strips them.
+      if (recomputed.bag && !recomputed.bag.getEquipments) {
+        const plainBag = recomputed.bag as unknown as {
+          equipments: typeof bagEquipments;
+          displayOrder?: string[];
+        };
+        recomputed.bag = new Bag(
+          plainBag.equipments,
+          true,
+          plainBag.displayOrder
+        );
+      }
+      setCurrentSheet(recomputed);
+      if (onSheetUpdate) onSheetUpdate(recomputed);
+    },
+    [bag, bagEquipments, currentSheet, onSheetUpdate]
+  );
+
+  const handleQuickWieldChange = useCallback(
+    (itemId: string, slot: WieldingSlot) => {
+      const next = applyWielding(
+        {
+          mainHandItemId: currentSheet.mainHandItemId,
+          offHandItemId: currentSheet.offHandItemId,
+        },
+        itemId,
+        slot
+      );
+      const updatedSheet: CharacterSheet = {
+        ...currentSheet,
+        mainHandItemId: next.mainHandItemId,
+        offHandItemId: next.offHandItemId,
+      };
+      // Run the full recalc (skipping PV/PM since wielding doesn't touch them).
+      // Calling `calcDefense` directly here would compound bonuses: that
+      // function sums equipment bonuses on top of `sheet.defesa`, which
+      // already contains the previously-applied bonuses. Only the full
+      // recalculate path resets defesa to its base before re-applying.
+      const recomputed = recalculateSheet(updatedSheet, undefined, undefined, {
+        skipPMRecalc: true,
+        skipPVRecalc: true,
+      });
+      setCurrentSheet(recomputed);
+      if (onSheetUpdate) onSheetUpdate(recomputed);
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  // Shared by Ataques and Defesa: blocks slots when a hand is already
+  // occupied by a 2H weapon or a shield. The wielded item itself is exempt.
+  const computeWieldingDisabled = useMemo(() => {
+    const wieldingTwoHanded =
+      currentSheet.mainHandItemId !== undefined &&
+      currentSheet.mainHandItemId === currentSheet.offHandItemId;
+    const handCandidates: Equipment[] = [
+      ...bagEquipments.Arma,
+      ...bagEquipments.Escudo,
+      ...bagEquipments.Alquimía,
+      ...bagEquipments['Item Geral'],
+    ];
+    const twoHandedItem = wieldingTwoHanded
+      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
+      : undefined;
+    const mainHandItemForDisable = currentSheet.mainHandItemId
+      ? handCandidates.find((it) => it.id === currentSheet.mainHandItemId)
+      : undefined;
+    const offHandItemForDisable = currentSheet.offHandItemId
+      ? handCandidates.find((it) => it.id === currentSheet.offHandItemId)
+      : undefined;
+    return (
+      itemId: string | undefined
+    ): Partial<Record<'main' | 'off', { reason: string }>> | undefined => {
+      if (wieldingTwoHanded && twoHandedItem && itemId !== twoHandedItem.id) {
+        const reason = `Mão ocupada por ${
+          twoHandedItem.customDisplayName || twoHandedItem.nome
+        } (duas mãos). Solte primeiro.`;
+        return { main: { reason }, off: { reason } };
+      }
+      const disabled: Partial<Record<'main' | 'off', { reason: string }>> = {};
+      if (
+        mainHandItemForDisable &&
+        mainHandItemForDisable.group === 'Escudo' &&
+        itemId !== mainHandItemForDisable.id
+      ) {
+        disabled.main = {
+          reason: `Mão ocupada por ${
+            mainHandItemForDisable.customDisplayName ||
+            mainHandItemForDisable.nome
+          } (escudo). Solte primeiro.`,
+        };
+      }
+      if (
+        offHandItemForDisable &&
+        offHandItemForDisable.group === 'Escudo' &&
+        itemId !== offHandItemForDisable.id
+      ) {
+        disabled.off = {
+          reason: `Mão ocupada por ${
+            offHandItemForDisable.customDisplayName ||
+            offHandItemForDisable.nome
+          } (escudo). Solte primeiro.`,
+        };
+      }
+      return Object.keys(disabled).length > 0 ? disabled : undefined;
+    };
+  }, [
+    currentSheet.mainHandItemId,
+    currentSheet.offHandItemId,
+    bagEquipments.Arma,
+    bagEquipments.Escudo,
+    bagEquipments.Alquimía,
+    bagEquipments['Item Geral'],
+  ]);
+
+  const weaponsDiv = useMemo(() => {
+    const wieldingTrackingActive =
+      currentSheet.mainHandItemId !== undefined ||
+      currentSheet.offHandItemId !== undefined;
+    return (
       <Weapons
         getKey={getKey}
-        weapons={bagEquipments.Arma}
+        weapons={getOrderedItemsByGroup(
+          bag,
+          (it) => it.group === 'Arma' && !it.isAmmo
+        )}
         completeSkills={completeSkills}
         atributos={atributos}
         modFor={modFor}
@@ -919,23 +977,40 @@ const Result: React.FC<ResultProps> = (props) => {
           markersEnabled ? conditionHighlights.attack : undefined
         }
         sheetBonuses={currentSheet.sheetBonuses}
+        mainHandItemId={currentSheet.mainHandItemId}
+        offHandItemId={currentSheet.offHandItemId}
+        onWieldingChange={onSheetUpdate ? handleQuickWieldChange : undefined}
+        getWieldingDisabledSlots={computeWieldingDisabled}
+        wieldingTrackingActive={wieldingTrackingActive}
+        bagEquipments={bagEquipments}
+        onConsumeAmmo={onSheetUpdate ? handleConsumeAmmo : undefined}
       />
-    ),
-    [
-      bagEquipments.Arma,
-      completeSkills,
-      atributos,
-      modFor,
-      nome,
-      markersEnabled,
-      conditionHighlights.attack,
-      currentSheet.sheetBonuses,
-    ]
-  );
+    );
+  }, [
+    bag,
+    bagEquipments,
+    completeSkills,
+    atributos,
+    modFor,
+    nome,
+    markersEnabled,
+    conditionHighlights.attack,
+    currentSheet.sheetBonuses,
+    currentSheet.mainHandItemId,
+    currentSheet.offHandItemId,
+    onSheetUpdate,
+    handleQuickWieldChange,
+    handleConsumeAmmo,
+    computeWieldingDisabled,
+  ]);
 
   const defenseEquipments = useMemo(
-    () => [...bagEquipments.Armadura, ...bagEquipments.Escudo],
-    [bagEquipments.Armadura, bagEquipments.Escudo]
+    () =>
+      getOrderedItemsByGroup(
+        bag,
+        (it) => it.group === 'Armadura' || it.group === 'Escudo'
+      ) as unknown as DefenseEquipment[],
+    [bag]
   );
 
   const defenseFormula = useMemo(() => {
@@ -943,17 +1018,31 @@ const Result: React.FC<ResultProps> = (props) => {
     const components: string[] = [];
     components.push(`${base} (base)`);
 
-    // Armor and shield bonuses
-    defenseEquipments.forEach((equip) => {
-      if (equip.defenseBonus && equip.defenseBonus > 0) {
-        components.push(`${equip.defenseBonus} (${equip.nome})`);
+    // Resolve which armor counts (worn) and which shields count (wielded).
+    // Mirrors the rules used by `calcDefense` so the printed formula matches
+    // the computed defesa value.
+    const armors = bagEquipments.Armadura ?? [];
+    let activeArmor = currentSheet.wornArmorId
+      ? armors.find((a) => a.id === currentSheet.wornArmorId)
+      : undefined;
+    if (!activeArmor && !currentSheet.wornArmorId && armors.length === 1) {
+      [activeArmor] = armors; // legacy compat
+    }
+    if (activeArmor && activeArmor.defenseBonus > 0) {
+      components.push(`${activeArmor.defenseBonus} (${activeArmor.nome})`);
+    }
+    (bagEquipments.Escudo ?? []).forEach((shield) => {
+      const inHand =
+        shield.id !== undefined &&
+        (shield.id === currentSheet.mainHandItemId ||
+          shield.id === currentSheet.offHandItemId);
+      if (inHand && shield.defenseBonus > 0) {
+        components.push(`${shield.defenseBonus} (${shield.nome})`);
       }
     });
 
-    // Check if character has heavy armor
-    const hasHeavyArmor = bagEquipments.Armadura?.some((armor) =>
-      isHeavyArmor(armor)
-    );
+    // Heavy armor is determined by the worn armor only.
+    const hasHeavyArmor = activeArmor ? isHeavyArmor(activeArmor) : false;
 
     // Attribute modifier
     const useAttr = currentSheet.useDefenseAttribute ?? true;
@@ -1374,7 +1463,7 @@ const Result: React.FC<ResultProps> = (props) => {
                       backgroundColor: theme.palette.primary.dark,
                     },
                   }}
-                  onClick={() => setEquipmentDrawerOpen(true)}
+                  onClick={() => setBackpackOpen(true)}
                 >
                   <EditIcon />
                 </IconButton>
@@ -1529,6 +1618,13 @@ const Result: React.FC<ResultProps> = (props) => {
                   <DefenseEquipments
                     getKey={getKey}
                     defenseEquipments={defenseEquipments}
+                    wornArmorId={currentSheet.wornArmorId}
+                    mainHandItemId={currentSheet.mainHandItemId}
+                    offHandItemId={currentSheet.offHandItemId}
+                    onWieldingChange={
+                      onSheetUpdate ? handleQuickWieldChange : undefined
+                    }
+                    getWieldingDisabledSlots={computeWieldingDisabled}
                   />
                   <Box
                     sx={{
@@ -1539,9 +1635,17 @@ const Result: React.FC<ResultProps> = (props) => {
                   >
                     <Typography fontSize={12} color='text.secondary'>
                       <strong>Penalidade de Armadura: </strong>
-                      {((bag.getArmorPenalty
-                        ? bag.getArmorPenalty()
-                        : bag.armorPenalty) +
+                      {((() => {
+                        if (bag.getActiveArmorPenalty) {
+                          return bag.getActiveArmorPenalty(
+                            currentSheet.wornArmorId,
+                            currentSheet.mainHandItemId,
+                            currentSheet.offHandItemId
+                          );
+                        }
+                        if (bag.getArmorPenalty) return bag.getArmorPenalty();
+                        return bag.armorPenalty;
+                      })() +
                         extraArmorPenalty) *
                         -1}
                     </Typography>
@@ -1727,7 +1831,7 @@ const Result: React.FC<ResultProps> = (props) => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => setEquipmentDrawerOpen(true)}
+                    onClick={() => setBackpackOpen(true)}
                   >
                     <EditIcon />
                   </IconButton>
@@ -2122,9 +2226,9 @@ const Result: React.FC<ResultProps> = (props) => {
           onSave={handleSkillsUpdate}
         />
 
-        <EquipmentEditDrawer
-          open={equipmentDrawerOpen}
-          onClose={() => setEquipmentDrawerOpen(false)}
+        <BackpackModal
+          open={backpackOpen}
+          onClose={() => setBackpackOpen(false)}
           sheet={currentSheet}
           onSave={handleEquipmentUpdate}
         />
@@ -2160,7 +2264,7 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setDefenseDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
-          onOpenEquipmentDrawer={() => setEquipmentDrawerOpen(true)}
+          onOpenEquipmentDrawer={() => setBackpackOpen(true)}
         />
 
         <RdEditDrawer

@@ -11,6 +11,8 @@ import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import { getWeaponSkill, getSkillAttackBonus } from './weaponSkill';
+import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
+import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -161,7 +163,23 @@ const preparePDF: (
   const MAX_DEFENSE_FIELDS = 2;
 
   const bagEquipaments = sheet.bag.getEquipments();
-  const weapons = bagEquipaments.Arma.slice(0, MAX_WEAPON_FIELDS);
+  // Weapons in the PDF: wielded ones first (so the active weapon is always
+  // visible even when the player owns more than 5), then the rest in the
+  // user-defined manual order.
+  const allWeapons = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Arma'
+  );
+  const wieldedWeapons = allWeapons.filter(
+    (w) =>
+      w.id !== undefined &&
+      (w.id === sheet.mainHandItemId || w.id === sheet.offHandItemId)
+  );
+  const restWeapons = allWeapons.filter((w) => !wieldedWeapons.includes(w));
+  const weapons = [...wieldedWeapons, ...restWeapons].slice(
+    0,
+    MAX_WEAPON_FIELDS
+  );
 
   weapons.forEach((weapon, index) => {
     const weaponNameField = form.getTextField(`ataque${index + 1}`);
@@ -189,9 +207,53 @@ const preparePDF: (
     weaponBonusField.setText(`${atk >= 0 ? '+' : ''}${atk}`);
   });
 
-  const defenseEquipments = bagEquipaments.Armadura.concat(
-    bagEquipaments.Escudo
-  ).slice(0, MAX_DEFENSE_FIELDS);
+  // Prioritize the worn armor and the wielded shield(s) in the fixed PDF
+  // slots. Other armors/shields owned but not active fall to the inventory
+  // list below.
+  const allArmors = bagEquipaments.Armadura;
+  const allShields = bagEquipaments.Escudo;
+  let resolvedWornArmor = sheet.wornArmorId
+    ? allArmors.find((a) => a.id === sheet.wornArmorId)
+    : undefined;
+  if (!resolvedWornArmor && !sheet.wornArmorId && allArmors.length === 1) {
+    [resolvedWornArmor] = allArmors;
+  }
+  const wieldedShields = allShields.filter(
+    (s) =>
+      s.id !== undefined &&
+      (s.id === sheet.mainHandItemId || s.id === sheet.offHandItemId)
+  );
+  // Fallback: if neither hand has a shield assigned but exactly 1 shield
+  // exists, treat it as wielded for PDF purposes (legacy compat).
+  const effectiveShields =
+    wieldedShields.length === 0 &&
+    !sheet.mainHandItemId &&
+    !sheet.offHandItemId &&
+    allShields.length === 1
+      ? allShields
+      : wieldedShields;
+  const prioritizedDefense: (typeof allArmors)[number][] = [];
+  if (resolvedWornArmor) prioritizedDefense.push(resolvedWornArmor);
+  prioritizedDefense.push(...effectiveShields);
+  // Top up with any leftover defense equipment so we don't leave PDF slots
+  // empty when neither armor nor shield is "active". Leftovers come in the
+  // user-defined manual order.
+  if (prioritizedDefense.length < MAX_DEFENSE_FIELDS) {
+    const leftoverOrdered = getOrderedItemsByGroup(
+      sheet.bag,
+      (it) => it.group === 'Armadura' || it.group === 'Escudo'
+    ).filter(
+      (eq) =>
+        !prioritizedDefense.some((p) => p.id === eq.id && eq.id !== undefined)
+    );
+    prioritizedDefense.push(
+      ...(leftoverOrdered.slice(
+        0,
+        MAX_DEFENSE_FIELDS - prioritizedDefense.length
+      ) as typeof prioritizedDefense)
+    );
+  }
+  const defenseEquipments = prioritizedDefense.slice(0, MAX_DEFENSE_FIELDS);
   defenseEquipments.forEach((defense, index) => {
     const defenseNameField = form.getTextField(`armadura${index + 1}`);
     const defenseBonusField = form.getTextField(`defesa${index + 1}`);
@@ -206,12 +268,13 @@ const preparePDF: (
     );
   });
 
-  // Add remain equipments
-  const equipsEntriesNoWeapons: Equipment[] = Object.entries(
-    sheet.bag.getEquipments()
-  )
-    .filter(([key]) => key !== 'Arma' && key !== 'Armadura' && key !== 'Escudo')
-    .flatMap((value) => value[1]);
+  // Add remain equipments — respects the user-defined manual order so the
+  // text inventory mirrors what the player sees in the Mochila.
+  const equipsEntriesNoWeapons: Equipment[] = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) =>
+      it.group !== 'Arma' && it.group !== 'Armadura' && it.group !== 'Escudo'
+  );
 
   // Concanenate all equipments names into one string
   const equipmentsNames = equipsEntriesNoWeapons
@@ -227,16 +290,28 @@ const preparePDF: (
     )
     .join('\n');
 
-  const allWeapons = bagEquipaments.Arma;
-  const allDefenseEquipments = bagEquipaments.Armadura.concat(
-    bagEquipaments.Escudo
+  const allWeaponsForList = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Arma'
+  );
+  const allDefenseEquipments = getOrderedItemsByGroup(
+    sheet.bag,
+    (it) => it.group === 'Armadura' || it.group === 'Escudo'
   );
 
-  const weaponsNames = allWeapons
-    .map(
-      (weapon) =>
-        `${weapon.nome}${weapon.spaces ? ` (${weapon.spaces} espaços)` : ''}`
-    )
+  const weaponsNames = allWeaponsForList
+    .map((weapon) => {
+      if (weapon.isAmmo) {
+        const units = weapon.unitsRemaining ?? 0;
+        const ammoSpaces = calcAmmoSpaces(weapon);
+        return `${weapon.nome}: ${units}${
+          ammoSpaces > 0 ? ` (${ammoSpaces} espaços)` : ''
+        }`;
+      }
+      return `${weapon.nome}${
+        weapon.spaces ? ` (${weapon.spaces} espaços)` : ''
+      }`;
+    })
     .join('\n');
 
   const defenseNames = allDefenseEquipments

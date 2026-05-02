@@ -4092,9 +4092,16 @@ const applyStatModifiers = (
     }
   });
 
-  // Class-conditional Damage Reduction
-  const equippedArmors = sheet.bag.equipments.Armadura || [];
-  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+  // Class-conditional Damage Reduction. Uses ONLY the worn armor — multiple
+  // armors may live in the bag now, but only the worn one drives effects.
+  const allArmors = sheet.bag.equipments.Armadura || [];
+  let wornArmor = sheet.wornArmorId
+    ? allArmors.find((a) => a.id === sheet.wornArmorId)
+    : undefined;
+  if (!wornArmor && !sheet.wornArmorId && allArmors.length === 1) {
+    [wornArmor] = allArmors; // legacy compat
+  }
+  const hasHeavyArmor = wornArmor ? isHeavyArmor(wornArmor) : false;
 
   // Bárbaro: Resistência a Dano (RD Geral escalável)
   if (sheet.classe.name === 'Bárbaro' && sheet.nivel >= 5) {
@@ -4641,7 +4648,11 @@ export default function generateRandomSheet(
       const attr = atributos[skillAttr as unknown as Atributo];
 
       const armorPenalty = SkillsWithArmorPenalty.includes(skill)
-        ? charSheet.bag.getArmorPenalty?.()
+        ? charSheet.bag.getActiveArmorPenalty?.(
+            charSheet.wornArmorId,
+            charSheet.mainHandItemId,
+            charSheet.offHandItemId
+          ) ?? charSheet.bag.getArmorPenalty?.()
         : 0;
 
       return {
@@ -4679,8 +4690,16 @@ export default function generateRandomSheet(
     });
   }
 
-  const equippedArmors = charSheet.bag.equipments.Armadura || [];
-  const hasHeavyArmor = equippedArmors.some((armor) => isHeavyArmor(armor));
+  const armorsInBag = charSheet.bag.equipments.Armadura || [];
+  let wornArmorForDisp = charSheet.wornArmorId
+    ? armorsInBag.find((a) => a.id === charSheet.wornArmorId)
+    : undefined;
+  if (!wornArmorForDisp && !charSheet.wornArmorId && armorsInBag.length === 1) {
+    [wornArmorForDisp] = armorsInBag; // legacy compat
+  }
+  const hasHeavyArmor = wornArmorForDisp
+    ? isHeavyArmor(wornArmorForDisp)
+    : false;
   const displacement = calcDisplacement(
     charSheet.bag,
     getRaceDisplacement(charSheet.raca),

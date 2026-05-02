@@ -34,8 +34,81 @@ export interface EquipmentSelectableBonus {
   pick: number; // Number of skills to select (usually 1)
 }
 
+/**
+ * A modification ("modificação de item superior") applied to a weapon, armor or shield.
+ * References a modification by its name from the catalog in `src/data/rewards/items.ts`.
+ * `specialMaterial` is set only when `mod === 'Material especial'`.
+ */
+export interface AppliedModification {
+  mod: string;
+  specialMaterial?: string;
+}
+
+export type AmmoType =
+  | 'Flechas'
+  | 'Virotes'
+  | 'Balas'
+  | 'Pedras'
+  | 'Bola de Ferro';
+
+/**
+ * Atributo somado ao dano da arma. Pode ser qualquer um dos 6 atributos
+ * (Força, Destreza, Constituição, Inteligência, Sabedoria, Carisma) ou
+ * "Nenhum" (não soma atributo). Quando undefined, resolve-se a partir de
+ * `isWeaponMelee` (melee → 'Força', ranged → 'Nenhum').
+ */
+export type DamageAttribute =
+  | 'Força'
+  | 'Destreza'
+  | 'Constituição'
+  | 'Inteligência'
+  | 'Sabedoria'
+  | 'Carisma'
+  | 'Nenhum';
+
+/**
+ * A "modo de ataque" the weapon supports. When `specialActions` is non-empty,
+ * the player is prompted to pick one before each attack roll. Each action can
+ * override skill (Luta vs Pontaria), damage, critical, attack bonus, and
+ * provide an optional follow-up "trigger" (Lança de Fogo / Pistola-Punhal
+ * mecanismo).
+ */
+export interface WeaponActionTrigger {
+  /** Label for the trigger confirmation button. */
+  label: string;
+  /** Extra damage rolled and added when the attack hits. */
+  extraDamage: string;
+  /** When set, the trigger consumes 1 unit of this ammo type from the bag. */
+  consumesAmmo?: AmmoType;
+}
+
+export interface WeaponAction {
+  id: string;
+  label: string;
+  description?: string;
+  /** Forces the skill used for the attack roll. Default = derived from alcance/arremesso. */
+  skill?: 'Luta' | 'Pontaria';
+  /** Override the weapon's `dano` for this action. */
+  dano?: string;
+  /** Override the weapon's `critico` for this action. */
+  critico?: string;
+  /** Atributo somado ao dano nesse modo. Quando undefined, herda de weapon.damageAttribute. */
+  damageAttribute?: DamageAttribute;
+  /** Atk bonus delta layered on top of the weapon's atkBonus (e.g. Azagaia -5 melee). */
+  atkBonusDelta?: number;
+  /** Step-down N notches in the damage die ladder before rolling (Funda improvisada). */
+  damageStepDelta?: number;
+  /** Skips the ammo prompt — useful for "improvisada" actions on ammo weapons. */
+  skipAmmo?: boolean;
+  /** Optional trigger asked after the action is picked. */
+  trigger?: WeaponActionTrigger;
+}
+
 export default interface Equipment {
-  id?: string; // UUID for unique identification (used for custom items)
+  // UUID. Optional in the type because catalog/data definitions are created without one,
+  // but the `Bag` class guarantees every item it holds has an `id` after construction
+  // (ensureIds runs in the constructor and on setEquipments).
+  id?: string;
   nome: string;
   dano?: string;
   critico?: string;
@@ -48,10 +121,13 @@ export default interface Equipment {
   weaponTags?: string[];
   preco?: number;
 
-  // Base values for weapons (original stats before any modifications)
+  // Base values (original stats before any modifications). When modifications change,
+  // the final stat is recomputed from the base value plus the aggregated effect.
   baseDano?: string;
   baseAtkBonus?: number;
   baseCritico?: string;
+  baseSpaces?: number;
+  baseSheetBonuses?: SheetBonus[];
 
   // Flag to indicate if this weapon has manual user edits
   // When true, recalculateSheet will preserve user edits instead of resetting
@@ -83,6 +159,14 @@ export default interface Equipment {
 
   // Can be used as weapon (e.g., Tocha)
   canBeUsedAsWeapon?: boolean;
+
+  // Player-marked override: this item can be wielded in a hand even if its
+  // category is not normally wieldable (e.g. a custom Esotérico wand).
+  canBeWielded?: boolean;
+
+  // Weapon requires both hands to be wielded. When true, equipping the item
+  // occupies both `mainHandItemId` and `offHandItemId` slots.
+  twoHanded?: boolean;
   weaponStats?: {
     dano: string;
     critico: string;
@@ -94,6 +178,37 @@ export default interface Equipment {
 
   // User-defined description for the item
   descricao?: string;
+
+  // User-customized display name. When present, takes precedence over `nome` for UI rendering.
+  customDisplayName?: string;
+
+  // Superior-item modifications applied to this equipment (weapons, armor, shields).
+  modifications?: AppliedModification[];
+
+  // Ammunition fields. `ammoType` on a ranged weapon links it to its ammo. On an
+  // ammo item itself, `isAmmo` is true and `ammoType` names what kind it is.
+  // `ammoPackSize` is how many individual rounds one "buy" of this catalog item
+  // adds (20 for typical packs; 1 for Bola de Ferro since it's sold per ball).
+  // `ammoUnitsPerSpace` is how many rounds fit in 1 espaço (20 default; 2 for
+  // Bola de Ferro since each ball weighs 0,5 espaço). `unitsRemaining` is the
+  // count of individual rounds left in this stack — fonte da verdade.
+  ammoType?: AmmoType;
+  isAmmo?: boolean;
+  ammoPackSize?: number;
+  ammoUnitsPerSpace?: number;
+  unitsRemaining?: number;
+
+  // Modos de ataque alternativos. Quando definido, o jogador escolhe o modo
+  // antes de cada rolagem (arremesso vs corpo a corpo, modo híbrido, etc).
+  specialActions?: WeaponAction[];
+
+  /**
+   * Atributo somado ao dano da arma. Quando undefined, resolve via
+   * `isWeaponMelee` (melee → 'Força', ranged → 'Nenhum'). Catálogos podem
+   * sobrescrever (ex.: Funda, Arco Longo somam Força mesmo sendo a distância).
+   * O usuário pode editar via Mochila para qualquer arma.
+   */
+  damageAttribute?: DamageAttribute;
 
   // Supplement information (for items from supplements)
   supplementId?: string;
@@ -111,15 +226,6 @@ export interface DefenseEquipment extends Equipment {
   baseArmorPenalty?: number;
   // Flag to indicate if this is a heavy armor (affects defense calculation)
   isHeavyArmor?: boolean;
-}
-
-interface Modification {
-  name: string;
-  description: string;
-}
-
-export interface SuperiorEquipment extends Equipment {
-  modifications: Modification[];
 }
 
 export interface CombatItems {

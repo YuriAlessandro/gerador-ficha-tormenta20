@@ -426,6 +426,24 @@ export default interface CharacterSheet {
   sheetActionHistory: SheetActionHistoryEntry[];
   defesa: number;
   bag: Bag;
+  // Currently wielded items (Equipment.id references). Optional — when both are
+  // undefined, the legacy "everything in the bag is equipped" behavior applies
+  // (preserves backwards compatibility for sheets created before this feature).
+  mainHandItemId?: string;
+  offHandItemId?: string;
+  // Currently worn armor (Equipment.id reference). When undefined and there is
+  // exactly 1 armor in the bag, that armor implicitly applies (legacy compat).
+  // When undefined with ≥2 armors, NONE applies — the sheet shows a banner
+  // asking the player to pick.
+  wornArmorId?: string;
+  // Set to `true` after `migrateLegacyEquipState` ran on this sheet. Prevents
+  // the auto-equip migration from running again and overriding deliberate
+  // choices made by the player after the migration.
+  equipStateMigrated?: boolean;
+  // Backpack visual mode: when `true`, items are grouped by category in the
+  // modal grid; otherwise flat. Per-sheet because different characters benefit
+  // from different layouts (e.g. inventory-heavy vs. minimal kits).
+  backpackGroupByCategory?: boolean;
   devoto?: CharacterReligion;
   origin:
     | {

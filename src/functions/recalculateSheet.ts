@@ -38,6 +38,8 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
+import { applyModificationsToEquipment } from './modifications/applyModifications';
+import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 
 import {
   applyRaceAbilities,
@@ -531,10 +533,21 @@ const calcDisplacement = (
 function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
   const updatedSheet = _.cloneDeep(sheet);
 
-  // Calculate armor penalty for skills that are affected by armor
-  const armorPenalty = updatedSheet.bag.getArmorPenalty
-    ? updatedSheet.bag.getArmorPenalty()
-    : updatedSheet.bag.armorPenalty;
+  // Calculate armor penalty for skills that are affected by armor. Use the
+  // wielding/worn-aware variant so multiple armors in the bag don't double-
+  // count — only the worn armor and the wielded shield contribute.
+  let armorPenalty = 0;
+  if (updatedSheet.bag.getActiveArmorPenalty) {
+    armorPenalty = updatedSheet.bag.getActiveArmorPenalty(
+      updatedSheet.wornArmorId,
+      updatedSheet.mainHandItemId,
+      updatedSheet.offHandItemId
+    );
+  } else if (updatedSheet.bag.getArmorPenalty) {
+    armorPenalty = updatedSheet.bag.getArmorPenalty();
+  } else {
+    armorPenalty = updatedSheet.bag.armorPenalty;
+  }
 
   // Helper function to determine training bonus
   const skillTrainingMod = (isTrained: boolean, level: number): number => {
@@ -1119,6 +1132,13 @@ export function recalculateSheet(
 ): CharacterSheet {
   let updatedSheet = _.cloneDeep(sheet);
   let removedPowerNames: string[] = [];
+
+  // One-shot migration: legacy sheets created before the wielding/worn-armor
+  // system have no slot or armor selection. Without this seed, a sheet with
+  // (e.g.) 1 shield in the bag would silently lose its defense bonus because
+  // the new rules require an explicit `offHandItemId`. Marks the sheet as
+  // migrated so later "soltar"/"tirar" actions are preserved across recalcs.
+  updatedSheet = migrateLegacyEquipState(updatedSheet);
 
   // Migração: limpar `conditionAttributePenalties` (deprecated). Versões
   // anteriores aplicavam penalidades de condições mutando `atributos[attr].value`
@@ -1737,6 +1757,26 @@ export function recalculateSheet(
     updatedSheet.sheetActionHistory
   );
   updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
+
+  // Step 17: Reapply superior-item modifications. Items with `modifications`
+  // are recomputed from their `base*` snapshots; items without modifications
+  // are passed through unchanged. Done last so manual edits in earlier steps
+  // are respected (applyModificationsToEquipment reads `base*` fields, not
+  // current values).
+  if (updatedSheet.bag?.equipments) {
+    const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
+    (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
+      const list = reapplied[cat] as Equipment[] | undefined;
+      if (!Array.isArray(list)) return;
+      list.forEach((item, idx) => {
+        if (item?.modifications && item.modifications.length > 0) {
+          // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+          (list as any)[idx] = applyModificationsToEquipment(item);
+        }
+      });
+    });
+    updatedSheet.bag = new Bag(reapplied, true, updatedSheet.bag.displayOrder);
+  }
 
   return updatedSheet;
 }

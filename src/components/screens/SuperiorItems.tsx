@@ -48,11 +48,7 @@ import {
   GeneratedSuperiorItem,
   SuperiorItemsState,
 } from '../../interfaces/SuperiorItems';
-import {
-  addModificationWithPrerequisites,
-  calculateModificationCost,
-  validateModificationCombination,
-} from '../../utils/superiorItemsValidation';
+import { validateModificationCombination } from '../../utils/superiorItemsValidation';
 import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
 import { useAuth } from '../../hooks/useAuth';
 import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
@@ -60,6 +56,7 @@ import {
   SupplementId,
   SUPPLEMENT_METADATA,
 } from '../../types/supplement.types';
+import ItemModificationsEditor from '../SheetResult/BackpackModal/ItemModificationsEditor';
 
 type ItemType = 'weapon' | 'armor' | 'shield';
 
@@ -105,15 +102,6 @@ const weaponSubtypes = [
 const armorSubtypes = [
   { value: 'light', label: 'Leves' },
   { value: 'heavy', label: 'Pesadas' },
-];
-
-const materialOptions = [
-  { value: 'aço rubi', label: 'Aço Rubi' },
-  { value: 'adamante', label: 'Adamante' },
-  { value: 'gelo eterno', label: 'Gelo Eterno' },
-  { value: 'madeira Tollon', label: 'Madeira Tollon' },
-  { value: 'matéria vermelha', label: 'Matéria Vermelha' },
-  { value: 'mitral', label: 'Mitral' },
 ];
 
 const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
@@ -327,38 +315,11 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
     }));
   };
 
-  const handleModificationSelect = (
-    _event: React.SyntheticEvent,
-    value: ItemMod[]
-  ) => {
-    if (!state.selectedItemType) return;
-
-    const allMods = getModifications(state.selectedItemType);
-
-    const newMods = value.reduce(
-      (acc: ItemMod[], selectedMod: ItemMod) =>
-        addModificationWithPrerequisites(selectedMod, acc, allMods),
-      []
-    );
-
-    const cost = calculateModificationCost(newMods);
-    if (cost > 5) {
-      setAlertMessage(
-        'Muito caras! O custo total das modificações não pode exceder 5 pontos.'
-      );
-      return;
-    }
-
-    setAlertMessage('');
+  const handleModificationsChange = (newMods: ItemMod[]) => {
     setState((prev) => ({
       ...prev,
       selectedModifications: newMods,
     }));
-
-    // Clear selected material if Material especial is no longer selected
-    if (!newMods.some((mod) => mod.mod === 'Material especial')) {
-      setSelectedMaterial('');
-    }
   };
 
   const generateRandomItem = () => {
@@ -522,30 +483,6 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
     navigator.clipboard.writeText(fullText);
   };
 
-  const availableModifications = state.selectedItemType
-    ? getModifications(state.selectedItemType)
-        .filter(
-          (mod) =>
-            !state.selectedModifications.some(
-              (selected) => selected.mod === mod.mod
-            )
-        )
-        .sort((a, b) => a.mod.localeCompare(b.mod))
-    : [];
-
-  const getModificationOption = (mod: ItemMod) => {
-    const hasPrerequisite = mod.prerequisite
-      ? state.selectedModifications.some(
-          (selected) => selected.mod === mod.prerequisite
-        )
-      : true;
-
-    return {
-      ...mod,
-      disabled: !hasPrerequisite,
-    };
-  };
-
   const superiorItemsSEO = getPageSEO('superiorItems');
 
   return (
@@ -685,203 +622,19 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
               </>
             )}
 
-            {state.generationMode === 'manual' && (
-              <>
-                <Grid size={12}>
-                  <Autocomplete
-                    multiple
-                    options={availableModifications}
-                    getOptionLabel={(option) => option.mod}
-                    getOptionDisabled={(option) => {
-                      const modOption = getModificationOption(option);
-                      return modOption.disabled;
-                    }}
-                    value={state.selectedModifications}
-                    onChange={handleModificationSelect}
-                    renderInput={(params) => (
-                      <TextField
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...params}
-                        label='Modificações'
-                        placeholder='Selecione as modificações'
-                      />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => {
-                        const supplementMeta = option.supplementId
-                          ? SUPPLEMENT_METADATA[
-                              option.supplementId as SupplementId
-                            ]
-                          : null;
-                        return (
-                          <Chip
-                            variant='outlined'
-                            label={
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 0.5,
-                                }}
-                              >
-                                <span>
-                                  {option.mod}
-                                  {option.double ? ' (2 pts)' : ''}
-                                </span>
-                                {supplementMeta && (
-                                  <Chip
-                                    size='small'
-                                    label={supplementMeta.abbreviation}
-                                    color='primary'
-                                    sx={{ height: 16, fontSize: '0.65rem' }}
-                                  />
-                                )}
-                              </Box>
-                            }
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...getTagProps({ index })}
-                          />
-                        );
-                      })
-                    }
-                    renderOption={(props, option) => {
-                      const modOption = getModificationOption(option);
-                      const supplementMeta = option.supplementId
-                        ? SUPPLEMENT_METADATA[
-                            option.supplementId as SupplementId
-                          ]
-                        : null;
-                      return (
-                        <Box
-                          component='li'
-                          // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...props}
-                          sx={{
-                            opacity: modOption.disabled ? 0.5 : 1,
-                            pointerEvents: modOption.disabled ? 'none' : 'auto',
-                          }}
-                        >
-                          <Box>
-                            <Typography variant='body2'>
-                              {option.mod}
-                              {option.double && (
-                                <Chip
-                                  size='small'
-                                  label='2 pts'
-                                  sx={{ ml: 1 }}
-                                />
-                              )}
-                              {supplementMeta && (
-                                <Chip
-                                  size='small'
-                                  label={supplementMeta.abbreviation}
-                                  color='primary'
-                                  variant='outlined'
-                                  sx={{ ml: 1 }}
-                                />
-                              )}
-                              {modOption.disabled && (
-                                <Chip
-                                  size='small'
-                                  label='Bloqueado'
-                                  color='error'
-                                  sx={{ ml: 1 }}
-                                />
-                              )}
-                            </Typography>
-                            {option.description && (
-                              <Typography
-                                variant='caption'
-                                color='text.secondary'
-                                sx={{ display: 'block', mb: 0.5 }}
-                              >
-                                {option.description}
-                              </Typography>
-                            )}
-                            {option.prerequisite && (
-                              <Typography
-                                variant='caption'
-                                color={
-                                  modOption.disabled
-                                    ? 'error.main'
-                                    : 'warning.main'
-                                }
-                                sx={{ display: 'block' }}
-                              >
-                                Requer: {option.prerequisite}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-                      );
-                    }}
-                    disabled={!state.selectedItemType}
-                  />
-                </Grid>
-
-                {state.selectedModifications.some(
-                  (mod) => mod.mod === 'Material especial'
-                ) && (
-                  <Grid size={12}>
-                    <Autocomplete
-                      options={materialOptions}
-                      getOptionLabel={(option) => option.label}
-                      value={
-                        materialOptions.find(
-                          (opt) => opt.value === selectedMaterial
-                        ) || null
-                      }
-                      onChange={(_, value) =>
-                        setSelectedMaterial(value?.value || '')
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          // eslint-disable-next-line react/jsx-props-no-spreading
-                          {...params}
-                          label='Tipo de Material'
-                          placeholder='Selecione o material especial'
-                          required
-                        />
-                      )}
-                    />
-                  </Grid>
-                )}
-
-                {selectedMaterial && (
-                  <Grid size={12}>
-                    {(() => {
-                      const materialData =
-                        getSpecialMaterialData(selectedMaterial);
-                      if (!materialData) return null;
-                      const relevantEffect =
-                        state.selectedItemType === 'weapon'
-                          ? materialData.weaponEffect
-                          : materialData.armorEffect;
-                      if (!relevantEffect) return null;
-                      return (
-                        <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
-                          <Typography variant='h6' gutterBottom>
-                            Efeito do Material: {materialData.name}
-                          </Typography>
-                          <Typography variant='body2'>
-                            <strong>Efeito:</strong> {relevantEffect.effect}
-                          </Typography>
-                        </Paper>
-                      );
-                    })()}
-                  </Grid>
-                )}
-
-                {state.selectedModifications.length > 0 && (
-                  <Grid size={12}>
-                    <Typography variant='body2' color='text.secondary'>
-                      Custo total:{' '}
-                      {calculateModificationCost(state.selectedModifications)}{' '}
-                      pontos
-                    </Typography>
-                  </Grid>
-                )}
-              </>
+            {state.generationMode === 'manual' && state.selectedItemType && (
+              <Grid size={12}>
+                <ItemModificationsEditor
+                  itemType={state.selectedItemType}
+                  selectedModifications={state.selectedModifications}
+                  onChange={handleModificationsChange}
+                  selectedMaterial={selectedMaterial}
+                  onSelectedMaterialChange={setSelectedMaterial}
+                  userSupplements={userSupplements}
+                  onError={setAlertMessage}
+                  disabled={!state.selectedItemType}
+                />
+              </Grid>
             )}
 
             <Grid size={12}>

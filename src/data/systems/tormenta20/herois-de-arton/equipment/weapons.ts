@@ -30,6 +30,7 @@ const BESTA_DE_MAO: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 30,
+  ammoType: 'Virotes',
 };
 
 const VIROTES_BESTA_MAO: Equipment = {
@@ -41,6 +42,9 @@ const VIROTES_BESTA_MAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 2,
+  isAmmo: true,
+  ammoType: 'Virotes',
+  ammoPackSize: 20,
 };
 
 // ==========================================
@@ -102,6 +106,15 @@ const MARTELO_LEVE: Equipment = {
   arremesso: true,
   group: 'Arma',
   preco: 2,
+  specialActions: [
+    { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+    {
+      id: 'arremessar',
+      label: 'Arremessar',
+      skill: 'Pontaria',
+      damageAttribute: 'Nenhum',
+    },
+  ],
 };
 
 // Corpo a Corpo — Uma Mão
@@ -159,6 +172,7 @@ const BICO_DE_CORVO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 15,
+  twoHanded: true,
 };
 
 const DESMONTADOR: Equipment = {
@@ -170,6 +184,7 @@ const DESMONTADOR: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 20,
+  twoHanded: true,
 };
 
 const ESPADA_DE_EXECUCAO: Equipment = {
@@ -181,6 +196,7 @@ const ESPADA_DE_EXECUCAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 75,
+  twoHanded: true,
 };
 
 const LANCA_DE_JUSTA: Equipment = {
@@ -192,6 +208,7 @@ const LANCA_DE_JUSTA: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 3,
+  twoHanded: true,
 };
 
 const MALHO: Equipment = {
@@ -203,6 +220,7 @@ const MALHO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 8,
+  twoHanded: true,
 };
 
 const MARTELO_LONGO: Equipment = {
@@ -214,6 +232,7 @@ const MARTELO_LONGO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 12,
+  twoHanded: true,
 };
 
 const TAN_KORAK: Equipment = {
@@ -225,6 +244,7 @@ const TAN_KORAK: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 40,
+  twoHanded: true,
 };
 
 // Ataque à Distância — Uma Mão
@@ -249,6 +269,8 @@ const ARCO_MONTADO: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 45,
+  twoHanded: true,
+  ammoType: 'Flechas',
 };
 
 const FLECHAS: Equipment = {
@@ -260,6 +282,9 @@ const FLECHAS: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 1,
+  isAmmo: true,
+  ammoType: 'Flechas',
+  ammoPackSize: 20,
 };
 
 const BESTA_DUPLA: Equipment = {
@@ -271,6 +296,8 @@ const BESTA_DUPLA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 125,
+  twoHanded: true,
+  ammoType: 'Virotes',
 };
 
 const VIROTES: Equipment = {
@@ -282,6 +309,9 @@ const VIROTES: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 2,
+  isAmmo: true,
+  ammoType: 'Virotes',
+  ammoPackSize: 20,
 };
 
 // ==========================================
@@ -389,6 +419,7 @@ const MARRAO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 50,
+  twoHanded: true,
 };
 
 const MONTANTE_CINETICO: Equipment = {
@@ -400,6 +431,7 @@ const MONTANTE_CINETICO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 3000,
+  twoHanded: true,
 };
 
 // Ataque à Distância — Uma Mão
@@ -435,6 +467,9 @@ const ARCO_DE_GUERRA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 200,
+  twoHanded: true,
+  ammoType: 'Flechas',
+  damageAttribute: 'Força',
 };
 
 const BALESTRA: Equipment = {
@@ -446,6 +481,9 @@ const BALESTRA: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 180,
+  twoHanded: true,
+  ammoType: 'Virotes',
+  damageAttribute: 'Força',
 };
 
 const BESTA_DE_REPETICAO: Equipment = {
@@ -457,6 +495,8 @@ const BESTA_DE_REPETICAO: Equipment = {
   alcance: 'Médio',
   group: 'Arma',
   preco: 250,
+  twoHanded: true,
+  ammoType: 'Virotes',
 };
 
 // ==========================================
@@ -473,6 +513,7 @@ const GARRUCHA: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 250,
+  ammoType: 'Balas',
 };
 
 const BALAS: Equipment = {
@@ -484,6 +525,9 @@ const BALAS: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 20,
+  isAmmo: true,
+  ammoType: 'Balas',
+  ammoPackSize: 20,
 };
 
 // Ataque à Distância — Duas Mãos
@@ -496,6 +540,8 @@ const CANHAO_PORTATIL: Equipment = {
   alcance: 'Curto',
   group: 'Arma',
   preco: 3000,
+  twoHanded: true,
+  ammoType: 'Bola de Ferro',
 };
 
 const BOLA_DE_FERRO: Equipment = {
@@ -507,6 +553,10 @@ const BOLA_DE_FERRO: Equipment = {
   alcance: '-',
   group: 'Arma',
   preco: 5,
+  isAmmo: true,
+  ammoType: 'Bola de Ferro',
+  ammoPackSize: 1,
+  ammoUnitsPerSpace: 2,
 };
 
 const SIFAO_CAUSTICO: Equipment = {
@@ -518,6 +568,7 @@ const SIFAO_CAUSTICO: Equipment = {
   alcance: 'Especial',
   group: 'Arma',
   preco: 600,
+  twoHanded: true,
 };
 
 export const HEROIS_ARTON_WEAPONS: Record<string, Equipment> = {
