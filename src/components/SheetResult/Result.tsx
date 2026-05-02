@@ -7,6 +7,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import SearchIcon from '@mui/icons-material/Search';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
   Box,
   Card,
@@ -1482,23 +1483,44 @@ const Result: React.FC<ResultProps> = (props) => {
               }}
             >
               {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setDefenseDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
+                <>
+                  <Tooltip title='Configurações de defesa' arrow>
+                    <IconButton
+                      size='small'
+                      sx={{
+                        position: 'absolute',
+                        top: -16,
+                        right: 60,
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setDefenseDrawerOpen(true)}
+                    >
+                      <SettingsIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <IconButton
+                    size='small'
+                    sx={{
+                      position: 'absolute',
+                      top: -16,
+                      right: 16,
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setBackpackOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </>
               )}
               <Box sx={{ position: 'relative' }}>
                 {markersEnabled && conditionHighlights.defense.length > 0 && (
