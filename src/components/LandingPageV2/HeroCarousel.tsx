@@ -51,7 +51,7 @@ export const carouselSlides: CarouselSlide[] = [
     subtitle:
       'Update 2026.3 - Os apoiadores decidirão em uma votação qual será a feature implementada no mês de Maio.',
     type: 'blog',
-    blogPostSlug: 'votacao-de-apoiadores-update-2026-2',
+    blogPostSlug: 'votacao-de-apoiadores-update-2026-3',
     image: heroImage,
     ctaText: 'Votar',
     ctaLink: '/blog/votacao-de-apoiadores-update-2026-3',
