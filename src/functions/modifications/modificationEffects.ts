@@ -27,6 +27,13 @@ export interface ModificationEffect {
   };
   spacesDelta?: number;
   skillBonuses?: { skill: Skill; value: number }[];
+  /**
+   * Bônus de Defesa concedido pelo item a quem o porta (SheetBonus com target
+   * `Defense`). Diferente de `defenseStats.defenseBonusDelta`, que ajusta
+   * apenas o `defenseBonus` interno de armaduras/escudos. Útil para mods de
+   * arma que dão Defesa ao empunhador (ex.: Guarda).
+   */
+  defenseBonus?: number;
 }
 
 export const modificationEffects: Record<string, ModificationEffect> = {
@@ -65,6 +72,11 @@ export const modificationEffects: Record<string, ModificationEffect> = {
       { skill: Skill.DIPLOMACIA, value: 2 },
     ],
   },
+
+  // Heróis de Arton — armas
+  // O bônus em testes contra manobras não é representável no modelo atual
+  // (não há target "Maneuver"), então apenas a Defesa é aplicada.
+  Guarda: { defenseBonus: 1 },
 };
 
 /**
@@ -86,12 +98,12 @@ export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Selada',
   'Delicada',
   'Espinhosa',
-  // Heróis de Arton
+  // Heróis de Arton (todas com efeitos condicionais ou dependentes de subtipo
+  // de item, salvo Guarda que aplica +1 Defesa numericamente)
   'Balístico',
   'Deslumbrante',
   'Farpada',
   'Fósforo',
-  'Guarda',
   'Incendiária',
   'Injetora',
   'Pressurizada',

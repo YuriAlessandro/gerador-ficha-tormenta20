@@ -3,9 +3,10 @@ import { SupplementId } from '@/types/supplement.types';
 
 /**
  * Novas Melhorias do suplemento Heróis de Arton (cap. 3 - Arsenal dos Heróis,
- * pp. 239-240). Todas têm efeitos condicionais ou que dependem de subtipo de
- * item (munição, arma corpo a corpo, escudo) — por isso são marcadas como
- * text-only em modificationEffects.ts e a descrição informa o jogador.
+ * pp. 239-240). A maioria tem efeitos condicionais ou que dependem de subtipo
+ * de item (munição, arma corpo a corpo, escudo), então são text-only em
+ * modificationEffects.ts e a descrição informa o jogador. Exceção: Guarda
+ * aplica +1 de Defesa numericamente.
  *
  * Não inclui (por enquanto) melhorias específicas de categorias não
  * suportadas pelo editor: Potencializador (esotéricos), Brasonado e Usado
@@ -38,7 +39,7 @@ export const weaponImprovements: ItemMod[] = [
     max: 0,
     mod: 'Guarda',
     description:
-      '+1 na Defesa e em testes contra manobras. Apenas armas corpo a corpo.',
+      '+1 na Defesa (aplicado automaticamente) e em testes contra manobras. Apenas armas corpo a corpo.',
     appliesTo: 'weapon',
     supplementId: SupplementId.TORMENTA20_HEROIS_ARTON,
   },
