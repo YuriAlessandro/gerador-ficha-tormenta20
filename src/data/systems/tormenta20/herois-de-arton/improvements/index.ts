@@ -81,7 +81,7 @@ export const armorImprovements: ItemMod[] = [
     mod: 'Deslumbrante',
     description:
       '+1 na CD para resistir às suas habilidades baseadas em Carisma. Apenas armaduras e vestuários.',
-    prerequisite: 'Banhada a ouro',
+    prerequisite: ['Banhada a ouro', 'Cravejada de gemas'],
     appliesTo: 'armor',
     supplementId: SupplementId.TORMENTA20_HEROIS_ARTON,
   },

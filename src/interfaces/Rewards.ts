@@ -120,7 +120,16 @@ export interface ItemMod {
   max: number;
   mod: string;
   description?: string;
-  prerequisite?: string;
+  /**
+   * Pré-requisito(s) para aplicar esta modificação.
+   *
+   * - `string`: requer exatamente essa modificação aplicada antes (AND único).
+   * - `string[]`: requer **qualquer uma** das modificações listadas (OR).
+   *   Quando o usuário escolhe a mod dependente sem ter um prereq, o helper
+   *   `addModificationWithPrerequisites` adiciona automaticamente o primeiro
+   *   item do array.
+   */
+  prerequisite?: string | string[];
   double?: boolean;
   /** What item types this modification applies to */
   appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';

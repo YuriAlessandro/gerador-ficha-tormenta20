@@ -23,6 +23,8 @@ import {
 import {
   addModificationWithPrerequisites,
   calculateModificationCost,
+  formatPrerequisite,
+  validateModificationRequirement,
 } from '../../../utils/superiorItemsValidation';
 
 export type ModificationItemType = 'weapon' | 'armor' | 'shield';
@@ -103,12 +105,8 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
     [allMods, selectedModifications]
   );
 
-  const isOptionDisabled = (mod: ItemMod): boolean => {
-    if (!mod.prerequisite) return false;
-    return !selectedModifications.some(
-      (selected) => selected.mod === mod.prerequisite
-    );
-  };
+  const isOptionDisabled = (mod: ItemMod): boolean =>
+    !validateModificationRequirement(mod, selectedModifications);
 
   const handleSelectionChange = (
     _event: React.SyntheticEvent,
@@ -262,7 +260,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                       color={optionDisabled ? 'error.main' : 'warning.main'}
                       sx={{ display: 'block' }}
                     >
-                      Requer: {option.prerequisite}
+                      Requer: {formatPrerequisite(option.prerequisite)}
                     </Typography>
                   )}
                 </Box>
