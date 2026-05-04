@@ -70,6 +70,12 @@ export const modificationEffects: Record<string, ModificationEffect> = {
 /**
  * Mods recognized by the catalog but with no numeric effect — kept here purely
  * for documentation purposes (TODO: future iterations may model these).
+ *
+ * As entradas de Heróis de Arton (Farpada, Fósforo, Guarda, Incendiária,
+ * Pressurizada, Balístico, Deslumbrante, Injetora, Prudente) ficam aqui porque
+ * têm efeitos condicionais (ativação por ação, dano de tipo específico,
+ * limites por subtipo de item) que não são representáveis pelos deltas
+ * numéricos suportados por aplicação automática.
  */
 export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Harmonizada',
@@ -80,4 +86,14 @@ export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Selada',
   'Delicada',
   'Espinhosa',
+  // Heróis de Arton
+  'Balístico',
+  'Deslumbrante',
+  'Farpada',
+  'Fósforo',
+  'Guarda',
+  'Incendiária',
+  'Injetora',
+  'Pressurizada',
+  'Prudente',
 ]);
