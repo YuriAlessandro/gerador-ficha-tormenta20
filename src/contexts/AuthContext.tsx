@@ -27,6 +27,10 @@ import {
   setLoading,
   logout,
 } from '../store/slices/auth/authSlice';
+import {
+  fetchSubscription,
+  clearSubscription,
+} from '../store/slices/subscription/subscriptionSlice';
 import { AppDispatch } from '../store';
 import AuthModal from '../components/Auth/AuthModal';
 
@@ -80,6 +84,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoggingOut(true);
     try {
       await dispatch(logout()).unwrap();
+      // Clear cached subscription so the next user (or anonymous browse)
+      // does not inherit the previous user's tier from persisted state.
+      dispatch(clearSubscription());
       history.push('/');
     } finally {
       setLoggingOut(false);
@@ -116,6 +123,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Sync with backend
         try {
           await dispatch(syncUser()).unwrap();
+          // Refetch the subscription right after auth resolves so paid features
+          // (sheet limits, supporter polls) gate on fresh server state instead
+          // of any stale value rehydrated from localStorage. The useSubscription
+          // hook also fires this on isAuthenticated flips, but doing it here
+          // guarantees it happens once per real auth event.
+          dispatch(fetchSubscription());
         } catch (error) {
           // Backend sync failed - logout from Firebase to prevent inconsistent state
           // eslint-disable-next-line no-console
@@ -125,10 +138,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           );
           await signOut(auth);
           dispatch(clearAuth());
+          dispatch(clearSubscription());
         }
       } else {
         // User is signed out
         dispatch(clearAuth());
+        dispatch(clearSubscription());
       }
 
       // Set loading to false after Firebase auth state is determined
