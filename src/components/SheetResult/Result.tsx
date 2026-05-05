@@ -1063,6 +1063,37 @@ const Result: React.FC<ResultProps> = (props) => {
       components.push(`${currentSheet.bonusDefense} (bônus manual)`);
     }
 
+    // SheetBonuses targeting Defense (Fixed modifiers — equipment mods like
+    // Guarda, condition bonuses, etc.). Aggregate by source label so multiple
+    // bonuses from the same source render as a single entry.
+    const labelForSource = (
+      s: (typeof currentSheet.sheetBonuses)[0]['source']
+    ) => {
+      if (s.type === 'equipment') return s.equipmentName;
+      if (s.type === 'power') return s.name;
+      if (s.type === 'condition') return s.conditionId;
+      if (s.type === 'levelUp') return `Nível ${s.level}`;
+      if (s.type === 'origin') return s.originName;
+      if (s.type === 'race') return s.raceName;
+      if (s.type === 'class') return s.className;
+      if (s.type === 'divinity') return s.divinityName;
+      return null;
+    };
+    const defenseBonusBySource = new Map<string, number>();
+    currentSheet.sheetBonuses.forEach((b) => {
+      if (b.target.type !== 'Defense') return;
+      if (b.modifier.type !== 'Fixed') return;
+      const label = labelForSource(b.source);
+      if (!label) return;
+      defenseBonusBySource.set(
+        label,
+        (defenseBonusBySource.get(label) ?? 0) + b.modifier.value
+      );
+    });
+    defenseBonusBySource.forEach((value, label) => {
+      if (value !== 0) components.push(`${value} (${label})`);
+    });
+
     return `${components.join(' + ')} = ${defesa}`;
   }, [
     currentSheet,
