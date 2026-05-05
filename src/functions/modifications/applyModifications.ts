@@ -143,11 +143,8 @@ function captureBaseValues<T extends Equipment>(item: T): T {
   if (item.spaces !== undefined && result.baseSpaces === undefined) {
     result.baseSpaces = item.spaces;
   }
-  if (
-    item.sheetBonuses !== undefined &&
-    result.baseSheetBonuses === undefined
-  ) {
-    result.baseSheetBonuses = item.sheetBonuses;
+  if (result.baseSheetBonuses === undefined) {
+    result.baseSheetBonuses = item.sheetBonuses ?? [];
   }
   if (isDefenseEquipment(item)) {
     const defenseItem = item as unknown as DefenseEquipment;
