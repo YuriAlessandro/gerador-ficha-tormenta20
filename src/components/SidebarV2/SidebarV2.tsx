@@ -45,7 +45,7 @@ import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.13.2';
+const APP_VERSION = '4.13.4';
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
