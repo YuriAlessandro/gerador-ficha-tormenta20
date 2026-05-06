@@ -1285,9 +1285,9 @@ export function recalculateSheet(
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined
   const hasManualMaxPV =
-    updatedSheet.manualMaxPV !== undefined && updatedSheet.manualMaxPV > 0;
+    updatedSheet.manualMaxPV != null && updatedSheet.manualMaxPV > 0;
   const hasManualMaxPM =
-    updatedSheet.manualMaxPM !== undefined && updatedSheet.manualMaxPM > 0;
+    updatedSheet.manualMaxPM != null && updatedSheet.manualMaxPM > 0;
 
   // Step 7.5: Reset PV and PM to base values AFTER all powers applied (to use correct attributes)
   // Skip PV recalculation if flag is set (e.g., equipment-only changes)

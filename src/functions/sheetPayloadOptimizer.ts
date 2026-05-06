@@ -38,6 +38,15 @@ export function stripSheetForStorage(
 ): Record<string, unknown> {
   const stripped: Record<string, unknown> = { ...sheet };
 
+  // Drop top-level keys whose value is `undefined`. The spread above preserves
+  // them, but `JSON.stringify` later drops them on the wire — and the delta
+  // would silently lose "user cleared this field" intent. By omitting the key
+  // here, computeSheetDelta's "missing in updated" branch turns it into an
+  // explicit `null`, which the backend interprets as `$unset`.
+  Object.keys(stripped).forEach((key) => {
+    if (stripped[key] === undefined) delete stripped[key];
+  });
+
   // Mark as stripped for rehydration detection
   stripped[STRIPPED_MARKER] = true;
 
