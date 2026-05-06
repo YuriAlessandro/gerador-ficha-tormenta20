@@ -73,6 +73,68 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: Layouts da Mesa Virtual repensados no desktop.
+                  </strong>{' '}
+                  No desktop e em tablets em landscape, jogador e mestre agora
+                  têm telas dedicadas no lugar do scroll vertical único. O
+                  jogador vê a ficha como conteúdo principal e ganha um rail
+                  direito colapsável com a ordem de turno (quando há combate),
+                  log de rolagens recentes e a Rolagem Rápida no rodapé. O
+                  mestre passa a ter um menu lateral flutuante com os contextos{' '}
+                  <strong>Encontros</strong> (Ativo / Preparados),{' '}
+                  <strong>Fichas</strong> (Jogadores / Ameaças) e{' '}
+                  <strong>Configurações</strong>. O menu mostra só ícones por
+                  padrão e se expande no hover. Mobile portrait segue com a
+                  navegação inferior atual.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Iniciar / Entrar / Encerrar sessão a partir da página
+                    da mesa.
+                  </strong>{' '}
+                  A página de detalhe da mesa ganhou ações de sessão visíveis
+                  para qualquer membro: <strong>Entrar na Sessão</strong>{' '}
+                  aparece sempre que a sessão está ativa,{' '}
+                  <strong>Iniciar Sessão</strong> e{' '}
+                  <strong>Encerrar Sessão</strong> ficam visíveis para o
+                  Mestre/dono. Antes, ao cair nessa página durante uma sessão
+                  ativa, o jogador não tinha como entrar e o mestre não tinha
+                  como encerrar sem voltar para a sessão.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Encontro &quot;ao vivo&quot; destacado no menu do
+                    mestre.
+                  </strong>{' '}
+                  Enquanto houver um encontro em andamento, o item{' '}
+                  <strong>Ativo</strong> do menu lateral ganha um indicador
+                  verde pulsante. Iniciar um encontro (imediato ou preparado)
+                  agora também leva o mestre direto para a tela do encontro
+                  ativo. O widget flutuante do canto inferior direito passa a
+                  aparecer durante todas as fases (configuração, rolagem de
+                  iniciativa e combate), funcionando como um quick-look enquanto
+                  o mestre navega por outros contextos.
+                </li>
+                <li>
+                  <strong>Novo: Iniciativa no histórico de rolagens.</strong> Os
+                  d20 rolados no início do combate (jogadores e ameaças) agora
+                  aparecem no Recent Rolls do rail e no histórico completo da
+                  AppBar para mestre e jogadores, com o nome do personagem e o
+                  bônus aplicado. Crítico e falha (20/1) também são marcados.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Condições ressuscitando após reconexão.
+                  </strong>{' '}
+                  Em sessões longas, quando o jogador removia uma condição da
+                  própria ficha, ela podia voltar a aparecer no badge do
+                  participante para o mestre após uma reconexão ou recarga da
+                  página. A persistência das condições no encontro agora
+                  acompanha cada atualização de ficha, eliminando o desync entre
+                  o que está na ficha e o que aparece no resumo do encontro.
+                </li>
+                <li>
+                  <strong>
                     Correção: PV/PM Máximo Manual ressuscitando após apagar.
                   </strong>{' '}
                   Em mesas virtuais, quando o jogador definia um valor de PV ou
