@@ -72,6 +72,42 @@ const Changelog: React.FC = () => {
               <h3>4.14</h3>
               <ul>
                 <li>
+                  <strong>
+                    Correção: Sincronização de condições entre ficha e encontro.
+                  </strong>{' '}
+                  Condições aplicadas pelo Mestre via gerenciador do
+                  participante agora aparecem imediatamente na ficha do jogador,
+                  e condições adicionadas pelo jogador na própria ficha agora
+                  aparecem imediatamente no badge do participante para o Mestre
+                  e demais jogadores. Antes, cada ponta só via a edição feita no
+                  seu próprio lado. Condições do participante também passam a
+                  ser persistidas — sobrevivem a restart do servidor e
+                  recarregamento da sessão.
+                </li>
+                <li>
+                  <strong>Melhoria: Conexão da Mesa Virtual.</strong>{' '}
+                  Reidratação completa do estado do encontro ao reconectar
+                  (snapshot canônico vindo do servidor) elimina divergência
+                  entre jogadores depois de qualquer instabilidade de rede.
+                  Detecção de zombie connection via ACK de heartbeat: se o
+                  servidor para de responder, o cliente percebe em ≤16s e
+                  reconecta automaticamente. Novo indicador{' '}
+                  <strong>amarelo</strong> de &quot;Conexão instável&quot; no
+                  ícone de Wi-Fi do topo aparece antes de cair de vez,
+                  permitindo ação preventiva.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Contador de jogadores online (ghost connections).
+                  </strong>{' '}
+                  Jogadores que saem por desconexão silenciosa (proxy,
+                  background do iOS) agora são removidos da lista de online em
+                  até 90 segundos — antes ficavam &quot;fantasmas&quot; pela
+                  sessão inteira. Lista canônica de presença passa a ser
+                  reenviada periodicamente pelo servidor para corrigir qualquer
+                  divergência cumulativa.
+                </li>
+                <li>
                   <strong>Melhoria: Mochila pré-filtrada por contexto.</strong>{' '}
                   Ao abrir a Mochila de Aventureiro pelo botão de editar dos
                   cards de <strong>Ataques</strong> ou <strong>Defesa</strong>,
