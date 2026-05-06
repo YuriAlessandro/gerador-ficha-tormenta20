@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            02/05/2026 (v4.13).
+            06/05/2026 (v4.14).
           </p>
 
           <p>
@@ -69,6 +69,86 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.14</h3>
+              <ul>
+                <li>
+                  <strong>Novo: Encantamentos mágicos</strong> em armas,
+                  armaduras e escudos. Nova aba <strong>Encantamentos</strong>{' '}
+                  no editor de item da mochila com seleção múltipla, custo
+                  máximo de 5 pontos, suporte a encantamentos exclusivos de
+                  escudo (Animado, Esmagador) e{' '}
+                  <strong>aplicação automática de bônus numéricos</strong>:
+                  Defensora (+2 Defesa do empunhador), Formidável (+2 atk/+2
+                  dano), Magnífica (+4 atk/+4 dano), Defensor (+2 Defesa),
+                  Guardião (+4 Defesa), Acrobático/Sombrio/Escorregadio (+2
+                  perícia). Encantamentos com efeito descritivo (resistências,
+                  efeitos condicionais, magias guardadas) salvam no item e
+                  aparecem no tooltip mas não modificam stats automaticamente.
+                </li>
+                <li>
+                  <strong>Novo: Tipos de dano e dano extra em armas.</strong>{' '}
+                  Cada arma agora pode ter{' '}
+                  <strong>múltiplos danos extras</strong> tipados (ex.: 1d6
+                  Fogo, 1d4 Luz) que rolam junto com o dano base no ataque. Os
+                  11 tipos disponíveis são{' '}
+                  <strong>
+                    Impacto, Corte, Perfuração, Ácido, Eletricidade, Essência,
+                    Fogo, Frio, Luz, Psíquico
+                  </strong>{' '}
+                  e <strong>Trevas</strong>. Encantamentos elementais{' '}
+                  <strong>
+                    Flamejante, Congelante, Corrosiva, Elétrica e Tumular
+                  </strong>{' '}
+                  agora adicionam automaticamente seus danos extras à arma
+                  quando aplicados. Linhas de dano extra rolam uma vez no acerto
+                  e <strong>não criticam</strong> (regra T20). Edição manual via
+                  seção &quot;Danos extras&quot; na aba Estatísticas.
+                </li>
+                <li>
+                  <strong>Novo: Indicador visual</strong> na linha de cada
+                  ataque para itens com modificação superior ou encantamento,
+                  com tooltip listando os dois grupos. O sufixo do nome do item
+                  na mochila também passa a incluir encantamentos junto às
+                  modificações.
+                </li>
+                <li>
+                  <strong>Novo: Modificações de Heróis de Arton.</strong>{' '}
+                  Catálogo do suplemento Heróis de Arton integrado ao editor de
+                  modificações: Banhada a ouro, Cravejada de gemas, Luxuosa,
+                  Guarda, Farpada, Fósforo, Incendiária, Pressurizada,
+                  Balístico, Deslumbrante, Injetora, Prudente. Suporte a{' '}
+                  <strong>pré-requisitos OR</strong> — modificações como Luxuosa
+                  que requerem &quot;Banhada a ouro <em>ou</em> Cravejada de
+                  gemas&quot;. Modificação Guarda aplica +1 de Defesa
+                  automaticamente via SheetBonus.
+                </li>
+                <li>
+                  <strong>Melhoria: Card de Defesa.</strong> Configurações do
+                  card de Defesa separadas do acesso à mochila, permitindo
+                  ajustar bônus específicos sem abrir a mochila inteira.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Capturar{' '}
+                  <code>baseSheetBonuses</code> na primeira aplicação de
+                  modificações, propagar <code>sheetBonuses</code> ao salvar a
+                  mochila e itemizar o bônus de Defesa no breakdown da ficha.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Aplicar remoção em cascata ao tirar
+                  uma modificação no editor — modificações dependentes são
+                  removidas respeitando pré-requisitos OR (não removem
+                  injustamente quando ainda há outra opção válida).
+                </li>
+                <li>
+                  <strong>Correção:</strong> Forçar revalidação de assinatura ao
+                  autenticar e em logout, evitando estado obsoleto de premium em
+                  algumas transições.
+                </li>
+                <li>
+                  <strong>Correção:</strong> Atualização do submódulo premium
+                  com fix de iOS PWA e overlay de debug.
+                </li>
+              </ul>
               <h3>4.13</h3>
               <ul>
                 <li>
