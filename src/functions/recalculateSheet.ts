@@ -38,7 +38,7 @@ import {
   findClassDescription,
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
-import { applyModificationsToEquipment } from './modifications/applyModifications';
+import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 
 import {
@@ -1758,20 +1758,24 @@ export function recalculateSheet(
   );
   updatedSheet.steps = deduplicateSteps(updatedSheet.steps);
 
-  // Step 17: Reapply superior-item modifications. Items with `modifications`
-  // are recomputed from their `base*` snapshots; items without modifications
-  // are passed through unchanged. Done last so manual edits in earlier steps
-  // are respected (applyModificationsToEquipment reads `base*` fields, not
-  // current values).
+  // Step 17: Reapply item enhancements (superior-item modifications and magical
+  // enchantments). Items with `modifications` and/or `enchantments` are
+  // recomputed from their `base*` snapshots; items without enhancements are
+  // passed through unchanged. Done last so manual edits in earlier steps are
+  // respected (applyItemEnhancements reads `base*` fields, not current values).
   if (updatedSheet.bag?.equipments) {
     const reapplied = _.cloneDeep(updatedSheet.bag.equipments);
     (Object.keys(reapplied) as (keyof typeof reapplied)[]).forEach((cat) => {
       const list = reapplied[cat] as Equipment[] | undefined;
       if (!Array.isArray(list)) return;
       list.forEach((item, idx) => {
-        if (item?.modifications && item.modifications.length > 0) {
+        if (
+          item?.modifications?.length ||
+          item?.enchantments?.length ||
+          item?.extraDamage?.length
+        ) {
           // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
-          (list as any)[idx] = applyModificationsToEquipment(item);
+          (list as any)[idx] = applyItemEnhancements(item);
         }
       });
     });

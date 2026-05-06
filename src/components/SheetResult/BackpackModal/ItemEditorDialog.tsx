@@ -22,29 +22,42 @@ import {
   Typography,
 } from '@mui/material';
 import {
+  Add as AddIcon,
   Casino as RollsIcon,
   Close as CloseIcon,
+  Delete as DeleteIcon,
   RestartAlt as ResetIcon,
 } from '@mui/icons-material';
 
 import Equipment, {
+  AppliedEnchantment,
   AppliedModification,
   DamageAttribute,
+  DAMAGE_TYPES,
+  DamageType,
   DefenseEquipment,
+  ExtraDamage,
   WeaponAction,
 } from '../../../interfaces/Equipment';
 import { resolveDamageAttribute } from '../../../functions/weaponSkill';
 import { Atributo } from '../../../data/systems/tormenta20/atributos';
 import Skill from '../../../interfaces/Skills';
 import { DiceRoll } from '../../../interfaces/DiceRoll';
-import { ItemMod } from '../../../interfaces/Rewards';
+import { ItemE, ItemMod } from '../../../interfaces/Rewards';
 import { useAuth } from '../../../hooks/useAuth';
 import { SupplementId } from '../../../types/supplement.types';
-import { applyModificationsToEquipment } from '../../../functions/modifications/applyModifications';
+import { applyItemEnhancements } from '../../../functions/itemEnhancements/applyEnhancements';
+import {
+  armorEnchantments,
+  weaponsEnchantments,
+} from '../../../data/rewards/items';
 import RollsEditDialog from '../../RollsEditDialog';
 import ItemModificationsEditor, {
   ModificationItemType,
 } from './ItemModificationsEditor';
+import ItemEnchantmentsEditor, {
+  EnchantmentItemType,
+} from './ItemEnchantmentsEditor';
 import { isDefenseGroup } from './equipmentCatalog';
 
 const DAMAGE_ATTRIBUTE_OPTIONS: DamageAttribute[] = [
@@ -64,7 +77,7 @@ export interface ItemEditorDialogProps {
   onSave: (next: Equipment) => void;
 }
 
-type TabKey = 'geral' | 'stats' | 'modificacoes';
+type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
 
 const ALL_SKILLS = Object.values(Skill);
 
@@ -75,12 +88,29 @@ function modItemTypeFor(item: Equipment): ModificationItemType | null {
   return null;
 }
 
+function enchItemTypeFor(item: Equipment): EnchantmentItemType | null {
+  if (item.group === 'Arma') return 'weapon';
+  if (item.group === 'Armadura') return 'armor';
+  if (item.group === 'Escudo') return 'shield';
+  return null;
+}
+
+function findEnchantmentByName(name: string): ItemE | undefined {
+  return (
+    weaponsEnchantments.find((e) => e.enchantment === name) ||
+    armorEnchantments.find((e) => e.enchantment === name)
+  );
+}
+
 function buildInitial(item: Equipment | null) {
   const initialMods: ItemMod[] = (item?.modifications ?? []).map((m) => ({
     min: 0,
     max: 0,
     mod: m.mod,
   }));
+  const initialEnchantments: ItemE[] = (item?.enchantments ?? [])
+    .map((e) => findEnchantmentByName(e.enchantment))
+    .filter((e): e is ItemE => e !== undefined);
   const materialEntry = item?.modifications?.find(
     (m) => m.mod === 'Material especial'
   );
@@ -120,6 +150,15 @@ function buildInitial(item: Equipment | null) {
         : false,
     selectedModifications: initialMods,
     selectedMaterial: materialEntry?.specialMaterial ?? '',
+    selectedEnchantments: initialEnchantments,
+    userExtraDamage: (item?.extraDamage ?? [])
+      .filter((e) => e.source === 'user')
+      .map((e) => ({
+        id: e.id ?? crypto.randomUUID(),
+        dice: e.dice,
+        damageType: e.damageType,
+        source: 'user' as const,
+      })),
   };
 }
 
@@ -133,6 +172,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const [form, setForm] = useState(buildInitial(item));
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
+  const [enchError, setEnchError] = useState('');
   const { user } = useAuth();
   const userSupplements: SupplementId[] = user?.enabledSupplements ?? [
     SupplementId.TORMENTA20_CORE,
@@ -143,6 +183,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       setForm(buildInitial(item));
       setTab('geral');
       setModError('');
+      setEnchError('');
     }
   }, [open, item]);
 
@@ -151,6 +192,8 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const hasStatsTab = isWeapon || isDefense;
   const modItemType = item ? modItemTypeFor(item) : null;
   const hasModificationsTab = modItemType !== null;
+  const enchItemType = item ? enchItemTypeFor(item) : null;
+  const hasEnchantmentsTab = enchItemType !== null;
 
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
@@ -198,6 +241,18 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       })
     );
 
+    const persistedEnchantments: AppliedEnchantment[] =
+      form.selectedEnchantments.map((e) => ({ enchantment: e.enchantment }));
+
+    const persistedUserExtraDamage: ExtraDamage[] = form.userExtraDamage
+      .filter((e) => e.dice.trim().length > 0)
+      .map((e) => ({
+        id: e.id,
+        dice: e.dice.trim(),
+        damageType: e.damageType,
+        source: 'user' as const,
+      }));
+
     const next: Equipment = {
       ...item,
       customDisplayName: form.customDisplayName.trim() || undefined,
@@ -206,6 +261,14 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       descricao: form.descricao.trim() || undefined,
       rolls: form.rolls.length > 0 ? form.rolls : undefined,
       modifications: persistedMods.length > 0 ? persistedMods : undefined,
+      enchantments:
+        persistedEnchantments.length > 0 ? persistedEnchantments : undefined,
+      // Replace user extra damage; derived entries are regenerated by
+      // applyItemEnhancements below.
+      extraDamage:
+        persistedUserExtraDamage.length > 0
+          ? persistedUserExtraDamage
+          : undefined,
     };
 
     if (isWeapon) {
@@ -254,14 +317,26 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
       finalItem = defenseNext;
     }
 
-    // Apply modification effects (numeric bonuses) on top of manual edits.
-    if (persistedMods.length > 0) {
-      finalItem = applyModificationsToEquipment(finalItem);
-    } else if (item.modifications && item.modifications.length > 0) {
-      // User cleared all modifications: reset stats to base values.
+    // Apply enhancement effects (numeric bonuses from mods + enchantments,
+    // plus rebuilding the extraDamage list) on top of manual edits.
+    const hasAnyEnhancement =
+      persistedMods.length > 0 ||
+      persistedEnchantments.length > 0 ||
+      persistedUserExtraDamage.length > 0;
+    const hadAnyBefore =
+      !!item.modifications?.length ||
+      !!item.enchantments?.length ||
+      !!item.extraDamage?.length;
+
+    if (hasAnyEnhancement) {
+      finalItem = applyItemEnhancements(finalItem);
+    } else if (hadAnyBefore) {
+      // User cleared all enhancements: reset stats to base values.
       const restored: Equipment = {
         ...finalItem,
         modifications: undefined,
+        enchantments: undefined,
+        extraDamage: undefined,
         dano: finalItem.baseDano ?? finalItem.dano,
         atkBonus: finalItem.baseAtkBonus ?? finalItem.atkBonus,
         critico: finalItem.baseCritico ?? finalItem.critico,
@@ -305,6 +380,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           {hasStatsTab && <Tab value='stats' label='Estatísticas' />}
           {hasModificationsTab && (
             <Tab value='modificacoes' label='Modificações' />
+          )}
+          {hasEnchantmentsTab && (
+            <Tab value='encantamentos' label='Encantamentos' />
           )}
         </Tabs>
 
@@ -538,6 +616,116 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               </Grid>
             )}
 
+            {isWeapon && (
+              <Box>
+                <Stack
+                  direction='row'
+                  alignItems='center'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='subtitle2'>
+                    Danos extras ({form.userExtraDamage.length})
+                  </Typography>
+                  <Button
+                    size='small'
+                    startIcon={<AddIcon />}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        userExtraDamage: [
+                          ...f.userExtraDamage,
+                          {
+                            id: crypto.randomUUID(),
+                            dice: '1d6',
+                            damageType: 'Fogo',
+                            source: 'user',
+                          },
+                        ],
+                      }))
+                    }
+                  >
+                    Adicionar
+                  </Button>
+                </Stack>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 1 }}
+                >
+                  Cada entrada rola junto com o dano base no ataque (não crita).
+                  Encantamentos como Flamejante adicionam linhas automaticamente
+                  e não aparecem aqui.
+                </Typography>
+                <Stack spacing={1}>
+                  {form.userExtraDamage.map((entry, idx) => (
+                    <Stack
+                      key={entry.id}
+                      direction='row'
+                      spacing={1}
+                      alignItems='center'
+                    >
+                      <TextField
+                        size='small'
+                        label='Dado'
+                        value={entry.dice}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            userExtraDamage: f.userExtraDamage.map((x, i) =>
+                              i === idx ? { ...x, dice: e.target.value } : x
+                            ),
+                          }))
+                        }
+                        sx={{ width: 120 }}
+                        placeholder='1d6'
+                      />
+                      <FormControl size='small' sx={{ flex: 1, minWidth: 120 }}>
+                        <InputLabel>Tipo</InputLabel>
+                        <Select
+                          label='Tipo'
+                          value={entry.damageType}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              userExtraDamage: f.userExtraDamage.map((x, i) =>
+                                i === idx
+                                  ? {
+                                      ...x,
+                                      damageType: e.target.value as DamageType,
+                                    }
+                                  : x
+                              ),
+                            }))
+                          }
+                        >
+                          {DAMAGE_TYPES.map((t) => (
+                            <MenuItem key={t} value={t}>
+                              {t}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      <IconButton
+                        size='small'
+                        aria-label='Remover dano extra'
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            userExtraDamage: f.userExtraDamage.filter(
+                              (_, i) => i !== idx
+                            ),
+                          }))
+                        }
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
             {isDefense && (
               <Grid container spacing={2}>
                 <Grid size={{ xs: 6, sm: 4 }}>
@@ -615,6 +803,30 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               }
               userSupplements={userSupplements}
               onError={setModError}
+            />
+          </Stack>
+        )}
+
+        {tab === 'encantamentos' && hasEnchantmentsTab && enchItemType && (
+          <Stack spacing={2}>
+            <Typography variant='caption' color='text.secondary'>
+              Encantamentos mágicos aplicam bônus numéricos automaticamente
+              sobre os valores base do item. Encantamentos descritivos (efeitos
+              condicionais, dano elemental, resistências) ficam registrados no
+              item mas não modificam stats. Custo máximo: 5 pontos.
+            </Typography>
+            {enchError && (
+              <Typography variant='caption' color='error.main'>
+                {enchError}
+              </Typography>
+            )}
+            <ItemEnchantmentsEditor
+              itemType={enchItemType}
+              selectedEnchantments={form.selectedEnchantments}
+              onChange={(ench) =>
+                setForm((f) => ({ ...f, selectedEnchantments: ench }))
+              }
+              onError={setEnchError}
             />
           </Stack>
         )}

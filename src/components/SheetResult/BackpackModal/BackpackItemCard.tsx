@@ -48,19 +48,21 @@ export interface BackpackItemCardProps {
   onAdjustAmmoUnits?: (delta: number) => void;
 }
 
-function formatModificationsSuffix(item: Equipment): string {
-  if (!item.modifications || item.modifications.length === 0) return '';
-  const names = item.modifications.map((m) =>
+function formatEnhancementsSuffix(item: Equipment): string {
+  const modNames = (item.modifications ?? []).map((m) =>
     m.mod === 'Material especial' && m.specialMaterial
       ? `Material ${m.specialMaterial}`
       : m.mod
   );
-  return ` (${names.join('; ')})`;
+  const enchNames = (item.enchantments ?? []).map((e) => e.enchantment);
+  const all = [...modNames, ...enchNames];
+  if (all.length === 0) return '';
+  return ` (${all.join('; ')})`;
 }
 
 function getDisplayName(item: Equipment): string {
   const base = item.customDisplayName || item.nome;
-  return `${base}${formatModificationsSuffix(item)}`;
+  return `${base}${formatEnhancementsSuffix(item)}`;
 }
 
 function isDefense(item: Equipment): item is DefenseEquipment {

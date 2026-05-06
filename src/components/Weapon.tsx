@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Equipment, {
   AmmoType,
   DamageAttribute,
@@ -61,6 +62,7 @@ const abbreviateDamageType = (tipo?: string): string | undefined => {
     Frio: 'Frio',
     Eletricidade: 'Eletr.',
     Ácido: 'Ácido',
+    Essência: 'Essência',
     'Energia negativa': 'Negativa',
     'Energia positiva': 'Positiva',
     Psíquico: 'Psíquico',
@@ -360,6 +362,23 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         });
       }
 
+      // Extra damage entries (user-added or derived from mods/encantamentos).
+      // They roll once on hit and never crit (per Tormenta 20 rules for
+      // elemental adds from enchantments).
+      (equipment.extraDamage ?? []).forEach((extra) => {
+        const extraRoll = rollDamage(extra.dice);
+        if (!extraRoll) return;
+        const labelSuffix = extra.sourceName ? ` (${extra.sourceName})` : '';
+        rolls.push({
+          label: `Dano extra${labelSuffix}`,
+          diceNotation: extraRoll.diceString,
+          rolls: extraRoll.diceRolls,
+          modifier: extraRoll.modifier,
+          total: Math.max(1, extraRoll.total),
+          damageType: abbreviateDamageType(extra.damageType),
+        });
+      });
+
       showDiceResult(nome, rolls, characterName);
     },
     [
@@ -611,9 +630,53 @@ const Weapon: React.FC<WeaponProps> = (props) => {
               />
             </Tooltip>
           )}
+          {(equipment.modifications?.length ||
+            equipment.enchantments?.length) && (
+            <Tooltip
+              title={
+                <Box>
+                  {!!equipment.modifications?.length && (
+                    <Typography variant='caption' display='block'>
+                      <strong>Modificações:</strong>{' '}
+                      {equipment.modifications.map((m) => m.mod).join(', ')}
+                    </Typography>
+                  )}
+                  {!!equipment.enchantments?.length && (
+                    <Typography variant='caption' display='block'>
+                      <strong>Encantamentos:</strong>{' '}
+                      {equipment.enchantments
+                        .map((e) => e.enchantment)
+                        .join(', ')}
+                    </Typography>
+                  )}
+                </Box>
+              }
+              arrow
+            >
+              <AutoFixHighIcon
+                sx={{
+                  fontSize: 14,
+                  ml: 0.5,
+                  color: theme.palette.secondary.main,
+                  cursor: 'help',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Tooltip>
+          )}
           {customSkill && ` (${customSkill})`}{' '}
           {`${baseAtk >= 0 ? '+' : ''}${baseAtk}`} • {damage} • ({critico})
           {equipment.tipo && equipment.tipo !== '-' && ` • ${equipment.tipo}`}
+          {(equipment.extraDamage ?? []).map((extra) => (
+            <Box
+              key={extra.id ?? `${extra.dice}-${extra.damageType}`}
+              component='span'
+              sx={{ color: 'text.secondary', fontSize: '0.85em', ml: 0.5 }}
+            >
+              {' '}
+              + {extra.dice} {extra.damageType}
+            </Box>
+          ))}
           {wieldingSlot === 'main' && ' · 🤚 Principal'}
           {wieldingSlot === 'off' && ' · ✋ Secundária'}
           {wieldingSlot === 'both' && ' · 🤝 Duas mãos'}
