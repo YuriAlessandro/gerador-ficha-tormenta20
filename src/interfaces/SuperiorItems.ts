@@ -3,7 +3,11 @@ export interface ItemModification {
   max: number;
   mod: string;
   description?: string;
-  prerequisite?: string;
+  /**
+   * Single prerequisite mod name, or an array meaning "any of these" (OR).
+   * Example: Luxuosa requires "Banhada a ouro" OR "Cravejada de gemas".
+   */
+  prerequisite?: string | string[];
   double?: boolean;
   /** What item types this modification applies to */
   appliesTo?: 'weapon' | 'armor' | 'shield' | 'all';
@@ -13,7 +17,7 @@ export interface ItemModification {
 
 export interface EnhancedItemModification extends ItemModification {
   description: string;
-  prerequisite?: string;
+  prerequisite?: string | string[];
   mod: string; // Allow overriding the mod name
 }
 
