@@ -73,6 +73,17 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: PV/PM Máximo Manual ressuscitando após apagar.
+                  </strong>{' '}
+                  Em mesas virtuais, quando o jogador definia um valor de PV ou
+                  PM Máximo Manual e depois apagava o campo, o valor antigo
+                  voltava ao recarregar a página. A sincronização agora envia
+                  explicitamente a deleção do campo para o servidor, e o retorno
+                  ao cálculo automático passa a persistir corretamente entre
+                  sessões.
+                </li>
+                <li>
+                  <strong>
                     Correção: Nome customizado de armas na aba de Ataques.
                   </strong>{' '}
                   Ao renomear uma arma na mochila (campo{' '}
