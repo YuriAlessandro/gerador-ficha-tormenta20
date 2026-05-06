@@ -31,7 +31,14 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   // stale derived entries that should be stripped now that their source is
   // gone (e.g. a previously-applied Flamejante that was removed).
   const hasExtraDamage = !!item.extraDamage?.length;
-  if (!hasMods && !hasEnch && !hasExtraDamage) return item;
+  // Also run when base values were previously captured — this means an
+  // enhancement was applied earlier and may need its derived state cleaned up
+  // (specialActions, arremesso, sheetBonuses) now that the source is gone.
+  const hasBaseCapture =
+    item.baseSpecialActions !== undefined ||
+    item.baseArremesso !== undefined ||
+    item.baseSheetBonuses !== undefined;
+  if (!hasMods && !hasEnch && !hasExtraDamage && !hasBaseCapture) return item;
 
   const captured = captureBaseValues(item);
 

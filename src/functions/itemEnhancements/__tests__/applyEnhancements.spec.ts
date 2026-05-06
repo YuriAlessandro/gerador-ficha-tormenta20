@@ -29,7 +29,17 @@ describe('applyItemEnhancements — encantamentos', () => {
     expect(result.baseAtkBonus).toBe(0);
   });
 
-  test('Magnífica* (double cost) adds +4 atk and +4 dmg', () => {
+  test('Magnífica adds +4 atk and +4 dmg', () => {
+    const item: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Magnífica' }],
+    };
+    const result = applyItemEnhancements(item);
+    expect(result.atkBonus).toBe(4);
+    expect(result.dano).toBe('1d8+4');
+  });
+
+  test('legacy Magnífica* alias resolves to the same effect', () => {
     const item: Equipment = {
       ...baseSword,
       enchantments: [{ enchantment: 'Magnífica*' }],
@@ -37,6 +47,93 @@ describe('applyItemEnhancements — encantamentos', () => {
     const result = applyItemEnhancements(item);
     expect(result.atkBonus).toBe(4);
     expect(result.dano).toBe('1d8+4');
+  });
+
+  test('Energética adds +4 atk', () => {
+    const item: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Energética' }],
+    };
+    const result = applyItemEnhancements(item);
+    expect(result.atkBonus).toBe(4);
+    expect(result.dano).toBe('1d8');
+  });
+
+  test('Ameaçadora doubles the critical threat margin', () => {
+    const xPlain: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Ameaçadora' }],
+    };
+    expect(applyItemEnhancements(xPlain).critico).toBe('19/x2');
+
+    const margin2: Equipment = {
+      ...baseSword,
+      critico: '19/x2',
+      enchantments: [{ enchantment: 'Ameaçadora' }],
+    };
+    expect(applyItemEnhancements(margin2).critico).toBe('17/x2');
+
+    const margin3: Equipment = {
+      ...baseSword,
+      critico: '18/x2',
+      enchantments: [{ enchantment: 'Ameaçadora' }],
+    };
+    expect(applyItemEnhancements(margin3).critico).toBe('15/x2');
+  });
+
+  test('Piedosa adds 1d8 Impacto extra damage', () => {
+    const item: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Piedosa' }],
+    };
+    const result = applyItemEnhancements(item);
+    expect(result.extraDamage).toHaveLength(1);
+    expect(result.extraDamage?.[0]).toMatchObject({
+      dice: '1d8',
+      damageType: 'Impacto',
+      sourceName: 'Piedosa',
+    });
+  });
+
+  test('Arremesso adds melee+throw special actions and sets arremesso flag', () => {
+    const item: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Arremesso' }],
+    };
+    const result = applyItemEnhancements(item);
+    expect(result.arremesso).toBe(true);
+    expect(result.specialActions).toHaveLength(2);
+    expect(result.specialActions?.[0].id).toBe('ench-arremesso-melee');
+    expect(result.specialActions?.[1].id).toBe('ench-arremesso-throw');
+  });
+
+  test('Arremesso preserves existing specialActions and dedupes by id', () => {
+    const item: Equipment = {
+      ...baseSword,
+      specialActions: [
+        { id: 'corpo-a-corpo', label: 'Corpo a corpo', skill: 'Luta' },
+      ],
+      enchantments: [{ enchantment: 'Arremesso' }],
+    };
+    const result = applyItemEnhancements(item);
+    // Original action stays + 2 derived (no dup since IDs differ).
+    expect(result.specialActions?.map((a) => a.id)).toEqual([
+      'corpo-a-corpo',
+      'ench-arremesso-melee',
+      'ench-arremesso-throw',
+    ]);
+  });
+
+  test('removing Arremesso restores baseArremesso and strips derived actions', () => {
+    const item: Equipment = {
+      ...baseSword,
+      enchantments: [{ enchantment: 'Arremesso' }],
+    };
+    const enchanted = applyItemEnhancements(item);
+    const cleared: Equipment = { ...enchanted, enchantments: [] };
+    const restored = applyItemEnhancements(cleared);
+    expect(restored.arremesso).toBeUndefined();
+    expect(restored.specialActions).toBeUndefined();
   });
 
   test('Defensora emits a Defense SheetBonus on a weapon', () => {

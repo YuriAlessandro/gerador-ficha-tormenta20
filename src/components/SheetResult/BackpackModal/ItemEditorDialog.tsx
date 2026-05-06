@@ -114,6 +114,9 @@ function buildInitial(item: Equipment | null) {
   const materialEntry = item?.modifications?.find(
     (m) => m.mod === 'Material especial'
   );
+  const conjuradoraEntry = item?.enchantments?.find(
+    (e) => e.enchantment === 'Conjuradora'
+  );
   const baseDamageAttribute: DamageAttribute = item
     ? resolveDamageAttribute(item)
     : 'Nenhum';
@@ -151,6 +154,7 @@ function buildInitial(item: Equipment | null) {
     selectedModifications: initialMods,
     selectedMaterial: materialEntry?.specialMaterial ?? '',
     selectedEnchantments: initialEnchantments,
+    selectedConjuradoraSpell: conjuradoraEntry?.selectedSpell ?? '',
     userExtraDamage: (item?.extraDamage ?? [])
       .filter((e) => e.source === 'user')
       .map((e) => ({
@@ -242,7 +246,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     );
 
     const persistedEnchantments: AppliedEnchantment[] =
-      form.selectedEnchantments.map((e) => ({ enchantment: e.enchantment }));
+      form.selectedEnchantments.map((e) => ({
+        enchantment: e.enchantment,
+        selectedSpell:
+          e.enchantment === 'Conjuradora' && form.selectedConjuradoraSpell
+            ? form.selectedConjuradoraSpell
+            : undefined,
+      }));
 
     const persistedUserExtraDamage: ExtraDamage[] = form.userExtraDamage
       .filter((e) => e.dice.trim().length > 0)
@@ -318,42 +328,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     }
 
     // Apply enhancement effects (numeric bonuses from mods + enchantments,
-    // plus rebuilding the extraDamage list) on top of manual edits.
-    const hasAnyEnhancement =
-      persistedMods.length > 0 ||
-      persistedEnchantments.length > 0 ||
-      persistedUserExtraDamage.length > 0;
-    const hadAnyBefore =
-      !!item.modifications?.length ||
-      !!item.enchantments?.length ||
-      !!item.extraDamage?.length;
-
-    if (hasAnyEnhancement) {
-      finalItem = applyItemEnhancements(finalItem);
-    } else if (hadAnyBefore) {
-      // User cleared all enhancements: reset stats to base values.
-      const restored: Equipment = {
-        ...finalItem,
-        modifications: undefined,
-        enchantments: undefined,
-        extraDamage: undefined,
-        dano: finalItem.baseDano ?? finalItem.dano,
-        atkBonus: finalItem.baseAtkBonus ?? finalItem.atkBonus,
-        critico: finalItem.baseCritico ?? finalItem.critico,
-        spaces: finalItem.baseSpaces ?? finalItem.spaces,
-        sheetBonuses: finalItem.baseSheetBonuses,
-      };
-      if (isDefense) {
-        const restoredDef = restored as DefenseEquipment;
-        restoredDef.defenseBonus =
-          (finalItem as DefenseEquipment).baseDefenseBonus ??
-          (finalItem as DefenseEquipment).defenseBonus;
-        restoredDef.armorPenalty =
-          (finalItem as DefenseEquipment).baseArmorPenalty ??
-          (finalItem as DefenseEquipment).armorPenalty;
-      }
-      finalItem = restored;
-    }
+    // plus rebuilding extraDamage / specialActions / arremesso) on top of
+    // manual edits. Pipeline is idempotent — when all enhancements are cleared
+    // it restores stats from `base*` snapshots automatically.
+    finalItem = applyItemEnhancements(finalItem);
 
     onSave(finalItem);
   };
@@ -827,6 +805,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                 setForm((f) => ({ ...f, selectedEnchantments: ench }))
               }
               onError={setEnchError}
+              selectedSpell={form.selectedConjuradoraSpell}
+              onSelectedSpellChange={(spell) =>
+                setForm((f) => ({ ...f, selectedConjuradoraSpell: spell }))
+              }
             />
           </Stack>
         )}

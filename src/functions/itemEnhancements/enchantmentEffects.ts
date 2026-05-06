@@ -11,17 +11,42 @@ import { EnhancementEffect } from './core';
  * mod) and Formidável (+2 atk/+2 dmg ench) gets +3 atk and +2 dmg total. Pipeline
  * is in `applyEnhancements.ts`.
  */
+const magnificaEffect: EnhancementEffect = {
+  weaponStats: { atkBonus: 4, danoDelta: 4 },
+};
+
 export const enchantmentEffects: Record<string, EnhancementEffect> = {
   // Weapons — clear numeric effects
+  Ameaçadora: { criticoThreatDoubleMargin: true },
   Defensora: { defenseBonus: 2 }, // +2 Defesa do empunhador
+  Energética: { weaponStats: { atkBonus: 4 } },
   Formidável: { weaponStats: { atkBonus: 2, danoDelta: 2 } },
-  'Magnífica*': { weaponStats: { atkBonus: 4, danoDelta: 4 } },
+  Magnífica: magnificaEffect,
+  // Legacy alias kept for migration: items saved before the asterisk was
+  // dropped from the canonical name still resolve to the same effect.
+  'Magnífica*': magnificaEffect,
+
+  // Arremesso — adds melee + throw special actions and sets the arremesso flag.
+  // Uses prefixed IDs so the pipeline doesn't confuse them with base actions.
+  Arremesso: {
+    setArremesso: true,
+    specialActions: [
+      { id: 'ench-arremesso-melee', label: 'Corpo a corpo', skill: 'Luta' },
+      {
+        id: 'ench-arremesso-throw',
+        label: 'Arremessar',
+        skill: 'Pontaria',
+        damageAttribute: 'Nenhum',
+      },
+    ],
+  },
 
   // Weapons — extra damage on hit (does not crit)
   Flamejante: { extraDamage: [{ dice: '1d6', damageType: 'Fogo' }] },
   Congelante: { extraDamage: [{ dice: '1d6', damageType: 'Frio' }] },
   Corrosiva: { extraDamage: [{ dice: '1d6', damageType: 'Ácido' }] },
   Elétrica: { extraDamage: [{ dice: '1d6', damageType: 'Eletricidade' }] },
+  Piedosa: { extraDamage: [{ dice: '1d8', damageType: 'Impacto' }] },
   Tumular: { extraDamage: [{ dice: '1d8', damageType: 'Trevas' }] },
 
   // Armor / shields — clear numeric effects
@@ -40,20 +65,15 @@ export const enchantmentEffects: Record<string, EnhancementEffect> = {
  */
 export const TEXT_ONLY_ENCHANTMENTS: ReadonlySet<string> = new Set([
   // Weapons
-  'Ameaçadora',
   'Anticriatura',
-  'Arremesso',
   'Assassina',
   'Caçadora',
-  'Conjuradora',
   'Dançarina',
   'Destruidora',
   'Dilacerante',
   'Drenante',
-  'Energética*',
   'Excruciante',
   'Lancinante*',
-  'Piedosa',
   'Profana',
   'Sagrada',
   'Sanguinária',

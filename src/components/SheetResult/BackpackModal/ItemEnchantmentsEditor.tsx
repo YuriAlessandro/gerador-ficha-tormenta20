@@ -21,6 +21,8 @@ import {
   enchantmentEffects,
   TEXT_ONLY_ENCHANTMENTS,
 } from '../../../functions/itemEnhancements/enchantmentEffects';
+import { allArcaneSpellsUpToCircle } from '../../../data/systems/tormenta20/magias/arcane';
+import { allDivineSpellsUpToCircle } from '../../../data/systems/tormenta20/magias/divine';
 
 export type EnchantmentItemType = 'weapon' | 'armor' | 'shield';
 
@@ -32,6 +34,27 @@ export interface ItemEnchantmentsEditorProps {
   showCost?: boolean;
   maxCost?: number;
   onError?: (message: string) => void;
+  /** Spell name selected for the Conjuradora enchantment, when present. */
+  selectedSpell?: string;
+  onSelectedSpellChange?: (spell: string) => void;
+}
+
+/**
+ * All known spells (arcane up to 5th circle ∪ divine up to 5th circle), deduped
+ * by name so the Conjuradora picker shows each spell once.
+ */
+function buildAllSpellsList(): { name: string }[] {
+  const arcane = allArcaneSpellsUpToCircle(5);
+  const divine = allDivineSpellsUpToCircle(5);
+  const seen = new Set<string>();
+  const result: { name: string }[] = [];
+  [...arcane, ...divine].forEach((s) => {
+    if (!seen.has(s.nome)) {
+      seen.add(s.nome);
+      result.push({ name: s.nome });
+    }
+  });
+  return result.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 const DEFAULT_MAX_COST = 5;
@@ -49,10 +72,16 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
   showCost = true,
   maxCost = DEFAULT_MAX_COST,
   onError,
+  selectedSpell,
+  onSelectedSpellChange,
 }) => {
   const allEnchantments = useMemo(
     () => getEnchantmentsForType(itemType),
     [itemType]
+  );
+  const allSpells = useMemo(buildAllSpellsList, []);
+  const hasConjuradora = selectedEnchantments.some(
+    (e) => e.enchantment === 'Conjuradora'
   );
 
   const availableEnchantments = useMemo(
@@ -180,6 +209,34 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
           disabled={disabled}
         />
       </Grid>
+
+      {hasConjuradora && (
+        <Grid size={12}>
+          <Autocomplete
+            options={allSpells}
+            getOptionLabel={(option) => option.name}
+            value={
+              selectedSpell
+                ? allSpells.find((s) => s.name === selectedSpell) || {
+                    name: selectedSpell,
+                  }
+                : null
+            }
+            onChange={(_, value) => onSelectedSpellChange?.(value?.name ?? '')}
+            isOptionEqualToValue={(opt, value) => opt.name === value.name}
+            renderInput={(params) => (
+              <TextField
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
+                label='Magia (Conjuradora)'
+                placeholder='Selecione a magia armazenada'
+                helperText='A magia escolhida fica disponível na lista de magias do personagem.'
+              />
+            )}
+            disabled={disabled}
+          />
+        </Grid>
+      )}
 
       {showCost && selectedEnchantments.length > 0 && (
         <Grid size={12}>

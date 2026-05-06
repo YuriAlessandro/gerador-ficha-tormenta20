@@ -2,6 +2,7 @@ import Equipment, {
   DamageType,
   DefenseEquipment,
   ExtraDamage,
+  WeaponAction,
 } from '../../interfaces/Equipment';
 import { SheetBonus } from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
@@ -41,6 +42,27 @@ export interface EnhancementEffect {
    * and does not crit.
    */
   extraDamage?: { dice: string; damageType: DamageType }[];
+  /**
+   * Doubles the critical threat margin (Ameaçadora). Applied AFTER any flat
+   * `criticoThreatDelta`, matching the T20 RAW reading that Ameaçadora widens
+   * the final margin. Multiple instances of the flag still double only once
+   * (idempotent).
+   */
+  criticoThreatDoubleMargin?: boolean;
+  /**
+   * Special actions appended to the weapon's `specialActions` list (e.g.
+   * Arremesso enchantment grants melee + throw modes to a weapon that didn't
+   * have them). IDs should be prefixed (e.g. `'ench-arremesso-throw'`) so that
+   * the pipeline can distinguish base actions from derived ones during
+   * regeneration.
+   */
+  specialActions?: WeaponAction[];
+  /**
+   * Sets `equipment.arremesso = true` (e.g. for the Arremesso enchantment). The
+   * pipeline tracks original value via `baseArremesso` so removing the
+   * enchantment restores the previous state.
+   */
+  setArremesso?: boolean;
 }
 
 /**
@@ -68,6 +90,12 @@ export interface AggregatedDelta {
    * be merged with the user-managed extra damage entries on the equipment.
    */
   derivedExtraDamage: ExtraDamage[];
+  /** Whether any aggregated effect requested doubling the critical margin. */
+  criticoThreatDoubleMargin: boolean;
+  /** Special actions contributed by mods/ench, replacing prior derived ones. */
+  derivedSpecialActions: WeaponAction[];
+  /** Tri-state: undefined (no opinion), true (force on), false (force off). */
+  setArremesso?: boolean;
 }
 
 export function emptyDelta(): AggregatedDelta {
@@ -82,6 +110,8 @@ export function emptyDelta(): AggregatedDelta {
     skillBonuses: [],
     defenseBonusFromSheetBonus: 0,
     derivedExtraDamage: [],
+    criticoThreatDoubleMargin: false,
+    derivedSpecialActions: [],
   };
 }
 
@@ -112,6 +142,15 @@ export function aggregateEffects(entries: SourcedEffect[]): AggregatedDelta {
         });
       });
     }
+    if (effect.criticoThreatDoubleMargin) {
+      acc.criticoThreatDoubleMargin = true;
+    }
+    if (effect.specialActions) {
+      acc.derivedSpecialActions.push(...effect.specialActions);
+    }
+    if (effect.setArremesso !== undefined) {
+      acc.setArremesso = effect.setArremesso;
+    }
   });
   return acc;
 }
@@ -128,6 +167,9 @@ export function sumDeltas(...deltas: AggregatedDelta[]): AggregatedDelta {
     acc.skillBonuses.push(...d.skillBonuses);
     acc.defenseBonusFromSheetBonus += d.defenseBonusFromSheetBonus;
     acc.derivedExtraDamage.push(...d.derivedExtraDamage);
+    if (d.criticoThreatDoubleMargin) acc.criticoThreatDoubleMargin = true;
+    acc.derivedSpecialActions.push(...d.derivedSpecialActions);
+    if (d.setArremesso !== undefined) acc.setArremesso = d.setArremesso;
     return acc;
   }, emptyDelta());
 }
@@ -198,6 +240,18 @@ export function adjustCriticoThreat(c: string, delta: number): string {
   });
 }
 
+/**
+ * Doubles the threat margin (e.g. Ameaçadora). Margin = 21 - threshold; new
+ * threshold = 21 - 2*margin. Examples: x2 (margin 1) → 19/x2; 19/x2 (margin
+ * 2) → 17/x2; 18/x2 (margin 3) → 15/x2.
+ */
+export function doubleCriticoThreatMargin(c: string): string {
+  const parsed = parseCritico(c);
+  const margin = 21 - parsed.threat;
+  const newThreat = Math.max(2, 21 - margin * 2);
+  return formatCritico({ ...parsed, threat: newThreat });
+}
+
 export function isDefenseEquipment(item: Equipment): item is DefenseEquipment {
   return item.group === 'Armadura' || item.group === 'Escudo';
 }
@@ -222,6 +276,14 @@ export function captureBaseValues<T extends Equipment>(item: T): T {
   }
   if (result.baseSheetBonuses === undefined) {
     result.baseSheetBonuses = item.sheetBonuses ?? [];
+  }
+  if (result.baseArremesso === undefined) {
+    result.baseArremesso = item.arremesso ?? false;
+  }
+  if (result.baseSpecialActions === undefined) {
+    result.baseSpecialActions = item.specialActions
+      ? item.specialActions.map((a) => ({ ...a }))
+      : [];
   }
   if (isDefenseEquipment(item)) {
     const defenseItem = item as unknown as DefenseEquipment;
@@ -274,6 +336,9 @@ export function applyDelta<T extends Equipment>(
     if (delta.criticoThreatDelta) {
       crit = adjustCriticoThreat(crit, delta.criticoThreatDelta);
     }
+    if (delta.criticoThreatDoubleMargin) {
+      crit = doubleCriticoThreatMargin(crit);
+    }
     result.critico = crit;
   }
 
@@ -315,6 +380,23 @@ export function applyDelta<T extends Equipment>(
   );
   const merged = [...userExtraDamage, ...delta.derivedExtraDamage];
   result.extraDamage = merged.length > 0 ? merged : undefined;
+
+  // Rebuild specialActions from base + derived (deduped by id, preferring base).
+  const baseActions = captured.baseSpecialActions ?? [];
+  const baseIds = new Set(baseActions.map((a) => a.id));
+  const newDerived = delta.derivedSpecialActions.filter(
+    (a) => !baseIds.has(a.id)
+  );
+  const combinedActions = [...baseActions, ...newDerived];
+  result.specialActions =
+    combinedActions.length > 0 ? combinedActions : undefined;
+
+  // Resolve arremesso: enchantment override wins; otherwise restore base.
+  if (delta.setArremesso === true) {
+    result.arremesso = true;
+  } else {
+    result.arremesso = captured.baseArremesso || undefined;
+  }
 
   return result;
 }

@@ -52,6 +52,12 @@ export interface AppliedModification {
  */
 export interface AppliedEnchantment {
   enchantment: string;
+  /**
+   * User-selected spell, populated only when `enchantment === 'Conjuradora'`.
+   * The spell is auto-injected into `sheet.spells` by `recalculateSheet` while
+   * the enchantment is applied.
+   */
+  selectedSpell?: string;
 }
 
 /**
@@ -189,6 +195,10 @@ export default interface Equipment {
   baseCritico?: string;
   baseSpaces?: number;
   baseSheetBonuses?: SheetBonus[];
+  /** Original `arremesso` flag before any enhancement override (e.g. Arremesso enchant). */
+  baseArremesso?: boolean;
+  /** Original `specialActions` array before mods/ench append derived ones. */
+  baseSpecialActions?: WeaponAction[];
 
   // Flag to indicate if this weapon has manual user edits
   // When true, recalculateSheet will preserve user edits instead of resetting

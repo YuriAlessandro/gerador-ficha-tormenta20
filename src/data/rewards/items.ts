@@ -1277,8 +1277,8 @@ export const weaponsEnchantments: ItemE[] = [
   {
     min: 46,
     max: 46,
-    enchantment: 'Energética*',
-    effect: 'Bônus em ataque',
+    enchantment: 'Energética',
+    effect: '+4 em testes de ataque',
     double: true,
   },
   { min: 47, max: 48, enchantment: 'Excruciante', effect: 'Causa fraqueza' },
@@ -1299,11 +1299,16 @@ export const weaponsEnchantments: ItemE[] = [
   {
     min: 65,
     max: 72,
-    enchantment: 'Magnífica*',
-    effect: 'Ataque e dano +4',
+    enchantment: 'Magnífica',
+    effect: '+4 em ataque e dano',
     double: true,
   },
-  { min: 73, max: 74, enchantment: 'Piedosa', effect: 'Dano não letal' },
+  {
+    min: 73,
+    max: 74,
+    enchantment: 'Piedosa',
+    effect: 'Dano não letal (+1d8 de Impacto)',
+  },
   {
     min: 75,
     max: 76,

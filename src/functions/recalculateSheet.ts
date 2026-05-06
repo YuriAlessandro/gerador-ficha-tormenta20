@@ -39,6 +39,7 @@ import {
 } from './multiclass';
 import { stepUpDamage } from './weaponDamageStep';
 import { applyItemEnhancements } from './itemEnhancements/applyEnhancements';
+import { injectConjuradoraSpells } from './itemEnhancements/injectConjuradoraSpells';
 import { migrateLegacyEquipState } from '../components/SheetResult/BackpackModal/wielding';
 
 import {
@@ -1769,18 +1770,25 @@ export function recalculateSheet(
       const list = reapplied[cat] as Equipment[] | undefined;
       if (!Array.isArray(list)) return;
       list.forEach((item, idx) => {
-        if (
-          item?.modifications?.length ||
-          item?.enchantments?.length ||
-          item?.extraDamage?.length
-        ) {
-          // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
-          (list as any)[idx] = applyItemEnhancements(item);
-        }
+        if (!item) return;
+        // applyItemEnhancements short-circuits items without any enhancement
+        // or prior base capture, so calling it unconditionally is cheap and
+        // ensures stale derived state (e.g. specialActions left behind by a
+        // removed Arremesso enchantment) gets cleaned up.
+        // eslint-disable-next-line no-param-reassign, @typescript-eslint/no-explicit-any
+        (list as any)[idx] = applyItemEnhancements(item);
       });
     });
     updatedSheet.bag = new Bag(reapplied, true, updatedSheet.bag.displayOrder);
   }
+
+  // Step 18: Inject spells granted by the Conjuradora enchantment into
+  // `sheet.spells`. Spells previously injected (tagged via `equipmentSource`)
+  // are stripped first so removing the enchantment also removes the spell.
+  updatedSheet.spells = injectConjuradoraSpells(
+    updatedSheet.spells,
+    updatedSheet.bag?.equipments
+  );
 
   return updatedSheet;
 }
