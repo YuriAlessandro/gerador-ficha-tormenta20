@@ -311,6 +311,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
       offHandItemId: staged.offHandItemId,
       wornArmorId: staged.wornArmorId,
       backpackGroupByCategory: staged.groupByCategory,
+      sheetBonuses: recalculated.sheetBonuses ?? sheet.sheetBonuses,
       steps: [...sheet.steps, editStep],
     });
 

@@ -228,4 +228,33 @@ describe('applyModificationsToEquipment', () => {
     expect(result.atkBonus).toBe(0);
     expect(result.critico).toBe('x2');
   });
+
+  test('Guarda emits a Defense SheetBonus on a weapon', () => {
+    const item: Equipment = {
+      ...baseSword,
+      modifications: [{ mod: 'Guarda' }],
+    };
+    const result = applyModificationsToEquipment(item);
+    const defenseBonus = (result.sheetBonuses ?? []).find(
+      (b) => b.target.type === 'Defense'
+    );
+    expect(defenseBonus).toBeDefined();
+    if (defenseBonus && defenseBonus.modifier.type === 'Fixed') {
+      expect(defenseBonus.modifier.value).toBe(1);
+    }
+    expect(result.atkBonus).toBe(0);
+    expect(result.dano).toBe('1d8');
+  });
+
+  test('captures empty baseSheetBonuses on first apply when item had none', () => {
+    const item: Equipment = {
+      ...baseSword,
+      modifications: [{ mod: 'Guarda' }],
+    };
+    const result = applyModificationsToEquipment(item);
+    expect(result.baseSheetBonuses).toEqual([]);
+    // Re-running on the result must not promote modBonuses into baseSheetBonuses
+    const second = applyModificationsToEquipment(result);
+    expect(second.baseSheetBonuses).toEqual([]);
+  });
 });

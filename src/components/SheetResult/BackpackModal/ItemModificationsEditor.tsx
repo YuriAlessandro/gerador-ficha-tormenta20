@@ -23,6 +23,9 @@ import {
 import {
   addModificationWithPrerequisites,
   calculateModificationCost,
+  formatPrerequisite,
+  removeModificationWithDependents,
+  validateModificationRequirement,
 } from '../../../utils/superiorItemsValidation';
 
 export type ModificationItemType = 'weapon' | 'armor' | 'shield';
@@ -103,24 +106,36 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
     [allMods, selectedModifications]
   );
 
-  const isOptionDisabled = (mod: ItemMod): boolean => {
-    if (!mod.prerequisite) return false;
-    return !selectedModifications.some(
-      (selected) => selected.mod === mod.prerequisite
-    );
-  };
+  const isOptionDisabled = (mod: ItemMod): boolean =>
+    !validateModificationRequirement(mod, selectedModifications);
 
   const handleSelectionChange = (
     _event: React.SyntheticEvent,
     value: ItemMod[]
   ) => {
-    const expanded = value.reduce<ItemMod[]>(
-      (acc, selectedMod) =>
-        addModificationWithPrerequisites(selectedMod, acc, allMods),
-      []
+    // Detect removal vs addition by comparing with the previous selection.
+    // For removal: cascata via removeModificationWithDependents to drop
+    // dependents that lose their prereqs. For addition: auto-add missing
+    // prereqs (or the first option of an OR-prereq) via
+    // addModificationWithPrerequisites.
+    const removed = selectedModifications.find(
+      (prev) => !value.some((v) => v.mod === prev.mod)
     );
+    let computed: ItemMod[];
+    if (removed) {
+      computed = removeModificationWithDependents(
+        removed,
+        selectedModifications
+      );
+    } else {
+      computed = value.reduce<ItemMod[]>(
+        (acc, selectedMod) =>
+          addModificationWithPrerequisites(selectedMod, acc, allMods),
+        []
+      );
+    }
 
-    const cost = calculateModificationCost(expanded);
+    const cost = calculateModificationCost(computed);
     if (cost > maxCost) {
       if (onError) {
         onError(
@@ -132,11 +147,11 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
 
     if (onError) onError('');
 
-    if (!expanded.some((mod) => mod.mod === 'Material especial')) {
+    if (!computed.some((mod) => mod.mod === 'Material especial')) {
       if (selectedMaterial) onSelectedMaterialChange('');
     }
 
-    onChange(expanded);
+    onChange(computed);
   };
 
   const totalCost = calculateModificationCost(selectedModifications);
@@ -262,7 +277,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                       color={optionDisabled ? 'error.main' : 'warning.main'}
                       sx={{ display: 'block' }}
                     >
-                      Requer: {option.prerequisite}
+                      Requer: {formatPrerequisite(option.prerequisite)}
                     </Typography>
                   )}
                 </Box>

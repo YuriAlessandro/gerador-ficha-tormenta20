@@ -87,6 +87,8 @@ interface AggregatedDelta {
     skill: import('../../interfaces/Skills').default;
     value: number;
   }[];
+  /** Soma de bônus cross-cutting de Defesa (SheetBonus target Defense). */
+  defenseBonusFromSheetBonus: number;
 }
 
 function aggregate(modifications: AppliedModification[]): AggregatedDelta {
@@ -99,6 +101,7 @@ function aggregate(modifications: AppliedModification[]): AggregatedDelta {
     armorPenaltyDelta: 0,
     spacesDelta: 0,
     skillBonuses: [],
+    defenseBonusFromSheetBonus: 0,
   };
 
   modifications.forEach(({ mod }) => {
@@ -116,6 +119,7 @@ function aggregate(modifications: AppliedModification[]): AggregatedDelta {
     }
     acc.spacesDelta += effect.spacesDelta ?? 0;
     if (effect.skillBonuses) acc.skillBonuses.push(...effect.skillBonuses);
+    acc.defenseBonusFromSheetBonus += effect.defenseBonus ?? 0;
   });
 
   return acc;
@@ -139,11 +143,8 @@ function captureBaseValues<T extends Equipment>(item: T): T {
   if (item.spaces !== undefined && result.baseSpaces === undefined) {
     result.baseSpaces = item.spaces;
   }
-  if (
-    item.sheetBonuses !== undefined &&
-    result.baseSheetBonuses === undefined
-  ) {
-    result.baseSheetBonuses = item.sheetBonuses;
+  if (result.baseSheetBonuses === undefined) {
+    result.baseSheetBonuses = item.sheetBonuses ?? [];
   }
   if (isDefenseEquipment(item)) {
     const defenseItem = item as unknown as DefenseEquipment;
@@ -227,6 +228,13 @@ export function applyModificationsToEquipment<T extends Equipment>(item: T): T {
     target: { type: 'Skill', name: sb.skill },
     modifier: { type: 'Fixed', value: sb.value },
   }));
+  if (delta.defenseBonusFromSheetBonus !== 0) {
+    modBonuses.push({
+      source: { type: 'equipment', equipmentName: result.nome },
+      target: { type: 'Defense' },
+      modifier: { type: 'Fixed', value: delta.defenseBonusFromSheetBonus },
+    });
+  }
   result.sheetBonuses = [...baseBonuses, ...modBonuses];
 
   return result;

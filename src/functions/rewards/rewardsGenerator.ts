@@ -30,6 +30,7 @@ import {
   Rych,
 } from '../../interfaces/Rewards';
 import { getRandomItemFromArray, rollDice } from '../randomUtils';
+import { validateModificationRequirement } from '../../utils/superiorItemsValidation';
 
 export interface RewardGenerated {
   moneyRoll: number;
@@ -177,7 +178,7 @@ export const getWeaponModification = (mods: number): string => {
       if (takenMods.some((taken) => taken.mod === mod.mod)) return false;
 
       if (mod.prerequisite) {
-        return takenMods.some((taken) => taken.mod === mod.prerequisite);
+        return validateModificationRequirement(mod, takenMods);
       }
 
       return true;
@@ -232,7 +233,7 @@ export const getArmorModification = (mods: number): string => {
       if (takenMods.some((taken) => taken.mod === mod.mod)) return false;
 
       if (mod.prerequisite) {
-        return takenMods.some((taken) => taken.mod === mod.prerequisite);
+        return validateModificationRequirement(mod, takenMods);
       }
 
       return true;

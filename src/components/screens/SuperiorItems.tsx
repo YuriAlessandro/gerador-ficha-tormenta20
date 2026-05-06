@@ -48,7 +48,11 @@ import {
   GeneratedSuperiorItem,
   SuperiorItemsState,
 } from '../../interfaces/SuperiorItems';
-import { validateModificationCombination } from '../../utils/superiorItemsValidation';
+import {
+  formatPrerequisite,
+  validateModificationCombination,
+  validateModificationRequirement,
+} from '../../utils/superiorItemsValidation';
 import { getSpecialMaterialData } from '../../data/systems/tormenta20/specialMaterials';
 import { useAuth } from '../../hooks/useAuth';
 import { TORMENTA20_SYSTEM } from '../../data/systems/tormenta20';
@@ -159,9 +163,7 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
 
       // Check prerequisite
       if (mod.prerequisite) {
-        return selectedMods.some(
-          (selected) => selected.mod === mod.prerequisite
-        );
+        return validateModificationRequirement(mod, selectedMods);
       }
 
       // Check cost
@@ -198,14 +200,16 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
       let canAddMod = true;
       let totalCostNeeded = selectedMod.double ? 2 : 1;
 
-      // Add prerequisites if needed
+      // Add prerequisites if needed (para OR, escolhe o primeiro do array)
       if (
         selectedMod.prerequisite &&
-        !selectedMods.some((mod) => mod.mod === selectedMod.prerequisite)
+        !validateModificationRequirement(selectedMod, selectedMods)
       ) {
-        const prerequisite = allMods.find(
-          (mod) => mod.mod === selectedMod.prerequisite
-        );
+        const prereqList = Array.isArray(selectedMod.prerequisite)
+          ? selectedMod.prerequisite
+          : [selectedMod.prerequisite];
+        const [firstPrereq] = prereqList;
+        const prerequisite = allMods.find((mod) => mod.mod === firstPrereq);
         if (prerequisite) {
           const prereqCost = prerequisite.double ? 2 : 1;
           totalCostNeeded += prereqCost;
@@ -729,7 +733,8 @@ const SuperiorItems: React.FC<{ isDarkMode: boolean }> = () => {
                                       variant='caption'
                                       color='warning.main'
                                     >
-                                      Pré-requisito: {mod.prerequisite}
+                                      Pré-requisito:{' '}
+                                      {formatPrerequisite(mod.prerequisite)}
                                     </Typography>
                                   )}
                                 </AccordionDetails>

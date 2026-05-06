@@ -27,6 +27,13 @@ export interface ModificationEffect {
   };
   spacesDelta?: number;
   skillBonuses?: { skill: Skill; value: number }[];
+  /**
+   * Bônus de Defesa concedido pelo item a quem o porta (SheetBonus com target
+   * `Defense`). Diferente de `defenseStats.defenseBonusDelta`, que ajusta
+   * apenas o `defenseBonus` interno de armaduras/escudos. Útil para mods de
+   * arma que dão Defesa ao empunhador (ex.: Guarda).
+   */
+  defenseBonus?: number;
 }
 
 export const modificationEffects: Record<string, ModificationEffect> = {
@@ -65,11 +72,22 @@ export const modificationEffects: Record<string, ModificationEffect> = {
       { skill: Skill.DIPLOMACIA, value: 2 },
     ],
   },
+
+  // Heróis de Arton — armas
+  // O bônus em testes contra manobras não é representável no modelo atual
+  // (não há target "Maneuver"), então apenas a Defesa é aplicada.
+  Guarda: { defenseBonus: 1 },
 };
 
 /**
  * Mods recognized by the catalog but with no numeric effect — kept here purely
  * for documentation purposes (TODO: future iterations may model these).
+ *
+ * As entradas de Heróis de Arton (Farpada, Fósforo, Guarda, Incendiária,
+ * Pressurizada, Balístico, Deslumbrante, Injetora, Prudente) ficam aqui porque
+ * têm efeitos condicionais (ativação por ação, dano de tipo específico,
+ * limites por subtipo de item) que não são representáveis pelos deltas
+ * numéricos suportados por aplicação automática.
  */
 export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Harmonizada',
@@ -80,4 +98,14 @@ export const TEXT_ONLY_MODIFICATIONS: ReadonlySet<string> = new Set([
   'Selada',
   'Delicada',
   'Espinhosa',
+  // Heróis de Arton (todas com efeitos condicionais ou dependentes de subtipo
+  // de item, salvo Guarda que aplica +1 Defesa numericamente)
+  'Balístico',
+  'Deslumbrante',
+  'Farpada',
+  'Fósforo',
+  'Incendiária',
+  'Injetora',
+  'Pressurizada',
+  'Prudente',
 ]);
