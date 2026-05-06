@@ -73,6 +73,19 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Nome customizado de armas na aba de Ataques.
+                  </strong>{' '}
+                  Ao renomear uma arma na mochila (campo{' '}
+                  <em>Nome customizado</em> no editor do item), o novo nome
+                  agora aparece imediatamente no card de ataque, no log de
+                  rolagem de dados, no diálogo de modos de ataque e no aviso de
+                  arma não empunhada. Antes, a renomeação só refletia no
+                  inventário — útil, por exemplo, para sinalizar &quot;Adaga
+                  (Marca da Presa)&quot; e lembrar de aplicar o dano extra a
+                  cada acerto.
+                </li>
+                <li>
+                  <strong>
                     Correção: Sincronização de condições entre ficha e encontro.
                   </strong>{' '}
                   Condições aplicadas pelo Mestre via gerenciador do
