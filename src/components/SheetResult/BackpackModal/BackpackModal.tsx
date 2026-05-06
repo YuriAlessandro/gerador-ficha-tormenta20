@@ -56,6 +56,12 @@ export interface BackpackModalProps {
   sheet: CharacterSheet;
   /** Persists changes to the parent's sheet handler. */
   onSave?: (updates: Partial<CharacterSheet>) => void;
+  /**
+   * Categories to pre-select in the filter when the modal opens (e.g. opening
+   * from the Attacks card seeds `['Arma']`). The user can still toggle/clear
+   * the chips in the toolbar; this only seeds the initial state on each open.
+   */
+  initialCategoryFilters?: equipGroup[];
 }
 
 const SlideUpTransition = React.forwardRef<
@@ -96,6 +102,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   onClose,
   sheet,
   onSave,
+  initialCategoryFilters,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -119,6 +126,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
     initialOffHandItemId: sheet.offHandItemId,
     initialWornArmorId: sheet.wornArmorId,
     initialGroupByCategory: sheet.backpackGroupByCategory,
+    initialCategoryFilters,
     open,
   });
 

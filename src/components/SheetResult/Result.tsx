@@ -68,6 +68,7 @@ import DefenseEquipments from '../DefenseEquipments';
 import Equipment, {
   AmmoType,
   DefenseEquipment,
+  equipGroup,
 } from '../../interfaces/Equipment';
 import Bag from '../../interfaces/Bag';
 import '../../assets/css/result.css';
@@ -161,6 +162,9 @@ const Result: React.FC<ResultProps> = (props) => {
   const [sheetInfoDrawerOpen, setSheetInfoDrawerOpen] = useState(false);
   const [skillsDrawerOpen, setSkillsDrawerOpen] = useState(false);
   const [backpackOpen, setBackpackOpen] = useState(false);
+  const [backpackInitialFilter, setBackpackInitialFilter] = useState<
+    equipGroup[] | undefined
+  >(undefined);
   const [powersDrawerOpen, setPowersDrawerOpen] = useState(false);
   const [spellsDrawerOpen, setSpellsDrawerOpen] = useState(false);
   const [defenseDrawerOpen, setDefenseDrawerOpen] = useState(false);
@@ -1495,7 +1499,10 @@ const Result: React.FC<ResultProps> = (props) => {
                       backgroundColor: theme.palette.primary.dark,
                     },
                   }}
-                  onClick={() => setBackpackOpen(true)}
+                  onClick={() => {
+                    setBackpackInitialFilter(['Arma']);
+                    setBackpackOpen(true);
+                  }}
                 >
                   <EditIcon />
                 </IconButton>
@@ -1547,7 +1554,10 @@ const Result: React.FC<ResultProps> = (props) => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => setBackpackOpen(true)}
+                    onClick={() => {
+                      setBackpackInitialFilter(['Armadura', 'Escudo']);
+                      setBackpackOpen(true);
+                    }}
                   >
                     <EditIcon />
                   </IconButton>
@@ -1884,7 +1894,10 @@ const Result: React.FC<ResultProps> = (props) => {
                         backgroundColor: theme.palette.primary.dark,
                       },
                     }}
-                    onClick={() => setBackpackOpen(true)}
+                    onClick={() => {
+                      setBackpackInitialFilter(undefined);
+                      setBackpackOpen(true);
+                    }}
                   >
                     <EditIcon />
                   </IconButton>
@@ -2284,6 +2297,7 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setBackpackOpen(false)}
           sheet={currentSheet}
           onSave={handleEquipmentUpdate}
+          initialCategoryFilters={backpackInitialFilter}
         />
 
         <PowersEditDrawer
@@ -2317,7 +2331,10 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setDefenseDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
-          onOpenEquipmentDrawer={() => setBackpackOpen(true)}
+          onOpenEquipmentDrawer={() => {
+            setBackpackInitialFilter(['Armadura', 'Escudo']);
+            setBackpackOpen(true);
+          }}
         />
 
         <RdEditDrawer

@@ -48,6 +48,13 @@ export interface BackpackInputs {
   initialWornArmorId?: string;
   initialGroupByCategory?: boolean;
   /**
+   * Categories to pre-select in the filter when the modal opens. The user can
+   * still toggle/clear them via the toolbar; this only seeds the initial state
+   * (and is reapplied each time the modal transitions from closed to open, so
+   * reopening from a different entry point picks up the new context).
+   */
+  initialCategoryFilters?: equipGroup[];
+  /**
    * When the modal transitions from closed to open, the staged snapshot is
    * resynced with the latest bag (so external mutations like ammo consumption
    * via attack rolls show up). Optional — when omitted, snapshot is captured
@@ -469,6 +476,7 @@ export function useBackpackState({
   initialOffHandItemId,
   initialWornArmorId,
   initialGroupByCategory = false,
+  initialCategoryFilters,
   open,
 }: BackpackInputs): BackpackState {
   // Builds a fresh staged snapshot from the current bag + inputs. Used both
@@ -522,6 +530,17 @@ export function useBackpackState({
 
   const [staged, dispatch] = useReducer(reducer, initialSnapshot);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<Set<equipGroup>>(
+    () => new Set(initialCategoryFilters ?? [])
+  );
+
+  // Keep latest preset in a ref so the open-transition effect can reapply it
+  // without forcing the array prop into the effect's deps (parents pass array
+  // literals, which would retrigger on every render).
+  const initialCategoryFiltersRef = React.useRef(initialCategoryFilters);
+  initialCategoryFiltersRef.current = initialCategoryFilters;
+
   // Resync the snapshot when the modal opens. Captures any external bag
   // mutations (ammo consumed via attacks, etc.) that happened while the
   // modal was closed.
@@ -531,14 +550,11 @@ export function useBackpackState({
       const fresh = buildSnapshot();
       snapshotRef.current = fresh;
       dispatch({ type: 'RESET', snapshot: fresh });
+      setSelectedCategories(new Set(initialCategoryFiltersRef.current ?? []));
+      setSearchQuery('');
     }
     wasOpenRef.current = open ?? false;
   }, [open]);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<Set<equipGroup>>(
-    new Set()
-  );
   const [reorderMode, setReorderMode] = useState(false);
 
   const orderedItems = useMemo<Equipment[]>(() => {
