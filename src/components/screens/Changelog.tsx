@@ -72,6 +72,16 @@ const Changelog: React.FC = () => {
               <h3>4.14</h3>
               <ul>
                 <li>
+                  <strong>Melhoria: Mochila pré-filtrada por contexto.</strong>{' '}
+                  Ao abrir a Mochila de Aventureiro pelo botão de editar dos
+                  cards de <strong>Ataques</strong> ou <strong>Defesa</strong>,
+                  o filtro de categorias já vem pré-selecionado (<em>Arma</em>{' '}
+                  para Ataques; <em>Armadura</em> e <em>Escudo</em> para
+                  Defesa). O botão de <strong>Equipamentos</strong> segue
+                  abrindo sem filtro. Os chips do toolbar continuam editáveis
+                  para alterar ou limpar a seleção.
+                </li>
+                <li>
                   <strong>Novo: Encantamentos mágicos</strong> em armas,
                   armaduras e escudos. Nova aba <strong>Encantamentos</strong>{' '}
                   no editor de item da mochila com seleção múltipla, custo
