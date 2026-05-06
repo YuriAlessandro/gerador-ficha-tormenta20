@@ -122,6 +122,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
     onConsumeAmmo,
   } = props;
   const { nome, dano, critico, atkBonus, customSkill } = equipment;
+  const displayName = equipment.customDisplayName?.trim() || nome;
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
 
@@ -379,7 +380,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         });
       });
 
-      showDiceResult(nome, rolls, characterName);
+      showDiceResult(displayName, rolls, characterName);
     },
     [
       atributos,
@@ -391,7 +392,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
       customSkill,
       damageModForAttribute,
       equipment,
-      nome,
+      displayName,
       showDiceResult,
     ]
   );
@@ -594,7 +595,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           },
         }}
         onClick={handleWeaponClick}
-        title={`Rolar ataque com ${nome}`}
+        title={`Rolar ataque com ${displayName}`}
       >
         <Typography
           fontSize={16}
@@ -605,7 +606,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
           }}
         >
           <ConditionMarker conditions={attackConditions} fontSize='inherit' />
-          {nome}
+          {displayName}
           {powerBonusEffects.length > 0 && (
             <Tooltip
               title={
@@ -726,7 +727,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         <WeaponModeDialog
           open={modeDialogOpen}
           onClose={() => setModeDialogOpen(false)}
-          weaponName={nome}
+          weaponName={displayName}
           damageOptions={dualMode.options}
           onSelect={handleModeSelect}
         />
@@ -742,7 +743,8 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         <DialogTitle>Arma não empunhada</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            <strong>{nome}</strong> não está empunhada. O que deseja fazer?
+            <strong>{displayName}</strong> não está empunhada. O que deseja
+            fazer?
             {defaultIsTwoHanded(equipment) && (
               <Typography
                 variant='caption'
@@ -778,7 +780,7 @@ const Weapon: React.FC<WeaponProps> = (props) => {
         maxWidth='xs'
         fullWidth
       >
-        <DialogTitle>Como atacar com {nome}?</DialogTitle>
+        <DialogTitle>Como atacar com {displayName}?</DialogTitle>
         <DialogContent>
           <Stack spacing={1} sx={{ mt: 1 }}>
             {(equipment.specialActions ?? []).map((action) => {
