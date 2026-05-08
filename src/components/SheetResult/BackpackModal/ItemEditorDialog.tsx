@@ -352,6 +352,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
+          variant='scrollable'
+          scrollButtons='auto'
+          allowScrollButtonsMobile
           sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
         >
           <Tab value='geral' label='Geral' />
