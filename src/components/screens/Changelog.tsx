@@ -73,6 +73,21 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Habilidades de Tormenta da raça Kaijin.
+                  </strong>{' '}
+                  As habilidades <strong>Disforme</strong> e{' '}
+                  <strong>Terror Vivo</strong> da raça <strong>Kaijin</strong>{' '}
+                  agora contam corretamente como poderes da Tormenta. Disforme
+                  passa a adicionar automaticamente um poder da Tormenta à ficha
+                  (como já acontecia com Couraça Rúbea), e Terror Vivo abre um
+                  seletor para escolher um poder real da Tormenta entre os
+                  disponíveis. Antes, apenas Couraça Rúbea era contabilizada,
+                  impedindo builds Kaijin de cumprir o pré-requisito de poderes
+                  que exigem 4 outros poderes da Tormenta — como{' '}
+                  <strong>Membros Extras</strong>.
+                </li>
+                <li>
+                  <strong>
                     Correção: Poderes e truques do Treinador (Ensinar Truque e
                     Magia Inata).
                   </strong>{' '}
