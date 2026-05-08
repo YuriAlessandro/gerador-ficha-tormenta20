@@ -239,7 +239,7 @@ const ItemModificationsEditor: React.FC<ItemModificationsEditorProps> = ({
                 }}
               >
                 <Box>
-                  <Typography variant='body2'>
+                  <Typography variant='body2' component='div'>
                     {option.mod}
                     {option.double && (
                       <Chip size='small' label='2 pts' sx={{ ml: 1 }} />

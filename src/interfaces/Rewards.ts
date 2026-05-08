@@ -113,6 +113,8 @@ export interface ItemE {
   effect: string;
   double?: boolean;
   onlyShield?: boolean;
+  /** Optional supplement ID for supplement-specific enchantments */
+  supplementId?: string;
 }
 
 export interface ItemMod {

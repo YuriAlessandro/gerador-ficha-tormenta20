@@ -12,7 +12,12 @@ import {
   armorEnchantments,
   weaponsEnchantments,
 } from '../../../data/rewards/items';
+import { TORMENTA20_SYSTEM } from '../../../data/systems/tormenta20';
 import { ItemE } from '../../../interfaces/Rewards';
+import {
+  SUPPLEMENT_METADATA,
+  SupplementId,
+} from '../../../types/supplement.types';
 import {
   calculateEnchantmentCost,
   validateEnchantmentForItemType,
@@ -30,6 +35,7 @@ export interface ItemEnchantmentsEditorProps {
   itemType: EnchantmentItemType;
   selectedEnchantments: ItemE[];
   onChange: (enchantments: ItemE[]) => void;
+  userSupplements: SupplementId[];
   disabled?: boolean;
   showCost?: boolean;
   maxCost?: number;
@@ -59,15 +65,34 @@ function buildAllSpellsList(): { name: string }[] {
 
 const DEFAULT_MAX_COST = 5;
 
-function getEnchantmentsForType(itemType: EnchantmentItemType): ItemE[] {
+function getEnchantmentsForType(
+  itemType: EnchantmentItemType,
+  userSupplements: SupplementId[]
+): ItemE[] {
   const base = itemType === 'weapon' ? weaponsEnchantments : armorEnchantments;
-  return base.filter((e) => validateEnchantmentForItemType(e, itemType));
+
+  const supplementEnchantments: ItemE[] = [];
+  userSupplements.forEach((supplementId) => {
+    const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
+    if (supplement?.enchantments) {
+      const toAdd =
+        itemType === 'weapon'
+          ? supplement.enchantments.weapons || []
+          : supplement.enchantments.armors || [];
+      supplementEnchantments.push(...toAdd);
+    }
+  });
+
+  return [...base, ...supplementEnchantments].filter((e) =>
+    validateEnchantmentForItemType(e, itemType)
+  );
 }
 
 const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
   itemType,
   selectedEnchantments,
   onChange,
+  userSupplements,
   disabled = false,
   showCost = true,
   maxCost = DEFAULT_MAX_COST,
@@ -76,8 +101,8 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
   onSelectedSpellChange,
 }) => {
   const allEnchantments = useMemo(
-    () => getEnchantmentsForType(itemType),
-    [itemType]
+    () => getEnchantmentsForType(itemType, userSupplements),
+    [itemType, userSupplements]
   );
   const allSpells = useMemo(buildAllSpellsList, []);
   const hasConjuradora = selectedEnchantments.some(
@@ -138,6 +163,9 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
             value.map((option, index) => {
               const hasNumericEffect =
                 enchantmentEffects[option.enchantment] !== undefined;
+              const supplementMeta = option.supplementId
+                ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+                : null;
               return (
                 <Chip
                   variant='outlined'
@@ -153,6 +181,14 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
                         {option.enchantment}
                         {option.double ? ' (2 pts)' : ''}
                       </span>
+                      {supplementMeta && (
+                        <Chip
+                          size='small'
+                          label={supplementMeta.abbreviation}
+                          color='primary'
+                          sx={{ height: 16, fontSize: '0.65rem' }}
+                        />
+                      )}
                       {!hasNumericEffect && (
                         <Chip
                           size='small'
@@ -172,6 +208,9 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
             const hasNumericEffect =
               enchantmentEffects[option.enchantment] !== undefined;
             const isTextOnly = TEXT_ONLY_ENCHANTMENTS.has(option.enchantment);
+            const supplementMeta = option.supplementId
+              ? SUPPLEMENT_METADATA[option.supplementId as SupplementId]
+              : null;
             return (
               <Box
                 component='li'
@@ -179,10 +218,19 @@ const ItemEnchantmentsEditor: React.FC<ItemEnchantmentsEditorProps> = ({
                 {...props}
               >
                 <Box>
-                  <Typography variant='body2'>
+                  <Typography variant='body2' component='div'>
                     {option.enchantment}
                     {option.double && (
                       <Chip size='small' label='2 pts' sx={{ ml: 1 }} />
+                    )}
+                    {supplementMeta && (
+                      <Chip
+                        size='small'
+                        label={supplementMeta.abbreviation}
+                        color='primary'
+                        variant='outlined'
+                        sx={{ ml: 1 }}
+                      />
                     )}
                     {!hasNumericEffect && isTextOnly && (
                       <Chip

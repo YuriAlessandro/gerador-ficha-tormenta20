@@ -804,6 +804,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
               onChange={(ench) =>
                 setForm((f) => ({ ...f, selectedEnchantments: ench }))
               }
+              userSupplements={userSupplements}
               onError={setEnchError}
               selectedSpell={form.selectedConjuradoraSpell}
               onSelectedSpellChange={(spell) =>
