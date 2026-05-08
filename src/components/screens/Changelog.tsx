@@ -73,6 +73,21 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: Identificação de suplemento nas melhorias e
+                    encantamentos.
+                  </strong>{' '}
+                  As abas <strong>Melhorias</strong> e{' '}
+                  <strong>Encantamentos</strong> do editor de armas, armaduras e
+                  escudos agora exibem um badge com a abreviação do suplemento
+                  (ex.: <strong>DA</strong>, <strong>HA</strong>) ao lado de
+                  cada opção que não vem do livro básico. Antes, era impossível
+                  saber de qual suplemento uma opção vinha — só o nome aparecia.
+                  A aba de Encantamentos também passou a carregar encantos
+                  específicos de suplementos ativos, em paralelo ao que já
+                  funcionava para Melhorias.
+                </li>
+                <li>
+                  <strong>
                     Correção: Limite de Poderes da Divindade no wizard.
                   </strong>{' '}
                   No passo <strong>Poderes da Divindade</strong> do wizard de
