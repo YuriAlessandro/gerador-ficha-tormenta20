@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            06/05/2026 (v4.14).
+            08/05/2026 (v4.14).
           </p>
 
           <p>
@@ -71,6 +71,19 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.14</h3>
               <ul>
+                <li>
+                  <strong>
+                    Correção: Remoção de jogadores travada na Mesa Virtual.
+                  </strong>{' '}
+                  Em mesas mais antigas, mestres podiam ver um erro ao tentar
+                  remover um jogador da lista de membros — o sistema não
+                  conseguia localizar o registro mesmo com o jogador visível na
+                  tela. A identificação interna dos membros foi normalizada e a
+                  remoção agora funciona em todas as mesas. Quando algum estado
+                  divergente acontecer no futuro, o frontend atualiza a lista
+                  automaticamente e mostra uma mensagem clara em vez do erro
+                  genérico.
+                </li>
                 <li>
                   <strong>
                     Novo: Layouts da Mesa Virtual repensados no desktop.
