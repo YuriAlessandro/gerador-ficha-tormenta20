@@ -315,6 +315,19 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
+                    Correção: Limite de jogadores da mesa para Apoiadores.
+                  </strong>{' '}
+                  Mesas criadas antes do upgrade para{' '}
+                  <strong>Apoiador Nível 2 ou 3</strong> continuavam exibindo o
+                  limite antigo de jogadores na tela de detalhe da mesa, mesmo
+                  com a assinatura ativa garantindo número ilimitado. O limite
+                  agora é calculado em tempo real a partir do nível de apoio
+                  atual do criador da mesa — qualquer mudança de plano (upgrade
+                  ou cancelamento) é refletida imediatamente em todas as mesas
+                  já existentes.
+                </li>
+                <li>
+                  <strong>
                     Correção: Sincronização de condições entre ficha e encontro.
                   </strong>{' '}
                   Condições aplicadas pelo Mestre via gerenciador do
