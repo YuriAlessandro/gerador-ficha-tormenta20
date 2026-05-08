@@ -37,8 +37,15 @@ export interface LevelUpSelections {
   abilityEffectSelections?: ManualPowerSelections;
   // Magias aprendidas (se aplicável)
   spellsLearned?: Spell[];
-  // Truque do parceiro (Treinador nos níveis 4, 7, 10, 13, 16, 19)
-  companionTrick?: CompanionTrick;
+  // Truques do parceiro (Treinador). Pode conter múltiplas entradas:
+  // - 'auto': truque automático nos níveis 4/7/10/13/16/19 (e 5/11 com Treino Intensivo)
+  // - 'power': truque adicional concedido pelo poder "Ensinar Truque"
+  companionTrickSelections?: Array<{
+    companionIndex: number;
+    trick: CompanionTrick;
+    spell?: Spell;
+    reason: 'auto' | 'power';
+  }>;
 
   // Multiclasse: criação do Melhor Amigo ao pegar o 1º nível de Treinador
   companionName?: string;

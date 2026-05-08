@@ -53,6 +53,7 @@ import {
   isMulticlass,
   getClassLevelsMap,
   findClassDescription,
+  getClassLevel,
 } from '@/functions/multiclass';
 import { normalizeSearch } from '@/functions/stringUtils';
 import Skill, {
@@ -63,6 +64,7 @@ import { CustomPower } from '@/interfaces/CustomPower';
 import PowerSelectionDialog from './PowerSelectionDialog';
 import GolpePessoalBuilder from './GolpePessoalBuilder';
 import CustomPowerDialog from './CustomPowerDialog';
+import EnsinarTruqueDialog, { EnsinarTruquePick } from './EnsinarTruqueDialog';
 
 interface PowersEditDrawerProps {
   open: boolean;
@@ -137,6 +139,12 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     open: boolean;
     powerToEdit?: CustomPower;
   }>({ open: false });
+
+  // State for Ensinar Truque dialog flow (Treinador)
+  const [ensinarTruqueDialog, setEnsinarTruqueDialog] = useState<{
+    open: boolean;
+    pendingCount: number;
+  }>({ open: false, pendingCount: 0 });
 
   useEffect(() => {
     if (open) {
@@ -1445,7 +1453,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     });
   };
 
-  const handleSave = () => {
+  const commitSave = (ensinarTruquePicks: EnsinarTruquePick[]) => {
     // Track general power changes
     const originalPowerNames = sheet.generalPowers?.map((p) => p.name) || [];
     const newPowerNames = selectedPowers.map((p) => p.name);
@@ -1456,7 +1464,6 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     const removedPowers =
       sheet.generalPowers?.filter((p) => !newPowerNames.includes(p.name)) || [];
 
-    // Track class power changes
     const originalClassPowerNames = sheet.classPowers?.map((p) => p.name) || [];
     const newClassPowerNames = selectedClassPowers.map((p) => p.name);
 
@@ -1701,6 +1708,49 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       }
     }
 
+    // Treinador: aplicar truques extras escolhidos no dialog "Ensinar Truque"
+    let updatedCompanions = sheet.companions;
+    if (ensinarTruquePicks.length > 0 && sheet.companions?.length) {
+      updatedCompanions = sheet.companions.map((companion, idx) => {
+        const picksForThis = ensinarTruquePicks.filter(
+          (p) => p.companionIndex === idx
+        );
+        if (picksForThis.length === 0) return companion;
+        const newTricks = picksForThis.map((p) => p.trick);
+        const newSpells = picksForThis
+          .filter((p) => p.spell)
+          .map((p) => ({
+            ...p.spell!,
+            customKeyAttr: Atributo.CARISMA,
+          }));
+        return {
+          ...companion,
+          tricks: [...companion.tricks, ...newTricks],
+          spells: [...(companion.spells || []), ...newSpells],
+        };
+      });
+
+      ensinarTruquePicks.forEach((pick) => {
+        newHistoryEntries.push({
+          source: {
+            type: 'power',
+            name: 'Ensinar Truque',
+            className: 'Treinador',
+          },
+          powerName: 'Ensinar Truque',
+          changes: [
+            {
+              type: 'CompanionTrickLearned',
+              companionIndex: pick.companionIndex,
+              trickName: pick.trick.name,
+              choices: pick.trick.choices,
+              spellName: pick.spell?.nome,
+            },
+          ],
+        });
+      });
+    }
+
     // Update the sheet with new powers and steps, then recalculate everything
     const updatedSheet = {
       ...sheet,
@@ -1708,6 +1758,7 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
       classPowers: selectedClassPowers,
       customPowers: selectedCustomPowers,
       customGrantedPowers: selectedCustomGrantedPowers,
+      companions: updatedCompanions,
       // Clear Meio-Elfo Ambição Herdada when the granted power was removed
       ...(shouldClearMeioElfoAmbicao
         ? {
@@ -1748,6 +1799,32 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
     // Pass the fully recalculated sheet
     onSave(recalculatedSheet);
     onClose();
+  };
+
+  const handleSave = () => {
+    // Treinador: se "Ensinar Truque" foi adicionado e há companheiros, abrir
+    // dialog para escolher o(s) truque(s) extra(s) antes de finalizar o save.
+    const originalClassPowerNames = sheet.classPowers?.map((p) => p.name) || [];
+    const ensinarTruqueAddedCount = selectedClassPowers.filter(
+      (p) =>
+        p.name === 'Ensinar Truque' && !originalClassPowerNames.includes(p.name)
+    ).length;
+    // Considera múltiplas instâncias adicionadas: count de adicionados pelo nome
+    const totalEnsinarAdded = selectedClassPowers.filter(
+      (p) => p.name === 'Ensinar Truque'
+    ).length;
+    const originalEnsinarCount = (sheet.classPowers || []).filter(
+      (p) => p.name === 'Ensinar Truque'
+    ).length;
+    const pendingCount = Math.max(
+      ensinarTruqueAddedCount,
+      totalEnsinarAdded - originalEnsinarCount
+    );
+    if (pendingCount > 0 && sheet.companions && sheet.companions.length > 0) {
+      setEnsinarTruqueDialog({ open: true, pendingCount });
+      return;
+    }
+    commitSave([]);
   };
 
   const handleCancel = () => {
@@ -2872,6 +2949,23 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         onSave={handleSaveCustomGrantedPower}
         power={customGrantedPowerDialog.powerToEdit}
       />
+
+      {/* Ensinar Truque Dialog (Treinador) */}
+      {ensinarTruqueDialog.open && sheet.companions?.length ? (
+        <EnsinarTruqueDialog
+          open={ensinarTruqueDialog.open}
+          companions={sheet.companions}
+          trainerLevel={getClassLevel(sheet, 'Treinador') || sheet.nivel}
+          pendingCount={ensinarTruqueDialog.pendingCount}
+          onComplete={(picks) => {
+            setEnsinarTruqueDialog({ open: false, pendingCount: 0 });
+            commitSave(picks);
+          }}
+          onCancel={() =>
+            setEnsinarTruqueDialog({ open: false, pendingCount: 0 })
+          }
+        />
+      ) : null}
     </Drawer>
   );
 };

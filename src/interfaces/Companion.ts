@@ -1,4 +1,5 @@
 import Skill from './Skills';
+import { Spell } from './Spells';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 
 export type CompanionSize = 'Pequeno' | 'Médio' | 'Grande' | 'Enorme';
@@ -33,6 +34,7 @@ export interface CompanionSheet {
   skills: Skill[];
   naturalWeapons: CompanionNaturalWeapon[];
   tricks: CompanionTrick[];
+  spells?: Spell[];
 
   pv: number;
   currentPV?: number;

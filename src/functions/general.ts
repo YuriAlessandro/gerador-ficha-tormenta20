@@ -3849,16 +3849,56 @@ export function applyManualLevelUp(
   // Apply text modifications from chooseFromOptions history
   applyOptionChosenTexts(updatedSheet);
 
-  // Treinador: aplicar truque do parceiro selecionado no level up
-  if (selections.companionTrick && updatedSheet.companions?.length) {
-    updatedSheet.companions = updatedSheet.companions.map((companion, idx) => {
-      if (idx === 0) {
-        return {
-          ...companion,
-          tricks: [...companion.tricks, selections.companionTrick!],
-        };
-      }
-      return companion;
+  // Treinador: aplicar truques do parceiro selecionados no level up
+  // Pode incluir o truque automático do nível ('auto') E o truque concedido
+  // pelo poder "Ensinar Truque" ('power'), em qualquer um dos companheiros.
+  if (
+    selections.companionTrickSelections?.length &&
+    updatedSheet.companions?.length
+  ) {
+    selections.companionTrickSelections.forEach((entry) => {
+      const targetIdx = Math.min(
+        entry.companionIndex,
+        updatedSheet.companions!.length - 1
+      );
+      updatedSheet.companions = updatedSheet.companions!.map(
+        (companion, idx) => {
+          if (idx !== targetIdx) return companion;
+          const next = {
+            ...companion,
+            tricks: [...companion.tricks, entry.trick],
+          };
+          if (entry.spell) {
+            const spellWithKey = {
+              ...entry.spell,
+              customKeyAttr: Atributo.CARISMA,
+            };
+            next.spells = [...(companion.spells || []), spellWithKey];
+          }
+          return next;
+        }
+      );
+
+      const isPowerTrick = entry.reason === 'power';
+      updatedSheet.sheetActionHistory.push({
+        source: isPowerTrick
+          ? {
+              type: 'power',
+              name: 'Ensinar Truque',
+              className: 'Treinador',
+            }
+          : { type: 'class', className: 'Treinador' },
+        powerName: isPowerTrick ? 'Ensinar Truque' : 'Truque do Melhor Amigo',
+        changes: [
+          {
+            type: 'CompanionTrickLearned',
+            companionIndex: targetIdx,
+            trickName: entry.trick.name,
+            choices: entry.trick.choices,
+            spellName: entry.spell?.nome,
+          },
+        ],
+      });
     });
   }
 

@@ -239,6 +239,13 @@ export type SheetActionReceipt =
       type: 'AnimalTotemSelected';
       totemKey: string;
       spellName: string;
+    }
+  | {
+      type: 'CompanionTrickLearned';
+      companionIndex: number;
+      trickName: string;
+      choices?: Record<string, string>;
+      spellName?: string;
     };
 
 export type SheetActionHistoryEntry = {

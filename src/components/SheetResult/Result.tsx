@@ -2378,6 +2378,25 @@ const Result: React.FC<ResultProps> = (props) => {
               companion={currentCompanion}
               trainerLevel={currentSheet.nivel}
               trainerName={currentSheet.nome}
+              trainerCharismaMod={
+                currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
+              }
+              pendingEnsinarTruqueCount={(() => {
+                const ensinarCount =
+                  currentSheet.classPowers?.filter(
+                    (p) => p.name === 'Ensinar Truque'
+                  ).length ?? 0;
+                if (ensinarCount === 0) return 0;
+                const appliedCount =
+                  currentSheet.sheetActionHistory?.filter(
+                    (entry) =>
+                      entry.powerName === 'Ensinar Truque' &&
+                      entry.changes.some(
+                        (c) => c.type === 'CompanionTrickLearned'
+                      )
+                  ).length ?? 0;
+                return Math.max(0, ensinarCount - appliedCount);
+              })()}
               onCompanionUpdate={
                 onSheetUpdate ? handleCompanionUpdate : undefined
               }

@@ -18,6 +18,7 @@ import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import { ClassPower } from '@/interfaces/Class';
 import { GeneralPower } from '@/interfaces/Poderes';
 import { Spell } from '@/interfaces/Spells';
+import { CompanionTrick } from '@/interfaces/Companion';
 import {
   getAllowedClassPowers,
   isPowerAvailable,
@@ -556,6 +557,15 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
       steps.push('Truque do Melhor Amigo');
     }
 
+    // Treinador: poder "Ensinar Truque" concede um truque adicional ao melhor amigo
+    if (
+      currentLevelSelection.powerChoice === 'class' &&
+      currentLevelSelection.selectedClassPower?.name === 'Ensinar Truque' &&
+      simulatedSheet.companions?.length
+    ) {
+      steps.push('Truque do Melhor Amigo (Ensinar Truque)');
+    }
+
     return steps;
   };
 
@@ -707,23 +717,36 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         return selectedCount === spellInfo.spellCount;
       }
 
-      case 'Truque do Melhor Amigo': {
-        const trick = currentLevelSelection.companionTrick;
-        if (!trick) return false;
-        // Check sub-choices are complete if needed
+      case 'Truque do Melhor Amigo':
+      case 'Truque do Melhor Amigo (Ensinar Truque)': {
+        const reason: 'auto' | 'power' =
+          stepName === 'Truque do Melhor Amigo (Ensinar Truque)'
+            ? 'power'
+            : 'auto';
+        const entry = currentLevelSelection.companionTrickSelections?.find(
+          (e) => e.reason === reason
+        );
+        if (!entry) return false;
+        const companion =
+          simulatedSheet.companions?.[entry.companionIndex] ||
+          simulatedSheet.companions?.[0];
+        if (!companion) return false;
         const trickDef = getAvailableTricks(
           selectedClassLevel,
-          simulatedSheet.companions?.[0]?.companionType || 'Animal',
-          simulatedSheet.companions?.[0]?.size || 'Médio',
-          simulatedSheet.companions?.[0]?.tricks || [],
-          simulatedSheet.companions?.[0]?.naturalWeapons.length || 1,
+          companion.companionType,
+          companion.size,
+          companion.tricks,
+          companion.naturalWeapons.length || 1,
           false
-        ).find((t) => t.name === trick.name);
+        ).find((t) => t.name === entry.trick.name);
         if (trickDef?.hasSubChoice) {
           if (trickDef.subChoiceType === 'attribute')
-            return !!trick.choices?.primary && !!trick.choices?.secondary;
+            return (
+              !!entry.trick.choices?.primary && !!entry.trick.choices?.secondary
+            );
           if (trickDef.subChoiceType === 'movement')
-            return !!trick.choices?.type;
+            return !!entry.trick.choices?.type;
+          if (trickDef.subChoiceType === 'spell') return !!entry.spell;
         }
         return true;
       }
@@ -1013,20 +1036,60 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
         );
       }
 
-      case 'Truque do Melhor Amigo': {
-        const companion = simulatedSheet.companions?.[0];
-        if (!companion) return null;
+      case 'Truque do Melhor Amigo':
+      case 'Truque do Melhor Amigo (Ensinar Truque)': {
+        const companions = simulatedSheet.companions || [];
+        if (!companions.length) return null;
+        const reason: 'auto' | 'power' =
+          stepName === 'Truque do Melhor Amigo (Ensinar Truque)'
+            ? 'power'
+            : 'auto';
+        const selections = currentLevelSelection.companionTrickSelections || [];
+        const existing = selections.find((e) => e.reason === reason);
+        const selectedCompanionIndex = existing?.companionIndex ?? 0;
+        const companion = companions[selectedCompanionIndex] || companions[0];
+
+        const upsert = (
+          patch: Partial<{
+            companionIndex: number;
+            trick: CompanionTrick | undefined;
+            spell: Spell | undefined;
+          }>
+        ) => {
+          const others = selections.filter((e) => e.reason !== reason);
+          // Se "patch.trick" for explicitamente undefined (clear), remove a entry
+          if ('trick' in patch && patch.trick === undefined) {
+            setCurrentLevelSelection({
+              ...currentLevelSelection,
+              companionTrickSelections: others.length ? others : undefined,
+            });
+            return;
+          }
+          const baseTrick = patch.trick ?? existing?.trick;
+          if (!baseTrick) return;
+          const updated = {
+            companionIndex: patch.companionIndex ?? selectedCompanionIndex,
+            trick: baseTrick,
+            spell: 'spell' in patch ? patch.spell : existing?.spell,
+            reason,
+          };
+          setCurrentLevelSelection({
+            ...currentLevelSelection,
+            companionTrickSelections: [...others, updated],
+          });
+        };
+
         return (
           <CompanionTrickSelectionStep
             companion={companion}
             trainerLevel={selectedClassLevel}
-            selectedTrick={currentLevelSelection.companionTrick}
-            onSelectTrick={(trick) =>
-              setCurrentLevelSelection({
-                ...currentLevelSelection,
-                companionTrick: trick,
-              })
-            }
+            companions={companions}
+            selectedCompanionIndex={selectedCompanionIndex}
+            onSelectCompanion={(idx) => upsert({ companionIndex: idx })}
+            selectedTrick={existing?.trick}
+            onSelectTrick={(trick) => upsert({ trick })}
+            selectedSpell={existing?.spell}
+            onSelectSpell={(spell) => upsert({ spell })}
           />
         );
       }

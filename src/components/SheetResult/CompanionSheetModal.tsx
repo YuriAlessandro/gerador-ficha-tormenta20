@@ -47,6 +47,8 @@ interface CompanionSheetModalProps {
   companion: CompanionSheet;
   trainerLevel: number;
   trainerName?: string;
+  trainerCharismaMod?: number;
+  pendingEnsinarTruqueCount?: number;
   onCompanionUpdate?: (updated: CompanionSheet) => void;
   totalCompanions?: number;
   currentIndex?: number;
@@ -118,6 +120,8 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   companion,
   trainerLevel,
   trainerName,
+  trainerCharismaMod,
+  pendingEnsinarTruqueCount,
   onCompanionUpdate,
   totalCompanions = 1,
   currentIndex = 0,
@@ -406,6 +410,29 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
       </DialogTitle>
 
       <DialogContent dividers>
+        {pendingEnsinarTruqueCount && pendingEnsinarTruqueCount > 0 ? (
+          <Box
+            sx={{
+              mb: 2,
+              p: 1.5,
+              border: '1px solid',
+              borderColor: 'warning.main',
+              borderRadius: 1,
+              bgcolor: 'warning.light',
+              color: 'warning.contrastText',
+            }}
+          >
+            <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+              Truque pendente
+            </Typography>
+            <Typography variant='caption'>
+              {pendingEnsinarTruqueCount === 1
+                ? 'O treinador possui o poder "Ensinar Truque" sem truque alocado. Reabra "Editar Poderes" e re-selecione o poder para escolher o truque adicional.'
+                : `O treinador possui ${pendingEnsinarTruqueCount} instâncias do poder "Ensinar Truque" sem truques alocados. Reabra "Editar Poderes" e re-selecione cada poder para escolher os truques adicionais.`}
+            </Typography>
+          </Box>
+        ) : null}
+
         {/* Atributos */}
         <Typography
           variant='subtitle2'
@@ -711,6 +738,88 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
                           </Typography>
                         </Box>
                       )}
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </>
+        )}
+
+        {/* Magias (Magia Inata) */}
+        {companion.spells && companion.spells.length > 0 && (
+          <>
+            <Divider sx={{ my: 1.5 }} />
+            <Typography
+              variant='subtitle2'
+              fontWeight='bold'
+              sx={{ mb: 1 }}
+              color='primary'
+            >
+              Magias ({companion.spells.length})
+            </Typography>
+            {companion.spells.map((spell) => {
+              const circleNumber = parseInt(spell.spellCircle, 10) || 1;
+              const cd =
+                trainerCharismaMod !== undefined
+                  ? 10 + trainerCharismaMod + circleNumber
+                  : null;
+              return (
+                <Accordion key={spell.nome} disableGutters>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 1,
+                        width: '100%',
+                        pr: 1,
+                      }}
+                    >
+                      <Typography
+                        fontWeight='bold'
+                        color='primary'
+                        sx={{ fontSize: '0.9rem' }}
+                      >
+                        {spell.nome}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Chip
+                          label={spell.school}
+                          size='small'
+                          variant='outlined'
+                        />
+                        {cd !== null && (
+                          <Chip
+                            label={`CD ${cd}`}
+                            size='small'
+                            color='primary'
+                            variant='outlined'
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      sx={{ display: 'block', mb: 1 }}
+                    >
+                      {spell.spellCircle} • {spell.execucao} • {spell.alcance}
+                      {spell.alvo && ` • ${spell.alvo}`}
+                      {' • '}Duração: {spell.duracao}
+                    </Typography>
+                    <Typography variant='body2' sx={{ whiteSpace: 'pre-wrap' }}>
+                      {spell.description}
+                    </Typography>
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      sx={{ display: 'block', mt: 1 }}
+                    >
+                      Atributo-chave: Carisma do treinador
+                    </Typography>
                   </AccordionDetails>
                 </Accordion>
               );
