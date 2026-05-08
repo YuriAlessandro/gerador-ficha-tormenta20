@@ -73,85 +73,6 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Correção: Habilidades de Tormenta da raça Kaijin.
-                  </strong>{' '}
-                  As habilidades <strong>Disforme</strong> e{' '}
-                  <strong>Terror Vivo</strong> da raça <strong>Kaijin</strong>{' '}
-                  agora contam corretamente como poderes da Tormenta. Disforme
-                  passa a adicionar automaticamente um poder da Tormenta à ficha
-                  (como já acontecia com Couraça Rúbea), e Terror Vivo abre um
-                  seletor para escolher um poder real da Tormenta entre os
-                  disponíveis. Antes, apenas Couraça Rúbea era contabilizada,
-                  impedindo builds Kaijin de cumprir o pré-requisito de poderes
-                  que exigem 4 outros poderes da Tormenta — como{' '}
-                  <strong>Membros Extras</strong>.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Poderes e truques do Treinador (Ensinar Truque e
-                    Magia Inata).
-                  </strong>{' '}
-                  Dois bugs reportados por jogadores foram corrigidos. O poder{' '}
-                  <strong>Ensinar Truque</strong> agora abre, ao ser escolhido
-                  no level up ou no editor de poderes, um passo dedicado para
-                  escolher o truque adicional do melhor amigo — antes o poder
-                  ficava registrado mas não tinha efeito. O truque{' '}
-                  <strong>Magia Inata</strong> (Espíritos) agora tem seletor de
-                  magia: o jogador escolhe uma magia arcana ou divina de 1º
-                  círculo e ela é atribuída ao melhor amigo com{' '}
-                  <strong>Carisma do treinador</strong> como atributo-chave,
-                  exibida em uma nova seção <strong>Magias</strong> na ficha do
-                  parceiro. Treinadores com mais de um melhor amigo (Conquistar
-                  pelos Números) agora podem escolher qual companheiro recebe
-                  cada truque novo, em vez de o sistema sempre alocar no
-                  primeiro.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: Identificação de suplemento nas melhorias e
-                    encantamentos.
-                  </strong>{' '}
-                  As abas <strong>Melhorias</strong> e{' '}
-                  <strong>Encantamentos</strong> do editor de armas, armaduras e
-                  escudos agora exibem um badge com a abreviação do suplemento
-                  (ex.: <strong>DA</strong>, <strong>HA</strong>) ao lado de
-                  cada opção que não vem do livro básico. Antes, era impossível
-                  saber de qual suplemento uma opção vinha — só o nome aparecia.
-                  A aba de Encantamentos também passou a carregar encantos
-                  específicos de suplementos ativos, em paralelo ao que já
-                  funcionava para Melhorias.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Limite de Poderes da Divindade no wizard.
-                  </strong>{' '}
-                  No passo <strong>Poderes da Divindade</strong> do wizard de
-                  criação manual, era possível marcar todos os poderes da
-                  divindade sem qualquer limite. Agora a seleção respeita o
-                  campo da classe: Clérigo, Paladino, Druida e Frade escolhem
-                  até <strong>2</strong> poderes, e classes que recebem
-                  divindade via &quot;Devoto&quot; escolhem até{' '}
-                  <strong>1</strong>. Os checkboxes excedentes ficam
-                  desabilitados ao atingir o limite, e o passo continua opcional
-                  (pode-se avançar com 0 selecionados).
-                </li>
-                <li>
-                  <strong>
-                    Correção: Edição de Tabu, Presentes e Dons do Duende.
-                  </strong>{' '}
-                  O editor de ficha agora permite alterar todas as escolhas de
-                  customização do Duende em personagens já criados — antes, só
-                  Natureza e Tamanho ficavam editáveis e o restante congelava
-                  com o valor inicial. Trocar um Presente recalcula corretamente
-                  sentidos e bônus (some o do antigo, entra o do novo); mudar a
-                  perícia do Tabu redireciona o −5; e os Dons podem ser
-                  realocados entre atributos. Habilidades fixas (Aversão a
-                  Ferro/Sinos, Tipo de Criatura) seguem fixas conforme as
-                  regras. Salvar fica bloqueado se os atributos dos Dons forem
-                  iguais ou se não houver exatamente 3 Presentes selecionados.
-                </li>
-                <li>
-                  <strong>
                     Novo: Layouts da Mesa Virtual repensados no desktop.
                   </strong>{' '}
                   No desktop e em tablets em landscape, jogador e mestre agora
@@ -194,19 +115,6 @@ const Changelog: React.FC = () => {
                   configuração de exibição, o mestre escolhe se essa informação
                   fica visível para os outros jogadores da mesa e em qual nível
                   de detalhe.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Iniciativa travada quando o mestre usava fichas
-                    próprias.
-                  </strong>{' '}
-                  Quando o mestre adicionava ao encontro fichas-jogador que ele
-                  mesmo controla, o overlay de rolagem de iniciativa abria mas
-                  nunca conseguia concluir — a rolagem era ignorada e o mestre
-                  ficava preso na tela. Agora o overlay deixa de aparecer para
-                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
-                  fichas pela própria lista do encontro, no mesmo fluxo das
-                  ameaças.
                 </li>
                 <li>
                   <strong>
@@ -274,6 +182,21 @@ const Changelog: React.FC = () => {
                   automaticamente via SheetBonus.
                 </li>
                 <li>
+                  <strong>
+                    Melhoria: Identificação de suplemento nas melhorias e
+                    encantamentos.
+                  </strong>{' '}
+                  As abas <strong>Melhorias</strong> e{' '}
+                  <strong>Encantamentos</strong> do editor de armas, armaduras e
+                  escudos agora exibem um badge com a abreviação do suplemento
+                  (ex.: <strong>DA</strong>, <strong>HA</strong>) ao lado de
+                  cada opção que não vem do livro básico. Antes, era impossível
+                  saber de qual suplemento uma opção vinha — só o nome aparecia.
+                  A aba de Encantamentos também passou a carregar encantos
+                  específicos de suplementos ativos, em paralelo ao que já
+                  funcionava para Melhorias.
+                </li>
+                <li>
                   <strong>Melhoria: Conexão da Mesa Virtual.</strong>{' '}
                   Reidratação completa do estado do encontro ao reconectar
                   (snapshot canônico vindo do servidor) elimina divergência
@@ -299,6 +222,83 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria: Card de Defesa.</strong> Configurações do
                   card de Defesa separadas do acesso à mochila, permitindo
                   ajustar bônus específicos sem abrir a mochila inteira.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Habilidades de Tormenta da raça Kaijin.
+                  </strong>{' '}
+                  As habilidades <strong>Disforme</strong> e{' '}
+                  <strong>Terror Vivo</strong> da raça <strong>Kaijin</strong>{' '}
+                  agora contam corretamente como poderes da Tormenta. Disforme
+                  passa a adicionar automaticamente um poder da Tormenta à ficha
+                  (como já acontecia com Couraça Rúbea), e Terror Vivo abre um
+                  seletor para escolher um poder real da Tormenta entre os
+                  disponíveis. Antes, apenas Couraça Rúbea era contabilizada,
+                  impedindo builds Kaijin de cumprir o pré-requisito de poderes
+                  que exigem 4 outros poderes da Tormenta — como{' '}
+                  <strong>Membros Extras</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Poderes e truques do Treinador (Ensinar Truque e
+                    Magia Inata).
+                  </strong>{' '}
+                  Dois bugs reportados por jogadores foram corrigidos. O poder{' '}
+                  <strong>Ensinar Truque</strong> agora abre, ao ser escolhido
+                  no level up ou no editor de poderes, um passo dedicado para
+                  escolher o truque adicional do melhor amigo — antes o poder
+                  ficava registrado mas não tinha efeito. O truque{' '}
+                  <strong>Magia Inata</strong> (Espíritos) agora tem seletor de
+                  magia: o jogador escolhe uma magia arcana ou divina de 1º
+                  círculo e ela é atribuída ao melhor amigo com{' '}
+                  <strong>Carisma do treinador</strong> como atributo-chave,
+                  exibida em uma nova seção <strong>Magias</strong> na ficha do
+                  parceiro. Treinadores com mais de um melhor amigo (Conquistar
+                  pelos Números) agora podem escolher qual companheiro recebe
+                  cada truque novo, em vez de o sistema sempre alocar no
+                  primeiro.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Limite de Poderes da Divindade no wizard.
+                  </strong>{' '}
+                  No passo <strong>Poderes da Divindade</strong> do wizard de
+                  criação manual, era possível marcar todos os poderes da
+                  divindade sem qualquer limite. Agora a seleção respeita o
+                  campo da classe: Clérigo, Paladino, Druida e Frade escolhem
+                  até <strong>2</strong> poderes, e classes que recebem
+                  divindade via &quot;Devoto&quot; escolhem até{' '}
+                  <strong>1</strong>. Os checkboxes excedentes ficam
+                  desabilitados ao atingir o limite, e o passo continua opcional
+                  (pode-se avançar com 0 selecionados).
+                </li>
+                <li>
+                  <strong>
+                    Correção: Edição de Tabu, Presentes e Dons do Duende.
+                  </strong>{' '}
+                  O editor de ficha agora permite alterar todas as escolhas de
+                  customização do Duende em personagens já criados — antes, só
+                  Natureza e Tamanho ficavam editáveis e o restante congelava
+                  com o valor inicial. Trocar um Presente recalcula corretamente
+                  sentidos e bônus (some o do antigo, entra o do novo); mudar a
+                  perícia do Tabu redireciona o −5; e os Dons podem ser
+                  realocados entre atributos. Habilidades fixas (Aversão a
+                  Ferro/Sinos, Tipo de Criatura) seguem fixas conforme as
+                  regras. Salvar fica bloqueado se os atributos dos Dons forem
+                  iguais ou se não houver exatamente 3 Presentes selecionados.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Iniciativa travada quando o mestre usava fichas
+                    próprias.
+                  </strong>{' '}
+                  Quando o mestre adicionava ao encontro fichas-jogador que ele
+                  mesmo controla, o overlay de rolagem de iniciativa abria mas
+                  nunca conseguia concluir — a rolagem era ignorada e o mestre
+                  ficava preso na tela. Agora o overlay deixa de aparecer para
+                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
+                  fichas pela própria lista do encontro, no mesmo fluxo das
+                  ameaças.
                 </li>
                 <li>
                   <strong>
