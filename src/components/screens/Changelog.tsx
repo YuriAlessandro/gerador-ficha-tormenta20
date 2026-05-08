@@ -73,6 +73,46 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: Configurações da Mesa Virtual para o mestre.
+                  </strong>{' '}
+                  Nova seção <strong>Configurações da Mesa</strong> na página da
+                  mesa permite ao mestre escolher o{' '}
+                  <strong>modo padrão das rolagens</strong> (público ou privado)
+                  e como <strong>PV e PM</strong> aparecem aos jogadores durante
+                  encontros ativos: aplicar a personagens dos jogadores, ameaças
+                  ou ambos; mostrar apenas PV, apenas PM ou os dois; e exibir só
+                  a barra, só o valor atual, só o total ou tudo junto. As
+                  mudanças refletem em tempo real para todos os clientes
+                  conectados à sessão. Antes essa configuração estava colada no
+                  toggle de rolagens privadas e só dava pra esconder a barra de
+                  inimigos — agora cada coisa é independente.
+                </li>
+                <li>
+                  <strong>
+                    Novo: PV e PM dos personagens dos jogadores no encontro.
+                  </strong>{' '}
+                  Os participantes-jogadores agora carregam um snapshot de PV/PM
+                  tirado da ficha quando o encontro começa, e qualquer mudança
+                  que o jogador fizer na própria ficha (dano, gasto de PM,
+                  edição de PV/PM Máximo Manual) sincroniza automaticamente para
+                  a linha do participante no encontro. Combinado com a nova
+                  configuração de exibição, o mestre escolhe se essa informação
+                  fica visível para os outros jogadores da mesa e em qual nível
+                  de detalhe.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: Toggle in-game de rolagens não esconde mais a
+                    barra de inimigos.
+                  </strong>{' '}
+                  Alternar para modo privado durante a sessão agora afeta apenas
+                  a divulgação das rolagens. A visibilidade de PV/PM dos
+                  participantes é controlada exclusivamente pela nova seção de
+                  Configurações da Mesa, dando mais previsibilidade sobre o que
+                  os jogadores estão vendo.
+                </li>
+                <li>
+                  <strong>
                     Correção: Remoção de jogadores travada na Mesa Virtual.
                   </strong>{' '}
                   Em mesas mais antigas, mestres podiam ver um erro ao tentar
