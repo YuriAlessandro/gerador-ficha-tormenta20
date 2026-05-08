@@ -73,6 +73,20 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Limite de Poderes da Divindade no wizard.
+                  </strong>{' '}
+                  No passo <strong>Poderes da Divindade</strong> do wizard de
+                  criação manual, era possível marcar todos os poderes da
+                  divindade sem qualquer limite. Agora a seleção respeita o
+                  campo da classe: Clérigo, Paladino, Druida e Frade escolhem
+                  até <strong>2</strong> poderes, e classes que recebem
+                  divindade via &quot;Devoto&quot; escolhem até{' '}
+                  <strong>1</strong>. Os checkboxes excedentes ficam
+                  desabilitados ao atingir o limite, e o passo continua opcional
+                  (pode-se avançar com 0 selecionados).
+                </li>
+                <li>
+                  <strong>
                     Correção: Edição de Tabu, Presentes e Dons do Duende.
                   </strong>{' '}
                   O editor de ficha agora permite alterar todas as escolhas de
