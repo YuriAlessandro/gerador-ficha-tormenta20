@@ -73,6 +73,26 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Poderes e truques do Treinador (Ensinar Truque e
+                    Magia Inata).
+                  </strong>{' '}
+                  Dois bugs reportados por jogadores foram corrigidos. O poder{' '}
+                  <strong>Ensinar Truque</strong> agora abre, ao ser escolhido
+                  no level up ou no editor de poderes, um passo dedicado para
+                  escolher o truque adicional do melhor amigo — antes o poder
+                  ficava registrado mas não tinha efeito. O truque{' '}
+                  <strong>Magia Inata</strong> (Espíritos) agora tem seletor de
+                  magia: o jogador escolhe uma magia arcana ou divina de 1º
+                  círculo e ela é atribuída ao melhor amigo com{' '}
+                  <strong>Carisma do treinador</strong> como atributo-chave,
+                  exibida em uma nova seção <strong>Magias</strong> na ficha do
+                  parceiro. Treinadores com mais de um melhor amigo (Conquistar
+                  pelos Números) agora podem escolher qual companheiro recebe
+                  cada truque novo, em vez de o sistema sempre alocar no
+                  primeiro.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: Identificação de suplemento nas melhorias e
                     encantamentos.
                   </strong>{' '}
