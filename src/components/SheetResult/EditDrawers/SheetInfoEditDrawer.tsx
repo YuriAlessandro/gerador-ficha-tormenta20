@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import _ from 'lodash';
 import {
   Drawer,
   Box,
@@ -9,6 +10,7 @@ import {
   FormControl,
   FormGroup,
   FormControlLabel,
+  FormHelperText,
   InputLabel,
   Button,
   Stack,
@@ -24,6 +26,8 @@ import {
   AccordionDetails,
   Tooltip,
   Alert,
+  OutlinedInput,
+  ListItemText,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -63,6 +67,9 @@ import {
   DUENDE_SIZE_NAMES,
   DUENDE_NATURES,
   DUENDE_NATURE_NAMES,
+  DUENDE_PRESENTES,
+  DUENDE_PRESENTE_NAMES,
+  DUENDE_TABU_SKILLS,
 } from '@/data/systems/tormenta20/herois-de-arton/races/duende-config';
 import { applyDuendeCustomization } from '@/data/systems/tormenta20/herois-de-arton/races/duende';
 import Skill from '@/interfaces/Skills';
@@ -113,6 +120,7 @@ interface EditedData {
   duendeNature: string | undefined; // For Duende (animal/vegetal/mineral)
   duendePresentes: string[] | undefined; // For Duende (3 selected powers)
   duendeTabuSkill: string | undefined; // For Duende (skill with -5 penalty)
+  duendeBonusAttributes: Atributo[] | undefined; // For Duende (Dons +1 attrs; 3rd entry only when Animal)
   className: string;
   originName: string;
   deityName: string;
@@ -168,6 +176,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
     duendeNature: sheet.duendeNature || sheet.raca.nature,
     duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
     duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+    duendeBonusAttributes: sheet.raceAttributeChoices,
     className: sheet.classe.name,
     originName: sheet.origin?.name || '',
     deityName: sheet.devoto?.divindade.name || '',
@@ -248,6 +257,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+      duendeBonusAttributes: sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -605,7 +615,10 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       nivel: editedData.nivel,
       sexo: editedData.sexo,
       atributos: editedData.attributes,
-      raceAttributeChoices: editedData.raceAttributeChoices,
+      raceAttributeChoices:
+        editedData.raceName === 'Duende' && editedData.duendeBonusAttributes
+          ? editedData.duendeBonusAttributes
+          : editedData.raceAttributeChoices,
       selectedAttributeVariant: editedData.selectedAttributeVariant,
       raceHeritage: editedData.raceHeritage,
       moreauSapienciaSpell: editedData.moreauSapienciaSpell,
@@ -994,7 +1007,16 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
         editedData.suragelAbility !== sheet.suragelAbility) ||
       (editedData.raceName === 'Duende' &&
         (editedData.raceSizeCategory !== sheet.raceSizeCategory ||
-          editedData.duendeNature !== sheet.duendeNature));
+          editedData.duendeNature !== sheet.duendeNature ||
+          editedData.duendeTabuSkill !== sheet.duendeTabuSkill ||
+          !_.isEqual(
+            editedData.duendePresentes ?? [],
+            sheet.duendePresentes ?? []
+          ) ||
+          !_.isEqual(
+            editedData.duendeBonusAttributes ?? [],
+            sheet.raceAttributeChoices ?? []
+          )));
 
     if (raceOrSexOrHeritageOrGolemOrSuragelChanged) {
       let newRace = RACAS.find((r) => r.name === editedData.raceName);
@@ -1082,7 +1104,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
             newRace,
             editedData.duendeNature,
             editedData.raceSizeCategory,
-            sheet.raceAttributeChoices || [],
+            editedData.duendeBonusAttributes || [],
             editedData.duendePresentes || [],
             (editedData.duendeTabuSkill as Skill) || Skill.DIPLOMACIA
           );
@@ -1316,6 +1338,7 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
       duendeNature: sheet.duendeNature || sheet.raca.nature,
       duendePresentes: sheet.duendePresentes || sheet.raca.presentPowers,
       duendeTabuSkill: sheet.duendeTabuSkill || sheet.raca.tabuSkill,
+      duendeBonusAttributes: sheet.raceAttributeChoices,
       className: sheet.classe.name,
       originName: sheet.origin?.name || '',
       deityName: sheet.devoto?.divindade.name || '',
@@ -2165,6 +2188,193 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
                           ))}
                         </Select>
                       </FormControl>
+
+                      {/* Dons - Atributos +1 (2 atributos, +1 extra se Animal) */}
+                      {(() => {
+                        const dons = editedData.duendeBonusAttributes || [];
+                        const bonusAttr1 = dons[0] ?? Atributo.FORCA;
+                        const bonusAttr2 = dons[1] ?? Atributo.DESTREZA;
+                        const bonusAttr3 = dons[2] ?? Atributo.CONSTITUICAO;
+                        const isAnimal = editedData.duendeNature === 'animal';
+                        const updateDon = (idx: number, attr: Atributo) => {
+                          const next = [bonusAttr1, bonusAttr2, bonusAttr3];
+                          next[idx] = attr;
+                          const trimmed = isAnimal ? next : next.slice(0, 2);
+                          setEditedData({
+                            ...editedData,
+                            duendeBonusAttributes: trimmed,
+                          });
+                        };
+                        return (
+                          <Box>
+                            <Typography
+                              variant='subtitle2'
+                              fontWeight='bold'
+                              sx={{ mb: 1 }}
+                            >
+                              Dons (+1 em dois atributos diferentes
+                              {isAnimal ? ' + 1 da Natureza Animal' : ''})
+                            </Typography>
+                            <Stack
+                              direction='row'
+                              spacing={2}
+                              flexWrap='wrap'
+                              useFlexGap
+                            >
+                              <FormControl sx={{ minWidth: 150 }}>
+                                <InputLabel>Atributo 1</InputLabel>
+                                <Select
+                                  value={bonusAttr1}
+                                  label='Atributo 1'
+                                  onChange={(e) =>
+                                    updateDon(0, e.target.value as Atributo)
+                                  }
+                                >
+                                  {Object.values(Atributo).map((attr) => (
+                                    <MenuItem key={attr} value={attr}>
+                                      {attr}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                              <FormControl
+                                sx={{ minWidth: 150 }}
+                                error={bonusAttr1 === bonusAttr2}
+                              >
+                                <InputLabel>Atributo 2</InputLabel>
+                                <Select
+                                  value={bonusAttr2}
+                                  label='Atributo 2'
+                                  onChange={(e) =>
+                                    updateDon(1, e.target.value as Atributo)
+                                  }
+                                >
+                                  {Object.values(Atributo).map((attr) => (
+                                    <MenuItem key={attr} value={attr}>
+                                      {attr}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {bonusAttr1 === bonusAttr2 && (
+                                  <FormHelperText>
+                                    Deve ser diferente do Atributo 1
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                              {isAnimal && (
+                                <FormControl sx={{ minWidth: 150 }}>
+                                  <InputLabel>Natureza Animal (+1)</InputLabel>
+                                  <Select
+                                    value={bonusAttr3}
+                                    label='Natureza Animal (+1)'
+                                    onChange={(e) =>
+                                      updateDon(2, e.target.value as Atributo)
+                                    }
+                                  >
+                                    {Object.values(Atributo).map((attr) => (
+                                      <MenuItem key={attr} value={attr}>
+                                        {attr}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                              )}
+                            </Stack>
+                          </Box>
+                        );
+                      })()}
+
+                      {/* Presentes - escolha 3 dos 14 */}
+                      <FormControl
+                        fullWidth
+                        error={(editedData.duendePresentes || []).length !== 3}
+                      >
+                        <InputLabel>
+                          Presentes de Magia e do Caos (escolha 3)
+                        </InputLabel>
+                        <Select
+                          multiple
+                          value={editedData.duendePresentes || []}
+                          input={
+                            <OutlinedInput label='Presentes de Magia e do Caos (escolha 3)' />
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value as string[];
+                            if (value.length <= 3) {
+                              setEditedData({
+                                ...editedData,
+                                duendePresentes: value,
+                              });
+                            }
+                          }}
+                          renderValue={(selected) => (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.5,
+                              }}
+                            >
+                              {(selected as string[]).map((value) => (
+                                <Chip
+                                  key={value}
+                                  label={
+                                    DUENDE_PRESENTES[value]?.ability.name ||
+                                    value
+                                  }
+                                  size='small'
+                                />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          {DUENDE_PRESENTE_NAMES.map((id) => {
+                            const presente = DUENDE_PRESENTES[id];
+                            const selectedPresentes =
+                              editedData.duendePresentes || [];
+                            return (
+                              <MenuItem
+                                key={id}
+                                value={id}
+                                disabled={
+                                  selectedPresentes.length >= 3 &&
+                                  !selectedPresentes.includes(id)
+                                }
+                              >
+                                <Checkbox
+                                  checked={selectedPresentes.includes(id)}
+                                />
+                                <ListItemText primary={presente.ability.name} />
+                              </MenuItem>
+                            );
+                          })}
+                        </Select>
+                        <FormHelperText>
+                          {(editedData.duendePresentes || []).length}/3
+                          selecionados
+                        </FormHelperText>
+                      </FormControl>
+
+                      {/* Tabu - perícia com -5 */}
+                      <FormControl fullWidth>
+                        <InputLabel>Tabu (-5 em perícia)</InputLabel>
+                        <Select
+                          value={editedData.duendeTabuSkill || Skill.DIPLOMACIA}
+                          label='Tabu (-5 em perícia)'
+                          onChange={(e) =>
+                            setEditedData({
+                              ...editedData,
+                              duendeTabuSkill: e.target.value as string,
+                            })
+                          }
+                        >
+                          {DUENDE_TABU_SKILLS.map((skill) => (
+                            <MenuItem key={skill} value={skill}>
+                              {skill}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
                     </>
                   )}
 
@@ -2719,9 +2929,20 @@ const SheetInfoEditDrawer: React.FC<SheetInfoEditDrawerProps> = ({
               variant='contained'
               onClick={handleSave}
               disabled={
-                editedData.raceName === 'Moreau' &&
-                editedData.raceHeritage === 'Coruja' &&
-                !editedData.moreauSapienciaSpell
+                (editedData.raceName === 'Moreau' &&
+                  editedData.raceHeritage === 'Coruja' &&
+                  !editedData.moreauSapienciaSpell) ||
+                (editedData.raceName === 'Duende' &&
+                  (() => {
+                    const dons = editedData.duendeBonusAttributes || [];
+                    const presentes = editedData.duendePresentes || [];
+                    return (
+                      !dons[0] ||
+                      !dons[1] ||
+                      dons[0] === dons[1] ||
+                      presentes.length !== 3
+                    );
+                  })())
               }
             >
               Salvar
