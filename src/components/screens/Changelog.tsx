@@ -73,6 +73,19 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: Iniciativa travada quando o mestre usava fichas
+                    próprias.
+                  </strong>{' '}
+                  Quando o mestre adicionava ao encontro fichas-jogador que ele
+                  mesmo controla, o overlay de rolagem de iniciativa abria mas
+                  nunca conseguia concluir — a rolagem era ignorada e o mestre
+                  ficava preso na tela. Agora o overlay deixa de aparecer para
+                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
+                  fichas pela própria lista do encontro, no mesmo fluxo das
+                  ameaças.
+                </li>
+                <li>
+                  <strong>
                     Novo: Configurações da Mesa Virtual para o mestre.
                   </strong>{' '}
                   Nova seção <strong>Configurações da Mesa</strong> na página da
