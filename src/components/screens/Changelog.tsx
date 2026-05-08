@@ -73,16 +73,34 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Correção: Iniciativa travada quando o mestre usava fichas
-                    próprias.
+                    Correção: Edição de Tabu, Presentes e Dons do Duende.
                   </strong>{' '}
-                  Quando o mestre adicionava ao encontro fichas-jogador que ele
-                  mesmo controla, o overlay de rolagem de iniciativa abria mas
-                  nunca conseguia concluir — a rolagem era ignorada e o mestre
-                  ficava preso na tela. Agora o overlay deixa de aparecer para
-                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
-                  fichas pela própria lista do encontro, no mesmo fluxo das
-                  ameaças.
+                  O editor de ficha agora permite alterar todas as escolhas de
+                  customização do Duende em personagens já criados — antes, só
+                  Natureza e Tamanho ficavam editáveis e o restante congelava
+                  com o valor inicial. Trocar um Presente recalcula corretamente
+                  sentidos e bônus (some o do antigo, entra o do novo); mudar a
+                  perícia do Tabu redireciona o −5; e os Dons podem ser
+                  realocados entre atributos. Habilidades fixas (Aversão a
+                  Ferro/Sinos, Tipo de Criatura) seguem fixas conforme as
+                  regras. Salvar fica bloqueado se os atributos dos Dons forem
+                  iguais ou se não houver exatamente 3 Presentes selecionados.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Layouts da Mesa Virtual repensados no desktop.
+                  </strong>{' '}
+                  No desktop e em tablets em landscape, jogador e mestre agora
+                  têm telas dedicadas no lugar do scroll vertical único. O
+                  jogador vê a ficha como conteúdo principal e ganha um rail
+                  direito colapsável com a ordem de turno (quando há combate),
+                  log de rolagens recentes e a Rolagem Rápida no rodapé. O
+                  mestre passa a ter um menu lateral flutuante com os contextos{' '}
+                  <strong>Encontros</strong> (Ativo / Preparados),{' '}
+                  <strong>Fichas</strong> (Jogadores / Ameaças) e{' '}
+                  <strong>Configurações</strong>. O menu mostra só ícones por
+                  padrão e se expande no hover. Mobile portrait segue com a
+                  navegação inferior atual.
                 </li>
                 <li>
                   <strong>
@@ -115,43 +133,16 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Melhoria: Toggle in-game de rolagens não esconde mais a
-                    barra de inimigos.
+                    Correção: Iniciativa travada quando o mestre usava fichas
+                    próprias.
                   </strong>{' '}
-                  Alternar para modo privado durante a sessão agora afeta apenas
-                  a divulgação das rolagens. A visibilidade de PV/PM dos
-                  participantes é controlada exclusivamente pela nova seção de
-                  Configurações da Mesa, dando mais previsibilidade sobre o que
-                  os jogadores estão vendo.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Remoção de jogadores travada na Mesa Virtual.
-                  </strong>{' '}
-                  Em mesas mais antigas, mestres podiam ver um erro ao tentar
-                  remover um jogador da lista de membros — o sistema não
-                  conseguia localizar o registro mesmo com o jogador visível na
-                  tela. A identificação interna dos membros foi normalizada e a
-                  remoção agora funciona em todas as mesas. Quando algum estado
-                  divergente acontecer no futuro, o frontend atualiza a lista
-                  automaticamente e mostra uma mensagem clara em vez do erro
-                  genérico.
-                </li>
-                <li>
-                  <strong>
-                    Novo: Layouts da Mesa Virtual repensados no desktop.
-                  </strong>{' '}
-                  No desktop e em tablets em landscape, jogador e mestre agora
-                  têm telas dedicadas no lugar do scroll vertical único. O
-                  jogador vê a ficha como conteúdo principal e ganha um rail
-                  direito colapsável com a ordem de turno (quando há combate),
-                  log de rolagens recentes e a Rolagem Rápida no rodapé. O
-                  mestre passa a ter um menu lateral flutuante com os contextos{' '}
-                  <strong>Encontros</strong> (Ativo / Preparados),{' '}
-                  <strong>Fichas</strong> (Jogadores / Ameaças) e{' '}
-                  <strong>Configurações</strong>. O menu mostra só ícones por
-                  padrão e se expande no hover. Mobile portrait segue com a
-                  navegação inferior atual.
+                  Quando o mestre adicionava ao encontro fichas-jogador que ele
+                  mesmo controla, o overlay de rolagem de iniciativa abria mas
+                  nunca conseguia concluir — a rolagem era ignorada e o mestre
+                  ficava preso na tela. Agora o overlay deixa de aparecer para
+                  fichas controladas pelo mestre, e ele rola a iniciativa dessas
+                  fichas pela própria lista do encontro, no mesmo fluxo das
+                  ameaças.
                 </li>
                 <li>
                   <strong>
@@ -166,108 +157,6 @@ const Changelog: React.FC = () => {
                   Mestre/dono. Antes, ao cair nessa página durante uma sessão
                   ativa, o jogador não tinha como entrar e o mestre não tinha
                   como encerrar sem voltar para a sessão.
-                </li>
-                <li>
-                  <strong>
-                    Novo: Encontro &quot;ao vivo&quot; destacado no menu do
-                    mestre.
-                  </strong>{' '}
-                  Enquanto houver um encontro em andamento, o item{' '}
-                  <strong>Ativo</strong> do menu lateral ganha um indicador
-                  verde pulsante. Iniciar um encontro (imediato ou preparado)
-                  agora também leva o mestre direto para a tela do encontro
-                  ativo. O widget flutuante do canto inferior direito passa a
-                  aparecer durante todas as fases (configuração, rolagem de
-                  iniciativa e combate), funcionando como um quick-look enquanto
-                  o mestre navega por outros contextos.
-                </li>
-                <li>
-                  <strong>Novo: Iniciativa no histórico de rolagens.</strong> Os
-                  d20 rolados no início do combate (jogadores e ameaças) agora
-                  aparecem no Recent Rolls do rail e no histórico completo da
-                  AppBar para mestre e jogadores, com o nome do personagem e o
-                  bônus aplicado. Crítico e falha (20/1) também são marcados.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Condições ressuscitando após reconexão.
-                  </strong>{' '}
-                  Em sessões longas, quando o jogador removia uma condição da
-                  própria ficha, ela podia voltar a aparecer no badge do
-                  participante para o mestre após uma reconexão ou recarga da
-                  página. A persistência das condições no encontro agora
-                  acompanha cada atualização de ficha, eliminando o desync entre
-                  o que está na ficha e o que aparece no resumo do encontro.
-                </li>
-                <li>
-                  <strong>
-                    Correção: PV/PM Máximo Manual ressuscitando após apagar.
-                  </strong>{' '}
-                  Em mesas virtuais, quando o jogador definia um valor de PV ou
-                  PM Máximo Manual e depois apagava o campo, o valor antigo
-                  voltava ao recarregar a página. A sincronização agora envia
-                  explicitamente a deleção do campo para o servidor, e o retorno
-                  ao cálculo automático passa a persistir corretamente entre
-                  sessões.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Nome customizado de armas na aba de Ataques.
-                  </strong>{' '}
-                  Ao renomear uma arma na mochila (campo{' '}
-                  <em>Nome customizado</em> no editor do item), o novo nome
-                  agora aparece imediatamente no card de ataque, no log de
-                  rolagem de dados, no diálogo de modos de ataque e no aviso de
-                  arma não empunhada. Antes, a renomeação só refletia no
-                  inventário — útil, por exemplo, para sinalizar &quot;Adaga
-                  (Marca da Presa)&quot; e lembrar de aplicar o dano extra a
-                  cada acerto.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Sincronização de condições entre ficha e encontro.
-                  </strong>{' '}
-                  Condições aplicadas pelo Mestre via gerenciador do
-                  participante agora aparecem imediatamente na ficha do jogador,
-                  e condições adicionadas pelo jogador na própria ficha agora
-                  aparecem imediatamente no badge do participante para o Mestre
-                  e demais jogadores. Antes, cada ponta só via a edição feita no
-                  seu próprio lado. Condições do participante também passam a
-                  ser persistidas — sobrevivem a restart do servidor e
-                  recarregamento da sessão.
-                </li>
-                <li>
-                  <strong>Melhoria: Conexão da Mesa Virtual.</strong>{' '}
-                  Reidratação completa do estado do encontro ao reconectar
-                  (snapshot canônico vindo do servidor) elimina divergência
-                  entre jogadores depois de qualquer instabilidade de rede.
-                  Detecção de zombie connection via ACK de heartbeat: se o
-                  servidor para de responder, o cliente percebe em ≤16s e
-                  reconecta automaticamente. Novo indicador{' '}
-                  <strong>amarelo</strong> de &quot;Conexão instável&quot; no
-                  ícone de Wi-Fi do topo aparece antes de cair de vez,
-                  permitindo ação preventiva.
-                </li>
-                <li>
-                  <strong>
-                    Correção: Contador de jogadores online (ghost connections).
-                  </strong>{' '}
-                  Jogadores que saem por desconexão silenciosa (proxy,
-                  background do iOS) agora são removidos da lista de online em
-                  até 90 segundos — antes ficavam &quot;fantasmas&quot; pela
-                  sessão inteira. Lista canônica de presença passa a ser
-                  reenviada periodicamente pelo servidor para corrigir qualquer
-                  divergência cumulativa.
-                </li>
-                <li>
-                  <strong>Melhoria: Mochila pré-filtrada por contexto.</strong>{' '}
-                  Ao abrir a Mochila de Aventureiro pelo botão de editar dos
-                  cards de <strong>Ataques</strong> ou <strong>Defesa</strong>,
-                  o filtro de categorias já vem pré-selecionado (<em>Arma</em>{' '}
-                  para Ataques; <em>Armadura</em> e <em>Escudo</em> para
-                  Defesa). O botão de <strong>Equipamentos</strong> segue
-                  abrindo sem filtro. Os chips do toolbar continuam editáveis
-                  para alterar ou limpar a seleção.
                 </li>
                 <li>
                   <strong>Novo: Encantamentos mágicos</strong> em armas,
@@ -321,30 +210,87 @@ const Changelog: React.FC = () => {
                   automaticamente via SheetBonus.
                 </li>
                 <li>
+                  <strong>Melhoria: Conexão da Mesa Virtual.</strong>{' '}
+                  Reidratação completa do estado do encontro ao reconectar
+                  (snapshot canônico vindo do servidor) elimina divergência
+                  entre jogadores depois de qualquer instabilidade de rede.
+                  Detecção de zombie connection via ACK de heartbeat: se o
+                  servidor para de responder, o cliente percebe em ≤16s e
+                  reconecta automaticamente. Novo indicador{' '}
+                  <strong>amarelo</strong> de &quot;Conexão instável&quot; no
+                  ícone de Wi-Fi do topo aparece antes de cair de vez,
+                  permitindo ação preventiva.
+                </li>
+                <li>
+                  <strong>Melhoria: Mochila pré-filtrada por contexto.</strong>{' '}
+                  Ao abrir a Mochila de Aventureiro pelo botão de editar dos
+                  cards de <strong>Ataques</strong> ou <strong>Defesa</strong>,
+                  o filtro de categorias já vem pré-selecionado (<em>Arma</em>{' '}
+                  para Ataques; <em>Armadura</em> e <em>Escudo</em> para
+                  Defesa). O botão de <strong>Equipamentos</strong> segue
+                  abrindo sem filtro. Os chips do toolbar continuam editáveis
+                  para alterar ou limpar a seleção.
+                </li>
+                <li>
                   <strong>Melhoria: Card de Defesa.</strong> Configurações do
                   card de Defesa separadas do acesso à mochila, permitindo
                   ajustar bônus específicos sem abrir a mochila inteira.
                 </li>
                 <li>
-                  <strong>Correção:</strong> Capturar{' '}
-                  <code>baseSheetBonuses</code> na primeira aplicação de
-                  modificações, propagar <code>sheetBonuses</code> ao salvar a
-                  mochila e itemizar o bônus de Defesa no breakdown da ficha.
+                  <strong>
+                    Correção: Remoção de jogadores travada na Mesa Virtual.
+                  </strong>{' '}
+                  Em mesas mais antigas, mestres podiam ver um erro ao tentar
+                  remover um jogador da lista de membros — o sistema não
+                  conseguia localizar o registro mesmo com o jogador visível na
+                  tela. A identificação interna dos membros foi normalizada e a
+                  remoção agora funciona em todas as mesas. Quando algum estado
+                  divergente acontecer no futuro, o frontend atualiza a lista
+                  automaticamente e mostra uma mensagem clara em vez do erro
+                  genérico.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Sincronização de condições entre ficha e encontro.
+                  </strong>{' '}
+                  Condições aplicadas pelo Mestre via gerenciador do
+                  participante agora aparecem imediatamente na ficha do jogador,
+                  e condições adicionadas pelo jogador na própria ficha agora
+                  aparecem imediatamente no badge do participante para o Mestre
+                  e demais jogadores. Antes, cada ponta só via a edição feita no
+                  seu próprio lado. Condições do participante também passam a
+                  ser persistidas — sobrevivem a restart do servidor e
+                  recarregamento da sessão.
+                </li>
+                <li>
+                  <strong>
+                    Correção: PV/PM Máximo Manual ressuscitando após apagar.
+                  </strong>{' '}
+                  Em mesas virtuais, quando o jogador definia um valor de PV ou
+                  PM Máximo Manual e depois apagava o campo, o valor antigo
+                  voltava ao recarregar a página. A sincronização agora envia
+                  explicitamente a deleção do campo para o servidor, e o retorno
+                  ao cálculo automático passa a persistir corretamente entre
+                  sessões.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Nome customizado de armas na aba de Ataques.
+                  </strong>{' '}
+                  Ao renomear uma arma na mochila (campo{' '}
+                  <em>Nome customizado</em> no editor do item), o novo nome
+                  agora aparece imediatamente no card de ataque, no log de
+                  rolagem de dados, no diálogo de modos de ataque e no aviso de
+                  arma não empunhada. Antes, a renomeação só refletia no
+                  inventário — útil, por exemplo, para sinalizar &quot;Adaga
+                  (Marca da Presa)&quot; e lembrar de aplicar o dano extra a
+                  cada acerto.
                 </li>
                 <li>
                   <strong>Correção:</strong> Aplicar remoção em cascata ao tirar
                   uma modificação no editor — modificações dependentes são
                   removidas respeitando pré-requisitos OR (não removem
                   injustamente quando ainda há outra opção válida).
-                </li>
-                <li>
-                  <strong>Correção:</strong> Forçar revalidação de assinatura ao
-                  autenticar e em logout, evitando estado obsoleto de premium em
-                  algumas transições.
-                </li>
-                <li>
-                  <strong>Correção:</strong> Atualização do submódulo premium
-                  com fix de iOS PWA e overlay de debug.
                 </li>
               </ul>
               <h3>4.13</h3>
