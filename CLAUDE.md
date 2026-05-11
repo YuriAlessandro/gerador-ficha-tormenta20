@@ -76,8 +76,9 @@ git commit -m "Update premium submodule reference"
 npm install          # Install frontend dependencies
 npm start           # Start Vite dev server at localhost:5173
 npm run build       # Build for production
-npm run deploy      # Deploy to GitHub Pages (builds first)
 ```
+
+Frontend é deployado automaticamente via Cloud Build trigger `frontend-deploy` (em `southamerica-east1`) a cada push em `main`. Config em `cloudbuild-frontend.yaml`.
 
 ### Backend Development
 
@@ -170,7 +171,15 @@ npx prettier --check <filename>  # Check if files are formatted
   - Use responsive MUI breakpoints (xs, sm, md, lg, xl)
   - Test layouts for both mobile and desktop views
   - Use `isMobile` pattern: `const isMobile = window.innerWidth <= 768;`
-- Deployed to GitHub Pages at https://yurialessandro.github.io/gerador-ficha-tormenta20/
+- Produção em https://fichasdenimb.com.br
+
+### Infraestrutura
+
+- **Frontend** (este repo): Cloud Run `fichas-frontend` em `southamerica-east1`. Deploy automatizado via Cloud Build trigger `frontend-deploy` (`cloudbuild-frontend.yaml`). Push em `main` → build com `VITE_API_URL=https://fichas-backend.fly.dev` → deploy.
+- **Backend** (`/backend` submodule): Fly.io `fichas-backend` em região `gru` (São Paulo) — `shared-cpu-2x` 1GB, 1 machine, `auto_stop_machines=off`. Deploy automatizado via GitHub Actions (`.github/workflows/fly-deploy.yml`) no repo do backend. Runbook completo em `backend/docs/runbook.md`.
+- **Banco**: MongoDB Atlas (externo, fora do GCP).
+- **Auth**: Firebase Auth (no projeto GCP `fichas-de-nimb`).
+- **Pagamentos**: Stripe — webhooks vão direto pra `https://fichas-backend.fly.dev/api/webhooks/stripe`.
 
 ### ESLint Rules - DO NOT VIOLATE
 
