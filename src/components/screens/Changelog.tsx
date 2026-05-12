@@ -72,6 +72,20 @@ const Changelog: React.FC = () => {
               <h3>4.15</h3>
               <ul>
                 <li>
+                  <strong>
+                    Novo: reordenar manualmente os poderes na ficha.
+                  </strong>{' '}
+                  Antes os poderes apareciam sempre em ordem alfabética — agora
+                  você pode definir a sua própria ordem (ex.: agrupar poderes de
+                  combate no topo, deixar passivos no fim). Na seção{' '}
+                  <strong>Poderes</strong> da ficha, clique em{' '}
+                  <strong>Reordenar</strong>, arraste os poderes para a posição
+                  desejada e clique em <strong>Concluído</strong>. A ordem fica
+                  salva naquela ficha (incluindo no PDF gerado) e sobrevive a
+                  recarregamentos. Se quiser voltar ao padrão, basta clicar em{' '}
+                  <em>Restaurar ordem alfabética</em>.
+                </li>
+                <li>
                   <strong>Novo: convite via link para Mesas Virtuais.</strong> O
                   mestre agora pode gerar{' '}
                   <strong>um único link de convite</strong> para a mesa e
