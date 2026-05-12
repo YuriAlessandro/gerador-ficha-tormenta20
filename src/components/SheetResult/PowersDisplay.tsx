@@ -1,14 +1,24 @@
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
-import { Box } from '@mui/material';
-import React, { useMemo } from 'react';
+import { Box, Button, Stack, Tooltip } from '@mui/material';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CheckIcon from '@mui/icons-material/Check';
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from 'react-beautiful-dnd';
+import React, { useMemo, useState } from 'react';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import CharacterSheet, {
   SheetActionHistoryEntry,
 } from '@/interfaces/CharacterSheet';
 import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import { CustomPower } from '@/interfaces/CustomPower';
+import { applyPowersOrder } from '@/functions/powers/applyPowersOrder';
 import PowerDisplay from './PowerDisplay';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 
@@ -108,16 +118,39 @@ const PowersDisplay: React.FC<{
     powerCount[power.name] = (powerCount[power.name] || 0) + 1;
   });
 
-  const uniquePowers = [
-    ...filterUniqueByName(processedClassPowers),
-    ...filterUniqueByName(raceAbilities),
-    ...filterUniqueByName(filteredClassAbilities),
-    ...filterUniqueByName(originPowers),
-    ...filterUniqueByName(deityPowers),
-    ...filterUniqueByName(generalPowers),
-    ...filterUniqueByName(customPowers || []),
-    ...filterUniqueByName(customGrantedPowers || []),
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  const uniquePowers = applyPowersOrder(
+    [
+      ...filterUniqueByName(processedClassPowers),
+      ...filterUniqueByName(raceAbilities),
+      ...filterUniqueByName(filteredClassAbilities),
+      ...filterUniqueByName(originPowers),
+      ...filterUniqueByName(deityPowers),
+      ...filterUniqueByName(generalPowers),
+      ...filterUniqueByName(customPowers || []),
+      ...filterUniqueByName(customGrantedPowers || []),
+    ],
+    sheet?.powersOrder
+  );
+
+  const [reorderMode, setReorderMode] = useState(false);
+  const canReorder = !!sheet && !!onSheetUpdate && uniquePowers.length > 1;
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!sheet || !onSheetUpdate) return;
+    if (!result.destination) return;
+    if (result.destination.index === result.source.index) return;
+
+    const currentOrder = uniquePowers.map((p) => p.name);
+    const [moved] = currentOrder.splice(result.source.index, 1);
+    currentOrder.splice(result.destination.index, 0, moved);
+
+    onSheetUpdate({ ...sheet, powersOrder: currentOrder });
+  };
+
+  const handleResetOrder = () => {
+    if (!sheet || !onSheetUpdate) return;
+    onSheetUpdate({ ...sheet, powersOrder: undefined });
+  };
 
   const getPowerOrigin = (
     pw: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
@@ -176,23 +209,108 @@ const PowersDisplay: React.FC<{
     return undefined;
   };
 
+  const renderPower = (
+    power: ClassPower | RaceAbility | ClassAbility | OriginPower | CustomPower
+  ) => (
+    <PowerDisplay
+      sheetHistory={sheetHistory}
+      key={power.name}
+      power={power}
+      type={getPowerOrigin(power)}
+      count={powerCount[power.name]}
+      onUpdateRolls={reorderMode ? undefined : onUpdateRolls}
+      characterName={characterName}
+      onCompanionClick={
+        !reorderMode && power.name === 'Melhor Amigo'
+          ? onCompanionClick
+          : undefined
+      }
+      headerActionSlot={reorderMode ? undefined : buildHeaderActionSlot(power)}
+    />
+  );
+
   return (
     <Box>
-      {uniquePowers.map((power) => (
-        <PowerDisplay
-          sheetHistory={sheetHistory}
-          key={power.name}
-          power={power}
-          type={getPowerOrigin(power)}
-          count={powerCount[power.name]}
-          onUpdateRolls={onUpdateRolls}
-          characterName={characterName}
-          onCompanionClick={
-            power.name === 'Melhor Amigo' ? onCompanionClick : undefined
-          }
-          headerActionSlot={buildHeaderActionSlot(power)}
-        />
-      ))}
+      {canReorder && (
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{ mb: 1, flexWrap: 'wrap', rowGap: 1 }}
+        >
+          <Button
+            size='small'
+            variant={reorderMode ? 'contained' : 'outlined'}
+            startIcon={reorderMode ? <CheckIcon /> : <DragIndicatorIcon />}
+            onClick={() => setReorderMode((prev) => !prev)}
+          >
+            {reorderMode ? 'Concluído' : 'Reordenar'}
+          </Button>
+          {reorderMode && sheet?.powersOrder && (
+            <Tooltip title='Voltar à ordem alfabética padrão'>
+              <Button
+                size='small'
+                variant='text'
+                color='inherit'
+                startIcon={<RestartAltIcon />}
+                onClick={handleResetOrder}
+              >
+                Restaurar ordem alfabética
+              </Button>
+            </Tooltip>
+          )}
+        </Stack>
+      )}
+
+      {reorderMode ? (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId='powers-list'>
+            {(droppableProvided) => (
+              <Box
+                ref={droppableProvided.innerRef}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...droppableProvided.droppableProps}
+              >
+                {uniquePowers.map((power, idx) => (
+                  <Draggable
+                    key={power.name}
+                    draggableId={power.name}
+                    index={idx}
+                  >
+                    {(dragProvided, snapshot) => (
+                      <Box
+                        ref={dragProvided.innerRef}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...dragProvided.draggableProps}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...dragProvided.dragHandleProps}
+                        sx={{
+                          opacity: snapshot.isDragging ? 0.85 : 1,
+                          cursor: 'grab',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          '&:active': { cursor: 'grabbing' },
+                        }}
+                      >
+                        <DragIndicatorIcon
+                          fontSize='small'
+                          sx={{ color: 'text.secondary', flexShrink: 0 }}
+                        />
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          {renderPower(power)}
+                        </Box>
+                      </Box>
+                    )}
+                  </Draggable>
+                ))}
+                {droppableProvided.placeholder}
+              </Box>
+            )}
+          </Droppable>
+        </DragDropContext>
+      ) : (
+        uniquePowers.map((power) => renderPower(power))
+      )}
     </Box>
   );
 };

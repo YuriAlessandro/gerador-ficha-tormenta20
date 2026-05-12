@@ -11,6 +11,7 @@ import { PDFDocument } from 'pdf-lib';
 import { calculateCurrencySpaces } from './general';
 import { isMulticlass, getMulticlassDisplayName } from './multiclass';
 import { getWeaponSkill, getSkillAttackBonus } from './weaponSkill';
+import { applyPowersOrder } from './powers/applyPowersOrder';
 import { getOrderedItemsByGroup } from '../components/SheetResult/BackpackModal/bagOrdering';
 import { calcAmmoSpaces } from '../components/SheetResult/BackpackModal/ammo';
 
@@ -365,14 +366,17 @@ const preparePDF: (
     powerCount[power.name] = (powerCount[power.name] || 0) + 1;
   });
 
-  const uniquePowers = [
-    ...filterUniqueByName(classPowers),
-    ...filterUniqueByName(raceAbilities),
-    ...filterUniqueByName(classAbilities),
-    ...filterUniqueByName(originPowers),
-    ...filterUniqueByName(deityPowers),
-    ...filterUniqueByName(generalPowers),
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  const uniquePowers = applyPowersOrder(
+    [
+      ...filterUniqueByName(classPowers),
+      ...filterUniqueByName(raceAbilities),
+      ...filterUniqueByName(classAbilities),
+      ...filterUniqueByName(originPowers),
+      ...filterUniqueByName(deityPowers),
+      ...filterUniqueByName(generalPowers),
+    ],
+    sheet.powersOrder
+  );
 
   const powersText = uniquePowers
     .map((power) => {

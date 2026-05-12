@@ -471,6 +471,7 @@ export default interface CharacterSheet {
   customPowers?: CustomPower[];
   customGrantedPowers?: CustomPower[];
   classPowers?: ClassPower[];
+  powersOrder?: string[];
   steps: Step[];
   extraArmorPenalty?: number;
   completeSkills?: CompleteSkill[];
