@@ -385,4 +385,228 @@ describe('applyItemEnhancements — encantamentos', () => {
       expect(result.extraDamage?.[0].source).toBe('user');
     });
   });
+
+  describe('materiais especiais', () => {
+    test('Mitral em arma melhora a margem de ameaça em 1', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.critico).toBe('19/x2');
+    });
+
+    test('Mitral + Precisa empilham (20/x2 → 18/x2)', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+          { mod: 'Precisa' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.critico).toBe('18/x2');
+    });
+
+    test('Mitral + Precisa + Maciça → 18/x3', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+          { mod: 'Precisa' },
+          { mod: 'Maciça' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.critico).toBe('18/x3');
+    });
+
+    test('Mitral em armadura reduz a penalidade de armadura em 2', () => {
+      const lightArmor: DefenseEquipment = {
+        nome: 'Armadura de Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: -1,
+        spaces: 2,
+      };
+      const item: DefenseEquipment = {
+        ...lightArmor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Mitral' },
+        ],
+      };
+      const result = applyItemEnhancements(item) as DefenseEquipment;
+      expect(result.armorPenalty).toBe(-3);
+    });
+
+    test('Adamante em arma aumenta o dado de dano em um passo', () => {
+      const item: Equipment = {
+        ...baseSword,
+        dano: '1d8',
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Adamante' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('1d10');
+    });
+
+    test('Adamante em arma 1d10 vira 2d6', () => {
+      const item: Equipment = {
+        ...baseSword,
+        dano: '1d10',
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Adamante' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('2d6');
+    });
+
+    test('Adamante em armadura leve dá RD 2 Geral', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Couro',
+        group: 'Armadura',
+        defenseBonus: 2,
+        armorPenalty: 0,
+        spaces: 2,
+        isHeavyArmor: false,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Adamante' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      const dr = result.sheetBonuses?.find(
+        (b) => b.target.type === 'DamageReduction'
+      );
+      expect(dr?.modifier).toMatchObject({ type: 'Fixed', value: 2 });
+    });
+
+    test('Adamante em armadura pesada dá RD 5 Geral', () => {
+      const armor: DefenseEquipment = {
+        nome: 'Armadura de Placas',
+        group: 'Armadura',
+        defenseBonus: 8,
+        armorPenalty: -5,
+        spaces: 4,
+        isHeavyArmor: true,
+      };
+      const item: DefenseEquipment = {
+        ...armor,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Adamante' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      const dr = result.sheetBonuses?.find(
+        (b) => b.target.type === 'DamageReduction'
+      );
+      expect(dr?.modifier).toMatchObject({ type: 'Fixed', value: 5 });
+    });
+
+    test('Gelo Eterno em arma adiciona +2 dano por frio (extraDamage)', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Gelo Eterno' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.extraDamage).toHaveLength(1);
+      expect(result.extraDamage?.[0]).toMatchObject({
+        dice: '2',
+        damageType: 'Frio',
+      });
+    });
+
+    test('Matéria Vermelha em arma adiciona +1d6 Essência (extraDamage)', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Matéria Vermelha' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.extraDamage).toHaveLength(1);
+      expect(result.extraDamage?.[0]).toMatchObject({
+        dice: '1d6',
+        damageType: 'Essência',
+      });
+    });
+
+    test('material sem efeito numérico (Aço-rubi) não muda stats', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [
+          { mod: 'Material especial', specialMaterial: 'Aço-rubi' },
+        ],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('1d8');
+      expect(result.critico).toBe('x2');
+      expect(result.atkBonus).toBe(0);
+      expect(result.extraDamage).toBeUndefined();
+    });
+  });
+
+  describe('hasManualEdits preserva stats numéricos', () => {
+    test('preserva crítico editado quando mods seriam aplicados', () => {
+      const item: Equipment = {
+        ...baseSword,
+        critico: '17/x2',
+        baseCritico: '20/x2',
+        hasManualEdits: true,
+        modifications: [{ mod: 'Precisa' }],
+      };
+      const result = applyItemEnhancements(item);
+      // Sem hasManualEdits, Precisa em 20/x2 produziria 19/x2. Com a flag,
+      // mantém o valor editado pelo usuário.
+      expect(result.critico).toBe('17/x2');
+    });
+
+    test('preserva dano e atkBonus editados', () => {
+      const item: Equipment = {
+        ...baseSword,
+        dano: '2d6+1',
+        atkBonus: 5,
+        baseDano: '1d8',
+        baseAtkBonus: 0,
+        hasManualEdits: true,
+        modifications: [{ mod: 'Atroz' }, { mod: 'Certeira' }],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.dano).toBe('2d6+1');
+      expect(result.atkBonus).toBe(5);
+    });
+
+    test('ainda processa extraDamage derivado com hasManualEdits', () => {
+      const item: Equipment = {
+        ...baseSword,
+        critico: '17/x2',
+        baseCritico: '20/x2',
+        hasManualEdits: true,
+        enchantments: [{ enchantment: 'Flamejante' }],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.critico).toBe('17/x2');
+      const flame = result.extraDamage?.find(
+        (e) => e.sourceName === 'Flamejante'
+      );
+      expect(flame).toBeDefined();
+    });
+
+    test('sem hasManualEdits recalcula normalmente', () => {
+      const item: Equipment = {
+        ...baseSword,
+        modifications: [{ mod: 'Precisa' }],
+      };
+      const result = applyItemEnhancements(item);
+      expect(result.critico).toBe('19/x2');
+    });
+  });
 });

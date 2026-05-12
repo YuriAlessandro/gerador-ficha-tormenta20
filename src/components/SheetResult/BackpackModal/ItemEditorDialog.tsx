@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -174,6 +174,8 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
+  const initialFormRef = useRef<ReturnType<typeof buildInitial> | null>(null);
+  const pendingResetRef = useRef(false);
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
@@ -184,7 +186,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   useEffect(() => {
     if (open) {
-      setForm(buildInitial(item));
+      const init = buildInitial(item);
+      setForm(init);
+      initialFormRef.current = init;
+      pendingResetRef.current = false;
       setTab('geral');
       setModError('');
       setEnchError('');
@@ -220,6 +225,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   const handleResetToBase = () => {
     if (!baseSnapshot) return;
+    pendingResetRef.current = true;
     setForm((f) => ({
       ...f,
       danoText: baseSnapshot.dano,
@@ -281,6 +287,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           : undefined,
     };
 
+    const initialForm = initialFormRef.current;
+    const pendingReset = pendingResetRef.current;
+
     if (isWeapon) {
       const atkBonus = parseInt(form.atkBonusText, 10);
       next.dano = form.danoText.trim() || item.dano;
@@ -297,11 +306,25 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           return { ...action, damageAttribute: overridden } as WeaponAction;
         });
       }
-      const divergedFromBase =
-        next.dano !== item.baseDano ||
-        next.atkBonus !== item.baseAtkBonus ||
-        next.critico !== item.baseCritico;
-      if (divergedFromBase) next.hasManualEdits = true;
+      // After a Reset click, treat the base values as the new baseline — any
+      // post-reset edit re-enables hasManualEdits; otherwise clear the flag so
+      // the pipeline recomputes automatically.
+      if (pendingReset && baseSnapshot) {
+        const editedAfterReset =
+          form.danoText !== baseSnapshot.dano ||
+          form.atkBonusText !== String(baseSnapshot.atkBonus) ||
+          form.criticoText !== baseSnapshot.critico;
+        next.hasManualEdits = editedAfterReset ? true : undefined;
+      } else {
+        const statsChangedThisSession =
+          !!initialForm &&
+          (form.danoText !== initialForm.danoText ||
+            form.atkBonusText !== initialForm.atkBonusText ||
+            form.criticoText !== initialForm.criticoText);
+        if (item.hasManualEdits || statsChangedThisSession) {
+          next.hasManualEdits = true;
+        }
+      }
     }
 
     let finalItem: Equipment = next;
@@ -319,11 +342,20 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           : armorPenalty,
         isHeavyArmor: item.group === 'Armadura' ? form.isHeavyArmor : undefined,
       };
-      const baseDef = item as DefenseEquipment;
-      const divergedFromBase =
-        defenseNext.defenseBonus !== baseDef.baseDefenseBonus ||
-        defenseNext.armorPenalty !== baseDef.baseArmorPenalty;
-      if (divergedFromBase) defenseNext.hasManualEdits = true;
+      if (pendingReset && baseSnapshot) {
+        const editedAfterReset =
+          form.defenseBonusText !== String(baseSnapshot.defenseBonus) ||
+          form.armorPenaltyText !== String(baseSnapshot.armorPenalty);
+        defenseNext.hasManualEdits = editedAfterReset ? true : undefined;
+      } else {
+        const statsChangedThisSession =
+          !!initialForm &&
+          (form.defenseBonusText !== initialForm.defenseBonusText ||
+            form.armorPenaltyText !== initialForm.armorPenaltyText);
+        if (item.hasManualEdits || statsChangedThisSession) {
+          defenseNext.hasManualEdits = true;
+        }
+      }
       finalItem = defenseNext;
     }
 

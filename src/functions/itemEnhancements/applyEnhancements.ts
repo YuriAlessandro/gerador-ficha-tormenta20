@@ -1,13 +1,15 @@
-import Equipment from '../../interfaces/Equipment';
+import Equipment, { DefenseEquipment } from '../../interfaces/Equipment';
 import {
   aggregateEffects,
   applyDelta,
   captureBaseValues,
+  isDefenseEquipment,
   SourcedEffect,
   sumDeltas,
 } from './core';
 import { modificationEffects } from '../modifications/modificationEffects';
 import { enchantmentEffects } from './enchantmentEffects';
+import { resolveMaterialEffect } from './materialEffects';
 
 /**
  * Recomputes an Equipment's stats from its `base*` snapshots and current
@@ -20,9 +22,11 @@ import { enchantmentEffects } from './enchantmentEffects';
  * same stat (e.g. Certeira +1 atk mod + Formidável +2 atk ench) yields the
  * correct sum (+3) without double counting.
  *
- * If the item has `hasManualEdits === true`, the function still recomputes from
- * the base values — manual edits are an override the user opted into, and they
- * are aware that re-applying enhancements resets manual tweaks.
+ * If the item has `hasManualEdits === true`, the pipeline still runs (to
+ * regenerate derived extraDamage, specialActions, sheetBonuses etc.), but it
+ * preserves the user's manual stat values for `dano`, `atkBonus`, `critico`,
+ * `defenseBonus`, and `armorPenalty`. Clicking "Resetar" in the editor clears
+ * the flag and restores automatic recomputation from base + deltas.
  */
 export function applyItemEnhancements<T extends Equipment>(item: T): T {
   const hasMods = !!item.modifications?.length;
@@ -41,13 +45,34 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   if (!hasMods && !hasEnch && !hasExtraDamage && !hasBaseCapture) return item;
 
   const captured = captureBaseValues(item);
+  const isDefense = isDefenseEquipment(captured);
+  const isWeapon = captured.group === 'Arma';
 
   const modEntries: SourcedEffect[] = (captured.modifications ?? []).map(
-    (m) => ({
-      effect: modificationEffects[m.mod],
-      source: 'modification',
-      sourceName: m.mod,
-    })
+    (m) => {
+      if (m.mod === 'Material especial' && m.specialMaterial) {
+        let context: 'weapon' | 'defense' | undefined;
+        if (isWeapon) context = 'weapon';
+        else if (isDefense) context = 'defense';
+        const effect = context
+          ? resolveMaterialEffect(
+              m.specialMaterial,
+              context,
+              isDefense ? (captured as DefenseEquipment) : undefined
+            )
+          : undefined;
+        return {
+          effect,
+          source: 'modification',
+          sourceName: `Material especial (${m.specialMaterial})`,
+        };
+      }
+      return {
+        effect: modificationEffects[m.mod],
+        source: 'modification',
+        sourceName: m.mod,
+      };
+    }
   );
   const enchEntries: SourcedEffect[] = (captured.enchantments ?? []).map(
     (e) => ({
@@ -60,5 +85,5 @@ export function applyItemEnhancements<T extends Equipment>(item: T): T {
   const enchDelta = aggregateEffects(enchEntries);
   const delta = sumDeltas(modDelta, enchDelta);
 
-  return applyDelta(captured, delta);
+  return applyDelta(captured, delta, item.hasManualEdits === true);
 }

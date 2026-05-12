@@ -4,7 +4,10 @@ import Equipment, {
   ExtraDamage,
   WeaponAction,
 } from '../../interfaces/Equipment';
-import { SheetBonus } from '../../interfaces/CharacterSheet';
+import {
+  DamageType as RDDamageType,
+  SheetBonus,
+} from '../../interfaces/CharacterSheet';
 import Skill from '../../interfaces/Skills';
 
 /**
@@ -23,6 +26,12 @@ export interface EnhancementEffect {
   weaponStats?: {
     atkBonus?: number;
     danoDelta?: number;
+    /**
+     * Step up the damage die size by N steps (Adamante). Progression:
+     * 1d3 → 1d4 → 1d6 → 1d8 → 1d10 → 2d6 → 2d8 → 2d10. Applied to the base
+     * die before `danoDelta` adjusts the flat suffix.
+     */
+    danoStepUp?: number;
     criticoMultDelta?: number;
     criticoThreatDelta?: number;
   };
@@ -37,6 +46,12 @@ export interface EnhancementEffect {
    * by weapon mods/enchantments that grant Defense to the wielder (Guarda, Defensora).
    */
   defenseBonus?: number;
+  /**
+   * Damage Reduction bonuses emitted as SheetBonus entries with target
+   * `DamageReduction`. Used by special materials like Adamante (RD geral)
+   * and Gelo Eterno (RD fogo).
+   */
+  damageReduction?: { damageType: RDDamageType; value: number }[];
   /**
    * Extra damage lines added to a weapon. Each entry rolls separately on hit
    * and does not crit.
@@ -78,6 +93,7 @@ export interface SourcedEffect {
 export interface AggregatedDelta {
   atkBonusDelta: number;
   danoDelta: number;
+  danoStepUpDelta: number;
   criticoMultDelta: number;
   criticoThreatDelta: number;
   defenseBonusDelta: number;
@@ -85,6 +101,7 @@ export interface AggregatedDelta {
   spacesDelta: number;
   skillBonuses: { skill: Skill; value: number }[];
   defenseBonusFromSheetBonus: number;
+  damageReductionBonuses: { damageType: RDDamageType; value: number }[];
   /**
    * Derived extra damage entries with origin info already attached, ready to
    * be merged with the user-managed extra damage entries on the equipment.
@@ -102,6 +119,7 @@ export function emptyDelta(): AggregatedDelta {
   return {
     atkBonusDelta: 0,
     danoDelta: 0,
+    danoStepUpDelta: 0,
     criticoMultDelta: 0,
     criticoThreatDelta: 0,
     defenseBonusDelta: 0,
@@ -109,6 +127,7 @@ export function emptyDelta(): AggregatedDelta {
     spacesDelta: 0,
     skillBonuses: [],
     defenseBonusFromSheetBonus: 0,
+    damageReductionBonuses: [],
     derivedExtraDamage: [],
     criticoThreatDoubleMargin: false,
     derivedSpecialActions: [],
@@ -122,6 +141,7 @@ export function aggregateEffects(entries: SourcedEffect[]): AggregatedDelta {
     if (effect.weaponStats) {
       acc.atkBonusDelta += effect.weaponStats.atkBonus ?? 0;
       acc.danoDelta += effect.weaponStats.danoDelta ?? 0;
+      acc.danoStepUpDelta += effect.weaponStats.danoStepUp ?? 0;
       acc.criticoMultDelta += effect.weaponStats.criticoMultDelta ?? 0;
       acc.criticoThreatDelta += effect.weaponStats.criticoThreatDelta ?? 0;
     }
@@ -132,6 +152,9 @@ export function aggregateEffects(entries: SourcedEffect[]): AggregatedDelta {
     acc.spacesDelta += effect.spacesDelta ?? 0;
     if (effect.skillBonuses) acc.skillBonuses.push(...effect.skillBonuses);
     acc.defenseBonusFromSheetBonus += effect.defenseBonus ?? 0;
+    if (effect.damageReduction) {
+      acc.damageReductionBonuses.push(...effect.damageReduction);
+    }
     if (effect.extraDamage) {
       effect.extraDamage.forEach((ed) => {
         acc.derivedExtraDamage.push({
@@ -159,6 +182,7 @@ export function sumDeltas(...deltas: AggregatedDelta[]): AggregatedDelta {
   return deltas.reduce<AggregatedDelta>((acc, d) => {
     acc.atkBonusDelta += d.atkBonusDelta;
     acc.danoDelta += d.danoDelta;
+    acc.danoStepUpDelta += d.danoStepUpDelta;
     acc.criticoMultDelta += d.criticoMultDelta;
     acc.criticoThreatDelta += d.criticoThreatDelta;
     acc.defenseBonusDelta += d.defenseBonusDelta;
@@ -166,12 +190,50 @@ export function sumDeltas(...deltas: AggregatedDelta[]): AggregatedDelta {
     acc.spacesDelta += d.spacesDelta;
     acc.skillBonuses.push(...d.skillBonuses);
     acc.defenseBonusFromSheetBonus += d.defenseBonusFromSheetBonus;
+    acc.damageReductionBonuses.push(...d.damageReductionBonuses);
     acc.derivedExtraDamage.push(...d.derivedExtraDamage);
     if (d.criticoThreatDoubleMargin) acc.criticoThreatDoubleMargin = true;
     acc.derivedSpecialActions.push(...d.derivedSpecialActions);
     if (d.setArremesso !== undefined) acc.setArremesso = d.setArremesso;
     return acc;
   }, emptyDelta());
+}
+
+/**
+ * Tormenta 20 damage die progression. Stepping up moves one entry to the right;
+ * stepping down moves left. Bounded at both ends.
+ */
+const DAMAGE_DICE_PROGRESSION = [
+  '1d3',
+  '1d4',
+  '1d6',
+  '1d8',
+  '1d10',
+  '2d6',
+  '2d8',
+  '2d10',
+];
+
+/**
+ * Steps the damage die size up (positive `steps`) or down (negative) according
+ * to the T20 progression. Preserves any `+N` / `-N` flat suffix.
+ *   stepUpDamageDice('1d6', 1)    => '1d8'
+ *   stepUpDamageDice('1d8+1', 2)  => '2d6+1'
+ *   stepUpDamageDice('xpto', 1)   => 'xpto'   (untouched if not in progression)
+ */
+export function stepUpDamageDice(dano: string, steps: number): string {
+  if (!dano || steps === 0) return dano;
+  const match = dano.trim().match(/^(\d+d\d+)([+-]\d+)?$/);
+  if (!match) return dano;
+  const base = match[1];
+  const suffix = match[2] ?? '';
+  const idx = DAMAGE_DICE_PROGRESSION.indexOf(base);
+  if (idx === -1) return dano;
+  const newIdx = Math.min(
+    DAMAGE_DICE_PROGRESSION.length - 1,
+    Math.max(0, idx + steps)
+  );
+  return DAMAGE_DICE_PROGRESSION[newIdx] + suffix;
 }
 
 /**
@@ -309,37 +371,50 @@ export function captureBaseValues<T extends Equipment>(item: T): T {
  * captured. Returns a new item with recomputed `dano`, `atkBonus`, `critico`,
  * `spaces`, defense fields, and `sheetBonuses` (merging baseSheetBonuses with
  * skill bonuses and standalone Defense bonuses derived from the delta).
+ *
+ * When `preserveManualStats` is true, skip rewriting the numeric stat fields
+ * the user can edit by hand (`dano`, `atkBonus`, `critico`, `defenseBonus`,
+ * `armorPenalty`). Derived effects (sheetBonuses, extraDamage, specialActions,
+ * arremesso, spaces) still apply — those don't compete with manual edits.
  */
 export function applyDelta<T extends Equipment>(
   captured: T,
-  delta: AggregatedDelta
+  delta: AggregatedDelta,
+  preserveManualStats = false
 ): T {
   const result = { ...captured } as T;
 
-  if (captured.baseAtkBonus !== undefined) {
-    result.atkBonus = captured.baseAtkBonus + delta.atkBonusDelta;
-  } else if (delta.atkBonusDelta) {
-    result.atkBonus = delta.atkBonusDelta;
-  }
+  if (!preserveManualStats) {
+    if (captured.baseAtkBonus !== undefined) {
+      result.atkBonus = captured.baseAtkBonus + delta.atkBonusDelta;
+    } else if (delta.atkBonusDelta) {
+      result.atkBonus = delta.atkBonusDelta;
+    }
 
-  if (captured.baseDano !== undefined && delta.danoDelta) {
-    result.dano = adjustDanoBonus(captured.baseDano, delta.danoDelta);
-  } else if (captured.baseDano !== undefined) {
-    result.dano = captured.baseDano;
-  }
+    if (captured.baseDano !== undefined) {
+      let dano = captured.baseDano;
+      if (delta.danoStepUpDelta) {
+        dano = stepUpDamageDice(dano, delta.danoStepUpDelta);
+      }
+      if (delta.danoDelta) {
+        dano = adjustDanoBonus(dano, delta.danoDelta);
+      }
+      result.dano = dano;
+    }
 
-  if (captured.baseCritico !== undefined) {
-    let crit = captured.baseCritico;
-    if (delta.criticoMultDelta) {
-      crit = adjustCriticoMult(crit, delta.criticoMultDelta);
+    if (captured.baseCritico !== undefined) {
+      let crit = captured.baseCritico;
+      if (delta.criticoMultDelta) {
+        crit = adjustCriticoMult(crit, delta.criticoMultDelta);
+      }
+      if (delta.criticoThreatDelta) {
+        crit = adjustCriticoThreat(crit, delta.criticoThreatDelta);
+      }
+      if (delta.criticoThreatDoubleMargin) {
+        crit = doubleCriticoThreatMargin(crit);
+      }
+      result.critico = crit;
     }
-    if (delta.criticoThreatDelta) {
-      crit = adjustCriticoThreat(crit, delta.criticoThreatDelta);
-    }
-    if (delta.criticoThreatDoubleMargin) {
-      crit = doubleCriticoThreatMargin(crit);
-    }
-    result.critico = crit;
   }
 
   if (captured.baseSpaces !== undefined) {
@@ -349,13 +424,15 @@ export function applyDelta<T extends Equipment>(
   if (isDefenseEquipment(captured)) {
     const defenseCaptured = captured as DefenseEquipment;
     const defenseResult = result as unknown as DefenseEquipment;
-    if (defenseCaptured.baseDefenseBonus !== undefined) {
-      defenseResult.defenseBonus =
-        defenseCaptured.baseDefenseBonus + delta.defenseBonusDelta;
-    }
-    if (defenseCaptured.baseArmorPenalty !== undefined) {
-      defenseResult.armorPenalty =
-        defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta;
+    if (!preserveManualStats) {
+      if (defenseCaptured.baseDefenseBonus !== undefined) {
+        defenseResult.defenseBonus =
+          defenseCaptured.baseDefenseBonus + delta.defenseBonusDelta;
+      }
+      if (defenseCaptured.baseArmorPenalty !== undefined) {
+        defenseResult.armorPenalty =
+          defenseCaptured.baseArmorPenalty + delta.armorPenaltyDelta;
+      }
     }
   }
 
@@ -372,6 +449,14 @@ export function applyDelta<T extends Equipment>(
       modifier: { type: 'Fixed', value: delta.defenseBonusFromSheetBonus },
     });
   }
+  delta.damageReductionBonuses.forEach((dr) => {
+    if (dr.value === 0) return;
+    derivedBonuses.push({
+      source: { type: 'equipment', equipmentName: result.nome },
+      target: { type: 'DamageReduction', damageType: dr.damageType },
+      modifier: { type: 'Fixed', value: dr.value },
+    });
+  });
   result.sheetBonuses = [...baseBonuses, ...derivedBonuses];
 
   // Merge user-managed extra damage entries with derived ones from mods/ench.
