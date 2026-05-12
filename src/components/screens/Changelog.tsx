@@ -79,10 +79,12 @@ const Changelog: React.FC = () => {
                   Ao criar uma ficha de Yidishan pelo wizard, a habilidade{' '}
                   <strong>Natureza Orgânica</strong> era resolvida
                   aleatoriamente sem dar escolha ao jogador. Agora aparece um
-                  novo card no passo <strong>Efeitos de Poderes</strong>{' '}
-                  mostrando a raça herdada sorteada e permitindo escolher entre{' '}
-                  <em>perícia treinada</em>, <em>poder geral</em> ou (se a raça
-                  herdada não for humano) <em>uma habilidade dessa raça</em>.
+                  novo card no passo <strong>Efeitos de Poderes</strong> onde
+                  você escolhe a <em>raça anterior</em> (padrão Humano, com as
+                  demais raças humanoides do livro disponíveis) e o benefício
+                  entre <em>perícia treinada</em>, <em>poder geral</em> ou (se a
+                  raça anterior não for humano){' '}
+                  <em>uma habilidade dessa raça</em>.
                 </li>
                 <li>
                   <strong>
