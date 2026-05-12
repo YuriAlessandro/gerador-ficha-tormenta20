@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            08/05/2026 (v4.14).
+            12/05/2026 (v4.15).
           </p>
 
           <p>
@@ -69,6 +69,48 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.15</h3>
+              <ul>
+                <li>
+                  <strong>
+                    Correção: perícias destreinadas voltavam a aparecer como
+                    treinadas.
+                  </strong>{' '}
+                  Quando você destreinava uma perícia base da classe/origem,
+                  salvava e em seguida fazia qualquer outra edição na ficha
+                  (defesa, poderes, mochila, condições, etc.), a perícia voltava
+                  automaticamente a ficar treinada — e o estado errado era
+                  persistido. Agora a intenção de destreinar é preservada
+                  através das recalculações subsequentes.
+                </li>
+                <li>
+                  <strong>Correção: abas de Editar Item no mobile.</strong> No
+                  editor de item da mochila, as abas (Geral, Estatísticas,
+                  Modificações, Encantamentos) agora têm scroll horizontal no
+                  mobile, evitando que ficassem cortadas em telas pequenas.
+                </li>
+                <li>
+                  <strong>Melhoria: carregamento inicial mais leve.</strong>{' '}
+                  Code splitting do bundle principal via{' '}
+                  <code>manualChunks</code> reduz o tamanho do JavaScript
+                  carregado no primeiro acesso, deixando a abertura do app mais
+                  rápida.
+                </li>
+                <li>
+                  <strong>Melhoria: infraestrutura do backend migrada.</strong>{' '}
+                  Backend migrado para a Fly.io na região de São Paulo,
+                  melhorando latência e estabilidade da conexão com a Mesa
+                  Virtual.
+                </li>
+                <li>
+                  <strong>
+                    Remoção: dialog de iniciativa do jogador na Mesa Virtual.
+                  </strong>{' '}
+                  Diálogo redundante removido — a iniciativa é gerenciada
+                  diretamente pelo mestre.
+                </li>
+              </ul>
+
               <h3>4.14</h3>
               <ul>
                 <li>
