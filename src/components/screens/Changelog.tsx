@@ -73,6 +73,27 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: editar manualmente a ficha do Melhor Amigo.
+                  </strong>{' '}
+                  Atendendo a pedidos frequentes de usuários, agora a ficha do
+                  Melhor Amigo (parceiro do Treinador) é totalmente editável.
+                  Abra a ficha do parceiro e clique no ícone de{' '}
+                  <strong>lápis</strong> no topo — um novo modal abre com abas
+                  para <em>Geral</em>, <em>Combate</em>, <em>Armas Naturais</em>
+                  , <em>Perícias</em>, <em>Truques</em>, <em>Magias</em> e{' '}
+                  <em>Outros</em>, permitindo alterar nome, tipo, tamanho,
+                  atributos, PV, Defesa, RD, deslocamento, lista de truques,
+                  perícias, armas naturais, sentidos, imunidades e
+                  proficiências. Edições manuais sobrescrevem os valores
+                  auto-calculados e a ficha exibe um chip{' '}
+                  <em>Editado manualmente</em>. Use o botão{' '}
+                  <strong>Restaurar valores originais</strong> no header do
+                  modal para voltar tudo ao estado auto-gerado — o tracking de
+                  PV de combate (PV atual, temporário e incremento) é
+                  preservado.
+                </li>
+                <li>
+                  <strong>
                     Novo: reordenar manualmente os poderes na ficha.
                   </strong>{' '}
                   Antes os poderes apareciam sempre em ordem alfabética — agora
