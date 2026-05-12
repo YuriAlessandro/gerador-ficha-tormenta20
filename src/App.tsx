@@ -69,6 +69,7 @@ import {
   GameTablesPage,
   GameTableDetailPage,
   GameSessionPage,
+  JoinTableByLinkPage,
   DiceRollProvider,
   BlogList,
   BlogPostPage,
@@ -357,6 +358,9 @@ function ThemedApp(): JSX.Element {
                                   <ProtectedRoute requireAuth redirectTo='/'>
                                     <GameTablesPage />
                                   </ProtectedRoute>
+                                </Route>
+                                <Route path='/mesa/entrar/:code'>
+                                  <JoinTableByLinkPage />
                                 </Route>
                                 <Route path='/mesa/:tableId'>
                                   <ProtectedRoute requireAuth redirectTo='/'>
