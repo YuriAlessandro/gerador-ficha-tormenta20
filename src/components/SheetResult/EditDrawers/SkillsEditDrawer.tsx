@@ -189,6 +189,10 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         );
         if (!editedSkill) return originalSkill;
 
+        const isBaseSkill = sheet.skills.includes(originalSkill.name);
+        const manuallyUntrained =
+          isBaseSkill && editedSkill.trained === false ? true : undefined;
+
         const computedOthers =
           (originalSkill.others ?? 0) - (originalSkill.manualOthers ?? 0);
         return {
@@ -198,6 +202,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
           manualOthers:
             editedSkill.others !== 0 ? editedSkill.others : undefined,
           modAttr: editedSkill.modAttr,
+          manuallyUntrained,
         };
       });
 
@@ -215,6 +220,7 @@ const SkillsEditDrawer: React.FC<SkillsEditDrawerProps> = ({
         training: skillTrainingMod(editedSkill.trained, sheet.nivel),
         others: editedSkill.others,
         manualOthers: editedSkill.others !== 0 ? editedSkill.others : undefined,
+        manuallyUntrained: undefined,
       }));
 
     const finalSkills = [...updatedSkills, ...newOficios];

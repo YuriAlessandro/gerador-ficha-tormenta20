@@ -575,13 +575,17 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         updatedSheet.nivel
       );
 
-      // If skill has training in completeSkills but not in base skills array,
-      // it was manually trained - preserve it
-      // If skill is in base skills array, use the calculated training
-      const finalTraining =
-        existingTraining > 0 && !isBaseSkillTrained
-          ? existingTraining // Manually trained - preserve
-          : baseTraining; // Use base calculation
+      // Manual untrain wins over base recalculation: if the user explicitly
+      // unchecked a skill that came from character creation, the flag survives
+      // subsequent recalculations triggered by other edits.
+      let finalTraining: number;
+      if (skill.manuallyUntrained) {
+        finalTraining = 0;
+      } else if (existingTraining > 0 && !isBaseSkillTrained) {
+        finalTraining = existingTraining; // Manually trained - preserve
+      } else {
+        finalTraining = baseTraining;
+      }
 
       // Reset 'others' to base value (armor penalty only)
       // This prevents accumulation of bonuses from sheetBonuses
@@ -597,6 +601,7 @@ function recalculateCompleteSkills(sheet: CharacterSheet): CharacterSheet {
         training: finalTraining,
         others: baseOthers + (skill.manualOthers ?? 0),
         manualOthers: skill.manualOthers,
+        manuallyUntrained: skill.manuallyUntrained,
       };
     });
   } else {

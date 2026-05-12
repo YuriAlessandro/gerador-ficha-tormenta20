@@ -162,6 +162,7 @@ export type CompleteSkill = {
   training?: number;
   others?: number;
   manualOthers?: number;
+  manuallyUntrained?: boolean;
   countAsTormentaPower?: boolean;
 };
 
