@@ -73,6 +73,18 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: classes conjuradoras não ganhavam magia ao subir
+                    de nível.
+                  </strong>{' '}
+                  Desde a versão que adicionou multiclasse, o passo de escolha
+                  de magia era silenciosamente pulado no level up de Clérigo,
+                  Frade, Bardo, Druida e Arcanista quando jogados como classe
+                  única. O wizard agora oferece corretamente a magia nova a cada
+                  nível (3 magias iniciais no 1º + 1 magia por nível para o
+                  Clérigo, conforme regras oficiais).
+                </li>
+                <li>
+                  <strong>
                     Correção: opções da raça Yidishan não apareciam no wizard
                     manual.
                   </strong>{' '}
