@@ -1,7 +1,7 @@
 import { ClassAbility, ClassPower } from '@/interfaces/Class';
 import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
-import { Box, Button, Stack, Tooltip } from '@mui/material';
+import { Box, IconButton, Stack, Tooltip } from '@mui/material';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import CheckIcon from '@mui/icons-material/Check';
@@ -234,30 +234,31 @@ const PowersDisplay: React.FC<{
       {canReorder && (
         <Stack
           direction='row'
-          spacing={1}
-          sx={{ mb: 1, flexWrap: 'wrap', rowGap: 1 }}
+          spacing={0.5}
+          sx={{ mb: 1, justifyContent: 'flex-end' }}
         >
-          <Button
-            size='small'
-            variant={reorderMode ? 'contained' : 'outlined'}
-            startIcon={reorderMode ? <CheckIcon /> : <DragIndicatorIcon />}
-            onClick={() => setReorderMode((prev) => !prev)}
-          >
-            {reorderMode ? 'Concluído' : 'Reordenar'}
-          </Button>
           {reorderMode && sheet?.powersOrder && (
-            <Tooltip title='Voltar à ordem alfabética padrão'>
-              <Button
-                size='small'
-                variant='text'
-                color='inherit'
-                startIcon={<RestartAltIcon />}
-                onClick={handleResetOrder}
-              >
-                Restaurar ordem alfabética
-              </Button>
+            <Tooltip title='Restaurar ordem alfabética'>
+              <IconButton size='small' onClick={handleResetOrder}>
+                <RestartAltIcon fontSize='small' />
+              </IconButton>
             </Tooltip>
           )}
+          <Tooltip
+            title={reorderMode ? 'Concluir reordenação' : 'Reordenar poderes'}
+          >
+            <IconButton
+              size='small'
+              color={reorderMode ? 'primary' : 'default'}
+              onClick={() => setReorderMode((prev) => !prev)}
+            >
+              {reorderMode ? (
+                <CheckIcon fontSize='small' />
+              ) : (
+                <DragIndicatorIcon fontSize='small' />
+              )}
+            </IconButton>
+          </Tooltip>
         </Stack>
       )}
 
