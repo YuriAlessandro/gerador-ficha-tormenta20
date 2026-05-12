@@ -73,6 +73,31 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: opções da raça Yidishan não apareciam no wizard
+                    manual.
+                  </strong>{' '}
+                  Ao criar uma ficha de Yidishan pelo wizard, a habilidade{' '}
+                  <strong>Natureza Orgânica</strong> era resolvida
+                  aleatoriamente sem dar escolha ao jogador. Agora aparece um
+                  novo card no passo <strong>Efeitos de Poderes</strong>{' '}
+                  mostrando a raça herdada sorteada e permitindo escolher entre{' '}
+                  <em>perícia treinada</em>, <em>poder geral</em> ou (se a raça
+                  herdada não for humano) <em>uma habilidade dessa raça</em>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Couraça Rúbea e Disforme da raça Kaijin pediam
+                    clique em uma opção única.
+                  </strong>{' '}
+                  Após começarem a contar como poderes da Tormenta na 4.15
+                  anterior, essas habilidades passaram a exibir um radio
+                  obrigatório com apenas a opção pré-determinada. O wizard agora
+                  seleciona automaticamente a única opção disponível quando um
+                  poder oferece uma escolha única — vale também para outras
+                  raças/poderes com a mesma estrutura.
+                </li>
+                <li>
+                  <strong>
                     Correção: edição manual de Dano, Bônus de Ataque e Crítico
                     em armas com modificadores.
                   </strong>{' '}
