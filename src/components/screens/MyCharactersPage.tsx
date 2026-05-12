@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardActionArea,
@@ -17,6 +18,7 @@ import {
   TextField,
   InputAdornment,
   Chip,
+  Link as MuiLink,
   MenuItem,
   Select,
   FormControl,
@@ -70,6 +72,13 @@ import { useSheets } from '../../hooks/useSheets';
 import { useFolders } from '../../hooks/useFolders';
 import { SheetListData } from '../../services/sheets.service';
 import { Folder } from '../../services/folders.service';
+import {
+  getChildren,
+  getDescendantIds,
+  getFolderPath,
+  formatFolderPath,
+  wouldCreateCycle,
+} from '../../utils/folderTree';
 import CharacterLimitIndicator from '../CharacterLimitIndicator';
 import { useSheetLimit } from '../../hooks/useSheetLimit';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -181,6 +190,12 @@ const MyCharactersPage: React.FC = () => {
     useState<HTMLElement | null>(null);
   const [contextFolder, setContextFolder] = useState<Folder | null>(null);
 
+  // Move folder picker state
+  const [folderMoveAnchor, setFolderMoveAnchor] = useState<HTMLElement | null>(
+    null
+  );
+  const [folderToMove, setFolderToMove] = useState<Folder | null>(null);
+
   // Sync tab/folder with URL on location change (browser back/forward)
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -195,6 +210,18 @@ const MyCharactersPage: React.FC = () => {
     }
   }, [location.search]); // Only depend on location.search to avoid loops
 
+  // Fallback: if the open folder id no longer matches an existing folder
+  // (e.g. deleted in another tab, or stale URL), drop back to root.
+  React.useEffect(() => {
+    if (!openFolderId) return;
+    if (!folders.some((f) => f.id === openFolderId)) {
+      setOpenFolderId(null);
+      const params = new URLSearchParams(location.search);
+      params.delete('folder');
+      history.replace(`/meus-personagens?${params.toString()}`);
+    }
+  }, [folders, openFolderId]);
+
   // Separate sheets by type
   const playerSheets = sheets.filter((sheet) => !sheet.sheetData?.isThreat);
   const threatSheets = sheets.filter((sheet) => sheet.sheetData?.isThreat);
@@ -202,27 +229,38 @@ const MyCharactersPage: React.FC = () => {
   // Get current tab sheets
   const currentSheets = activeTab === 0 ? playerSheets : threatSheets;
 
-  // Count sheets per folder (across both tabs for the move menu)
-  const folderCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    sheets.forEach((sheet) => {
+  // Recursive sheet counts per folder (folder + all descendants).
+  const buildRecursiveCounts = (
+    sheetList: SheetListData[]
+  ): Record<string, number> => {
+    const directCounts: Record<string, number> = {};
+    sheetList.forEach((sheet) => {
       if (sheet.folderId) {
-        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
+        directCounts[sheet.folderId] = (directCounts[sheet.folderId] || 0) + 1;
       }
     });
-    return counts;
-  }, [sheets]);
+    const result: Record<string, number> = {};
+    folders.forEach((folder) => {
+      let total = directCounts[folder.id] || 0;
+      getDescendantIds(folders, folder.id).forEach((descendantId) => {
+        total += directCounts[descendantId] || 0;
+      });
+      result[folder.id] = total;
+    });
+    return result;
+  };
 
-  // Count sheets per folder for current tab
-  const currentTabFolderCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    currentSheets.forEach((sheet) => {
-      if (sheet.folderId) {
-        counts[sheet.folderId] = (counts[sheet.folderId] || 0) + 1;
-      }
-    });
-    return counts;
-  }, [currentSheets]);
+  // Count sheets per folder (across both tabs for the move menu, recursive)
+  const folderCounts = useMemo(
+    () => buildRecursiveCounts(sheets),
+    [sheets, folders]
+  );
+
+  // Count sheets per folder for current tab (recursive)
+  const currentTabFolderCounts = useMemo(
+    () => buildRecursiveCounts(currentSheets),
+    [currentSheets, folders]
+  );
 
   // Get the currently open folder object
   const openFolder = openFolderId
@@ -354,10 +392,38 @@ const MyCharactersPage: React.FC = () => {
 
     const targetId = destination.droppableId;
 
+    // Folder being dragged → reparent
+    if (draggableId.startsWith('folderdrag-')) {
+      const draggedId = draggableId.replace('folderdrag-', '');
+      const draggedFolder = folders.find((f) => f.id === draggedId);
+      if (!draggedFolder) return;
+
+      let newParentId: string | null;
+      if (targetId === 'root-drop-zone') {
+        newParentId = null;
+      } else if (targetId.startsWith('folder-')) {
+        newParentId = targetId.replace('folder-', '');
+      } else {
+        return;
+      }
+
+      if ((draggedFolder.parentId ?? null) === newParentId) return;
+      if (wouldCreateCycle(folders, draggedId, newParentId)) return;
+
+      await updateFolderAction(draggedId, { parentId: newParentId });
+      return;
+    }
+
+    // Sheet being dragged → move into folder or back to parent/root
     if (targetId === 'root-drop-zone') {
       const sheet = currentSheets.find((s) => s.id === draggableId);
-      if (sheet?.folderId) {
-        await moveSheetToFolderAction(draggableId, null);
+      // "Remove from folder" = move up to the open folder's parent (or root).
+      const currentOpen = openFolderId
+        ? folders.find((f) => f.id === openFolderId)
+        : null;
+      const targetParent = currentOpen?.parentId ?? null;
+      if ((sheet?.folderId ?? null) !== targetParent) {
+        await moveSheetToFolderAction(draggableId, targetParent);
       }
     } else if (targetId.startsWith('folder-')) {
       const folderId = targetId.replace('folder-', '');
@@ -428,9 +494,10 @@ const MyCharactersPage: React.FC = () => {
 
     try {
       if (folderDialogMode === 'create') {
-        await createFolderAction(trimmed);
+        // New folders are created under the currently open folder (or root).
+        await createFolderAction(trimmed, openFolderId);
       } else if (editingFolder) {
-        await updateFolderAction(editingFolder.id, trimmed);
+        await updateFolderAction(editingFolder.id, { name: trimmed });
       }
       setFolderDialogOpen(false);
       setFolderName('');
@@ -456,9 +523,17 @@ const MyCharactersPage: React.FC = () => {
   const handleDeleteFolderConfirm = async () => {
     if (!folderToDelete) return;
     try {
-      await deleteFolderAction(folderToDelete.id);
+      // Children (subfolders + sheets) are promoted to this folder's parent.
+      const newParentId = folderToDelete.parentId ?? null;
+      await deleteFolderAction(folderToDelete.id, newParentId);
       if (openFolderId === folderToDelete.id) {
-        handleCloseFolder();
+        // Move the user into the parent (or root) instead of jumping all the way out.
+        if (newParentId) {
+          setOpenFolderId(newParentId);
+          updateUrl(activeTab, newParentId);
+        } else {
+          handleCloseFolder();
+        }
       }
       setDeleteFolderConfirmOpen(false);
       setFolderToDelete(null);
@@ -506,6 +581,37 @@ const MyCharactersPage: React.FC = () => {
     event.stopPropagation();
     setFolderContextAnchor(event.currentTarget);
     setContextFolder(folder);
+  };
+
+  // --- Move folder picker ---
+  const handleOpenMoveFolder = (folder: Folder) => {
+    setFolderToMove(folder);
+    setFolderMoveAnchor(folderContextAnchor);
+    setFolderContextAnchor(null);
+    setContextFolder(null);
+  };
+
+  const handleCloseMoveFolder = () => {
+    setFolderMoveAnchor(null);
+    setFolderToMove(null);
+  };
+
+  const handleMoveFolderTo = async (newParentId: string | null) => {
+    if (!folderToMove) return;
+    if ((folderToMove.parentId ?? null) === newParentId) {
+      handleCloseMoveFolder();
+      return;
+    }
+    if (wouldCreateCycle(folders, folderToMove.id, newParentId)) {
+      handleCloseMoveFolder();
+      return;
+    }
+    try {
+      await updateFolderAction(folderToMove.id, { parentId: newParentId });
+    } catch {
+      // Silently fail
+    }
+    handleCloseMoveFolder();
   };
 
   const handleCloseFolderContext = () => {
@@ -635,115 +741,142 @@ const MyCharactersPage: React.FC = () => {
     );
   };
 
-  // Render a folder card (droppable target for drag-and-drop)
-  const renderFolderCard = (folder: Folder) => {
+  // Render a folder card (both Draggable and Droppable for nested folders).
+  // `index` is used by react-beautiful-dnd for the draggable order within its parent list.
+  const renderFolderCard = (folder: Folder, index: number) => {
     const count = currentTabFolderCounts[folder.id] || 0;
     const tabLabel = activeTab === 0 ? 'personagem' : 'ameaça';
     const countLabel = count === 1 ? `1 ${tabLabel}` : `${count} ${tabLabel}s`;
+    const subfolderCount = getChildren(folders, folder.id).length;
 
     return (
-      <Droppable droppableId={`folder-${folder.id}`} key={folder.id}>
-        {(droppableProvided, droppableSnapshot) => (
+      <Draggable
+        draggableId={`folderdrag-${folder.id}`}
+        index={index}
+        key={folder.id}
+      >
+        {(dragProvided, dragSnapshot) => (
           <Grid
             size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-            ref={droppableProvided.innerRef}
-            {...droppableProvided.droppableProps}
+            ref={dragProvided.innerRef}
+            {...dragProvided.draggableProps}
+            {...dragProvided.dragHandleProps}
           >
-            <Card
-              sx={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                transition: 'all 0.3s ease',
-                border: droppableSnapshot.isDraggingOver
-                  ? '2px solid'
-                  : '1px solid',
-                borderColor: droppableSnapshot.isDraggingOver
-                  ? 'primary.main'
-                  : 'divider',
-                backgroundColor: droppableSnapshot.isDraggingOver
-                  ? 'action.hover'
-                  : undefined,
-                transform: droppableSnapshot.isDraggingOver
-                  ? 'scale(1.03)'
-                  : undefined,
-                '&:hover': {
-                  transform: droppableSnapshot.isDraggingOver
-                    ? 'scale(1.03)'
-                    : 'translateY(-4px)',
-                  boxShadow: theme.shadows[8],
-                  borderColor: 'primary.main',
-                },
-              }}
-            >
-              <CardActionArea
-                onClick={() => handleOpenFolder(folder.id)}
-                onContextMenu={(e) => handleFolderCardContext(e, folder)}
-                sx={{ flexGrow: 1 }}
-              >
-                <Box
+            <Droppable droppableId={`folder-${folder.id}`}>
+              {(droppableProvided, droppableSnapshot) => (
+                <Card
+                  ref={droppableProvided.innerRef}
+                  {...droppableProvided.droppableProps}
                   sx={{
+                    height: '100%',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pt: 3,
-                    pb: 1,
+                    flexDirection: 'column',
+                    transition: dragSnapshot.isDragging
+                      ? 'none'
+                      : 'all 0.3s ease',
+                    border: droppableSnapshot.isDraggingOver
+                      ? '2px solid'
+                      : '1px solid',
+                    borderColor: droppableSnapshot.isDraggingOver
+                      ? 'primary.main'
+                      : 'divider',
+                    backgroundColor: droppableSnapshot.isDraggingOver
+                      ? 'action.hover'
+                      : undefined,
+                    transform: droppableSnapshot.isDraggingOver
+                      ? 'scale(1.03)'
+                      : undefined,
+                    ...(dragSnapshot.isDragging && {
+                      boxShadow: theme.shadows[16],
+                      opacity: 0.9,
+                      transform: 'rotate(2deg)',
+                    }),
+                    '&:hover': {
+                      transform: (() => {
+                        if (dragSnapshot.isDragging) return 'rotate(2deg)';
+                        if (droppableSnapshot.isDraggingOver)
+                          return 'scale(1.03)';
+                        return 'translateY(-4px)';
+                      })(),
+                      boxShadow: theme.shadows[8],
+                      borderColor: 'primary.main',
+                    },
                   }}
                 >
-                  <FolderIcon
-                    sx={{
-                      fontSize: 64,
-                      color: 'primary.main',
-                      opacity: 0.85,
-                    }}
-                  />
-                </Box>
-                <CardContent sx={{ textAlign: 'center', pt: 0 }}>
-                  <Typography
-                    variant='h6'
-                    component='h3'
-                    sx={{
-                      fontFamily: 'Tfont',
-                      fontWeight: 'bold',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                    }}
+                  <CardActionArea
+                    onClick={() => handleOpenFolder(folder.id)}
+                    onContextMenu={(e) => handleFolderCardContext(e, folder)}
+                    sx={{ flexGrow: 1 }}
                   >
-                    {folder.name}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    {countLabel}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-              <CardActions sx={{ justifyContent: 'center', px: 2 }}>
-                <Tooltip title='Renomear'>
-                  <IconButton
-                    size='small'
-                    onClick={() => handleOpenRenameFolder(folder)}
-                  >
-                    <EditIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title='Excluir pasta'>
-                  <IconButton
-                    size='small'
-                    color='error'
-                    onClick={() => handleOpenDeleteFolder(folder)}
-                  >
-                    <DeleteIcon fontSize='small' />
-                  </IconButton>
-                </Tooltip>
-              </CardActions>
-            </Card>
-            <div style={{ display: 'none' }}>
-              {droppableProvided.placeholder}
-            </div>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pt: 3,
+                        pb: 1,
+                      }}
+                    >
+                      <FolderIcon
+                        sx={{
+                          fontSize: 64,
+                          color: 'primary.main',
+                          opacity: 0.85,
+                        }}
+                      />
+                    </Box>
+                    <CardContent sx={{ textAlign: 'center', pt: 0 }}>
+                      <Typography
+                        variant='h6'
+                        component='h3'
+                        sx={{
+                          fontFamily: 'Tfont',
+                          fontWeight: 'bold',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {folder.name}
+                      </Typography>
+                      <Typography variant='body2' color='text.secondary'>
+                        {countLabel}
+                        {subfolderCount > 0 &&
+                          ` • ${subfolderCount} ${
+                            subfolderCount === 1 ? 'subpasta' : 'subpastas'
+                          }`}
+                      </Typography>
+                    </CardContent>
+                  </CardActionArea>
+                  <CardActions sx={{ justifyContent: 'center', px: 2 }}>
+                    <Tooltip title='Renomear'>
+                      <IconButton
+                        size='small'
+                        onClick={() => handleOpenRenameFolder(folder)}
+                      >
+                        <EditIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title='Excluir pasta'>
+                      <IconButton
+                        size='small'
+                        color='error'
+                        onClick={() => handleOpenDeleteFolder(folder)}
+                      >
+                        <DeleteIcon fontSize='small' />
+                      </IconButton>
+                    </Tooltip>
+                  </CardActions>
+                  <div style={{ display: 'none' }}>
+                    {droppableProvided.placeholder}
+                  </div>
+                </Card>
+              )}
+            </Droppable>
           </Grid>
         )}
-      </Droppable>
+      </Draggable>
     );
   };
 
@@ -1268,13 +1401,14 @@ const MyCharactersPage: React.FC = () => {
           </Tabs>
         </Box>
 
-        {/* Folder navigation bar (when inside a folder) */}
+        {/* Folder navigation bar (breadcrumb when inside a folder) */}
         {isInsideFolder && openFolder && (
           <Box
             display='flex'
             alignItems='center'
             gap={1}
             mb={2}
+            flexWrap='wrap'
             sx={{
               py: 1,
               px: 2,
@@ -1286,9 +1420,54 @@ const MyCharactersPage: React.FC = () => {
               <ArrowBackIcon />
             </IconButton>
             <FolderOpenIcon color='primary' />
-            <Typography variant='h6' sx={{ fontFamily: 'Tfont' }}>
-              {openFolder.name}
-            </Typography>
+            <Breadcrumbs
+              aria-label='breadcrumb'
+              sx={{
+                flexGrow: 1,
+                '& .MuiBreadcrumbs-ol': { flexWrap: 'wrap' },
+              }}
+            >
+              <MuiLink
+                component='button'
+                underline='hover'
+                color='inherit'
+                onClick={handleCloseFolder}
+                sx={{
+                  fontFamily: 'Tfont',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Raiz
+              </MuiLink>
+              {getFolderPath(folders, openFolderId).map((segment, idx, arr) => {
+                const isLast = idx === arr.length - 1;
+                return isLast ? (
+                  <Typography
+                    key={segment.id}
+                    color='text.primary'
+                    sx={{ fontFamily: 'Tfont', fontWeight: 'bold' }}
+                  >
+                    {segment.name}
+                  </Typography>
+                ) : (
+                  <MuiLink
+                    key={segment.id}
+                    component='button'
+                    underline='hover'
+                    color='inherit'
+                    onClick={() => handleOpenFolder(segment.id)}
+                    sx={{
+                      fontFamily: 'Tfont',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {segment.name}
+                  </MuiLink>
+                );
+              })}
+            </Breadcrumbs>
             <Typography variant='body2' color='text.secondary' sx={{ ml: 1 }}>
               ({filteredSheets.length}{' '}
               {activeTab === 0 ? 'personagens' : 'ameaças'})
@@ -1367,8 +1546,11 @@ const MyCharactersPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Empty State */}
-      {!loading && currentSheets.length === 0 && <EmptyState />}
+      {/* Empty State (only when no sheets and no folders) */}
+      {!loading &&
+        currentSheets.length === 0 &&
+        folders.length === 0 &&
+        !isInsideFolder && <EmptyState />}
 
       {/* Grid: folders + sheets (with drag-and-drop) */}
       <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -1412,48 +1594,51 @@ const MyCharactersPage: React.FC = () => {
           </Droppable>
         )}
 
-        {currentSheets.length > 0 && (
-          <Droppable droppableId='sheets-list' isDropDisabled>
-            {(sheetsProvided) => (
-              <Grid
-                container
-                spacing={3}
-                ref={sheetsProvided.innerRef}
-                {...sheetsProvided.droppableProps}
-              >
-                {/* Sheet cards */}
-                {filteredSheets.map((sheet, index) =>
-                  renderSheetCard(sheet, index)
-                )}
+        <Droppable droppableId='sheets-list' isDropDisabled>
+          {(sheetsProvided) => (
+            <Grid
+              container
+              spacing={3}
+              ref={sheetsProvided.innerRef}
+              {...sheetsProvided.droppableProps}
+            >
+              {/* Sheet cards */}
+              {filteredSheets.map((sheet, index) =>
+                renderSheetCard(sheet, index)
+              )}
 
-                {/* Folder cards (only at root level) */}
-                {!isInsideFolder &&
-                  folders.map((folder) => renderFolderCard(folder))}
+              {/* Folder cards (subfolders of the currently open folder, or
+                  top-level folders at root) */}
+              {getChildren(folders, openFolderId).map((folder, idx) =>
+                renderFolderCard(folder, idx)
+              )}
 
-                {/* New folder card (only at root level, when sheets exist) */}
-                {!isInsideFolder && renderNewFolderCard()}
-                {sheetsProvided.placeholder}
-              </Grid>
-            )}
-          </Droppable>
-        )}
+              {/* New folder card (always available, creates inside current view) */}
+              {renderNewFolderCard()}
+              {sheetsProvided.placeholder}
+            </Grid>
+          )}
+        </Droppable>
       </DragDropContext>
 
-      {/* Empty folder state */}
-      {isInsideFolder && filteredSheets.length === 0 && !searchTerm && (
-        <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
-          <FolderOpenIcon
-            sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
-          />
-          <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
-            Pasta vazia
-          </Typography>
-          <Typography variant='body2' color='text.secondary'>
-            Mova fichas para esta pasta usando o botão de mover ou arrastando os
-            cards.
-          </Typography>
-        </Box>
-      )}
+      {/* Empty folder state (no sheets AND no subfolders) */}
+      {isInsideFolder &&
+        filteredSheets.length === 0 &&
+        getChildren(folders, openFolderId).length === 0 &&
+        !searchTerm && (
+          <Box sx={{ textAlign: 'center', py: 6, px: 2 }}>
+            <FolderOpenIcon
+              sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }}
+            />
+            <Typography variant='h6' color='text.secondary' sx={{ mb: 1 }}>
+              Pasta vazia
+            </Typography>
+            <Typography variant='body2' color='text.secondary'>
+              Crie subpastas, mova fichas para esta pasta usando o botão de
+              mover ou arrastando os cards.
+            </Typography>
+          </Box>
+        )}
 
       {/* Folder card context menu */}
       <Menu
@@ -1473,6 +1658,16 @@ const MyCharactersPage: React.FC = () => {
         </MenuItem>
         <MenuItem
           onClick={() => {
+            if (contextFolder) handleOpenMoveFolder(contextFolder);
+          }}
+        >
+          <ListItemIcon>
+            <MoveIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Mover para...</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
             if (contextFolder) handleOpenDeleteFolder(contextFolder);
           }}
         >
@@ -1483,7 +1678,7 @@ const MyCharactersPage: React.FC = () => {
         </MenuItem>
       </Menu>
 
-      {/* Move to Folder Menu */}
+      {/* Move sheet to Folder Menu */}
       <Menu
         anchorEl={moveMenuAnchor}
         open={Boolean(moveMenuAnchor)}
@@ -1507,12 +1702,50 @@ const MyCharactersPage: React.FC = () => {
             <ListItemIcon>
               <FolderOpenIcon fontSize='small' />
             </ListItemIcon>
-            <ListItemText>{folder.name}</ListItemText>
+            <ListItemText>{formatFolderPath(folders, folder.id)}</ListItemText>
             <Typography variant='caption' color='text.secondary' sx={{ ml: 1 }}>
               {folderCounts[folder.id] || 0}
             </Typography>
           </MenuItem>
         ))}
+      </Menu>
+
+      {/* Move folder picker — excludes self and descendants to prevent cycles */}
+      <Menu
+        anchorEl={folderMoveAnchor}
+        open={Boolean(folderMoveAnchor)}
+        onClose={handleCloseMoveFolder}
+      >
+        <MenuItem
+          onClick={() => handleMoveFolderTo(null)}
+          selected={!folderToMove?.parentId}
+        >
+          <ListItemIcon>
+            <FolderOffIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>Raiz</ListItemText>
+        </MenuItem>
+        {folderToMove &&
+          folders
+            .filter((f) => {
+              if (f.id === folderToMove.id) return false;
+              const descendants = getDescendantIds(folders, folderToMove.id);
+              return !descendants.has(f.id);
+            })
+            .map((folder) => (
+              <MenuItem
+                key={folder.id}
+                onClick={() => handleMoveFolderTo(folder.id)}
+                selected={folderToMove.parentId === folder.id}
+              >
+                <ListItemIcon>
+                  <FolderOpenIcon fontSize='small' />
+                </ListItemIcon>
+                <ListItemText>
+                  {formatFolderPath(folders, folder.id)}
+                </ListItemText>
+              </MenuItem>
+            ))}
       </Menu>
 
       {/* Delete Sheet Confirmation Dialog */}
@@ -1550,7 +1783,13 @@ const MyCharactersPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          {folderDialogMode === 'create' ? 'Nova Pasta' : 'Renomear Pasta'}
+          {(() => {
+            if (folderDialogMode !== 'create') return 'Renomear Pasta';
+            if (!openFolderId) return 'Nova Pasta';
+            const parentName =
+              folders.find((f) => f.id === openFolderId)?.name ?? '';
+            return `Nova subpasta em "${parentName}"`;
+          })()}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -1595,8 +1834,11 @@ const MyCharactersPage: React.FC = () => {
             <strong>&ldquo;{folderToDelete?.name}&rdquo;</strong>?
           </Typography>
           <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
-            As fichas dentro desta pasta não serão excluídas, apenas
-            desassociadas.
+            Subpastas e fichas dentro desta pasta serão movidas para{' '}
+            {folderToDelete?.parentId
+              ? `"${formatFolderPath(folders, folderToDelete.parentId)}"`
+              : 'a raiz'}
+            . Nada é excluído.
           </Typography>
         </DialogContent>
         <DialogActions>

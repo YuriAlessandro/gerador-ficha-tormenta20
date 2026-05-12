@@ -10,6 +10,7 @@ import {
   clearFolders,
   clearFoldersError,
 } from '../store/slices/folders/foldersSlice';
+import { UpdateFolderPayload } from '../services/folders.service';
 import { useAuth } from './useAuth';
 
 export const useFolders = () => {
@@ -32,12 +33,14 @@ export const useFolders = () => {
   const actions = {
     fetchFolders: () => dispatch(fetchFolders()),
 
-    createFolder: (name: string) => dispatch(createFolder(name)),
+    createFolder: (name: string, parentId: string | null = null) =>
+      dispatch(createFolder({ name, parentId })),
 
-    updateFolder: (id: string, name: string) =>
-      dispatch(updateFolder({ id, name })),
+    updateFolder: (id: string, payload: UpdateFolderPayload) =>
+      dispatch(updateFolder({ id, payload })),
 
-    deleteFolder: (id: string) => dispatch(deleteFolder(id)),
+    deleteFolder: (id: string, newParentId: string | null = null) =>
+      dispatch(deleteFolder({ id, newParentId })),
 
     moveSheetToFolder: (sheetId: string, folderId: string | null) =>
       dispatch(moveSheetToFolder({ sheetId, folderId })),

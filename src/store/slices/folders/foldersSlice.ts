@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import FoldersService, { Folder } from '../../../services/folders.service';
+import FoldersService, {
+  Folder,
+  UpdateFolderPayload,
+} from '../../../services/folders.service';
 
 export interface FoldersState {
   folders: Folder[];
@@ -26,25 +29,34 @@ export const fetchFolders = createAsyncThunk(
 
 export const createFolder = createAsyncThunk(
   'folders/createFolder',
-  async (name: string) => {
-    const folder = await FoldersService.createFolder(name);
+  async ({
+    name,
+    parentId = null,
+  }: {
+    name: string;
+    parentId?: string | null;
+  }) => {
+    const folder = await FoldersService.createFolder(name, parentId);
     return folder;
   }
 );
 
 export const updateFolder = createAsyncThunk(
   'folders/updateFolder',
-  async ({ id, name }: { id: string; name: string }) => {
-    const folder = await FoldersService.updateFolder(id, name);
+  async ({ id, payload }: { id: string; payload: UpdateFolderPayload }) => {
+    const folder = await FoldersService.updateFolder(id, payload);
     return folder;
   }
 );
 
 export const deleteFolder = createAsyncThunk(
   'folders/deleteFolder',
-  async (id: string) => {
+  async (
+    { id, newParentId }: { id: string; newParentId: string | null },
+    _thunkApi
+  ) => {
     await FoldersService.deleteFolder(id);
-    return id;
+    return { id, newParentId };
   }
 );
 
@@ -143,7 +155,14 @@ const foldersSlice = createSlice({
       })
       .addCase(deleteFolder.fulfilled, (state, action) => {
         state.loading = false;
-        state.folders = state.folders.filter((f) => f.id !== action.payload);
+        const { id: deletedId, newParentId } = action.payload;
+        // Promote direct children of the deleted folder to its parent.
+        state.folders.forEach((f) => {
+          if (f.parentId === deletedId) {
+            f.parentId = newParentId;
+          }
+        });
+        state.folders = state.folders.filter((f) => f.id !== deletedId);
         state.error = null;
       })
       .addCase(deleteFolder.rejected, (state, action) => {
