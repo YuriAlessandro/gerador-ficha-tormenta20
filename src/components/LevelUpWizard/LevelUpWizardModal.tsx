@@ -287,7 +287,13 @@ const LevelUpWizardModal: React.FC<LevelUpWizardModalProps> = ({
           supplements
         );
       } else {
-        spellPath = activeClassDesc.spellPath || null;
+        // simulatedSheet.classe.spellPath has setup() applied (at creation and
+        // rehydrated on load); selectedClassDesc from dataRegistry does not.
+        const isLevelingMainClass =
+          activeClassDesc.name === simulatedSheet.classe.name;
+        spellPath = isLevelingMainClass
+          ? simulatedSheet.classe.spellPath || activeClassDesc.spellPath || null
+          : activeClassDesc.spellPath || null;
       }
     }
     if (!spellPath) {
