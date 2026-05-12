@@ -402,12 +402,26 @@ export function applyOsteonMemoriaPostuma(
 }
 
 export function applyYidishanNaturezaOrganica(
-  _sheet: CharacterSheet
+  _sheet: CharacterSheet,
+  manualSelections?: SelectionOptions
 ): SubStep[] {
   const subSteps: SubStep[] = [];
 
+  const hasManualSkills =
+    manualSelections?.skills && manualSelections.skills.length > 0;
+  const hasManualPowers =
+    manualSelections?.powers && manualSelections.powers.length > 0;
+  const hasManualRaceAbilities =
+    manualSelections?.raceAbilities &&
+    manualSelections.raceAbilities.length > 0;
+
   // DETERMINISTIC PATH: If selection was already stored, replay it
-  if (_sheet.yidishanNaturezaChoice) {
+  if (
+    _sheet.yidishanNaturezaChoice &&
+    !hasManualSkills &&
+    !hasManualPowers &&
+    !hasManualRaceAbilities
+  ) {
     const { type, value } = _sheet.yidishanNaturezaChoice;
     if (type === 'skill') {
       const skill = value as Skill;
@@ -450,8 +464,51 @@ export function applyYidishanNaturezaOrganica(
     return subSteps;
   }
 
-  // RANDOM PATH: First-time generation
-  if (_sheet.raca.oldRace) {
+  // MANUAL or RANDOM PATH: First-time generation
+  if (hasManualSkills) {
+    const skill = manualSelections.skills![0] as Skill;
+    if (!_sheet.skills.includes(skill)) {
+      _sheet.skills.push(skill);
+    }
+    _sheet.yidishanNaturezaChoice = { type: 'skill', value: skill };
+    subSteps.push({
+      name: 'Natureza Orgânica',
+      value: `Perícia treinada (${skill})`,
+    });
+  } else if (hasManualPowers) {
+    const power = manualSelections.powers![0] as GeneralPower;
+    if (!_sheet.generalPowers.some((p) => p.name === power.name)) {
+      _sheet.generalPowers.push(power);
+    }
+    _sheet.yidishanNaturezaChoice = {
+      type: 'power',
+      value: power.name,
+    };
+    subSteps.push({
+      name: 'Natureza Orgânica',
+      value: `Poder geral recebido (${power.name})`,
+    });
+  } else if (hasManualRaceAbilities && _sheet.raca.oldRace?.abilities) {
+    const selectedAbilityName = manualSelections.raceAbilities![0].abilityName;
+    const ability = _sheet.raca.oldRace.abilities.find(
+      (a) => a.name === selectedAbilityName
+    );
+    if (ability) {
+      if (!_sheet.raca.abilities?.some((a) => a.name === ability.name)) {
+        _sheet.raca.abilities?.push(ability);
+      }
+      _sheet.yidishanNaturezaChoice = {
+        type: 'raceAbility',
+        value: ability.name,
+      };
+      subSteps.push({
+        name: 'Natureza Orgânica',
+        value: `${_sheet.raca.oldRace.name} (${ability.name})`,
+      });
+      applyPower(_sheet, ability);
+    }
+  } else if (_sheet.raca.oldRace) {
+    // RANDOM fallback
     if (_sheet.raca.oldRace.name === HUMANO.name) {
       const shouldGetSkill = Math.random() > 0.5;
       if (shouldGetSkill) {

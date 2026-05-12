@@ -69,6 +69,7 @@ export interface PowerSelectionRequirement {
     | 'humanoVersatil'
     | 'lefouDeformidade'
     | 'osteonMemoriaPostuma'
+    | 'yidishanNaturezaOrganica'
     | 'chooseFromOptions'
     | 'almaLivreSelectClass'
     | 'mashinChassi';

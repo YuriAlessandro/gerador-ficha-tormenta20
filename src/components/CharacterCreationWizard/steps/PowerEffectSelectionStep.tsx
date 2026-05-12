@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -46,6 +46,7 @@ import { normalizeSearch } from '@/functions/stringUtils';
 import VersatilSelectionField from './VersatilSelectionField';
 import DeformidadeSelectionField from './DeformidadeSelectionField';
 import MemoriaPostumaSelectionField from './MemoriaPostumaSelectionField';
+import YidishanNaturezaOrganicaSelectionField from './YidishanNaturezaOrganicaSelectionField';
 import AlmaLivreSelectionField from './AlmaLivreSelectionField';
 import MashinSelectionField from './MashinSelectionField';
 
@@ -126,6 +127,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
+        | 'yidishanNaturezaOrganica'
         | 'chooseFromOptions'
         | 'almaLivreSelectClass'
         | 'mashinChassi';
@@ -222,20 +224,6 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
     });
   }
 
-  // If no requirements, show message
-  if (allRequirements.length === 0) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <Typography variant='body1' color='text.secondary'>
-          Nenhum dos seus poderes requer seleção manual de efeitos neste nível.
-        </Typography>
-        <Alert severity='success'>
-          Você pode continuar para o próximo passo.
-        </Alert>
-      </Box>
-    );
-  }
-
   // Use actual sheet if provided, otherwise create mock sheet
   const sheetForFiltering =
     actualSheet ||
@@ -268,6 +256,141 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
       },
       sheetActionHistory: [],
     } as unknown as CharacterSheet);
+
+  // Auto-select for requirements with a single available option and pick === 1.
+  // Covers race abilities like Couraça Rúbea/Disforme (Kaijin) that use
+  // `getGeneralPower` with a single fake power: the user shouldn't have to
+  // click a radio to confirm the only available choice.
+  useEffect(() => {
+    const AUTO_SELECTABLE_TYPES = new Set([
+      'getGeneralPower',
+      'learnSkill',
+      'addProficiency',
+      'learnSpell',
+      'selectWeaponSpecialization',
+      'selectFamiliar',
+      'selectAnimalTotem',
+    ]);
+
+    const updates: ManualPowerSelections = {};
+
+    allRequirements.forEach((entry) => {
+      entry.requirements.forEach((req) => {
+        if (!AUTO_SELECTABLE_TYPES.has(req.type)) return;
+        if (req.pick !== 1) return;
+
+        const currentSelections = selections[entry.powerName] || {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const options: any[] = getFilteredAvailableOptions(
+          req,
+          sheetForFiltering,
+          supplements
+        );
+
+        if (options.length !== 1) return;
+
+        const onlyOption = options[0];
+
+        switch (req.type) {
+          case 'getGeneralPower': {
+            if (currentSelections.powers && currentSelections.powers.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              powers: [onlyOption as GeneralPower],
+            };
+            break;
+          }
+          case 'learnSkill': {
+            if (currentSelections.skills && currentSelections.skills.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              skills: [onlyOption as string],
+            };
+            break;
+          }
+          case 'addProficiency': {
+            if (
+              currentSelections.proficiencies &&
+              currentSelections.proficiencies.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              proficiencies: [onlyOption as string],
+            };
+            break;
+          }
+          case 'learnSpell': {
+            if (currentSelections.spells && currentSelections.spells.length > 0)
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              spells: [onlyOption as Spell],
+            };
+            break;
+          }
+          case 'selectWeaponSpecialization': {
+            if (
+              currentSelections.weapons &&
+              currentSelections.weapons.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              weapons: [onlyOption as string],
+            };
+            break;
+          }
+          case 'selectFamiliar': {
+            if (
+              currentSelections.familiars &&
+              currentSelections.familiars.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              familiars: [onlyOption as string],
+            };
+            break;
+          }
+          case 'selectAnimalTotem': {
+            if (
+              currentSelections.animalTotems &&
+              currentSelections.animalTotems.length > 0
+            )
+              return;
+            updates[entry.powerName] = {
+              ...currentSelections,
+              animalTotems: [onlyOption as string],
+            };
+            break;
+          }
+          default:
+            break;
+        }
+      });
+    });
+
+    if (Object.keys(updates).length > 0) {
+      onChange({ ...selections, ...updates });
+    }
+  }, [race.name, classe.name, origin?.name, deity?.name, selectedDeityPowers]);
+
+  // If no requirements, show message
+  if (allRequirements.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Typography variant='body1' color='text.secondary'>
+          Nenhum dos seus poderes requer seleção manual de efeitos neste nível.
+        </Typography>
+        <Alert severity='success'>
+          Você pode continuar para o próximo passo.
+        </Alert>
+      </Box>
+    );
+  }
 
   // Helper to get name from item (string or object)
   const getItemName = (item: string | object): string => {
@@ -494,6 +617,7 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         | 'humanoVersatil'
         | 'lefouDeformidade'
         | 'osteonMemoriaPostuma'
+        | 'yidishanNaturezaOrganica'
         | 'chooseFromOptions'
         | 'almaLivreSelectClass'
         | 'mashinChassi';
@@ -819,6 +943,42 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
             availableRaces={availableRacesForMP}
             availableSkills={availableSkillsForMP}
             availablePowers={availablePowersForMP}
+            selections={powerSelections}
+            onChange={(newSelections) => {
+              onChange({
+                ...selections,
+                [powerName]: newSelections,
+              });
+            }}
+          />
+        </Box>
+      );
+    }
+
+    // Render Natureza Orgânica (Yidishan) selection with custom component
+    if (type === 'yidishanNaturezaOrganica') {
+      const availableSkillsForYNO = allAvailableOptions as unknown as Skill[];
+
+      // Get available general powers (filtered by requirements/existing)
+      const allPowersForYNO = dataRegistry.getPowersBySupplements(supplements);
+      const allGeneralPowersForYNO = Object.values(allPowersForYNO).flat();
+      const existingGeneralPowersForYNO = sheetForFiltering.generalPowers || [];
+      const availablePowersForYNO = allGeneralPowersForYNO.filter((power) => {
+        const isRepeatedPower = existingGeneralPowersForYNO.find(
+          (existingPower) => existingPower.name === power.name
+        );
+        if (isRepeatedPower) {
+          return power.allowSeveralPicks;
+        }
+        return isPowerAvailable(sheetForFiltering, power);
+      });
+
+      return (
+        <Box key={requirementIndex} mb={2}>
+          <YidishanNaturezaOrganicaSelectionField
+            oldRace={race.oldRace}
+            availableSkills={availableSkillsForYNO}
+            availablePowers={availablePowersForYNO}
             selections={powerSelections}
             onChange={(newSelections) => {
               onChange({

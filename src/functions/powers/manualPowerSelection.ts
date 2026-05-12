@@ -301,6 +301,19 @@ export function getPowerSelectionRequirements(
         });
       }
 
+      // Handle Natureza Orgânica special action for Yidishan
+      if (
+        action.type === 'special' &&
+        action.specialAction === 'yidishanNaturezaOrganica'
+      ) {
+        requirements.push({
+          type: 'yidishanNaturezaOrganica',
+          availableOptions: [], // Populated dynamically by the component
+          pick: 1, // 1 skill OR 1 power OR 1 race ability (when oldRace !== Humano)
+          label: 'Selecione o benefício da Natureza Orgânica',
+        });
+      }
+
       // Handle Mashin Chassi special action
       if (
         action.type === 'special' &&
@@ -714,6 +727,32 @@ export function getFilteredAvailableOptions(
         .sort((a, b) => a.localeCompare(b));
     }
 
+    case 'yidishanNaturezaOrganica': {
+      // Options are handled dynamically by YidishanNaturezaOrganicaSelectionField
+      // Return all skills as a fallback for filtering purposes
+      const allYidishanSkills = Object.values(Skill);
+      return allYidishanSkills
+        .filter((skill) => {
+          if (sheet.skills.includes(skill)) {
+            return false;
+          }
+          if (sheet.completeSkills) {
+            const existingSkill = sheet.completeSkills.find(
+              (cs) => cs.name === skill
+            );
+            if (
+              existingSkill &&
+              existingSkill.training &&
+              existingSkill.training > 0
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .sort((a, b) => a.localeCompare(b));
+    }
+
     case 'mashinChassi': {
       // Return all skills that the character doesn't already have
       const allMashinSkills = Object.values(Skill);
@@ -841,6 +880,17 @@ export function validateSelections(
         selectedCount =
           mpSkills.length + mpPowers.length + mpAbilities.length > 0 ? 1 : 0;
         selectedItems = [...mpSkills, ...mpPowers, ...mpAbilities];
+        break;
+      }
+
+      case 'yidishanNaturezaOrganica': {
+        // 1 skill OR 1 power OR 1 race ability
+        const ynoSkills = selections.skills || [];
+        const ynoPowers = selections.powers || [];
+        const ynoAbilities = selections.raceAbilities || [];
+        selectedCount =
+          ynoSkills.length + ynoPowers.length + ynoAbilities.length > 0 ? 1 : 0;
+        selectedItems = [...ynoSkills, ...ynoPowers, ...ynoAbilities];
         break;
       }
 

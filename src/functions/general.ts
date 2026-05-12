@@ -2353,7 +2353,7 @@ export const applyPower = (
         } else if (
           sheetAction.action.specialAction === 'yidishanNaturezaOrganica'
         ) {
-          currentSteps = applyYidishanNaturezaOrganica(sheet);
+          currentSteps = applyYidishanNaturezaOrganica(sheet, manualSelections);
         } else if (sheetAction.action.specialAction === 'moreauSapiencia') {
           currentSteps = applyMoreauSapiencia(sheet);
         } else if (

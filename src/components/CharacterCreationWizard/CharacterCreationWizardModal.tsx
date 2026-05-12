@@ -1467,6 +1467,20 @@ const CharacterCreationWizardModal: React.FC<
                 return 1;
               return 0;
             }
+            case 'yidishanNaturezaOrganica': {
+              // For Natureza Orgânica: need 1 skill OR 1 power OR 1 race ability
+              const ynoSkillCount = powerSelections.skills?.length || 0;
+              const ynoPowerCount = powerSelections.powers?.length || 0;
+              const ynoAbilityCount =
+                powerSelections.raceAbilities?.length || 0;
+              if (
+                ynoSkillCount >= 1 ||
+                ynoPowerCount >= 1 ||
+                ynoAbilityCount >= 1
+              )
+                return 1;
+              return 0;
+            }
             default:
               return 0;
           }
