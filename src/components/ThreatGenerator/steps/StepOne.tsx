@@ -9,6 +9,8 @@ import {
   Typography,
   Grid,
   Paper,
+  Chip,
+  Stack,
   useTheme,
 } from '@mui/material';
 import {
@@ -17,6 +19,11 @@ import {
   ThreatRole,
   ThreatSheet,
 } from '../../../interfaces/ThreatSheet';
+import {
+  getDefaultDisplacement,
+  getDisplacementSuggestions,
+  DisplacementPosture,
+} from '../utils/displacementSuggestions';
 
 interface StepOneProps {
   threat: Partial<ThreatSheet>;
@@ -31,7 +38,7 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
   };
 
   const handleSizeChange = (value: ThreatSize) => {
-    onUpdate({ size: value });
+    onUpdate({ size: value, displacement: getDefaultDisplacement(value) });
   };
 
   const handleRoleChange = (value: ThreatRole) => {
@@ -132,9 +139,68 @@ const StepOne: React.FC<StepOneProps> = ({ threat, onUpdate }) => {
             helperText={
               !isDisplacementValid()
                 ? 'Deve ser um número positivo'
-                : 'Digite o valor em metros (ex: 9m)'
+                : 'Digite ou escolha uma sugestão abaixo'
             }
           />
+        </Grid>
+
+        {/* Sugestões de Deslocamento */}
+        <Grid size={{ xs: 12 }}>
+          {threat.size ? (
+            <Box>
+              <Typography variant='caption' color='text.secondary'>
+                {`Sugestões baseadas no tamanho ${threat.size}:`}
+              </Typography>
+              {(['Bípede', 'Quadrúpede'] as DisplacementPosture[]).map(
+                (posture) => {
+                  const chipsForPosture = getDisplacementSuggestions(
+                    threat.size
+                  ).filter((s) => s.posture === posture);
+                  if (chipsForPosture.length === 0) return null;
+                  return (
+                    <Box
+                      key={posture}
+                      mt={0.5}
+                      display='flex'
+                      alignItems='center'
+                      flexWrap='wrap'
+                      gap={1}
+                    >
+                      <Typography
+                        variant='caption'
+                        sx={{ minWidth: 90, fontWeight: 600 }}
+                      >
+                        {posture}:
+                      </Typography>
+                      <Stack direction='row' flexWrap='wrap' gap={0.5}>
+                        {chipsForPosture.map((suggestion) => {
+                          const isSelected =
+                            threat.displacement === suggestion.value;
+                          return (
+                            <Chip
+                              key={`${posture}-${suggestion.pace}`}
+                              label={suggestion.label}
+                              size='small'
+                              clickable
+                              color={isSelected ? 'primary' : 'default'}
+                              variant={isSelected ? 'filled' : 'outlined'}
+                              onClick={() =>
+                                onUpdate({ displacement: suggestion.value })
+                              }
+                            />
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  );
+                }
+              )}
+            </Box>
+          ) : (
+            <Typography variant='caption' color='text.secondary'>
+              Selecione um tamanho para ver sugestões de deslocamento.
+            </Typography>
+          )}
         </Grid>
       </Grid>
 
