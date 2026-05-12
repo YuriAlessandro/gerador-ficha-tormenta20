@@ -72,6 +72,22 @@ const Changelog: React.FC = () => {
               <h3>4.15</h3>
               <ul>
                 <li>
+                  <strong>Novo: convite via link para Mesas Virtuais.</strong> O
+                  mestre agora pode gerar{' '}
+                  <strong>um único link de convite</strong> para a mesa e
+                  compartilhar em qualquer canal (Discord, WhatsApp, etc.) —
+                  antes era necessário pedir o email de cada jogador e enviar
+                  convites individuais. O modal de <em>Convidar Jogador</em>{' '}
+                  ganhou uma nova aba <strong>Por link</strong> com botões para
+                  gerar, copiar, revogar e regenerar o link. O link expira em 7
+                  dias e pode ser usado por vários jogadores até atingir o
+                  limite da mesa. Quem clica no link vê um preview da mesa
+                  (nome, mestre, jogadores) antes de confirmar a entrada; se
+                  estiver deslogado, é convidado a fazer login pelo modal usual
+                  antes de prosseguir. O convite por email continua disponível
+                  na outra aba.
+                </li>
+                <li>
                   <strong>
                     Correção: classes conjuradoras não ganhavam magia ao subir
                     de nível.
