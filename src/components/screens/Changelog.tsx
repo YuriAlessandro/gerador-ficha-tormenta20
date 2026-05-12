@@ -72,6 +72,16 @@ const Changelog: React.FC = () => {
               <h3>4.15</h3>
               <ul>
                 <li>
+                  <strong>Correção: layout mobile da Mesa Virtual.</strong> Em
+                  celulares, a página da mesa abria com um zoom estranho e
+                  deixava uma faixa em branco lateral. A barra do topo agora
+                  trunca nomes longos da mesa e agrupa as ações secundárias
+                  (modo privado, histórico de rolagens, jogadores conectados,
+                  encerrar sessão) em um menu de três pontos. Os campos do
+                  painel de combate (PV, PM, iniciativa) também ficaram menores
+                  em telas pequenas para evitar overflow.
+                </li>
+                <li>
                   <strong>
                     Correção: perícias destreinadas voltavam a aparecer como
                     treinadas.
@@ -88,26 +98,6 @@ const Changelog: React.FC = () => {
                   editor de item da mochila, as abas (Geral, Estatísticas,
                   Modificações, Encantamentos) agora têm scroll horizontal no
                   mobile, evitando que ficassem cortadas em telas pequenas.
-                </li>
-                <li>
-                  <strong>Melhoria: carregamento inicial mais leve.</strong>{' '}
-                  Code splitting do bundle principal via{' '}
-                  <code>manualChunks</code> reduz o tamanho do JavaScript
-                  carregado no primeiro acesso, deixando a abertura do app mais
-                  rápida.
-                </li>
-                <li>
-                  <strong>Melhoria: infraestrutura do backend migrada.</strong>{' '}
-                  Backend migrado para a Fly.io na região de São Paulo,
-                  melhorando latência e estabilidade da conexão com a Mesa
-                  Virtual.
-                </li>
-                <li>
-                  <strong>
-                    Remoção: dialog de iniciativa do jogador na Mesa Virtual.
-                  </strong>{' '}
-                  Diálogo redundante removido — a iniciativa é gerenciada
-                  diretamente pelo mestre.
                 </li>
               </ul>
 
