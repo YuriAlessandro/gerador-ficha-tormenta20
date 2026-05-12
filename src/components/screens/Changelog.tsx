@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/05/2026 (v4.15).
+            13/05/2026 (v4.15).
           </p>
 
           <p>
@@ -71,6 +71,32 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.15</h3>
               <ul>
+                <li>
+                  <strong>
+                    Novo: subpastas aninhadas em Meus Personagens e Minhas
+                    Ameaças.
+                  </strong>{' '}
+                  Para quem organiza muitas fichas (campanhas com vários arcos,
+                  NPCs por sessão, ameaças por bioma), agora as pastas podem
+                  conter outras pastas <em>sem limite de profundidade</em>. Ao
+                  entrar em uma pasta, um <strong>caminho navegável</strong>{' '}
+                  (breadcrumb) aparece no topo — clique em qualquer segmento
+                  para voltar àquele nível, ou em <em>Raiz</em> para sair de
+                  tudo. Criar uma pasta enquanto está dentro de outra cria
+                  automaticamente uma <strong>subpasta</strong> ali. Você pode{' '}
+                  <strong>arrastar uma pasta para dentro de outra</strong> para
+                  reorganizar, ou usar a opção <em>Mover para…</em> no menu de
+                  contexto da pasta (clique direito). O menu <em>Mover</em> das
+                  fichas agora mostra o <strong>caminho completo</strong> de
+                  cada destino (ex.: <em>Campanhas › Volume 1 › Sessão 3</em>),
+                  evitando confusão entre pastas de mesmo nome. Ao{' '}
+                  <strong>excluir</strong> uma pasta, as subpastas e fichas
+                  dentro dela <strong>não são apagadas</strong> — sobem
+                  automaticamente para a pasta pai (ou para a raiz, se era de
+                  nível mais alto). A contagem mostrada em cada pasta agora é{' '}
+                  <strong>recursiva</strong> (inclui fichas em todas as
+                  subpastas).
+                </li>
                 <li>
                   <strong>
                     Novo: editar manualmente a ficha do Melhor Amigo.
