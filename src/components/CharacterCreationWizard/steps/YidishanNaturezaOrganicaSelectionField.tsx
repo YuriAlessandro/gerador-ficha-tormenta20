@@ -17,7 +17,7 @@ import { GeneralPower } from '@/interfaces/Poderes';
 import Race from '@/interfaces/Race';
 
 interface YidishanNaturezaOrganicaSelectionFieldProps {
-  oldRace?: Race;
+  availableRaces: Race[];
   availableSkills: Skill[];
   availablePowers: GeneralPower[];
   selections: SelectionOptions;
@@ -28,11 +28,25 @@ type BenefitType = 'skill' | 'power' | 'raceAbility';
 
 const YidishanNaturezaOrganicaSelectionField: React.FC<
   YidishanNaturezaOrganicaSelectionFieldProps
-> = ({ oldRace, availableSkills, availablePowers, selections, onChange }) => {
-  const oldRaceName = oldRace?.name || 'Humano';
-  const isHumano = oldRaceName === 'Humano';
+> = ({
+  availableRaces,
+  availableSkills,
+  availablePowers,
+  selections,
+  onChange,
+}) => {
+  const selectedOldRaceName = selections.yidishanOldRace || 'Humano';
+  const isHumano = selectedOldRaceName === 'Humano';
+
+  const selectedOldRace = useMemo(
+    () => availableRaces.find((r) => r.name === selectedOldRaceName),
+    [availableRaces, selectedOldRaceName]
+  );
+
   const canPickRaceAbility =
-    !isHumano && !!oldRace?.abilities && oldRace.abilities.length > 0;
+    !isHumano &&
+    !!selectedOldRace?.abilities &&
+    selectedOldRace.abilities.length > 0;
 
   const [benefitType, setBenefitType] = useState<BenefitType>(() => {
     if (selections.raceAbilities && selections.raceAbilities.length > 0) {
@@ -58,14 +72,30 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
   const selectedPower = selections.powers?.[0] as GeneralPower | undefined;
   const selectedAbilityName = selections.raceAbilities?.[0]?.abilityName || '';
 
+  const sortedRaces = useMemo(
+    () => [...availableRaces].sort((a, b) => a.name.localeCompare(b.name)),
+    [availableRaces]
+  );
+
   const sortedPowers = useMemo(
     () => [...availablePowers].sort((a, b) => a.name.localeCompare(b.name)),
     [availablePowers]
   );
 
+  const handleOldRaceChange = (raceName: string) => {
+    onChange({
+      yidishanOldRace: raceName,
+      skills: [],
+      powers: [],
+      raceAbilities: [],
+    });
+    setBenefitType('skill');
+  };
+
   const handleBenefitTypeChange = (type: BenefitType) => {
     setBenefitType(type);
     onChange({
+      yidishanOldRace: selectedOldRaceName,
       skills: [],
       powers: [],
       raceAbilities: [],
@@ -74,6 +104,7 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
 
   const handleSkillChange = (skill: string) => {
     onChange({
+      yidishanOldRace: selectedOldRaceName,
       skills: [skill],
       powers: [],
       raceAbilities: [],
@@ -84,6 +115,7 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
     const power = availablePowers.find((p) => p.name === powerName);
     if (power) {
       onChange({
+        yidishanOldRace: selectedOldRaceName,
         skills: [],
         powers: [power],
         raceAbilities: [],
@@ -93,9 +125,10 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
 
   const handleAbilityChange = (abilityName: string) => {
     onChange({
+      yidishanOldRace: selectedOldRaceName,
       skills: [],
       powers: [],
-      raceAbilities: [{ raceName: oldRaceName, abilityName }],
+      raceAbilities: [{ raceName: selectedOldRaceName, abilityName }],
     });
   };
 
@@ -110,12 +143,26 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
         </Typography>
       </Alert>
 
-      <Alert severity='success' icon={false}>
-        <Typography variant='body2'>
-          Sua raça herdada (sorteada automaticamente) é{' '}
-          <strong>{oldRaceName}</strong>.
-        </Typography>
-      </Alert>
+      <FormControl fullWidth>
+        <InputLabel id='yidishan-natureza-old-race-label'>
+          Raça Anterior *
+        </InputLabel>
+        <Select
+          labelId='yidishan-natureza-old-race-label'
+          value={selectedOldRaceName}
+          label='Raça Anterior *'
+          onChange={(e) => handleOldRaceChange(e.target.value as string)}
+        >
+          {sortedRaces.map((race) => (
+            <MenuItem key={race.name} value={race.name}>
+              {race.name}
+              {race.size && race.size.name !== 'Médio'
+                ? ` (${race.size.name})`
+                : ''}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       <Box>
         <Typography variant='subtitle1' gutterBottom>
@@ -143,7 +190,7 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
               <FormControlLabel
                 value='raceAbility'
                 control={<Radio />}
-                label={`Habilidade de ${oldRaceName}`}
+                label={`Habilidade de ${selectedOldRaceName}`}
               />
             )}
           </RadioGroup>
@@ -201,54 +248,64 @@ const YidishanNaturezaOrganicaSelectionField: React.FC<
         </FormControl>
       )}
 
-      {benefitType === 'raceAbility' && canPickRaceAbility && oldRace && (
-        <Box>
-          <Typography variant='subtitle1' gutterBottom>
-            Habilidade de {oldRaceName}
-          </Typography>
-          <FormControl component='fieldset' fullWidth>
-            <RadioGroup
-              value={selectedAbilityName}
-              onChange={(e) => handleAbilityChange(e.target.value)}
-            >
-              {oldRace.abilities.map((ability) => {
-                const isSelected = selectedAbilityName === ability.name;
-                return (
-                  <FormControlLabel
-                    key={ability.name}
-                    value={ability.name}
-                    control={<Radio />}
-                    label={
-                      <Box>
-                        <Typography variant='body1'>{ability.name}</Typography>
-                        <Typography variant='body2' color='text.secondary'>
-                          {ability.description}
-                        </Typography>
-                      </Box>
-                    }
-                    sx={{
-                      ml: 0,
-                      py: 1,
-                      px: 1,
-                      borderRadius: 1,
-                      transition: 'background-color 0.2s',
-                      ...(isSelected && {
-                        bgcolor: 'action.selected',
-                        borderLeft: 3,
-                        borderColor: 'primary.main',
-                      }),
-                    }}
-                  />
-                );
-              })}
-            </RadioGroup>
-          </FormControl>
-        </Box>
+      {benefitType === 'raceAbility' &&
+        canPickRaceAbility &&
+        selectedOldRace && (
+          <Box>
+            <Typography variant='subtitle1' gutterBottom>
+              Habilidade de {selectedOldRaceName}
+            </Typography>
+            <FormControl component='fieldset' fullWidth>
+              <RadioGroup
+                value={selectedAbilityName}
+                onChange={(e) => handleAbilityChange(e.target.value)}
+              >
+                {selectedOldRace.abilities.map((ability) => {
+                  const isSelected = selectedAbilityName === ability.name;
+                  return (
+                    <FormControlLabel
+                      key={ability.name}
+                      value={ability.name}
+                      control={<Radio />}
+                      label={
+                        <Box>
+                          <Typography variant='body1'>
+                            {ability.name}
+                          </Typography>
+                          <Typography variant='body2' color='text.secondary'>
+                            {ability.description}
+                          </Typography>
+                        </Box>
+                      }
+                      sx={{
+                        ml: 0,
+                        py: 1,
+                        px: 1,
+                        borderRadius: 1,
+                        transition: 'background-color 0.2s',
+                        ...(isSelected && {
+                          bgcolor: 'action.selected',
+                          borderLeft: 3,
+                          borderColor: 'primary.main',
+                        }),
+                      }}
+                    />
+                  );
+                })}
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        )}
+
+      {!isHumano && !selectedOldRace && (
+        <Alert severity='warning'>
+          Raça selecionada não encontrada. Selecione outra raça.
+        </Alert>
       )}
 
       <Box sx={{ mt: 1 }}>
         <Typography variant='body2' color='text.secondary'>
-          <strong>Resumo:</strong> Raça herdada: <em>{oldRaceName}</em>
+          <strong>Resumo:</strong> Raça herdada: <em>{selectedOldRaceName}</em>
           {benefitType === 'skill' && selectedSkill && (
             <>
               {' — '}

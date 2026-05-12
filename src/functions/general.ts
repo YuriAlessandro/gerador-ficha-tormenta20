@@ -5007,6 +5007,24 @@ export function generateEmptySheet(
     }
   }
 
+  // Apply Yidishan old race selection from wizard (Natureza Orgânica)
+  const wizardYidishanOldRaceName =
+    wizardSelections?.powerEffectSelections?.['Natureza Orgânica']
+      ?.yidishanOldRace;
+  if (wizardYidishanOldRaceName && emptySheet.raca.name === 'Yidishan') {
+    const allRacesForYidishan = dataRegistry.getRacesBySupplements(
+      selectedOptions.supplements || [SupplementId.TORMENTA20_CORE]
+    );
+    const yidishanOldRaceObj = allRacesForYidishan.find(
+      (r) => r.name === wizardYidishanOldRaceName
+    );
+    if (yidishanOldRaceObj) {
+      const modifiedRace = _.cloneDeep(emptySheet.raca);
+      modifiedRace.oldRace = _.cloneDeep(yidishanOldRaceObj);
+      emptySheet.raca = modifiedRace;
+    }
+  }
+
   // Handle Arcanista subtype selection specially
   if (
     generatedClass.name === 'Arcanista' &&

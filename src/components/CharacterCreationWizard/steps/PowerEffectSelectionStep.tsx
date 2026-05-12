@@ -973,10 +973,24 @@ const PowerEffectSelectionStep: React.FC<PowerEffectSelectionStepProps> = ({
         return isPowerAvailable(sheetForFiltering, power);
       });
 
+      // Available previous races: humanoids only (per book) — exclude Yidishan
+      // itself and other non-humanoid races
+      const allRacesForYNO = dataRegistry.getRacesBySupplements(supplements);
+      const excludedRaceNamesForYNO = [
+        'Golem',
+        'Golem Desperto',
+        'Osteon',
+        'Soterrado',
+        'Yidishan',
+      ];
+      const availableRacesForYNO = allRacesForYNO.filter(
+        (r) => !excludedRaceNamesForYNO.includes(r.name)
+      );
+
       return (
         <Box key={requirementIndex} mb={2}>
           <YidishanNaturezaOrganicaSelectionField
-            oldRace={race.oldRace}
+            availableRaces={availableRacesForYNO}
             availableSkills={availableSkillsForYNO}
             availablePowers={availablePowersForYNO}
             selections={powerSelections}

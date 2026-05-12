@@ -118,6 +118,10 @@ const CharacterCreationWizardModal: React.FC<
   const memoriaPostumaOldRace =
     selections.powerEffectSelections?.['Memória Póstuma']?.osteonOldRace;
 
+  // Extract old race name for Yidishan Natureza Orgânica (used as dependency)
+  const yidishanNaturezaOldRace =
+    selections.powerEffectSelections?.['Natureza Orgânica']?.yidishanOldRace;
+
   // Get race and apply customization if provided
   const race: Race | undefined = useMemo(() => {
     let baseRace = dataRegistry.getRaceByName(
@@ -188,12 +192,24 @@ const CharacterCreationWizardModal: React.FC<
       }
     }
 
+    // Apply Yidishan old race from Natureza Orgânica selections
+    if (yidishanNaturezaOldRace && baseRace.name === 'Yidishan') {
+      const allRaces = dataRegistry.getRacesBySupplements(supplements);
+      const oldRaceObj = allRaces.find(
+        (r) => r.name === yidishanNaturezaOldRace
+      );
+      if (oldRaceObj) {
+        baseRace = { ...baseRace, oldRace: { ...oldRaceObj } };
+      }
+    }
+
     return baseRace;
   }, [
     selectedOptions.raca,
     supplements,
     raceCustomization,
     memoriaPostumaOldRace,
+    yidishanNaturezaOldRace,
   ]);
 
   // Memoize classe to prevent infinite re-renders (used as useEffect dependency)

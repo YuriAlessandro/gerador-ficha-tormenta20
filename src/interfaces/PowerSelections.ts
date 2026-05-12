@@ -18,6 +18,7 @@ export interface SelectionOptions {
   classAbilities?: Array<{ className: string; abilityName: string }>; // Class ability selections
   chosenOption?: string[]; // Option names for chooseFromOptions actions
   osteonOldRace?: string; // Old race name for Osteon/Soterrado Memória Póstuma
+  yidishanOldRace?: string; // Old race name for Yidishan Natureza Orgânica
   raceAbilities?: Array<{ raceName: string; abilityName: string }>; // Race ability selections for Memória Póstuma
   almaLivreClass?: string; // Classe escolhida pelo poder Alma Livre
   almaLivrePower?: ClassPower; // Poder pré-selecionado pelo poder Alma Livre
