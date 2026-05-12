@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            13/05/2026 (v4.15).
+            12/05/2026 (v4.15).
           </p>
 
           <p>
@@ -71,6 +71,23 @@ const Changelog: React.FC = () => {
             <AccordionDetails>
               <h3>4.15</h3>
               <ul>
+                <li>
+                  <strong>
+                    Melhoria: sugestões de deslocamento no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes era preciso digitar o deslocamento manualmente toda vez.
+                  Agora, ao escolher o <em>Tamanho</em> da ameaça, o campo é
+                  preenchido automaticamente com o valor padrão da tabela
+                  oficial (coluna <em>Bípede / Normal</em>: 6m para Pequeno, 9m
+                  para Médio, 12m para Grande, 15m para Enorme/Colossal) e logo
+                  abaixo aparecem <strong>chips</strong> com todas as
+                  combinações aplicáveis (Bípede e Quadrúpede × <em>Lento</em>,{' '}
+                  <em>Normal</em>, <em>Rápido</em>) para clique rápido. Cada
+                  sugestão já vem no formato <em>Nm (Mq)</em>, mostrando também
+                  a quantidade de quadrados equivalentes (cada quadrado = 1,5m)
+                  para uso em mesas de batalha — ex.: <em>9m (6q)</em>. Você
+                  ainda pode digitar um valor customizado se preferir.
+                </li>
                 <li>
                   <strong>
                     Novo: subpastas aninhadas em Meus Personagens e Minhas
