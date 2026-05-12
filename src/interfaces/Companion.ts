@@ -55,4 +55,50 @@ export interface CompanionSheet {
   attackBonus?: number;
   /** Precomputed damage bonus from Treinamento Marcial trick */
   damageBonus?: number;
+
+  /**
+   * Snapshot of the auto-computed companion state (before manual overrides are
+   * applied). Refreshed automatically by `calculateCompanionStats` on every
+   * recalc, so it always reflects what the companion would be if all manual
+   * overrides were cleared. Source of truth for "revert to original values".
+   */
+  originalAutoState?: CompanionAutoSnapshot;
+  /**
+   * Per-field manual overrides for derived stats. Applied on top of the
+   * auto-calculated values in `calculateCompanionStats`. Cleared by the "revert"
+   * button. Base inputs (companionType, size, tricks, etc.) are NOT overrides —
+   * they're direct fields on the companion.
+   */
+  manualOverrides?: CompanionManualOverrides;
 }
+
+/** Campos do snapshot: tudo exceto metadados e session state. */
+export type CompanionAutoSnapshot = Omit<
+  CompanionSheet,
+  | 'originalAutoState'
+  | 'manualOverrides'
+  | 'currentPV'
+  | 'tempPV'
+  | 'pvIncrement'
+>;
+
+/** Overrides manuais cobrem apenas valores derivados (não base inputs). */
+export type CompanionManualOverrides = Partial<
+  Pick<
+    CompanionSheet,
+    | 'attributes'
+    | 'pv'
+    | 'defesa'
+    | 'displacement'
+    | 'reducaoDeDano'
+    | 'attackBonus'
+    | 'damageBonus'
+    | 'movementTypes'
+    | 'senses'
+    | 'immunities'
+    | 'proficiencies'
+    | 'naturalWeapons'
+    | 'skills'
+    | 'hasAnatomiaHumanoide'
+  >
+>;

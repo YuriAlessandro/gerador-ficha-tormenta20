@@ -8,6 +8,7 @@ import {
   CompanionTrick,
   NaturalWeaponDamageType,
   SpiritEnergyType,
+  CompanionAutoSnapshot,
 } from '../../../../../interfaces/Companion';
 import {
   getCompanionTypeDefinition,
@@ -360,7 +361,8 @@ export function calculateCompanionStats(
     else rd += 5;
   }
 
-  return {
+  // Estado auto-computado puro (sem overrides aplicados)
+  const autoComputed: CompanionSheet = {
     ...companion,
     attributes: attrs,
     size,
@@ -384,6 +386,86 @@ export function calculateCompanionStats(
     attackBonus: treinamentoBonus,
     damageBonus: treinamentoBonus,
   };
+
+  // Snapshot do estado auto-puro (antes de overrides) — refrescado em cada recalc
+  const autoSnapshot: CompanionAutoSnapshot = {
+    name: autoComputed.name,
+    size: autoComputed.size,
+    companionType: autoComputed.companionType,
+    spiritEnergyType: autoComputed.spiritEnergyType,
+    attributes: autoComputed.attributes,
+    skills: autoComputed.skills,
+    naturalWeapons: autoComputed.naturalWeapons,
+    tricks: autoComputed.tricks,
+    spells: autoComputed.spells,
+    pv: autoComputed.pv,
+    defesa: autoComputed.defesa,
+    displacement: autoComputed.displacement,
+    movementTypes: autoComputed.movementTypes,
+    senses: autoComputed.senses,
+    immunities: autoComputed.immunities,
+    reducaoDeDano: autoComputed.reducaoDeDano,
+    proficiencies: autoComputed.proficiencies,
+    hasAnatomiaHumanoide: autoComputed.hasAnatomiaHumanoide,
+    treinoIntensivo: autoComputed.treinoIntensivo,
+    attackBonus: autoComputed.attackBonus,
+    damageBonus: autoComputed.damageBonus,
+  };
+
+  // Aplicar overrides manuais por cima
+  const overrides = companion.manualOverrides;
+  if (overrides) {
+    if (overrides.attributes) autoComputed.attributes = overrides.attributes;
+    if (overrides.pv !== undefined) autoComputed.pv = overrides.pv;
+    if (overrides.defesa !== undefined) autoComputed.defesa = overrides.defesa;
+    if (overrides.displacement !== undefined)
+      autoComputed.displacement = overrides.displacement;
+    if (overrides.reducaoDeDano !== undefined)
+      autoComputed.reducaoDeDano = overrides.reducaoDeDano;
+    if (overrides.attackBonus !== undefined)
+      autoComputed.attackBonus = overrides.attackBonus;
+    if (overrides.damageBonus !== undefined)
+      autoComputed.damageBonus = overrides.damageBonus;
+    if (overrides.movementTypes !== undefined)
+      autoComputed.movementTypes = overrides.movementTypes;
+    if (overrides.senses) autoComputed.senses = overrides.senses;
+    if (overrides.immunities) autoComputed.immunities = overrides.immunities;
+    if (overrides.proficiencies)
+      autoComputed.proficiencies = overrides.proficiencies;
+    if (overrides.naturalWeapons)
+      autoComputed.naturalWeapons = overrides.naturalWeapons;
+    if (overrides.skills) autoComputed.skills = overrides.skills;
+    if (overrides.hasAnatomiaHumanoide !== undefined)
+      autoComputed.hasAnatomiaHumanoide = overrides.hasAnatomiaHumanoide;
+  }
+
+  // Preservar metadados e session state
+  return {
+    ...autoComputed,
+    originalAutoState: autoSnapshot,
+    manualOverrides: companion.manualOverrides,
+    currentPV: companion.currentPV,
+    tempPV: companion.tempPV,
+    pvIncrement: companion.pvIncrement,
+  };
+}
+
+/** Reverte um companion ao seu estado auto-original, preservando session state. */
+export function revertCompanionToOriginal(
+  companion: CompanionSheet,
+  trainerLevel: number,
+  trainerCharisma: number
+): CompanionSheet {
+  if (!companion.originalAutoState) return companion;
+  const restored: CompanionSheet = {
+    ...companion.originalAutoState,
+    currentPV: companion.currentPV,
+    tempPV: companion.tempPV,
+    pvIncrement: companion.pvIncrement,
+    originalAutoState: companion.originalAutoState,
+    manualOverrides: undefined,
+  };
+  return calculateCompanionStats(restored, trainerLevel, trainerCharisma);
 }
 
 export interface CreateCompanionOptions {

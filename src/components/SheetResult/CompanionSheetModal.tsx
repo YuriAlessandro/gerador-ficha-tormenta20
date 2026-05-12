@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import EditIcon from '@mui/icons-material/Edit';
 import { CompanionSheet, CompanionNaturalWeapon } from '@/interfaces/Companion';
 import {
   getCompanionTypeDefinition,
@@ -55,6 +56,7 @@ interface CompanionSheetModalProps {
   onIndexChange?: (index: number) => void;
   onAdd?: () => void;
   onRemove?: (index: number) => void;
+  onEdit?: () => void;
 }
 
 const CompanionAttributeDisplay: React.FC<{
@@ -128,6 +130,7 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
   onIndexChange,
   onAdd,
   onRemove,
+  onEdit,
 }) => {
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const isMobile = useMemo(() => window.innerWidth < 720, []);
@@ -342,6 +345,13 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
             </Typography>
           </Stack>
           <Stack direction='row' alignItems='center' spacing={0.5}>
+            {onEdit && (
+              <Tooltip title='Editar ficha'>
+                <IconButton size='small' onClick={onEdit} color='primary'>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            )}
             {onAdd && (
               <Tooltip title='Adicionar Melhor Amigo'>
                 <IconButton size='small' onClick={onAdd} color='primary'>
@@ -388,6 +398,15 @@ const CompanionSheetModal: React.FC<CompanionSheetModalProps> = ({
               color='secondary'
             />
           )}
+          {companion.manualOverrides &&
+            Object.keys(companion.manualOverrides).length > 0 && (
+              <Chip
+                label='Editado manualmente'
+                size='small'
+                color='warning'
+                variant='outlined'
+              />
+            )}
         </Stack>
         {totalCompanions > 1 && onIndexChange && (
           <Tabs

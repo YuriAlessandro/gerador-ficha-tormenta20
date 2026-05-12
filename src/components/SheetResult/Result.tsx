@@ -81,6 +81,7 @@ import BookTitle from './common/BookTitle';
 import PowersDisplay from './PowersDisplay';
 import CompanionSheetModal from './CompanionSheetModal';
 import CompanionCreationDialog from './CompanionCreationDialog';
+import CompanionEditDialog from './CompanionEditDialog';
 import RollButton from '../RollButton';
 import SheetInfoEditDrawer from './EditDrawers/SheetInfoEditDrawer';
 import SkillsEditDrawer from './EditDrawers/SkillsEditDrawer';
@@ -175,6 +176,7 @@ const Result: React.FC<ResultProps> = (props) => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const [companionCreationOpen, setCompanionCreationOpen] = useState(false);
+  const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
 
@@ -2407,9 +2409,46 @@ const Result: React.FC<ResultProps> = (props) => {
                 onSheetUpdate ? () => setCompanionCreationOpen(true) : undefined
               }
               onRemove={onSheetUpdate ? handleCompanionRemove : undefined}
+              onEdit={
+                onSheetUpdate
+                  ? () => {
+                      setCompanionModalOpen(false);
+                      setCompanionEditOpen(true);
+                    }
+                  : undefined
+              }
             />
           );
         })()}
+        {onSheetUpdate &&
+          (() => {
+            const companions = currentSheet.companions || [];
+            const safeIndex = Math.min(
+              selectedCompanionIndex,
+              Math.max(0, companions.length - 1)
+            );
+            const currentCompanion = companions[safeIndex];
+            if (!currentCompanion) return null;
+            return (
+              <CompanionEditDialog
+                open={companionEditOpen}
+                onClose={() => {
+                  setCompanionEditOpen(false);
+                  setCompanionModalOpen(true);
+                }}
+                companion={currentCompanion}
+                trainerLevel={currentSheet.nivel}
+                trainerCharisma={
+                  currentSheet.atributos[Atributo.CARISMA]?.value ?? 0
+                }
+                onSave={(updated) => {
+                  handleCompanionUpdate(updated);
+                  setCompanionEditOpen(false);
+                  setCompanionModalOpen(true);
+                }}
+              />
+            );
+          })()}
         {onSheetUpdate && (
           <CompanionCreationDialog
             open={companionCreationOpen}
