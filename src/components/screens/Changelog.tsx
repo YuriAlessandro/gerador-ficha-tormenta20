@@ -72,6 +72,32 @@ const Changelog: React.FC = () => {
               <h3>4.15</h3>
               <ul>
                 <li>
+                  <strong>
+                    Correção: edição manual de Dano, Bônus de Ataque e Crítico
+                    em armas com modificadores.
+                  </strong>{' '}
+                  Quando uma arma já tinha modificações ou encantamentos
+                  aplicados, ajustar manualmente os campos da aba Estatísticas
+                  do editor de item não persistia — o valor digitado voltava
+                  para o cálculo automático após salvar. Agora a edição manual é
+                  preservada e ganha prioridade sobre o recálculo. Para voltar
+                  ao automático, use o botão <strong>Resetar</strong> na própria
+                  aba.
+                </li>
+                <li>
+                  <strong>
+                    Novo: materiais especiais agora aplicam efeitos numéricos.
+                  </strong>{' '}
+                  Mitral em arma melhora a margem de ameaça em 1 (ex.: 20/x2 →
+                  19/x2) e em armadura reduz a penalidade em 2. Adamante em arma
+                  aumenta o dado de dano em um passo (1d8 → 1d10) e em armadura
+                  concede RD geral (2 para leves/escudos, 5 para pesadas). Gelo
+                  Eterno em arma adiciona +2 de dano por frio; em armadura
+                  concede RD contra fogo (5/10). Matéria Vermelha em arma
+                  adiciona +1d6 de dano de essência. Aço-rubi e Madeira Tollon
+                  seguem descritivos pois seus efeitos são condicionais.
+                </li>
+                <li>
                   <strong>Correção: layout mobile da Mesa Virtual.</strong> Em
                   celulares, a página da mesa abria com um zoom estranho e
                   deixava uma faixa em branco lateral. A barra do topo agora
