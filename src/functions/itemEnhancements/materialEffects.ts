@@ -22,12 +22,17 @@ export interface MaterialEffect {
     | ((item: DefenseEquipment) => EnhancementEffect);
 }
 
+/**
+ * Keys match the `value` field of MATERIAL_OPTIONS in ItemModificationsEditor —
+ * the lowercase form stored in `AppliedModification.specialMaterial`. Lookup
+ * normalizes the input (trim + lowercase) to tolerate variations.
+ */
 export const materialEffects: Record<string, MaterialEffect> = {
-  Mitral: {
+  mitral: {
     weaponEffect: { weaponStats: { criticoThreatDelta: 1 } },
     defenseEffect: { defenseStats: { armorPenaltyDelta: -2 } },
   },
-  Adamante: {
+  adamante: {
     weaponEffect: { weaponStats: { danoStepUp: 1 } },
     defenseEffect: (item) => ({
       damageReduction: [
@@ -35,7 +40,7 @@ export const materialEffects: Record<string, MaterialEffect> = {
       ],
     }),
   },
-  'Gelo Eterno': {
+  'gelo eterno': {
     weaponEffect: { extraDamage: [{ dice: '2', damageType: 'Frio' }] },
     defenseEffect: (item) => ({
       damageReduction: [
@@ -43,7 +48,7 @@ export const materialEffects: Record<string, MaterialEffect> = {
       ],
     }),
   },
-  'Matéria Vermelha': {
+  'matéria vermelha': {
     weaponEffect: { extraDamage: [{ dice: '1d6', damageType: 'Essência' }] },
   },
 };
@@ -58,7 +63,7 @@ export function resolveMaterialEffect(
   context: 'weapon' | 'defense',
   defenseItem?: DefenseEquipment
 ): EnhancementEffect | undefined {
-  const material = materialEffects[materialName];
+  const material = materialEffects[materialName.trim().toLowerCase()];
   if (!material) return undefined;
   if (context === 'weapon') return material.weaponEffect;
   if (!material.defenseEffect) return undefined;

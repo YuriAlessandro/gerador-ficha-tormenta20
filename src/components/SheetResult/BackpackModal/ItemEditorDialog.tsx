@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -78,6 +78,13 @@ export interface ItemEditorDialogProps {
 }
 
 type TabKey = 'geral' | 'stats' | 'modificacoes' | 'encantamentos';
+
+type StatField =
+  | 'dano'
+  | 'atkBonus'
+  | 'critico'
+  | 'defenseBonus'
+  | 'armorPenalty';
 
 const ALL_SKILLS = Object.values(Skill);
 
@@ -174,8 +181,9 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 }) => {
   const [tab, setTab] = useState<TabKey>('geral');
   const [form, setForm] = useState(buildInitial(item));
-  const initialFormRef = useRef<ReturnType<typeof buildInitial> | null>(null);
-  const pendingResetRef = useRef(false);
+  const [manualEditedFields, setManualEditedFields] = useState<Set<StatField>>(
+    new Set()
+  );
   const [rollsOpen, setRollsOpen] = useState(false);
   const [modError, setModError] = useState('');
   const [enchError, setEnchError] = useState('');
@@ -184,18 +192,6 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
     SupplementId.TORMENTA20_CORE,
   ];
 
-  useEffect(() => {
-    if (open) {
-      const init = buildInitial(item);
-      setForm(init);
-      initialFormRef.current = init;
-      pendingResetRef.current = false;
-      setTab('geral');
-      setModError('');
-      setEnchError('');
-    }
-  }, [open, item]);
-
   const isWeapon = item?.group === 'Arma';
   const isDefense = item ? isDefenseGroup(item.group) : false;
   const hasStatsTab = isWeapon || isDefense;
@@ -203,6 +199,119 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
   const hasModificationsTab = modItemType !== null;
   const enchItemType = item ? enchItemTypeFor(item) : null;
   const hasEnchantmentsTab = enchItemType !== null;
+
+  useEffect(() => {
+    if (open) {
+      setForm(buildInitial(item));
+      // Preserve prior manual edits when reopening an item that already had
+      // the flag set — otherwise the live-preview effect below would silently
+      // recompute over the user's persisted values.
+      setManualEditedFields(
+        item?.hasManualEdits
+          ? new Set<StatField>([
+              'dano',
+              'atkBonus',
+              'critico',
+              'defenseBonus',
+              'armorPenalty',
+            ])
+          : new Set()
+      );
+      setTab('geral');
+      setModError('');
+      setEnchError('');
+    }
+  }, [open, item]);
+
+  // Live preview: when mods / material / enchantments change, recompute the
+  // stat fields the user has NOT manually edited. Fields the user touched stay
+  // exactly as-is. This is the same pipeline that runs on save, so what the
+  // user sees in the Stats tab matches what gets persisted.
+  useEffect(() => {
+    if (!open || !item) return;
+    if (!isWeapon && !isDefense) return;
+
+    const previewMods: AppliedModification[] = form.selectedModifications.map(
+      (m) => ({
+        mod: m.mod,
+        specialMaterial:
+          m.mod === 'Material especial' ? form.selectedMaterial : undefined,
+      })
+    );
+    const previewEnch: AppliedEnchantment[] = form.selectedEnchantments.map(
+      (e) => ({
+        enchantment: e.enchantment,
+        selectedSpell:
+          e.enchantment === 'Conjuradora' && form.selectedConjuradoraSpell
+            ? form.selectedConjuradoraSpell
+            : undefined,
+      })
+    );
+
+    const virtual: Equipment = {
+      ...item,
+      modifications: previewMods.length > 0 ? previewMods : undefined,
+      enchantments: previewEnch.length > 0 ? previewEnch : undefined,
+      hasManualEdits: false,
+    };
+    const recomputed = applyItemEnhancements(virtual);
+
+    setForm((f) => {
+      const next = { ...f };
+      if (!manualEditedFields.has('dano') && recomputed.dano !== undefined) {
+        next.danoText = recomputed.dano;
+      }
+      if (
+        !manualEditedFields.has('atkBonus') &&
+        recomputed.atkBonus !== undefined
+      ) {
+        next.atkBonusText = String(recomputed.atkBonus);
+      }
+      if (
+        !manualEditedFields.has('critico') &&
+        recomputed.critico !== undefined
+      ) {
+        next.criticoText = recomputed.critico;
+      }
+      if (isDefense) {
+        const def = recomputed as DefenseEquipment;
+        if (
+          !manualEditedFields.has('defenseBonus') &&
+          def.defenseBonus !== undefined
+        ) {
+          next.defenseBonusText = String(def.defenseBonus);
+        }
+        if (
+          !manualEditedFields.has('armorPenalty') &&
+          def.armorPenalty !== undefined
+        ) {
+          next.armorPenaltyText = String(def.armorPenalty);
+        }
+      }
+      return next;
+    });
+    // Depending only on enhancement inputs (mods / material / ench), not on
+    // form stat fields — recomputing on every keystroke would fight the user's
+    // typing in those inputs.
+  }, [
+    open,
+    item,
+    isWeapon,
+    isDefense,
+    form.selectedModifications,
+    form.selectedMaterial,
+    form.selectedEnchantments,
+    form.selectedConjuradoraSpell,
+    manualEditedFields,
+  ]);
+
+  const markManualEdit = (field: StatField) =>
+    setManualEditedFields((s) => {
+      if (s.has(field)) return s;
+      const next = new Set(s);
+      next.add(field);
+      return next;
+    });
 
   const baseSnapshot = useMemo(() => {
     if (!item) return null;
@@ -225,7 +334,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
 
   const handleResetToBase = () => {
     if (!baseSnapshot) return;
-    pendingResetRef.current = true;
+    setManualEditedFields(new Set());
     setForm((f) => ({
       ...f,
       danoText: baseSnapshot.dano,
@@ -287,8 +396,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           : undefined,
     };
 
-    const initialForm = initialFormRef.current;
-    const pendingReset = pendingResetRef.current;
+    const weaponStatTouched =
+      manualEditedFields.has('dano') ||
+      manualEditedFields.has('atkBonus') ||
+      manualEditedFields.has('critico');
+    const defenseStatTouched =
+      manualEditedFields.has('defenseBonus') ||
+      manualEditedFields.has('armorPenalty');
 
     if (isWeapon) {
       const atkBonus = parseInt(form.atkBonusText, 10);
@@ -306,25 +420,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           return { ...action, damageAttribute: overridden } as WeaponAction;
         });
       }
-      // After a Reset click, treat the base values as the new baseline — any
-      // post-reset edit re-enables hasManualEdits; otherwise clear the flag so
-      // the pipeline recomputes automatically.
-      if (pendingReset && baseSnapshot) {
-        const editedAfterReset =
-          form.danoText !== baseSnapshot.dano ||
-          form.atkBonusText !== String(baseSnapshot.atkBonus) ||
-          form.criticoText !== baseSnapshot.critico;
-        next.hasManualEdits = editedAfterReset ? true : undefined;
-      } else {
-        const statsChangedThisSession =
-          !!initialForm &&
-          (form.danoText !== initialForm.danoText ||
-            form.atkBonusText !== initialForm.atkBonusText ||
-            form.criticoText !== initialForm.criticoText);
-        if (item.hasManualEdits || statsChangedThisSession) {
-          next.hasManualEdits = true;
-        }
-      }
+      next.hasManualEdits = weaponStatTouched ? true : undefined;
     }
 
     let finalItem: Equipment = next;
@@ -342,20 +438,7 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
           : armorPenalty,
         isHeavyArmor: item.group === 'Armadura' ? form.isHeavyArmor : undefined,
       };
-      if (pendingReset && baseSnapshot) {
-        const editedAfterReset =
-          form.defenseBonusText !== String(baseSnapshot.defenseBonus) ||
-          form.armorPenaltyText !== String(baseSnapshot.armorPenalty);
-        defenseNext.hasManualEdits = editedAfterReset ? true : undefined;
-      } else {
-        const statsChangedThisSession =
-          !!initialForm &&
-          (form.defenseBonusText !== initialForm.defenseBonusText ||
-            form.armorPenaltyText !== initialForm.armorPenaltyText);
-        if (item.hasManualEdits || statsChangedThisSession) {
-          defenseNext.hasManualEdits = true;
-        }
-      }
+      defenseNext.hasManualEdits = defenseStatTouched ? true : undefined;
       finalItem = defenseNext;
     }
 
@@ -503,9 +586,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     label='Dano'
                     fullWidth
                     value={form.danoText}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, danoText: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      markManualEdit('dano');
+                      setForm((f) => ({ ...f, danoText: e.target.value }));
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
@@ -513,9 +597,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     label='Bônus de Ataque'
                     fullWidth
                     value={form.atkBonusText}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, atkBonusText: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      markManualEdit('atkBonus');
+                      setForm((f) => ({ ...f, atkBonusText: e.target.value }));
+                    }}
                     inputProps={{ inputMode: 'numeric' }}
                   />
                 </Grid>
@@ -524,9 +609,10 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     label='Crítico'
                     fullWidth
                     value={form.criticoText}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, criticoText: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      markManualEdit('critico');
+                      setForm((f) => ({ ...f, criticoText: e.target.value }));
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
@@ -746,12 +832,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     label='Bônus de Defesa'
                     fullWidth
                     value={form.defenseBonusText}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      markManualEdit('defenseBonus');
                       setForm((f) => ({
                         ...f,
                         defenseBonusText: e.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     inputProps={{ inputMode: 'numeric' }}
                   />
                 </Grid>
@@ -760,12 +847,13 @@ const ItemEditorDialog: React.FC<ItemEditorDialogProps> = ({
                     label='Penalidade de Armadura'
                     fullWidth
                     value={form.armorPenaltyText}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      markManualEdit('armorPenalty');
                       setForm((f) => ({
                         ...f,
                         armorPenaltyText: e.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     inputProps={{ inputMode: 'numeric' }}
                   />
                 </Grid>

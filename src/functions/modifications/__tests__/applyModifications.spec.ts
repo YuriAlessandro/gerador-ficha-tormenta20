@@ -218,10 +218,23 @@ describe('applyModificationsToEquipment', () => {
     expect(skills).toContain(Skill.DIPLOMACIA);
   });
 
-  test('text-only modifications do not alter numeric stats', () => {
+  test('Material especial Mitral aplica +1 de margem de ameaça', () => {
     const item: Equipment = {
       ...baseSword,
       modifications: [{ mod: 'Material especial', specialMaterial: 'mitral' }],
+    };
+    const result = applyModificationsToEquipment(item);
+    expect(result.dano).toBe('1d8');
+    expect(result.atkBonus).toBe(0);
+    expect(result.critico).toBe('19/x2');
+  });
+
+  test('material puramente descritivo (Aço-rubi) não altera stats', () => {
+    const item: Equipment = {
+      ...baseSword,
+      modifications: [
+        { mod: 'Material especial', specialMaterial: 'aço rubi' },
+      ],
     };
     const result = applyModificationsToEquipment(item);
     expect(result.dano).toBe('1d8');
