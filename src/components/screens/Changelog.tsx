@@ -73,6 +73,56 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: card expansível de combatente no encontro ativo (visão
+                    do mestre).
+                  </strong>{' '}
+                  Antes o mestre via apenas uma linha com nome, PV/PM e
+                  iniciativa de cada combatente. Agora cada combatente aparece
+                  como um <strong>card</strong> que pode ser expandido ou
+                  retraído. Nas configurações da mesa, em{' '}
+                  <em>Card do combatente (visão do mestre)</em>, você escolhe
+                  quais informações da ficha quer ver durante o combate: PV, PM,
+                  Defesa (ligados por padrão), e qualquer combinação de{' '}
+                  <em>atributos</em> (Força, Destreza, Constituição,
+                  Inteligência, Sabedoria, Carisma) e <em>perícias</em> (lista
+                  completa). Uma <strong>pré-visualização ao vivo</strong> na
+                  própria tela de configurações mostra como o card vai ficar
+                  enquanto você mexe. Quando o card está retraído, um resumo
+                  compacto em chips ainda exibe os campos configurados; ao
+                  expandir, PV/PM ganham controles +/- (para ameaças), atributos
+                  e perícias aparecem em chips com bônus. A tela do jogador
+                  continua exatamente como antes.
+                </li>
+                <li>
+                  <strong>
+                    Novo: cor pessoal por participante na mesa virtual.
+                  </strong>{' '}
+                  Cada jogador (e o mestre) pode ter uma cor pessoal que serve
+                  como identificador visual em todos os lugares da mesa. Na
+                  lista de <em>Jogadores</em> da página da mesa, um{' '}
+                  <strong>seletor de cor</strong> (RGB completo) aparece ao lado
+                  de cada membro — o mestre pode mudar a cor de qualquer um,
+                  jogadores só a própria. A cor é aplicada como{' '}
+                  <strong>fundo do card</strong> e faixa lateral do combatente
+                  no encontro ativo do mestre, como{' '}
+                  <strong>bolinha colorida</strong> ao lado do nome na ordem de
+                  turno do jogador e na lista de jogadores conectados, e como{' '}
+                  <strong>borda do avatar</strong> no painel de fichas.
+                  Atualização em tempo real para todos que estão na sessão.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Defesa e notas dos combatentes não eram
+                    persistidas no encontro.
+                  </strong>{' '}
+                  Quando o encontro ativo era salvo e recarregado, os valores de
+                  Defesa e as anotações privadas do mestre somem silenciosamente
+                  — o chip de Defesa desaparecia do combatente depois de
+                  qualquer refresh da página. Agora ambos persistem corretamente
+                  entre sessões.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: sugestões de deslocamento no Gerador de Ameaças.
                   </strong>{' '}
                   Antes era preciso digitar o deslocamento manualmente toda vez.
