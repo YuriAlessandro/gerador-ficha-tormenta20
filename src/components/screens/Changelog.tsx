@@ -112,34 +112,6 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Correção: Defesa e notas dos combatentes não eram
-                    persistidas no encontro.
-                  </strong>{' '}
-                  Quando o encontro ativo era salvo e recarregado, os valores de
-                  Defesa e as anotações privadas do mestre somem silenciosamente
-                  — o chip de Defesa desaparecia do combatente depois de
-                  qualquer refresh da página. Agora ambos persistem corretamente
-                  entre sessões.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: sugestões de deslocamento no Gerador de Ameaças.
-                  </strong>{' '}
-                  Antes era preciso digitar o deslocamento manualmente toda vez.
-                  Agora, ao escolher o <em>Tamanho</em> da ameaça, o campo é
-                  preenchido automaticamente com o valor padrão da tabela
-                  oficial (coluna <em>Bípede / Normal</em>: 6m para Pequeno, 9m
-                  para Médio, 12m para Grande, 15m para Enorme/Colossal) e logo
-                  abaixo aparecem <strong>chips</strong> com todas as
-                  combinações aplicáveis (Bípede e Quadrúpede × <em>Lento</em>,{' '}
-                  <em>Normal</em>, <em>Rápido</em>) para clique rápido. Cada
-                  sugestão já vem no formato <em>Nm (Mq)</em>, mostrando também
-                  a quantidade de quadrados equivalentes (cada quadrado = 1,5m)
-                  para uso em mesas de batalha — ex.: <em>9m (6q)</em>. Você
-                  ainda pode digitar um valor customizado se preferir.
-                </li>
-                <li>
-                  <strong>
                     Novo: subpastas aninhadas em Meus Personagens e Minhas
                     Ameaças.
                   </strong>{' '}
@@ -217,6 +189,47 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
+                    Novo: materiais especiais agora aplicam efeitos numéricos.
+                  </strong>{' '}
+                  Mitral em arma melhora a margem de ameaça em 1 (ex.: 20/x2 →
+                  19/x2) e em armadura reduz a penalidade em 2. Adamante em arma
+                  aumenta o dado de dano em um passo (1d8 → 1d10) e em armadura
+                  concede RD geral (2 para leves/escudos, 5 para pesadas). Gelo
+                  Eterno em arma adiciona +2 de dano por frio; em armadura
+                  concede RD contra fogo (5/10). Matéria Vermelha em arma
+                  adiciona +1d6 de dano de essência. Aço-rubi e Madeira Tollon
+                  seguem descritivos pois seus efeitos são condicionais.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: sugestões de deslocamento no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes era preciso digitar o deslocamento manualmente toda vez.
+                  Agora, ao escolher o <em>Tamanho</em> da ameaça, o campo é
+                  preenchido automaticamente com o valor padrão da tabela
+                  oficial (coluna <em>Bípede / Normal</em>: 6m para Pequeno, 9m
+                  para Médio, 12m para Grande, 15m para Enorme/Colossal) e logo
+                  abaixo aparecem <strong>chips</strong> com todas as
+                  combinações aplicáveis (Bípede e Quadrúpede × <em>Lento</em>,{' '}
+                  <em>Normal</em>, <em>Rápido</em>) para clique rápido. Cada
+                  sugestão já vem no formato <em>Nm (Mq)</em>, mostrando também
+                  a quantidade de quadrados equivalentes (cada quadrado = 1,5m)
+                  para uso em mesas de batalha — ex.: <em>9m (6q)</em>. Você
+                  ainda pode digitar um valor customizado se preferir.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Defesa e notas dos combatentes não eram
+                    persistidas no encontro.
+                  </strong>{' '}
+                  Quando o encontro ativo era salvo e recarregado, os valores de
+                  Defesa e as anotações privadas do mestre somem silenciosamente
+                  — o chip de Defesa desaparecia do combatente depois de
+                  qualquer refresh da página. Agora ambos persistem corretamente
+                  entre sessões.
+                </li>
+                <li>
+                  <strong>
                     Correção: classes conjuradoras não ganhavam magia ao subir
                     de nível.
                   </strong>{' '}
@@ -266,19 +279,6 @@ const Changelog: React.FC = () => {
                   preservada e ganha prioridade sobre o recálculo. Para voltar
                   ao automático, use o botão <strong>Resetar</strong> na própria
                   aba.
-                </li>
-                <li>
-                  <strong>
-                    Novo: materiais especiais agora aplicam efeitos numéricos.
-                  </strong>{' '}
-                  Mitral em arma melhora a margem de ameaça em 1 (ex.: 20/x2 →
-                  19/x2) e em armadura reduz a penalidade em 2. Adamante em arma
-                  aumenta o dado de dano em um passo (1d8 → 1d10) e em armadura
-                  concede RD geral (2 para leves/escudos, 5 para pesadas). Gelo
-                  Eterno em arma adiciona +2 de dano por frio; em armadura
-                  concede RD contra fogo (5/10). Matéria Vermelha em arma
-                  adiciona +1d6 de dano de essência. Aço-rubi e Madeira Tollon
-                  seguem descritivos pois seus efeitos são condicionais.
                 </li>
                 <li>
                   <strong>Correção: layout mobile da Mesa Virtual.</strong> Em
