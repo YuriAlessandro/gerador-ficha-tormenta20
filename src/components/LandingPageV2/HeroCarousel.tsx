@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -12,14 +12,18 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { BlogService, BlogPost } from '../../premium';
+import {
+  BlogService,
+  BlogPost,
+  CarouselConfigService,
+  CarouselConfig,
+} from '../../premium';
 import heroImage from '../../assets/images/tormenta20.jpg';
-// import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
-// import wyrtImage from '../../assets/images/backgrounds/wyrt.png';
-// import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
-// import tabletopImage from '../../assets/images/backgrounds/tabletop.jpg';
-// import p16Image from '../../assets/images/arts/p16.png';
-// import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
+import sheetImage from '../../assets/images/backgrounds/sheet.jpg';
+import wyrtImage from '../../assets/images/backgrounds/wyrt.png';
+import dungeonImage from '../../assets/images/backgrounds/dungeon.jpg';
+import p16Image from '../../assets/images/arts/p16.png';
+import lancaGalrasiaImage from '../../assets/images/arts/lancagalrasia.jpg';
 
 export interface CarouselSlide {
   id: string;
@@ -41,9 +45,9 @@ export interface CarouselSlide {
   blogPostId?: string; // If type is 'blog', fetch post data by ID
 }
 
-// ===========================================
-// CONFIGURE SLIDES HERE - Easy to update
-// ===========================================
+// Predefined slide templates. Visibility, ordering and an extra pinned blog
+// post are persisted on the backend (CarouselConfig) and edited via the admin
+// panel — do not edit visibility by commenting/uncommenting entries here.
 export const carouselSlides: CarouselSlide[] = [
   {
     id: 'votacao',
@@ -57,88 +61,89 @@ export const carouselSlides: CarouselSlide[] = [
     ctaLink: '/blog/votacao-de-apoiadores-update-2026-3',
     category: 'Blog',
   },
-  // {
-  //   id: 'wyrt',
-  //   title: 'Jogue Wyrt online com amigos',
-  //   subtitle:
-  //     'O jogo de cartas do universo Tormenta, disponível agora com multiplayer.',
-  //   type: 'default',
-  //   category: 'Wyrt',
-  //   ctaText: 'Jogue agora',
-  //   ctaLink: '/wyrt',
-  //   isNew: true,
-  //   image: wyrtImage,
-  // },
-  // {
-  //   id: 'gerador-ficha',
-  //   title: 'Criar personagem',
-  //   subtitle:
-  //     'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
-  //   image: sheetImage,
-  //   ctaText: 'Criar Ficha',
-  //   ctaLink: '/criar-ficha',
-  //   requireAuth: true,
-  //   secondaryCtaText: 'Meus Personagens',
-  //   secondaryCtaLink: '/meus-personagens',
-  //   secondaryRequireAuth: true,
-  //   category: 'Ferramentas',
-  // },
-  // {
-  //   id: 'apoio',
-  //   title: 'Apoie o Projeto!',
-  //   subtitle:
-  //     'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
-  //   image: lancaGalrasiaImage,
-  //   category: 'Recompensas incríveis te aguardam!',
-  //   ctaText: 'Apoiar',
-  //   ctaLink: '/apoiar',
-  // },
-  // {
-  //   id: 'fichas-de-nimb',
-  //   title: 'Fichas de Nimb',
-  //   subtitle: 'A melhor plataforma para Tormenta 20!',
-  //   image: heroImage,
-  //   bigText:
-  //     'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
-  // },
-  // {
-  //   id: 'gerador-ameacas',
-  //   title: 'Gerador de Ameaças',
-  //   subtitle:
-  //     'Crie e personalize ameaças para suas aventuras com nosso gerador completo. Ajuste atributos, poderes e habilidades!',
-  //   image: dungeonImage,
-  //   ctaText: 'Criar Ameaça',
-  //   ctaLink: '/gerador-ameacas',
-  //   category: 'Ferramentas',
-  // },
-  // {
-  //   id: 'mesas-virtuais',
-  //   title: 'Mesas Virtuais',
-  //   subtitle:
-  //     'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
-  //   image: p16Image,
-  //   ctaText: 'Ver Mesas',
-  //   ctaLink: '/mesas',
-  //   category: 'Comunidade',
-  //   requireAuth: true,
-  // },
-  // {
-  //   id: 'builds',
-  //   title: 'Planejador de Builds',
-  //   subtitle:
-  //     'Planeje a evolução do seu personagem nível a nível. Compartilhe builds com a comunidade!',
-  //   image: p16Image,
-  //   ctaText: 'Explorar Builds',
-  //   ctaLink: '/builds',
-  //   category: 'Comunidade',
-  // },
+  {
+    id: 'wyrt',
+    title: 'Jogue Wyrt online com amigos',
+    subtitle:
+      'O jogo de cartas do universo Tormenta, disponível agora com multiplayer.',
+    type: 'default',
+    category: 'Wyrt',
+    ctaText: 'Jogue agora',
+    ctaLink: '/wyrt',
+    isNew: true,
+    image: wyrtImage,
+  },
+  {
+    id: 'gerador-ficha',
+    title: 'Criar personagem',
+    subtitle:
+      'Crie, gerencie e jogue com seus personagens de forma rápida e prática, com automação de regras e rolagem de dados.',
+    image: sheetImage,
+    ctaText: 'Criar Ficha',
+    ctaLink: '/criar-ficha',
+    requireAuth: true,
+    secondaryCtaText: 'Meus Personagens',
+    secondaryCtaLink: '/meus-personagens',
+    secondaryRequireAuth: true,
+    category: 'Ferramentas',
+  },
+  {
+    id: 'apoio',
+    title: 'Apoie o Projeto!',
+    subtitle:
+      'Se torne um apoiador do nosso projeto e garanta que ela siga evoluindo. Escolha o seu nível e aproveite recompensas incríveis.',
+    image: lancaGalrasiaImage,
+    category: 'Recompensas incríveis te aguardam!',
+    ctaText: 'Apoiar',
+    ctaLink: '/apoiar',
+  },
+  {
+    id: 'fichas-de-nimb',
+    title: 'Fichas de Nimb',
+    subtitle: 'A melhor plataforma para Tormenta 20!',
+    image: heroImage,
+    bigText:
+      'Fichas de Nimb é uma plataforma completa com diversas ferramentas para mestres e jogadores do sistema Tormenta 20. Além da geração de fichas de personagens, oferece ferramentas para criar itens superiores e mágicos, gerar recompensas, consultar a enciclopédia e muito mais. Todas as características de uma ficha de Tormenta 20 são criadas automaticamente: atributos, perícias, origem, divindades, magias, etc. Tudo respeitando as regras oficiais do jogo.',
+  },
+  {
+    id: 'gerador-ameacas',
+    title: 'Gerador de Ameaças',
+    subtitle:
+      'Crie e personalize ameaças para suas aventuras com nosso gerador completo. Ajuste atributos, poderes e habilidades!',
+    image: dungeonImage,
+    ctaText: 'Criar Ameaça',
+    ctaLink: '/gerador-ameacas',
+    category: 'Ferramentas',
+  },
+  {
+    id: 'mesas-virtuais',
+    title: 'Mesas Virtuais',
+    subtitle:
+      'A melhor forma de jogar presencialmente. Gerencie sua mesa, rolagens e combate. Tudo sincronizado entre todos os jogadores.',
+    image: p16Image,
+    ctaText: 'Ver Mesas',
+    ctaLink: '/mesas',
+    category: 'Comunidade',
+    requireAuth: true,
+  },
+  {
+    id: 'builds',
+    title: 'Planejador de Builds',
+    subtitle:
+      'Planeje a evolução do seu personagem nível a nível. Compartilhe builds com a comunidade!',
+    image: p16Image,
+    ctaText: 'Explorar Builds',
+    ctaLink: '/builds',
+    category: 'Comunidade',
+  },
 ];
-// ===========================================
 
 interface HeroCarouselProps {
   onClickButton: (link: string) => void;
   autoPlayInterval?: number;
 }
+
+const PINNED_BLOG_SLIDE_ID = '__pinned_blog__';
 
 const HeroCarousel: React.FC<HeroCarouselProps> = ({
   onClickButton,
@@ -151,12 +156,70 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [blogPosts, setBlogPosts] = useState<Record<string, BlogPost>>({});
+  const [config, setConfig] = useState<CarouselConfig | null>(null);
 
-  const totalSlides = carouselSlides.length;
+  // Fetch carousel config from backend (which slides are enabled, in which
+  // order, and whether a blog post should be pinned as an extra slide).
+  useEffect(() => {
+    let cancelled = false;
+    CarouselConfigService.getConfig()
+      .then((c) => {
+        if (!cancelled) setConfig(c);
+      })
+      .catch(() => {
+        // Silent failure: fall through to default behavior (all hardcoded slides).
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Build the effective slide list from carouselSlides + config.
+  const slides = useMemo<CarouselSlide[]>(() => {
+    const byId: Record<string, CarouselSlide> = {};
+    carouselSlides.forEach((s) => {
+      byId[s.id] = s;
+    });
+
+    let base: CarouselSlide[];
+    if (config) {
+      base = config.slideOrder
+        .filter((entry) => entry.enabled && byId[entry.id])
+        .map((entry) => byId[entry.id]);
+    } else {
+      base = [...carouselSlides];
+    }
+
+    if (config?.pinnedBlogPostSlug) {
+      const pinnedSlide: CarouselSlide = {
+        id: PINNED_BLOG_SLIDE_ID,
+        title: '',
+        subtitle: '',
+        type: 'blog',
+        blogPostSlug: config.pinnedBlogPostSlug,
+        image: heroImage,
+        category: 'Blog',
+      };
+      if (config.pinnedBlogPostPosition === 'last') {
+        base.push(pinnedSlide);
+      } else {
+        base.unshift(pinnedSlide);
+      }
+    }
+
+    return base.length > 0 ? base : carouselSlides;
+  }, [config]);
+
+  const totalSlides = slides.length;
+
+  // Reset current index when the slide list changes (e.g., after config loads).
+  useEffect(() => {
+    setCurrentSlide(0);
+  }, [totalSlides]);
 
   // Fetch blog post data for blog-type slides
   useEffect(() => {
-    const blogSlides = carouselSlides.filter(
+    const blogSlides = slides.filter(
       (s) => s.type === 'blog' && (s.blogPostSlug || s.blogPostId)
     );
 
@@ -178,10 +241,10 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
         }
       });
       if (Object.keys(postsMap).length > 0) {
-        setBlogPosts(postsMap);
+        setBlogPosts((prev) => ({ ...prev, ...postsMap }));
       }
     });
-  }, []);
+  }, [slides]);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % totalSlides);
@@ -208,7 +271,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     return () => clearInterval(interval);
   }, [isPaused, nextSlide, autoPlayInterval, totalSlides]);
 
-  const rawSlide = carouselSlides[currentSlide];
+  const rawSlide = slides[currentSlide] ?? slides[0];
 
   // If this is a blog slide and we have fetched the post data, use it
   const slide = React.useMemo(() => {
@@ -244,15 +307,16 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* Background Images with Crossfade effect */}
-      {carouselSlides.map((s, index) => {
+      {slides.map((s, index) => {
         const blogKey = s.blogPostId || s.blogPostSlug;
         const blogImage =
           s.type === 'blog' && blogKey
             ? blogPosts[blogKey]?.coverImage
             : undefined;
+        const slideKey = blogKey ? `${s.id}-${blogKey}` : s.id;
         return (
           <Box
-            key={s.id}
+            key={slideKey}
             className='hero-background'
             sx={{
               backgroundImage: `url(${blogImage || s.image || heroImage})`,
@@ -468,9 +532,9 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
             zIndex: 3,
           }}
         >
-          {carouselSlides.map((_, index) => (
+          {slides.map((s, index) => (
             <Box
-              key={carouselSlides[index].id}
+              key={`dot-${s.id}-${s.blogPostSlug ?? 'default'}`}
               onClick={() => goToSlide(index)}
               sx={{
                 width: index === currentSlide ? 24 : 10,
