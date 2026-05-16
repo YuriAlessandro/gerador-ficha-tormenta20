@@ -343,6 +343,20 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
                 </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/meu-bestiario')}>
+                  <ListItemIcon>
+                    <SecurityIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>Meu Bestiário</Typography>
+                </StyledMenuItem>
+                <StyledMenuItem onClick={() => navigateTo('/bestiario')}>
+                  <ListItemIcon>
+                    <SecurityIcon />
+                  </ListItemIcon>
+                  <Typography variant='inherit'>
+                    Bestiário da Comunidade
+                  </Typography>
+                </StyledMenuItem>
                 {isAdmin && (
                   <StyledMenuItem onClick={() => navigateTo('/admin')}>
                     <ListItemIcon>

@@ -65,6 +65,9 @@ import {
   BuildViewPage as PremiumBuildViewPage,
   BuildsListPage,
   MyBuildsPage,
+  BestiaryListPage,
+  MyBestiaryPage,
+  BestiaryViewPage as PremiumBestiaryViewPage,
   GameTableProvider,
   GameTablesPage,
   GameTableDetailPage,
@@ -352,6 +355,17 @@ function ThemedApp(): JSX.Element {
                                 </Route>
                                 <Route path='/build/:id'>
                                   <PremiumBuildViewPage />
+                                </Route>
+                                <Route path='/bestiario/:id'>
+                                  <PremiumBestiaryViewPage />
+                                </Route>
+                                <Route path='/meu-bestiario'>
+                                  <ProtectedRoute requireAuth redirectTo='/'>
+                                    <MyBestiaryPage />
+                                  </ProtectedRoute>
+                                </Route>
+                                <Route path='/bestiario'>
+                                  <BestiaryListPage />
                                 </Route>
                                 {/* Game Tables - Auth required, premium check done by backend */}
                                 <Route path='/mesas'>
