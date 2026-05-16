@@ -43,6 +43,7 @@ const getNotificationIcon = (type: NotificationType): React.ReactNode => {
       return <MailIcon />;
     case NotificationType.BUILD_COMMENT:
     case NotificationType.BLOG_COMMENT:
+    case NotificationType.BESTIARY_COMMENT:
       return <CommentIcon />;
     case NotificationType.FORUM_COMMENT:
     case NotificationType.FORUM_REPLY:
@@ -88,6 +89,11 @@ const getNotificationLink = (notification: Notification): string | null => {
         return `/forum/${notification.metadata.threadSlug as string}`;
       }
       return '/forum';
+    case NotificationType.BESTIARY_COMMENT:
+      if (notification.referenceId) {
+        return `/bestiario/${notification.referenceId}`;
+      }
+      return '/bestiario';
     case NotificationType.SUBSCRIPTION_NEW:
     case NotificationType.PAYMENT_CONFIRMED:
     case NotificationType.PAYMENT_FAILED:
