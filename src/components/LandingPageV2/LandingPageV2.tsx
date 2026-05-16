@@ -7,6 +7,7 @@ import background from '../../assets/images/fantasybg.png';
 
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
+import BestiaryBanner from './BestiaryBanner';
 import RecentSheetsSection from './RecentSheetsSection';
 import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
@@ -127,16 +128,24 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               </Box>
             </Box>
 
-            {/* Support Banner */}
+            {/* Bestiary Highlight Banner */}
             <Box
               className='landing-section'
               sx={{ order: 3, gridColumn: '1', mt: 1 }}
+            >
+              <BestiaryBanner onClickButton={onClickButton} />
+            </Box>
+
+            {/* Support Banner */}
+            <Box
+              className='landing-section'
+              sx={{ order: 4, gridColumn: '1', mt: 1 }}
             >
               <SupportBanner onClickButton={onClickButton} />
             </Box>
 
             {/* Main Tools Section */}
-            <Box className='landing-section' sx={{ order: 4, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 5, gridColumn: '1' }}>
               <MainToolsSection
                 onClickButton={onClickButton}
                 isAuthenticated={isAuthenticated}
@@ -144,7 +153,7 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             </Box>
 
             {/* Game Sessions Section */}
-            <Box className='landing-section' sx={{ order: 5, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 6, gridColumn: '1' }}>
               <GameSessionsSection
                 onClickButton={onClickButton}
                 isAuthenticated={isAuthenticated}
@@ -152,7 +161,7 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             </Box>
 
             {/* Secondary Tools Section */}
-            <Box className='landing-section' sx={{ order: 6, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 7, gridColumn: '1' }}>
               <SecondaryToolsSection onClickButton={onClickButton} />
             </Box>
           </Box>

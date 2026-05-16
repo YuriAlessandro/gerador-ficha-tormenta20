@@ -187,6 +187,35 @@
   animation: shineSweep 3s ease-in-out infinite;
 }
 
+/* Bestiary highlight banner — destaque próprio, não é uma ferramenta */
+.bestiary-banner {
+  background: linear-gradient(135deg, #2e1437 0%, #4a1d2f 50%, #1f2e22 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  color: white;
+  box-shadow: 0 4px 20px rgba(74, 29, 47, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+
+.bestiary-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  animation: shineSweep 3s ease-in-out infinite;
+}
+
 /* ================================
    TOOL CARDS
    ================================ */
@@ -535,7 +564,8 @@
     font-size: 0.8rem;
   }
 
-  .support-banner {
+  .support-banner,
+  .bestiary-banner {
     padding: 1rem 1.5rem;
   }
 
