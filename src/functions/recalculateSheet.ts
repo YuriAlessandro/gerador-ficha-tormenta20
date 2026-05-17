@@ -899,6 +899,40 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Aplica os bônus dos efeitos ativos (poderes com bônus temporário, ex.:
+ * Inspiração do Bardo). Espelha `applyConditionBonuses`, mas:
+ *  - cada `ActiveEffect` carrega seus próprios `bonuses` (já resolvidos no
+ *    momento do uso a partir do tier escolhido), então não há `generate`;
+ *  - efeitos distintos somam (v1) — não há regra de não-acúmulo entre eles;
+ *  - PM/PV temporários (`grantsTempPM/PV`) NÃO são tratados aqui: são
+ *    aplicados imperativamente ao ativar/desativar o efeito, evitando
+ *    compounding a cada recálculo (sheetBonuses é zerado no Step 1, mas
+ *    tempPM/tempPV não têm "base" para recomputar).
+ */
+function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  const active = updated.activeEffects ?? [];
+  if (active.length === 0) return updated;
+
+  active.forEach((eff) => {
+    eff.bonuses.forEach((b) => {
+      updated.sheetBonuses.push({
+        source: {
+          type: 'activeEffect',
+          powerKey: eff.powerKey,
+          name: eff.name,
+        },
+        target: b.target,
+        modifier: b.modifier,
+      });
+    });
+  });
+
+  return updated;
+}
+
+/**
  * Reverts the side effects of a power/ability identified by `powerName` by
  * walking its `sheetActionHistory` entries and undoing arrays mutated outside
  * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
@@ -1286,6 +1320,11 @@ export function recalculateSheet(
   //   - Attribute targets mutate atributos directly (before skills/defense recalc)
   //   - Other targets are pushed to sheetBonuses for the main loop
   updatedSheet = applyConditionBonuses(updatedSheet);
+
+  // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
+  // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
+  // replace it. Pushes SheetBonus entries for the main loop below.
+  updatedSheet = applyActiveEffectBonuses(updatedSheet);
 
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined

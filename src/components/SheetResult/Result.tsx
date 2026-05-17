@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -60,6 +61,27 @@ import { ParodySpellPickerDialog } from '@/premium/components/ParodySpellPicker'
 import { getConditionLabelStyle } from '@/premium/functions/conditionHighlights';
 import type { ActiveCondition } from '@/premium/interfaces/ActiveCondition';
 import { useOptionalEncounter } from '@/premium/hooks/useOptionalEncounter';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  ActiveEffectMarker,
+  PowerEffectOfferModal,
+  ActiveEffectsCleanupModal,
+  ActiveEffectsManagerModal,
+} from '@/premium/components/ActiveEffects';
+import socketService, {
+  type PowerEffectOfferPayload,
+  type PowerEffectBonusPayload,
+} from '@/premium/services/socket.service';
+import {
+  getActiveEffectHighlights,
+  getActiveEffectLabelStyle,
+} from '@/premium/functions/activeEffectHighlights';
+import { getAvailableActivePowers } from '@/premium/data/activePowers';
+import type {
+  ActivePowerDefinition,
+  ActiveEffectUsageOption,
+  ActiveEffect,
+} from '@/premium/interfaces/ActiveEffect';
 import CharacterSheet, {
   DamageReduction,
 } from '../../interfaces/CharacterSheet';
@@ -179,6 +201,11 @@ const Result: React.FC<ResultProps> = (props) => {
   const [companionEditOpen, setCompanionEditOpen] = useState(false);
   const [selectedCompanionIndex, setSelectedCompanionIndex] = useState(0);
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
+  const [pendingOffer, setPendingOffer] =
+    useState<PowerEffectOfferPayload | null>(null);
+  const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [effectsModalOpen, setEffectsModalOpen] = useState(false);
+  const prevEncounterPhaseRef = React.useRef<string | null>(null);
 
   const theme = useTheme();
   const { isSupporter } = useSubscription();
@@ -186,6 +213,214 @@ const Result: React.FC<ResultProps> = (props) => {
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
+  const activeEffectHighlights = useMemo(
+    () => getActiveEffectHighlights(currentSheet),
+    [currentSheet]
+  );
+
+  const applyRecalculatedSheet = useCallback(
+    (nextSheet: CharacterSheet) => {
+      const updatedSheet = recalculateSheet(nextSheet);
+      // Rehydrate Bag (recalculateSheet cloneDeep strips methods)
+      if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
+        const plainBag = updatedSheet.bag as unknown as {
+          equipments: Record<string, unknown>;
+        };
+        updatedSheet.bag = new Bag(plainBag.equipments || {});
+      }
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) onSheetUpdate(updatedSheet);
+    },
+    [onSheetUpdate]
+  );
+
+  const handleActiveEffectActivate = useCallback(
+    (definition: ActivePowerDefinition, option: ActiveEffectUsageOption) => {
+      const effect: ActiveEffect = {
+        instanceId: uuidv4(),
+        powerKey: definition.key,
+        name: definition.name,
+        sourceLabel: definition.sourceLabel,
+        optionId: option.id,
+        optionLabel: option.label,
+        bonuses: option.bonuses,
+        grantsTempPM: option.grantsTempPM,
+        grantsTempPV: option.grantsTempPV,
+        appliedAt: new Date().toISOString(),
+        appliedBy: { playerName: currentSheet.nome },
+      };
+      // Substitui qualquer instância anterior do mesmo poder
+      const previous = (currentSheet.activeEffects ?? []).filter(
+        (e) => e.powerKey !== definition.key
+      );
+      const removedTempPM = (currentSheet.activeEffects ?? [])
+        .filter((e) => e.powerKey === definition.key)
+        .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
+      const removedTempPV = (currentSheet.activeEffects ?? [])
+        .filter((e) => e.powerKey === definition.key)
+        .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
+
+      const basePM = currentSheet.currentPM ?? currentSheet.pm ?? 0;
+      applyRecalculatedSheet({
+        ...currentSheet,
+        activeEffects: [...previous, effect],
+        currentPM: basePM - option.pmCost,
+        tempPM: Math.max(
+          0,
+          (currentSheet.tempPM ?? 0) -
+            removedTempPM +
+            (option.grantsTempPM ?? 0)
+        ),
+        tempPV: Math.max(
+          0,
+          (currentSheet.tempPV ?? 0) -
+            removedTempPV +
+            (option.grantsTempPV ?? 0)
+        ),
+      });
+
+      // Oferta aos aliados da mesa (no-op fora de mesa)
+      if (definition.affectsAllies) {
+        socketService.emitPowerEffectUse({
+          instanceId: effect.instanceId,
+          powerKey: effect.powerKey,
+          name: effect.name,
+          sourceLabel: effect.sourceLabel,
+          optionId: effect.optionId,
+          optionLabel: effect.optionLabel,
+          bonuses: effect.bonuses as unknown as PowerEffectBonusPayload[],
+          grantsTempPM: effect.grantsTempPM,
+          grantsTempPV: effect.grantsTempPV,
+          characterName: currentSheet.nome,
+        });
+      }
+    },
+    [currentSheet, applyRecalculatedSheet]
+  );
+
+  const handleActiveEffectRemove = useCallback(
+    (instanceId: string) => {
+      const removed = (currentSheet.activeEffects ?? []).find(
+        (e) => e.instanceId === instanceId
+      );
+      const next = (currentSheet.activeEffects ?? []).filter(
+        (e) => e.instanceId !== instanceId
+      );
+      applyRecalculatedSheet({
+        ...currentSheet,
+        activeEffects: next,
+        tempPM: Math.max(
+          0,
+          (currentSheet.tempPM ?? 0) - (removed?.grantsTempPM ?? 0)
+        ),
+        tempPV: Math.max(
+          0,
+          (currentSheet.tempPV ?? 0) - (removed?.grantsTempPV ?? 0)
+        ),
+      });
+    },
+    [currentSheet, applyRecalculatedSheet]
+  );
+
+  const handleAcceptOffer = useCallback(() => {
+    if (!pendingOffer) return;
+    const p = pendingOffer;
+    const effect: ActiveEffect = {
+      instanceId: uuidv4(),
+      powerKey: p.powerKey,
+      name: p.name,
+      sourceLabel: p.sourceLabel,
+      optionId: p.optionId,
+      optionLabel: p.optionLabel,
+      bonuses: p.bonuses as unknown as ActiveEffect['bonuses'],
+      grantsTempPM: p.grantsTempPM,
+      grantsTempPV: p.grantsTempPV,
+      appliedAt: new Date().toISOString(),
+      appliedBy: {
+        playerName: p.sourcePlayerName,
+        characterName: p.characterName,
+      },
+      fromTable: true,
+    };
+    const previous = (currentSheet.activeEffects ?? []).filter(
+      (e) => e.powerKey !== p.powerKey
+    );
+    const removedTempPM = (currentSheet.activeEffects ?? [])
+      .filter((e) => e.powerKey === p.powerKey)
+      .reduce((sum, e) => sum + (e.grantsTempPM ?? 0), 0);
+    const removedTempPV = (currentSheet.activeEffects ?? [])
+      .filter((e) => e.powerKey === p.powerKey)
+      .reduce((sum, e) => sum + (e.grantsTempPV ?? 0), 0);
+    // Aliado que aceita não paga PM
+    applyRecalculatedSheet({
+      ...currentSheet,
+      activeEffects: [...previous, effect],
+      tempPM: Math.max(
+        0,
+        (currentSheet.tempPM ?? 0) - removedTempPM + (p.grantsTempPM ?? 0)
+      ),
+      tempPV: Math.max(
+        0,
+        (currentSheet.tempPV ?? 0) - removedTempPV + (p.grantsTempPV ?? 0)
+      ),
+    });
+    setPendingOffer(null);
+  }, [pendingOffer, currentSheet, applyRecalculatedSheet]);
+
+  React.useEffect(() => {
+    const unsub = socketService.onPowerEffectOffered((payload) => {
+      setPendingOffer(payload);
+    });
+    return unsub;
+  }, []);
+
+  const handleCleanupRemove = useCallback(
+    (ids: string[]) => {
+      const removedList = (currentSheet.activeEffects ?? []).filter((e) =>
+        ids.includes(e.instanceId)
+      );
+      const next = (currentSheet.activeEffects ?? []).filter(
+        (e) => !ids.includes(e.instanceId)
+      );
+      const remPM = removedList.reduce((s, e) => s + (e.grantsTempPM ?? 0), 0);
+      const remPV = removedList.reduce((s, e) => s + (e.grantsTempPV ?? 0), 0);
+      applyRecalculatedSheet({
+        ...currentSheet,
+        activeEffects: next,
+        tempPM: Math.max(0, (currentSheet.tempPM ?? 0) - remPM),
+        tempPV: Math.max(0, (currentSheet.tempPV ?? 0) - remPV),
+      });
+      setCleanupOpen(false);
+    },
+    [currentSheet, applyRecalculatedSheet]
+  );
+
+  // Detecta fim de combate (encontro encerrado/finalizado) e abre o
+  // relatório de limpeza quando há efeitos ativos na ficha.
+  React.useEffect(() => {
+    const enc = encounterCtx?.activeEncounter ?? null;
+    const prevPhase = prevEncounterPhaseRef.current;
+    const currentPhase = enc ? enc.phase : null;
+    const wasActive = prevPhase !== null && prevPhase !== 'finished';
+    const nowEnded = currentPhase === null || currentPhase === 'finished';
+    if (
+      wasActive &&
+      nowEnded &&
+      (currentSheet.activeEffects?.length ?? 0) > 0
+    ) {
+      setCleanupOpen(true);
+    }
+    prevEncounterPhaseRef.current = currentPhase;
+  }, [encounterCtx?.activeEncounter, currentSheet.activeEffects]);
+
+  React.useEffect(() => {
+    const unsub = socketService.onCombatEffectsReview(() => {
+      if ((currentSheet.activeEffects?.length ?? 0) > 0) {
+        setCleanupOpen(true);
+      }
+    });
+    return unsub;
+  }, [currentSheet.activeEffects]);
 
   const handleConditionsChange = useCallback(
     (next: ActiveCondition[]) => {
@@ -725,9 +960,16 @@ const Result: React.FC<ResultProps> = (props) => {
         skillHighlights={
           markersEnabled ? conditionHighlights.skills : undefined
         }
+        skillEffectHighlights={activeEffectHighlights.skills}
       />
     ),
-    [currentSheet, periciasSorted, markersEnabled, conditionHighlights.skills]
+    [
+      currentSheet,
+      periciasSorted,
+      markersEnabled,
+      conditionHighlights.skills,
+      activeEffectHighlights.skills,
+    ]
   );
 
   const effectiveProficiencias = useMemo(() => {
@@ -1438,6 +1680,28 @@ const Result: React.FC<ResultProps> = (props) => {
               </Stack>
             </Card>
 
+            <PowerEffectOfferModal
+              open={pendingOffer !== null}
+              payload={pendingOffer}
+              onAccept={handleAcceptOffer}
+              onDecline={() => setPendingOffer(null)}
+            />
+
+            <ActiveEffectsCleanupModal
+              open={cleanupOpen}
+              effects={currentSheet.activeEffects ?? []}
+              onConfirm={handleCleanupRemove}
+              onClose={() => setCleanupOpen(false)}
+            />
+
+            <ActiveEffectsManagerModal
+              open={effectsModalOpen}
+              effects={currentSheet.activeEffects ?? []}
+              readonly={!onSheetUpdate}
+              onRemove={handleActiveEffectRemove}
+              onClose={() => setEffectsModalOpen(false)}
+            />
+
             {/* PARTE DO MEIO: Atributos */}
             {!isMobile && (
               <Box
@@ -1566,7 +1830,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 </>
               )}
               <Box sx={{ position: 'relative' }}>
-                {markersEnabled && conditionHighlights.defense.length > 0 && (
+                {((markersEnabled && conditionHighlights.defense.length > 0) ||
+                  activeEffectHighlights.defense.length > 0) && (
                   <Box
                     sx={{
                       position: 'absolute',
@@ -1574,19 +1839,33 @@ const Result: React.FC<ResultProps> = (props) => {
                       top: '50%',
                       transform: 'translateY(-50%)',
                       zIndex: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
                     }}
                   >
-                    <ConditionMarker
-                      conditions={conditionHighlights.defense}
+                    {markersEnabled && (
+                      <ConditionMarker
+                        conditions={conditionHighlights.defense}
+                        fontSize='medium'
+                      />
+                    )}
+                    <ActiveEffectMarker
+                      effects={activeEffectHighlights.defense}
                       fontSize='medium'
                     />
                   </Box>
                 )}
                 <Box
                   sx={
-                    markersEnabled
-                      ? getConditionLabelStyle(conditionHighlights.defense)
-                      : undefined
+                    activeEffectHighlights.defense.length > 0
+                      ? getActiveEffectLabelStyle(
+                          activeEffectHighlights.defense
+                        )
+                      : (markersEnabled &&
+                          getConditionLabelStyle(
+                            conditionHighlights.defense
+                          )) ||
+                        undefined
                   }
                 >
                   <BookTitle>Defesa</BookTitle>
@@ -1728,25 +2007,47 @@ const Result: React.FC<ResultProps> = (props) => {
             <Card
               sx={{ p: 3, mb: 4, position: 'relative', overflow: 'visible' }}
             >
-              {onSheetUpdate && (
-                <IconButton
-                  size='small'
-                  sx={{
-                    position: 'absolute',
-                    top: -16,
-                    right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
-                  }}
-                  onClick={() => setPowersDrawerOpen(true)}
-                >
-                  <EditIcon />
-                </IconButton>
-              )}
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{ position: 'absolute', top: -16, right: 16 }}
+              >
+                {(getAvailableActivePowers(currentSheet).length > 0 ||
+                  (currentSheet.activeEffects?.length ?? 0) > 0) && (
+                  <Tooltip title='Efeitos ativos'>
+                    <IconButton
+                      size='small'
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setEffectsModalOpen(true)}
+                    >
+                      <AutoAwesomeIcon />
+                    </IconButton>
+                  </Tooltip>
+                )}
+                {onSheetUpdate && (
+                  <IconButton
+                    size='small'
+                    sx={{
+                      backgroundColor: theme.palette.primary.main,
+                      color: 'white',
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.dark,
+                      },
+                    }}
+                    onClick={() => setPowersDrawerOpen(true)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                )}
+              </Stack>
               <Box>
                 <BookTitle>Poderes</BookTitle>
                 <PowersDisplay
@@ -1767,6 +2068,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   }
                   characterName={nome}
                   sheet={currentSheet}
+                  onActivateEffect={
+                    onSheetUpdate ? handleActiveEffectActivate : undefined
+                  }
                   onSheetUpdate={
                     onSheetUpdate
                       ? (updated) => {

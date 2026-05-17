@@ -11,6 +11,7 @@ import { OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 
 export type SheetChangeSource =
   | {
@@ -42,6 +43,11 @@ export type SheetChangeSource =
   | {
       type: 'condition';
       conditionId: string;
+    }
+  | {
+      type: 'activeEffect';
+      powerKey: string;
+      name: string;
     };
 
 export type SheetAction = {
@@ -550,6 +556,7 @@ export default interface CharacterSheet {
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
+  activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**
    * @deprecated Mantido por um ciclo de release apenas para deserializar
    * fichas antigas. Versões anteriores aplicavam penalidades de condições
