@@ -216,6 +216,46 @@
   animation: shineSweep 3s ease-in-out infinite;
 }
 
+/* Banner com bandeja anexada (destaques do dia) — funde com a bandeja */
+.bestiary-banner--attached {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  box-shadow: 0 4px 16px rgba(74, 29, 47, 0.35);
+}
+
+/* Bandeja "saindo" do banner como se ele fosse o cabeçalho */
+.bestiary-highlight-tray {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(74, 29, 47, 0.45);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(74, 29, 47, 0.16) 0%,
+    rgba(74, 29, 47, 0.06) 100%
+  );
+  box-shadow: 0 6px 18px rgba(74, 29, 47, 0.18);
+}
+
+.bestiary-highlight-card {
+  cursor: pointer;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(127, 127, 127, 0.1);
+  border: 1px solid rgba(74, 29, 47, 0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.bestiary-highlight-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(74, 29, 47, 0.28);
+  border-color: rgba(74, 29, 47, 0.5);
+}
+
 /* ================================
    TOOL CARDS
    ================================ */
