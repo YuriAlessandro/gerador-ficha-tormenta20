@@ -244,12 +244,25 @@ const weaponMatchesBonus = (
     weaponName?: string;
     weaponTags?: string[];
     proficiencyRequired?: boolean;
+    meleeOnly?: boolean;
   },
   _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
     return false;
+  }
+
+  // Apenas armas corpo a corpo: exclui armas à distância (têm `alcance`
+  // real e não são de arremesso — ex.: arcos, bestas, armas de fogo).
+  // Armas de arremesso (adaga, azagaia) continuam valendo por serem
+  // usáveis corpo a corpo.
+  if (bonus.meleeOnly) {
+    const { alcance } = weapon;
+    const isRanged = !!alcance && alcance !== '-' && !weapon.arremesso;
+    if (isRanged) {
+      return false;
+    }
   }
 
   // Check weapon tags

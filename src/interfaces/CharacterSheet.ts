@@ -298,12 +298,14 @@ export type StatModifierTarget =
       weaponName?: string; // Specific weapon name
       weaponTags?: string[]; // Weapon tags to match
       proficiencyRequired?: boolean; // Whether proficiency is required
+      meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
     }
   | {
       type: 'WeaponAttack';
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
     }
   | {
       type: 'WeaponThreatMargin';
