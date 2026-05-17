@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import StarIcon from '@mui/icons-material/Star';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { BestiaryService, type BestiaryPublicationData } from '../../premium';
 import { getCategoryMeta } from '../../premium/data/bestiaryCategoryMeta';
 
@@ -168,6 +169,16 @@ const BestiaryBanner: React.FC<BestiaryBannerProps> = ({ onClickButton }) => {
                   />
                   <Typography variant='caption' color='text.secondary'>
                     ({pub.ratings?.count || 0})
+                  </Typography>
+                  <ChatBubbleOutlineIcon
+                    sx={{
+                      fontSize: 14,
+                      color: 'text.secondary',
+                      ml: 0.5,
+                    }}
+                  />
+                  <Typography variant='caption' color='text.secondary'>
+                    {pub.commentCount || 0}
                   </Typography>
                 </Box>
               </Box>
