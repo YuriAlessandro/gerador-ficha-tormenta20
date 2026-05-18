@@ -108,6 +108,15 @@ const Changelog: React.FC = () => {
                   <strong>Correção:</strong> resolvido um problema que causava{' '}
                   <strong>tela branca em produção</strong> ao abrir o app.
                 </li>
+                <li>
+                  <strong>Correção:</strong> ao remover um{' '}
+                  <strong>Poder Geral</strong> pelo painel de{' '}
+                  <strong>Editar Poderes</strong> e salvar, o poder não é mais
+                  readicionado à ficha. O problema afetava poderes concedidos
+                  por habilidades (como a <strong>Memória Póstuma</strong> do
+                  Osteon e a <strong>Linhagem Rubra</strong> do Arcanista
+                  Feiticeiro), que voltavam a aparecer na lista de poderes.
+                </li>
               </ul>
               <h3>4.15</h3>
               <ul>
