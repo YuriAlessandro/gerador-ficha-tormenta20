@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/05/2026 (v4.15).
+            18/05/2026 (v4.16).
           </p>
 
           <p>
@@ -69,6 +69,34 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.16</h3>
+              <ul>
+                <li>
+                  <strong>Novo: filtros avançados de magia</strong> em todos os
+                  lugares onde você escolhe magias — no assistente de criação de
+                  ficha, no assistente de subir de nível e no painel de{' '}
+                  <strong>Editar Magias</strong>. Além da busca por texto, agora
+                  há um botão <strong>Filtros avançados</strong> que permite
+                  filtrar por <strong>escola</strong>, <strong>círculo</strong>,{' '}
+                  <strong>execução</strong> e <strong>tipo</strong>{' '}
+                  (arcanas/divinas), combinando vários critérios ao mesmo tempo.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a Biblioteca (compêndio de regras)
+                  pode ser exibida embutida em outros contextos, como dentro da
+                  mesa virtual, sem interferir no título da aba nem exibir
+                  chamadas que não funcionariam ali.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o carrossel de destaques da página
+                  inicial passou a ser configurado pelo servidor, permitindo
+                  atualizar os destaques sem precisar de uma nova versão do app.
+                </li>
+                <li>
+                  <strong>Correção:</strong> resolvido um problema que causava{' '}
+                  <strong>tela branca em produção</strong> ao abrir o app.
+                </li>
+              </ul>
               <h3>4.15</h3>
               <ul>
                 <li>
