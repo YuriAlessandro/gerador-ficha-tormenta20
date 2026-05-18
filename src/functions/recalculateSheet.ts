@@ -1022,10 +1022,26 @@ export function reverseSheetActionsForPower(
     });
   });
 
-  // Remove history entries for this power
-  sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-    (entry) => entry.powerName !== powerName
-  );
+  // Remove history entries for this power.
+  // Note: powers granted via a `getGeneralPower` sheetAction store the entry
+  // keyed by the *source ability* name (e.g. "Linhagem Rubra"), not by the
+  // granted power name. So besides dropping entries keyed by this power, also
+  // strip any `PowerAdded`/`ClassPowerAdded` change that references it and drop
+  // entries left without changes — keeping other grants from the same ability.
+  sheet.sheetActionHistory = sheet.sheetActionHistory
+    .filter((entry) => entry.powerName !== powerName)
+    .map((entry) => ({
+      ...entry,
+      changes: entry.changes.filter(
+        (change) =>
+          !(
+            (change.type === 'PowerAdded' ||
+              change.type === 'ClassPowerAdded') &&
+            change.powerName === powerName
+          )
+      ),
+    }))
+    .filter((entry) => entry.changes.length > 0);
 }
 
 /**
@@ -1092,11 +1108,16 @@ function synthesizeHistoryForRemovedPowers(
     sourcesWithGetPower.forEach((source) => {
       if (!source.availablePowerNames.includes(removedPower)) return;
 
-      // Check if history already has an entry for this source ability
+      // Check if history already records this source ability granting THIS
+      // specific power. Per-ability granularity is too coarse: an ability that
+      // can grant several powers (e.g. Linhagem Rubra → any Tormenta power)
+      // would wrongly look "already handled" for a different removed power.
       const hasHistory = sheet.sheetActionHistory.some(
         (entry) =>
           entry.powerName === source.abilityName &&
-          entry.changes.some((c) => c.type === 'PowerAdded')
+          entry.changes.some(
+            (c) => c.type === 'PowerAdded' && c.powerName === removedPower
+          )
       );
 
       if (!hasHistory) {
@@ -1242,6 +1263,18 @@ export function recalculateSheet(
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
     });
+
+    // If the user removed the general power that Osteon's "Memória Póstuma"
+    // deterministically replays from `osteonMemoriaPostumaChoice`, clear the
+    // stored choice. Otherwise `applyOsteonMemoriaPostuma` (special.ts) would
+    // re-inject the removed power into `generalPowers` on every recalculation,
+    // making it impossible to delete via the Powers edit drawer.
+    if (
+      updatedSheet.osteonMemoriaPostumaChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.osteonMemoriaPostumaChoice.value)
+    ) {
+      updatedSheet.osteonMemoriaPostumaChoice = undefined;
+    }
   }
 
   // Step 0.5: Synthesize history entries for removed powers so that

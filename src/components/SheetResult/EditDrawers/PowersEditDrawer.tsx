@@ -656,8 +656,24 @@ const PowersEditDrawer: React.FC<PowersEditDrawerProps> = ({
         prev.filter((p) => p.name !== powerToRemove.name)
       );
       setManualSelections((prev) => {
-        const updated = { ...prev };
-        delete updated[powerToRemove.name];
+        const updated: typeof prev = {};
+        // Drop the power's own entry, and also scrub it from any other
+        // ability's `.powers` selection (e.g. the ability that granted it,
+        // like "Linhagem Rubra" or "Memória Póstuma"). Otherwise the granting
+        // ability would re-pick the removed power on the next recalculation.
+        Object.entries(prev).forEach(([key, selection]) => {
+          if (key === powerToRemove.name) return;
+          if (selection.powers?.some((p) => p.name === powerToRemove.name)) {
+            updated[key] = {
+              ...selection,
+              powers: selection.powers.filter(
+                (p) => p.name !== powerToRemove.name
+              ),
+            };
+          } else {
+            updated[key] = selection;
+          }
+        });
         return updated;
       });
     } else {
