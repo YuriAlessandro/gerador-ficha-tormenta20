@@ -329,7 +329,7 @@ function ThemedApp(): JSX.Element {
                                   <MainScreen isDarkMode={darkMode} />
                                 </Route>
                                 <Route path='/database'>
-                                  <Database isDarkMode={darkMode} />
+                                  <Database />
                                 </Route>
                                 <Route path='/caverna-do-saber'>
                                   <CavernaDoSaber />
