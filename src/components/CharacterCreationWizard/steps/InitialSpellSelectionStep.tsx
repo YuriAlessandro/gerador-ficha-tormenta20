@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   FormControl,
@@ -17,6 +17,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Spell, SpellSchool } from '@/interfaces/Spells';
 import { dataRegistry } from '@/data/registry';
 import { SupplementId } from '@/types/supplement.types';
+import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
+import {
+  SpellFilterState,
+  EMPTY_SPELL_FILTERS,
+  deriveSpellFilterOptions,
+  applySpellFilters,
+} from '@/components/SpellPicker/spellFilters';
 
 interface InitialSpellSelectionStepProps {
   selectedSpells: Spell[];
@@ -46,7 +53,12 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   supplements = [SupplementId.TORMENTA20_CORE],
 }) => {
   // Get available spells based on type, schools, and supplements
-  const { availableSpells, crossTraditionSpellNames } = useMemo(() => {
+  const {
+    availableSpells,
+    crossTraditionSpellNames,
+    arcaneNames,
+    divineNames,
+  } = useMemo(() => {
     // Get spells from registry (includes supplements)
     const spellsByCircle =
       dataRegistry.getSpellsCircle1BySupplements(supplements);
@@ -133,12 +145,26 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       return true;
     });
 
+    // Tradition name sets, used by the "Tipo" filter when spellType is 'Both'.
+    const allArcaneNames = new Set<string>(
+      (Object.values(arcaneSpellsCircle1) as Spell[][])
+        .flat()
+        .map((s) => s.nome)
+    );
+    const allDivineNames = new Set<string>(
+      (Object.values(divineSpellsCircle1) as Spell[][])
+        .flat()
+        .map((s) => s.nome)
+    );
+
     // Sort alphabetically
     return {
       availableSpells: uniqueSpells.sort((a, b) =>
         a.nome.localeCompare(b.nome)
       ),
       crossTraditionSpellNames: crossNames,
+      arcaneNames: allArcaneNames,
+      divineNames: allDivineNames,
     };
   }, [
     spellType,
@@ -160,6 +186,28 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
   const isCrossTraditionLimitReached =
     crossTraditionLimit !== undefined &&
     selectedCrossTraditionCount >= crossTraditionLimit;
+
+  const [filters, setFilters] = useState<SpellFilterState>(EMPTY_SPELL_FILTERS);
+  const handleFilterChange = (patch: Partial<SpellFilterState>) =>
+    setFilters((prev) => ({ ...prev, ...patch }));
+
+  const filterOptions = useMemo(
+    () => deriveSpellFilterOptions(availableSpells),
+    [availableSpells]
+  );
+
+  // All initial spells are 1st circle; tradition only makes sense when the
+  // class can pick from both arcane and divine.
+  const showTypeFilter = spellType === 'Both';
+
+  const filteredSpells = useMemo(() => {
+    let result = applySpellFilters(availableSpells, filters);
+    if (showTypeFilter && filters.spellType !== 'all') {
+      const names = filters.spellType === 'arcane' ? arcaneNames : divineNames;
+      result = result.filter((spell) => names.has(spell.nome));
+    }
+    return result;
+  }, [availableSpells, filters, showTypeFilter, arcaneNames, divineNames]);
 
   const handleToggle = (spell: Spell) => {
     const isSelected = selectedSpells.some((s) => s.nome === spell.nome);
@@ -188,7 +236,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
       Trans: [],
     };
 
-    availableSpells.forEach((spell) => {
+    filteredSpells.forEach((spell) => {
       if (spell.school in grouped) {
         grouped[spell.school].push(spell);
       }
@@ -196,7 +244,7 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
 
     // Filter out empty schools
     return Object.entries(grouped).filter(([, spells]) => spells.length > 0);
-  }, [availableSpells]);
+  }, [filteredSpells]);
 
   if (availableSpells.length === 0) {
     return (
@@ -250,6 +298,23 @@ const InitialSpellSelectionStep: React.FC<InitialSpellSelectionStepProps> = ({
             ))}
           </Box>
         </Paper>
+      )}
+
+      <SpellAdvancedFilters
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        options={filterOptions}
+        visibleFilters={{
+          school: true,
+          execution: true,
+          spellType: showTypeFilter,
+        }}
+      />
+
+      {spellsBySchool.length === 0 && (
+        <Alert severity='info'>
+          Nenhuma magia encontrada com os filtros atuais.
+        </Alert>
       )}
 
       <Box>

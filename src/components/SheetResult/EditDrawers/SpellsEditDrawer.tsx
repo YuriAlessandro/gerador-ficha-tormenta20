@@ -14,25 +14,27 @@ import {
   FormControlLabel,
   Chip,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Tooltip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
-import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CharacterSheet, { Step } from '@/interfaces/CharacterSheet';
-import { Spell, spellsCircles } from '@/interfaces/Spells';
+import { Spell } from '@/interfaces/Spells';
 import { getSpellsOfCircle } from '@/data/systems/tormenta20/magias/generalSpells';
 import { getArcaneSpellsOfCircle } from '@/data/systems/tormenta20/magias/arcane';
 import { SupplementId, SUPPLEMENT_METADATA } from '@/types/supplement.types';
 import { TORMENTA20_SYSTEM } from '@/data/systems/tormenta20';
-import { normalizeSearch } from '@/functions/stringUtils';
+import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
+import {
+  SpellFilterState,
+  EMPTY_SPELL_FILTERS,
+  getCircleNumber,
+  deriveSpellFilterOptions,
+  applySpellFilters,
+} from '@/components/SpellPicker/spellFilters';
 import CustomSpellDialog from './CustomSpellDialog';
 
 interface SpellsEditDrawerProps {
@@ -53,24 +55,6 @@ interface SpellWithSupplement {
   supplementId: SupplementId;
 }
 
-// Helper function to convert spellsCircles enum to number
-const getCircleNumber = (spellCircle: spellsCircles): number => {
-  switch (spellCircle) {
-    case spellsCircles.c1:
-      return 1;
-    case spellsCircles.c2:
-      return 2;
-    case spellsCircles.c3:
-      return 3;
-    case spellsCircles.c4:
-      return 4;
-    case spellsCircles.c5:
-      return 5;
-    default:
-      return 1;
-  }
-};
-
 const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   open,
   onClose,
@@ -78,19 +62,21 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
   onSave,
 }) => {
   // Use all available supplements for spell editing (not just user's enabled ones)
-  const allSupplements = Object.keys(
-    TORMENTA20_SYSTEM.supplements
-  ) as SupplementId[];
+  const allSupplements = useMemo(
+    () => Object.keys(TORMENTA20_SYSTEM.supplements) as SupplementId[],
+    []
+  );
 
   const [selectedSpells, setSelectedSpells] = useState<Spell[]>([]);
   const [bonusSpellDC, setBonusSpellDC] = useState<number>(
     sheet.bonusSpellDC ?? 0
   );
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCircle, setFilterCircle] = useState<number | 'all'>('all');
-  const [spellType, setSpellType] = useState<'arcane' | 'divine' | 'both'>(
-    'both'
-  );
+  const [filters, setFilters] = useState<SpellFilterState>(EMPTY_SPELL_FILTERS);
+  const handleFilterChange = (patch: Partial<SpellFilterState>) =>
+    setFilters((prev) => ({ ...prev, ...patch }));
+  // The spell sourcing helpers below work with 'both' instead of 'all'.
+  const sourceSpellType: 'arcane' | 'divine' | 'both' =
+    filters.spellType === 'all' ? 'both' : filters.spellType;
   const [customSpellDialog, setCustomSpellDialog] = useState<{
     open: boolean;
     spellToEdit?: Spell;
@@ -110,7 +96,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       const supplement = TORMENTA20_SYSTEM.supplements[supplementId];
       if (supplement?.spells) {
         // For arcane or both types
-        if (spellType === 'arcane' || spellType === 'both') {
+        if (sourceSpellType === 'arcane' || sourceSpellType === 'both') {
           supplement.spells.arcane?.forEach((spell) => {
             spells.push({ spell, supplementId });
           });
@@ -121,12 +107,12 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         }
 
         // For divine or both types
-        if (spellType === 'divine' || spellType === 'both') {
+        if (sourceSpellType === 'divine' || sourceSpellType === 'both') {
           supplement.spells.divine?.forEach((spell) => {
             spells.push({ spell, supplementId });
           });
           // Universal spells appear in divine list (only add if not 'both' to avoid duplicates)
-          if (spellType === 'divine') {
+          if (sourceSpellType === 'divine') {
             supplement.spells.universal?.forEach((spell) => {
               spells.push({ spell, supplementId });
             });
@@ -136,25 +122,25 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     });
 
     return spells;
-  }, [allSupplements, spellType]);
+  }, [allSupplements, sourceSpellType]);
 
   // Get all available spells based on type and circle
   const getAllSpells = (): SpellCategory[] => {
     const categories: SpellCategory[] = [];
 
     for (let circle = 1; circle <= 5; circle += 1) {
-      if (filterCircle !== 'all' && filterCircle !== circle) {
+      if (filters.circle !== 'all' && filters.circle !== circle) {
         // eslint-disable-next-line no-continue
         continue;
       }
 
       let spells: Spell[] = [];
 
-      if (spellType === 'arcane' || spellType === 'both') {
+      if (sourceSpellType === 'arcane' || sourceSpellType === 'both') {
         spells = [...spells, ...getArcaneSpellsOfCircle(circle)];
       }
 
-      if (spellType === 'divine' || spellType === 'both') {
+      if (sourceSpellType === 'divine' || sourceSpellType === 'both') {
         spells = [...spells, ...getSpellsOfCircle(circle)];
       }
 
@@ -231,16 +217,30 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
     return availableCircle >= circle;
   };
 
-  const filterSpells = (spells: Spell[]) => {
-    if (!searchTerm) return spells;
-    const search = normalizeSearch(searchTerm);
-    return spells.filter(
-      (spell) =>
-        normalizeSearch(spell.nome).includes(search) ||
-        normalizeSearch(spell.description).includes(search) ||
-        normalizeSearch(spell.school).includes(search)
-    );
-  };
+  // Stable filter options derived from the full spell catalog (all
+  // circles/types + supplements), so dropdown choices don't disappear as
+  // the user narrows the selection.
+  const filterOptions = useMemo(() => {
+    const all: Spell[] = [];
+    for (let circle = 1; circle <= 5; circle += 1) {
+      all.push(...getArcaneSpellsOfCircle(circle));
+      all.push(...getSpellsOfCircle(circle));
+    }
+    allSupplements.forEach((supplementId) => {
+      const supplementSpells =
+        TORMENTA20_SYSTEM.supplements[supplementId]?.spells;
+      if (supplementSpells) {
+        supplementSpells.arcane?.forEach((spell) => all.push(spell));
+        supplementSpells.divine?.forEach((spell) => all.push(spell));
+        supplementSpells.universal?.forEach((spell) => all.push(spell));
+      }
+    });
+    return deriveSpellFilterOptions(all);
+  }, [allSupplements]);
+
+  // Circle/spellType are already applied at the data source (getAllSpells),
+  // so only search/school/execution remain to be applied per category.
+  const filterSpells = (spells: Spell[]) => applySpellFilters(spells, filters);
 
   // Custom spell handlers
   const handleSaveCustomSpell = (spell: Spell) => {
@@ -341,9 +341,7 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
       setSelectedSpells([...sheet.spells]);
     }
     setBonusSpellDC(sheet.bonusSpellDC ?? 0);
-    setSearchTerm('');
-    setFilterCircle('all');
-    setSpellType('both');
+    setFilters(EMPTY_SPELL_FILTERS);
     onClose();
   };
 
@@ -399,56 +397,17 @@ const SpellsEditDrawer: React.FC<SpellsEditDrawerProps> = ({
         />
 
         {/* Filters */}
-        <Stack direction='row' spacing={2} sx={{ mb: 3 }}>
-          {/* Search Bar */}
-          <TextField
-            placeholder='Buscar magias...'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-              ),
-            }}
-            size='small'
-            sx={{ flexGrow: 1 }}
-          />
-
-          {/* Circle Filter */}
-          <FormControl size='small' sx={{ minWidth: 120 }}>
-            <InputLabel>Círculo</InputLabel>
-            <Select
-              value={filterCircle}
-              label='Círculo'
-              onChange={(e) =>
-                setFilterCircle(e.target.value as number | 'all')
-              }
-            >
-              <MenuItem value='all'>Todos</MenuItem>
-              <MenuItem value={1}>1º Círculo</MenuItem>
-              <MenuItem value={2}>2º Círculo</MenuItem>
-              <MenuItem value={3}>3º Círculo</MenuItem>
-              <MenuItem value={4}>4º Círculo</MenuItem>
-              <MenuItem value={5}>5º Círculo</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Spell Type Filter */}
-          <FormControl size='small' sx={{ minWidth: 120 }}>
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              value={spellType}
-              label='Tipo'
-              onChange={(e) =>
-                setSpellType(e.target.value as 'arcane' | 'divine' | 'both')
-              }
-            >
-              <MenuItem value='both'>Todos</MenuItem>
-              <MenuItem value='arcane'>Arcanas</MenuItem>
-              <MenuItem value='divine'>Divinas</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
+        <SpellAdvancedFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          options={filterOptions}
+          visibleFilters={{
+            circle: true,
+            school: true,
+            execution: true,
+            spellType: true,
+          }}
+        />
 
         {/* Custom Spell Button */}
         <Button

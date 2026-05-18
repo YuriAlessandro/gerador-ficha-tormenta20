@@ -7,11 +7,15 @@ import {
   CardContent,
   Chip,
   Grid,
-  TextField,
-  InputAdornment,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
 import { Spell } from '@/interfaces/Spells';
+import SpellAdvancedFilters from '@/components/SpellPicker/SpellAdvancedFilters';
+import {
+  SpellFilterState,
+  EMPTY_SPELL_FILTERS,
+  deriveSpellFilterOptions,
+  applySpellFilters,
+} from '@/components/SpellPicker/spellFilters';
 
 interface LevelSpellSelectionStepProps {
   availableSpells: Spell[];
@@ -32,7 +36,14 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
   crossTraditionSpellNames,
   crossTraditionLimit,
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState<SpellFilterState>(EMPTY_SPELL_FILTERS);
+  const handleFilterChange = (patch: Partial<SpellFilterState>) =>
+    setFilters((prev) => ({ ...prev, ...patch }));
+
+  const filterOptions = useMemo(
+    () => deriveSpellFilterOptions(availableSpells),
+    [availableSpells]
+  );
 
   const isSpellSelected = (spell: Spell): boolean =>
     selectedSpells.some((s) => s.nome === spell.nome);
@@ -50,22 +61,16 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
     crossTraditionLimit !== undefined &&
     selectedCrossTraditionCount >= crossTraditionLimit;
 
-  // Filter spells by search query
-  const filteredSpells = useMemo(() => {
-    if (!searchQuery) return availableSpells;
+  const filteredSpells = useMemo(
+    () => applySpellFilters(availableSpells, filters),
+    [availableSpells, filters]
+  );
 
-    const lowerQuery = searchQuery.toLowerCase();
-    return availableSpells.filter((spell) => {
-      const name = spell.nome.toLowerCase();
-      const school = spell.school.toLowerCase();
-      const description = spell.description.toLowerCase();
-      return (
-        name.includes(lowerQuery) ||
-        school.includes(lowerQuery) ||
-        description.includes(lowerQuery)
-      );
-    });
-  }, [availableSpells, searchQuery]);
+  const filtersActive =
+    filters.search !== '' ||
+    filters.circle !== 'all' ||
+    filters.school !== 'all' ||
+    filters.execution !== 'all';
 
   return (
     <Box>
@@ -94,30 +99,25 @@ const LevelSpellSelectionStep: React.FC<LevelSpellSelectionStepProps> = ({
 
       {availableSpells.length > 0 && (
         <>
-          {/* Search field */}
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Buscar magias por nome, escola ou descrição...'
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+          <SpellAdvancedFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            options={filterOptions}
+            visibleFilters={{
+              circle: true,
+              school: true,
+              execution: true,
             }}
-            sx={{ mb: 2 }}
+            searchPlaceholder='Buscar magias por nome, escola ou descrição...'
           />
 
-          {filteredSpells.length === 0 && searchQuery && (
+          {filteredSpells.length === 0 && filtersActive && (
             <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
-              Nenhuma magia encontrada para &quot;{searchQuery}&quot;
+              Nenhuma magia encontrada com os filtros atuais.
             </Typography>
           )}
 
-          {searchQuery && filteredSpells.length > 0 && (
+          {filtersActive && filteredSpells.length > 0 && (
             <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
               {filteredSpells.length}{' '}
               {filteredSpells.length === 1
