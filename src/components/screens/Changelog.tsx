@@ -82,6 +82,18 @@ const Changelog: React.FC = () => {
                   (arcanas/divinas), combinando vários critérios ao mesmo tempo.
                 </li>
                 <li>
+                  <strong>
+                    Novo: Enciclopédia (compêndio de regras) dentro da mesa
+                    virtual.
+                  </strong>{' '}
+                  O mestre agora tem um item <strong>Enciclopédia</strong> na
+                  barra lateral da mesa (e uma aba no menu inferior no celular)
+                  para consultar raças, classes, origens, divindades, poderes e
+                  magias <strong>sem sair da sessão</strong>. No computador, ao
+                  passar o mouse para expandir a barra, aparecem atalhos
+                  discretos para cada aba do compêndio.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a Biblioteca (compêndio de regras)
                   pode ser exibida embutida em outros contextos, como dentro da
                   mesa virtual, sem interferir no título da aba nem exibir
