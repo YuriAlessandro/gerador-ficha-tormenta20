@@ -212,6 +212,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const theme = useTheme();
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
+  const activeEffectsFeature = useFeatureAccess('activeEffects');
+  const canUseActiveEffects = activeEffectsFeature.hasAccess;
   const encounterCtx = useOptionalEncounter();
   const conditionHighlights = useConditionHighlights(currentSheet);
   const markersEnabled = conditionsFeature.isEnabled;
@@ -325,7 +327,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleAcceptOffer = useCallback(() => {
-    if (!pendingOffer) return;
+    if (!pendingOffer || !canUseActiveEffects) return;
     const p = pendingOffer;
     const effect: ActiveEffect = {
       instanceId: uuidv4(),
@@ -367,7 +369,7 @@ const Result: React.FC<ResultProps> = (props) => {
       ),
     });
     setPendingOffer(null);
-  }, [pendingOffer, currentSheet, applyRecalculatedSheet]);
+  }, [pendingOffer, currentSheet, applyRecalculatedSheet, canUseActiveEffects]);
 
   React.useEffect(() => {
     const unsub = socketService.onPowerEffectOffered((payload) => {
@@ -1683,7 +1685,7 @@ const Result: React.FC<ResultProps> = (props) => {
             </Card>
 
             <PowerEffectOfferModal
-              open={pendingOffer !== null}
+              open={pendingOffer !== null && canUseActiveEffects}
               payload={pendingOffer}
               onAccept={handleAcceptOffer}
               onDecline={() => setPendingOffer(null)}
@@ -2014,7 +2016,8 @@ const Result: React.FC<ResultProps> = (props) => {
                 spacing={1}
                 sx={{ position: 'absolute', top: -16, right: 16 }}
               >
-                {(getAvailableActivePowers(currentSheet).length > 0 ||
+                {((getAvailableActivePowers(currentSheet).length > 0 &&
+                  canUseActiveEffects) ||
                   (currentSheet.activeEffects?.length ?? 0) > 0) &&
                   (() => {
                     const activeCount = currentSheet.activeEffects?.length ?? 0;
@@ -2096,7 +2099,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   characterName={nome}
                   sheet={currentSheet}
                   onActivateEffect={
-                    onSheetUpdate ? handleActiveEffectActivate : undefined
+                    onSheetUpdate && canUseActiveEffects
+                      ? handleActiveEffectActivate
+                      : undefined
                   }
                   onSheetUpdate={
                     onSheetUpdate

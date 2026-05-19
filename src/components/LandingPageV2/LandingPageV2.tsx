@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Stack, useTheme } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { SEO, getPageSEO } from '../SEO';
 import '../../assets/css/landing-page-v2.css';
 import background from '../../assets/images/fantasybg.png';
@@ -20,6 +21,7 @@ interface LandingPageV2Props {
 
 const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   const { isAuthenticated } = useAuth();
+  const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
 
@@ -129,12 +131,14 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             </Box>
 
             {/* Bestiary Highlight Banner */}
-            <Box
-              className='landing-section'
-              sx={{ order: 3, gridColumn: '1', mt: 1 }}
-            >
-              <BestiaryBanner onClickButton={onClickButton} />
-            </Box>
+            {bestiaryEnabled && (
+              <Box
+                className='landing-section'
+                sx={{ order: 3, gridColumn: '1', mt: 1 }}
+              >
+                <BestiaryBanner onClickButton={onClickButton} />
+              </Box>
+            )}
 
             {/* Support Banner */}
             <Box
