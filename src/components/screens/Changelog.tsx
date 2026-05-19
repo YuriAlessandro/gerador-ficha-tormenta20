@@ -235,6 +235,17 @@ const Changelog: React.FC = () => {
                   manualmente.
                 </li>
                 <li>
+                  <strong>
+                    Melhoria: na mesa virtual, ficou muito mais claro de quem é
+                    a vez no combate.
+                  </strong>{' '}
+                  Na tela do mestre, ao passar de turno os cards dos combatentes
+                  recolhem automaticamente e{' '}
+                  <strong>só o do combatente da vez</strong> fica expandido, e
+                  esse card ganha um <strong>destaque pulsante</strong> para
+                  identificar de relance quem está jogando.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> o botão{' '}
                   <strong>Publicar no Bestiário</strong> foi realinhado à
                   largura do conteúdo da ameaça.
