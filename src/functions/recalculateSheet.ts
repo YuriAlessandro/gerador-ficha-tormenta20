@@ -245,6 +245,7 @@ const weaponMatchesBonus = (
     weaponTags?: string[];
     proficiencyRequired?: boolean;
     meleeOnly?: boolean;
+    rangedOnly?: boolean;
   },
   _sheet: CharacterSheet
 ): boolean => {
@@ -261,6 +262,17 @@ const weaponMatchesBonus = (
     const { alcance } = weapon;
     const isRanged = !!alcance && alcance !== '-' && !weapon.arremesso;
     if (isRanged) {
+      return false;
+    }
+  }
+
+  // Apenas armas à distância: exclui corpo a corpo puro (sem `alcance` ou
+  // `alcance` '-'). Armas de arremesso (têm `alcance`) contam como à
+  // distância para este filtro.
+  if (bonus.rangedOnly) {
+    const { alcance } = weapon;
+    const isRangedWeapon = !!alcance && alcance !== '-';
+    if (!isRangedWeapon) {
       return false;
     }
   }
