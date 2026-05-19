@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   CircularProgress,
+  Container,
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -132,16 +133,18 @@ const ThreatViewCloudWrapper: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-        <Button
-          variant='outlined'
-          color='secondary'
-          startIcon={<PublicIcon />}
-          onClick={() => setPublishOpen(true)}
-        >
-          Publicar no Bestiário
-        </Button>
-      </Box>
+      <Container maxWidth='xl' sx={{ pt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant='outlined'
+            color='secondary'
+            startIcon={<PublicIcon />}
+            onClick={() => setPublishOpen(true)}
+          >
+            Publicar no Bestiário
+          </Button>
+        </Box>
+      </Container>
       <ThreatResult
         threat={threat}
         onEdit={handleEdit}
