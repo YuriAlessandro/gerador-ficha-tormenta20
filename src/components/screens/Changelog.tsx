@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            18/05/2026 (v4.16).
+            19/05/2026 (v4.16).
           </p>
 
           <p>
@@ -70,7 +70,143 @@ const Changelog: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <h3>4.16</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Bestiário da Comunidade
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um acervo compartilhado de criaturas, alimentado pela
+                  comunidade. Agora você pode{' '}
+                  <strong>publicar suas ameaças</strong> direto de{' '}
+                  <strong>Minhas Ameaças</strong> ou da tela da ameaça (botão{' '}
+                  <strong>Publicar no Bestiário</strong>), escrevendo a
+                  descrição no mesmo <strong>editor markdown do fórum</strong>.
+                  Há uma seção <strong>Bestiário</strong> no menu lateral para
+                  explorar tudo e uma página <strong>Meu Bestiário</strong> com
+                  as suas publicações.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Copiar para usar:</strong> gostou de uma criatura?
+                  Copie a ameaça para a sua conta com um clique e use nas suas
+                  mesas. Para preservar o equilíbrio, as rolagens ficam
+                  desabilitadas enquanto você visualiza uma ameaça publicada no
+                  bestiário.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Comunidade e curadoria:</strong> avalie e comente as
+                  ameaças (com <strong>comentários aninhados</strong> e{' '}
+                  <strong>ranking</strong> por nota), e receba uma{' '}
+                  <strong>notificação</strong> — com ícone e link direto para a
+                  ameaça — quando alguém comentar nas suas publicações.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  <strong>Destaque na página inicial:</strong> um banner próprio
+                  do bestiário (sem roubar espaço do carrossel nem das suas
+                  fichas) exibe, no desktop, os{' '}
+                  <strong>3 melhores avaliados das últimas 24h</strong>, com
+                  contador de comentários em cada card.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Efeitos Ativos de Poderes
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um motor de <strong>bônus temporários</strong> espelhando o
+                  sistema de Condições: poderes com efeito contínuo — como a{' '}
+                  <strong>Inspiração</strong> do Bardo ou a{' '}
+                  <strong>Fúria</strong> do Bárbaro — agora podem ser{' '}
+                  <strong>ativados direto pela ficha</strong>, no cabeçalho do
+                  próprio poder. Enquanto ativos, a ficha{' '}
+                  <strong>recalcula sozinha</strong> os valores afetados e
+                  destaca as <strong>perícias</strong> e a{' '}
+                  <strong>Defesa</strong> alteradas, com um painel para
+                  gerenciar tudo que está em uso.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Cobertura ampla:</strong> os poderes ativos das{' '}
+                  <strong>13 classes</strong>, além de poderes{' '}
+                  <strong>gerais</strong> (combate, destino, concedidos,
+                  tormenta e magia) e <strong>raciais</strong> (como Camuflagem
+                  Mimética e Coro Sibilante). Bônus restritos a{' '}
+                  <strong>corpo a corpo</strong> ou <strong>à distância</strong>{' '}
+                  são aplicados só ao tipo de ataque correto.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Integração com a mesa virtual:</strong> ao ativar um
+                  efeito, ele é <strong>oferecido em tempo real</strong> aos
+                  envolvidos na mesa, e o combate termina com um{' '}
+                  <strong>relatório dos efeitos</strong> usados. O ícone de
+                  efeitos da ficha fica <strong>dourado</strong> com um contador
+                  quando há algo ativo.
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  É uma feature exclusiva para apoiadores (remover efeitos já
+                  existentes na ficha continua liberado para todos).
+                </Typography>
+              </Alert>
+
               <ul>
+                <li>
+                  <strong>
+                    Melhoria: cálculo de deslocamento mais robusto.
+                  </strong>{' '}
+                  Bônus de deslocamento vindos de poderes, condições e efeitos
+                  ativos passam a somar corretamente por cima de penalidades de
+                  armadura pesada/sobrecarga e do deslocamento ajustado
+                  manualmente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o botão{' '}
+                  <strong>Publicar no Bestiário</strong> foi realinhado à
+                  largura do conteúdo da ameaça.
+                </li>
                 <li>
                   <strong>Novo: filtros avançados de magia</strong> em todos os
                   lugares onde você escolhe magias — no assistente de criação de
