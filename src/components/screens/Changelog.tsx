@@ -195,6 +195,20 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: busca unificada na Enciclopédia de Tanah-Toh.
+                  </strong>{' '}
+                  Uma barra de pesquisa única, sempre visível no topo da
+                  Enciclopédia, que vasculha <strong>todo o compêndio</strong>{' '}
+                  de uma vez — raças, classes, <strong>habilidades</strong> e{' '}
+                  <strong>poderes de classe</strong>, origens, divindades,
+                  poderes gerais e magias. Não precisa mais lembrar a qual
+                  classe ou tipo um poder pertence: os resultados são{' '}
+                  <strong>ordenados por relevância</strong> (acerto no nome pesa
+                  mais, mas a busca também encontra pelo texto do efeito), com o
+                  termo destacado, e um clique leva direto à aba certa.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: cálculo de deslocamento mais robusto.
                   </strong>{' '}
                   Bônus de deslocamento vindos de poderes, condições e efeitos
