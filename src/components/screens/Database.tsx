@@ -35,6 +35,7 @@ import PowersTable from '../DatabaseTables/PowersTable';
 import SpellsTable from '../DatabaseTables/SpellsTable';
 import OriginsTable from '../DatabaseTables/OriginsTable';
 import TormentaTitle from '../Database/TormentaTitle';
+import EncyclopediaSearch from '../Database/EncyclopediaSearch';
 import { useSubscription } from '../../hooks/useSubscription';
 import { SEO, getPageSEO } from '../SEO';
 
@@ -152,6 +153,9 @@ const Database: React.FC<IProps> = ({ embedded = false }) => {
             >
               Enciclópedia de Tanah-Toh
             </TormentaTitle>
+
+            {/* Busca unificada — "Google das regras", sempre visível */}
+            <EncyclopediaSearch baseUrl={url} />
 
             {/* Modern Navigation */}
             <Box sx={{ mb: 3 }}>
