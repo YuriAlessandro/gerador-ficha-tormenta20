@@ -43,9 +43,10 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import logoFichasDeNimb from '../../assets/images/logoFichasDeNimbSmall.svg';
 import '../../assets/css/sidebar.css';
 import { useAuth } from '../../hooks/useAuth';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-const APP_VERSION = '4.15';
+const APP_VERSION = '4.16';
 const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface SidebarV2Props {
@@ -92,6 +93,7 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
   const history = useHistory();
   const { isAuthenticated, user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const { requestLogout } = useAuthContext();
   // const { settings, updateSettings } = useDice3D();
 
@@ -343,6 +345,24 @@ const SidebarV2: React.FC<SidebarV2Props> = ({
                   </ListItemIcon>
                   <Typography variant='inherit'>Explorar Builds</Typography>
                 </StyledMenuItem>
+                {bestiaryEnabled && (
+                  <StyledMenuItem onClick={() => navigateTo('/meu-bestiario')}>
+                    <ListItemIcon>
+                      <SecurityIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>Meu Bestiário</Typography>
+                  </StyledMenuItem>
+                )}
+                {bestiaryEnabled && (
+                  <StyledMenuItem onClick={() => navigateTo('/bestiario')}>
+                    <ListItemIcon>
+                      <SecurityIcon />
+                    </ListItemIcon>
+                    <Typography variant='inherit'>
+                      Bestiário da Comunidade
+                    </Typography>
+                  </StyledMenuItem>
+                )}
                 {isAdmin && (
                   <StyledMenuItem onClick={() => navigateTo('/admin')}>
                     <ListItemIcon>

@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            12/05/2026 (v4.15).
+            19/05/2026 (v4.16).
           </p>
 
           <p>
@@ -69,6 +69,208 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.16</h3>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Bestiário da Comunidade
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um acervo compartilhado de criaturas, alimentado pela
+                  comunidade. Agora você pode{' '}
+                  <strong>publicar suas ameaças</strong> direto de{' '}
+                  <strong>Minhas Ameaças</strong> ou da tela da ameaça (botão{' '}
+                  <strong>Publicar no Bestiário</strong>), escrevendo a
+                  descrição. Há uma seção <strong>Bestiário</strong> no menu
+                  lateral para explorar tudo e uma página{' '}
+                  <strong>Meu Bestiário</strong> com as suas publicações.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Copiar para usar:</strong> gostou de uma criatura?
+                  Copie a ameaça para a sua conta com um clique e use nas suas
+                  mesas.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Comunidade e curadoria:</strong> avalie e comente as
+                  ameaças.
+                </Typography>
+              </Alert>
+
+              <Alert
+                severity='success'
+                sx={{
+                  my: 2,
+                  py: 2,
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  '& .MuiAlert-message': { width: '100%' },
+                }}
+              >
+                <Typography
+                  variant='h5'
+                  fontWeight='bold'
+                  gutterBottom
+                  sx={{ color: 'success.dark' }}
+                >
+                  Efeitos Ativos de Poderes e Magias
+                </Typography>
+                <Typography variant='body1' sx={{ mb: 1 }}>
+                  Um motor de <strong>bônus temporários</strong>: poderes com
+                  efeito contínuo — como a <strong>Inspiração</strong> do Bardo
+                  ou a <strong>Fúria</strong> do Bárbaro — agora podem ser{' '}
+                  <strong>ativados direto pela ficha</strong>, no cabeçalho do
+                  próprio poder. Enquanto ativos, a ficha{' '}
+                  <strong>recalcula sozinha</strong> os valores afetados e
+                  destaca as <strong>perícias</strong> e a{' '}
+                  <strong>Defesa</strong> alteradas, com um painel para
+                  gerenciar tudo que está em uso.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Cobertura ampla:</strong> os poderes ativos das{' '}
+                  <strong>13 classes</strong>, além de poderes{' '}
+                  <strong>gerais</strong> (combate, destino, concedidos,
+                  tormenta e magia) e <strong>raciais</strong> (como Camuflagem
+                  Mimética e Coro Sibilante).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Também em magias:</strong> magias que alteram a ficha
+                  temporariamente — como <strong>Armadura Arcana</strong>,{' '}
+                  <strong>Bênção</strong>, <strong>Pele de Pedra</strong> ou a{' '}
+                  <strong>Aura Divina</strong> — passam a oferecer o efeito{' '}
+                  <strong>ao confirmar o lançamento</strong>. A tela de lançar
+                  magia exibe um aviso de <strong>efeito ativo</strong> e, ao
+                  usar a magia, você decide se aplica o bônus na ficha (também{' '}
+                  <strong>ofertado aos aliados</strong> da mesa, como nos
+                  poderes). Cobertura: <strong>33 magias</strong> arcanas e
+                  divinas revisadas, de todos os círculos.
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Integração com a mesa virtual:</strong> ao ativar um
+                  efeito, ele é <strong>oferecido em tempo real</strong> aos
+                  envolvidos na mesa, e o combate termina com um{' '}
+                  <strong>relatório dos efeitos</strong> usados. O ícone de
+                  efeitos da ficha fica <strong>dourado</strong> com um contador
+                  quando há algo ativo.
+                </Typography>
+              </Alert>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: busca unificada na Enciclopédia de Tanah-Toh.
+                  </strong>{' '}
+                  Uma barra de pesquisa única, sempre visível no topo da
+                  Enciclopédia, que vasculha <strong>todo o compêndio</strong>{' '}
+                  de uma vez — raças, classes, <strong>habilidades</strong> e{' '}
+                  <strong>poderes de classe</strong>, origens, divindades,
+                  poderes gerais e magias. Não precisa mais lembrar a qual
+                  classe ou tipo um poder pertence: os resultados são{' '}
+                  <strong>ordenados por relevância</strong> (acerto no nome pesa
+                  mais, mas a busca também encontra pelo texto do efeito), com o
+                  termo destacado, e um clique leva direto à aba certa.
+                </li>
+                <li>
+                  <strong>Novo: filtros avançados de magia</strong> em todos os
+                  lugares onde você escolhe magias — no assistente de criação de
+                  ficha, no assistente de subir de nível e no painel de{' '}
+                  <strong>Editar Magias</strong>. Além da busca por texto, agora
+                  há um botão <strong>Filtros avançados</strong> que permite
+                  filtrar por <strong>escola</strong>, <strong>círculo</strong>,{' '}
+                  <strong>execução</strong> e <strong>tipo</strong>{' '}
+                  (arcanas/divinas), combinando vários critérios ao mesmo tempo.
+                </li>
+                <li>
+                  <strong>
+                    Novo: Enciclopédia (compêndio de regras) dentro da mesa
+                    virtual.
+                  </strong>{' '}
+                  O mestre agora tem um item <strong>Enciclopédia</strong> na
+                  barra lateral da mesa (e uma aba no menu inferior no celular)
+                  para consultar raças, classes, origens, divindades, poderes e
+                  magias <strong>sem sair da sessão</strong>. No computador, ao
+                  passar o mouse para expandir a barra, aparecem atalhos
+                  discretos para cada aba do compêndio.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: cálculo de deslocamento mais robusto.
+                  </strong>{' '}
+                  Bônus de deslocamento vindos de poderes, condições e efeitos
+                  ativos passam a somar corretamente por cima de penalidades de
+                  armadura pesada/sobrecarga e do deslocamento ajustado
+                  manualmente.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: na mesa virtual, ficou muito mais claro de quem é
+                    a vez no combate.
+                  </strong>{' '}
+                  Na tela do mestre, ao passar de turno os cards dos combatentes
+                  recolhem automaticamente e{' '}
+                  <strong>só o do combatente da vez</strong> fica expandido, e
+                  esse card ganha um <strong>destaque pulsante</strong> para
+                  identificar de relance quem está jogando.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o botão{' '}
+                  <strong>Publicar no Bestiário</strong> foi realinhado à
+                  largura do conteúdo da ameaça.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> a Biblioteca (compêndio de regras)
+                  pode ser exibida embutida em outros contextos, como dentro da
+                  mesa virtual, sem interferir no título da aba nem exibir
+                  chamadas que não funcionariam ali.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o carrossel de destaques da página
+                  inicial passou a ser configurado pelo servidor, permitindo
+                  atualizar os destaques sem precisar de uma nova versão do app.
+                </li>
+                <li>
+                  <strong>Correção:</strong> ao remover um{' '}
+                  <strong>Poder Geral</strong> pelo painel de{' '}
+                  <strong>Editar Poderes</strong> e salvar, o poder não é mais
+                  readicionado à ficha. O problema afetava poderes concedidos
+                  por habilidades (como a <strong>Memória Póstuma</strong> do
+                  Osteon e a <strong>Linhagem Rubra</strong> do Arcanista
+                  Feiticeiro), que voltavam a aparecer na lista de poderes.
+                </li>
+              </ul>
               <h3>4.15</h3>
               <ul>
                 <li>

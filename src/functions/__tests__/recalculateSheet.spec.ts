@@ -606,6 +606,66 @@ describe('recalculateSheet', () => {
     });
   });
 
+  describe('Removed power reappearing via Osteon Memória Póstuma', () => {
+    const olhosVermelhos = tormentaPowers.OLHOS_VERMELHOS as GeneralPower;
+
+    const memoriaPostumaAbility = {
+      name: 'Memória Póstuma',
+      description: 'Você recebe um poder geral a sua escolha.',
+      sheetActions: [
+        {
+          source: { type: 'power' as const, name: 'Memória Póstuma' },
+          action: {
+            type: 'special' as const,
+            specialAction: 'osteonMemoriaPostuma' as const,
+          },
+        },
+      ],
+    };
+
+    beforeEach(() => {
+      mockSheet.raca = {
+        name: 'Osteon',
+        attributes: { attrs: [] },
+        faithProbability: {},
+        abilities: [memoriaPostumaAbility],
+      };
+      mockSheet.osteonMemoriaPostumaChoice = {
+        type: 'power',
+        value: 'Olhos Vermelhos',
+      };
+      mockSheet.generalPowers = [olhosVermelhos];
+    });
+
+    it('should not re-add a general power removed by the user (deterministic replay)', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      expect(
+        sheetWithPower.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(true);
+
+      const editedSheet = {
+        ...sheetWithPower,
+        generalPowers: sheetWithPower.generalPowers.filter(
+          (p) => p.name !== 'Olhos Vermelhos'
+        ),
+      };
+
+      const result = recalculateSheet(editedSheet, sheetWithPower);
+
+      expect(
+        result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(false);
+    });
+
+    it('should keep the power when the user did not remove it', () => {
+      const sheetWithPower = recalculateSheet(mockSheet);
+      const result = recalculateSheet(sheetWithPower, sheetWithPower);
+      expect(
+        result.generalPowers.some((p) => p.name === 'Olhos Vermelhos')
+      ).toBe(true);
+    });
+  });
+
   describe('Casca Grossa (Lutador)', () => {
     const buildLutadorSheet = (
       level: number,

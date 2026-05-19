@@ -11,6 +11,7 @@ import { OriginBenefit } from './WizardSelections';
 import { CustomPower } from './CustomPower';
 import { CompanionSheet } from './Companion';
 import type { ActiveCondition } from '../premium/interfaces/ActiveCondition';
+import type { ActiveEffect } from '../premium/interfaces/ActiveEffect';
 
 export type SheetChangeSource =
   | {
@@ -42,6 +43,11 @@ export type SheetChangeSource =
   | {
       type: 'condition';
       conditionId: string;
+    }
+  | {
+      type: 'activeEffect';
+      powerKey: string;
+      name: string;
     };
 
 export type SheetAction = {
@@ -292,12 +298,16 @@ export type StatModifierTarget =
       weaponName?: string; // Specific weapon name
       weaponTags?: string[]; // Weapon tags to match
       proficiencyRequired?: boolean; // Whether proficiency is required
+      meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
+      rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
     }
   | {
       type: 'WeaponAttack';
       weaponName?: string;
       weaponTags?: string[];
       proficiencyRequired?: boolean;
+      meleeOnly?: boolean; // Apenas armas corpo a corpo (exclui armas à distância)
+      rangedOnly?: boolean; // Apenas armas à distância (exclui corpo a corpo)
     }
   | {
       type: 'WeaponThreatMargin';
@@ -550,6 +560,7 @@ export default interface CharacterSheet {
   multiclassSpellPaths?: Record<string, SerializedSpellPath>; // Multiclasse: spellPath por className (serializable)
   companions?: CompanionSheet[]; // Melhor(es) Amigo(s) do Treinador
   activeConditions?: ActiveCondition[]; // Condições (status effects) ativas na ficha
+  activeEffects?: ActiveEffect[]; // Efeitos ativos (poderes com bônus temporário)
   /**
    * @deprecated Mantido por um ciclo de release apenas para deserializar
    * fichas antigas. Versões anteriores aplicavam penalidades de condições

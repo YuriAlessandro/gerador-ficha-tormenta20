@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
-const APP_VERSION = '4.15';
+const APP_VERSION = '4.16';
 
 // Image credits - add more as needed
 const imageCredits = [

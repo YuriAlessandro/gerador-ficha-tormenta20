@@ -13,6 +13,7 @@ import {
   Stack,
   Divider,
   Chip,
+  Tooltip,
   useTheme,
   Alert,
 } from '@mui/material';
@@ -21,6 +22,10 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CasinoIcon from '@mui/icons-material/Casino';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { getActiveEffectForSpell } from '@/premium/data/activePowers';
+import { ACTIVE_EFFECT_COLOR } from '@/premium/functions/activeEffectHighlights';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DiceRoll } from '@/interfaces/DiceRoll';
 import { executeMultipleDiceRolls } from '@/utils/diceRoller';
 import { Spell, Aprimoramento } from '../interfaces/Spells';
@@ -36,7 +41,7 @@ interface SpellCastDialogProps {
   currentPM: number;
   maxPM: number;
   tempPM?: number;
-  onCast: (pmSpent: number) => void;
+  onCast: (pmSpent: number, spell: Spell) => void;
   onUpdateRolls?: (spell: Spell, newRolls: DiceRoll[]) => void;
   characterName?: string;
 }
@@ -61,6 +66,16 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
   const theme = useTheme();
   const { showDiceResult } = useDiceRoll();
   const isMobile = useMemo(() => window.innerWidth < 720, []);
+
+  // Indicador de que a magia possui um efeito ativo (será oferecido para
+  // aplicar na ficha após confirmar o lançamento). Só exibido quando o
+  // recurso de efeitos ativos está disponível, para não confundir.
+  const { hasAccess: canUseActiveEffects } = useFeatureAccess('activeEffects');
+  const activeEffectDef = useMemo(
+    () => getActiveEffectForSpell(spell.nome),
+    [spell.nome]
+  );
+  const showActiveEffectHint = canUseActiveEffects && !!activeEffectDef;
 
   const [selections, setSelections] = useState<Map<number, number>>(new Map());
   const [shouldSpendPM, setShouldSpendPM] = useState(true);
@@ -238,9 +253,9 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
       showDiceResult(spell.nome, rollGroups, characterName);
     }
 
-    if (shouldSpendPM && totalPMCost > 0) {
-      onCast(totalPMCost);
-    }
+    // Sempre repassa o lançamento (com 0 PM quando o jogador opta por não
+    // gastar) para que o efeito ativo da magia, se houver, seja oferecido.
+    onCast(shouldSpendPM ? totalPMCost : 0, spell);
 
     onClose();
   }, [
@@ -251,7 +266,7 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
     onCast,
     onClose,
     showDiceResult,
-    spell.nome,
+    spell,
     characterName,
   ]);
 
@@ -380,6 +395,21 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
             <Typography variant='h6' component='span'>
               {spell.nome}
             </Typography>
+            {showActiveEffectHint && (
+              <Tooltip title='Esta magia possui um efeito que poderá ser aplicado à sua ficha (e ofertado aos aliados da mesa) após confirmar o lançamento.'>
+                <Chip
+                  icon={<AutoAwesomeIcon />}
+                  label='Efeito ativo'
+                  size='small'
+                  variant='outlined'
+                  sx={{
+                    color: ACTIVE_EFFECT_COLOR,
+                    borderColor: ACTIVE_EFFECT_COLOR,
+                    '& .MuiChip-icon': { color: ACTIVE_EFFECT_COLOR },
+                  }}
+                />
+              </Tooltip>
+            )}
           </Stack>
         </DialogTitle>
         <DialogContent dividers>
@@ -402,6 +432,27 @@ const SpellCastDialog: React.FC<SpellCastDialogProps> = ({
                 )}
               </Stack>
             </Box>
+
+            {showActiveEffectHint && (
+              <Alert
+                icon={<AutoAwesomeIcon sx={{ color: ACTIVE_EFFECT_COLOR }} />}
+                variant='outlined'
+                sx={{
+                  borderColor: ACTIVE_EFFECT_COLOR,
+                  '& .MuiAlert-message': { color: 'text.primary' },
+                }}
+              >
+                <Typography variant='body2' fontWeight='bold'>
+                  Efeito ativo disponível
+                </Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  {activeEffectDef?.description ??
+                    'Após confirmar o lançamento, você poderá aplicar o efeito desta magia na ficha.'}{' '}
+                  Ao confirmar o lançamento, será perguntado se deseja aplicá-lo
+                  (e ofertá-lo aos aliados da mesa).
+                </Typography>
+              </Alert>
+            )}
 
             <Divider />
 

@@ -10,6 +10,7 @@ export enum NotificationType {
   BLOG_COMMENT = 'blog_comment',
   FORUM_COMMENT = 'forum_comment',
   FORUM_REPLY = 'forum_reply',
+  BESTIARY_COMMENT = 'bestiary_comment',
   SUBSCRIPTION_NEW = 'subscription_new',
   PAYMENT_CONFIRMED = 'payment_confirmed',
   PAYMENT_FAILED = 'payment_failed',
@@ -23,6 +24,7 @@ export type NotificationReferenceType =
   | 'game_table'
   | 'subscription'
   | 'forum_thread'
+  | 'bestiary'
   | 'admin';
 
 export interface Notification {

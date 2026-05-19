@@ -1,5 +1,11 @@
 import React from 'react';
-import { Route, Switch, useHistory, useLocation } from 'react-router-dom';
+import {
+  Route,
+  Switch,
+  Redirect,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import { useDispatch, Provider } from 'react-redux';
 
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
@@ -52,6 +58,7 @@ import { saveSystemSetup } from './store/slices/auth/authSlice';
 import store, { persistor, AppDispatch } from './store';
 import { setFeatureFlags } from './store/slices/system/systemSlice';
 import { DEFAULT_FEATURE_FLAGS } from './types/featureFlags.types';
+import { useFeatureAccess } from './hooks/useFeatureAccess';
 import { SupplementId } from './types/supplement.types';
 import logoFichasDeNimb from './assets/images/logoFichasDeNimb.svg';
 // Support page
@@ -65,6 +72,9 @@ import {
   BuildViewPage as PremiumBuildViewPage,
   BuildsListPage,
   MyBuildsPage,
+  BestiaryListPage,
+  MyBestiaryPage,
+  BestiaryViewPage as PremiumBestiaryViewPage,
   GameTableProvider,
   GameTablesPage,
   GameTableDetailPage,
@@ -203,6 +213,7 @@ function ThemedApp(): JSX.Element {
   const { accentColor, darkMode, setDarkMode } = useUserPreferences();
 
   const [sidebarVisibility, setSidebarVisibility] = React.useState(false);
+  const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
 
   // Fetch feature flags on mount (public endpoint, no auth required)
   React.useEffect(() => {
@@ -329,7 +340,7 @@ function ThemedApp(): JSX.Element {
                                   <MainScreen isDarkMode={darkMode} />
                                 </Route>
                                 <Route path='/database'>
-                                  <Database isDarkMode={darkMode} />
+                                  <Database />
                                 </Route>
                                 <Route path='/caverna-do-saber'>
                                   <CavernaDoSaber />
@@ -352,6 +363,29 @@ function ThemedApp(): JSX.Element {
                                 </Route>
                                 <Route path='/build/:id'>
                                   <PremiumBuildViewPage />
+                                </Route>
+                                <Route path='/bestiario/:id'>
+                                  {bestiaryEnabled ? (
+                                    <PremiumBestiaryViewPage />
+                                  ) : (
+                                    <Redirect to='/' />
+                                  )}
+                                </Route>
+                                <Route path='/meu-bestiario'>
+                                  {bestiaryEnabled ? (
+                                    <ProtectedRoute requireAuth redirectTo='/'>
+                                      <MyBestiaryPage />
+                                    </ProtectedRoute>
+                                  ) : (
+                                    <Redirect to='/' />
+                                  )}
+                                </Route>
+                                <Route path='/bestiario'>
+                                  {bestiaryEnabled ? (
+                                    <BestiaryListPage />
+                                  ) : (
+                                    <Redirect to='/' />
+                                  )}
                                 </Route>
                                 {/* Game Tables - Auth required, premium check done by backend */}
                                 <Route path='/mesas'>

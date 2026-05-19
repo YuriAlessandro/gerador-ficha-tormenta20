@@ -36,6 +36,8 @@ import {
   AbilityRoll,
   ThreatAbility,
   ThreatSpell,
+  ResistanceType,
+  getResistanceSave,
 } from '../../interfaces/ThreatSheet';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import {
@@ -98,6 +100,9 @@ interface ThreatResultProps {
   isSavedToCloud?: boolean;
   onSaveToCloud?: () => Promise<void>;
   viewOnly?: boolean;
+  // Quando true, desabilita todas as rolagens de dados (ex.: ficha exibida
+  // no Bestiário — o usuário deve copiar a ameaça para usá-la).
+  rollsDisabled?: boolean;
   folderInfo?: FolderInfo | null;
   /**
    * Optional callback invoked when the threat is mutated from inside (e.g. the
@@ -124,6 +129,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   isSavedToCloud = false,
   onSaveToCloud,
   viewOnly = false,
+  rollsDisabled = false,
   folderInfo,
   onThreatUpdate,
   onApplyAbilityCondition,
@@ -194,6 +200,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleSkillRoll = (skillName: string, modifier: number) => {
+    if (rollsDisabled) return;
     const roll = rollD20();
     const total = roll + modifier;
     const isCritical = roll === 20;
@@ -220,6 +227,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleAbilityRoll = (abilityName: string, roll: AbilityRoll) => {
+    if (rollsDisabled) return;
     // Build damage string with bonus
     const damageString = `${roll.dice}${roll.bonus >= 0 ? '+' : ''}${
       roll.bonus
@@ -249,6 +257,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     abilityName: string,
     rolls: AbilityRoll[]
   ) => {
+    if (rollsDisabled) return;
     if (!rolls || rolls.length === 0) return;
 
     const rollResults = rolls
@@ -276,6 +285,7 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   };
 
   const handleAttackClick = (attack: ThreatAttack) => {
+    if (rollsDisabled) return;
     const attackRoll = rollD20();
     const attackTotal = Math.max(1, attackRoll + attack.attackBonus);
     const criticalThreshold = attack.criticalThreshold || 20;
@@ -417,15 +427,8 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   );
 
   // Get numeric resistance value
-  const getResistanceNumeric = (type: string) => {
-    if (type === 'strong') {
-      return threat.combatStats.strongSave;
-    }
-    if (type === 'medium') {
-      return threat.combatStats.mediumSave;
-    }
-    return threat.combatStats.weakSave;
-  };
+  const getResistanceNumeric = (type: string) =>
+    getResistanceSave(type as ResistanceType, threat.combatStats);
 
   // Format resistance values
   const getResistanceValue = (type: string) => {

@@ -244,12 +244,37 @@ const weaponMatchesBonus = (
     weaponName?: string;
     weaponTags?: string[];
     proficiencyRequired?: boolean;
+    meleeOnly?: boolean;
+    rangedOnly?: boolean;
   },
   _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
     return false;
+  }
+
+  // Apenas armas corpo a corpo: exclui armas à distância (têm `alcance`
+  // real e não são de arremesso — ex.: arcos, bestas, armas de fogo).
+  // Armas de arremesso (adaga, azagaia) continuam valendo por serem
+  // usáveis corpo a corpo.
+  if (bonus.meleeOnly) {
+    const { alcance } = weapon;
+    const isRanged = !!alcance && alcance !== '-' && !weapon.arremesso;
+    if (isRanged) {
+      return false;
+    }
+  }
+
+  // Apenas armas à distância: exclui corpo a corpo puro (sem `alcance` ou
+  // `alcance` '-'). Armas de arremesso (têm `alcance`) contam como à
+  // distância para este filtro.
+  if (bonus.rangedOnly) {
+    const { alcance } = weapon;
+    const isRangedWeapon = !!alcance && alcance !== '-';
+    if (!isRangedWeapon) {
+      return false;
+    }
   }
 
   // Check weapon tags
@@ -522,7 +547,9 @@ const calcDisplacement = (
     const isOverloaded = totalUsedSpaces > maxSpaces;
 
     if (isOverloaded || hasHeavyArmor) {
-      return raceDisplacement - 3;
+      // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
+      // condições, efeitos ativos como Ímpeto) ainda somam por cima.
+      return raceDisplacement - 3 + baseDisplacement;
     }
   }
 
@@ -899,6 +926,40 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
 }
 
 /**
+ * Aplica os bônus dos efeitos ativos (poderes com bônus temporário, ex.:
+ * Inspiração do Bardo). Espelha `applyConditionBonuses`, mas:
+ *  - cada `ActiveEffect` carrega seus próprios `bonuses` (já resolvidos no
+ *    momento do uso a partir do tier escolhido), então não há `generate`;
+ *  - efeitos distintos somam (v1) — não há regra de não-acúmulo entre eles;
+ *  - PM/PV temporários (`grantsTempPM/PV`) NÃO são tratados aqui: são
+ *    aplicados imperativamente ao ativar/desativar o efeito, evitando
+ *    compounding a cada recálculo (sheetBonuses é zerado no Step 1, mas
+ *    tempPM/tempPV não têm "base" para recomputar).
+ */
+function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  const active = updated.activeEffects ?? [];
+  if (active.length === 0) return updated;
+
+  active.forEach((eff) => {
+    eff.bonuses.forEach((b) => {
+      updated.sheetBonuses.push({
+        source: {
+          type: 'activeEffect',
+          powerKey: eff.powerKey,
+          name: eff.name,
+        },
+        target: b.target,
+        modifier: b.modifier,
+      });
+    });
+  });
+
+  return updated;
+}
+
+/**
  * Reverts the side effects of a power/ability identified by `powerName` by
  * walking its `sheetActionHistory` entries and undoing arrays mutated outside
  * `sheetBonuses` (which is wiped in Step 1 of `recalculateSheet`).
@@ -1022,10 +1083,26 @@ export function reverseSheetActionsForPower(
     });
   });
 
-  // Remove history entries for this power
-  sheet.sheetActionHistory = sheet.sheetActionHistory.filter(
-    (entry) => entry.powerName !== powerName
-  );
+  // Remove history entries for this power.
+  // Note: powers granted via a `getGeneralPower` sheetAction store the entry
+  // keyed by the *source ability* name (e.g. "Linhagem Rubra"), not by the
+  // granted power name. So besides dropping entries keyed by this power, also
+  // strip any `PowerAdded`/`ClassPowerAdded` change that references it and drop
+  // entries left without changes — keeping other grants from the same ability.
+  sheet.sheetActionHistory = sheet.sheetActionHistory
+    .filter((entry) => entry.powerName !== powerName)
+    .map((entry) => ({
+      ...entry,
+      changes: entry.changes.filter(
+        (change) =>
+          !(
+            (change.type === 'PowerAdded' ||
+              change.type === 'ClassPowerAdded') &&
+            change.powerName === powerName
+          )
+      ),
+    }))
+    .filter((entry) => entry.changes.length > 0);
 }
 
 /**
@@ -1092,11 +1169,16 @@ function synthesizeHistoryForRemovedPowers(
     sourcesWithGetPower.forEach((source) => {
       if (!source.availablePowerNames.includes(removedPower)) return;
 
-      // Check if history already has an entry for this source ability
+      // Check if history already records this source ability granting THIS
+      // specific power. Per-ability granularity is too coarse: an ability that
+      // can grant several powers (e.g. Linhagem Rubra → any Tormenta power)
+      // would wrongly look "already handled" for a different removed power.
       const hasHistory = sheet.sheetActionHistory.some(
         (entry) =>
           entry.powerName === source.abilityName &&
-          entry.changes.some((c) => c.type === 'PowerAdded')
+          entry.changes.some(
+            (c) => c.type === 'PowerAdded' && c.powerName === removedPower
+          )
       );
 
       if (!hasHistory) {
@@ -1242,6 +1324,18 @@ export function recalculateSheet(
     removedPowerNames.forEach((powerName) => {
       reverseSheetActionsForPower(updatedSheet, powerName);
     });
+
+    // If the user removed the general power that Osteon's "Memória Póstuma"
+    // deterministically replays from `osteonMemoriaPostumaChoice`, clear the
+    // stored choice. Otherwise `applyOsteonMemoriaPostuma` (special.ts) would
+    // re-inject the removed power into `generalPowers` on every recalculation,
+    // making it impossible to delete via the Powers edit drawer.
+    if (
+      updatedSheet.osteonMemoriaPostumaChoice?.type === 'power' &&
+      removedPowerNames.includes(updatedSheet.osteonMemoriaPostumaChoice.value)
+    ) {
+      updatedSheet.osteonMemoriaPostumaChoice = undefined;
+    }
   }
 
   // Step 0.5: Synthesize history entries for removed powers so that
@@ -1286,6 +1380,11 @@ export function recalculateSheet(
   //   - Attribute targets mutate atributos directly (before skills/defense recalc)
   //   - Other targets are pushed to sheetBonuses for the main loop
   updatedSheet = applyConditionBonuses(updatedSheet);
+
+  // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
+  // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
+  // replace it. Pushes SheetBonus entries for the main loop below.
+  updatedSheet = applyActiveEffectBonuses(updatedSheet);
 
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined
@@ -1592,6 +1691,14 @@ export function recalculateSheet(
     (bonus) => bonus.target.type === 'DisplacementOverride'
   );
 
+  const baseDisplacementBonuses = updatedSheet.sheetBonuses
+    .filter((bonus) => bonus.target.type === 'Displacement')
+    .reduce(
+      (acc, bonus) =>
+        acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
+      0
+    );
+
   if (displacementOverrideBonus) {
     updatedSheet.displacement = calculateBonusValue(
       updatedSheet,
@@ -1599,16 +1706,10 @@ export function recalculateSheet(
       displacementOverrideBonus.source
     );
   } else if (updatedSheet.customDisplacement !== undefined) {
-    updatedSheet.displacement = updatedSheet.customDisplacement;
+    // Base manual + bônus (poderes/condições/efeitos ativos) por cima.
+    updatedSheet.displacement =
+      updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
-    const baseDisplacementBonuses = updatedSheet.sheetBonuses
-      .filter((bonus) => bonus.target.type === 'Displacement')
-      .reduce(
-        (acc, bonus) =>
-          acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
-        0
-      );
-
     updatedSheet.displacement = calcDisplacement(
       updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),

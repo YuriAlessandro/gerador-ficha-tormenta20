@@ -36,6 +36,7 @@ import {
   Aprimoramento,
 } from '@/interfaces/Spells';
 import { isValidDiceString } from '@/utils/diceRoller';
+import { SCHOOL_LABELS } from '@/components/SpellPicker/schoolLabels';
 
 interface CustomSpellDialogProps {
   open: boolean;
@@ -48,17 +49,6 @@ interface CustomSpellDialogProps {
 const EXECUCAO_OPTIONS = ['Padrão', 'Movimento', 'Completa', 'Reação'];
 const ALCANCE_OPTIONS = ['Pessoal', 'Toque', 'Curto', 'Médio', 'Longo'];
 const DURACAO_OPTIONS = ['Instantânea', 'Cena'];
-
-const SCHOOL_LABELS: Record<SpellSchool, string> = {
-  Abjur: 'Abjuração',
-  Adiv: 'Adivinhação',
-  Conv: 'Convocação',
-  Encan: 'Encantamento',
-  Evoc: 'Evocação',
-  Ilusão: 'Ilusão',
-  Necro: 'Necromancia',
-  Trans: 'Transmutação',
-};
 
 const CustomSpellDialog: React.FC<CustomSpellDialogProps> = ({
   open,
