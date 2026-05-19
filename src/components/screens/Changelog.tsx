@@ -163,8 +163,8 @@ const Changelog: React.FC = () => {
                   color='text.secondary'
                   sx={{ mb: 1 }}
                 >
-                  <strong>Agora também em magias:</strong> magias que alteram a
-                  ficha temporariamente — como <strong>Armadura Arcana</strong>,{' '}
+                  <strong>Também em magias:</strong> magias que alteram a ficha
+                  temporariamente — como <strong>Armadura Arcana</strong>,{' '}
                   <strong>Bênção</strong>, <strong>Pele de Pedra</strong> ou a{' '}
                   <strong>Aura Divina</strong> — passam a oferecer o efeito{' '}
                   <strong>ao confirmar o lançamento</strong>. A tela de lançar
@@ -204,20 +204,6 @@ const Changelog: React.FC = () => {
                   termo destacado, e um clique leva direto à aba certa.
                 </li>
                 <li>
-                  <strong>
-                    Melhoria: cálculo de deslocamento mais robusto.
-                  </strong>{' '}
-                  Bônus de deslocamento vindos de poderes, condições e efeitos
-                  ativos passam a somar corretamente por cima de penalidades de
-                  armadura pesada/sobrecarga e do deslocamento ajustado
-                  manualmente.
-                </li>
-                <li>
-                  <strong>Melhoria:</strong> o botão{' '}
-                  <strong>Publicar no Bestiário</strong> foi realinhado à
-                  largura do conteúdo da ameaça.
-                </li>
-                <li>
                   <strong>Novo: filtros avançados de magia</strong> em todos os
                   lugares onde você escolhe magias — no assistente de criação de
                   ficha, no assistente de subir de nível e no painel de{' '}
@@ -240,6 +226,20 @@ const Changelog: React.FC = () => {
                   discretos para cada aba do compêndio.
                 </li>
                 <li>
+                  <strong>
+                    Melhoria: cálculo de deslocamento mais robusto.
+                  </strong>{' '}
+                  Bônus de deslocamento vindos de poderes, condições e efeitos
+                  ativos passam a somar corretamente por cima de penalidades de
+                  armadura pesada/sobrecarga e do deslocamento ajustado
+                  manualmente.
+                </li>
+                <li>
+                  <strong>Melhoria:</strong> o botão{' '}
+                  <strong>Publicar no Bestiário</strong> foi realinhado à
+                  largura do conteúdo da ameaça.
+                </li>
+                <li>
                   <strong>Melhoria:</strong> a Biblioteca (compêndio de regras)
                   pode ser exibida embutida em outros contextos, como dentro da
                   mesa virtual, sem interferir no título da aba nem exibir
@@ -249,10 +249,6 @@ const Changelog: React.FC = () => {
                   <strong>Melhoria:</strong> o carrossel de destaques da página
                   inicial passou a ser configurado pelo servidor, permitindo
                   atualizar os destaques sem precisar de uma nova versão do app.
-                </li>
-                <li>
-                  <strong>Correção:</strong> resolvido um problema que causava{' '}
-                  <strong>tela branca em produção</strong> ao abrir o app.
                 </li>
                 <li>
                   <strong>Correção:</strong> ao remover um{' '}
