@@ -10,8 +10,8 @@ import {
   ThreatSkill,
   ThreatSheet,
   ResistanceAssignments,
-  ResistanceType,
   BonusDamageDice,
+  getResistanceSave,
 } from '../interfaces/ThreatSheet';
 import { SkillsAttrs } from '../interfaces/Skills';
 
@@ -151,44 +151,34 @@ export function calculateAllSkills(
   Object.entries(SkillsAttrs).forEach(([skillName, attribute]) => {
     const existingSkill = existingSkills.find((s) => s.name === skillName);
     const trained = existingSkill?.trained || false;
-    let customBonus = existingSkill?.customBonus || 0;
+    const customBonus = existingSkill?.customBonus || 0;
     const overrideTotal = existingSkill?.overrideTotal;
     const attributeValue = attributes[attribute] ?? 0;
     const attributeModifier = calculateAttributeModifier(attributeValue);
 
-    // Apply resistance bonuses for Fortitude, Reflexos, Vontade
-    if (resistanceAssignments && combatStats) {
-      const resistanceSkills = ['Fortitude', 'Reflexos', 'Vontade'];
-      if (resistanceSkills.includes(skillName)) {
-        const resistanceType =
-          resistanceAssignments[skillName as keyof ResistanceAssignments];
-        let resistanceBonus = 0;
+    // Resistências (Fortitude, Reflexos, Vontade) usam o valor final da
+    // tabela de combate por ND — não passam pela fórmula genérica de perícia
+    // (½ND + atributo + treino) e o bônus de resistência NÃO é dobrado dentro
+    // de customBonus, que permanece apenas o bônus custom do usuário. Assim o
+    // recálculo é idempotente e o valor bate com o statblock (getResistanceNumeric).
+    const resistanceSkills = ['Fortitude', 'Reflexos', 'Vontade'];
+    const isResistanceSkill = resistanceSkills.includes(skillName);
 
-        switch (resistanceType) {
-          case ResistanceType.STRONG:
-            resistanceBonus = combatStats.weakSave; // Strong resistance = lowest bonus
-            break;
-          case ResistanceType.MEDIUM:
-            resistanceBonus = combatStats.mediumSave; // Medium resistance = medium bonus
-            break;
-          case ResistanceType.WEAK:
-            resistanceBonus = combatStats.strongSave; // Weak resistance = highest bonus
-            break;
-          default:
-            resistanceBonus = 0;
-        }
+    let total: number;
+    if (isResistanceSkill && resistanceAssignments && combatStats) {
+      const resistanceType =
+        resistanceAssignments[skillName as keyof ResistanceAssignments];
+      const resistanceSave = getResistanceSave(resistanceType, combatStats);
 
-        // Apply the resistance bonus as a custom bonus
-        customBonus += resistanceBonus;
-      }
+      total = resistanceSave + customBonus;
+    } else {
+      total = calculateSkillValue(
+        challengeLevel,
+        attributeModifier,
+        trained,
+        customBonus
+      );
     }
-
-    const total = calculateSkillValue(
-      challengeLevel,
-      attributeModifier,
-      trained,
-      customBonus
-    );
 
     skills.push({
       name: skillName,

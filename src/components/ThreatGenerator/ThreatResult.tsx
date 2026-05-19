@@ -36,6 +36,8 @@ import {
   AbilityRoll,
   ThreatAbility,
   ThreatSpell,
+  ResistanceType,
+  getResistanceSave,
 } from '../../interfaces/ThreatSheet';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import {
@@ -425,15 +427,8 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
   );
 
   // Get numeric resistance value
-  const getResistanceNumeric = (type: string) => {
-    if (type === 'strong') {
-      return threat.combatStats.strongSave;
-    }
-    if (type === 'medium') {
-      return threat.combatStats.mediumSave;
-    }
-    return threat.combatStats.weakSave;
-  };
+  const getResistanceNumeric = (type: string) =>
+    getResistanceSave(type as ResistanceType, threat.combatStats);
 
   // Format resistance values
   const getResistanceValue = (type: string) => {
