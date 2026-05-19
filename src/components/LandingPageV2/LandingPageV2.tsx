@@ -1,12 +1,14 @@
 import React from 'react';
 import { Box, Stack, useTheme } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
+import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { SEO, getPageSEO } from '../SEO';
 import '../../assets/css/landing-page-v2.css';
 import background from '../../assets/images/fantasybg.png';
 
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
+import BestiaryBanner from './BestiaryBanner';
 import RecentSheetsSection from './RecentSheetsSection';
 import MainToolsSection from './MainToolsSection';
 import SecondaryToolsSection from './SecondaryToolsSection';
@@ -19,6 +21,7 @@ interface LandingPageV2Props {
 
 const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   const { isAuthenticated } = useAuth();
+  const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
   const theme = useTheme();
   const isDarkTheme = theme.palette.mode === 'dark';
 
@@ -127,16 +130,26 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               </Box>
             </Box>
 
+            {/* Bestiary Highlight Banner */}
+            {bestiaryEnabled && (
+              <Box
+                className='landing-section'
+                sx={{ order: 3, gridColumn: '1', mt: 1 }}
+              >
+                <BestiaryBanner onClickButton={onClickButton} />
+              </Box>
+            )}
+
             {/* Support Banner */}
             <Box
               className='landing-section'
-              sx={{ order: 3, gridColumn: '1', mt: 1 }}
+              sx={{ order: 4, gridColumn: '1', mt: 1 }}
             >
               <SupportBanner onClickButton={onClickButton} />
             </Box>
 
             {/* Main Tools Section */}
-            <Box className='landing-section' sx={{ order: 4, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 5, gridColumn: '1' }}>
               <MainToolsSection
                 onClickButton={onClickButton}
                 isAuthenticated={isAuthenticated}
@@ -144,7 +157,7 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             </Box>
 
             {/* Game Sessions Section */}
-            <Box className='landing-section' sx={{ order: 5, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 6, gridColumn: '1' }}>
               <GameSessionsSection
                 onClickButton={onClickButton}
                 isAuthenticated={isAuthenticated}
@@ -152,7 +165,7 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             </Box>
 
             {/* Secondary Tools Section */}
-            <Box className='landing-section' sx={{ order: 6, gridColumn: '1' }}>
+            <Box className='landing-section' sx={{ order: 7, gridColumn: '1' }}>
               <SecondaryToolsSection onClickButton={onClickButton} />
             </Box>
           </Box>

@@ -244,12 +244,37 @@ const weaponMatchesBonus = (
     weaponName?: string;
     weaponTags?: string[];
     proficiencyRequired?: boolean;
+    meleeOnly?: boolean;
+    rangedOnly?: boolean;
   },
   _sheet: CharacterSheet
 ): boolean => {
   // Check specific weapon name
   if (bonus.weaponName && weapon.nome !== bonus.weaponName) {
     return false;
+  }
+
+  // Apenas armas corpo a corpo: exclui armas à distância (têm `alcance`
+  // real e não são de arremesso — ex.: arcos, bestas, armas de fogo).
+  // Armas de arremesso (adaga, azagaia) continuam valendo por serem
+  // usáveis corpo a corpo.
+  if (bonus.meleeOnly) {
+    const { alcance } = weapon;
+    const isRanged = !!alcance && alcance !== '-' && !weapon.arremesso;
+    if (isRanged) {
+      return false;
+    }
+  }
+
+  // Apenas armas à distância: exclui corpo a corpo puro (sem `alcance` ou
+  // `alcance` '-'). Armas de arremesso (têm `alcance`) contam como à
+  // distância para este filtro.
+  if (bonus.rangedOnly) {
+    const { alcance } = weapon;
+    const isRangedWeapon = !!alcance && alcance !== '-';
+    if (!isRangedWeapon) {
+      return false;
+    }
   }
 
   // Check weapon tags
@@ -522,7 +547,9 @@ const calcDisplacement = (
     const isOverloaded = totalUsedSpaces > maxSpaces;
 
     if (isOverloaded || hasHeavyArmor) {
-      return raceDisplacement - 3;
+      // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
+      // condições, efeitos ativos como Ímpeto) ainda somam por cima.
+      return raceDisplacement - 3 + baseDisplacement;
     }
   }
 
@@ -893,6 +920,40 @@ function applyConditionBonuses(sheet: CharacterSheet): CharacterSheet {
   const aggregated = aggregateConditionBonuses(collected);
   aggregated.forEach((b) => {
     updated.sheetBonuses.push(b);
+  });
+
+  return updated;
+}
+
+/**
+ * Aplica os bônus dos efeitos ativos (poderes com bônus temporário, ex.:
+ * Inspiração do Bardo). Espelha `applyConditionBonuses`, mas:
+ *  - cada `ActiveEffect` carrega seus próprios `bonuses` (já resolvidos no
+ *    momento do uso a partir do tier escolhido), então não há `generate`;
+ *  - efeitos distintos somam (v1) — não há regra de não-acúmulo entre eles;
+ *  - PM/PV temporários (`grantsTempPM/PV`) NÃO são tratados aqui: são
+ *    aplicados imperativamente ao ativar/desativar o efeito, evitando
+ *    compounding a cada recálculo (sheetBonuses é zerado no Step 1, mas
+ *    tempPM/tempPV não têm "base" para recomputar).
+ */
+function applyActiveEffectBonuses(sheet: CharacterSheet): CharacterSheet {
+  const updated = _.cloneDeep(sheet);
+
+  const active = updated.activeEffects ?? [];
+  if (active.length === 0) return updated;
+
+  active.forEach((eff) => {
+    eff.bonuses.forEach((b) => {
+      updated.sheetBonuses.push({
+        source: {
+          type: 'activeEffect',
+          powerKey: eff.powerKey,
+          name: eff.name,
+        },
+        target: b.target,
+        modifier: b.modifier,
+      });
+    });
   });
 
   return updated;
@@ -1320,6 +1381,11 @@ export function recalculateSheet(
   //   - Other targets are pushed to sheetBonuses for the main loop
   updatedSheet = applyConditionBonuses(updatedSheet);
 
+  // Step 7.45: Apply active effect bonuses (powers with temporary bonus,
+  // e.g. Bard's Inspiração). Parallel pipeline to conditions — does not
+  // replace it. Pushes SheetBonus entries for the main loop below.
+  updatedSheet = applyActiveEffectBonuses(updatedSheet);
+
   // Check for manual max overrides - when set, skip ALL recalculation for that stat
   // Player takes full control of these values when manually defined
   const hasManualMaxPV =
@@ -1625,6 +1691,14 @@ export function recalculateSheet(
     (bonus) => bonus.target.type === 'DisplacementOverride'
   );
 
+  const baseDisplacementBonuses = updatedSheet.sheetBonuses
+    .filter((bonus) => bonus.target.type === 'Displacement')
+    .reduce(
+      (acc, bonus) =>
+        acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
+      0
+    );
+
   if (displacementOverrideBonus) {
     updatedSheet.displacement = calculateBonusValue(
       updatedSheet,
@@ -1632,16 +1706,10 @@ export function recalculateSheet(
       displacementOverrideBonus.source
     );
   } else if (updatedSheet.customDisplacement !== undefined) {
-    updatedSheet.displacement = updatedSheet.customDisplacement;
+    // Base manual + bônus (poderes/condições/efeitos ativos) por cima.
+    updatedSheet.displacement =
+      updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
-    const baseDisplacementBonuses = updatedSheet.sheetBonuses
-      .filter((bonus) => bonus.target.type === 'Displacement')
-      .reduce(
-        (acc, bonus) =>
-          acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
-        0
-      );
-
     updatedSheet.displacement = calcDisplacement(
       updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),

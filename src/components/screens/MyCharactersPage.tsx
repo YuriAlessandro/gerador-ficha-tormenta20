@@ -58,6 +58,7 @@ import {
   Folder as FolderIcon,
   CheckBox as CheckBoxIcon,
   DragIndicator as DragIndicatorIcon,
+  Public as PublishBestiaryIcon,
 } from '@mui/icons-material';
 import { useHistory, useLocation } from 'react-router-dom';
 import {
@@ -89,6 +90,7 @@ import {
   BatchSelectToolbar,
   useBatchThreatExport,
 } from '../../premium/components/BatchThreatExport';
+import { PublishBestiaryModal } from '../../premium';
 import { SupportLevel } from '../../types/subscription.types';
 
 const MyCharactersPage: React.FC = () => {
@@ -181,6 +183,9 @@ const MyCharactersPage: React.FC = () => {
     null
   );
   const [sheetToMove, setSheetToMove] = useState<SheetListData | null>(null);
+  const [sheetToPublish, setSheetToPublish] = useState<SheetListData | null>(
+    null
+  );
 
   // Drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -1197,6 +1202,17 @@ const MyCharactersPage: React.FC = () => {
                       <MoveIcon />
                     </IconButton>
                   </Tooltip>
+                  {sheet.sheetData?.isThreat && (
+                    <Tooltip title='Publicar no Bestiário'>
+                      <IconButton
+                        size='small'
+                        color='secondary'
+                        onClick={() => setSheetToPublish(sheet)}
+                      >
+                        <PublishBestiaryIcon />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
                 <Tooltip title='Excluir'>
                   <IconButton
@@ -1875,6 +1891,20 @@ const MyCharactersPage: React.FC = () => {
           {/* Spacer to prevent content from being hidden behind fixed toolbar */}
           <Box sx={{ height: 80 }} />
         </>
+      )}
+
+      {/* Publicar ameaça no Bestiário da Comunidade */}
+      {sheetToPublish && (
+        <PublishBestiaryModal
+          open={Boolean(sheetToPublish)}
+          presetSheetId={sheetToPublish.id}
+          presetName={sheetToPublish.sheetData?.name || sheetToPublish.name}
+          onClose={() => setSheetToPublish(null)}
+          onSuccess={(pub) => {
+            setSheetToPublish(null);
+            history.push(`/bestiario/${pub.id}`);
+          }}
+        />
       )}
     </Container>
   );

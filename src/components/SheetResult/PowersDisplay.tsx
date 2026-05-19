@@ -19,8 +19,14 @@ import CharacterSheet, {
 import { getAutoridadeEclesiasticaDynamicText } from '@/functions/powers/frade-special';
 import { CustomPower } from '@/interfaces/CustomPower';
 import { applyPowersOrder } from '@/functions/powers/applyPowersOrder';
+import { getActivePowerForSheetEntry } from '@/premium/data/activePowers';
+import type {
+  ActivePowerDefinition,
+  ActiveEffectUsageOption,
+} from '@/premium/interfaces/ActiveEffect';
 import PowerDisplay from './PowerDisplay';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
+import PowerActiveEffectAction from './PowerActiveEffectAction';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -59,6 +65,10 @@ const PowersDisplay: React.FC<{
   parodyButtonSlot?: React.ReactNode;
   sheet?: CharacterSheet;
   onSheetUpdate?: (updatedSheet: CharacterSheet) => void;
+  onActivateEffect?: (
+    definition: ActivePowerDefinition,
+    option: ActiveEffectUsageOption
+  ) => void;
 }> = ({
   sheetHistory,
   classPowers,
@@ -78,6 +88,7 @@ const PowersDisplay: React.FC<{
   parodyButtonSlot,
   sheet,
   onSheetUpdate,
+  onActivateEffect,
 }) => {
   // Aplica texto dinâmico para poderes que dependem da divindade
   const processedClassPowers = useMemo(
@@ -205,6 +216,18 @@ const PowersDisplay: React.FC<{
           onSheetUpdate={onSheetUpdate}
         />
       );
+    }
+    if (sheet && onActivateEffect) {
+      const activeDef = getActivePowerForSheetEntry(className, pw.name);
+      if (activeDef) {
+        return (
+          <PowerActiveEffectAction
+            definition={activeDef}
+            sheet={sheet}
+            onActivate={onActivateEffect}
+          />
+        );
+      }
     }
     return undefined;
   };
