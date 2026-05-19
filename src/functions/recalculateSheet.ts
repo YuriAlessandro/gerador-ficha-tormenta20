@@ -547,7 +547,9 @@ const calcDisplacement = (
     const isOverloaded = totalUsedSpaces > maxSpaces;
 
     if (isOverloaded || hasHeavyArmor) {
-      return raceDisplacement - 3;
+      // Penalidade de armadura pesada/sobrecarga, mas bônus (poderes,
+      // condições, efeitos ativos como Ímpeto) ainda somam por cima.
+      return raceDisplacement - 3 + baseDisplacement;
     }
   }
 
@@ -1656,6 +1658,14 @@ export function recalculateSheet(
     (bonus) => bonus.target.type === 'DisplacementOverride'
   );
 
+  const baseDisplacementBonuses = updatedSheet.sheetBonuses
+    .filter((bonus) => bonus.target.type === 'Displacement')
+    .reduce(
+      (acc, bonus) =>
+        acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
+      0
+    );
+
   if (displacementOverrideBonus) {
     updatedSheet.displacement = calculateBonusValue(
       updatedSheet,
@@ -1663,16 +1673,10 @@ export function recalculateSheet(
       displacementOverrideBonus.source
     );
   } else if (updatedSheet.customDisplacement !== undefined) {
-    updatedSheet.displacement = updatedSheet.customDisplacement;
+    // Base manual + bônus (poderes/condições/efeitos ativos) por cima.
+    updatedSheet.displacement =
+      updatedSheet.customDisplacement + baseDisplacementBonuses;
   } else {
-    const baseDisplacementBonuses = updatedSheet.sheetBonuses
-      .filter((bonus) => bonus.target.type === 'Displacement')
-      .reduce(
-        (acc, bonus) =>
-          acc + calculateBonusValue(updatedSheet, bonus.modifier, bonus.source),
-        0
-      );
-
     updatedSheet.displacement = calcDisplacement(
       updatedSheet.bag,
       getRaceDisplacement(updatedSheet.raca),

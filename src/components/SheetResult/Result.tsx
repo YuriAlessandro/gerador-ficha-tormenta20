@@ -10,6 +10,7 @@ import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
+  Badge,
   Box,
   Card,
   Chip,
@@ -75,6 +76,7 @@ import socketService, {
 import {
   getActiveEffectHighlights,
   getActiveEffectLabelStyle,
+  ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
 import { getAvailableActivePowers } from '@/premium/data/activePowers';
 import type {
@@ -2013,24 +2015,49 @@ const Result: React.FC<ResultProps> = (props) => {
                 sx={{ position: 'absolute', top: -16, right: 16 }}
               >
                 {(getAvailableActivePowers(currentSheet).length > 0 ||
-                  (currentSheet.activeEffects?.length ?? 0) > 0) && (
-                  <Tooltip title='Efeitos ativos'>
-                    <IconButton
-                      size='small'
-                      sx={{
-                        backgroundColor: theme.palette.primary.main,
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: theme.palette.primary.dark,
-                        },
-                      }}
-                      onClick={() => setEffectsModalOpen(true)}
-                    >
-                      <AutoAwesomeIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                  (currentSheet.activeEffects?.length ?? 0) > 0) &&
+                  (() => {
+                    const activeCount = currentSheet.activeEffects?.length ?? 0;
+                    const hasActive = activeCount > 0;
+                    return (
+                      <Tooltip
+                        title={
+                          hasActive
+                            ? `Efeitos ativos (${activeCount})`
+                            : 'Efeitos ativos'
+                        }
+                      >
+                        <Badge
+                          badgeContent={activeCount}
+                          color='error'
+                          overlap='circular'
+                          invisible={!hasActive}
+                        >
+                          <IconButton
+                            size='small'
+                            sx={{
+                              backgroundColor: hasActive
+                                ? ACTIVE_EFFECT_COLOR
+                                : theme.palette.primary.main,
+                              color: 'white',
+                              borderRadius: 1,
+                              '&:hover': {
+                                backgroundColor: hasActive
+                                  ? ACTIVE_EFFECT_COLOR
+                                  : theme.palette.primary.dark,
+                                filter: hasActive
+                                  ? 'brightness(0.92)'
+                                  : undefined,
+                              },
+                            }}
+                            onClick={() => setEffectsModalOpen(true)}
+                          >
+                            <AutoAwesomeIcon />
+                          </IconButton>
+                        </Badge>
+                      </Tooltip>
+                    );
+                  })()}
                 {onSheetUpdate && (
                   <IconButton
                     size='small'
