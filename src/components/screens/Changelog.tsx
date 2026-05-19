@@ -95,10 +95,9 @@ const Changelog: React.FC = () => {
                   <strong>publicar suas ameaças</strong> direto de{' '}
                   <strong>Minhas Ameaças</strong> ou da tela da ameaça (botão{' '}
                   <strong>Publicar no Bestiário</strong>), escrevendo a
-                  descrição no mesmo <strong>editor markdown do fórum</strong>.
-                  Há uma seção <strong>Bestiário</strong> no menu lateral para
-                  explorar tudo e uma página <strong>Meu Bestiário</strong> com
-                  as suas publicações.
+                  descrição. Há uma seção <strong>Bestiário</strong> no menu
+                  lateral para explorar tudo e uma página{' '}
+                  <strong>Meu Bestiário</strong> com as suas publicações.
                 </Typography>
                 <Typography
                   variant='body2'
@@ -107,9 +106,7 @@ const Changelog: React.FC = () => {
                 >
                   <strong>Copiar para usar:</strong> gostou de uma criatura?
                   Copie a ameaça para a sua conta com um clique e use nas suas
-                  mesas. Para preservar o equilíbrio, as rolagens ficam
-                  desabilitadas enquanto você visualiza uma ameaça publicada no
-                  bestiário.
+                  mesas.
                 </Typography>
                 <Typography
                   variant='body2'
@@ -117,17 +114,7 @@ const Changelog: React.FC = () => {
                   sx={{ mb: 1 }}
                 >
                   <strong>Comunidade e curadoria:</strong> avalie e comente as
-                  ameaças (com <strong>comentários aninhados</strong> e{' '}
-                  <strong>ranking</strong> por nota), e receba uma{' '}
-                  <strong>notificação</strong> — com ícone e link direto para a
-                  ameaça — quando alguém comentar nas suas publicações.
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  <strong>Destaque na página inicial:</strong> um banner próprio
-                  do bestiário (sem roubar espaço do carrossel nem das suas
-                  fichas) exibe, no desktop, os{' '}
-                  <strong>3 melhores avaliados das últimas 24h</strong>, com
-                  contador de comentários em cada card.
+                  ameaças.
                 </Typography>
               </Alert>
 
@@ -147,13 +134,12 @@ const Changelog: React.FC = () => {
                   gutterBottom
                   sx={{ color: 'success.dark' }}
                 >
-                  Efeitos Ativos de Poderes
+                  Efeitos Ativos de Poderes e Magias
                 </Typography>
                 <Typography variant='body1' sx={{ mb: 1 }}>
-                  Um motor de <strong>bônus temporários</strong> espelhando o
-                  sistema de Condições: poderes com efeito contínuo — como a{' '}
-                  <strong>Inspiração</strong> do Bardo ou a{' '}
-                  <strong>Fúria</strong> do Bárbaro — agora podem ser{' '}
+                  Um motor de <strong>bônus temporários</strong>: poderes com
+                  efeito contínuo — como a <strong>Inspiração</strong> do Bardo
+                  ou a <strong>Fúria</strong> do Bárbaro — agora podem ser{' '}
                   <strong>ativados direto pela ficha</strong>, no cabeçalho do
                   próprio poder. Enquanto ativos, a ficha{' '}
                   <strong>recalcula sozinha</strong> os valores afetados e
@@ -170,9 +156,23 @@ const Changelog: React.FC = () => {
                   <strong>13 classes</strong>, além de poderes{' '}
                   <strong>gerais</strong> (combate, destino, concedidos,
                   tormenta e magia) e <strong>raciais</strong> (como Camuflagem
-                  Mimética e Coro Sibilante). Bônus restritos a{' '}
-                  <strong>corpo a corpo</strong> ou <strong>à distância</strong>{' '}
-                  são aplicados só ao tipo de ataque correto.
+                  Mimética e Coro Sibilante).
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mb: 1 }}
+                >
+                  <strong>Agora também em magias:</strong> magias que alteram a
+                  ficha temporariamente — como <strong>Armadura Arcana</strong>,{' '}
+                  <strong>Bênção</strong>, <strong>Pele de Pedra</strong> ou a{' '}
+                  <strong>Aura Divina</strong> — passam a oferecer o efeito{' '}
+                  <strong>ao confirmar o lançamento</strong>. A tela de lançar
+                  magia exibe um aviso de <strong>efeito ativo</strong> e, ao
+                  usar a magia, você decide se aplica o bônus na ficha (também{' '}
+                  <strong>ofertado aos aliados</strong> da mesa, como nos
+                  poderes). Cobertura: <strong>33 magias</strong> arcanas e
+                  divinas revisadas, de todos os círculos.
                 </Typography>
                 <Typography
                   variant='body2'
@@ -185,10 +185,6 @@ const Changelog: React.FC = () => {
                   <strong>relatório dos efeitos</strong> usados. O ícone de
                   efeitos da ficha fica <strong>dourado</strong> com um contador
                   quando há algo ativo.
-                </Typography>
-                <Typography variant='body2' color='text.secondary'>
-                  É uma feature exclusiva para apoiadores (remover efeitos já
-                  existentes na ficha continua liberado para todos).
                 </Typography>
               </Alert>
 

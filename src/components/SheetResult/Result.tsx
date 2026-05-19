@@ -68,6 +68,7 @@ import {
   PowerEffectOfferModal,
   ActiveEffectsCleanupModal,
   ActiveEffectsManagerModal,
+  ActivePowerUseDialog,
 } from '@/premium/components/ActiveEffects';
 import socketService, {
   type PowerEffectOfferPayload,
@@ -78,7 +79,10 @@ import {
   getActiveEffectLabelStyle,
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
-import { getAvailableActivePowers } from '@/premium/data/activePowers';
+import {
+  getAvailableActivePowers,
+  getActiveEffectForSpell,
+} from '@/premium/data/activePowers';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -205,6 +209,8 @@ const Result: React.FC<ResultProps> = (props) => {
   const [parodyDialogOpen, setParodyDialogOpen] = useState(false);
   const [pendingOffer, setPendingOffer] =
     useState<PowerEffectOfferPayload | null>(null);
+  const [spellEffectDef, setSpellEffectDef] =
+    useState<ActivePowerDefinition | null>(null);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
   const prevEncounterPhaseRef = React.useRef<string | null>(null);
@@ -784,7 +790,7 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleSpellCast = useCallback(
-    (pmSpent: number) => {
+    (pmSpent: number, spell: Spell) => {
       const currentTemp = currentSheet.tempPM ?? 0;
       const currentPMValue = currentSheet.currentPM ?? currentSheet.pm;
       const tempConsumed = Math.min(currentTemp, pmSpent);
@@ -798,8 +804,18 @@ const Result: React.FC<ResultProps> = (props) => {
       if (onSheetUpdate) {
         onSheetUpdate(updatedSheet);
       }
+
+      // Se a magia lançada tem efeito ativo, oferece a ativação (mesmo fluxo
+      // dos poderes — o PM já foi pago no lançamento, então o efeito não
+      // cobra de novo). A oferta aos aliados da mesa é feita ao confirmar.
+      if (canUseActiveEffects) {
+        const def = getActiveEffectForSpell(spell.nome);
+        if (def) {
+          setSpellEffectDef(def);
+        }
+      }
     },
-    [currentSheet, onSheetUpdate]
+    [currentSheet, onSheetUpdate, canUseActiveEffects]
   );
 
   const handleKeyAttributeChange = useCallback(
@@ -1689,6 +1705,19 @@ const Result: React.FC<ResultProps> = (props) => {
               payload={pendingOffer}
               onAccept={handleAcceptOffer}
               onDecline={() => setPendingOffer(null)}
+            />
+
+            <ActivePowerUseDialog
+              open={spellEffectDef !== null && canUseActiveEffects}
+              definition={spellEffectDef}
+              sheet={currentSheet}
+              onClose={() => setSpellEffectDef(null)}
+              onConfirm={(option) => {
+                if (spellEffectDef) {
+                  handleActiveEffectActivate(spellEffectDef, option);
+                }
+                setSpellEffectDef(null);
+              }}
             />
 
             <ActiveEffectsCleanupModal
