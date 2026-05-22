@@ -151,6 +151,20 @@ const Changelog: React.FC = () => {
                   publicação. Inclui toggle no painel de administração e UI
                   simplificada do editor para esse papel.
                 </li>
+                <li>
+                  <strong>
+                    Novo: publicação anônima por padrão no Bestiário da
+                    Comunidade.
+                  </strong>{' '}
+                  Suas ameaças publicadas agora aparecem como{' '}
+                  <strong>&quot;por Anônimo&quot;</strong> para outros usuários,
+                  protegendo mestres que não querem revelar a autoria e spoilear
+                  os próprios jogadores. Quem preferir aparecer pode desativar a
+                  opção em <strong>Perfil → Sistema</strong>, na nova seção{' '}
+                  <strong>Privacidade</strong>. A página de publicação também
+                  avisa quando você está publicando anonimamente, com atalho
+                  para as configurações.
+                </li>
               </ul>
 
               <h3>4.16</h3>
