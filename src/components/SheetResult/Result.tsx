@@ -79,10 +79,7 @@ import {
   getActiveEffectLabelStyle,
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
-import {
-  getAvailableActivePowers,
-  getActiveEffectForSpell,
-} from '@/premium/data/activePowers';
+import { getActiveEffectForSpell } from '@/premium/data/activePowers';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -245,7 +242,11 @@ const Result: React.FC<ResultProps> = (props) => {
   );
 
   const handleActiveEffectActivate = useCallback(
-    (definition: ActivePowerDefinition, option: ActiveEffectUsageOption) => {
+    (
+      definition: ActivePowerDefinition,
+      option: ActiveEffectUsageOption,
+      opts?: { skipPmCost?: boolean; skipBroadcast?: boolean }
+    ) => {
       const effect: ActiveEffect = {
         instanceId: uuidv4(),
         powerKey: definition.key,
@@ -258,6 +259,7 @@ const Result: React.FC<ResultProps> = (props) => {
         grantsTempPV: option.grantsTempPV,
         appliedAt: new Date().toISOString(),
         appliedBy: { playerName: currentSheet.nome },
+        appliedManually: opts?.skipPmCost ? true : undefined,
       };
       // Substitui qualquer instância anterior do mesmo poder
       const previous = (currentSheet.activeEffects ?? []).filter(
@@ -274,7 +276,7 @@ const Result: React.FC<ResultProps> = (props) => {
       applyRecalculatedSheet({
         ...currentSheet,
         activeEffects: [...previous, effect],
-        currentPM: basePM - option.pmCost,
+        currentPM: opts?.skipPmCost ? basePM : basePM - option.pmCost,
         tempPM: Math.max(
           0,
           (currentSheet.tempPM ?? 0) -
@@ -290,7 +292,7 @@ const Result: React.FC<ResultProps> = (props) => {
       });
 
       // Oferta aos aliados da mesa (no-op fora de mesa)
-      if (definition.affectsAllies) {
+      if (definition.affectsAllies && !opts?.skipBroadcast) {
         socketService.emitPowerEffectUse({
           instanceId: effect.instanceId,
           powerKey: effect.powerKey,
@@ -1730,8 +1732,10 @@ const Result: React.FC<ResultProps> = (props) => {
             <ActiveEffectsManagerModal
               open={effectsModalOpen}
               effects={currentSheet.activeEffects ?? []}
-              readonly={!onSheetUpdate}
+              sheet={currentSheet}
+              readonly={!onSheetUpdate || !canUseActiveEffects}
               onRemove={handleActiveEffectRemove}
+              onActivate={handleActiveEffectActivate}
               onClose={() => setEffectsModalOpen(false)}
             />
 
@@ -2045,9 +2049,7 @@ const Result: React.FC<ResultProps> = (props) => {
                 spacing={1}
                 sx={{ position: 'absolute', top: -16, right: 16 }}
               >
-                {((getAvailableActivePowers(currentSheet).length > 0 &&
-                  canUseActiveEffects) ||
-                  (currentSheet.activeEffects?.length ?? 0) > 0) &&
+                {canUseActiveEffects &&
                   (() => {
                     const activeCount = currentSheet.activeEffects?.length ?? 0;
                     const hasActive = activeCount > 0;
