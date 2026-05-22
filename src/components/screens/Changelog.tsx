@@ -142,6 +142,15 @@ const Changelog: React.FC = () => {
                   Fortitude/Reflexos/Vontade apareciam somados em duplicado.
                   Cálculo corrigido.
                 </li>
+                <li>
+                  <strong>Novo: papel EDITOR no blog.</strong> Adicionado um
+                  novo papel de usuário <strong>EDITOR</strong> que pode criar e
+                  editar seus próprios posts no blog em modo rascunho, enquanto
+                  apenas administradores podem publicar. Útil para colaboradores
+                  que produzem conteúdo, mas precisam de revisão antes da
+                  publicação. Inclui toggle no painel de administração e UI
+                  simplificada do editor para esse papel.
+                </li>
               </ul>
 
               <h3>4.16</h3>
