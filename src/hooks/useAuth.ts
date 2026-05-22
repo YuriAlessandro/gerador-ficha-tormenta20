@@ -22,5 +22,6 @@ export const useAuth = () => {
     error: auth.error,
     isPremium: auth.dbUser?.isPremium || false,
     isModerator: auth.dbUser?.isModerator || false,
+    isEditor: auth.dbUser?.isEditor || false,
   };
 };

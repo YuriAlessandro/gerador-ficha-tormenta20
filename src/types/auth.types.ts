@@ -26,6 +26,7 @@ export interface DbUser {
   darkMode?: boolean;
   termsAcceptedVersion?: number;
   isModerator?: boolean;
+  isEditor?: boolean;
 }
 
 export interface AuthState {
