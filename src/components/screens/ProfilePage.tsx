@@ -64,6 +64,7 @@ import {
   updateProfile,
   saveSystemSetup,
   saveDice3DSettings,
+  saveBestiaryAnonymous,
 } from '../../store/slices/auth/authSlice';
 import {
   SupplementId,
@@ -155,6 +156,16 @@ const ProfilePage: React.FC = () => {
   const [dice3DLoading, setDice3DLoading] = useState(false);
   const [dice3DError, setDice3DError] = useState<string | null>(null);
   const [dice3DSuccess, setDice3DSuccess] = useState(false);
+  const [bestiaryAnonymous, setBestiaryAnonymousState] = useState(
+    currentUser?.bestiaryAnonymous !== false
+  );
+  const [bestiaryAnonymousLoading, setBestiaryAnonymousLoading] =
+    useState(false);
+  const [bestiaryAnonymousError, setBestiaryAnonymousError] = useState<
+    string | null
+  >(null);
+  const [bestiaryAnonymousSuccess, setBestiaryAnonymousSuccess] =
+    useState(false);
 
   const isOwnProfile =
     isAuthenticated && currentUser?.username === username?.toLowerCase();
@@ -168,6 +179,11 @@ const ProfilePage: React.FC = () => {
       setDiceColor(currentUser.diceColor);
     }
   }, [currentUser?.dice3DEnabled, currentUser?.diceColor]);
+
+  // Sync bestiaryAnonymous state with user data (default: true)
+  useEffect(() => {
+    setBestiaryAnonymousState(currentUser?.bestiaryAnonymous !== false);
+  }, [currentUser?.bestiaryAnonymous]);
 
   // Load subscription when support tab is selected (tab index 2)
   useEffect(() => {
@@ -398,6 +414,26 @@ const ProfilePage: React.FC = () => {
       setDice3DEnabled(!checked);
     } finally {
       setDice3DLoading(false);
+    }
+  };
+
+  const handleToggleBestiaryAnonymous = async (checked: boolean) => {
+    const previous = bestiaryAnonymous;
+    try {
+      setBestiaryAnonymousLoading(true);
+      setBestiaryAnonymousError(null);
+      setBestiaryAnonymousSuccess(false);
+      setBestiaryAnonymousState(checked);
+      await dispatch(saveBestiaryAnonymous(checked)).unwrap();
+      setBestiaryAnonymousSuccess(true);
+      setTimeout(() => setBestiaryAnonymousSuccess(false), 3000);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao salvar configuração';
+      setBestiaryAnonymousError(errorMessage);
+      setBestiaryAnonymousState(previous);
+    } finally {
+      setBestiaryAnonymousLoading(false);
     }
   };
 
@@ -1020,6 +1056,74 @@ const ProfilePage: React.FC = () => {
                         Notificações
                       </Typography>
                       <PushNotificationToggle variant='full' />
+                    </Box>
+
+                    <Box>
+                      <Typography variant='h6' fontWeight='bold' gutterBottom>
+                        Privacidade
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                        sx={{ mb: 2, display: 'block' }}
+                      >
+                        Controle como você aparece para outros usuários
+                      </Typography>
+
+                      {bestiaryAnonymousError && (
+                        <Alert severity='error' sx={{ mb: 2 }}>
+                          {bestiaryAnonymousError}
+                        </Alert>
+                      )}
+
+                      {bestiaryAnonymousSuccess && (
+                        <Alert severity='success' sx={{ mb: 2 }}>
+                          Configuração salva com sucesso!
+                        </Alert>
+                      )}
+
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: bestiaryAnonymous
+                            ? 'primary.main'
+                            : 'divider',
+                          backgroundColor: bestiaryAnonymous
+                            ? 'action.selected'
+                            : 'transparent',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={bestiaryAnonymous}
+                              onChange={(e) =>
+                                handleToggleBestiaryAnonymous(e.target.checked)
+                              }
+                              disabled={bestiaryAnonymousLoading}
+                            />
+                          }
+                          label={
+                            <Stack spacing={0.5}>
+                              <Typography variant='body1' fontWeight='medium'>
+                                Publicar no Bestiário anonimamente
+                              </Typography>
+                              <Typography
+                                variant='caption'
+                                color='text.secondary'
+                              >
+                                Quando ativado, seu nome de usuário não será
+                                exibido nas ameaças que você publica no
+                                Bestiário da Comunidade. Útil para mestres que
+                                não querem dar spoilers para seus jogadores.
+                              </Typography>
+                            </Stack>
+                          }
+                        />
+                      </Box>
                     </Box>
 
                     <Box>

@@ -119,6 +119,21 @@ export const saveAppearanceSettings = createAsyncThunk(
   }
 );
 
+export const saveBestiaryAnonymous = createAsyncThunk(
+  'auth/saveBestiaryAnonymous',
+  async (enabled: boolean, { rejectWithValue }) => {
+    try {
+      const updatedUser = await authService.saveBestiaryAnonymous(enabled);
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('Failed to save bestiary anonymous setting');
+    }
+  }
+);
+
 export const acceptTerms = createAsyncThunk(
   'auth/acceptTerms',
   async (version: number, { rejectWithValue }) => {
@@ -267,6 +282,21 @@ const authSlice = createSlice({
         state.dbUser = action.payload;
       })
       .addCase(saveAppearanceSettings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Save Bestiary Anonymous
+    builder
+      .addCase(saveBestiaryAnonymous.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(saveBestiaryAnonymous.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dbUser = action.payload;
+      })
+      .addCase(saveBestiaryAnonymous.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
