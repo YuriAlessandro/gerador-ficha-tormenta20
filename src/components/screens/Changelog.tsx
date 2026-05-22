@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            19/05/2026 (v4.16).
+            22/05/2026 (v4.17).
           </p>
 
           <p>
@@ -69,6 +69,81 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.17</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Novo: Encouraçado vira efeito ativo togável na ficha.
+                  </strong>{' '}
+                  O poder geral <strong>Encouraçado</strong> agora pode ser
+                  ativado direto pelo cabeçalho, aplicando o bônus na Defesa{' '}
+                  <strong>com escala dinâmica</strong>: +2 de base e +2
+                  adicional para cada poder dependente que você possua
+                  (Inexpugnável, Fanático, Catafractário, Encastelado). Se você
+                  não estiver com armadura pesada equipada, um aviso discreto
+                  aparece no diálogo — sem bloquear a ativação.
+                </li>
+                <li>
+                  <strong>
+                    Novo: tier &quot;Customizado&quot; em magias com
+                    aprimoramento escalável.
+                  </strong>{' '}
+                  Magias como <strong>Armadura Arcana</strong> agora oferecem,
+                  além dos valores comuns, um tier <strong>Customizado</strong>{' '}
+                  com botões +/- para você ajustar o bônus quando aprimorou além
+                  do teto modelado (por exemplo, +13 na Defesa com 8
+                  aprimoramentos).
+                </li>
+                <li>
+                  <strong>
+                    Novo: três magias passam a oferecer efeito ativo.
+                  </strong>{' '}
+                  <strong>Aviso</strong> (+5 no próximo teste de Iniciativa e em
+                  Percepção, opção &quot;Alerta&quot;),{' '}
+                  <strong>Maaais Klunc</strong> (+10 em Força com cascata para
+                  perícias de Força e dano corpo a corpo) e{' '}
+                  <strong>Mente Divina</strong> (8 tiers cobrindo a base e todos
+                  os aprimoramentos para +2/+4 em um atributo mental escolhido
+                  ou nos três).
+                </li>
+                <li>
+                  <strong>
+                    Novo: aba &quot;Adicionar&quot; no gerenciador de efeitos
+                    ativos.
+                  </strong>{' '}
+                  Agora dá para incluir manualmente qualquer efeito de poder ou
+                  magia do compêndio na sua ficha — sem pagar PM e sem notificar
+                  aliados da mesa. Útil para narrar buffs do mestre ou para jogo
+                  solo. Há uma busca embutida e um aviso esclarecendo que
+                  pré-requisitos não são validados nesse modo.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: bônus de atributo em efeitos ativos finalmente
+                    aplicam de verdade.
+                  </strong>{' '}
+                  Boosts como o <strong>+2 Força</strong> do Banquete Selvagem
+                  do Druida, o <strong>+4 em atributo</strong> da Força da
+                  Natureza, o <strong>+1/+2 Força</strong> do Crescimento
+                  Feérico (qareen) e o <strong>+2 Carisma</strong> da Aparência
+                  Perfeita — antes silenciosamente ignorados pelo motor — agora
+                  cascateiam corretamente para todas as{' '}
+                  <strong>perícias</strong> derivadas do atributo (incluindo
+                  Luta/Pontaria, Iniciativa e resistências). Boosts de Força
+                  também somam no dano corpo a corpo; boosts de Destreza, na
+                  Defesa.
+                </li>
+                <li>
+                  <strong>
+                    Correção: resistências infladas de ameaças na mesa virtual.
+                  </strong>{' '}
+                  Em algumas ameaças importadas para a mesa virtual, valores de
+                  Fortitude/Reflexos/Vontade apareciam somados em duplicado.
+                  Cálculo corrigido.
+                </li>
+              </ul>
+
               <h3>4.16</h3>
 
               <Alert
