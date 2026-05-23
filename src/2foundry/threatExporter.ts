@@ -5,6 +5,8 @@ import {
   ThreatSize,
   ThreatType,
   DEFAULT_RESISTANCE_ASSIGNMENTS,
+  getResistanceSave,
+  ResistanceType,
 } from '../interfaces/ThreatSheet';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { DEFAULT_SKILLS } from './skills';
@@ -148,32 +150,30 @@ function getThreatSkills(threat: ThreatSheet) {
   const assignments =
     threat.resistanceAssignments || DEFAULT_RESISTANCE_ASSIGNMENTS;
 
-  // Set the save values based on resistance assignments and combat stats
+  // Os saves usam o valor efetivo da skill correspondente em threat.skills
+  // (inclui override do usuário). Fallback para a tabela de combate quando a
+  // skill não existe no array — caso de dados antigos não normalizados.
+  const getResistanceTotal = (
+    name: 'Fortitude' | 'Reflexos' | 'Vontade'
+  ): number => {
+    const skill = threat.skills.find((s) => s.name === name);
+    if (skill) return getEffectiveSkillTotal(skill);
+    return getResistanceSave(
+      assignments[name] as ResistanceType,
+      threat.combatStats
+    );
+  };
+
   if (skills.fort) {
-    skills.fort.outros = threat.combatStats.strongSave;
-    if (assignments.Fortitude === 'medium') {
-      skills.fort.outros = threat.combatStats.mediumSave;
-    } else if (assignments.Fortitude === 'weak') {
-      skills.fort.outros = threat.combatStats.weakSave;
-    }
+    skills.fort.outros = getResistanceTotal('Fortitude');
   }
 
   if (skills.refl) {
-    skills.refl.outros = threat.combatStats.strongSave;
-    if (assignments.Reflexos === 'medium') {
-      skills.refl.outros = threat.combatStats.mediumSave;
-    } else if (assignments.Reflexos === 'weak') {
-      skills.refl.outros = threat.combatStats.weakSave;
-    }
+    skills.refl.outros = getResistanceTotal('Reflexos');
   }
 
   if (skills.vont) {
-    skills.vont.outros = threat.combatStats.strongSave;
-    if (assignments.Vontade === 'medium') {
-      skills.vont.outros = threat.combatStats.mediumSave;
-    } else if (assignments.Vontade === 'weak') {
-      skills.vont.outros = threat.combatStats.weakSave;
-    }
+    skills.vont.outros = getResistanceTotal('Vontade');
   }
 
   // Set initiative and perception from threat skills if available
