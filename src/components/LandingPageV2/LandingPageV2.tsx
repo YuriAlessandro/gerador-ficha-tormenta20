@@ -9,8 +9,7 @@ import background from '../../assets/images/fantasybg.png';
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
 import BestiaryBanner from './BestiaryBanner';
-import ActiveSessionBanner from './ActiveSessionBanner';
-import ContinueJourneySection from './ContinueJourneySection';
+import ContinueAndTablesSection from './ContinueAndTablesSection';
 import BlogHighlights from './BlogHighlights';
 import ForumActivity from './ForumActivity';
 import BuildsShowcase from './BuildsShowcase';
@@ -114,14 +113,18 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 <HeroCarousel onClickButton={onClickButton} />
               </Box>
 
-              {/* Active session banner (conditional) */}
-              <ActiveSessionBanner
-                onClickButton={onClickButton}
-                isAuthenticated={isAuthenticated}
-              />
+              {/* Continue jogando + Mesas virtuais — full width.
+                  Switches between: anon CTAs / active session highlight /
+                  2-column (recent sheets + tables). */}
+              <Box className='landing-section'>
+                <ContinueAndTablesSection
+                  onClickButton={onClickButton}
+                  isAuthenticated={isAuthenticated}
+                />
+              </Box>
 
-              {/* Inner grid: desktop = Forum left + Continue/Blog right;
-                  mobile = Continue → Forum → Blog stacked */}
+              {/* Inner grid: desktop = Forum left + Blog right;
+                  mobile = Forum → Blog stacked */}
               <Box
                 sx={{
                   display: 'grid',
@@ -133,32 +136,8 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                   alignItems: 'start',
                 }}
               >
-                {/* Continue jogando — desktop: col 2 row 1; mobile: 1st */}
-                <Box
-                  className='landing-section'
-                  sx={{
-                    minWidth: 0,
-                    order: { xs: 1, md: 0 },
-                    gridColumn: { md: '2' },
-                    gridRow: { md: '1' },
-                  }}
-                >
-                  <ContinueJourneySection
-                    onClickButton={onClickButton}
-                    isAuthenticated={isAuthenticated}
-                  />
-                </Box>
-
-                {/* Forum activity — desktop: col 1 spans 2 rows; mobile: 2nd */}
-                <Box
-                  className='landing-section'
-                  sx={{
-                    minWidth: 0,
-                    order: { xs: 2, md: 0 },
-                    gridColumn: { md: '1' },
-                    gridRow: { md: '1 / span 2' },
-                  }}
-                >
+                {/* Forum activity */}
+                <Box className='landing-section' sx={{ minWidth: 0 }}>
                   <ForumActivity
                     onClickButton={onClickButton}
                     threads={forumThreads}
@@ -167,16 +146,8 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                   />
                 </Box>
 
-                {/* Blog highlights — desktop: col 2 row 2; mobile: 3rd */}
-                <Box
-                  className='landing-section'
-                  sx={{
-                    minWidth: 0,
-                    order: { xs: 3, md: 0 },
-                    gridColumn: { md: '2' },
-                    gridRow: { md: '2' },
-                  }}
-                >
+                {/* Blog highlights */}
+                <Box className='landing-section' sx={{ minWidth: 0 }}>
                   <BlogHighlights
                     onClickButton={onClickButton}
                     posts={blogPosts}

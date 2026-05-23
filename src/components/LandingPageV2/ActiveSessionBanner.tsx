@@ -1,112 +1,114 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Box, Typography, Button, Stack, Chip, useTheme } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useGameTable } from '../../premium/hooks/useGameTable';
-import { GameTableStatus } from '../../premium/services/gameTable.service';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import { GameTable } from '../../premium/services/gameTable.service';
 
 interface ActiveSessionBannerProps {
   onClickButton: (link: string) => void;
-  isAuthenticated: boolean;
+  table: GameTable;
 }
 
 const ActiveSessionBanner: React.FC<ActiveSessionBannerProps> = ({
   onClickButton,
-  isAuthenticated,
+  table,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-
-  const gameTableContext = isAuthenticated ? useGameTable() : null;
-  const tables = gameTableContext?.tables ?? [];
-
-  const activeSession = useMemo(() => {
-    if (!isAuthenticated || !tables.length) return null;
-    return tables.find(
-      (t) =>
-        t.status === GameTableStatus.ACTIVE ||
-        t.status === GameTableStatus.PAUSED
-    );
-  }, [tables, isAuthenticated]);
-
-  if (!isAuthenticated || !activeSession) {
-    return null;
-  }
 
   return (
     <Box
       className='session-card active'
       sx={{
         background: isDark
-          ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.12) 0%, rgba(76, 175, 80, 0.18) 100%)'
-          : 'linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.14) 100%)',
+          ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.22) 100%)'
+          : 'linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.18) 100%)',
         color: isDark ? '#ffffff' : 'inherit',
+        border: '2px solid rgba(76, 175, 80, 0.45)',
+        p: { xs: 2, md: 3 },
       }}
     >
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        direction={{ xs: 'column', md: 'row' }}
+        alignItems={{ xs: 'flex-start', md: 'center' }}
         justifyContent='space-between'
         spacing={2}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction='row' alignItems='center' spacing={1} mb={1}>
-            <Chip
-              label={
-                activeSession.status === GameTableStatus.ACTIVE
-                  ? 'Sessão Ativa'
-                  : 'Sessão Pausada'
-              }
-              color={
-                activeSession.status === GameTableStatus.ACTIVE
-                  ? 'success'
-                  : 'warning'
-              }
-              size='small'
-            />
+          <Stack
+            direction='row'
+            alignItems='center'
+            spacing={1}
+            mb={1}
+            flexWrap='wrap'
+            sx={{ rowGap: 0.5 }}
+          >
+            <Chip label='Sessão Ativa' color='success' size='small' />
+            <Stack direction='row' alignItems='center' spacing={0.5}>
+              <PeopleAltIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ fontSize: '0.75rem' }}
+              >
+                {table.members.length}{' '}
+                {table.members.length === 1 ? 'jogador' : 'jogadores'}
+              </Typography>
+            </Stack>
           </Stack>
           <Typography
-            variant='h6'
+            variant='h5'
             sx={{
               fontFamily: 'Tfont, serif',
+              fontWeight: 700,
               mb: 0.5,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
           >
-            {activeSession.name}
+            {table.name}
           </Typography>
-          {activeSession.description && (
+          {table.description && (
             <Typography
               variant='body2'
               color='text.secondary'
               sx={{
                 display: '-webkit-box',
-                WebkitLineClamp: 1,
+                WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
               }}
             >
-              {activeSession.description}
+              {table.description}
             </Typography>
           )}
         </Box>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          sx={{ flexShrink: 0 }}
+        >
           <Button
             variant='contained'
             color='success'
+            size='large'
             startIcon={<PlayArrowIcon />}
-            onClick={() => onClickButton(`/sessao/${activeSession.id}`)}
+            onClick={() => onClickButton(`/sessao/${table.id}`)}
             sx={{
               whiteSpace: 'nowrap',
+              fontWeight: 700,
               '&:hover': { transform: 'scale(1.05)' },
               transition: 'transform 0.2s ease',
             }}
           >
-            Continuar sessão
+            Entrar na sessão
           </Button>
-          <Button variant='outlined' onClick={() => onClickButton('/mesas')}>
-            Ver todas
+          <Button
+            variant='outlined'
+            onClick={() => onClickButton(`/mesa/${table.id}`)}
+          >
+            Gerenciar mesa
           </Button>
         </Stack>
       </Stack>
