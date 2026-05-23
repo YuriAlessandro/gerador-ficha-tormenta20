@@ -299,7 +299,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
     <Box
       className='hero-section'
       sx={{
-        minHeight: { xs: '35vh', sm: '40vh', md: '50vh' },
+        minHeight: { xs: '30vh', sm: '32vh', md: '35vh' },
         position: 'relative',
         zIndex: 1,
       }}

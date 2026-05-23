@@ -100,13 +100,46 @@
 
 .hero-section {
   position: relative;
-  min-height: 50vh;
+  min-height: 35vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border-radius: 16px;
   margin-bottom: 2rem;
+}
+
+/* ================================
+   HORIZONTAL SCROLLERS (mobile)
+   ================================ */
+
+.h-scroller {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.h-scroller > * {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+.h-scroller::-webkit-scrollbar {
+  height: 6px;
+}
+
+.h-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.h-scroller::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-main-rgb), 0.3);
+  border-radius: 3px;
 }
 
 .hero-background {
@@ -546,7 +579,7 @@
 
 @media (max-width: 900px) {
   .hero-section {
-    min-height: 40vh;
+    min-height: 32vh;
   }
 
   .hero-content {
@@ -573,7 +606,7 @@
 
 @media (max-width: 600px) {
   .hero-section {
-    min-height: 35vh;
+    min-height: 30vh;
     border-radius: 12px;
   }
 

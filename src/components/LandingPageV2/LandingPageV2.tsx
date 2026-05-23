@@ -9,11 +9,13 @@ import background from '../../assets/images/fantasybg.png';
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
 import BestiaryBanner from './BestiaryBanner';
-import RecentSheetsSection from './RecentSheetsSection';
-import MainToolsSection from './MainToolsSection';
-import SecondaryToolsSection from './SecondaryToolsSection';
-import GameSessionsSection from './GameSessionsSection';
-import CommunityFeedSection from './CommunityFeedSection';
+import ActiveSessionBanner from './ActiveSessionBanner';
+import ContinueJourneySection from './ContinueJourneySection';
+import BlogHighlights from './BlogHighlights';
+import ForumActivity from './ForumActivity';
+import BuildsShowcase from './BuildsShowcase';
+import ToolsSidebar from './ToolsSidebar';
+import useCommunityHighlights from './hooks/useCommunityHighlights';
 
 interface LandingPageV2Props {
   onClickButton: (link: string) => void;
@@ -26,6 +28,13 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   const isDarkTheme = theme.palette.mode === 'dark';
 
   const homeSEO = getPageSEO('home');
+
+  const {
+    blogPosts,
+    forumThreads,
+    builds,
+    loading: highlightsLoading,
+  } = useCommunityHighlights();
 
   return (
     <>
@@ -44,14 +53,14 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               xs: '100%',
               sm: '95%',
               md: '95%',
-              lg: '90%',
-              xl: '80%',
+              lg: '92%',
+              xl: '85%',
             },
             width: '100%',
             boxSizing: 'border-box',
           }}
         >
-          {/* Hero Background with Fade - Fixed to viewport */}
+          {/* Fixed hero background */}
           <Box
             sx={{
               backgroundImage: `linear-gradient(
@@ -67,106 +76,115 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               left: 0,
               right: 0,
               width: '100%',
-              height: { xs: '50vh', sm: '60vh', md: '65vh' },
+              height: { xs: '35vh', sm: '40vh', md: '45vh' },
               zIndex: 0,
               pointerEvents: 'none',
             }}
           />
+
+          {/* Two-column layout: main content (with hero on top) + tools sidebar */}
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: {
                 xs: 'minmax(0, 1fr)',
-                md: 'minmax(0, 1fr) 30%',
+                md: 'minmax(0, 1fr) 280px',
+                lg: 'minmax(0, 1fr) 320px',
               },
-              gridTemplateRows: { md: 'repeat(5, auto)' },
-              gap: 2,
+              gap: { xs: 2, md: 3 },
               alignItems: 'start',
-              minHeight: '100vh',
-              pb: 4,
               position: 'relative',
+              pt: 1,
+              pb: 4,
             }}
           >
-            {/* Hero Carousel */}
-            <Box sx={{ order: 1, gridColumn: '1' }}>
-              <HeroCarousel onClickButton={onClickButton} />
-            </Box>
+            {/* MAIN COLUMN */}
+            <Stack spacing={{ xs: 3, md: 4 }} sx={{ minWidth: 0 }}>
+              {/* Hero carousel — shares row with sidebar */}
+              <Box className='landing-section'>
+                <HeroCarousel onClickButton={onClickButton} />
+              </Box>
 
-            {/* Sidebar - appears after hero on mobile, right column on desktop */}
+              {/* Active session banner (conditional) */}
+              <ActiveSessionBanner
+                onClickButton={onClickButton}
+                isAuthenticated={isAuthenticated}
+              />
+
+              {/* Two-column inner grid: Continue+Blog (left) + Forum (right/center) */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'minmax(0, 1fr)',
+                    md: 'minmax(0, 5fr) minmax(0, 7fr)',
+                  },
+                  gap: { xs: 3, md: 3 },
+                  alignItems: 'start',
+                }}
+              >
+                {/* Left inner column: continue jogando + blog */}
+                <Stack spacing={{ xs: 3, md: 4 }} sx={{ minWidth: 0 }}>
+                  <Box className='landing-section'>
+                    <ContinueJourneySection
+                      onClickButton={onClickButton}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  </Box>
+                  <Box className='landing-section'>
+                    <BlogHighlights
+                      onClickButton={onClickButton}
+                      posts={blogPosts}
+                      loading={highlightsLoading}
+                    />
+                  </Box>
+                </Stack>
+
+                {/* Right (center) inner column: forum activity — main focus */}
+                <Box className='landing-section'>
+                  <ForumActivity
+                    onClickButton={onClickButton}
+                    threads={forumThreads}
+                    loading={highlightsLoading}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </Box>
+              </Box>
+
+              {/* Bestiary banner — full width below the 2-col section */}
+              {bestiaryEnabled && (
+                <Box className='landing-section'>
+                  <BestiaryBanner onClickButton={onClickButton} />
+                </Box>
+              )}
+
+              {/* Builds showcase (grid 4-col) */}
+              <Box className='landing-section'>
+                <BuildsShowcase
+                  onClickButton={onClickButton}
+                  builds={builds}
+                  loading={highlightsLoading}
+                />
+              </Box>
+
+              {/* Support banner */}
+              <Box className='landing-section'>
+                <SupportBanner onClickButton={onClickButton} />
+              </Box>
+            </Stack>
+
+            {/* SIDEBAR (sticky on desktop) */}
             <Box
               sx={{
-                order: { xs: 2, md: 2 },
-                gridColumn: { xs: '1', md: '2' },
-                gridRow: { md: '1 / -1' },
                 position: { md: 'sticky' },
                 top: { md: 80 },
-                maxWidth: '100%',
-                boxSizing: 'border-box',
-                overflow: 'hidden',
-                background: isDarkTheme
-                  ? 'rgba(33, 33, 33, 0.85)'
-                  : 'rgba(243, 242, 241, 0.85)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: 3,
-                p: 2,
-                border: `1px solid ${
-                  isDarkTheme
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.1)'
-                }`,
+                minWidth: 0,
               }}
             >
-              <Box className='landing-section'>
-                <CommunityFeedSection
-                  onClickButton={onClickButton}
-                  isAuthenticated={isAuthenticated}
-                />
-              </Box>
-              <Box className='landing-section'>
-                <RecentSheetsSection
-                  onClickButton={onClickButton}
-                  isAuthenticated={isAuthenticated}
-                />
-              </Box>
-            </Box>
-
-            {/* Bestiary Highlight Banner */}
-            {bestiaryEnabled && (
-              <Box
-                className='landing-section'
-                sx={{ order: 3, gridColumn: '1', mt: 1 }}
-              >
-                <BestiaryBanner onClickButton={onClickButton} />
-              </Box>
-            )}
-
-            {/* Support Banner */}
-            <Box
-              className='landing-section'
-              sx={{ order: 4, gridColumn: '1', mt: 1 }}
-            >
-              <SupportBanner onClickButton={onClickButton} />
-            </Box>
-
-            {/* Main Tools Section */}
-            <Box className='landing-section' sx={{ order: 5, gridColumn: '1' }}>
-              <MainToolsSection
+              <ToolsSidebar
                 onClickButton={onClickButton}
                 isAuthenticated={isAuthenticated}
               />
-            </Box>
-
-            {/* Game Sessions Section */}
-            <Box className='landing-section' sx={{ order: 6, gridColumn: '1' }}>
-              <GameSessionsSection
-                onClickButton={onClickButton}
-                isAuthenticated={isAuthenticated}
-              />
-            </Box>
-
-            {/* Secondary Tools Section */}
-            <Box className='landing-section' sx={{ order: 7, gridColumn: '1' }}>
-              <SecondaryToolsSection onClickButton={onClickButton} />
             </Box>
           </Box>
         </Box>
