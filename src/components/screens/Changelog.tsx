@@ -74,6 +74,40 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: efeitos customizados em poderes (Apoiador).
+                  </strong>{' '}
+                  Cada poder expandido na sua ficha tem um botão de{' '}
+                  <strong>Configurações</strong> (ícone de engrenagem) que agora
+                  abre um diálogo com duas abas: <strong>Rolagens</strong> (como
+                  antes) e <strong>Efeitos</strong>. Na nova aba você cria{' '}
+                  <strong>efeitos com múltiplos tiers</strong> — cada tier com
+                  seu próprio custo de PM e seus bônus mecânicos. Os bônus
+                  cobrem praticamente tudo: atributos, ataque (geral, corpo a
+                  corpo ou à distância), dano de arma, defesa, deslocamento,
+                  perícias, PV/PM, iniciativa, testes de resistência
+                  (Fortitude/Reflexos/Vontade ou todos), CD de magias, redução
+                  de dano por tipo e margem/multiplicador de crítico. Os efeitos
+                  criados aparecem no gerenciador de{' '}
+                  <strong>Efeitos Ativos</strong> com a etiqueta{' '}
+                  <strong>Customizado</strong> e podem ser ativados/desativados
+                  como qualquer outro efeito. Poderes que já têm efeito ativo
+                  pronto no sistema (como Inspiração do Bardo) mostram o efeito
+                  embutido em modo somente-leitura na aba.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: barra lateral de ferramentas mais densa no
+                    desktop.
+                  </strong>{' '}
+                  Na home, a coluna de ferramentas passa a usar{' '}
+                  <strong>três colunas</strong> em telas médias/grandes (era
+                  duas) e ganha um pouco mais de largura, mostrando mais atalhos
+                  sem precisar rolar. No celular o layout continua em duas
+                  colunas com ícones maiores e mais espaçamento para facilitar o
+                  toque.
+                </li>
+                <li>
+                  <strong>
                     Correção: Fortitude, Reflexos e Vontade agora podem ser
                     editadas no Gerador de Ameaças.
                   </strong>{' '}
