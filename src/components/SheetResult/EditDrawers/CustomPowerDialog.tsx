@@ -175,6 +175,7 @@ const CustomPowerDialog: React.FC<CustomPowerDialogProps> = ({
       name: name.trim(),
       description: description.trim(),
       rolls: localRolls.length > 0 ? localRolls : undefined,
+      customEffects: power?.customEffects,
     };
 
     onSave(customPower);

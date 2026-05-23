@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { CharacterAttributes, CharacterReligion } from './Character';
 // eslint-disable-next-line
@@ -66,6 +67,7 @@ export type RaceAbility = {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
 };
 
 export interface RaceHeritage {

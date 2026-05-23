@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { DiceRoll } from './DiceRoll';
 
 export interface CustomPower {
@@ -5,4 +6,5 @@ export interface CustomPower {
   name: string; // Nome do poder (definido pelo usuário)
   description: string; // Descrição do poder
   rolls?: DiceRoll[]; // Rolagens opcionais (ex: "Dano" - "2d6+3")
+  customEffects?: CustomEffect[]; // Efeitos customizados (definidos pelo usuário)
 }

@@ -51,6 +51,7 @@ import { GeneralPower, OriginPower } from '@/interfaces/Poderes';
 import { RaceAbility } from '@/interfaces/Race';
 import { CompanionSheet } from '@/interfaces/Companion';
 import { CustomPower } from '@/interfaces/CustomPower';
+import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import {
@@ -80,6 +81,7 @@ import {
   ACTIVE_EFFECT_COLOR,
 } from '@/premium/functions/activeEffectHighlights';
 import { getActiveEffectForSpell } from '@/premium/data/activePowers';
+import { collectVirtualCustomEffectDefinitions } from '@/premium/data/activePowers/customEffectAdapter';
 import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
@@ -222,6 +224,10 @@ const Result: React.FC<ResultProps> = (props) => {
   const markersEnabled = conditionsFeature.isEnabled;
   const activeEffectHighlights = useMemo(
     () => getActiveEffectHighlights(currentSheet),
+    [currentSheet]
+  );
+  const virtualCustomEffectDefinitions = useMemo(
+    () => collectVirtualCustomEffectDefinitions(currentSheet),
     [currentSheet]
   );
 
@@ -660,6 +666,74 @@ const Result: React.FC<ResultProps> = (props) => {
         generalPowers: updatedGeneralPowers,
         classPowers: updatedClassPowers,
         customPowers: updatedCustomPowers,
+        origin:
+          currentSheet.origin && updatedOriginPowers
+            ? { ...currentSheet.origin, powers: updatedOriginPowers }
+            : currentSheet.origin,
+        raca:
+          currentSheet.raca && updatedRaceAbilities
+            ? { ...currentSheet.raca, abilities: updatedRaceAbilities }
+            : currentSheet.raca,
+        classe:
+          currentSheet.classe && updatedClassAbilities
+            ? { ...currentSheet.classe, abilities: updatedClassAbilities }
+            : currentSheet.classe,
+        devoto:
+          currentSheet.devoto && updatedDeityPowers
+            ? { ...currentSheet.devoto, poderes: updatedDeityPowers }
+            : currentSheet.devoto,
+      };
+
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
+  );
+
+  const handlePowerCustomEffectsUpdate = useCallback(
+    (
+      power:
+        | ClassPower
+        | RaceAbility
+        | ClassAbility
+        | OriginPower
+        | GeneralPower
+        | CustomPower,
+      newEffects: CustomEffect[]
+    ) => {
+      const updatedGeneralPowers = currentSheet.generalPowers?.map((p) =>
+        p.name === power.name ? { ...p, customEffects: newEffects } : p
+      );
+      const updatedClassPowers = currentSheet.classPowers?.map((p) =>
+        p.name === power.name ? { ...p, customEffects: newEffects } : p
+      );
+      const updatedOriginPowers = currentSheet.origin?.powers?.map((p) =>
+        p.name === power.name ? { ...p, customEffects: newEffects } : p
+      );
+      const updatedRaceAbilities = currentSheet.raca?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, customEffects: newEffects } : a
+      );
+      const updatedClassAbilities = currentSheet.classe?.abilities?.map((a) =>
+        a.name === power.name ? { ...a, customEffects: newEffects } : a
+      );
+      const updatedDeityPowers = currentSheet.devoto?.poderes?.map((p) =>
+        p.name === power.name ? { ...p, customEffects: newEffects } : p
+      );
+      const updatedCustomPowers = currentSheet.customPowers?.map((p) =>
+        p.name === power.name ? { ...p, customEffects: newEffects } : p
+      );
+      const updatedCustomGrantedPowers = currentSheet.customGrantedPowers?.map(
+        (p) => (p.name === power.name ? { ...p, customEffects: newEffects } : p)
+      );
+
+      const updatedSheet = {
+        ...currentSheet,
+        generalPowers: updatedGeneralPowers,
+        classPowers: updatedClassPowers,
+        customPowers: updatedCustomPowers,
+        customGrantedPowers: updatedCustomGrantedPowers,
         origin:
           currentSheet.origin && updatedOriginPowers
             ? { ...currentSheet.origin, powers: updatedOriginPowers }
@@ -1734,6 +1808,7 @@ const Result: React.FC<ResultProps> = (props) => {
               effects={currentSheet.activeEffects ?? []}
               sheet={currentSheet}
               readonly={!onSheetUpdate || !canUseActiveEffects}
+              customDefinitions={virtualCustomEffectDefinitions}
               onRemove={handleActiveEffectRemove}
               onActivate={handleActiveEffectActivate}
               onClose={() => setEffectsModalOpen(false)}
@@ -2126,6 +2201,9 @@ const Result: React.FC<ResultProps> = (props) => {
                   deityName={devoto?.divindade?.name}
                   onUpdateRolls={
                     onSheetUpdate ? handlePowerRollsUpdate : undefined
+                  }
+                  onUpdateCustomEffects={
+                    onSheetUpdate ? handlePowerCustomEffectsUpdate : undefined
                   }
                   characterName={nome}
                   sheet={currentSheet}

@@ -24,6 +24,7 @@ import type {
   ActivePowerDefinition,
   ActiveEffectUsageOption,
 } from '@/premium/interfaces/ActiveEffect';
+import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import PowerDisplay from './PowerDisplay';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 import PowerActiveEffectAction from './PowerActiveEffectAction';
@@ -60,6 +61,16 @@ const PowersDisplay: React.FC<{
       | CustomPower,
     newRolls: DiceRoll[]
   ) => void;
+  onUpdateCustomEffects?: (
+    power:
+      | ClassPower
+      | RaceAbility
+      | ClassAbility
+      | OriginPower
+      | GeneralPower
+      | CustomPower,
+    newEffects: CustomEffect[]
+  ) => void;
   characterName?: string;
   onCompanionClick?: () => void;
   parodyButtonSlot?: React.ReactNode;
@@ -83,6 +94,7 @@ const PowersDisplay: React.FC<{
   raceName,
   deityName,
   onUpdateRolls,
+  onUpdateCustomEffects,
   characterName,
   onCompanionClick,
   parodyButtonSlot,
@@ -242,6 +254,9 @@ const PowersDisplay: React.FC<{
       type={getPowerOrigin(power)}
       count={powerCount[power.name]}
       onUpdateRolls={reorderMode ? undefined : onUpdateRolls}
+      onUpdateCustomEffects={reorderMode ? undefined : onUpdateCustomEffects}
+      sheet={sheet}
+      className={className}
       characterName={characterName}
       onCompanionClick={
         !reorderMode && power.name === 'Melhor Amigo'
