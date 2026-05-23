@@ -28,6 +28,7 @@ import type { CustomEffect } from '@/premium/interfaces/CustomEffect';
 import PowerDisplay from './PowerDisplay';
 import PowerWeaponSelectionAction from './PowerWeaponSelectionAction';
 import PowerActiveEffectAction from './PowerActiveEffectAction';
+import PowerCustomEffectsAction from './PowerCustomEffectsAction';
 
 function filterUniqueByName<T extends { name: string }>(array: T[]): T[] {
   const seen = new Set<string>();
@@ -235,6 +236,18 @@ const PowersDisplay: React.FC<{
         return (
           <PowerActiveEffectAction
             definition={activeDef}
+            sheet={sheet}
+            onActivate={onActivateEffect}
+          />
+        );
+      }
+      const pwCustomEffects =
+        'customEffects' in pw && pw.customEffects ? pw.customEffects : [];
+      if (pwCustomEffects.length > 0) {
+        return (
+          <PowerCustomEffectsAction
+            powerName={pw.name}
+            customEffects={pwCustomEffects}
             sheet={sheet}
             onActivate={onActivateEffect}
           />
