@@ -1,9 +1,10 @@
 import React from 'react';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, useTheme } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { SEO, getPageSEO } from '../SEO';
 import '../../assets/css/landing-page-v2.css';
+import background from '../../assets/images/fantasybg.png';
 
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
@@ -23,6 +24,8 @@ interface LandingPageV2Props {
 const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   const { isAuthenticated } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
+  const theme = useTheme();
+  const isDarkTheme = theme.palette.mode === 'dark';
 
   const homeSEO = getPageSEO('home');
 
@@ -36,11 +39,42 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   return (
     <>
       <SEO title={homeSEO.title} description={homeSEO.description} url='/' />
+
+      {/* Full-width backdrop behind the hero — sits at the top of the page,
+          extends upward behind the navbar, and does NOT follow the scroll
+          (position: absolute, not fixed). Once the user scrolls past the
+          hero area, the rest of the page has its normal background. */}
+      <Box
+        sx={{
+          backgroundImage: `linear-gradient(
+              to bottom,
+              rgba(0, 0, 0, 0) 35%,
+              ${isDarkTheme ? '#212121' : '#f3f2f1'}
+            ), url(${background})`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: { xs: 'center top', sm: 'center center' },
+          position: 'absolute',
+          top: -120,
+          left: 0,
+          right: 0,
+          width: '100%',
+          height: {
+            xs: 'calc(38vh + 120px)',
+            sm: 'calc(42vh + 120px)',
+            md: 'calc(45vh + 120px)',
+          },
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
       <Stack
         direction='row'
         alignItems='center'
         justifyContent='center'
         spacing={2}
+        sx={{ position: 'relative', zIndex: 1 }}
       >
         <Box
           sx={{
