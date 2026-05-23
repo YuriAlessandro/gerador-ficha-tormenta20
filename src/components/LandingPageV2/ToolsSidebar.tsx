@@ -111,7 +111,9 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
           key: 'my-threats',
           title: 'Minhas Ameaças',
           icon: <PetsIcon />,
-          onClick: requireAuth(() => onClickButton('/meu-bestiario')),
+          onClick: requireAuth(() =>
+            onClickButton('/meus-personagens?tab=ameacas')
+          ),
         },
       ],
     },
