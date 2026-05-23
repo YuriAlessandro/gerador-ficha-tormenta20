@@ -73,6 +73,33 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
+                  Apoiadores que ainda não experimentaram a{' '}
+                  <strong>cor de destaque personalizada</strong> ou os{' '}
+                  <strong>dados 3D</strong> agora recebem um lembrete discreto,
+                  no máximo uma vez por semana, com um atalho que abre direto a
+                  aba <strong>Sistema</strong> do perfil. Quem já personalizou
+                  tudo nunca vê o aviso, e há um botão{' '}
+                  <strong>&quot;Não mostrar mais&quot;</strong> para desativar
+                  permanentemente.
+                </li>
+                <li>
+                  <strong>Melhoria: home e menu de navegação refinados.</strong>{' '}
+                  O layout da página inicial foi reorganizado: hero e barra de
+                  ferramentas dividem a mesma linha no desktop, a coluna
+                  principal traz o <strong>fórum à esquerda</strong> (com
+                  apoiadores priorizados nos primeiros lugares) e{' '}
+                  <strong>continue jogando + blog</strong> à direita. A imagem
+                  de fundo voltou ao topo da home com gradiente até o tema. O
+                  menu superior ganhou novas categorias —{' '}
+                  <strong>
+                    Jogar / Ferramentas / Comunidade / Enciclopédia / Consulta
+                  </strong>{' '}
+                  — e a barra lateral mostra um atalho para{' '}
+                  <strong>editores e administradores</strong> criarem novos
+                  posts no blog.
+                </li>
+                <li>
                   <strong>Novo: página inicial redesenhada.</strong> A home
                   ganhou um layout em duas colunas com{' '}
                   <strong>destaques da comunidade</strong> (últimos posts do
