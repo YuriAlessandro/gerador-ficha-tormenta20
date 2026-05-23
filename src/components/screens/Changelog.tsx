@@ -73,38 +73,131 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
-                  <strong>
-                    Novo: efeitos customizados em poderes (Apoiador).
-                  </strong>{' '}
-                  Cada poder expandido na sua ficha tem um botão de{' '}
-                  <strong>Configurações</strong> (ícone de engrenagem) que agora
-                  abre um diálogo com duas abas: <strong>Rolagens</strong> (como
-                  antes) e <strong>Efeitos</strong>. Na nova aba você cria{' '}
-                  <strong>efeitos com múltiplos tiers</strong> — cada tier com
-                  seu próprio custo de PM e seus bônus mecânicos. Os bônus
-                  cobrem praticamente tudo: atributos, ataque (geral, corpo a
-                  corpo ou à distância), dano de arma, defesa, deslocamento,
-                  perícias, PV/PM, iniciativa, testes de resistência
-                  (Fortitude/Reflexos/Vontade ou todos), CD de magias, redução
-                  de dano por tipo e margem/multiplicador de crítico. Os efeitos
-                  criados aparecem no gerenciador de{' '}
-                  <strong>Efeitos Ativos</strong> com a etiqueta{' '}
-                  <strong>Customizado</strong> e podem ser ativados/desativados
-                  como qualquer outro efeito. Poderes que já têm efeito ativo
-                  pronto no sistema (como Inspiração do Bardo) mostram o efeito
-                  embutido em modo somente-leitura na aba.
+                  <li>
+                    <strong>
+                      Novo: efeitos customizados em poderes (Apoiador).
+                    </strong>{' '}
+                    Cada poder expandido na sua ficha tem um botão de{' '}
+                    <strong>Configurações</strong> (ícone de engrenagem) que
+                    agora abre um diálogo com duas abas:{' '}
+                    <strong>Rolagens</strong> (como antes) e{' '}
+                    <strong>Efeitos</strong>. Na nova aba você cria{' '}
+                    <strong>efeitos com múltiplos tiers</strong> — cada tier com
+                    seu próprio custo de PM e seus bônus mecânicos. Os bônus
+                    cobrem praticamente tudo: atributos, ataque (geral, corpo a
+                    corpo ou à distância), dano de arma, defesa, deslocamento,
+                    perícias, PV/PM, iniciativa, testes de resistência
+                    (Fortitude/Reflexos/Vontade ou todos), CD de magias, redução
+                    de dano por tipo e margem/multiplicador de crítico. Os
+                    efeitos criados aparecem no gerenciador de{' '}
+                    <strong>Efeitos Ativos</strong> com a etiqueta{' '}
+                    <strong>Customizado</strong> e podem ser
+                    ativados/desativados como qualquer outro efeito. Poderes que
+                    já têm efeito ativo pronto no sistema (como Inspiração do
+                    Bardo) mostram o efeito embutido em modo somente-leitura na
+                    aba.
+                  </li>
+                  <strong>Efeitos de poderes e magias.</strong> Esta versão
+                  trouxe um pacote de novidades e ajustes no motor de efeitos
+                  ativos:
+                  <ul>
+                    <li>
+                      <strong>
+                        Novo: Encouraçado vira efeito ativo togável na ficha.
+                      </strong>{' '}
+                      O poder geral <strong>Encouraçado</strong> agora pode ser
+                      ativado direto pelo cabeçalho, aplicando o bônus na Defesa{' '}
+                      <strong>com escala dinâmica</strong>: +2 de base e +2
+                      adicional para cada poder dependente que você possua
+                      (Inexpugnável, Fanático, Catafractário, Encastelado). Se
+                      você não estiver com armadura pesada equipada, um aviso
+                      discreto aparece no diálogo — sem bloquear a ativação.
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: tier &quot;Customizado&quot; em magias com
+                        aprimoramento escalável.
+                      </strong>{' '}
+                      Magias como <strong>Armadura Arcana</strong> agora
+                      oferecem, além dos valores comuns, um tier{' '}
+                      <strong>Customizado</strong> com botões +/- para você
+                      ajustar o bônus quando aprimorou além do teto modelado
+                      (por exemplo, +13 na Defesa com 8 aprimoramentos).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: três magias passam a oferecer efeito ativo.
+                      </strong>{' '}
+                      <strong>Aviso</strong> (+5 no próximo teste de Iniciativa
+                      e em Percepção, opção &quot;Alerta&quot;),{' '}
+                      <strong>Maaais Klunc</strong> (+10 em Força com cascata
+                      para perícias de Força e dano corpo a corpo) e{' '}
+                      <strong>Mente Divina</strong> (8 tiers cobrindo a base e
+                      todos os aprimoramentos para +2/+4 em um atributo mental
+                      escolhido ou nos três).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: aba &quot;Adicionar&quot; no gerenciador de
+                        efeitos ativos.
+                      </strong>{' '}
+                      Agora dá para incluir manualmente qualquer efeito de poder
+                      ou magia do compêndio na sua ficha — sem pagar PM e sem
+                      notificar aliados da mesa. Útil para narrar buffs do
+                      mestre ou para jogo solo. Há uma busca embutida e um aviso
+                      esclarecendo que pré-requisitos não são validados nesse
+                      modo.
+                    </li>
+                    <li>
+                      <strong>
+                        Melhoria: bônus de atributo em efeitos ativos finalmente
+                        aplicam de verdade.
+                      </strong>{' '}
+                      Boosts como o <strong>+2 Força</strong> do Banquete
+                      Selvagem do Druida, o <strong>+4 em atributo</strong> da
+                      Força da Natureza, o <strong>+1/+2 Força</strong> do
+                      Crescimento Feérico (qareen) e o{' '}
+                      <strong>+2 Carisma</strong> da Aparência Perfeita — antes
+                      silenciosamente ignorados pelo motor — agora cascateiam
+                      corretamente para todas as <strong>perícias</strong>{' '}
+                      derivadas do atributo (incluindo Luta/Pontaria, Iniciativa
+                      e resistências). Boosts de Força também somam no dano
+                      corpo a corpo; boosts de Destreza, na Defesa.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Novo: página inicial redesenhada.</strong> A gente
+                  estará continuamente tentando melhorar a qualidade da home
+                  para refletir novas ferramentas, os conteúdos dinâmicos da
+                  comunidade e muito mais. Para isso, vamos tentar algums
+                  soluções um pouco. Nada é permanente, vamos nos adaptando e
+                  melhorando.
+                </li>
+                <li>
+                  <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
+                  Apoiadores que ainda não experimentaram a{' '}
+                  <strong>cor de destaque personalizada</strong> ou os{' '}
+                  <strong>dados 3D</strong> agora recebem um lembrete discreto,
+                  no máximo uma vez por semana, com um atalho que abre direto a
+                  aba <strong>Sistema</strong> do perfil. Quem já personalizou
+                  tudo nunca vê o aviso, e há um botão{' '}
+                  <strong>&quot;Não mostrar mais&quot;</strong> para desativar
+                  permanentemente.
                 </li>
                 <li>
                   <strong>
-                    Melhoria: barra lateral de ferramentas mais densa no
-                    desktop.
+                    Novo: publicação anônima por padrão no Bestiário da
+                    Comunidade.
                   </strong>{' '}
-                  Na home, a coluna de ferramentas passa a usar{' '}
-                  <strong>três colunas</strong> em telas médias/grandes (era
-                  duas) e ganha um pouco mais de largura, mostrando mais atalhos
-                  sem precisar rolar. No celular o layout continua em duas
-                  colunas com ícones maiores e mais espaçamento para facilitar o
-                  toque.
+                  Suas ameaças publicadas agora aparecem como{' '}
+                  <strong>&quot;por Anônimo&quot;</strong> para outros usuários,
+                  protegendo mestres que não querem revelar a autoria e spoilear
+                  os próprios jogadores. Quem preferir aparecer pode desativar a
+                  opção em <strong>Perfil → Sistema</strong>, na nova seção{' '}
+                  <strong>Privacidade</strong>. A página de publicação também
+                  avisa quando você está publicando anonimamente, com atalho
+                  para as configurações.
                 </li>
                 <li>
                   <strong>
@@ -124,45 +217,6 @@ const Changelog: React.FC = () => {
                   (treinamento não se aplica a resistências).
                 </li>
                 <li>
-                  <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
-                  Apoiadores que ainda não experimentaram a{' '}
-                  <strong>cor de destaque personalizada</strong> ou os{' '}
-                  <strong>dados 3D</strong> agora recebem um lembrete discreto,
-                  no máximo uma vez por semana, com um atalho que abre direto a
-                  aba <strong>Sistema</strong> do perfil. Quem já personalizou
-                  tudo nunca vê o aviso, e há um botão{' '}
-                  <strong>&quot;Não mostrar mais&quot;</strong> para desativar
-                  permanentemente.
-                </li>
-                <li>
-                  <strong>Melhoria: home e menu de navegação refinados.</strong>{' '}
-                  O layout da página inicial foi reorganizado: hero e barra de
-                  ferramentas dividem a mesma linha no desktop, a coluna
-                  principal traz o <strong>fórum à esquerda</strong> (com
-                  apoiadores priorizados nos primeiros lugares) e{' '}
-                  <strong>continue jogando + blog</strong> à direita. A imagem
-                  de fundo voltou ao topo da home com gradiente até o tema. O
-                  menu superior ganhou novas categorias —{' '}
-                  <strong>
-                    Jogar / Ferramentas / Comunidade / Enciclopédia / Consulta
-                  </strong>{' '}
-                  — e a barra lateral mostra um atalho para{' '}
-                  <strong>editores e administradores</strong> criarem novos
-                  posts no blog.
-                </li>
-                <li>
-                  <strong>Novo: página inicial redesenhada.</strong> A home
-                  ganhou um layout em duas colunas com{' '}
-                  <strong>destaques da comunidade</strong> (últimos posts do
-                  blog, atividade do fórum, builds públicas recentes), uma seção{' '}
-                  <strong>Continue sua jornada</strong> com seus personagens e
-                  mesas, um <strong>banner de sessão ativa</strong> avisando
-                  quando você tem uma mesa rolando, e uma{' '}
-                  <strong>barra lateral de ferramentas</strong> sempre à mão. O
-                  carrossel principal ficou mais compacto pra dar protagonismo
-                  ao conteúdo abaixo.
-                </li>
-                <li>
                   <strong>
                     Correção: aba &quot;Sistema&quot; do Perfil voltava sozinha
                     para &quot;Perfil&quot;.
@@ -176,96 +230,11 @@ const Changelog: React.FC = () => {
                 </li>
                 <li>
                   <strong>
-                    Novo: Encouraçado vira efeito ativo togável na ficha.
-                  </strong>{' '}
-                  O poder geral <strong>Encouraçado</strong> agora pode ser
-                  ativado direto pelo cabeçalho, aplicando o bônus na Defesa{' '}
-                  <strong>com escala dinâmica</strong>: +2 de base e +2
-                  adicional para cada poder dependente que você possua
-                  (Inexpugnável, Fanático, Catafractário, Encastelado). Se você
-                  não estiver com armadura pesada equipada, um aviso discreto
-                  aparece no diálogo — sem bloquear a ativação.
-                </li>
-                <li>
-                  <strong>
-                    Novo: tier &quot;Customizado&quot; em magias com
-                    aprimoramento escalável.
-                  </strong>{' '}
-                  Magias como <strong>Armadura Arcana</strong> agora oferecem,
-                  além dos valores comuns, um tier <strong>Customizado</strong>{' '}
-                  com botões +/- para você ajustar o bônus quando aprimorou além
-                  do teto modelado (por exemplo, +13 na Defesa com 8
-                  aprimoramentos).
-                </li>
-                <li>
-                  <strong>
-                    Novo: três magias passam a oferecer efeito ativo.
-                  </strong>{' '}
-                  <strong>Aviso</strong> (+5 no próximo teste de Iniciativa e em
-                  Percepção, opção &quot;Alerta&quot;),{' '}
-                  <strong>Maaais Klunc</strong> (+10 em Força com cascata para
-                  perícias de Força e dano corpo a corpo) e{' '}
-                  <strong>Mente Divina</strong> (8 tiers cobrindo a base e todos
-                  os aprimoramentos para +2/+4 em um atributo mental escolhido
-                  ou nos três).
-                </li>
-                <li>
-                  <strong>
-                    Novo: aba &quot;Adicionar&quot; no gerenciador de efeitos
-                    ativos.
-                  </strong>{' '}
-                  Agora dá para incluir manualmente qualquer efeito de poder ou
-                  magia do compêndio na sua ficha — sem pagar PM e sem notificar
-                  aliados da mesa. Útil para narrar buffs do mestre ou para jogo
-                  solo. Há uma busca embutida e um aviso esclarecendo que
-                  pré-requisitos não são validados nesse modo.
-                </li>
-                <li>
-                  <strong>
-                    Melhoria: bônus de atributo em efeitos ativos finalmente
-                    aplicam de verdade.
-                  </strong>{' '}
-                  Boosts como o <strong>+2 Força</strong> do Banquete Selvagem
-                  do Druida, o <strong>+4 em atributo</strong> da Força da
-                  Natureza, o <strong>+1/+2 Força</strong> do Crescimento
-                  Feérico (qareen) e o <strong>+2 Carisma</strong> da Aparência
-                  Perfeita — antes silenciosamente ignorados pelo motor — agora
-                  cascateiam corretamente para todas as{' '}
-                  <strong>perícias</strong> derivadas do atributo (incluindo
-                  Luta/Pontaria, Iniciativa e resistências). Boosts de Força
-                  também somam no dano corpo a corpo; boosts de Destreza, na
-                  Defesa.
-                </li>
-                <li>
-                  <strong>
                     Correção: resistências infladas de ameaças na mesa virtual.
                   </strong>{' '}
                   Em algumas ameaças importadas para a mesa virtual, valores de
                   Fortitude/Reflexos/Vontade apareciam somados em duplicado.
                   Cálculo corrigido.
-                </li>
-                <li>
-                  <strong>Novo: papel EDITOR no blog.</strong> Adicionado um
-                  novo papel de usuário <strong>EDITOR</strong> que pode criar e
-                  editar seus próprios posts no blog em modo rascunho, enquanto
-                  apenas administradores podem publicar. Útil para colaboradores
-                  que produzem conteúdo, mas precisam de revisão antes da
-                  publicação. Inclui toggle no painel de administração e UI
-                  simplificada do editor para esse papel.
-                </li>
-                <li>
-                  <strong>
-                    Novo: publicação anônima por padrão no Bestiário da
-                    Comunidade.
-                  </strong>{' '}
-                  Suas ameaças publicadas agora aparecem como{' '}
-                  <strong>&quot;por Anônimo&quot;</strong> para outros usuários,
-                  protegendo mestres que não querem revelar a autoria e spoilear
-                  os próprios jogadores. Quem preferir aparecer pode desativar a
-                  opção em <strong>Perfil → Sistema</strong>, na nova seção{' '}
-                  <strong>Privacidade</strong>. A página de publicação também
-                  avisa quando você está publicando anonimamente, com atalho
-                  para as configurações.
                 </li>
               </ul>
 
