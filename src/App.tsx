@@ -91,6 +91,7 @@ import {
   EditThreadPage,
   AdminPage,
   PushNotificationPrompt,
+  CosmeticsNudgeDialog,
   getFeatureFlags,
 } from './premium';
 import { Dice3DProvider } from './contexts/Dice3DContext';
@@ -293,6 +294,7 @@ function ThemedApp(): JSX.Element {
                         >
                           <PWAInstallPrompt />
                           <PushNotificationPrompt />
+                          <CosmeticsNudgeDialog />
                           <div className='mainApp'>
                             <header className='App-header'>
                               <SidebarV2

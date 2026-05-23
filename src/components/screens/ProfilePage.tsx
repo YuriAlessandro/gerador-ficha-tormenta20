@@ -1,6 +1,6 @@
 /* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useHistory, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
   Box,
@@ -96,9 +96,16 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+function getInitialTabFromHash(hash: string): number {
+  if (hash === '#sistema') return 1;
+  if (hash === '#apoio') return 2;
+  return 0;
+}
+
 const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const history = useHistory();
+  const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch<AppDispatch>();
@@ -134,7 +141,9 @@ const ProfilePage: React.FC = () => {
   });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState(() =>
+    getInitialTabFromHash(location.hash)
+  );
   const [selectedSupplements, setSelectedSupplements] = useState<
     SupplementId[]
   >(() => currentUser?.enabledSupplements || [SupplementId.TORMENTA20_CORE]);
