@@ -1,10 +1,9 @@
 import React from 'react';
-import { Box, Stack, useTheme } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { SEO, getPageSEO } from '../SEO';
 import '../../assets/css/landing-page-v2.css';
-import background from '../../assets/images/fantasybg.png';
 
 import HeroCarousel from './HeroCarousel';
 import SupportBanner from './SupportBanner';
@@ -24,8 +23,6 @@ interface LandingPageV2Props {
 const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
   const { isAuthenticated } = useAuth();
   const bestiaryEnabled = useFeatureAccess('bestiary').isEnabled;
-  const theme = useTheme();
-  const isDarkTheme = theme.palette.mode === 'dark';
 
   const homeSEO = getPageSEO('home');
 
@@ -60,28 +57,6 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
             boxSizing: 'border-box',
           }}
         >
-          {/* Fixed hero background */}
-          <Box
-            sx={{
-              backgroundImage: `linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0) 20%,
-            ${isDarkTheme ? '#212121' : '#f3f2f1'}
-          ), url(${background})`,
-              backgroundSize: 'cover',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: { xs: 'center top', sm: 'center center' },
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              width: '100%',
-              height: { xs: '35vh', sm: '40vh', md: '45vh' },
-              zIndex: 0,
-              pointerEvents: 'none',
-            }}
-          />
-
           {/* Two-column layout: main content (with hero on top) + tools sidebar */}
           <Box
             sx={{
@@ -111,42 +86,67 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
                 isAuthenticated={isAuthenticated}
               />
 
-              {/* Two-column inner grid: Continue+Blog (left) + Forum (right/center) */}
+              {/* Inner grid: desktop = Forum left + Continue/Blog right;
+                  mobile = Continue → Forum → Blog stacked */}
               <Box
                 sx={{
                   display: 'grid',
                   gridTemplateColumns: {
                     xs: 'minmax(0, 1fr)',
-                    md: 'minmax(0, 5fr) minmax(0, 7fr)',
+                    md: 'minmax(0, 7fr) minmax(0, 5fr)',
                   },
-                  gap: { xs: 3, md: 3 },
+                  gap: 3,
                   alignItems: 'start',
                 }}
               >
-                {/* Left inner column: continue jogando + blog */}
-                <Stack spacing={{ xs: 3, md: 4 }} sx={{ minWidth: 0 }}>
-                  <Box className='landing-section'>
-                    <ContinueJourneySection
-                      onClickButton={onClickButton}
-                      isAuthenticated={isAuthenticated}
-                    />
-                  </Box>
-                  <Box className='landing-section'>
-                    <BlogHighlights
-                      onClickButton={onClickButton}
-                      posts={blogPosts}
-                      loading={highlightsLoading}
-                    />
-                  </Box>
-                </Stack>
+                {/* Continue jogando — desktop: col 2 row 1; mobile: 1st */}
+                <Box
+                  className='landing-section'
+                  sx={{
+                    minWidth: 0,
+                    order: { xs: 1, md: 0 },
+                    gridColumn: { md: '2' },
+                    gridRow: { md: '1' },
+                  }}
+                >
+                  <ContinueJourneySection
+                    onClickButton={onClickButton}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </Box>
 
-                {/* Right (center) inner column: forum activity — main focus */}
-                <Box className='landing-section'>
+                {/* Forum activity — desktop: col 1 spans 2 rows; mobile: 2nd */}
+                <Box
+                  className='landing-section'
+                  sx={{
+                    minWidth: 0,
+                    order: { xs: 2, md: 0 },
+                    gridColumn: { md: '1' },
+                    gridRow: { md: '1 / span 2' },
+                  }}
+                >
                   <ForumActivity
                     onClickButton={onClickButton}
                     threads={forumThreads}
                     loading={highlightsLoading}
                     isAuthenticated={isAuthenticated}
+                  />
+                </Box>
+
+                {/* Blog highlights — desktop: col 2 row 2; mobile: 3rd */}
+                <Box
+                  className='landing-section'
+                  sx={{
+                    minWidth: 0,
+                    order: { xs: 3, md: 0 },
+                    gridColumn: { md: '2' },
+                    gridRow: { md: '2' },
+                  }}
+                >
+                  <BlogHighlights
+                    onClickButton={onClickButton}
+                    posts={blogPosts}
+                    loading={highlightsLoading}
                   />
                 </Box>
               </Box>

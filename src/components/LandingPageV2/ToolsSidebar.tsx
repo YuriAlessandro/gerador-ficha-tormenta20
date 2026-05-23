@@ -12,8 +12,12 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ArchitectureIcon from '@mui/icons-material/Architecture';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import ConstructionIcon from '@mui/icons-material/Construction';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
+
+const ADMIN_EMAIL = 'yuri.alessandro.m@gmail.com';
 
 interface ToolsSidebarProps {
   onClickButton: (link: string) => void;
@@ -41,6 +45,9 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { openLoginModal } = useAuthContext();
+  const { user, isEditor } = useAuth();
+  const isAdmin = user?.email === ADMIN_EMAIL;
+  const canCreateBlogPost = isAdmin || isEditor;
 
   const openExternal = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -72,6 +79,21 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
   };
 
   const groups: ToolGroup[] = [
+    ...(canCreateBlogPost
+      ? [
+          {
+            title: 'Editor',
+            items: [
+              {
+                key: 'new-blog-post',
+                title: 'Novo Post',
+                icon: <EditNoteIcon />,
+                onClick: () => onClickButton('/blog/novo'),
+              },
+            ],
+          },
+        ]
+      : []),
     {
       title: 'Personagens',
       items: [
