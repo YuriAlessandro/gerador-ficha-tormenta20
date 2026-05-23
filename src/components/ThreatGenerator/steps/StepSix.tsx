@@ -131,6 +131,7 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
 
   const attributes = threat.attributes || ({} as ThreatAttributes);
   const skills = threat.skills || [];
+  const RESISTANCE_SKILL_NAMES = ['Fortitude', 'Reflexos', 'Vontade'];
 
   return (
     <Box p={3}>
@@ -294,26 +295,34 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {skills
-                  .filter(
-                    (skill) =>
-                      !['Vontade', 'Fortitude', 'Reflexos'].includes(skill.name)
-                  )
-                  .map((skill) => (
+                {skills.map((skill) => {
+                  const isResistance = RESISTANCE_SKILL_NAMES.includes(
+                    skill.name
+                  );
+                  return (
                     <TableRow key={skill.name}>
                       <TableCell>{skill.name}</TableCell>
                       <TableCell align='center'>{skill.attribute}</TableCell>
                       <TableCell align='center'>
-                        <Checkbox
-                          checked={skill.trained}
-                          onChange={(e) =>
-                            handleSkillTrainingChange(
-                              skill.name,
-                              e.target.checked
-                            )
-                          }
-                          size='small'
-                        />
+                        {isResistance ? (
+                          <Checkbox
+                            checked={false}
+                            disabled
+                            size='small'
+                            title='Resistências usam o valor da tabela de combate (atribuição Forte/Média/Fraca). Use o campo Total para sobrescrever.'
+                          />
+                        ) : (
+                          <Checkbox
+                            checked={skill.trained}
+                            onChange={(e) =>
+                              handleSkillTrainingChange(
+                                skill.name,
+                                e.target.checked
+                              )
+                            }
+                            size='small'
+                          />
+                        )}
                       </TableCell>
                       <TableCell align='center'>
                         <TextField
@@ -349,7 +358,8 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
                         />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
@@ -365,6 +375,11 @@ const StepSix: React.FC<StepSixProps> = ({ threat, onUpdate }) => {
             <br />
             <strong>Bônus de Treinamento:</strong> +2 (ND 1-6), +4 (ND 7-14), +6
             (ND 15+)
+            <br />
+            <strong>Resistências (Fortitude, Reflexos, Vontade):</strong> o
+            valor pré-preenchido vem da atribuição Forte/Média/Fraca feita na
+            etapa de Resistências. Treinamento não se aplica — use o campo Total
+            para sobrescrever quando precisar.
             <br />
             <strong>Sobrescrita:</strong> Insira um valor no campo
             &quot;Total&quot; para sobrescrever o cálculo automático. Limpe o

@@ -426,29 +426,27 @@ const ThreatResult: React.FC<ThreatResultProps> = ({
     getTierByChallengeLevel(threat.challengeLevel)
   );
 
-  // Get numeric resistance value
-  const getResistanceNumeric = (type: string) =>
-    getResistanceSave(type as ResistanceType, threat.combatStats);
-
-  // Format resistance values
-  const getResistanceValue = (type: string) => {
-    const resistanceValue = getResistanceNumeric(type);
-    return resistanceValue > 0 ? `+${resistanceValue}` : `${resistanceValue}`;
+  // Fonte de verdade dos saves: a skill correspondente em threat.skills
+  // (já inclui override do usuário via getEffectiveSkillTotal). Fallback para
+  // a tabela de combate em dados antigos onde a skill ainda não foi materializada.
+  const getResistanceTotal = (
+    name: 'Fortitude' | 'Reflexos' | 'Vontade'
+  ): number => {
+    const skill = threat.skills.find((s) => s.name === name);
+    if (skill) return getEffectiveSkillTotal(skill);
+    const type = threat.resistanceAssignments[name];
+    return getResistanceSave(type as ResistanceType, threat.combatStats);
   };
 
-  // Get resistance assignments (numeric and formatted)
-  const fortResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Fortitude
-  );
-  const refResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Reflexos
-  );
-  const vonResistNum = getResistanceNumeric(
-    threat.resistanceAssignments.Vontade
-  );
-  const fortResist = getResistanceValue(threat.resistanceAssignments.Fortitude);
-  const refResist = getResistanceValue(threat.resistanceAssignments.Reflexos);
-  const wonResist = getResistanceValue(threat.resistanceAssignments.Vontade);
+  const formatResistance = (value: number) =>
+    value > 0 ? `+${value}` : `${value}`;
+
+  const fortResistNum = getResistanceTotal('Fortitude');
+  const refResistNum = getResistanceTotal('Reflexos');
+  const vonResistNum = getResistanceTotal('Vontade');
+  const fortResist = formatResistance(fortResistNum);
+  const refResist = formatResistance(refResistNum);
+  const wonResist = formatResistance(vonResistNum);
 
   // Get initiative and perception values
   const initiativeSkill = threat.skills.find((s) => s.name === 'Iniciativa');

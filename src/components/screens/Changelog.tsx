@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            19/05/2026 (v4.16).
+            22/05/2026 (v4.17).
           </p>
 
           <p>
@@ -69,6 +69,175 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.17</h3>
+
+              <ul>
+                <li>
+                  <li>
+                    <strong>
+                      Novo: efeitos customizados em poderes (Apoiador).
+                    </strong>{' '}
+                    Cada poder expandido na sua ficha tem um botão de{' '}
+                    <strong>Configurações</strong> (ícone de engrenagem) que
+                    agora abre um diálogo com duas abas:{' '}
+                    <strong>Rolagens</strong> (como antes) e{' '}
+                    <strong>Efeitos</strong>. Na nova aba você cria{' '}
+                    <strong>efeitos com múltiplos tiers</strong> — cada tier com
+                    seu próprio custo de PM e seus bônus mecânicos. Os bônus
+                    cobrem praticamente tudo: atributos, ataque (geral, corpo a
+                    corpo ou à distância), dano de arma, defesa, deslocamento,
+                    perícias, PV/PM, iniciativa, testes de resistência
+                    (Fortitude/Reflexos/Vontade ou todos), CD de magias, redução
+                    de dano por tipo e margem/multiplicador de crítico. Os
+                    efeitos criados aparecem no gerenciador de{' '}
+                    <strong>Efeitos Ativos</strong> com a etiqueta{' '}
+                    <strong>Customizado</strong> e podem ser
+                    ativados/desativados como qualquer outro efeito. Poderes que
+                    já têm efeito ativo pronto no sistema (como Inspiração do
+                    Bardo) mostram o efeito embutido em modo somente-leitura na
+                    aba.
+                  </li>
+                  <strong>Efeitos de poderes e magias.</strong> Esta versão
+                  trouxe um pacote de novidades e ajustes no motor de efeitos
+                  ativos:
+                  <ul>
+                    <li>
+                      <strong>
+                        Novo: Encouraçado vira efeito ativo togável na ficha.
+                      </strong>{' '}
+                      O poder geral <strong>Encouraçado</strong> agora pode ser
+                      ativado direto pelo cabeçalho, aplicando o bônus na Defesa{' '}
+                      <strong>com escala dinâmica</strong>: +2 de base e +2
+                      adicional para cada poder dependente que você possua
+                      (Inexpugnável, Fanático, Catafractário, Encastelado). Se
+                      você não estiver com armadura pesada equipada, um aviso
+                      discreto aparece no diálogo — sem bloquear a ativação.
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: tier &quot;Customizado&quot; em magias com
+                        aprimoramento escalável.
+                      </strong>{' '}
+                      Magias como <strong>Armadura Arcana</strong> agora
+                      oferecem, além dos valores comuns, um tier{' '}
+                      <strong>Customizado</strong> com botões +/- para você
+                      ajustar o bônus quando aprimorou além do teto modelado
+                      (por exemplo, +13 na Defesa com 8 aprimoramentos).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: três magias passam a oferecer efeito ativo.
+                      </strong>{' '}
+                      <strong>Aviso</strong> (+5 no próximo teste de Iniciativa
+                      e em Percepção, opção &quot;Alerta&quot;),{' '}
+                      <strong>Maaais Klunc</strong> (+10 em Força com cascata
+                      para perícias de Força e dano corpo a corpo) e{' '}
+                      <strong>Mente Divina</strong> (8 tiers cobrindo a base e
+                      todos os aprimoramentos para +2/+4 em um atributo mental
+                      escolhido ou nos três).
+                    </li>
+                    <li>
+                      <strong>
+                        Novo: aba &quot;Adicionar&quot; no gerenciador de
+                        efeitos ativos.
+                      </strong>{' '}
+                      Agora dá para incluir manualmente qualquer efeito de poder
+                      ou magia do compêndio na sua ficha — sem pagar PM e sem
+                      notificar aliados da mesa. Útil para narrar buffs do
+                      mestre ou para jogo solo. Há uma busca embutida e um aviso
+                      esclarecendo que pré-requisitos não são validados nesse
+                      modo.
+                    </li>
+                    <li>
+                      <strong>
+                        Melhoria: bônus de atributo em efeitos ativos finalmente
+                        aplicam de verdade.
+                      </strong>{' '}
+                      Boosts como o <strong>+2 Força</strong> do Banquete
+                      Selvagem do Druida, o <strong>+4 em atributo</strong> da
+                      Força da Natureza, o <strong>+1/+2 Força</strong> do
+                      Crescimento Feérico (qareen) e o{' '}
+                      <strong>+2 Carisma</strong> da Aparência Perfeita — antes
+                      silenciosamente ignorados pelo motor — agora cascateiam
+                      corretamente para todas as <strong>perícias</strong>{' '}
+                      derivadas do atributo (incluindo Luta/Pontaria, Iniciativa
+                      e resistências). Boosts de Força também somam no dano
+                      corpo a corpo; boosts de Destreza, na Defesa.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Novo: página inicial redesenhada.</strong> A gente
+                  estará continuamente tentando melhorar a qualidade da home
+                  para refletir novas ferramentas, os conteúdos dinâmicos da
+                  comunidade e muito mais. Para isso, vamos tentar algums
+                  soluções um pouco. Nada é permanente, vamos nos adaptando e
+                  melhorando.
+                </li>
+                <li>
+                  <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
+                  Apoiadores que ainda não experimentaram a{' '}
+                  <strong>cor de destaque personalizada</strong> ou os{' '}
+                  <strong>dados 3D</strong> agora recebem um lembrete discreto,
+                  no máximo uma vez por semana, com um atalho que abre direto a
+                  aba <strong>Sistema</strong> do perfil. Quem já personalizou
+                  tudo nunca vê o aviso, e há um botão{' '}
+                  <strong>&quot;Não mostrar mais&quot;</strong> para desativar
+                  permanentemente.
+                </li>
+                <li>
+                  <strong>
+                    Novo: publicação anônima por padrão no Bestiário da
+                    Comunidade.
+                  </strong>{' '}
+                  Suas ameaças publicadas agora aparecem como{' '}
+                  <strong>&quot;por Anônimo&quot;</strong> para outros usuários,
+                  protegendo mestres que não querem revelar a autoria e spoilear
+                  os próprios jogadores. Quem preferir aparecer pode desativar a
+                  opção em <strong>Perfil → Sistema</strong>, na nova seção{' '}
+                  <strong>Privacidade</strong>. A página de publicação também
+                  avisa quando você está publicando anonimamente, com atalho
+                  para as configurações.
+                </li>
+                <li>
+                  <strong>
+                    Correção: Fortitude, Reflexos e Vontade agora podem ser
+                    editadas no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes, essas três perícias ficavam travadas com o valor
+                  derivado da atribuição <strong>Forte/Média/Fraca</strong> e
+                  não dava para sobrescrever. Agora elas aparecem na mesma
+                  tabela das demais perícias em{' '}
+                  <strong>Configurar Perícias</strong>, já pré-preenchidas com o
+                  valor calculado da tabela de combate — basta digitar um novo
+                  número no campo <strong>Total</strong> para sobrescrever. O
+                  valor editado se reflete no statblock, na rolagem de dados e
+                  no export para o Foundry VTT. A checkbox{' '}
+                  <strong>Treinada</strong> fica desabilitada nessas três
+                  (treinamento não se aplica a resistências).
+                </li>
+                <li>
+                  <strong>
+                    Correção: aba &quot;Sistema&quot; do Perfil voltava sozinha
+                    para &quot;Perfil&quot;.
+                  </strong>{' '}
+                  Toda vez que você alterava uma configuração na aba{' '}
+                  <strong>Sistema</strong> (tema, cor de destaque, dados 3D,
+                  privacidade do Bestiário, suplementos), a página piscava o
+                  loader de carregamento e voltava para a aba{' '}
+                  <strong>Perfil</strong>. Agora cada alteração salva sem
+                  remontar a página — você fica exatamente onde estava.
+                </li>
+                <li>
+                  <strong>
+                    Correção: resistências infladas de ameaças na mesa virtual.
+                  </strong>{' '}
+                  Em algumas ameaças importadas para a mesa virtual, valores de
+                  Fortitude/Reflexos/Vontade apareciam somados em duplicado.
+                  Cálculo corrigido.
+                </li>
+              </ul>
+
               <h3>4.16</h3>
 
               <Alert

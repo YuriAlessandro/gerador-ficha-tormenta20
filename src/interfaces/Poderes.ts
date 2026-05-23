@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 // eslint-disable-next-line
 import CharacterSheet, {
@@ -52,6 +53,7 @@ export interface GeneralPower {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
 }
 
 export type GeneralPowers = {
@@ -65,6 +67,7 @@ export type OriginPower = {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
 };
 
 export type PowerGetter = (sheet: CharacterSheet, subSteps: SubStep[]) => void;

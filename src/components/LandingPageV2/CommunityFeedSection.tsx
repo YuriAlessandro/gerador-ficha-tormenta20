@@ -165,6 +165,7 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
   const isDark = theme.palette.mode === 'dark';
   const { user } = useAuth();
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const canCreateBlogPost = isAdmin || user?.isEditor === true;
 
   const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -474,7 +475,7 @@ const CommunityFeedSection: React.FC<CommunityFeedSectionProps> = ({
           </ListItemIcon>
           <ListItemText>Nova Build</ListItemText>
         </MenuItem>
-        {isAdmin && (
+        {canCreateBlogPost && (
           <MenuItem onClick={() => handleMenuClick('/blog/novo')}>
             <ListItemIcon>
               <ArticleIcon fontSize='small' />

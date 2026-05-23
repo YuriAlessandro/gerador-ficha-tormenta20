@@ -1,3 +1,4 @@
+import type { CustomEffect } from '../premium/interfaces/CustomEffect';
 import { Atributo } from '../data/systems/tormenta20/atributos';
 import { SheetBonus, SheetAction } from './CharacterSheet';
 import { DiceRoll } from './DiceRoll';
@@ -59,6 +60,7 @@ export type ClassAbility = {
   sheetActions?: SheetAction[];
   sheetBonuses?: SheetBonus[];
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
 };
 
 export type ClassPower = {
@@ -70,6 +72,7 @@ export type ClassPower = {
   sheetBonuses?: SheetBonus[];
   canRepeat?: boolean;
   rolls?: DiceRoll[]; // Rolagens customizadas pelo usuário
+  customEffects?: CustomEffect[]; // Efeitos customizados pelo usuário
   supplementId?: SupplementId; // Suplemento de origem do poder
   supplementName?: string; // Nome do suplemento de origem
   className?: string; // Multiclasse: qual classe concedeu este poder
