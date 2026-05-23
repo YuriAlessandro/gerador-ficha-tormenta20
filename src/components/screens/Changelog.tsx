@@ -73,6 +73,23 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>
+                    Correção: Fortitude, Reflexos e Vontade agora podem ser
+                    editadas no Gerador de Ameaças.
+                  </strong>{' '}
+                  Antes, essas três perícias ficavam travadas com o valor
+                  derivado da atribuição <strong>Forte/Média/Fraca</strong> e
+                  não dava para sobrescrever. Agora elas aparecem na mesma
+                  tabela das demais perícias em{' '}
+                  <strong>Configurar Perícias</strong>, já pré-preenchidas com o
+                  valor calculado da tabela de combate — basta digitar um novo
+                  número no campo <strong>Total</strong> para sobrescrever. O
+                  valor editado se reflete no statblock, na rolagem de dados e
+                  no export para o Foundry VTT. A checkbox{' '}
+                  <strong>Treinada</strong> fica desabilitada nessas três
+                  (treinamento não se aplica a resistências).
+                </li>
+                <li>
                   <strong>Novo: lembrete dos cosméticos de apoiador.</strong>{' '}
                   Apoiadores que ainda não experimentaram a{' '}
                   <strong>cor de destaque personalizada</strong> ou os{' '}
