@@ -97,8 +97,8 @@ const LandingPageV2: React.FC<LandingPageV2Props> = ({ onClickButton }) => {
               display: 'grid',
               gridTemplateColumns: {
                 xs: 'minmax(0, 1fr)',
-                md: 'minmax(0, 1fr) 280px',
-                lg: 'minmax(0, 1fr) 320px',
+                md: 'minmax(0, 1fr) 320px',
+                lg: 'minmax(0, 1fr) 360px',
               },
               gap: { xs: 2, md: 3 },
               alignItems: 'start',

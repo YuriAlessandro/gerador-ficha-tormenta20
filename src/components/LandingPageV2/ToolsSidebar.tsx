@@ -237,8 +237,11 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 1,
+                gridTemplateColumns: {
+                  xs: 'repeat(2, 1fr)',
+                  md: 'repeat(3, 1fr)',
+                },
+                gap: { xs: 1.25, md: 0.75 },
               }}
             >
               {group.items.map((item) => (
@@ -250,13 +253,13 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
                     color: getItemColor(item.isPrimary),
                     border: `1px solid ${getItemBorderColor(item.isPrimary)}`,
                     borderRadius: 1.5,
-                    p: 1.25,
+                    p: { xs: 1.5, md: 1 },
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
-                    gap: 0.5,
-                    minHeight: 72,
+                    gap: { xs: 0.75, md: 0.5 },
+                    minHeight: { xs: 96, md: 76 },
                     position: 'relative',
                     transition: 'all 0.18s ease',
                     '&:hover': {
@@ -281,7 +284,7 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
                   )}
                   <Box
                     sx={{
-                      fontSize: 20,
+                      fontSize: { xs: 26, md: 20 },
                       color: item.isPrimary
                         ? 'rgba(255,255,255,0.95)'
                         : theme.palette.primary.main,
@@ -293,7 +296,7 @@ const ToolsSidebar: React.FC<ToolsSidebarProps> = ({
                   <Typography
                     variant='caption'
                     sx={{
-                      fontSize: '0.75rem',
+                      fontSize: { xs: '0.85rem', md: '0.7rem' },
                       fontWeight: 600,
                       lineHeight: 1.2,
                       display: '-webkit-box',
