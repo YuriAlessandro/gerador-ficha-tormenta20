@@ -73,6 +73,30 @@ const Changelog: React.FC = () => {
 
               <ul>
                 <li>
+                  <strong>Novo: página inicial redesenhada.</strong> A home
+                  ganhou um layout em duas colunas com{' '}
+                  <strong>destaques da comunidade</strong> (últimos posts do
+                  blog, atividade do fórum, builds públicas recentes), uma seção{' '}
+                  <strong>Continue sua jornada</strong> com seus personagens e
+                  mesas, um <strong>banner de sessão ativa</strong> avisando
+                  quando você tem uma mesa rolando, e uma{' '}
+                  <strong>barra lateral de ferramentas</strong> sempre à mão. O
+                  carrossel principal ficou mais compacto pra dar protagonismo
+                  ao conteúdo abaixo.
+                </li>
+                <li>
+                  <strong>
+                    Correção: aba &quot;Sistema&quot; do Perfil voltava sozinha
+                    para &quot;Perfil&quot;.
+                  </strong>{' '}
+                  Toda vez que você alterava uma configuração na aba{' '}
+                  <strong>Sistema</strong> (tema, cor de destaque, dados 3D,
+                  privacidade do Bestiário, suplementos), a página piscava o
+                  loader de carregamento e voltava para a aba{' '}
+                  <strong>Perfil</strong>. Agora cada alteração salva sem
+                  remontar a página — você fica exatamente onde estava.
+                </li>
+                <li>
                   <strong>
                     Novo: Encouraçado vira efeito ativo togável na ficha.
                   </strong>{' '}
