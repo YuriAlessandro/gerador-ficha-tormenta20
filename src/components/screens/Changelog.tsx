@@ -74,17 +74,28 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
-                    Correção: app PWA forçava modo retrato mesmo com a tela
+                    Novo: botão de <em>subir nível</em> direto no topo da ficha.
+                  </strong>{' '}
+                  Antes era preciso abrir o drawer de edição de informações da
+                  ficha para subir de nível. Agora, ao lado do botão de{' '}
+                  <strong>editar</strong> no card de informações do personagem,
+                  apareceu um novo botão (ícone de seta com linha apontando pra
+                  cima) que abre o <strong>assistente de progressão</strong>{' '}
+                  direto — um clique a menos pra avançar seu personagem. O botão
+                  fica desabilitado quando você já está no{' '}
+                  <strong>nível 20</strong>.
+                </li>
+                <li>
+                  <strong>
+                    Correção: app forçava modo retrato mesmo com a tela
                     desbloqueada.
                   </strong>{' '}
-                  Mesmo com a rotação do celular liberada, o app instalado como{' '}
-                  <strong>PWA</strong> abria sempre em <strong>retrato</strong>{' '}
-                  — péssimo pra quem está deitado segurando o telefone deitado.
-                  Agora o app respeita o <strong>lock de orientação</strong> do
-                  próprio aparelho: se você travou em landscape, fica em
-                  landscape; se está livre, gira normalmente. (No iPhone o
-                  comportamento não muda — o iOS ignora essa configuração para
-                  PWAs.)
+                  Mesmo com a rotação do celular liberada, o app instalado abria
+                  sempre em <strong>retrato</strong> — péssimo pra quem está
+                  deitado segurando o telefone deitado. Agora o app respeita o{' '}
+                  <strong>lock de orientação</strong> do próprio aparelho: se
+                  você travou em landscape, fica em landscape; se está livre,
+                  gira normalmente.
                 </li>
                 <li>
                   <strong>
