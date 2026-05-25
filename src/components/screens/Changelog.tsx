@@ -74,6 +74,20 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: app PWA forçava modo retrato mesmo com a tela
+                    desbloqueada.
+                  </strong>{' '}
+                  Mesmo com a rotação do celular liberada, o app instalado como{' '}
+                  <strong>PWA</strong> abria sempre em <strong>retrato</strong>{' '}
+                  — péssimo pra quem está deitado segurando o telefone deitado.
+                  Agora o app respeita o <strong>lock de orientação</strong> do
+                  próprio aparelho: se você travou em landscape, fica em
+                  landscape; se está livre, gira normalmente. (No iPhone o
+                  comportamento não muda — o iOS ignora essa configuração para
+                  PWAs.)
+                </li>
+                <li>
+                  <strong>
                     Novo: mestre pode abrir a ficha de qualquer jogador direto
                     da tela da mesa.
                   </strong>{' '}
