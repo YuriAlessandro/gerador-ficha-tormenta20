@@ -21,7 +21,6 @@ const STRIPPED_MARKER = '__stripped__';
  * - devoto.divindade.poderes: Full catalog of ALL deity powers (~62KB).
  *   The character's CHOSEN deity powers are in `devoto.poderes`.
  *   recalculateSheet only reads `devoto.poderes`, not the catalog.
- * - steps: UI walkthrough data.
  * - sheetActionHistory: CANNOT be stripped - recalculateSheet depends on it
  *   via isActionAlreadyApplied() to skip already-applied power actions.
  *
@@ -32,6 +31,9 @@ const STRIPPED_MARKER = '__stripped__';
  *   Contains sheetBonuses (e.g., Anão +PV, Osteon RD) and sheetActions (e.g., Humano Versátil).
  * - sheetBonuses: The computed total of all bonuses. Cleared and rebuilt by recalculateSheet.
  * - classPowers, generalPowers, spells, bag, origin: All essential gameplay data.
+ * - steps: Feeds the "Passo-a-passo da Criação" UI section. Captures wizard
+ *   decisions (chosen base attributes, market purchases, skill picks) that
+ *   aren't derivable from any other field — once dropped, they're lost forever.
  */
 export function stripSheetForStorage(
   sheet: CharacterSheet
@@ -136,9 +138,6 @@ export function stripSheetForStorage(
       },
     };
   }
-
-  // Strip steps (purely UI walkthrough data, not needed for display or editing)
-  stripped.steps = [];
 
   // NOTE: sheetActionHistory is NOT stripped - recalculateSheet depends on it
   // via isActionAlreadyApplied() to know which power actions to skip.
