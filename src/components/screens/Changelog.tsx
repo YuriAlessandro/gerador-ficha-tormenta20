@@ -35,7 +35,7 @@ const Changelog: React.FC = () => {
           <h1 style={{ fontFamily: 'Tfont' }}>Changelog</h1>
           <p>
             Segue a lista de mudanças no projeto. Última atualização em
-            22/05/2026 (v4.17).
+            25/05/2026 (v4.18).
           </p>
 
           <p>
@@ -69,6 +69,33 @@ const Changelog: React.FC = () => {
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
+              <h3>4.18</h3>
+
+              <ul>
+                <li>
+                  <strong>
+                    Correção: bloco &quot;Suas mesas&quot; na home não mostrava
+                    suas mesas no primeiro carregamento.
+                  </strong>{' '}
+                  Mesmo participando de mesas, a home exibia o convite{' '}
+                  <strong>&quot;Crie sua primeira mesa&quot;</strong> e só
+                  passava a listar as mesas depois que você visitava{' '}
+                  <strong>Mesas Virtuais</strong> e voltava. Agora a home busca
+                  suas mesas automaticamente assim que você abre a página.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: home destaca apenas a mesa mais recente.
+                  </strong>{' '}
+                  O bloco <strong>Suas mesas</strong> agora mostra somente{' '}
+                  <strong>1 mesa</strong> (a mais recente da qual você
+                  participa) lado a lado com o botão{' '}
+                  <strong>+ Nova mesa</strong>. Os nomes deixam de aparecer
+                  truncados e a lista completa continua acessível pelo atalho{' '}
+                  <strong>Ver todas</strong>.
+                </li>
+              </ul>
+
               <h3>4.17</h3>
 
               <ul>
