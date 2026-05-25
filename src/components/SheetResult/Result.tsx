@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import EditIcon from '@mui/icons-material/Edit';
+import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -35,9 +36,13 @@ import { Atributo } from '@/data/systems/tormenta20/atributos';
 import { isHeavyArmor } from '@/data/systems/tormenta20/equipamentos';
 import { recalculateSheet } from '@/functions/recalculateSheet';
 import {
+  applyManualLevelUp,
   calculateCurrencySpaces,
   calculateMaxSpaces,
 } from '@/functions/general';
+import { useAuth } from '@/hooks/useAuth';
+import { SupplementId } from '@/types/supplement.types';
+import { LevelUpSelections } from '@/interfaces/WizardSelections';
 import {
   isMulticlass,
   getMulticlassDisplayName,
@@ -87,6 +92,7 @@ import type {
   ActiveEffectUsageOption,
   ActiveEffect,
 } from '@/premium/interfaces/ActiveEffect';
+import LevelUpWizardModal from '../LevelUpWizard/LevelUpWizardModal';
 import CharacterSheet, {
   DamageReduction,
 } from '../../interfaces/CharacterSheet';
@@ -212,9 +218,15 @@ const Result: React.FC<ResultProps> = (props) => {
     useState<ActivePowerDefinition | null>(null);
   const [cleanupOpen, setCleanupOpen] = useState(false);
   const [effectsModalOpen, setEffectsModalOpen] = useState(false);
+  const [levelUpWizardOpen, setLevelUpWizardOpen] = useState(false);
   const prevEncounterPhaseRef = React.useRef<string | null>(null);
 
   const theme = useTheme();
+  const { user } = useAuth();
+  const userSupplements = useMemo(
+    () => user?.enabledSupplements || [SupplementId.TORMENTA20_CORE],
+    [user?.enabledSupplements]
+  );
   const { isSupporter } = useSubscription();
   const conditionsFeature = useFeatureAccess('conditions');
   const activeEffectsFeature = useFeatureAccess('activeEffects');
@@ -517,6 +529,28 @@ const Result: React.FC<ResultProps> = (props) => {
       handleSheetInfoUpdate({ notes });
     },
     [handleSheetInfoUpdate]
+  );
+
+  const handleLevelUpConfirm = useCallback(
+    (levelUpSelections: LevelUpSelections[]) => {
+      setLevelUpWizardOpen(false);
+      let updatedSheet = currentSheet;
+      levelUpSelections.forEach((sel) => {
+        updatedSheet = applyManualLevelUp(updatedSheet, sel);
+      });
+      updatedSheet = recalculateSheet(updatedSheet);
+      if (updatedSheet.bag && !updatedSheet.bag.getEquipments) {
+        const plainBag = updatedSheet.bag as unknown as {
+          equipments: Record<string, unknown>;
+        };
+        updatedSheet.bag = new Bag(plainBag.equipments || {});
+      }
+      setCurrentSheet(updatedSheet);
+      if (onSheetUpdate) {
+        onSheetUpdate(updatedSheet);
+      }
+    },
+    [currentSheet, onSheetUpdate]
   );
 
   const handleSkillsUpdate = useCallback(
@@ -1565,23 +1599,62 @@ const Result: React.FC<ResultProps> = (props) => {
               }}
             >
               {onSheetUpdate && (
-                <IconButton
-                  size='small'
+                <Stack
+                  direction='row'
+                  spacing={1}
                   sx={{
                     position: 'absolute',
-                    top: -16, // Half the button height to position it on the edge
+                    top: -16,
                     right: 16,
-                    backgroundColor: theme.palette.primary.main,
-                    color: 'white',
-                    borderRadius: 1, // Makes it square with slightly rounded corners
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                    },
                   }}
-                  onClick={() => setSheetInfoDrawerOpen(true)}
                 >
-                  <EditIcon />
-                </IconButton>
+                  <Tooltip
+                    title={
+                      currentSheet.nivel >= 20
+                        ? 'Nível máximo atingido'
+                        : 'Subir nível'
+                    }
+                  >
+                    <span>
+                      <IconButton
+                        size='small'
+                        disabled={currentSheet.nivel >= 20}
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: 'white',
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                          '&.Mui-disabled': {
+                            backgroundColor:
+                              theme.palette.action.disabledBackground,
+                            color: theme.palette.action.disabled,
+                          },
+                        }}
+                        onClick={() => setLevelUpWizardOpen(true)}
+                      >
+                        <UpgradeIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title='Editar ficha'>
+                    <IconButton
+                      size='small'
+                      sx={{
+                        backgroundColor: theme.palette.primary.main,
+                        color: 'white',
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: theme.palette.primary.dark,
+                        },
+                      }}
+                      onClick={() => setSheetInfoDrawerOpen(true)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               )}
               <Stack
                 direction='row'
@@ -2730,6 +2803,15 @@ const Result: React.FC<ResultProps> = (props) => {
           onClose={() => setSheetInfoDrawerOpen(false)}
           sheet={currentSheet}
           onSave={handleSheetInfoUpdate}
+        />
+
+        <LevelUpWizardModal
+          open={levelUpWizardOpen}
+          initialSheet={currentSheet}
+          targetLevel={currentSheet.nivel + 1}
+          supplements={userSupplements}
+          onConfirm={handleLevelUpConfirm}
+          onCancel={() => setLevelUpWizardOpen(false)}
         />
 
         <SkillsEditDrawer
