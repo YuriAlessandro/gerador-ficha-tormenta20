@@ -14,7 +14,7 @@ interface VirtualTablesColumnProps {
   tables: GameTable[];
 }
 
-const MAX_TABLES = 2;
+const MAX_TABLES = 1;
 
 const statusLabel = (status: GameTableStatus): string => {
   switch (status) {
