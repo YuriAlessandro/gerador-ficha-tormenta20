@@ -74,6 +74,19 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Novo: mestre pode abrir a ficha de qualquer jogador direto
+                    da tela da mesa.
+                  </strong>{' '}
+                  Na tela de configurações da <strong>Mesa Virtual</strong>, o
+                  mestre agora pode clicar no <strong>nome do jogador</strong>{' '}
+                  (ou no nome da ficha vinculada logo abaixo) para abrir a ficha
+                  completa em um <strong>modal em tela cheia</strong>, somente
+                  leitura — sem precisar iniciar a sessão. Funciona tanto para
+                  fichas dos jogadores quanto para os personagens do próprio
+                  mestre.
+                </li>
+                <li>
+                  <strong>
                     Melhoria: aninhamento de comentários do fórum no celular.
                   </strong>{' '}
                   No celular, respostas profundas comprimiam tanto o espaço de
