@@ -74,6 +74,22 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Correção: &quot;Passo-a-passo da Criação&quot; aparecia
+                    vazio em fichas salvas na nuvem.
+                  </strong>{' '}
+                  Fichas geradas pelo Wizard manual (e também aleatórias) que
+                  passavam pela nuvem voltavam com a seção{' '}
+                  <strong>Passo-a-passo da Criação</strong> em branco, mesmo
+                  estando completas. O passo-a-passo era descartado no envio
+                  para o servidor e não tinha como ser reconstruído ao carregar
+                  de volta. Agora ele é preservado integralmente. Fichas novas
+                  (ou re-salvas após esta atualização) voltam a exibir todas as
+                  decisões da criação; fichas antigas que já estavam na nuvem
+                  com o passo-a-passo vazio continuam assim — basta recriá-las
+                  para recuperar o histórico.
+                </li>
+                <li>
+                  <strong>
                     Correção: bloco &quot;Suas mesas&quot; na home não mostrava
                     suas mesas no primeiro carregamento.
                   </strong>{' '}
