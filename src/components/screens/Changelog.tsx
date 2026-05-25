@@ -74,6 +74,39 @@ const Changelog: React.FC = () => {
               <ul>
                 <li>
                   <strong>
+                    Melhoria: aninhamento de comentários do fórum no celular.
+                  </strong>{' '}
+                  No celular, respostas profundas comprimiam tanto o espaço de
+                  leitura que o texto saía da tela. A indentação agora é leve e
+                  com limite de 3 níveis no celular (4 no desktop), e uma linha
+                  vertical sutil à esquerda continua mostrando claramente que o
+                  comentário é uma resposta aninhada — sem comer espaço útil.
+                </li>
+                <li>
+                  <strong>
+                    Melhoria: caixas de comentário do fórum crescem com o texto.
+                  </strong>{' '}
+                  Os campos de <strong>comentar</strong>,{' '}
+                  <strong>responder</strong> e <strong>editar</strong> no fórum
+                  começavam pequenos e ficavam apertados em textos longos. Agora
+                  a caixa <strong>se expande automaticamente</strong> conforme
+                  você digita (até 15 linhas) e só depois vira scroll interno.
+                </li>
+                <li>
+                  <strong>
+                    Novo: botão <em>@</em> embutido nas caixas de comentário
+                    para mencionar a enciclopédia.
+                  </strong>{' '}
+                  Você sempre pôde digitar <strong>@nome</strong> para mencionar
+                  classes, raças, poderes e outros itens da enciclopédia em
+                  comentários do fórum, mas quase ninguém sabia. Agora um botão{' '}
+                  <strong>@</strong> está embutido na própria caixa de
+                  comentário (estilo Slack) — basta clicar para inserir o{' '}
+                  <strong>@</strong> e começar a procurar o que você quer citar.
+                  Um lembrete discreto abaixo da caixa reforça o atalho.
+                </li>
+                <li>
+                  <strong>
                     Correção: &quot;Passo-a-passo da Criação&quot; aparecia
                     vazio em fichas salvas na nuvem.
                   </strong>{' '}
